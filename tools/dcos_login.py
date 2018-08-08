@@ -9,9 +9,9 @@ import urllib.request
 
 log = logging.getLogger(__name__)
 
-__CLI_LOGIN_OPEN_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9UQkVOakZFTWtWQ09VRTRPRVpGTlRNMFJrWXlRa015Tnprd1JrSkVRemRCTWpBM1FqYzVOZyJ9.eyJlbWFpbCI6ImFsYmVydEBiZWtzdGlsLm5ldCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc3MiOiJodHRwczovL2Rjb3MuYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA5OTY0NDk5MDExMTA4OTA1MDUwIiwiYXVkIjoiM3lGNVRPU3pkbEk0NVExeHNweHplb0dCZTlmTnhtOW0iLCJleHAiOjIwOTA4ODQ5NzQsImlhdCI6MTQ2MDE2NDk3NH0.OxcoJJp06L1z2_41_p65FriEGkPzwFB_0pA9ULCvwvzJ8pJXw9hLbmsx-23aY2f-ydwJ7LSibL9i5NbQSR2riJWTcW4N7tLLCCMeFXKEK4hErN2hyxz71Fl765EjQSO5KD1A-HsOPr3ZZPoGTBjE0-EFtmXkSlHb1T2zd0Z8T5Z2-q96WkFoT6PiEdbrDA-e47LKtRmqsddnPZnp0xmMQdTr2MjpVgvqG7TlRvxDcYc-62rkwQXDNSWsW61FcKfQ-TRIZSf2GS9F9esDF4b5tRtrXcBNaorYa9ql0XAWH5W_ct4ylRNl3vwkYKWa4cmPvOqT5Wlj9Tf0af4lNO40PQ'  # noqa
-__CLI_LOGIN_EE_USERNAME = 'bootstrapuser'
-__CLI_LOGIN_EE_PASSWORD = 'deleteme'
+__CLI_LOGIN_OPEN_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9UQkVOakZFTWtWQ09VRTRPRVpGTlRNMFJrWXlRa015Tnprd1JrSkVRemRCTWpBM1FqYzVOZyJ9.eyJlbWFpbCI6ImFsYmVydEBiZWtzdGlsLm5ldCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc3MiOiJodHRwczovL2Rjb3MuYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA5OTY0NDk5MDExMTA4OTA1MDUwIiwiYXVkIjoiM3lGNVRPU3pkbEk0NVExeHNweHplb0dCZTlmTnhtOW0iLCJleHAiOjIwOTA4ODQ5NzQsImlhdCI6MTQ2MDE2NDk3NH0.OxcoJJp06L1z2_41_p65FriEGkPzwFB_0pA9ULCvwvzJ8pJXw9hLbmsx-23aY2f-ydwJ7LSibL9i5NbQSR2riJWTcW4N7tLLCCMeFXKEK4hErN2hyxz71Fl765EjQSO5KD1A-HsOPr3ZZPoGTBjE0-EFtmXkSlHb1T2zd0Z8T5Z2-q96WkFoT6PiEdbrDA-e47LKtRmqsddnPZnp0xmMQdTr2MjpVgvqG7TlRvxDcYc-62rkwQXDNSWsW61FcKfQ-TRIZSf2GS9F9esDF4b5tRtrXcBNaorYa9ql0XAWH5W_ct4ylRNl3vwkYKWa4cmPvOqT5Wlj9Tf0af4lNO40PQ"  # noqa
+__CLI_LOGIN_EE_USERNAME = "bootstrapuser"
+__CLI_LOGIN_EE_PASSWORD = "deleteme"
 
 __REQUEST_ATTEMPTS = 5
 __REQUEST_ATTEMPT_SLEEP_SECONDS = 2
@@ -105,7 +105,7 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
 
 
 def _netloc(url: str):
-    return url.split('-1')[-1]
+    return url.split("-1")[-1]
 
 
 def attach_cluster(cluster_id: str) -> None:
@@ -182,9 +182,9 @@ def login_session() -> None:
     DCOS_ENTERPRISE: determine how to authenticate (defaults to false)
     DCOS_ACS_TOKEN: bypass auth and use the user supplied token
     """
-    cluster_url = os.environ.get('CLUSTER_URL')
+    cluster_url = os.environ.get("CLUSTER_URL")
     if not cluster_url:
-        raise Exception('Must have CLUSTER_URL set in environment!')
+        raise Exception("Must have CLUSTER_URL set in environment!")
 
     def ignore_empty(envvar, default):
         # Ignore the user passing in empty ENVVARs.
@@ -194,16 +194,17 @@ def login_session() -> None:
 
         return value
 
-    dcos_login_username = ignore_empty('DCOS_LOGIN_USERNAME', __CLI_LOGIN_EE_USERNAME)
-    dcos_login_password = ignore_empty('DCOS_LOGIN_PASSWORD', __CLI_LOGIN_EE_PASSWORD)
-    dcos_enterprise = ignore_empty('DCOS_ENTERPRISE', 'true').lower() == 'true'
-    dcos_acs_token = os.environ.get('DCOS_ACS_TOKEN')
+    dcos_login_username = ignore_empty("DCOS_LOGIN_USERNAME", __CLI_LOGIN_EE_USERNAME)
+    dcos_login_password = ignore_empty("DCOS_LOGIN_PASSWORD", __CLI_LOGIN_EE_PASSWORD)
+    dcos_enterprise = ignore_empty("DCOS_ENTERPRISE", "true").lower() == "true"
+    dcos_acs_token = os.environ.get("DCOS_ACS_TOKEN")
     if not dcos_acs_token:
         dcos_acs_token = login(
             dcosurl=cluster_url,
             username=dcos_login_username,
             password=dcos_login_password,
-            is_enterprise=dcos_enterprise)
+            is_enterprise=dcos_enterprise,
+        )
     configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
 
 

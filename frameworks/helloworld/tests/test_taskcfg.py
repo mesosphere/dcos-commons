@@ -10,7 +10,7 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -32,8 +32,8 @@ def test_deploy():
     wait_time = 30
     # taskcfg.yml will initially fail to deploy because several options are missing in the default
     # sdk_marathon.json.mustache. verify that the tasks are failing before continuing.
-    task_name = 'hello-0-server'
-    log.info('Checking that {} is failing to launch within {}s'.format(task_name, wait_time))
+    task_name = "hello-0-server"
+    log.info("Checking that {} is failing to launch within {}s".format(task_name, wait_time))
 
     original_state_history = _get_state_history(task_name)
 
@@ -54,10 +54,10 @@ def test_deploy():
 
     # add the needed envvars in marathon and confirm that the deployment succeeds:
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    env = marathon_config['env']
-    del env['SLEEP_DURATION']
-    env['TASKCFG_ALL_OUTPUT_FILENAME'] = 'output'
-    env['TASKCFG_ALL_SLEEP_DURATION'] = '1000'
+    env = marathon_config["env"]
+    del env["SLEEP_DURATION"]
+    env["TASKCFG_ALL_OUTPUT_FILENAME"] = "output"
+    env["TASKCFG_ALL_SLEEP_DURATION"] = "1000"
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
 
     config.check_running()

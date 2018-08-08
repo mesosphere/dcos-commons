@@ -12,14 +12,14 @@ import sdk_utils
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'elastic'
-SERVICE_NAME = 'elastic'
+PACKAGE_NAME = "elastic"
+SERVICE_NAME = "elastic"
 
-KIBANA_PACKAGE_NAME = 'kibana'
-KIBANA_SERVICE_NAME = 'kibana'
+KIBANA_PACKAGE_NAME = "kibana"
+KIBANA_SERVICE_NAME = "kibana"
 KIBANA_DEFAULT_TIMEOUT = 30 * 60
 
-XPACK_PLUGIN_NAME = 'x-pack'
+XPACK_PLUGIN_NAME = "x-pack"
 
 # sum of default pod counts, with one task each:
 # - master: 3
@@ -34,13 +34,17 @@ DEFAULT_TASK_COUNT = 6
 #         * count by type, ie [{'ingest':1},{'data':3},...]
 
 DEFAULT_TIMEOUT = 30 * 60
-DEFAULT_INDEX_NAME = 'customer'
-DEFAULT_INDEX_TYPE = 'entry'
+DEFAULT_INDEX_NAME = "customer"
+DEFAULT_INDEX_TYPE = "entry"
 
 ENDPOINT_TYPES = (
-    'coordinator-http', 'coordinator-transport',
-    'data-http', 'data-transport',
-    'master-http', 'master-transport')
+    "coordinator-http",
+    "coordinator-transport",
+    "data-http",
+    "data-transport",
+    "master-http",
+    "master-transport",
+)
 # TODO: similar to DEFAULT_TASK_COUNT, whether or not ingest-http is present is dependent upon
 # options.
 #    'ingest-http', 'ingest-transport',
@@ -51,12 +55,14 @@ DEFAULT_SETTINGS_MAPPINGS = {
     "settings": {
         "index.unassigned.node_left.delayed_timeout": "0",
         "number_of_shards": DEFAULT_NUMBER_OF_SHARDS,
-        "number_of_replicas": DEFAULT_NUMBER_OF_REPLICAS},
+        "number_of_replicas": DEFAULT_NUMBER_OF_REPLICAS,
+    },
     "mappings": {
         DEFAULT_INDEX_TYPE: {
-            "properties": {
-                "name": {"type": "keyword"},
-                "role": {"type": "keyword"}}}}}
+            "properties": {"name": {"type": "keyword"}, "role": {"type": "keyword"}}
+        }
+    },
+}
 
 
 @retrying.retry(
@@ -88,8 +94,14 @@ def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
     if not result:
         return False
     expected_setting = 3
-    setting = result["defaults"]["cluster"]["routing"]["allocation"]["node_initial_primaries_recoveries"]
-    log.info('check_custom_elasticsearch_cluster_setting expected {} and got {}'.format(expected_setting, setting))
+    setting = result["defaults"]["cluster"]["routing"]["allocation"][
+        "node_initial_primaries_recoveries"
+    ]
+    log.info(
+        "check_custom_elasticsearch_cluster_setting expected {} and got {}".format(
+            expected_setting, setting
+        )
+    )
     return expected_setting == int(setting)
 
 
@@ -103,7 +115,7 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
         log.warning("Missing 'number_of_nodes' key in cluster health response: {}".format(result))
         return False
     node_count = result["number_of_nodes"]
-    log.info('Waiting for {} healthy nodes, got {}'.format(task_count, node_count))
+    log.info("Waiting for {} healthy nodes, got {}".format(task_count, node_count))
     return node_count == task_count
 
 
@@ -119,7 +131,9 @@ def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     # TODO(mpereira): improve this by making task environment variables
     # available in task_exec commands on 1.9.
     # Ticket: https://jira.mesosphere.com/browse/INFINITY-3360
-    cmd = "bash -c 'KIBANA_DIRECTORY=$(ls -d {}/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list'".format(task_sandbox)
+    cmd = "bash -c 'KIBANA_DIRECTORY=$(ls -d {}/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list'".format(
+        task_sandbox
+    )
     _, stdout, _ = sdk_cmd.marathon_task_exec(service_name, cmd)
     return plugin_name in stdout
 
@@ -175,10 +189,12 @@ def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
     # In that case Elasticsearch returns a plain text error:
     # "No handler found for uri [/INDEX_NAME/_xpack/graph/explore] and method [POST]"
     response = _curl_query(
-        service_name, "POST",
+        service_name,
+        "POST",
         "{}/_xpack/_graph/_explore".format(DEFAULT_INDEX_NAME),
         json_data=query,
-        return_json=is_enabled)
+        return_json=is_enabled,
+    )
     if is_enabled:
         return is_graph_endpoint_active(response)
     else:
@@ -199,13 +215,13 @@ def is_graph_endpoint_active(response):
 
 def set_xpack(is_enabled, service_name=SERVICE_NAME):
     # Toggling X-Pack requires full cluster restart, not a rolling restart
-    options = {'TASKCFG_ALL_XPACK_ENABLED': str(is_enabled).lower(), 'UPDATE_STRATEGY': 'parallel'}
+    options = {"TASKCFG_ALL_XPACK_ENABLED": str(is_enabled).lower(), "UPDATE_STRATEGY": "parallel"}
     update_app(service_name, options, DEFAULT_TASK_COUNT)
 
 
 def update_app(service_name, options, expected_task_count):
     config = sdk_marathon.get_config(service_name)
-    config['env'].update(options)
+    config["env"].update(options)
     sdk_marathon.update_app(service_name, config)
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_tasks.check_running(service_name, expected_task_count)
@@ -238,15 +254,18 @@ def delete_index(index_name, service_name=SERVICE_NAME, https=False):
 
 def create_document(index_name, index_type, doc_id, params, service_name=SERVICE_NAME, https=False):
     return _curl_query(
-        service_name, "PUT",
+        service_name,
+        "PUT",
         "{}/{}/{}?refresh=wait_for".format(index_name, index_type, doc_id),
         json_data=params,
-        https=https)
+        https=https,
+    )
 
 
 def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME, https=False):
     return _curl_query(
-        service_name, "GET", "{}/{}/{}".format(index_name, index_type, doc_id), https=https)
+        service_name, "GET", "{}/{}/{}".format(index_name, index_type, doc_id), https=https
+    )
 
 
 def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
@@ -272,7 +291,9 @@ def _curl_query(service_name, method, endpoint, json_data=None, role="master", h
         return "{}\nCommand:\n{}\nstdout:\n{}\nstderr:\n{}".format(msg, curl_cmd, stdout, stderr)
 
     if exit_code:
-        log.warning(build_errmsg("Failed to run command on {}, retrying or giving up.".format(task_name)))
+        log.warning(
+            build_errmsg("Failed to run command on {}, retrying or giving up.".format(task_name))
+        )
         return None
 
     if not return_json:
@@ -286,13 +307,15 @@ def _curl_query(service_name, method, endpoint, json_data=None, role="master", h
 
 
 def _master_zero_http_port(service_name):
-    dns = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, 'endpoints master-http', json=True, print_output=False)['dns']
+    dns = sdk_cmd.svc_cli(
+        PACKAGE_NAME, service_name, "endpoints master-http", json=True, print_output=False
+    )["dns"]
     # 'dns' array will look something like this in CCM: [
     #   "master-0-node.elastic.[...]:1025",
     #   "master-1-node.elastic.[...]:1025",
     #   "master-2-node.elastic.[...]:1025"
     # ]
 
-    port = dns[0].split(':')[-1]
+    port = dns[0].split(":")[-1]
     log.info("Extracted {} as port for {}".format(port, dns[0]))
     return port

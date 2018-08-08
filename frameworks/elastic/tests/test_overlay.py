@@ -6,7 +6,7 @@ import sdk_tasks
 from tests import config
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -14,7 +14,8 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
-            additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
+            additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
+        )
 
         yield  # let the test session execute
     finally:
@@ -31,13 +32,17 @@ def pre_test_setup():
 def default_populated_index():
     config.delete_index(config.DEFAULT_INDEX_NAME)
     config.create_index(config.DEFAULT_INDEX_NAME, config.DEFAULT_SETTINGS_MAPPINGS)
-    config.create_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1,
-                           {"name": "Loren", "role": "developer"})
+    config.create_document(
+        config.DEFAULT_INDEX_NAME,
+        config.DEFAULT_INDEX_TYPE,
+        1,
+        {"name": "Loren", "role": "developer"},
+    )
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.dcos_min_version('1.9')
+@pytest.mark.dcos_min_version("1.9")
 @retrying.retry(
     wait_fixed=1000,
     stop_max_delay=config.DEFAULT_TIMEOUT * 1000,
@@ -45,7 +50,9 @@ def default_populated_index():
 def test_indexing(default_populated_index):
     indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
     observed_count = indices_stats["_all"]["primaries"]["docs"]["count"]
-    assert observed_count == 1, "Indices has incorrect count: should be 1, got {}".format(observed_count)
+    assert observed_count == 1, "Indices has incorrect count: should be 1, got {}".format(
+        observed_count
+    )
     doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1)
     observed_name = doc["_source"]["name"]
     return observed_name == "Loren"
@@ -53,7 +60,7 @@ def test_indexing(default_populated_index):
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.dcos_min_version('1.9')
+@pytest.mark.dcos_min_version("1.9")
 def test_tasks_on_overlay():
     elastic_tasks = [t.id for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
     assert len(elastic_tasks) == config.DEFAULT_TASK_COUNT, \
@@ -64,16 +71,23 @@ def test_tasks_on_overlay():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.dcos_min_version('1.9')
+@pytest.mark.dcos_min_version("1.9")
 def test_endpoints_on_overlay():
     endpoint_types_without_ingest = (
-        'coordinator-http', 'coordinator-transport',
-        'data-http', 'data-transport',
-        'master-http', 'master-transport')
+        "coordinator-http",
+        "coordinator-transport",
+        "data-http",
+        "data-transport",
+        "master-http",
+        "master-transport",
+    )
 
-    observed_endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "",
-                                                             len(endpoint_types_without_ingest))
+    observed_endpoints = sdk_networks.get_and_test_endpoints(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "", len(endpoint_types_without_ingest)
+    )
     for endpoint in endpoint_types_without_ingest:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        specific_endpoint = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, endpoint, 3)
+        specific_endpoint = sdk_networks.get_and_test_endpoints(
+            config.PACKAGE_NAME, config.SERVICE_NAME, endpoint, 3
+        )
         sdk_networks.check_endpoints_on_overlay(specific_endpoint)

@@ -12,7 +12,7 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
@@ -21,7 +21,8 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             foldered_name,
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": foldered_name, "yaml": "finish_state"}})
+            additional_options={"service": {"name": foldered_name, "yaml": "finish_state"}},
+        )
 
         yield  # let the test session execute
     finally:
@@ -45,7 +46,9 @@ def test_once_task_does_not_restart_on_config_update():
     log.info('hello-0-once ID: {}'.format(hello_once_id))
     config.bump_hello_cpus(foldered_name)
 
-    sdk_tasks.check_task_not_relaunched(foldered_name, task_name, hello_once_id, with_completed=True)
+    sdk_tasks.check_task_not_relaunched(
+        foldered_name, task_name, hello_once_id, with_completed=True
+    )
     config.check_running(foldered_name)
 
 

@@ -11,19 +11,16 @@ log = logging.getLogger(__name__)
 
 
 pytestmark = pytest.mark.skipif(
-    sdk_utils.is_strict_mode() and sdk_utils.dcos_version_less_than('1.11'),
-    reason="secure hierarchical roles are only supported on 1.11+")
+    sdk_utils.is_strict_mode() and sdk_utils.dcos_version_less_than("1.11"),
+    reason="secure hierarchical roles are only supported on 1.11+",
+)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        options = {
-            "service": {
-                "yaml": "pre-reserved-sidecar"
-            }
-        }
+        options = {"service": {"yaml": "pre-reserved-sidecar"}}
 
         # this yml has 1 hello's + 0 world's:
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 1, additional_options=options)
@@ -34,15 +31,15 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 def test_deploy():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 def test_sidecar():
-    run_plan('sidecar')
+    run_plan("sidecar")
 
 
 def run_plan(plan_name, params=None):

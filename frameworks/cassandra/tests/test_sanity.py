@@ -27,8 +27,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME,
-                              config.get_foldered_service_name())
+        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
         for job in test_jobs:
             sdk_jobs.remove_job(job)
@@ -48,42 +47,35 @@ def test_endpoints():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_repair_cleanup_plans_complete():
-    parameters = {'CASSANDRA_KEYSPACE': 'testspace1'}
+    parameters = {"CASSANDRA_KEYSPACE": "testspace1"}
 
     # populate 'testspace1' for test, then delete afterwards:
     with sdk_jobs.RunJobContext(
-            before_jobs=[
-                config.get_write_data_job(
-                    node_address=config.get_foldered_node_address()),
-                config.get_verify_data_job(
-                    node_address=config.get_foldered_node_address())
-            ],
-            after_jobs=[
-                config.get_delete_data_job(
-                    node_address=config.get_foldered_node_address()),
-                config.get_verify_deletion_job(
-                    node_address=config.get_foldered_node_address())
-            ]):
+        before_jobs=[
+            config.get_write_data_job(node_address=config.get_foldered_node_address()),
+            config.get_verify_data_job(node_address=config.get_foldered_node_address()),
+        ],
+        after_jobs=[
+            config.get_delete_data_job(node_address=config.get_foldered_node_address()),
+            config.get_verify_deletion_job(node_address=config.get_foldered_node_address()),
+        ],
+    ):
 
-        sdk_plan.start_plan(
-            config.get_foldered_service_name(), 'cleanup', parameters=parameters)
-        sdk_plan.wait_for_completed_plan(
-            config.get_foldered_service_name(), 'cleanup')
+        sdk_plan.start_plan(config.get_foldered_service_name(), "cleanup", parameters=parameters)
+        sdk_plan.wait_for_completed_plan(config.get_foldered_service_name(), "cleanup")
 
-        sdk_plan.start_plan(
-            config.get_foldered_service_name(), 'repair', parameters=parameters)
-        sdk_plan.wait_for_completed_plan(
-            config.get_foldered_service_name(), 'repair')
+        sdk_plan.start_plan(config.get_foldered_service_name(), "repair", parameters=parameters)
+        sdk_plan.wait_for_completed_plan(config.get_foldered_service_name(), "repair")
 
 
 @pytest.mark.sanity
 @pytest.mark.metrics
-@pytest.mark.dcos_min_version('1.9')
+@pytest.mark.dcos_min_version("1.9")
 def test_metrics():
     expected_metrics = [
         "org.apache.cassandra.metrics.Table.CoordinatorReadLatency.system.hints.p999",
         "org.apache.cassandra.metrics.Table.CompressionRatio.system_schema.indexes",
-        "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory"
+        "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory",
     ]
 
     def expected_metrics_callback(emitted_metrics):

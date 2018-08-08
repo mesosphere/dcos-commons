@@ -1,10 +1,10 @@
-'''Utilities relating to interaction with Marathon
+"""Utilities relating to interaction with Marathon
 
 ************************************************************************
 FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 ************************************************************************
-'''
+"""
 import logging
 import json
 import retrying
@@ -39,11 +39,11 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
     # so we have to remove some offending fields to make it re-submittable, since it's not possible to
     # submit a partial config with only the desired fields changed.
-    if 'uris' in config:
-        del config['uris']
+    if "uris" in config:
+        del config["uris"]
 
-    if 'version' in config:
-        del config['version']
+    if "version" in config:
+        del config["version"]
 
     return config
 
@@ -130,10 +130,10 @@ def install_app_from_file(app_name: str, app_def_path: str) -> (bool, str):
         log.error(stderr)
         return False, stderr
 
-    log.info('Waiting for app %s to be deployed and running...', app_name)
+    log.info("Waiting for app %s to be deployed and running...", app_name)
     wait_for_deployment_and_app_running(app_name, TIMEOUT_SECONDS)
 
-    return True, ''
+    return True, ""
 
 
 def install_app(app_definition: dict) -> (bool, str):
@@ -156,9 +156,13 @@ def install_app(app_definition: dict) -> (bool, str):
         return install_app_from_file(app_name, app_file.name)
 
 
-def update_app(app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True, force=True):
+def update_app(
+    app_name, config, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True, force=True
+):
     if "env" in config:
-        log.info("Environment for marathon app {} ({} values):".format(app_name, len(config["env"])))
+        log.info(
+            "Environment for marathon app {} ({} values):".format(app_name, len(config["env"]))
+        )
         for k in sorted(config["env"]):
             log.info("  {}={}".format(k, config["env"][k]))
 
@@ -180,7 +184,7 @@ def destroy_app(app_name, timeout=TIMEOUT_SECONDS):
 def restart_app(app_name):
     log.info("Restarting {}...".format(app_name))
     # throws on failure:
-    sdk_cmd.cluster_request('POST', _api_url('apps/{}/restart'.format(app_name)))
+    sdk_cmd.cluster_request("POST", _api_url("apps/{}/restart".format(app_name)))
     log.info("Restarted {}.".format(app_name))
 
 
@@ -189,12 +193,12 @@ def _get_config(app_name):
 
 
 def _api_url(path):
-    return '/marathon/v2/{}'.format(path)
+    return "/marathon/v2/{}".format(path)
 
 
 def get_scheduler_host(service_name):
     # Marathon mangles foldered paths as follows: "/path/to/svc" => "svc.to.path"
-    task_name_elems = service_name.lstrip('/').split('/')
+    task_name_elems = service_name.lstrip("/").split("/")
     task_name_elems.reverse()
     app_name = '.'.join(task_name_elems)
     ips = [t.host for t in sdk_tasks.get_service_tasks('marathon', app_name)]
@@ -206,14 +210,14 @@ def get_scheduler_host(service_name):
 
 def bump_cpu_count_config(service_name, key_name, delta=0.1):
     config = get_config(service_name)
-    updated_cpus = float(config['env'][key_name]) + delta
-    config['env'][key_name] = str(updated_cpus)
+    updated_cpus = float(config["env"][key_name]) + delta
+    config["env"][key_name] = str(updated_cpus)
     update_app(service_name, config)
     return updated_cpus
 
 
 def bump_task_count_config(service_name, key_name, delta=1):
     config = get_config(service_name)
-    updated_node_count = int(config['env'][key_name]) + delta
-    config['env'][key_name] = str(updated_node_count)
+    updated_node_count = int(config["env"][key_name]) + delta
+    config["env"][key_name] = str(updated_node_count)
     update_app(service_name, config)

@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 pytestmark = sdk_utils.dcos_ee_only
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def service_account(configure_security):
     """
     Sets up a service account for use with TLS.
@@ -29,11 +29,10 @@ def service_account(configure_security):
 
         yield service_account_info
     finally:
-        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
-                                                     service_account_info)
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME, service_account_info)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def kafka_client():
     try:
         kafka_client = client.KafkaClient("kafka-client")
@@ -47,28 +46,22 @@ def kafka_client():
         kafka_client.uninstall()
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def setup_principals(kafka_client: client.KafkaClient):
     client_id = kafka_client.get_id()
 
-    transport_encryption.create_tls_artifacts(
-        cn="kafka-tester",
-        marathon_task=client_id)
-    transport_encryption.create_tls_artifacts(
-        cn="authorized",
-        marathon_task=client_id)
-    transport_encryption.create_tls_artifacts(
-        cn="unauthorized",
-        marathon_task=client_id)
-    transport_encryption.create_tls_artifacts(
-        cn="super",
-        marathon_task=client_id)
+    transport_encryption.create_tls_artifacts(cn="kafka-tester", marathon_task=client_id)
+    transport_encryption.create_tls_artifacts(cn="authorized", marathon_task=client_id)
+    transport_encryption.create_tls_artifacts(cn="unauthorized", marathon_task=client_id)
+    transport_encryption.create_tls_artifacts(cn="super", marathon_task=client_id)
 
 
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 @pytest.mark.ee_only
 @pytest.mark.sanity
-def test_authn_client_can_read_and_write(kafka_client: client.KafkaClient, service_account, setup_principals):
+def test_authn_client_can_read_and_write(
+    kafka_client: client.KafkaClient, service_account, setup_principals
+):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         service_options = {
@@ -77,48 +70,47 @@ def test_authn_client_can_read_and_write(kafka_client: client.KafkaClient, servi
                 "service_account": service_account["name"],
                 "service_account_secret": service_account["secret"],
                 "security": {
-                    "transport_encryption": {
-                        "enabled": True
-                    },
-                    "ssl_authentication": {
-                        "enabled": True
-                    }
-                }
+                    "transport_encryption": {"enabled": True},
+                    "ssl_authentication": {"enabled": True},
+                },
             }
         }
         config.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
-            additional_options=service_options)
+            additional_options=service_options,
+        )
 
         kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
 
         topic_name = "tls.topic"
-        sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
-                        "topic create {}".format(topic_name),
-                        json=True)
+        sdk_cmd.svc_cli(
+            kafka_server["package_name"],
+            kafka_server["service"]["name"],
+            "topic create {}".format(topic_name),
+            json=True,
+        )
 
         kafka_client.connect(kafka_server)
 
         user = "kafka-tester"
-        write_success, read_successes, _ = kafka_client.can_write_and_read(user,
-                                                                           kafka_server,
-                                                                           topic_name,
-                                                                           None)
+        write_success, read_successes, _ = kafka_client.can_write_and_read(
+            user, kafka_server, topic_name, None
+        )
 
         assert write_success, "Write failed (user={})".format(user)
-        assert read_successes, "Read failed (user={}): " \
-                               "MESSAGES={} " \
-                               "read_successes={}".format(user,
-                                                          kafka_client.MESSAGES,
-                                                          read_successes)
+        assert read_successes, (
+            "Read failed (user={}): "
+            "MESSAGES={} "
+            "read_successes={}".format(user, kafka_client.MESSAGES, read_successes)
+        )
 
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 @pytest.mark.ee_only
 @pytest.mark.sanity
 def test_authz_acls_required(kafka_client: client.KafkaClient, service_account, setup_principals):
@@ -131,50 +123,53 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, service_account, 
                 "service_account": service_account["name"],
                 "service_account_secret": service_account["secret"],
                 "security": {
-                    "transport_encryption": {
-                        "enabled": True
-                    },
-                    "ssl_authentication": {
-                        "enabled": True
-                    },
-                    "authorization": {
-                        "enabled": True,
-                        "super_users": "User:{}".format("super")
-                    }
-                }
+                    "transport_encryption": {"enabled": True},
+                    "ssl_authentication": {"enabled": True},
+                    "authorization": {"enabled": True, "super_users": "User:{}".format("super")},
+                },
             }
         }
         config.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
-            additional_options=service_options)
+            additional_options=service_options,
+        )
 
         kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
 
         topic_name = "authz.test"
-        sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
-                        "topic create {}".format(topic_name),
-                        json=True)
+        sdk_cmd.svc_cli(
+            kafka_server["package_name"],
+            kafka_server["service"]["name"],
+            "topic create {}".format(topic_name),
+            json=True,
+        )
 
         kafka_client.connect(kafka_server)
 
         # Since no ACLs are specified, only the super user can read and write
-        for user in ["super", ]:
+        for user in ["super"]:
             log.info("Checking write / read permissions for user=%s", user)
-            write_success, read_successes, _ = kafka_client.can_write_and_read(user, kafka_server, topic_name, None)
+            write_success, read_successes, _ = kafka_client.can_write_and_read(
+                user, kafka_server, topic_name, None
+            )
             assert write_success, "Write failed (user={})".format(user)
-            assert read_successes, "Read failed (user={}): " \
-                                   "MESSAGES={} " \
-                                   "read_successes={}".format(user,
-                                                              kafka_client.MESSAGES,
-                                                              read_successes)
+            assert read_successes, (
+                "Read failed (user={}): "
+                "MESSAGES={} "
+                "read_successes={}".format(user, kafka_client.MESSAGES, read_successes)
+            )
 
-        for user in ["authorized", "unauthorized", ]:
+        for user in ["authorized", "unauthorized"]:
             log.info("Checking lack of write / read permissions for user=%s", user)
-            write_success, _, read_messages = kafka_client.can_write_and_read(user, kafka_server, topic_name, None)
+            write_success, _, read_messages = kafka_client.can_write_and_read(
+                user, kafka_server, topic_name, None
+            )
             assert not write_success, "Write not expected to succeed (user={})".format(user)
-            assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(user)
+            assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(
+                user
+            )
 
         log.info("Writing and reading: Adding acl for authorized user")
         kafka_client.add_acls("authorized", kafka_server, topic_name)
@@ -182,25 +177,31 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, service_account, 
         # After adding ACLs the authorized user and super user should still have access to the topic.
         for user in ["authorized", "super"]:
             log.info("Checking write / read permissions for user=%s", user)
-            write_success, read_successes, _ = kafka_client.can_write_and_read(user, kafka_server, topic_name, None)
+            write_success, read_successes, _ = kafka_client.can_write_and_read(
+                user, kafka_server, topic_name, None
+            )
             assert write_success, "Write failed (user={})".format(user)
-            assert read_successes, "Read failed (user={}): " \
-                                   "MESSAGES={} " \
-                                   "read_successes={}".format(user,
-                                                              kafka_client.MESSAGES,
-                                                              read_successes)
+            assert read_successes, (
+                "Read failed (user={}): "
+                "MESSAGES={} "
+                "read_successes={}".format(user, kafka_client.MESSAGES, read_successes)
+            )
 
-        for user in ["unauthorized", ]:
+        for user in ["unauthorized"]:
             log.info("Checking lack of write / read permissions for user=%s", user)
-            write_success, _, read_messages = kafka_client.can_write_and_read(user, kafka_server, topic_name, None)
+            write_success, _, read_messages = kafka_client.can_write_and_read(
+                user, kafka_server, topic_name, None
+            )
             assert not write_success, "Write not expected to succeed (user={})".format(user)
-            assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(user)
+            assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(
+                user
+            )
 
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 @pytest.mark.ee_only
 @pytest.mark.sanity
 def test_authz_acls_not_required(kafka_client, service_account, setup_principals):
@@ -213,68 +214,73 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
                 "service_account": service_account["name"],
                 "service_account_secret": service_account["secret"],
                 "security": {
-                    "transport_encryption": {
-                        "enabled": True
-                    },
-                    "ssl_authentication": {
-                        "enabled": True
-                    },
+                    "transport_encryption": {"enabled": True},
+                    "ssl_authentication": {"enabled": True},
                     "authorization": {
                         "enabled": True,
                         "super_users": "User:{}".format("super"),
-                        "allow_everyone_if_no_acl_found": True
-                    }
-                }
+                        "allow_everyone_if_no_acl_found": True,
+                    },
+                },
             }
         }
         config.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
-            additional_options=service_options)
+            additional_options=service_options,
+        )
 
         kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
 
         topic_name = "authz.test"
-        sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
-                        "topic create {}".format(topic_name),
-                        json=True)
+        sdk_cmd.svc_cli(
+            kafka_server["package_name"],
+            kafka_server["service"]["name"],
+            "topic create {}".format(topic_name),
+            json=True,
+        )
 
         kafka_client.connect(kafka_server)
 
         # Since no ACLs are specified, all users can read and write.
-        for user in ["authorized", "unauthorized", "super", ]:
+        for user in ["authorized", "unauthorized", "super"]:
             log.info("Checking write / read permissions for user=%s", user)
-            write_success, read_successes, _ = kafka_client.can_write_and_read(user, kafka_server, topic_name, None)
+            write_success, read_successes, _ = kafka_client.can_write_and_read(
+                user, kafka_server, topic_name, None
+            )
             assert write_success, "Write failed (user={})".format(user)
-            assert read_successes, "Read failed (user={}): " \
-                                   "MESSAGES={} " \
-                                   "read_successes={}".format(user,
-                                                              kafka_client.MESSAGES,
-                                                              read_successes)
+            assert read_successes, (
+                "Read failed (user={}): "
+                "MESSAGES={} "
+                "read_successes={}".format(user, kafka_client.MESSAGES, read_successes)
+            )
 
         log.info("Writing and reading: Adding acl for authorized user")
         kafka_client.add_acls("authorized", kafka_server, topic_name)
 
         # After adding ACLs the authorized user and super user should still have access to the topic.
-        for user in ["authorized", "super", ]:
+        for user in ["authorized", "super"]:
             log.info("Checking write / read permissions for user=%s", user)
-            write_success, read_successes, _ = kafka_client.can_write_and_read(user, kafka_server, topic_name, None)
+            write_success, read_successes, _ = kafka_client.can_write_and_read(
+                user, kafka_server, topic_name, None
+            )
             assert write_success, "Write failed (user={})".format(user)
-            assert read_successes, "Read failed (user={}): " \
-                                   "MESSAGES={} " \
-                                   "read_successes={}".format(user,
-                                                              kafka_client.MESSAGES,
-                                                              read_successes)
+            assert read_successes, (
+                "Read failed (user={}): "
+                "MESSAGES={} "
+                "read_successes={}".format(user, kafka_client.MESSAGES, read_successes)
+            )
 
-        for user in ["unauthorized", ]:
+        for user in ["unauthorized"]:
             log.info("Checking lack of write / read permissions for user=%s", user)
-            write_success, _, read_messages = kafka_client.can_write_and_read(user,
-                                                                              kafka_server,
-                                                                              topic_name,
-                                                                              None)
+            write_success, _, read_messages = kafka_client.can_write_and_read(
+                user, kafka_server, topic_name, None
+            )
             assert not write_success, "Write not expected to succeed (user={})".format(user)
-            assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(user)
+            assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(
+                user
+            )
 
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -282,13 +288,13 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
 
 def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
 
-    return auth.write_to_topic(cn, task, topic, message,
-                               auth.get_ssl_client_properties(cn, False),
-                               environment=None)
+    return auth.write_to_topic(
+        cn, task, topic, message, auth.get_ssl_client_properties(cn, False), environment=None
+    )
 
 
 def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
 
-    return auth.read_from_topic(cn, task, topic, messages,
-                                auth.get_ssl_client_properties(cn, False),
-                                environment=None)
+    return auth.read_from_topic(
+        cn, task, topic, messages, auth.get_ssl_client_properties(cn, False), environment=None
+    )

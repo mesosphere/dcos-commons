@@ -4,7 +4,7 @@
 FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 ************************************************************************
-'''
+"""
 import logging
 import retrying
 
@@ -17,11 +17,20 @@ import sdk_plan
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
 
 # From dcos-cli:
-COMPLETED_TASK_STATES = set([
-    "TASK_FINISHED", "TASK_KILLED", "TASK_FAILED", "TASK_LOST", "TASK_ERROR",
-    "TASK_GONE", "TASK_GONE_BY_OPERATOR", "TASK_DROPPED", "TASK_UNREACHABLE",
-    "TASK_UNKNOWN"
-])
+COMPLETED_TASK_STATES = set(
+    [
+        "TASK_FINISHED",
+        "TASK_KILLED",
+        "TASK_FAILED",
+        "TASK_LOST",
+        "TASK_ERROR",
+        "TASK_GONE",
+        "TASK_GONE_BY_OPERATOR",
+        "TASK_DROPPED",
+        "TASK_UNREACHABLE",
+        "TASK_UNKNOWN",
+    ]
+)
 
 log = logging.getLogger(__name__)
 
@@ -68,7 +77,7 @@ class Task(object):
         else:
             host = "UNKNOWN:" + agent_id
         return Task(
-            task_entry['name'],
+            task_entry["name"],
             host,
             task_entry['state'],
             task_entry['id'],
@@ -164,8 +173,11 @@ def get_summary(with_completed=False, task_name=None):
         output = list(filter(lambda t: not t.is_completed, all_tasks))
     if task_name:
         output = list(filter(lambda t: t.name == task_name, all_tasks))
-    log.info('Task summary (with_completed={}) (task_name=[{}]):\n- {}'.format(
-        with_completed, task_name, '\n- '.join([str(e) for e in output])))
+    log.info(
+        "Task summary (with_completed={}) (task_name=[{}]):\n- {}".format(
+            with_completed, task_name, "\n- ".join([str(e) for e in output])
+        )
+    )
     return output
 
 
@@ -174,18 +186,19 @@ def _get_agentid_to_hostname():
 
 
 def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
-    '''Returns a list of tasks which are not located on the Scheduler's machine.
+    """Returns a list of tasks which are not located on the Scheduler's machine.
 
     Avoid also killing the system that the scheduler is on. This is just to speed up testing.
     In practice, the scheduler would eventually get relaunched on a different node by Marathon and
     we'd be able to proceed with repairing the service from there. However, it takes 5-20 minutes
     for Mesos to decide that the agent is dead. This is also why we perform a manual 'ls' check to
     verify the host is down, rather than waiting for Mesos to tell us.
-    '''
+    """
     skip_tasks = {sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME}
     server_tasks = [
-        task for task in get_summary() if
-        task.name not in skip_tasks and task_name_pattern.match(task.name)
+        task
+        for task in get_summary()
+        if task.name not in skip_tasks and task_name_pattern.match(task.name)
     ]
 
     agentid_to_hostname = _get_agentid_to_hostname()
@@ -265,8 +278,12 @@ def check_task_not_relaunched(service_name, task_name, old_task_id, multiservice
     sdk_plan.wait_for_completed_recovery(service_name, multiservice_name=multiservice_name)
 
     task_ids = set([t.id for t in get_summary(with_completed) if t.name == task_name])
-    assert old_task_id in task_ids, 'Old task id {} was not found in task_ids {}'.format(old_task_id, task_ids)
-    assert len(task_ids) == 1, 'Length != 1. Expected task id {} Task ids: {}'.format(old_task_id, task_ids)
+    assert old_task_id in task_ids, "Old task id {} was not found in task_ids {}".format(
+        old_task_id, task_ids
+    )
+    assert len(task_ids) == 1, "Length != 1. Expected task id {} Task ids: {}".format(
+        old_task_id, task_ids
+    )
 
 
 def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
@@ -289,25 +306,30 @@ def check_tasks_updated(service_name, prefix, old_task_ids, timeout_seconds=DEFA
         # deploy/recovery/whatever plan, not task cardinality, but some uses of this method are not
         # using the plan, so not the definitive source, so will fail when the finished state of a
         # plan yields more or less tasks per pod.
-        all_updated = len(newly_launched_set) == len(new_set) \
-            and len(old_remaining_set) == 0 \
+        all_updated = (
+            len(newly_launched_set) == len(new_set)
+            and len(old_remaining_set) == 0
             and len(new_set) >= len(old_set)
+        )
         if all_updated:
-            log.info('All of the tasks{} have updated\n- Old tasks: {}\n- New tasks: {}'.format(
-                prefix_clause,
-                old_set,
-                new_set))
+            log.info(
+                "All of the tasks{} have updated\n- Old tasks: {}\n- New tasks: {}".format(
+                    prefix_clause, old_set, new_set
+                )
+            )
             return all_updated
 
         # forgive the language a bit, but len('remained') == len('launched'),
         # and similar for the rest of the label for task ids in the log line,
         # so makes for easier reading
-        log.info('Waiting for tasks%s to have updated ids:\n'
-                 '- Old tasks (remaining): %s\n'
-                 '- New tasks (launched): %s',
-                 prefix_clause,
-                 old_remaining_set,
-                 newly_launched_set)
+        log.info(
+            "Waiting for tasks%s to have updated ids:\n"
+            "- Old tasks (remaining): %s\n"
+            "- New tasks (launched): %s",
+            prefix_clause,
+            old_remaining_set,
+            newly_launched_set,
+        )
 
     log.info('Waiting for tasks%s to have updated ids:\n'
              '- Old tasks: %s',
@@ -320,6 +342,8 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_plan.wait_for_completed_recovery(service_name)
     task_ids = get_task_ids(service_name, prefix)
-    task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(sorted(old_task_ids), sorted(task_ids))
+    task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(
+        sorted(old_task_ids), sorted(task_ids)
+    )
     log.info('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
     assert set(old_task_ids).issubset(set(task_ids)), 'Tasks starting with "{}" were updated:{}'.format(prefix, task_sets)

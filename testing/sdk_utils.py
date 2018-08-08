@@ -1,9 +1,9 @@
-'''
+"""
 ************************************************************************
 FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 ************************************************************************
-'''
+"""
 import collections
 import functools
 import logging
@@ -37,37 +37,37 @@ def get_service_name(default: str) -> str:
 def get_foldered_name(service_name):
     # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
     # group names
-    if dcos_version_less_than('1.10'):
+    if dcos_version_less_than("1.10"):
         return service_name
-    return '/test/integration/' + service_name
+    return "/test/integration/" + service_name
 
 
 def get_task_id_service_name(service_name):
-    '''Converts the provided service name to a sanitized name as used in task ids.
+    """Converts the provided service name to a sanitized name as used in task ids.
 
-    For example: /test/integration/foo => test.integration.foo'''
-    return service_name.lstrip('/').replace('/', '.')
+    For example: /test/integration/foo => test.integration.foo"""
+    return service_name.lstrip("/").replace("/", ".")
 
 
 def get_task_id_prefix(service_name, task_name):
-    '''Returns the TaskID prefix to be used for the provided service name and task name.
+    """Returns the TaskID prefix to be used for the provided service name and task name.
     The full TaskID would consist of this prefix, plus two underscores and a UUID.
 
-    For example: /test/integration/foo + hello-0-server => test.integration.foo__hello-0-server'''
-    return '{}__{}'.format(get_task_id_service_name(service_name), task_name)
+    For example: /test/integration/foo + hello-0-server => test.integration.foo__hello-0-server"""
+    return "{}__{}".format(get_task_id_service_name(service_name), task_name)
 
 
 def get_deslashed_service_name(service_name):
     # Foldered services have slashes removed: '/test/integration/foo' => 'test__integration__foo'.
-    return service_name.lstrip('/').replace('/', '__')
+    return service_name.lstrip("/").replace("/", "__")
 
 
 def get_role(service_name):
-    return '{}-role'.format(get_deslashed_service_name(service_name))
+    return "{}-role".format(get_deslashed_service_name(service_name))
 
 
 def get_zk_path(service_name):
-    return 'dcos-service-{}'.format(get_deslashed_service_name(service_name))
+    return "dcos-service-{}".format(get_deslashed_service_name(service_name))
 
 
 ###
@@ -104,32 +104,32 @@ def dcos_version_at_least(version):
 
 
 def check_dcos_min_version_mark(item: pytest.Item):
-    '''Enforces the dcos_min_version pytest annotation, which should be used like this:
+    """Enforces the dcos_min_version pytest annotation, which should be used like this:
 
     @pytest.mark.dcos_min_version('1.10')
     def your_test_here(): ...
 
     In order for this annotation to take effect, this function must be called by a pytest_runtest_setup() hook.
-    '''
-    min_version_mark = item.get_marker('dcos_min_version')
+    """
+    min_version_mark = item.get_marker("dcos_min_version")
     if min_version_mark:
         min_version = min_version_mark.args[0]
-        message = 'Feature only supported in DC/OS {} and up'.format(min_version)
-        if 'reason' in min_version_mark.kwargs:
-            message += ': {}'.format(min_version_mark.kwargs['reason'])
+        message = "Feature only supported in DC/OS {} and up".format(min_version)
+        if "reason" in min_version_mark.kwargs:
+            message += ": {}".format(min_version_mark.kwargs["reason"])
         if dcos_version_less_than(min_version):
             pytest.skip(message)
 
 
 def is_open_dcos():
-    '''Determine if the tests are being run against open DC/OS. This is presently done by
-    checking the envvar DCOS_ENTERPRISE.'''
-    return not (os.environ.get('DCOS_ENTERPRISE', 'true').lower() == 'true')
+    """Determine if the tests are being run against open DC/OS. This is presently done by
+    checking the envvar DCOS_ENTERPRISE."""
+    return not (os.environ.get("DCOS_ENTERPRISE", "true").lower() == "true")
 
 
 def is_strict_mode():
-    '''Determine if the tests are being run on a strict mode cluster.'''
-    return os.environ.get('SECURITY', '') == 'strict'
+    """Determine if the tests are being run on a strict mode cluster."""
+    return os.environ.get("SECURITY", "") == "strict"
 
 
 '''Annotation which may be used to mark test suites or test cases as EE-only.
@@ -178,7 +178,7 @@ def pretty_duration(seconds):
 
 
 def random_string(length=8):
-    return ''.join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
+    return "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
 
 # Pretty much https://github.com/pytoolz/toolz/blob/a8cd0adb5f12ec5b9541d6c2ef5a23072e1b11a3/toolz/dicttoolz.py#L279
@@ -208,13 +208,13 @@ def get_in(keys, coll, default=None):
 
 
 def merge_dictionaries(dict1, dict2):
-    if (not isinstance(dict2, dict)):
+    if not isinstance(dict2, dict):
         return dict1
     ret = {}
     for k, v in dict1.items():
         ret[k] = v
     for k, v in dict2.items():
-        if (k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.Mapping)):
+        if k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.Mapping):
             ret[k] = merge_dictionaries(dict1[k], dict2[k])
         else:
             ret[k] = dict2[k]
