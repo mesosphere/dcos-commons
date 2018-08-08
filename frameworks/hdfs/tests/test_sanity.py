@@ -136,12 +136,19 @@ def test_kill_data_node():
 @pytest.mark.recovery
 def test_kill_scheduler():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    task_id_service_name = sdk_utils.get_task_id_service_name(foldered_name)
-    old_scheduler_id = sdk_tasks.get_task_ids(foldered_name, task_id_service_name)[0]
+    scheduler_task_name = sdk_utils.get_task_id_service_name(foldered_name)
+    scheduler_id = sdk_tasks.get_task_ids(foldered_name, scheduler_task_name)
+    journal_ids = sdk_tasks.get_task_ids(foldered_name, 'journal')
+    name_ids = sdk_tasks.get_task_ids(foldered_name, 'name')
+    data_ids = sdk_tasks.get_task_ids(foldered_name, 'data')
 
     sdk_cmd.kill_task_with_pattern('hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
-    config.expect_recovery(service_name=foldered_name)
-    sdk_tasks.check_scheduler_relaunched(foldered_name, old_scheduler_id)
+    config.check_healthy(service_name=foldered_name)
+    sdk_tasks.check_task_relaunched(scheduler_task_name, scheduler_id)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'journal', journal_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'name', name_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, 'data', data_ids)
+
 
 @pytest.mark.sanity
 @pytest.mark.recovery

@@ -175,27 +175,7 @@ def get_completed_task_id(task_name):
 
     return tasks[0] if tasks else None
 
-def check_scheduler_relaunched(service_name: str, old_scheduler_task_id: str,
-                               timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
-    """
-    This function checks for the relaunch of a task using the same matching as is
-    used in sdk_task.get_task_id()
-    """
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000,
-        retry_on_result=lambda res: not res)
-    def fn():
-        try:
-            task_ids = set([t['id'] for t in shakedown.get_tasks(completed=False) if t['name'] == service_name])
-            log.info('found the following task ids {}'.format(task_ids))
-        except dcos.errors.DCOSHTTPException:
-            log.info('Failed to get task ids. service_name=%s', service_name)
-            task_ids = set([])
 
-        return len(task_ids) > 0 and (old_scheduler_task_id not in task_ids or len(task_ids) > 1)
-
-    fn()
 def check_task_relaunched(task_name,
                           old_task_id,
                           ensure_new_task_not_completed=True,
