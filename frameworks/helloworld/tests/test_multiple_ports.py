@@ -1,13 +1,10 @@
+import pytest
 import logging
 
-import pytest
-
-import sdk_hosts
 import sdk_install
-import sdk_networks
+import sdk_tasks
 
 from tests import config
-
 
 log = logging.getLogger(__name__)
 
@@ -16,25 +13,19 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
-def test_custom_service_tld():
-    custom_tld = sdk_hosts.get_crypto_id_domain()
+def test_launch_task_with_multiple_ports():
     sdk_install.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
-        1,
-        additional_options={"service": {"custom_service_tld": custom_tld, "yaml": "custom_tld"}},
+        0,
+        additional_options={"service": {"yaml": "multiport"}},
     )
-
-    # Verify the endpoints are correct
-    endpoints = sdk_networks.get_and_test_endpoints(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "test", 2
-    )
-    for entry in endpoints["dns"]:
-        assert custom_tld in entry
+    assert (
+        sdk_tasks.get_completed_task_id("multiport-0-server") is not None
+    ), "Unable to find completed task id"

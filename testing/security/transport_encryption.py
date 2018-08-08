@@ -12,8 +12,7 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 
-def setup_service_account(service_name: str,
-                          service_account_secret: str=None) -> dict:
+def setup_service_account(service_name: str, service_account_secret: str = None) -> dict:
     """
     Setup the service account for TLS. If the account or secret of the specified
     name already exists, these are deleted.
@@ -27,10 +26,12 @@ def setup_service_account(service_name: str,
 
     service_account = "{}-service-account".format(service_name.replace("/", ""))
 
-    service_account_info = sdk_security.setup_security(service_name,
-                                                       linux_user="nobody",
-                                                       service_account=service_account,
-                                                       service_account_secret=secret)
+    service_account_info = sdk_security.setup_security(
+        service_name,
+        linux_user="nobody",
+        service_account=service_account,
+        service_account_secret=secret,
+    )
 
     log.info("Adding permissions required for TLS.")
     if sdk_utils.dcos_version_less_than("1.11"):
@@ -38,16 +39,26 @@ def setup_service_account(service_name: str,
     else:
         acls = [
             {"rid": "dcos:secrets:default:/{}/*".format(service_name.strip("/")), "action": "full"},
-            {"rid": "dcos:secrets:list:default:/{}".format(service_name.strip("/")), "action": "read"},
+            {
+                "rid": "dcos:secrets:list:default:/{}".format(service_name.strip("/")),
+                "action": "read",
+            },
             {"rid": "dcos:adminrouter:ops:ca:rw", "action": "full"},
             {"rid": "dcos:adminrouter:ops:ca:ro", "action": "full"},
         ]
 
         for acl in acls:
-            cmd_list = ["security", "org", "users", "grant",
-                        "--description", "\"Allow provisioning TLS certificates\"",
-                        service_account, acl["rid"], acl["action"]
-                        ]
+            cmd_list = [
+                "security",
+                "org",
+                "users",
+                "grant",
+                "--description",
+                '"Allow provisioning TLS certificates"',
+                service_account,
+                acl["rid"],
+                acl["action"],
+            ]
 
             sdk_cmd.run_cli(" ".join(cmd_list))
 
@@ -70,9 +81,7 @@ def fetch_dcos_ca_bundle(marathon_task: str) -> str:
     """Fetch the DC/OS CA bundle from the leading Mesos master"""
     local_bundle_file = "dcos-ca.crt"
 
-    cmd = ["curl", "-L", "--insecure", "-v",
-           "leader.mesos/ca/dcos-ca.crt",
-           "-o", local_bundle_file]
+    cmd = ["curl", "-L", "--insecure", "-v", "leader.mesos/ca/dcos-ca.crt", "-o", local_bundle_file]
 
     sdk_cmd.marathon_task_exec(marathon_task, " ".join(cmd))
 
@@ -96,15 +105,14 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
 
     output = sdk_cmd.marathon_task_exec(
         marathon_task,
-        'openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr '
-        '-subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn))
+        "openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr "
+        '-subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn),
+    )
     assert output[0] is 0
 
-    rc, raw_csr, _ = sdk_cmd.marathon_task_exec(marathon_task, 'cat request.csr')
+    rc, raw_csr, _ = sdk_cmd.marathon_task_exec(marathon_task, "cat request.csr")
     assert rc is 0
-    request = {
-        "certificate_request": raw_csr
-    }
+    request = {"certificate_request": raw_csr}
 
     token = sdk_cmd.run_cli("config show core.dcos_acs_token")
 
@@ -113,12 +121,15 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
         "curl --insecure -L -X POST "
         "-H 'Authorization: token={}' "
         "leader.mesos/ca/api/v2/sign "
-        "-d '{}'".format(token, json.dumps(request)))
+        "-d '{}'".format(token, json.dumps(request)),
+    )
     assert output[0] is 0
 
     # Write the public cert to the client
     certificate = json.loads(output[1])["result"]["certificate"]
-    output = sdk_cmd.marathon_task_exec(marathon_task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path))
+    output = sdk_cmd.marathon_task_exec(
+        marathon_task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path)
+    )
     assert output[0] is 0
 
     _create_keystore_truststore(cn, marathon_task)
@@ -138,9 +149,10 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
     output = sdk_cmd.marathon_task_exec(
         marathon_task,
         'bash -c "export RANDFILE=/mnt/mesos/sandbox/.rnd && '
-        'openssl pkcs12 -export -in {} -inkey {} '
-        '-out keypair.p12 -name keypair -passout pass:export '
-        '-CAfile {} -caname root"'.format(pub_path, priv_path, dcos_ca_bundle))
+        "openssl pkcs12 -export -in {} -inkey {} "
+        "-out keypair.p12 -name keypair -passout pass:export "
+        '-CAfile {} -caname root"'.format(pub_path, priv_path, dcos_ca_bundle),
+    )
     assert output[0] is 0
 
     log.info("Generating certificate: importing into keystore and truststore")
@@ -150,12 +162,14 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         "keytool -importkeystore "
         "-deststorepass changeit -destkeypass changeit -destkeystore {} "
         "-srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export "
-        "-alias keypair".format(keystore_path))
+        "-alias keypair".format(keystore_path),
+    )
     assert output[0] is 0
 
     output = sdk_cmd.marathon_task_exec(
         marathon_task,
         "keytool -import -trustcacerts -noprompt "
         "-file {} -storepass changeit "
-        "-keystore {}".format(dcos_ca_bundle, truststore_path))
+        "-keystore {}".format(dcos_ca_bundle, truststore_path),
+    )
     assert output[0] is 0

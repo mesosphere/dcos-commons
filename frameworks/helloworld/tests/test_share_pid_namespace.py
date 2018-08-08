@@ -9,7 +9,7 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -17,14 +17,10 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             2,
-            additional_options={
-                "service": {
-                    "yaml": "share_pid_namespace"
-                }
-            }
+            additional_options={"service": {"yaml": "share_pid_namespace"}},
         )
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -35,8 +31,8 @@ def test_deploy():
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     log.info("deployment plan: " + str(deployment_plan))
 
-    assert(len(deployment_plan['phases']) == 2)
-    assert(deployment_plan['phases'][0]['name'] == 'server-deploy')
-    assert(deployment_plan['phases'][1]['name'] == 'once-deploy')
-    assert(len(deployment_plan['phases'][0]['steps']) == 2)
-    assert(len(deployment_plan['phases'][1]['steps']) == 2)
+    assert len(deployment_plan["phases"]) == 2
+    assert deployment_plan["phases"][0]["name"] == "server-deploy"
+    assert deployment_plan["phases"][1]["name"] == "once-deploy"
+    assert len(deployment_plan["phases"][0]["steps"]) == 2
+    assert len(deployment_plan["phases"][1]["steps"]) == 2

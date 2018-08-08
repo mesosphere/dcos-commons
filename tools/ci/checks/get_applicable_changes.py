@@ -74,13 +74,9 @@ def parse_args():
         help="A git reference to use as a base for determining the list of changed files to process",
     )
 
+    parser.add_argument("--extensions", type=str, help="A comma-separated list of extensions")
     parser.add_argument(
-        "--extensions", type=str, help="A comma-separated list of extensions"
-    )
-    parser.add_argument(
-        "--ignore-extensions",
-        type=str,
-        help="A comma-separated list of extensions to ignore",
+        "--ignore-extensions", type=str, help="A comma-separated list of extensions to ignore"
     )
     parser.add_argument("--only-build-files", action="store_true")
     parser.add_argument("--include-deleted-files", action="store_true")
