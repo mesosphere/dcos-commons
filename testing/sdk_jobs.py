@@ -40,9 +40,9 @@ def _remove_job_by_name(job_name):
             'DELETE', 'metronome', '/v1/jobs/{}'.format(job_name),
             retry=False,
             params={'stopCurrentJobRuns': 'true'})
-    except Exception:
+    except Exception as e:
         log.info('Failed to remove any existing job named {} (this is likely as expected):\n{}'.format(
-            job_name, traceback.format_exc()))
+            job_name, e))
 
 
 class InstallJobContext(object):
