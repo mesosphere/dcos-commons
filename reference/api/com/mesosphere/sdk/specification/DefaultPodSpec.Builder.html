@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":10,"i17":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -164,78 +164,85 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#hostVolumes-java.util.Collection-">hostVolumes</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/HostVolumeSpec.html" title="interface in com.mesosphere.sdk.specification">HostVolumeSpec</a>&gt;&nbsp;hostVolumes)</code>
+<div class="block">Sets the <code>host volumes</code> and returns a reference to this Builder so that the methods can be
+ chained together.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#image-java.lang.String-">image</a></span>(java.lang.String&nbsp;image)</code>
 <div class="block">Sets the <code>image</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#networks-java.util.Collection-">networks</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/NetworkSpec.html" title="interface in com.mesosphere.sdk.specification">NetworkSpec</a>&gt;&nbsp;networks)</code>
 <div class="block">Sets the <code>networks</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#placementRule-com.mesosphere.sdk.offer.evaluate.placement.PlacementRule-">placementRule</a></span>(<a href="../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;placementRule)</code>
 <div class="block">Sets the <code>placementRule</code> and returns a reference to this Builder so that the methods can be chained
  together.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#preReservedRole-java.lang.String-">preReservedRole</a></span>(java.lang.String&nbsp;preReservedRole)</code>
 <div class="block">Sets the <code>pre-reserved-role</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#rlimits-java.util.Collection-">rlimits</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/RLimitSpec.html" title="class in com.mesosphere.sdk.specification">RLimitSpec</a>&gt;&nbsp;rlimits)</code>
 <div class="block">Sets the <code>rlimits</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#secrets-java.util.Collection-">secrets</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification">SecretSpec</a>&gt;&nbsp;secrets)</code>
 <div class="block">Sets the <code>secrets</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#sharePidNamespace-java.lang.Boolean-">sharePidNamespace</a></span>(java.lang.Boolean&nbsp;sharePidNamespace)</code>
 <div class="block">Sets whether tasks in this pod share a pid namespace and returns a reference to this Builder so that the
  methods can be chained together.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#tasks-java.util.List-">tasks</a></span>(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&gt;&nbsp;tasks)</code>
 <div class="block">Sets the <code>tasks</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#type-java.lang.String-">type</a></span>(java.lang.String&nbsp;type)</code>
 <div class="block">Sets the <code>type</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#uris-java.util.Collection-">uris</a></span>(java.util.Collection&lt;java.net.URI&gt;&nbsp;uris)</code>
 <div class="block">Sets the <code>uris</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#user-java.lang.String-">user</a></span>(java.lang.String&nbsp;user)</code>
 <div class="block">Sets the <code>user</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#volumes-java.util.Collection-">volumes</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&gt;&nbsp;volumes)</code>
 <div class="block">Sets the <code>volumes</code> and returns a reference to this Builder so that the methods can be
@@ -523,6 +530,23 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>sharePidNamespace</code> - whether tasks in this pod share a pid namespace</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a reference to this Builder</dd>
+</dl>
+</li>
+</ul>
+<a name="hostVolumes-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>hostVolumes</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a>&nbsp;hostVolumes(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/HostVolumeSpec.html" title="interface in com.mesosphere.sdk.specification">HostVolumeSpec</a>&gt;&nbsp;hostVolumes)</pre>
+<div class="block">Sets the <code>host volumes</code> and returns a reference to this Builder so that the methods can be
+ chained together.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>hostVolumes</code> - the <code>hostVolumes</code> to set</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a reference to this Builder</dd>
 </dl>
