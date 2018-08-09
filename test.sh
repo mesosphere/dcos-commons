@@ -228,12 +228,11 @@ fi
 
 # Configure SSH key for getting into the cluster during tests
 if [ -f "$ssh_agent" ]; then
+    echo "SSH agent file path: $ssh_agent"
     volume_args="$volume_args -v $(dirname $SSH_AUTH_SOCK) -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK" # pass ssh-agent into docker env
 else
     if [ -n "$CLUSTER_URL" ]; then
-        # If the user is providing us with a cluster, we require the SSH key for that cluster.
-        echo "SSH key not found at $ssh_path. Use -p <path/to/id_rsa> to customize this path."
-        echo "An SSH key is required for communication with the provided CLUSTER_URL=$CLUSTER_URL"
+        echo "SSH agent file path: $ssh_agent"
         exit 1
     fi
     # Don't need ssh key now: test_runner.sh will extract the key after cluster launch
