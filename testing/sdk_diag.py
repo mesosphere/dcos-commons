@@ -239,9 +239,7 @@ def _dump_diagnostics_bundle(item: pytest.Item):
 def _dump_mesos_state(item: pytest.Item):
     """Downloads state from the Mesos master and saves it to the artifact path for this test."""
     for name in ["state.json", "slaves"]:
-        r = sdk_cmd.cluster_request(
-            "GET", "/mesos/{}".format(name), raise_on_error=False
-        )
+        r = sdk_cmd.cluster_request("GET", "/mesos/{}".format(name), raise_on_error=False)
         if r.ok:
             if name.endswith(".json"):
                 name = name[: -len(".json")]  # avoid duplicate '.json'
