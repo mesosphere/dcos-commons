@@ -12,6 +12,7 @@ import logging
 import requests
 import retrying
 import subprocess
+import tempfile
 import time
 import urllib.parse
 
@@ -21,6 +22,7 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
+SSH_USERNAME = os.environ.get("DCOS_SSH_USER", "core")
 
 
 def service_request(
@@ -270,7 +272,7 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
 
 def master_ssh(cmd: str, timeout_seconds=60, print_output=True, check=False) -> tuple:
     """
-    Runs the provided command on the cluster master, using ssh.
+    Runs the provided command on the cluster leader, using ssh.
     Returns the exit code, stdout, and stderr as three separate values.
     """
     log.info("(SSH:leader) {}".format(cmd))
@@ -288,7 +290,29 @@ def agent_ssh(
     return _ssh(cmd, agent_host, timeout_seconds, print_output, check)
 
 
-def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool):
+def master_scp(
+    file_content: str, remote_path: str, timeout_seconds=60, print_output=True, check=False
+) -> int:
+    """
+    Writes the provided input path to the specified path on cluster leader, using scp.
+    Returns the exit code.
+    """
+    log.info("(SCP:leader) {} bytes => {}".format(len(file_content), remote_path))
+    return _scp(file_content, remote_path, _internal_leader_host(), timeout_seconds, print_output, check)
+
+
+def agent_scp(
+    agent_host: str, file_content: str, remote_path: str, timeout_seconds=60, print_output=True, check=False
+) -> int:
+    """
+    Writes the provided input path to the specified path on the remote agent, using scp.
+    Returns the exit code.
+    """
+    log.info("(SCP:agent={}) {} bytes => {}".format(agent_host, len(file_content), remote_path))
+    return _scp(file_content, remote_path, agent_host, timeout_seconds, print_output, check)
+
+
+def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool) -> tuple:
     common_args = " ".join(
         [
             # -oStrictHostKeyChecking=no: Don't prompt for key signature on first connect.
@@ -302,7 +326,7 @@ def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: b
             #     In particular, avoid messages that may mess up stdout/stderr output.
             "-q",
             # -l <user>: Username to log in as (depends on cluster OS, default to CoreOS)
-            "-l {}".format(os.environ.get("DCOS_SSH_USER", "core")),
+            "-l {}".format(SSH_USERNAME),
         ]
     )
 
@@ -315,6 +339,49 @@ def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: b
             common_args, _external_cluster_host(), common_args, host, cmd
         )
     return _run_cmd(ssh_cmd, print_output, check, timeout_seconds=timeout_seconds)
+
+
+def _scp(file_content: str, remote_path: str, host: str, timeout_seconds: int, print_output: bool, check: bool) -> int:
+    common_args = " ".join(
+        [
+            # -oStrictHostKeyChecking=no: Don't prompt for key signature on first connect.
+            "-oStrictHostKeyChecking=no",
+            # -oConnectTimeout=#: Limit the duration for the connection to be created.
+            #                     We also configure a timeout for the command itself to run once connected, see below.
+            "-oConnectTimeout={}".format(timeout_seconds),
+        ]
+    )
+
+    if os.environ.get("DCOS_SSH_DIRECT", ""):
+        # Direct SSH access to the node:
+        proxy_arg = ''
+    else:
+        # Nested SSH call via the proxy node. Be careful to nest quotes to match:
+        # -A: Forward the pubkey agent connection (required for nested access)
+        # -q: Don't show banner, if any is configured, and suppress other warning/diagnostic messages.
+        #     In particular, avoid messages that may mess up stdout/stderr output.
+        # -l <user>: Username to log in as (depends on cluster OS, default to CoreOS)
+        proxy_arg = ' -oProxyCommand="ssh {} -A -q -l {} {}:22 {}"'.format(
+            common_args,
+            SSH_USERNAME,
+            host,
+            _external_cluster_host(),
+        )
+
+    with tempfile.NamedTemporaryFile("w") as upload_file:
+        upload_file.write(file_content)
+        upload_file.flush()
+
+        scp_cmd = "scp {}{} {} {}@{}:{}".format(
+            common_args,
+            proxy_arg,
+            upload_file.name,
+            SSH_USERNAME,
+            host,
+            remote_path
+        )
+        rc, _, _ = _run_cmd(scp_cmd, print_output, check, timeout_seconds=timeout_seconds)
+        return rc
 
 
 @functools.lru_cache()
