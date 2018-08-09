@@ -227,8 +227,8 @@ if [ -z "$CLUSTER_URL" -a x"$interactive" == x"true" ]; then
 fi
 
 # Configure SSH key for getting into the cluster during tests
-if [ -f "$ssh_agent" ]; then
-    echo "SSH agent file path: $ssh_agent"
+if [ -n "$ssh_agent" ]; then
+    echo "Success. SSH agent file path: $ssh_agent"
     volume_args="$volume_args -v $(dirname $SSH_AUTH_SOCK) -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK" # pass ssh-agent into docker env
 else
     if [ -n "$CLUSTER_URL" ]; then
