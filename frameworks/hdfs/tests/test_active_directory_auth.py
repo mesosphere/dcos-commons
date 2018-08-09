@@ -8,30 +8,29 @@ import sdk_install
 import sdk_marathon
 import sdk_utils
 
-
 from security import kerberos as krb5
-
 
 from tests import config
 from tests import auth
 
 
-ACTIVE_DIRECTORY_ENVVAR = 'TESTING_ACTIVE_DIRECTORY_SERVER'
+ACTIVE_DIRECTORY_ENVVAR = "TESTING_ACTIVE_DIRECTORY_SERVER"
 
 
 def is_active_directory_enabled():
     return ACTIVE_DIRECTORY_ENVVAR in os.environ
 
 
-pytestmark = pytest.mark.skipif(not is_active_directory_enabled(),
-                                reason="This test requires TESTING_ACTIVE_DIRECTORY_SERVER to be set")
+pytestmark = pytest.mark.skipif(
+    not is_active_directory_enabled(),
+    reason="This test requires TESTING_ACTIVE_DIRECTORY_SERVER to be set",
+)
 
 
 log = logging.getLogger(__name__)
 
 
 class ActiveDirectoryKerberos(sdk_auth.KerberosEnvironment):
-
     def __init__(self, keytab_id):
         self.keytab_id = keytab_id
         self.ad_server = os.environ.get(ACTIVE_DIRECTORY_ENVVAR)
@@ -58,7 +57,7 @@ class ActiveDirectoryKerberos(sdk_auth.KerberosEnvironment):
         pass
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def kerberos(configure_security):
     try:
         kerberos_env = ActiveDirectoryKerberos(config.SERVICE_NAME)
@@ -68,7 +67,7 @@ def kerberos(configure_security):
         kerberos_env.cleanup()
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def hdfs_server(kerberos):
     """
     A pytest fixture that installs a Kerberized HDFS service.
@@ -81,18 +80,13 @@ def hdfs_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc": {
-                        "hostname": kerberos.get_host(),
-                        "port": int(kerberos.get_port())
-                    },
+                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
-            }
+            },
         },
-        "hdfs": {
-            "security_auth_to_local": auth.get_principal_to_user_mapping()
-        }
+        "hdfs": {"security_auth_to_local": auth.get_principal_to_user_mapping()},
     }
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -102,14 +96,15 @@ def hdfs_server(kerberos):
             config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=service_kerberos_options,
-            timeout_seconds=30 * 60)
+            timeout_seconds=30 * 60,
+        )
 
         yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def hdfs_client(kerberos, hdfs_server):
     try:
         client_id = "hdfs-client"
@@ -119,34 +114,20 @@ def hdfs_client(kerberos, hdfs_server):
             "user": "nobody",
             "container": {
                 "type": "MESOS",
-                "docker": {
-                    "image": "elezar/hdfs-client:dev",
-                    "forcePullImage": True
-                },
+                "docker": {"image": "elezar/hdfs-client:dev", "forcePullImage": True},
                 "volumes": [
-                    {
-                        "containerPath": "/hadoop-2.6.0-cdh5.9.1/hdfs.keytab",
-                        "secret": "hdfs_keytab"
-                    }
-                ]
+                    {"containerPath": "/hadoop-2.6.0-cdh5.9.1/hdfs.keytab", "secret": "hdfs_keytab"}
+                ],
             },
-            "secrets": {
-                "hdfs_keytab": {
-                    "source": kerberos.get_keytab_path()
-                }
-            },
-            "networks": [
-                {
-                    "mode": "host"
-                }
-            ],
+            "secrets": {"hdfs_keytab": {"source": kerberos.get_keytab_path()}},
+            "networks": [{"mode": "host"}],
             "env": {
                 "REALM": kerberos.get_realm(),
                 "KDC_ADDRESS": kerberos.get_kdc_address(),
                 "JAVA_HOME": "/usr/lib/jvm/default-java",
                 "KRB5_CONFIG": "/etc/krb5.conf",
                 "HDFS_SERVICE_NAME": config.SERVICE_NAME,
-            }
+            },
         }
 
         sdk_marathon.install_app(client)
@@ -159,15 +140,19 @@ def hdfs_client(kerberos, hdfs_server):
         sdk_marathon.destroy_app(client_id)
 
 
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
-    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
+    sdk_auth.kinit(
+        hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")
+    )
 
     test_filename = "test_auth_write_read"  # must be unique among tests in this suite
-    write_cmd = "/bin/bash -c '{}'".format(config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename))
+    write_cmd = "/bin/bash -c '{}'".format(
+        config.hdfs_write_command(config.TEST_CONTENT_SMALL, test_filename)
+    )
     sdk_cmd.marathon_task_exec(hdfs_client["id"], write_cmd)
 
     read_cmd = "/bin/bash -c '{}'".format(config.hdfs_read_command(test_filename))
@@ -175,14 +160,16 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     assert stdout == config.TEST_CONTENT_SMALL
 
 
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     # "hdfs" is a superuser
 
-    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs"))
+    sdk_auth.kinit(
+        hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")
+    )
 
     log.info("Creating directory for alice")
     make_user_directory_cmd = config.hdfs_command("mkdir -p /users/alice")
@@ -198,13 +185,17 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])
-    sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("alice"))
-    write_access_cmd = "/bin/bash -c \"{}\"".format(config.hdfs_write_command(
-        config.TEST_CONTENT_SMALL,
-        "/users/alice/{}".format(test_filename)))
+    sdk_auth.kinit(
+        hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("alice")
+    )
+    write_access_cmd = '/bin/bash -c "{}"'.format(
+        config.hdfs_write_command(
+            config.TEST_CONTENT_SMALL, "/users/alice/{}".format(test_filename)
+        )
+    )
     log.info("Alice can write: %s", write_access_cmd)
     rc, stdout, _ = sdk_cmd.marathon_task_exec(hdfs_client["id"], write_access_cmd)
-    assert stdout == '' and rc == 0
+    assert stdout == "" and rc == 0
 
     read_access_cmd = config.hdfs_read_command("/users/alice/{}".format(test_filename))
     log.info("Alice can read: %s", read_access_cmd)

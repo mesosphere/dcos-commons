@@ -1,6 +1,5 @@
 import pytest
 import retrying
-import shakedown
 
 import sdk_install
 import sdk_utils
@@ -11,24 +10,24 @@ from tests import config
 
 
 pytestmark = pytest.mark.skipif(
-    sdk_utils.is_strict_mode() and sdk_utils.dcos_version_less_than('1.11'),
-    reason="secure hierarchical roles are only supported on 1.11+")
+    sdk_utils.is_strict_mode() and sdk_utils.dcos_version_less_than("1.11"),
+    reason="secure hierarchical roles are only supported on 1.11+",
+)
 
-pre_reserved_options = {
-                "service": {
-                    "yaml": "pre-reserved"
-                }
-            }
+pre_reserved_options = {"service": {"yaml": "pre-reserved"}}
 
-@pytest.fixture(scope='module', autouse=True)
+
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-        sdk_install.install(config.PACKAGE_NAME,
-                            config.SERVICE_NAME,
-                            config.DEFAULT_TASK_COUNT,
-                            additional_options=pre_reserved_options)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            config.DEFAULT_TASK_COUNT,
+            additional_options=pre_reserved_options,
+        )
 
         yield  # let the test session execute
     finally:
@@ -37,14 +36,14 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 def test_install():
     config.check_running(config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 def test_marathon_volume_collision():
     # This test validates that a service registered in a sub-role of
     # slave_public will _not_ unreserve Marathon volumes RESERVED
@@ -65,16 +64,12 @@ def test_marathon_volume_collision():
             "type": "MESOS",
             "volumes": [
                 {
-                    "persistent": {
-                    "type": "root",
-                    "size": 500,
-                    "constraints": []
-                    },
+                    "persistent": {"type": "root", "size": 500, "constraints": []},
                     "mode": "RW",
-                    "containerPath": volume_name
+                    "containerPath": volume_name,
                 }
-            ]
-        }
+            ],
+        },
     }
     try:
         sdk_marathon.install_app(persistent_app)
@@ -82,12 +77,17 @@ def test_marathon_volume_collision():
         # Get its persistent Volume
         host = sdk_marathon.get_scheduler_host(marathon_app_name)
         # Should get e.g.: "/var/lib/mesos/slave/volumes/roles/slave_public/persistent-test#persistent-volume#76e7bb6d-64fa-11e8-abc5-8e679b292d5e"
-        ok, pv_path = sdk_cmd.agent_ssh(host, "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(marathon_app_name, volume_name))
+        ok, pv_path = sdk_cmd.agent_ssh(
+            host,
+            "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(
+                marathon_app_name, volume_name
+            ),
+        )
         assert ok
 
         pv_path = pv_path.strip()
 
-        @retrying.retry(wait_fixed=1000, stop_max_delay=60*1000)
+        @retrying.retry(wait_fixed=1000, stop_max_delay=60 * 1000)
         def check_content():
             ok, pv_content = sdk_cmd.agent_ssh(host, "cat {}/test".format(pv_path))
             assert pv_content.strip() == "this is a test"
@@ -96,14 +96,16 @@ def test_marathon_volume_collision():
 
         # Scale down the Marathon app
         app_config = sdk_marathon.get_config(marathon_app_name)
-        app_config['instances'] = 0
+        app_config["instances"] = 0
         sdk_marathon.update_app(marathon_app_name, app_config)
 
         # Install Hello World
-        sdk_install.install(config.PACKAGE_NAME,
-                            config.SERVICE_NAME,
-                            config.DEFAULT_TASK_COUNT,
-                            additional_options=pre_reserved_options)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            config.DEFAULT_TASK_COUNT,
+            additional_options=pre_reserved_options,
+        )
 
         # Make sure the persistent volume is still there
         check_content()
@@ -116,7 +118,7 @@ def test_marathon_volume_collision():
 
         # Scale back up the marathon app
         app_config = sdk_marathon.get_config(marathon_app_name)
-        app_config['instances'] = 1
+        app_config["instances"] = 1
         sdk_marathon.update_app(marathon_app_name, app_config)
 
         # Make sure the persistent volume is still there
@@ -124,9 +126,11 @@ def test_marathon_volume_collision():
 
     finally:
         # Reinstall hello world
-        sdk_install.install(config.PACKAGE_NAME,
-                            config.SERVICE_NAME,
-                            config.DEFAULT_TASK_COUNT,
-                            additional_options=pre_reserved_options)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            config.DEFAULT_TASK_COUNT,
+            additional_options=pre_reserved_options,
+        )
 
         sdk_marathon.destroy_app(marathon_app_name)

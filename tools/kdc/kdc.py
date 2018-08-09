@@ -62,9 +62,7 @@ import sdk_cmd
 import sdk_security
 
 
-logging.basicConfig(
-    format='[%(asctime)s|%(name)s|%(levelname)s]: %(message)s',
-    level=logging.INFO)
+logging.basicConfig(format="[%(asctime)s|%(name)s|%(levelname)s]: %(message)s", level=logging.INFO)
 
 log = logging.getLogger(__name__)
 
@@ -125,27 +123,38 @@ def teardown(args: dict):
     if args.binary_secret:
         sdk_security.delete_secret(args.secret_name)
     else:
-        sdk_security.delete_secret('__dcos_base64__{}'.format(args.secret_name))
+        sdk_security.delete_secret("__dcos_base64__{}".format(args.secret_name))
 
     log.info("KDC cluster successfully torn down")
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Manage a KDC instance')
+    parser = argparse.ArgumentParser(description="Manage a KDC instance")
 
-    parser.add_argument('--secret-name', type=str, required=False,
-                        default=None,
-                        help='The secret name to use for the generated keytab')
-    parser.add_argument('--binary-secret', action='store_true',
-                        help='The secret should be stored as a binary secret')
-    subparsers = parser.add_subparsers(help='deploy help')
+    parser.add_argument(
+        "--secret-name",
+        type=str,
+        required=False,
+        default=None,
+        help="The secret name to use for the generated keytab",
+    )
+    parser.add_argument(
+        "--binary-secret",
+        action="store_true",
+        help="The secret should be stored as a binary secret",
+    )
+    subparsers = parser.add_subparsers(help="deploy help")
 
-    deploy_parser = subparsers.add_parser('deploy', help='deploy help')
-    deploy_parser.add_argument('principals_file', type=str, default=None,
-                               help='Path to a file listing the principals as newline-separated strings')
+    deploy_parser = subparsers.add_parser("deploy", help="deploy help")
+    deploy_parser.add_argument(
+        "principals_file",
+        type=str,
+        default=None,
+        help="Path to a file listing the principals as newline-separated strings",
+    )
     deploy_parser.set_defaults(func=deploy)
 
-    teardown_parser = subparsers.add_parser('teardown', help='deploy help')
+    teardown_parser = subparsers.add_parser("teardown", help="deploy help")
     teardown_parser.set_defaults(func=teardown)
 
     return parser.parse_args()

@@ -1,3 +1,12 @@
 [flake8]
-max-line-length = 120
-ignore = E501
+# The following are ignored to work better with "black":
+#   E203 whitespace before ':' (https://github.com/ambv/black#slices)
+#   E501 line too long         (https://github.com/ambv/black#line-length)
+#   W503 line break before binary operator (https://github.com/ambv/black#line-breaks--binary-operators)
+ignore = E203, E501, W503
+max-line-length = 100
+max-complexity = 18
+# The default for Flake8 is: C,E,F,W (Critical, Error, Fatal, Warning)
+# Add B : (https://github.com/PyCQA/flake8-bugbear)
+# Add T : (https://github.com/ambv/flake8-mypy)
+select = B,C,E,F,W,T4,B9
