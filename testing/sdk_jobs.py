@@ -7,7 +7,6 @@ SHOULD ALSO BE APPLIED TO sdk_jobs IN ANY OTHER PARTNER REPOS
 """
 import json
 import logging
-import traceback
 
 import retrying
 

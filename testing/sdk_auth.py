@@ -84,7 +84,7 @@ def _get_master_public_ip() -> str:
     """
     :return (str): The public IP of the master node in the DC/OS cluster.
     """
-    response = sdk_cmd.cluster_request("GET", "/metadata", verify=False).json()
+    response = sdk_cmd.cluster_request("GET", "/metadata").json()
     if "PUBLIC_IPV4" not in response:
         raise KeyError(
             "Cluster metadata does not include master's public ip: {response}".format(

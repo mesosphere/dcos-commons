@@ -30,7 +30,6 @@ def service_request(
     retry=True,
     raise_on_error=True,
     log_args=True,
-    verify=None,
     timeout_seconds=60,
     **kwargs,
 ):
@@ -44,7 +43,7 @@ def service_request(
         "/service/{}/".format(service_name), service_path.lstrip("/")
     )
     return cluster_request(
-        method, cluster_path, retry, raise_on_error, log_args, verify, timeout_seconds, **kwargs
+        method, cluster_path, retry, raise_on_error, log_args, timeout_seconds, **kwargs
     )
 
 
@@ -54,7 +53,6 @@ def cluster_request(
     retry=True,
     raise_on_error=True,
     log_args=True,
-    verify=None,
     timeout_seconds=60,
     **kwargs,
 ):
@@ -69,7 +67,6 @@ def cluster_request(
     : param raise_on_error: Whether to raise a `requests.exceptions.HTTPError` if the response code is >= 400.
                            Disabling this effectively implies `retry = False` where HTTP status is concerned.
     : param log_args: Whether to log the contents of `kwargs`. Can be disabled to reduce noise.
-    : param verify: Whether to verify the TLS certificate returned by the cluster, or a path to a certificate file.
     : param kwargs: Additional arguments to requests.request(), such as `json = {"example": "content"}`
                    or `params = {"example": "param"}`.
     : rtype: requests.Response
@@ -93,7 +90,7 @@ def cluster_request(
     def _cluster_request():
         start = time.time()
         response = requests.request(
-            method, url, auth=auth, verify=verify, timeout=timeout_seconds, **kwargs
+            method, url, auth=auth, verify=False, timeout=timeout_seconds, **kwargs
         )
         end = time.time()
 
