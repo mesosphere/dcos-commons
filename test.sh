@@ -232,7 +232,7 @@ if [ -f "$ssh_agent" ]; then
     volume_args="$volume_args -v $(dirname $SSH_AUTH_SOCK) -e SSH_AUTH_SOCK=$SSH_AUTH_SOCK" # pass ssh-agent into docker env
 else
     if [ -n "$CLUSTER_URL" ]; then
-        echo "SSH agent file path: $ssh_agent"
+        echo "Failed. SSH agent file path: $ssh_agent"
         exit 1
     fi
     # Don't need ssh key now: test_runner.sh will extract the key after cluster launch
