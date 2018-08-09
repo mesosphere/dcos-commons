@@ -128,10 +128,10 @@ class AWSPublisher(object):
 
 
 def s3_urls_from_env(package_name):
-    s3_bucket = os.environ.get("S3_BUCKET", "infinity-artifacts")
+    s3_bucket = os.environ.get("S3_BUCKET") or "infinity-artifacts"
     logger.info("Using artifact bucket: {}".format(s3_bucket))
 
-    s3_dir_path = os.environ.get("S3_DIR_PATH", "autodelete7d")
+    s3_dir_path = os.environ.get("S3_DIR_PATH") or "autodelete7d"
     s3_dir_name = os.environ.get("S3_DIR_NAME")
     if not s3_dir_name:
         s3_dir_name = "{}-{}".format(
