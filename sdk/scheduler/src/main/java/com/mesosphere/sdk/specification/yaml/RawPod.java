@@ -63,7 +63,6 @@ public class RawPod {
         this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
         this.allowDecommission = allowDecommission != null && allowDecommission;
         this.hostVolumes = hostVolumes == null ? new WriteOnceLinkedHashMap<>() : hostVolumes;
-
     }
 
     public String getPlacement() {

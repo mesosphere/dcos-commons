@@ -85,6 +85,4 @@ public class VerifyHostVolumePathTest {
                 .hostPath("/etc")
                 .build();
     }
-
-
 }

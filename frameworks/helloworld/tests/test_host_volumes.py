@@ -38,6 +38,14 @@ def test_check_host_volume_mounts():
     )
 
 
+@pytest.mark.hostvolume
+@pytest.mark.sanity
+@pytest.mark.smoke
+def test_read_host_volume():
+    """Attempts to read /etc/groups from hostvolume mount."""
+    assert "root" in read_from_host_volume("hello-0-server", "bash -c 'cat /etc/group'")
+
+
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
 def search_for_host_volume(task_name, command, mount_name):
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
@@ -45,6 +53,19 @@ def search_for_host_volume(task_name, command, mount_name):
     log.info("Looking for %s in task mounts.", mount_name)
     for line in lines:
         if mount_name in line:
+            return line
+    raise Exception(
+        "Failed to read host volume mountpoint from {} with command '{}'".format(task_name, command)
+    )
+
+
+@retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
+def read_from_host_volume(task_name, command):
+    _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
+    lines = [line.strip() for line in output.split("\n")]
+    log.info("Looking for user root under /etc/group in %s", task_name)
+    for line in lines:
+        if "root" in line:
             return line
     raise Exception(
         "Failed to read host volume mountpoint from {} with command '{}'".format(task_name, command)

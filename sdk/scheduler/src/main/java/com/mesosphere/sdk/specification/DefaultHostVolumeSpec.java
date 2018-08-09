@@ -36,12 +36,12 @@ public class DefaultHostVolumeSpec implements HostVolumeSpec {
         this.hostPath = hostPath;
         this.containerPath = containerPath;
     }
+
     private DefaultHostVolumeSpec(Builder builder) {
         this(builder.hostPath, builder.containerPath);
 
         ValidationUtils.matchesRegex(this, "host-path", hostPath, VALID_HOST_PATH_PATTERN);
         ValidationUtils.matchesRegex(this, "container-path", containerPath, VALID_CONTAINER_PATH_PATTERN);
-
     }
 
     public static Builder newBuilder() {
@@ -69,6 +69,7 @@ public class DefaultHostVolumeSpec implements HostVolumeSpec {
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
+
     @Override
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
