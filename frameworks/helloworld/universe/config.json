@@ -114,6 +114,19 @@
           "description": "Specifies a custom TLD to use for endpoints",
           "type": "string",
           "default": ""
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "description": "Marathon constraints for the scheduler task placement by marathon",
+          "default": []
         }
       }
     },
