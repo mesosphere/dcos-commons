@@ -158,7 +158,9 @@ def test_kill_scheduler():
     sdk_cmd.kill_task_with_pattern(
         "hdfs.scheduler.Main", shakedown.get_service_ips("marathon").pop()
     )
-    config.check_healthy(service_name=foldered_name)
+
+    sdk_marathon.wait_for_deployment_and_app_running(foldered_name, 15 * 60)
+
     sdk_tasks.check_task_relaunched(scheduler_task_name, scheduler_id)
     sdk_tasks.check_tasks_not_updated(foldered_name, "journal", journal_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "name", name_ids)
