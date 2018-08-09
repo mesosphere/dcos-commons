@@ -117,28 +117,6 @@ def is_strict_mode():
     return os.environ.get("SECURITY", "") == "strict"
 
 
-def is_cli_supports_service_version_upgrade():
-    """Version upgrades are supported for [EE 1.9+] only"""
-    return is_cli_supports_service_options_update() and not is_open_dcos()
-
-
-def is_cli_supports_service_options_update():
-    """Service updates are supported in [EE 1.9+] or [Open 1.11+]"""
-    return dcos_version_at_least("1.9") and (not is_open_dcos() or dcos_version_at_least("1.11"))
-
-
-def ensure_cli_supports_service_version_upgrade():
-    assert (
-        is_cli_supports_service_version_upgrade()
-    ), "Version upgrades supported in 1.11+ in Open DC/OS"
-
-
-def ensure_cli_supports_service_options_update():
-    assert (
-        is_cli_supports_service_options_update()
-    ), "Service updates are supported in [EE] or [Open 1.11+]"
-
-
 dcos_ee_only = pytest.mark.skipif(is_open_dcos(), reason="Feature only supported in DC/OS EE.")
 
 

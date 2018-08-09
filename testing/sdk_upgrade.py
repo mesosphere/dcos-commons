@@ -171,8 +171,8 @@ def update_or_upgrade_or_downgrade(
 ):
     initial_config = get_config(package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, "")
-    if (to_package_version and not sdk_utils.is_cli_supports_service_version_upgrade()) or (
-        additional_options and not sdk_utils.is_cli_supports_service_options_update()
+    if (to_package_version and not is_cli_supports_service_version_upgrade()) or (
+        additional_options and not is_cli_supports_service_options_update()
     ):
         log.info(
             "Using marathon flow to upgrade to package name : {} version : [{}]".format(
@@ -206,10 +206,10 @@ def _update_service_with_cli(
     )
     update_cmd = ["update", "start"]
     if to_package_version:
-        sdk_utils.ensure_cli_supports_service_version_upgrade()
+        ensure_cli_supports_service_version_upgrade()
         update_cmd.append("--package-version={}".format(to_package_version))
     if additional_options:
-        sdk_utils.ensure_cli_supports_service_options_update()
+        ensure_cli_supports_service_options_update()
         options_file = tempfile.NamedTemporaryFile("w")
         json.dump(additional_options, options_file)
         options_file.flush()  # ensure json content is available for the CLI to read below
@@ -280,3 +280,27 @@ def _wait_for_new_package_version(package_name, prev_version):
     cur_version = _get_pkg_version(package_name)
     log.info("Current version of {} is: {}".format(package_name, cur_version))
     return cur_version if cur_version != prev_version else None
+
+
+def is_cli_supports_service_version_upgrade():
+    """Version upgrades are supported for [EE 1.9+] only"""
+    return is_cli_supports_service_options_update() and not sdk_utils.is_open_dcos()
+
+
+def is_cli_supports_service_options_update():
+    """Service updates are supported in [EE 1.9+] or [Open 1.11+]"""
+    return sdk_utils.dcos_version_at_least("1.9") and (
+        not sdk_utils.is_open_dcos() or sdk_utils.dcos_version_at_least("1.11")
+    )
+
+
+def ensure_cli_supports_service_version_upgrade():
+    assert (
+        is_cli_supports_service_version_upgrade()
+    ), "Version upgrades supported in 1.11+ in Open DC/OS"
+
+
+def ensure_cli_supports_service_options_update():
+    assert (
+        is_cli_supports_service_options_update()
+    ), "Service updates are supported in [EE] or [Open 1.11+]"
