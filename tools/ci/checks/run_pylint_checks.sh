@@ -8,4 +8,4 @@ docker run --rm -t \
     -v $(pwd):/build:ro \
     -w /build \
         ${DOCKER_IMAGE} \
-            pylint -E "$@"
+            pylint -E -j4 --disable=invalid-sequence-index --disable=no-member --disable=no-name-in-module "$@"
