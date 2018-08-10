@@ -376,7 +376,7 @@ if [ -n "$envfile_input" ]; then
     cat "${envfile_input}" >> $envfile
 fi
 
-CMD="docker run --rm \
+CMD="docker --log-level=debug run --rm \
 -t \
 ${docker_interactive_arg} \
 --env-file $envfile \
