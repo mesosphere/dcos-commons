@@ -53,7 +53,7 @@ def check_running(
             else:
                 other_tasks.append("{}={}".format(t.name, t.state))
         log.info(
-            "Waiting for {} {} tasks in {}, got {} running/{} total:\n- running: [{}]\n- other: [{}]".format(
+            "Waiting for {} {} running tasks in {}, got {} running/{} total:\n- running: [{}]\n- other: [{}]".format(
                 "at least" if allow_more else "exactly",
                 expected_task_count,
                 service_name,

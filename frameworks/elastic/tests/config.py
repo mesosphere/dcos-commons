@@ -212,7 +212,7 @@ def set_xpack(is_enabled, service_name=SERVICE_NAME):
 def update_app(service_name, options, expected_task_count):
     config = sdk_marathon.get_config(service_name)
     config["env"].update(options)
-    sdk_marathon.update_app(service_name, config)
+    sdk_marathon.update_app(config)
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_tasks.check_running(service_name, expected_task_count)
 

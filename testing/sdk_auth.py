@@ -196,16 +196,6 @@ class KerberosEnvironment:
         return kdc_app_def
 
     def install(self) -> dict:
-        @retrying.retry(
-            stop_max_delay=3 * 60 * 1000,
-            wait_exponential_multiplier=1000,
-            wait_exponential_max=120 * 1000,
-            retry_on_result=lambda result: not result,
-        )
-        def _install_marathon_app(app_definition):
-            success, _ = sdk_marathon.install_app(app_definition)
-            return success
-
         if sdk_marathon.app_exists(self.app_definition["id"]):
             if self._persist:
                 log.info("Found installed KDC app, reusing it")
@@ -214,7 +204,7 @@ class KerberosEnvironment:
             sdk_marathon.destroy_app(self.app_definition["id"])
 
         log.info("Installing KDC Marathon app")
-        _install_marathon_app(self.app_definition)
+        sdk_marathon.install_app(self.app_definition)
         log.info("KDC app installed successfully")
 
         return _get_kdc_task(self.app_definition["id"])

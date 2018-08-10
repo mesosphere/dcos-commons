@@ -58,7 +58,7 @@ def test_node_replace_replaces_node():
         marathon_config["env"]["PLACEMENT_CONSTRAINT"] = '[["hostname", "UNLIKE", "{}"]]'.format(
             replace_task.host
         )
-        sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+        sdk_marathon.update_app(marathon_config)
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
@@ -74,7 +74,7 @@ def test_node_replace_replaces_node():
     finally:
         # revert to prior placement setting before proceeding with tests: avoid getting stuck.
         marathon_config["env"]["PLACEMENT_CONSTRAINT"] = original_constraint
-        sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+        sdk_marathon.update_app(marathon_config)
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 

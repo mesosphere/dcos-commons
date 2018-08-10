@@ -80,7 +80,7 @@ def _retried_install_impl(
         sdk_tasks.check_running(service_name, expected_running_tasks, timeout_seconds)
 
     # Wait for completed marathon deployment
-    sdk_marathon.wait_for_app_healthy(service_name, timeout_seconds)
+    sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
 
 
 def install(

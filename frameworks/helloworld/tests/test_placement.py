@@ -402,7 +402,7 @@ def test_updated_placement_constraints_not_applied_with_other_changes():
     # Additionally, modify the task count to be higher.
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config["env"]["HELLO_COUNT"] = "2"
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(marathon_config)
 
     # Now, an additional hello-server task will launch
     # where the _new_ constraint will tell it to be.
@@ -472,7 +472,7 @@ def setup_constraint_switch():
     # Now, stick it to other_agent
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config["env"]["HELLO_PLACEMENT"] = '[["hostname", "LIKE", "{}"]]'.format(other_agent)
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     # Wait for the scheduler to be up and settled before advancing.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 

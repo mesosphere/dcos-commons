@@ -212,9 +212,9 @@ def _run_cmd(cmd, print_output, check, timeout_seconds=None):
     stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
 def create_task_text_file(marathon_task_name: str, filename: str, lines: list) -> bool:
-    output_cmd = """bash - c \"cat > {output_file} << EOL
+    output_cmd = '''bash -c "cat > {output_file} << EOL
 {content}
-EOL\"""".format(
+EOL"'''.format(
         output_file=filename, content="\n".join(lines)
     )
     rc, stdout, stderr = marathon_task_exec(marathon_task_name, output_cmd)
@@ -341,10 +341,12 @@ def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: b
         # Direct SSH access to the node:
         ssh_cmd = 'ssh {} {} -- "{}"'.format(common_args, host, cmd)
     else:
-        # Nested SSH call via the proxy node. Be careful to nest quotes to match:
+        # Nested SSH call via the proxy node. Be careful to nest quotes to match, and escape any
+        # command-internal double quotes as well:
         ssh_cmd = 'ssh {} {} -- "ssh {} {} -- \\"{}\\""'.format(
-            common_args, _external_cluster_host(), common_args, host, cmd
+            common_args, _external_cluster_host(), common_args, host, cmd.replace('"', '\\\\\\"')
         )
+    log.info("SSH command: {}".format(ssh_cmd))
     return _run_cmd(ssh_cmd, print_output, check, timeout_seconds=timeout_seconds)
 
 

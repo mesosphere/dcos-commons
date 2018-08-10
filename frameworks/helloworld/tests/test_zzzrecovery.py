@@ -278,9 +278,7 @@ def test_config_update_while_partitioned():
     service_config = sdk_marathon.get_config(config.SERVICE_NAME)
     updated_cpus = float(service_config["env"]["WORLD_CPUS"]) + 0.1
     service_config["env"]["WORLD_CPUS"] = str(updated_cpus)
-    sdk_marathon.update_app(
-        config.SERVICE_NAME, service_config, wait_for_completed_deployment=False
-    )
+    sdk_marathon.update_app(service_config, wait_for_completed_deployment=False)
 
     sdk_agents.reconnect_agent(host)
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "world", world_ids)

@@ -74,7 +74,7 @@ def test_pod_replace_then_immediate_config_update():
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace data-0")
 
     # issue config update immediately
-    sdk_marathon.update_app(foldered_name, cfg)
+    sdk_marathon.update_app(cfg)
 
     # ensure all nodes, especially data-0, get launched with the updated config
     config.check_elasticsearch_plugin_installed(plugin_name, service_name=foldered_name)
@@ -342,7 +342,7 @@ def test_bump_node_counts():
     marathon_config["env"]["INGEST_NODE_COUNT"] = str(ingest_nodes + 1)
     coordinator_nodes = int(marathon_config["env"]["COORDINATOR_NODE_COUNT"])
     marathon_config["env"]["COORDINATOR_NODE_COUNT"] = str(coordinator_nodes + 1)
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     global current_expected_task_count
     current_expected_task_count += 2
@@ -360,7 +360,7 @@ def test_adding_data_node_only_restarts_masters():
     marathon_config = sdk_marathon.get_config(foldered_name)
     data_nodes = int(marathon_config["env"]["DATA_NODE_COUNT"])
     marathon_config["env"]["DATA_NODE_COUNT"] = str(data_nodes + 1)
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     global current_expected_task_count
     current_expected_task_count += 1

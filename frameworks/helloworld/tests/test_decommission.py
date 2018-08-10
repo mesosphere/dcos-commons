@@ -36,7 +36,7 @@ def test_custom_decommission():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     marathon_config = sdk_marathon.get_config(foldered_name)
     marathon_config["env"]["WORLD_COUNT"] = "1"
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
 
     sdk_plan.wait_for_completed_plan(foldered_name, "decommission")
     decommission_plan = sdk_plan.get_decommission_plan(foldered_name)
@@ -48,13 +48,13 @@ def test_custom_decommission():
     # scale back up
     marathon_config = sdk_marathon.get_config(foldered_name)
     marathon_config["env"]["WORLD_COUNT"] = "2"
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(foldered_name)
 
     # Let's decommission again!
     marathon_config = sdk_marathon.get_config(foldered_name)
     marathon_config["env"]["WORLD_COUNT"] = "1"
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(foldered_name)
 
     sdk_plan.wait_for_completed_plan(foldered_name, "decommission")

@@ -290,7 +290,7 @@ def test_state_refresh_disable_cache():
 
     marathon_config = sdk_marathon.get_config(foldered_name)
     marathon_config["env"]["DISABLE_STATE_CACHE"] = "any-text-here"
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
 
     sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
     config.check_running(foldered_name)
@@ -310,7 +310,7 @@ def test_state_refresh_disable_cache():
 
     marathon_config = sdk_marathon.get_config(foldered_name)
     del marathon_config["env"]["DISABLE_STATE_CACHE"]
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
 
     sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
     config.check_running(foldered_name)
@@ -351,9 +351,9 @@ def test_lock():
     labels = marathon_config["labels"]
     original_labels = labels.copy()
     labels.pop("MARATHON_SINGLE_INSTANCE_APP")
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     marathon_config["instances"] = 2
-    sdk_marathon.update_app(foldered_name, marathon_config, wait_for_completed_deployment=False)
+    sdk_marathon.update_app(marathon_config, wait_for_completed_deployment=False)
 
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def wait_for_second_scheduler_to_fail():
@@ -371,7 +371,7 @@ def test_lock():
     # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
     marathon_config["instances"] = 1
     marathon_config["labels"] = original_labels
-    sdk_marathon.update_app(foldered_name, marathon_config, force=True)
+    sdk_marathon.update_app(marathon_config, force=True)
 
 
 @pytest.mark.sanity

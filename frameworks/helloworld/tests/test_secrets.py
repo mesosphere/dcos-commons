@@ -296,7 +296,7 @@ def test_secrets_config_update():
     marathon_config["env"]["WORLD_SECRET3"] = "secret3"
 
     # config update
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(marathon_config)
 
     # wait till plan is complete - pods are supposed to restart
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)

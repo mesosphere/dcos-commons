@@ -3,6 +3,7 @@ import sdk_install
 import sdk_jobs
 import sdk_networks
 import sdk_plan
+import sdk_tasks
 from tests import config
 
 
@@ -36,9 +37,14 @@ def configure_package(configure_security):
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_service_overlay_health():
-    node_tasks = ("node-0-server", "node-1-server", "node-2-server")
-    for task in node_tasks:
-        sdk_networks.check_task_network(task)
+    task_names = [t.name for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
+    assert (
+        len(task_names) == config.DEFAULT_TASK_COUNT
+    ), "Expected {} tasks, got {}".format(
+        config.DEFAULT_TASK_COUNT, task_names
+    )
+    for task_name in task_names:
+        sdk_networks.check_task_network(task_name)
 
 
 @pytest.mark.sanity

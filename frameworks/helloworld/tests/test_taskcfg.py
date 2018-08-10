@@ -58,7 +58,7 @@ def test_deploy():
     del env["SLEEP_DURATION"]
     env["TASKCFG_ALL_OUTPUT_FILENAME"] = "output"
     env["TASKCFG_ALL_SLEEP_DURATION"] = "1000"
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(marathon_config)
 
     config.check_running()
 

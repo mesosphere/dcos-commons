@@ -99,7 +99,7 @@ def test_marathon_volume_collision():
         # Scale down the Marathon app
         app_config = sdk_marathon.get_config(marathon_app_name)
         app_config["instances"] = 0
-        sdk_marathon.update_app(marathon_app_name, app_config)
+        sdk_marathon.update_app(app_config)
 
         # Install Hello World
         sdk_install.install(
@@ -121,7 +121,7 @@ def test_marathon_volume_collision():
         # Scale back up the marathon app
         app_config = sdk_marathon.get_config(marathon_app_name)
         app_config["instances"] = 1
-        sdk_marathon.update_app(marathon_app_name, app_config)
+        sdk_marathon.update_app(app_config)
 
         # Make sure the persistent volume is still there
         check_content()

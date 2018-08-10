@@ -243,7 +243,7 @@ def test_changing_discovery_replaces_certificate_sans():
     # Run task update with new discovery prefix
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config["env"]["DISCOVERY_TASK_PREFIX"] = DISCOVERY_TASK_PREFIX + "-new"
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     _, stdout, _ = sdk_cmd.service_task_exec(

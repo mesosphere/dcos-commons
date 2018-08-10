@@ -31,9 +31,14 @@ def test_service_overlay_health():
     """Installs SDK based Kafka on with virtual networks set to True. Tests that the deployment completes
     and the service is healthy, then checks that all of the service tasks (brokers) are on the overlay network
     """
-    broker_tasks = ("kafka-0-broker", "kafka-1-broker", "kafka-2-broker")
-    for task in broker_tasks:
-        sdk_networks.check_task_network(task)
+    task_names = [t.name for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
+    assert (
+        len(task_names) == config.DEFAULT_BROKER_COUNT
+    ), "Expected {} tasks, got {}".format(
+        config.DEFAULT_BROKER_COUNT, task_names
+    )
+    for task_name in task_names:
+        sdk_networks.check_task_network(task_name)
 
 
 @pytest.mark.smoke

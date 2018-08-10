@@ -90,7 +90,7 @@ def test_custom_zookeeper():
     # use a custom zk path that's WITHIN the 'dcos-service-' path, so that it's automatically cleaned up in uninstall:
     zk_path = "master.mesos:2181/{}/CUSTOMPATH".format(sdk_utils.get_zk_path(foldered_name))
     marathon_config["env"]["KAFKA_ZOOKEEPER_URI"] = zk_path
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
 
     sdk_tasks.check_tasks_updated(foldered_name, "{}-".format(config.DEFAULT_POD_TYPE), broker_ids)
     sdk_plan.wait_for_completed_deployment(foldered_name)

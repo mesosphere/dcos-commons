@@ -300,7 +300,7 @@ def test_modify_app_config():
     log.info(marathon_config)
     expiry_ms = int(marathon_config["env"][app_config_field])
     marathon_config["env"][app_config_field] = str(expiry_ms + 1)
-    sdk_marathon.update_app(foldered_name, marathon_config, timeout=15 * 60)
+    sdk_marathon.update_app(marathon_config, timeout=15 * 60)
 
     # All tasks should be updated because hdfs-site.xml has changed
     config.check_healthy(service_name=foldered_name)
@@ -328,7 +328,7 @@ def test_modify_app_config_rollback():
     expiry_ms = int(marathon_config["env"][app_config_field])
     log.info("expiry ms: " + str(expiry_ms))
     marathon_config["env"][app_config_field] = str(expiry_ms + 1)
-    sdk_marathon.update_app(foldered_name, marathon_config, timeout=15 * 60)
+    sdk_marathon.update_app(marathon_config, timeout=15 * 60)
 
     # Wait for journal nodes to be affected by the change
     sdk_tasks.check_tasks_updated(foldered_name, "journal", journal_ids)
@@ -337,7 +337,7 @@ def test_modify_app_config_rollback():
     log.info("old config: ")
     log.info(old_config)
     # Put the old config back (rollback)
-    sdk_marathon.update_app(foldered_name, old_config)
+    sdk_marathon.update_app(old_config)
 
     # Wait for the journal nodes to return to their old configuration
     sdk_tasks.check_tasks_updated(foldered_name, "journal", journal_ids)

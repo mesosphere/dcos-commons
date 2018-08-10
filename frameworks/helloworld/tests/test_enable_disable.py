@@ -50,4 +50,4 @@ def test_enable():
 def set_test_boolean(value):
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config["env"]["TEST_BOOLEAN"] = value
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(marathon_config)
