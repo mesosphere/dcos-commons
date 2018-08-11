@@ -32,9 +32,7 @@ def test_service_overlay_health():
     and the service is healthy, then checks that all of the service tasks (brokers) are on the overlay network
     """
     task_names = [t.name for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
-    assert (
-        len(task_names) == config.DEFAULT_BROKER_COUNT
-    ), "Expected {} tasks, got {}".format(
+    assert len(task_names) == config.DEFAULT_BROKER_COUNT, "Expected {} tasks, got {}".format(
         config.DEFAULT_BROKER_COUNT, task_names
     )
     for task_name in task_names:

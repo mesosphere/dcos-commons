@@ -40,9 +40,7 @@ def pre_test_setup():
 @pytest.mark.dcos_min_version("1.9")
 def test_tasks_on_overlay():
     task_names = [t.name for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
-    assert (
-        len(task_names) == config.DEFAULT_TASK_COUNT
-    ), "Expected {} tasks, got {}".format(
+    assert len(task_names) == config.DEFAULT_TASK_COUNT, "Expected {} tasks, got {}".format(
         config.DEFAULT_TASK_COUNT, task_names
     )
     for task_name in task_names:

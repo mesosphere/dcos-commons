@@ -55,7 +55,7 @@ def _is_app_healthy(app: dict, add_log="") -> bool:
     running = app.get("tasksRunning", 0)
     unhealthy = app.get("tasksUnhealthy", 0)
     healthy = app.get("tasksHealthy", 0)
-    deployments = app.get('deployments', [])
+    deployments = app.get("deployments", [])
 
     expect_instances = app.get("instances", 1)
     app_id = app.get("id", "???")
@@ -63,15 +63,40 @@ def _is_app_healthy(app: dict, add_log="") -> bool:
         # App defines health or readiness check.
         # Use the healthy count to determine when the app has finished.
         check_instances = healthy
-        log.info("{}: staged={}/0, running={}, unhealthy={}/0, healthy={}/{}+, deployments={}/0{}".format(
-            app_id, staged, running, unhealthy, healthy, expect_instances, len(deployments), add_log))
+        log.info(
+            "{}: staged={}/0, running={}, unhealthy={}/0, healthy={}/{}+, deployments={}/0{}".format(
+                app_id,
+                staged,
+                running,
+                unhealthy,
+                healthy,
+                expect_instances,
+                len(deployments),
+                add_log,
+            )
+        )
     else:
         # No health checks, just check 'running'
         check_instances = running
-        log.info("{}: staged={}/0, running={}/{}+, unhealthy={}/0, healthy={}, deployments={}/0{}".format(
-            app_id, staged, running, expect_instances, unhealthy, healthy, len(deployments), add_log))
+        log.info(
+            "{}: staged={}/0, running={}/{}+, unhealthy={}/0, healthy={}, deployments={}/0{}".format(
+                app_id,
+                staged,
+                running,
+                expect_instances,
+                unhealthy,
+                healthy,
+                len(deployments),
+                add_log,
+            )
+        )
 
-    return staged == 0 and unhealthy == 0 and len(deployments) == 0 and check_instances >= expect_instances
+    return (
+        staged == 0
+        and unhealthy == 0
+        and len(deployments) == 0
+        and check_instances >= expect_instances
+    )
 
 
 class _deployment_result(object):
@@ -101,12 +126,14 @@ def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> N
             # Specific version expected: Check deployments + health + version
             # This avoids a race when reconfiguring a marathon app, where it may initially look
             # healthy/deployed BEFORE the deployment has started.
-            version = app.get('version', '')
+            version = app.get("version", "")
             running = _is_app_healthy(app, ", version={}/{}".format(version, expected_version))
             return running and expected_version == version
 
     if expected_version:
-        log.info("Waiting for {} to be deployed with version {}...".format(app_name, expected_version))
+        log.info(
+            "Waiting for {} to be deployed with version {}...".format(app_name, expected_version)
+        )
     else:
         log.info("Waiting for {} to be deployed with any version...".format(app_name))
     _wait_for_deployment()
@@ -124,8 +151,8 @@ def _handle_marathon_deployment_response(response) -> _deployment_result:
         log.error("Failed to parse marathon response as JSON: {}".format(response.text))
         raise
 
-    version = response_json.get('version')
-    message = response_json.get('message')
+    version = response_json.get("version")
+    message = response_json.get("message")
     if version is not None:
         # Success
         return _deployment_result(version, None)
@@ -135,7 +162,11 @@ def _handle_marathon_deployment_response(response) -> _deployment_result:
     else:
         # Temporary error? Retry
         response.raise_for_status()
-        raise Exception("Bad JSON response to Marathon request. Expected 'version' or 'message': {}".format(response_json))
+        raise Exception(
+            "Bad JSON response to Marathon request. Expected 'version' or 'message': {}".format(
+                response_json
+            )
+        )
 
 
 def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
@@ -155,11 +186,7 @@ def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
     def _install():
         response = sdk_cmd.cluster_request(
-            "POST",
-            _api_url("apps"),
-            json=app_definition,
-            log_args=False,
-            raise_on_error=False
+            "POST", _api_url("apps"), json=app_definition, log_args=False, raise_on_error=False
         )
         return _handle_marathon_deployment_response(response)
 
@@ -170,7 +197,7 @@ def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
 
 
 def update_app(
-        config: dict, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True, force=True
+    config: dict, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True, force=True
 ) -> None:
     app_name = config["id"]
     if "env" in config:
@@ -188,7 +215,7 @@ def update_app(
             params={"force": "true"} if force else {},
             json=config,
             log_args=False,
-            raise_on_error=False
+            raise_on_error=False,
         )
         return _handle_marathon_deployment_response(response)
 
@@ -205,9 +232,7 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
     def _destroy():
         response = sdk_cmd.cluster_request(
-            "DELETE",
-            _api_url("apps/{}".format(app_name)),
-            params={"force": "true"}
+            "DELETE", _api_url("apps/{}".format(app_name)), params={"force": "true"}
         )
         return _handle_marathon_deployment_response(response)
 
@@ -216,7 +241,9 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
 
     # This check is different from the other deployment checks.
     # When it's complete, the app is gone entirely.
-    @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result)
+    @retrying.retry(
+        stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
+    )
     def _wait_for_app_destroyed():
         return not app_exists(app_name, timeout)
 
@@ -228,9 +255,7 @@ def restart_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
     def _restart():
         response = sdk_cmd.cluster_request(
-            "POST",
-            _api_url("apps/{}/restart".format(app_name)),
-            raise_on_error=False
+            "POST", _api_url("apps/{}/restart".format(app_name)), raise_on_error=False
         )
         return _handle_marathon_deployment_response(response)
 

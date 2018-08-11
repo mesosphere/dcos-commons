@@ -19,7 +19,9 @@ def check_task_network(task_name, expected_network_name="dcos"):
     """Tests whether a task (and it's parent pod) is on a given network
     """
     statuses = sdk_tasks.get_all_status_history(task_name, with_completed_tasks=False)
-    assert len(statuses) != 0, "Unable to find any statuses for running task_name={}".format(task_name)
+    assert len(statuses) != 0, "Unable to find any statuses for running task_name={}".format(
+        task_name
+    )
 
     for status in statuses:
         if status["state"] != "TASK_RUNNING":
