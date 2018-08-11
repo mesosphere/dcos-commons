@@ -28,7 +28,7 @@ log = logging.getLogger(__name__)
 def test_upgrade(
     package_name,
     service_name,
-    running_task_count,
+    expected_running_tasks,
     additional_options={},
     test_version_additional_options=None,
     timeout_seconds=25 * 60,
@@ -61,7 +61,7 @@ def test_upgrade(
         sdk_install.install(
             package_name,
             service_name,
-            running_task_count,
+            expected_running_tasks,
             additional_options=additional_options,
             timeout_seconds=timeout_seconds,
             wait_for_deployment=wait_for_deployment,
@@ -79,14 +79,14 @@ def test_upgrade(
             _wait_for_new_package_version(package_name, universe_version)
 
     log.info("Upgrading {}: {} => {}".format(package_name, universe_version, test_version))
-    _upgrade_or_downgrade(
+    update_or_upgrade_or_downgrade(
         package_name,
-        test_version,
         service_name,
-        running_task_count,
+        test_version,
         test_version_additional_options,
-        timeout_seconds,
+        expected_running_tasks,
         wait_for_deployment,
+        timeout_seconds,
     )
 
 
@@ -99,7 +99,7 @@ def test_upgrade(
 def soak_upgrade_downgrade(
     package_name,
     service_name,
-    running_task_count,
+    expected_running_tasks,
     additional_options={},
     timeout_seconds=25 * 60,
     wait_for_deployment=True,
@@ -107,27 +107,27 @@ def soak_upgrade_downgrade(
     sdk_cmd.run_cli("package install --cli {} --yes".format(package_name))
     version = "stub-universe"
     log.info("Upgrading to test version: {} {}".format(package_name, version))
-    _upgrade_or_downgrade(
+    update_or_upgrade_or_downgrade(
         package_name,
-        version,
         service_name,
-        running_task_count,
+        version,
         additional_options,
-        timeout_seconds,
+        expected_running_tasks,
         wait_for_deployment,
+        timeout_seconds,
     )
 
     # Default Universe is at --index=0
     version = _get_pkg_version(package_name)
     log.info("Downgrading to Universe version: {} {}".format(package_name, version))
-    _upgrade_or_downgrade(
+    update_or_upgrade_or_downgrade(
         package_name,
-        version,
         service_name,
-        running_task_count,
+        version,
         additional_options,
-        timeout_seconds,
+        expected_running_tasks,
         wait_for_deployment,
+        timeout_seconds,
     )
 
 
@@ -159,50 +159,62 @@ def get_config(package_name, service_name):
     return target_config
 
 
-def update_service(package_name, service_name, additional_options=None, to_package_version=None):
-    update_cmd = ["update", "start"]
-    if to_package_version:
-        update_cmd.append("--package-version={}".format(to_package_version))
-    if additional_options:
-        with tempfile.NamedTemporaryFile("w") as options_file:
-            json.dump(additional_options, options_file)
-            options_file.flush()  # ensure json content is available for the CLI to read below
-            update_cmd.append("--options={}".format(options_file.name))
-            sdk_cmd.svc_cli(package_name, service_name, " ".join(update_cmd), check=True)
-    else:
-        sdk_cmd.svc_cli(package_name, service_name, " ".join(update_cmd), check=True)
-
-
-def _upgrade_or_downgrade(
+def update_or_upgrade_or_downgrade(
     package_name,
-    to_package_version,
     service_name,
-    running_task_count,
+    to_package_version,
     additional_options,
-    timeout_seconds,
-    wait_for_deployment,
+    expected_running_tasks,
+    wait_for_deployment=True,
+    timeout_seconds=sdk_utils.TIMEOUT_SECONDS,
 ):
-
     initial_config = get_config(package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, "")
-
-    if sdk_utils.dcos_version_less_than("1.10") or sdk_utils.is_open_dcos():
+    if (to_package_version and not is_cli_supports_service_version_upgrade()) or (
+        additional_options and not is_cli_supports_service_options_update()
+    ):
         log.info(
-            "Using marathon upgrade flow to upgrade {} {}".format(package_name, to_package_version)
+            "Using marathon flow to upgrade to package name : {} version : [{}]".format(
+                package_name, to_package_version
+            )
         )
         sdk_marathon.destroy_app(service_name)
         sdk_install.install(
             package_name,
             service_name,
-            running_task_count,
+            expected_running_tasks,
             additional_options=additional_options,
             package_version=to_package_version,
             timeout_seconds=timeout_seconds,
             wait_for_deployment=wait_for_deployment,
         )
     else:
-        log.info("Using CLI upgrade flow to upgrade {} {}".format(package_name, to_package_version))
-        update_service(package_name, service_name, additional_options, to_package_version)
+        _update_service_with_cli(package_name, service_name, to_package_version, additional_options)
+    return not wait_for_deployment or _wait_for_deployment(
+        package_name, service_name, initial_config, task_ids, timeout_seconds
+    )
+
+
+def _update_service_with_cli(
+    package_name, service_name, to_package_version=None, additional_options=None
+):
+    log.info(
+        "Using CLI to update to package name : {} version : [{}]".format(
+            package_name, to_package_version
+        )
+    )
+    update_cmd = ["update", "start"]
+    if to_package_version:
+        ensure_cli_supports_service_version_upgrade()
+        update_cmd.append("--package-version={}".format(to_package_version))
+    if additional_options:
+        ensure_cli_supports_service_options_update()
+        options_file = tempfile.NamedTemporaryFile("w")
+        json.dump(additional_options, options_file)
+        options_file.flush()  # ensure json content is available for the CLI to read below
+        update_cmd.append("--options={}".format(options_file.name))
+    sdk_cmd.svc_cli(package_name, service_name, " ".join(update_cmd), check=True)
+    if to_package_version:
         # we must manually upgrade the package CLI because it's not done automatically in this flow
         # (and why should it? that'd imply the package CLI replacing itself via a call to the main CLI...)
         sdk_cmd.run_cli(
@@ -211,25 +223,25 @@ def _upgrade_or_downgrade(
             )
         )
 
-    if wait_for_deployment:
 
-        updated_config = get_config(package_name, service_name)
+def _wait_for_deployment(package_name, service_name, initial_config, task_ids, timeout_seconds):
+    updated_config = get_config(package_name, service_name)
 
-        if updated_config == initial_config:
-            log.info("No config change detected. Tasks should not be restarted")
-            sdk_tasks.check_tasks_not_updated(service_name, "", task_ids)
-        else:
-            log.info("Checking that all tasks have restarted")
-            sdk_tasks.check_tasks_updated(service_name, "", task_ids)
+    if updated_config == initial_config:
+        log.info("No config change detected. Tasks should not be restarted")
+        sdk_tasks.check_tasks_not_updated(service_name, "", task_ids)
+    else:
+        log.info("Checking that all tasks have restarted")
+        sdk_tasks.check_tasks_updated(service_name, "", task_ids)
 
-        # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
-        # total task count via ONCE tasks, without actually completing deployment
-        log.info(
-            "Waiting for package={} service={} to finish deployment plan...".format(
-                package_name, service_name
-            )
+    # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
+    # total task count via ONCE tasks, without actually completing deployment
+    log.info(
+        "Waiting for package={} service={} to finish deployment plan...".format(
+            package_name, service_name
         )
-        sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
+    )
+    sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
 
 @retrying.retry(
@@ -282,3 +294,27 @@ def _wait_for_new_package_version(package_name, prev_version):
     cur_version = _get_pkg_version(package_name)
     log.info("Current version of {} is: {}".format(package_name, cur_version))
     return cur_version if cur_version != prev_version else None
+
+
+def is_cli_supports_service_version_upgrade():
+    """Version upgrades are supported for [EE 1.9+] only"""
+    return is_cli_supports_service_options_update() and not sdk_utils.is_open_dcos()
+
+
+def is_cli_supports_service_options_update():
+    """Service updates are supported in [EE 1.9+] or [Open 1.11+]"""
+    return sdk_utils.dcos_version_at_least("1.9") and (
+        not sdk_utils.is_open_dcos() or sdk_utils.dcos_version_at_least("1.11")
+    )
+
+
+def ensure_cli_supports_service_version_upgrade():
+    assert (
+        is_cli_supports_service_version_upgrade()
+    ), "Version upgrades supported in 1.11+ in Open DC/OS"
+
+
+def ensure_cli_supports_service_options_update():
+    assert (
+        is_cli_supports_service_options_update()
+    ), "Service updates are supported in [EE] or [Open 1.11+]"

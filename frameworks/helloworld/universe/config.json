@@ -76,6 +76,7 @@
             "foobar_service_name",
             "gpu_resource",
             "graceful-shutdown",
+            "host-volume",
             "marathon_constraint",
             "multistep_plan",
             "multiport",
