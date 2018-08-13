@@ -64,6 +64,7 @@ public class ResourceTestUtils {
                 Optional.of(resourceId),
                 Optional.empty(),
                 Optional.of(persistenceId),
+                Optional.empty(),
                 Optional.empty())
                 .build();
     }

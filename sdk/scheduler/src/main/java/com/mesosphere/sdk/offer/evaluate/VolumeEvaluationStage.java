@@ -4,6 +4,7 @@ import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos.ResourceProviderID;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -21,11 +22,12 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     private final Logger logger;
     private final VolumeSpec volumeSpec;
-    private final Optional<String> persistenceId;
     private final Optional<String> taskName;
     private final Optional<String> resourceId;
     private final Optional<String> resourceNamespace;
-    private final Optional<String> sourceRoot;
+    private final Optional<String> persistenceId;
+    private final Optional<ResourceProviderID> providerId;
+    private final Optional<Resource.DiskInfo.Source> diskSource;
 
     public static VolumeEvaluationStage getNew(
             VolumeSpec volumeSpec,
@@ -37,6 +39,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                 Optional.empty(),
                 resourceNamespace,
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty());
     }
 
@@ -46,14 +49,16 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<String> sourceRoot) {
+            Optional<ResourceProviderID> providerId,
+            Optional<Resource.DiskInfo.Source> diskSource) {
         return new VolumeEvaluationStage(
                 volumeSpec,
                 taskName,
                 resourceId,
                 resourceNamespace,
                 persistenceId,
-                sourceRoot);
+                providerId,
+                diskSource);
     }
 
     private VolumeEvaluationStage(
@@ -62,14 +67,16 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<String> sourceRoot) {
+            Optional<ResourceProviderID> providerId,
+            Optional<Resource.DiskInfo.Source> diskSource) {
         this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.volumeSpec = volumeSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.resourceNamespace = resourceNamespace;
         this.persistenceId = persistenceId;
-        this.sourceRoot = sourceRoot;
+        this.providerId = providerId;
+        this.diskSource = diskSource;
     }
 
     private boolean createsVolume() {
@@ -96,7 +103,8 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     resourceId,
                     resourceNamespace,
                     persistenceId,
-                    sourceRoot);
+                    providerId,
+                    diskSource);
             podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
             return pass(
@@ -125,6 +133,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     reserveEvaluationOutcome.getResourceId(),
                     resourceNamespace,
                     persistenceId,
+                    Optional.empty(),
                     Optional.empty())
                     .setMesosResource(mesosResource)
                     .build();
@@ -143,12 +152,14 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             }
 
             mesosResource = mesosResourceOptional.get();
+
             resource = ResourceBuilder.fromSpec(
                     volumeSpec,
                     resourceId,
                     resourceNamespace,
                     persistenceId,
-                    Optional.of(mesosResource.getResource().getDisk().getSource().getMount().getRoot()))
+                    ResourceUtils.getProviderId(mesosResource.getResource()),
+                    ResourceUtils.getDiskSource(mesosResource.getResource()))
                     .setValue(mesosResource.getValue())
                     .setMesosResource(mesosResource)
                     .build();

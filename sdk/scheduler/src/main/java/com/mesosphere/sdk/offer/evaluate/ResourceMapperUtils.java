@@ -43,8 +43,9 @@ class ResourceMapperUtils {
                         ),
                         ResourceUtils.getResourceId(taskResource).get(),
                         getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace),
-                        Optional.of(taskResource.getDisk().getPersistence().getId()),
-                        ResourceUtils.getSourceRoot(taskResource))
+                        ResourceUtils.getPersistenceId(taskResource),
+                        ResourceUtils.getProviderId(taskResource),
+                        ResourceUtils.getDiskSource(taskResource))
                 );
     }
 
