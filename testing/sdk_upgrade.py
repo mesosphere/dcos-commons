@@ -17,8 +17,9 @@ import sdk_plan
 import sdk_tasks
 import sdk_utils
 
-
 log = logging.getLogger(__name__)
+
+TIMEOUT_SECONDS = 25 * 60
 
 
 # Installs a universe version of a package, then upgrades it to a test version
@@ -31,7 +32,7 @@ def test_upgrade(
     expected_running_tasks,
     additional_options={},
     test_version_additional_options=None,
-    timeout_seconds=25 * 60,
+    timeout_seconds=TIMEOUT_SECONDS,
     wait_for_deployment=True,
 ):
     # allow providing different options dicts to the universe version vs the test version:
@@ -101,7 +102,7 @@ def soak_upgrade_downgrade(
     service_name,
     expected_running_tasks,
     additional_options={},
-    timeout_seconds=25 * 60,
+    timeout_seconds=TIMEOUT_SECONDS,
     wait_for_deployment=True,
 ):
     sdk_cmd.run_cli("package install --cli {} --yes".format(package_name))
@@ -166,7 +167,7 @@ def update_or_upgrade_or_downgrade(
     additional_options,
     expected_running_tasks,
     wait_for_deployment=True,
-    timeout_seconds=sdk_utils.TIMEOUT_SECONDS,
+    timeout_seconds=TIMEOUT_SECONDS,
 ):
     initial_config = get_config(package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, "")
