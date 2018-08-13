@@ -2,7 +2,6 @@
 /**/build
 /**/__pycache__
 *.pyc
-.*
 
 !test_requirements.txt
 !test_runner.sh
