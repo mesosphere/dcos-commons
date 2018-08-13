@@ -188,7 +188,7 @@ public class FrameworkRunner {
                 //                   This is hard-coded in Cosmos.
                 new PlansResource(Collections.singletonList(uninstallPlanManager)),
                 // /v1/health: Invoked by Mesos as directed a configured health check in the scheduler Marathon app.
-                new HealthResource(Collections.singletonList(uninstallPlanManager)));
+                new HealthResource(Collections.singletonList(uninstallPlanManager), schedulerConfig));
         ApiServer httpServer = ApiServer.start(
                 EndpointUtils.toSchedulerAutoIpHostname(frameworkConfig.getFrameworkName(), schedulerConfig),
                 schedulerConfig,

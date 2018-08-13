@@ -102,7 +102,7 @@ public class CuratorLocker {
         curatorClient = clientBuilder.build();
         curatorClient.start();
 
-        final String lockPath = PersisterUtils.join(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH_NAME);
+        final String lockPath = PersisterUtils.joinPaths(CuratorUtils.getServiceRootPath(serviceName), LOCK_PATH_NAME);
         InterProcessSemaphoreMutex curatorMutex = new InterProcessSemaphoreMutex(curatorClient, lockPath);
 
         LOGGER.info("Acquiring ZK lock on {}...", lockPath);

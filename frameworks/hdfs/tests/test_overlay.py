@@ -13,7 +13,7 @@ import shakedown
 from tests import config
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -22,7 +22,8 @@ def configure_package(configure_security):
             config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
-            timeout_seconds=30*60)
+            timeout_seconds=30 * 60,
+        )
 
         yield  # let the test session execute
     finally:
@@ -36,31 +37,37 @@ def pre_test_setup():
 
 @pytest.mark.sanity
 @pytest.mark.overlay
-@pytest.mark.dcos_min_version('1.9')
+@pytest.mark.dcos_min_version("1.9")
 def test_tasks_on_overlay():
     hdfs_tasks = shakedown.shakedown.get_service_task_ids(config.SERVICE_NAME)
-    assert len(hdfs_tasks) == config.DEFAULT_TASK_COUNT, "Not enough tasks got launched,"\
+    assert len(hdfs_tasks) == config.DEFAULT_TASK_COUNT, (
+        "Not enough tasks got launched,"
         "should be {} got {}".format(len(hdfs_tasks), config.DEFAULT_TASK_COUNT)
+    )
     for task in hdfs_tasks:
         sdk_networks.check_task_network(task)
 
 
 @pytest.mark.overlay
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version('1.9')
+@pytest.mark.dcos_min_version("1.9")
 def test_endpoints_on_overlay():
-    observed_endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 2)
+    observed_endpoints = sdk_networks.get_and_test_endpoints(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "", 2
+    )
     expected_endpoints = ("hdfs-site.xml", "core-site.xml")
     for endpoint in expected_endpoints:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        xmlout = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'endpoints {}'.format(endpoint))
+        xmlout = sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints {}".format(endpoint)
+        )
         ElementTree.fromstring(xmlout)
 
 
 @pytest.mark.overlay
 @pytest.mark.sanity
 @pytest.mark.data_integrity
-@pytest.mark.dcos_min_version('1.9')
+@pytest.mark.dcos_min_version("1.9")
 def test_write_and_read_data_on_overlay():
     test_filename = get_unique_filename("test_overlay_data")
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
@@ -79,8 +86,12 @@ def test_integrity_on_data_node_failure():
     # An HDFS write will only successfully return when the data replication has taken place
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
 
-    sdk_cmd.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-0-node'))
-    sdk_cmd.kill_task_with_pattern("DataNode", sdk_hosts.system_host(config.SERVICE_NAME, 'data-1-node'))
+    sdk_cmd.kill_task_with_pattern(
+        "DataNode", sdk_hosts.system_host(config.SERVICE_NAME, "data-0-node")
+    )
+    sdk_cmd.kill_task_with_pattern(
+        "DataNode", sdk_hosts.system_host(config.SERVICE_NAME, "data-1-node")
+    )
 
     config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
 
@@ -96,7 +107,9 @@ def test_integrity_on_name_node_failure():
     so as to verify a failover sustains expected functionality.
     """
     active_name_node = config.get_active_name_node(config.SERVICE_NAME)
-    sdk_cmd.kill_task_with_pattern("NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node))
+    sdk_cmd.kill_task_with_pattern(
+        "NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node)
+    )
 
     predicted_active_name_node = "name-1-node"
     if active_name_node == "name-1-node":
@@ -113,8 +126,9 @@ def test_integrity_on_name_node_failure():
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=config.DEFAULT_HDFS_TIMEOUT*1000,
-    retry_on_result=lambda res: not res)
+    stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
+    retry_on_result=lambda res: not res,
+)
 def wait_for_failover_to_complete(namenode):
     """
     Inspects the name node logs to make sure ZK signals a complete failover.

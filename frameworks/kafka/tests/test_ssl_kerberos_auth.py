@@ -18,11 +18,12 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-pytestmark = pytest.mark.skipif(sdk_utils.is_open_dcos(),
-                                reason='Feature only supported in DC/OS EE')
+pytestmark = pytest.mark.skipif(
+    sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"
+)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def service_account(configure_security):
     """
     Sets up a service account for use with TLS.
@@ -33,17 +34,15 @@ def service_account(configure_security):
 
         yield service_account_info
     finally:
-        transport_encryption.cleanup_service_account(config.SERVICE_NAME,
-                                                     service_account_info)
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME, service_account_info)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def kerberos(configure_security):
     try:
         kerberos_env = sdk_auth.KerberosEnvironment()
 
-        principals = auth.get_service_principals(config.SERVICE_NAME,
-                                                 kerberos_env.get_realm())
+        principals = auth.get_service_principals(config.SERVICE_NAME, kerberos_env.get_realm())
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
 
@@ -53,7 +52,7 @@ def kerberos(configure_security):
         kerberos_env.cleanup()
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def kafka_server(kerberos, service_account):
     """
     A pytest fixture that installs a Kerberized kafka service.
@@ -68,17 +67,12 @@ def kafka_server(kerberos, service_account):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc": {
-                        "hostname": kerberos.get_host(),
-                        "port": int(kerberos.get_port())
-                    },
+                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 },
-                "transport_encryption": {
-                    "enabled": True
-                }
-            }
+                "transport_encryption": {"enabled": True},
+            },
         }
     }
 
@@ -89,14 +83,15 @@ def kafka_server(kerberos, service_account):
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
             additional_options=service_kerberos_options,
-            timeout_seconds=30 * 60)
+            timeout_seconds=30 * 60,
+        )
 
         yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def kafka_client(kerberos):
     try:
         kafka_client = client.KafkaClient("kafka-client")
@@ -105,36 +100,36 @@ def kafka_client(kerberos):
         # TODO: This flag should be set correctly.
         kafka_client._is_tls = True
 
-        transport_encryption.create_tls_artifacts(
-            cn="client",
-            marathon_task=kafka_client.get_id())
+        transport_encryption.create_tls_artifacts(cn="client", marathon_task=kafka_client.get_id())
 
         yield kafka_client
     finally:
         kafka_client.uninstall()
 
 
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_server, kerberos):
 
     topic_name = "tls.topic"
-    sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
-                    "topic create {}".format(topic_name),
-                    json=True)
+    sdk_cmd.svc_cli(
+        kafka_server["package_name"],
+        kafka_server["service"]["name"],
+        "topic create {}".format(topic_name),
+        json=True,
+    )
 
     kafka_client.connect(kafka_server)
 
     user = "client"
-    write_success, read_successes, _ = kafka_client.can_write_and_read(user,
-                                                                       kafka_server,
-                                                                       topic_name,
-                                                                       kerberos)
+    write_success, read_successes, _ = kafka_client.can_write_and_read(
+        user, kafka_server, topic_name, kerberos
+    )
 
     assert write_success, "Write failed (user={})".format(user)
-    assert read_successes, "Read failed (user={}): " \
-                           "MESSAGES={} " \
-                           "read_successes={}".format(user,
-                                                      kafka_client.MESSAGES,
-                                                      read_successes)
+    assert read_successes, (
+        "Read failed (user={}): "
+        "MESSAGES={} "
+        "read_successes={}".format(user, kafka_client.MESSAGES, read_successes)
+    )

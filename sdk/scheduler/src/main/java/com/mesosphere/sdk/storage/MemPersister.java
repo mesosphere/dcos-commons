@@ -1,8 +1,10 @@
 package com.mesosphere.sdk.storage;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -175,6 +177,35 @@ public class MemPersister implements Persister {
         try {
             for (Map.Entry<String, byte[]> entry : pathBytesMap.entrySet()) {
                 getNode(root, entry.getKey(), true).data = Optional.of(entry.getValue());
+            }
+        } finally {
+            unlockRW();
+        }
+    }
+
+    @Override
+    public void recursiveCopy(String srcPath, String destPath) throws PersisterException {
+        lockRW();
+        try {
+            if (getNode(root, srcPath, false) == null) {
+                throw new PersisterException(Reason.NOT_FOUND, "Source path not found");
+            }
+            if (getNode(root, destPath, false) != null) {
+                throw new PersisterException(Reason.LOGIC_ERROR, "Destination path already exists");
+            }
+            LinkedList<Map.Entry<String, Node>> toBeWalked = new LinkedList<>();
+            toBeWalked.add(new AbstractMap.SimpleEntry<>(srcPath, getNode(root, srcPath, false)));
+            while (!toBeWalked.isEmpty()) {
+                Map.Entry<String, Node> nextEntry = toBeWalked.poll();
+                String nodePath = nextEntry.getKey();
+                Node node = nextEntry.getValue();
+                assert nodePath.startsWith(srcPath) :
+                        String.format("Child [%s] src [%s] dest [%s]", nodePath, srcPath, destPath);
+                getNode(root, nodePath.replace(srcPath, destPath), true).data = node.data;
+                node.children.forEach((childName, childNode) -> {
+                    String childPath = PersisterUtils.joinPaths(nodePath, childName);
+                    toBeWalked.add(new AbstractMap.SimpleEntry<>(childPath, childNode));
+                });
             }
         } finally {
             unlockRW();

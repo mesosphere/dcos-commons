@@ -45,7 +45,8 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     public interface UninstallCallback {
         /**
-         * Invoked when a given service has completed its uninstall as triggered by {@link #uninstallService(String)}.
+         * Invoked when a given service has completed its uninstall as triggered by
+         * {@link MultiServiceManager#uninstallService(String)}.
          * After this has been called, re-adding the service to the {@link MultiServiceEventClient} will result in
          * launching a new instance from scratch.
          */
@@ -282,8 +283,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         boolean anyServicesNotReady = false;
         List<OfferRecommendation> recommendations = new ArrayList<>();
 
-        List<Protos.Offer> remainingOffers = new ArrayList<>();
-        remainingOffers.addAll(offers);
+        List<Protos.Offer> remainingOffers = new ArrayList<>(offers);
         for (String serviceName : serviceNamesToGiveOffers) {
             // Note: If we run out of remainingOffers we regardless keep going with an empty list of offers against all
             // eligible services. We do this to turn the crank on the services periodically.
@@ -355,12 +355,23 @@ public class MultiServiceEventClient implements MesosEventClient {
                     // Found service name: Store resource against serviceName+offerId to be evaluated below.
                     getEntry(offersByService, serviceName.get(), offer).add(resource);
                 } else if (ResourceUtils.getReservation(resource).isPresent()) {
-                    // This reserved resource is malformed. Reservations created by this scheduler should always have a
-                    // service name label. Make some noise but leave it alone. Out of caution, we DO NOT destroy it.
-                    LOGGER.error("Ignoring malformed resource in offer {} (missing namespace label): {}",
-                            offer.getId().getValue(), TextFormat.shortDebugString(resource));
+                    // The resource has reservation information attached, but it lacks the namespace. See if we can send
+                    // it to a default service, whose name matches the frameworkName, else drop the offer.
+                    if (multiServiceManager.getServiceSanitized(frameworkName).isPresent()) {
+                        LOGGER.info("Forwarding resource to default service: {}", frameworkName);
+                        getEntry(offersByService, frameworkName, offer).add(resource);
+                    } else {
+                        // This reserved resource is malformed. Reservations created by this scheduler should always
+                        // have a service name label. Make some noise but leave it alone. Out of caution, we DO NOT
+                        // destroy it.
+                        LOGGER.error(
+                                "Ignoring malformed resource in offer {} as neither namespace label nor default" +
+                                        " service is found): {}",
+                                offer.getId().getValue(), TextFormat.shortDebugString(resource));
+                    }
                 } else {
-                    // Not a reserved resource. Ignore for cleanup purposes.
+                    // Common case, not a reserved resource. Ignore for cleanup purposes.
+                    LOGGER.debug("Unable to map the unused offer to any service.");
                 }
             }
         }
@@ -407,8 +418,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 LOGGER.info("  {} cleanup result: {} with {} unexpected resources in {} offer{}",
                         serviceName,
                         response.result,
-                        response.offerResources.stream()
-                                .collect(Collectors.summingInt(or -> or.getResources().size())),
+                        response.offerResources.stream().mapToInt(or -> or.getResources().size()).sum(),
                         response.offerResources.size(),
                         response.offerResources.size() == 1 ? "" : "s");
                 switch (response.result) {
@@ -446,15 +456,22 @@ public class MultiServiceEventClient implements MesosEventClient {
      */
     @Override
     public TaskStatusResponse taskStatus(Protos.TaskStatus status) {
-        Optional<AbstractScheduler> service = multiServiceManager.getMatchingService(status);
-        if (!service.isPresent()) {
-            // Unrecognized service. Status for old task?
-            LOGGER.info("Received status for unknown task {}: {}",
-                    status.getTaskId().getValue(), TextFormat.shortDebugString(status));
-            return TaskStatusResponse.unknownTask();
-        }
-        LOGGER.info("Received status for task {}: {}", status.getTaskId().getValue(), status.getState());
-        return service.get().taskStatus(status);
+        return multiServiceManager
+                .getMatchingService(status)
+                .map(x -> x.taskStatus(status))
+                .orElseGet(() -> multiServiceManager
+                        .getServiceSanitized(frameworkName)
+                        .map(x -> {
+                            LOGGER.info("Forwarding task status to default service: {}", frameworkName);
+                            return x.taskStatus(status);
+                        })
+                        .orElseGet(() -> {
+                            // Unrecognized service. Status for old task ?
+                            LOGGER.info("Received status for unknown task {}: {}",
+                                    status.getTaskId().getValue(), TextFormat.shortDebugString(status));
+                            return TaskStatusResponse.unknownTask();
+                        })
+                );
     }
 
     /**
@@ -474,7 +491,7 @@ public class MultiServiceEventClient implements MesosEventClient {
                 : Collections.emptyList(); // ... any plans to show when running normally?
         List<Object> endpoints = new ArrayList<>();
         endpoints.addAll(Arrays.asList(
-                new HealthResource(planManagers),
+                new HealthResource(planManagers, schedulerConfig),
                 new PlansResource(planManagers),
                 new MultiArtifactResource(multiServiceManager),
                 new MultiConfigResource(multiServiceManager),
@@ -491,25 +508,18 @@ public class MultiServiceEventClient implements MesosEventClient {
      * entry if needed.
      */
     private static OfferResources getEntry(
-            Map<String, Map<Protos.OfferID, OfferResources>> map, String serviceName, Protos.Offer offer) {
-        Map<Protos.OfferID, OfferResources> serviceOffers = map.get(serviceName);
-        if (serviceOffers == null) {
-            serviceOffers = new HashMap<>();
-            map.put(serviceName, serviceOffers);
-        }
-        return getEntry(serviceOffers, offer);
+            Map<String, Map<Protos.OfferID, OfferResources>> map,
+            String serviceName,
+            Protos.Offer offer
+    ) {
+        return getEntry(map.computeIfAbsent(serviceName, k -> new HashMap<>()), offer);
     }
 
     /**
      * Finds the requested {@link OfferResources} value in the provided map[offerId], initializing the entry if needed.
      */
     private static OfferResources getEntry(Map<Protos.OfferID, OfferResources> map, Protos.Offer offer) {
-        OfferResources currentValue = map.get(offer.getId());
-        if (currentValue == null) {
-            // Initialize entry
-            currentValue = new OfferResources(offer);
-            map.put(offer.getId(), currentValue);
-        }
-        return currentValue;
+        // Initialize entry if absent
+        return map.computeIfAbsent(offer.getId(), k -> new OfferResources(offer));
     }
 }

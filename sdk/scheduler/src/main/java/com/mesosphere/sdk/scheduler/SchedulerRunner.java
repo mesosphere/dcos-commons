@@ -3,10 +3,12 @@ package com.mesosphere.sdk.scheduler;
 import com.mesosphere.sdk.config.validate.PodSpecsCannotUseUnsupportedFeatures;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkRunner;
+import com.mesosphere.sdk.metrics.Metrics;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.SchemaVersionStore;
+import com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import java.io.File;
@@ -15,11 +17,6 @@ import java.io.File;
  * Sets up and executes the {@link AbstractScheduler} instance.
  */
 public class SchedulerRunner implements Runnable {
-
-    /**
-     * Schema version used by single-service schedulers, which is what {@link SchedulerRunner} runs.
-     */
-    private static final int SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE = 1;
 
     private final SchedulerBuilder schedulerBuilder;
 
@@ -79,7 +76,7 @@ public class SchedulerRunner implements Runnable {
         Persister persister = schedulerBuilder.getPersister();
 
         // Check and/or initialize schema version before doing any other storage access:
-        new SchemaVersionStore(persister).check(SUPPORTED_SCHEMA_VERSION_SINGLE_SERVICE);
+        new SchemaVersionStore(persister).check(SchemaVersion.SINGLE_SERVICE);
 
         Metrics.configureStatsd(schedulerConfig);
 
