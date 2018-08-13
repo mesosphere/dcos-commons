@@ -166,7 +166,7 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False, check=False):
 
 def run_raw_cli(cmd, print_output=True, check=False):
     """Runs the command with `dcos` as the prefix to the shell command
-    and returns a tuple containing return code, stdout, and stderr.
+    and returns a tuple containing exit code, stdout, and stderr.
 
     eg. `cmd`= "package install <package-name>" results in:
     $ dcos package install < package - name >
@@ -187,7 +187,7 @@ def _run_cmd(cmd, print_output, check, timeout_seconds=None):
     )
 
     if result.returncode != 0:
-        log.info("Got return code {} to command: {}".format(result.returncode, cmd))
+        log.info("Got exit code {} to command: {}".format(result.returncode, cmd))
 
     if result.stdout:
         stdout = result.stdout.decode("utf-8").strip()
@@ -212,9 +212,11 @@ def _run_cmd(cmd, print_output, check, timeout_seconds=None):
     stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
 def create_task_text_file(marathon_task_name: str, filename: str, lines: list) -> bool:
+    # Write file, then validate number of lines in file
     output_cmd = '''bash -c "cat > {output_file} << EOL
 {content}
-EOL"'''.format(
+EOL
+wc -l {output_file}"'''.format(
         output_file=filename, content="\n".join(lines)
     )
     rc, stdout, stderr = marathon_task_exec(marathon_task_name, output_cmd)
@@ -222,15 +224,6 @@ EOL"'''.format(
     if rc or stderr:
         log.warning(
             "Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr
-        )
-        return False
-
-    linecount_cmd = "wc -l {output_file}".format(output_file=filename)
-    rc, stdout, stderr = marathon_task_exec(marathon_task_name, linecount_cmd)
-
-    if rc or stderr:
-        log.warning(
-            "Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr
         )
         return False
 
@@ -322,6 +315,8 @@ def agent_scp(
 def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool) -> tuple:
     common_args = " ".join(
         [
+            # -oBatchMode=yes: Don't prompt for password if keyfile doesn't work.
+            "-oBatchMode=yes",
             # -oStrictHostKeyChecking=no: Don't prompt for key signature on first connect.
             "-oStrictHostKeyChecking=no",
             # -oConnectTimeout=#: Limit the duration for the connection to be created.
@@ -347,7 +342,11 @@ def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: b
             common_args, _external_cluster_host(), common_args, host, cmd.replace('"', '\\\\\\"')
         )
     log.info("SSH command: {}".format(ssh_cmd))
-    return _run_cmd(ssh_cmd, print_output, check, timeout_seconds=timeout_seconds)
+    rc, stdout, stderr = _run_cmd(ssh_cmd, print_output, check, timeout_seconds=timeout_seconds)
+    if rc == 255 and stdout == "":
+        log.info("NOTE: This is likely due to misconfigured SSH credentials.")
+        _run_cmd("ssh-add -L", print_output=True, check=False)
+    return rc, stdout, stderr
 
 
 def _scp(
@@ -413,7 +412,7 @@ def marathon_task_exec(task_name: str, cmd: str) -> tuple:
     Invokes the given command on the named Marathon task via `dcos task exec`.
     : param task_name: Name of task to run 'cmd' on.
     : param cmd: The command to execute.
-    : return: a tuple consisting of the task exec's return code, stdout, and stderr
+    : return: a tuple consisting of the task exec's exit code, stdout, and stderr
     """
     # Marathon TaskIDs are of the form "<name>.<uuid>"
     return _task_exec(task_name, cmd)
@@ -425,7 +424,7 @@ def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
     : param service_name: Name of the service running the task.
     : param task_name: Name of task to run 'cmd' on.
     : param cmd: The command to execute.
-    : return: a tuple consisting of the task exec's return code, stdout, and stderr
+    : return: a tuple consisting of the task exec's exit code, stdout, and stderr
     """
 
     # Contrary to CLI's help text for 'dcos task exec':

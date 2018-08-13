@@ -7,6 +7,7 @@ E.G. py.test frameworks/<your-frameworks>/tests
 import logging
 import os.path
 import sys
+import time
 
 import pytest
 import sdk_diag
@@ -47,6 +48,9 @@ for noise_source in [
     logging.getLogger(noise_source).setLevel("WARNING")
 
 log = logging.getLogger(__name__)
+
+
+start_time = 0
 
 
 def is_env_var_set(key: str, default: str) -> bool:
@@ -91,12 +95,15 @@ def pytest_runtest_teardown(item: pytest.Item):
     # Inject footer at end of test, may be followed by additional teardown.
     # Don't do this when running in teamcity, where it's redundant.
     if not teamcity.is_running_under_teamcity():
+        global start_time
+        duration = time.time() - start_time
+        start_time = 0
         print(
             """
 ==========
-======= END: {}::{}
+======= END: {}::{} ({})
 ==========""".format(
-                sdk_diag.get_test_suite_name(item), item.name
+                sdk_diag.get_test_suite_name(item), item.name, sdk_utils.pretty_duration(duration)
             )
         )
 
@@ -106,6 +113,8 @@ def pytest_runtest_setup(item: pytest.Item):
     # Inject header at start of test, following automatic "path/to/test_file.py::test_name":
     # Don't do this when running in teamcity, where it's redundant.
     if not teamcity.is_running_under_teamcity():
+        global start_time
+        start_time = time.time()
         print(
             """
 ==========
