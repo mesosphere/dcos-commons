@@ -166,16 +166,14 @@ def test_custom_yaml_base64():
 
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
-@pytest.mark.skipif(
-    sdk_utils.dcos_version_at_least("1.12"),
-    reason="MESOS-9008: Mesos Fetcher fails to extract Kibana archive",
-)
 def test_xpack_toggle_with_kibana(default_populated_index):
     log.info("\n***** Verify X-Pack disabled by default in elasticsearch")
     config.verify_commercial_api_status(False, service_name=foldered_name)
 
     log.info("\n***** Test kibana with X-Pack disabled...")
     elasticsearch_url = "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200)
+    # It can take several minutes for kibana's health check to start passing once it's running.
+    # Therefore we use a 30m timeout instead of the 15m default.
     sdk_install.install(
         config.KIBANA_PACKAGE_NAME,
         config.KIBANA_PACKAGE_NAME,
@@ -316,7 +314,7 @@ def test_coordinator_node_replace():
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
 def test_plugin_install_and_uninstall(default_populated_index):
-    plugin_name = "analysis-phonetic"
+    plugin_name = "analysis-icu"
     config.update_app(
         foldered_name,
         {"TASKCFG_ALL_ELASTICSEARCH_PLUGINS": plugin_name},

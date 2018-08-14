@@ -147,8 +147,8 @@ def wait_for_plan_status(
             multiservice_name=multiservice_name,
         )
         log.info(
-            "Waiting for {} plan to have {} status:\n{}".format(
-                plan_name, status, plan_string(plan_name, plan)
+            "Waiting for {} {} plan:\n{}".format(
+                status, plan_name, plan_string(plan_name, plan)
             )
         )
         if plan and plan["status"] in statuses:
@@ -169,8 +169,8 @@ def wait_for_phase_status(
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
         phase = get_phase(plan, phase_name)
         log.info(
-            "Waiting for {}.{} phase to have {} status:\n{}".format(
-                plan_name, phase_name, status, plan_string(plan_name, plan)
+            "Waiting for {} {}.{} phase:\n{}".format(
+                status, plan_name, phase_name, plan_string(plan_name, plan)
             )
         )
         if phase and phase["status"] == status:
@@ -191,8 +191,8 @@ def wait_for_step_status(
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
         step = get_step(get_phase(plan, phase_name), step_name)
         log.info(
-            "Waiting for {}.{}.{} step to have {} status:\n{}".format(
-                plan_name, phase_name, step_name, status, plan_string(plan_name, plan)
+            "Waiting for {} {}.{}.{} step:\n{}".format(
+                status, plan_name, phase_name, step_name, plan_string(plan_name, plan)
             )
         )
         if step and step["status"] == status:

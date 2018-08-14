@@ -78,7 +78,8 @@ def cluster_request(
     : param raise_on_error: Whether to raise a `requests.exceptions.HTTPError` if the response code is >= 400.
                            Disabling this effectively implies `retry = False` where HTTP status is concerned.
     : param log_args: Whether to log the contents of `kwargs`. Can be disabled to reduce noise.
-    : param log_response: Whether to log the response content in the case of success. If the request returns an error then the content is always logged.
+    : param log_response: Whether to always log the response content.
+                          Otherwise responses are only logged if the response code is >= 400.
     : param kwargs: Additional arguments to requests.request(), such as `json = {"example": "content"}`
                    or `params = {"example": "param"}`.
     : rtype: requests.Response

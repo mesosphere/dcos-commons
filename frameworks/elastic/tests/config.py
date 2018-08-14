@@ -1,6 +1,6 @@
+import functools
 import json
 import logging
-
 import retrying
 
 import sdk_cmd
@@ -296,14 +296,18 @@ def _curl_query(
         return None
 
 
+@functools.lru_cache()
 def _master_zero_http_port(service_name):
+    '''Returns a master node hostname+port endpoint that can be queried from within the cluster.
+    We cache this value because it is an autoip endpoint and doesn't change even if the master is replaced or restarted.
+    '''
     dns = sdk_cmd.svc_cli(
         PACKAGE_NAME, service_name, "endpoints master-http", json=True, print_output=False
     )["dns"]
     # 'dns' array will look something like this in CCM: [
-    #   "master-0-node.elastic.[...]:1025",
-    #   "master-1-node.elastic.[...]:1025",
-    #   "master-2-node.elastic.[...]:1025"
+    #   "master-0-node.[svcname].[...autoip...]:1025",
+    #   "master-1-node.[svcname].[...autoip...]:1025",
+    #   "master-2-node.[svcname].[...autoip...]:1025"
     # ]
 
     port = dns[0].split(":")[-1]

@@ -6,7 +6,6 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 import logging
-import pprint
 import retrying
 
 import sdk_cmd
@@ -113,7 +112,7 @@ class _deployment_result(object):
         return self._version
 
 
-def wait_for_deployment(app_name: str, timeout: int, expected_version: str, noisy=False) -> None:
+def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> None:
     @retrying.retry(
         stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
     )
@@ -129,12 +128,7 @@ def wait_for_deployment(app_name: str, timeout: int, expected_version: str, nois
             # healthy/deployed BEFORE the deployment has started.
             version = app.get("version", "")
             running = _is_app_healthy(app, ", version={}/{}".format(version, expected_version))
-            ok = running and expected_version == version
-            if noisy and not ok:
-                # TODO(nick): Remove this once debugging stuck marathon deployments is finished
-                app.pop("labels", None)  # avoid flooding logs with cosmos labels
-                log.info("App state: {}".format(pprint.pformat(app)))
-            return ok
+            return running and expected_version == version
 
     if expected_version:
         log.info(
@@ -220,8 +214,7 @@ def update_app(
             _api_url("apps/{}".format(app_name)),
             params={"force": "true"} if force else {},
             json=config,
-            log_args=True,  # TODO(nickbp): Set this False once debugging stuck marathon deployments is finished
-            log_response=True,  # TODO(nickbp): Remove this once debugging stuck marathon deployments is finished
+            log_args=False,
             raise_on_error=False,
         )
         return _handle_marathon_deployment_response(response)
@@ -232,7 +225,7 @@ def update_app(
     # Sometimes the caller expects the update to fail.
     # Allow those cases to skip waiting for successful deployment:
     if wait_for_completed_deployment:
-        wait_for_deployment(app_name, timeout, result.version(), noisy=True)
+        wait_for_deployment(app_name, timeout, result.version())
 
 
 def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
