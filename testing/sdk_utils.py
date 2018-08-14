@@ -35,8 +35,7 @@ def get_service_name(default: str) -> str:
 
 
 def get_foldered_name(service_name):
-    # DCOS 1.9 & earlier don't support "foldered", service names aka marathon
-    # group names
+    # DCOS 1.9 & earlier don't support "foldered", service names aka marathon group names
     if dcos_version_less_than("1.10"):
         return service_name
     return "/test/integration/" + service_name

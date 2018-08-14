@@ -8,7 +8,6 @@ import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -71,11 +70,8 @@ DEFAULT_SETTINGS_MAPPINGS = {
     retry_on_result=lambda res: not res,
 )
 def check_kibana_adminrouter_integration(path):
-    curl_cmd = 'curl -I -k -H "Authorization: token={}" -s {}/{}'.format(
-        sdk_utils.dcos_token(), sdk_utils.dcos_url().rstrip("/"), path.lstrip("/")
-    )
-    rc, stdout, _ = sdk_cmd.master_ssh(curl_cmd)
-    return rc == 0 and stdout and "HTTP/1.1 200" in stdout
+    response = sdk_cmd.service_request("GET", "kibana", "", retry=False)
+    return response.ok and response.status_code == 200
 
 
 @retrying.retry(

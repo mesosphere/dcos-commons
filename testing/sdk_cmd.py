@@ -22,7 +22,7 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
-SSH_USERNAME = os.environ.get("DCOS_SSH_USER", "core")
+SSH_USERNAME = os.environ.get("DCOS_SSH_USERNAME", "core")
 
 
 def service_request(
@@ -355,7 +355,7 @@ def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: b
     log.info("SSH command: {}".format(ssh_cmd))
     rc, stdout, stderr = _run_cmd(ssh_cmd, print_output, check, timeout_seconds=timeout_seconds)
     if rc == 255 and stdout == "":
-        log.info("NOTE: This is likely due to misconfigured SSH credentials.")
+        log.info("NOTE: Could be due to misconfigured SSH credentials. Configured keys are:")
         _run_cmd("ssh-add -L", print_output=True, check=False)
     return rc, stdout, stderr
 

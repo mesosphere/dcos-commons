@@ -32,8 +32,6 @@ log = logging.getLogger(__name__)
 
 KERBEROS_APP_ID = "kdc"
 DCOS_BASE64_PREFIX = "__dcos_base64__"
-LINUX_USER = "core"
-KERBEROS_CONF = "krb5.conf"
 REALM = "LOCAL"
 
 # Note: Some of the helper functions in this module are wrapped in basic retry logic to provide some

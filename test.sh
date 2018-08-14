@@ -52,6 +52,7 @@ else
 fi
 gradle_cache="${REPO_ROOT_DIR}/.gradle_cache"
 ssh_path="${HOME}/.ssh/ccm.pem"
+ssh_user="core"
 aws_creds_path="${HOME}/.aws/credentials"
 enterprise="true"
 headless="false"
@@ -76,6 +77,8 @@ function usage()
     echo "    Using an Open DC/OS cluster: skip Enterprise-only features."
     echo "  -p $ssh_path"
     echo "    Path to cluster SSH key."
+    echo "  -l $ssh_user"
+    echo "    Username to use for SSH commands into the cluster."
     echo "  -e $env_passthrough"
     echo "    A comma-separated list of environment variables to pass through to the running docker container"
     echo "  --envfile $envfile_input"
@@ -144,6 +147,10 @@ case $key in
     -p)
     if [[ ! -f "$2" ]]; then echo "File not found: -p $2"; exit 1; fi
     ssh_path="$2"
+    shift
+    ;;
+    -l)
+    ssh_user="$2"
     shift
     ;;
     -e)
@@ -335,6 +342,7 @@ DCOS_ENTERPRISE=$enterprise
 DCOS_FILES_PATH=$dcos_files_path
 DCOS_LOGIN_PASSWORD=$DCOS_LOGIN_PASSWORD
 DCOS_LOGIN_USERNAME=$DCOS_LOGIN_USERNAME
+DCOS_SSH_USERNAME=$ssh_user
 FRAMEWORK=$framework
 PACKAGE_REGISTRY_ENABLED=$package_registry
 PACKAGE_REGISTRY_STUB_URL=$PACKAGE_REGISTRY_STUB_URL
