@@ -273,16 +273,20 @@ def _api_url(path):
     return "/marathon/v2/{}".format(path)
 
 
-def get_scheduler_host(service_name):
-    # Marathon mangles foldered paths as follows: "/path/to/svc" => "svc.to.path"
+def get_scheduler_task_prefix(service_name):
+    '''Marathon mangles foldered paths as follows: "/path/to/svc" => "svc.to.path"'''
     task_name_elems = service_name.lstrip("/").split("/")
     task_name_elems.reverse()
-    app_name = ".".join(task_name_elems)
-    ips = [t.host for t in sdk_tasks.get_service_tasks("marathon", app_name)]
+    return ".".join(task_name_elems)
+
+
+def get_scheduler_host(service_name):
+    task_prefix = get_scheduler_task_prefix(service_name)
+    ips = [t.host for t in sdk_tasks.get_service_tasks("marathon", task_prefix=task_prefix)]
     if len(ips) == 0:
         raise Exception(
-            'No IPs found for marathon task "{}". Available tasks are: {}'.format(
-                app_name, [task["name"] for task in sdk_tasks.get_service_tasks("marathon")]
+            "No marathon tasks starting with '{}' were found. Available tasks are: {}".format(
+                task_prefix, [task["name"] for task in sdk_tasks.get_service_tasks("marathon")]
             )
         )
     return ips.pop()

@@ -178,51 +178,56 @@ def test_srv_records():
 
     log.info("Getting framework srv records for %s", config.SERVICE_NAME)
 
+    # wait for up to 5 minutes for SRV records to settle down.
+    # sometimes individual task entries don't appear right away.
     @retrying.retry(
         stop_max_delay=5 * 60 * 1000,
         wait_exponential_multiplier=1000,
         wait_exponential_max=120 * 1000,
     )
-    def get_srv_records():
+    def wait_for_valid_srv_records():
         cmd = "curl localhost:8123/v1/enumerate"
         rc, stdout, _ = sdk_cmd.master_ssh(cmd)
         assert rc == 0, "Failed to get srv records from master SSH: {}".format(cmd)
         try:
             srvs = json.loads(stdout)
         except Exception:
-            log.exception("Error converting out=%s to json", stdout)
+            log.exception("Failed to parse JSON endpoints: %s", stdout)
             raise
 
-        return srvs
+        try:
+            # find the framework matching our expected name which has one or more tasks.
+            # we can end up with "duplicate" frameworks left over from previous tests where the framework didn't successfully unregister.
+            # in practice these "duplicate"s will appear as a framework entry with an empty list of tasks.
+            framework_srvs = [
+                f for f in srvs["frameworks"] if f["name"] == config.SERVICE_NAME and len(f["tasks"]) > 0
+            ]
+            assert len(framework_srvs) == 1, "Got too many srv records matching service {}: {}".format(
+                config.SERVICE_NAME, framework_srvs
+            )
+            framework_srv = framework_srvs[0]
 
-    srvs = get_srv_records()
-    # find the framework matching our expected name which has one or more tasks.
-    # we can end up with "duplicate" frameworks left over from previous tests where the framework didn't successfully unregister.
-    # in practice these "duplicate"s will appear as a framework entry with an empty list of tasks.
-    framework_srvs = [
-        f for f in srvs["frameworks"] if f["name"] == config.SERVICE_NAME and len(f["tasks"]) > 0
-    ]
-    assert len(framework_srvs) == 1, "Got too many srv records matching service {}, got {}".format(
-        config.SERVICE_NAME, framework_srvs
-    )
-    framework_srv = framework_srvs[0]
-
-    for task_name in EXPECTED_TASKS:
-        assert "tasks" in framework_srv, "Framework SRV records missing 'tasks': {}".format(
-            framework_srv
-        )
-        match_records = [t for t in framework_srv["tasks"] if t["name"] == task_name]
-        assert len(match_records) > 0, "Didn't find task record for {}".format(task_name)
-        assert len(match_records) == 1, "Got redundant tasks for {}".format(task_name)
-        task_records = match_records[0]["records"]
-        if task_name == "hello-overlay-0-server":
-            check_port_record(task_records, task_name, "overlay-dummy")
-            check_port_record(task_records, task_name, "overlay-dynport")
-        elif task_name == "hello-host-vip-0-server":
-            check_port_record(task_records, task_name, "host-vip")
-        elif task_name == "hello-overlay-vip-0-server":
-            check_port_record(task_records, task_name, "overlay-vip")
-        elif task_name == "hello-host-0-server":
-            check_port_record(task_records, task_name, "host-port")
-        else:
-            assert False, "Unknown task {}".format(task_name)
+            for task_name in EXPECTED_TASKS:
+                assert "tasks" in framework_srv, "Framework SRV records missing 'tasks': {}".format(
+                    framework_srv
+                )
+                match_records = [t for t in framework_srv["tasks"] if t["name"] == task_name]
+                assert len(match_records) > 0, "Didn't find task record for {}".format(task_name)
+                assert len(match_records) == 1, "Got redundant tasks for {}".format(task_name)
+                task_records = match_records[0]["records"]
+                if task_name == "hello-overlay-0-server":
+                    check_port_record(task_records, task_name, "overlay-dummy")
+                    check_port_record(task_records, task_name, "overlay-dynport")
+                elif task_name == "hello-host-vip-0-server":
+                    check_port_record(task_records, task_name, "host-vip")
+                elif task_name == "hello-overlay-vip-0-server":
+                    check_port_record(task_records, task_name, "overlay-vip")
+                elif task_name == "hello-host-0-server":
+                    check_port_record(task_records, task_name, "host-port")
+                else:
+                    assert False, "Unknown task {}".format(task_name)
+        except Exception:
+            # Log the assert message before retrying (or giving up)
+            log.exception("SRV record validation failed, trying again...")
+            raise
+    wait_for_valid_srv_records()

@@ -209,14 +209,16 @@ def test_pods_restart_graceful_shutdown():
 
 @pytest.mark.sanity
 def test_kill_scheduler():
-    scheduler_ids = sdk_tasks.get_task_ids("marathon", config.SERVICE_NAME)
+    scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(config.SERVICE_NAME)
+    scheduler_ids = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix)
+    assert len(scheduler_ids) == 1, "Expected to find one scheduler task"
 
     sdk_cmd.kill_task_with_pattern(
         "./hello-world-scheduler/bin/helloworld",
         sdk_marathon.get_scheduler_host(config.SERVICE_NAME),
     )
 
-    sdk_tasks.check_tasks_updated("marathon", config.SERVICE_NAME, scheduler_ids)
+    sdk_tasks.check_tasks_updated("marathon", scheduler_task_prefix, scheduler_ids)
     check_healthy()
 
 

@@ -18,6 +18,7 @@ from tests import config
 
 
 log = logging.getLogger(__name__)
+foldered_name = config.FOLDERED_SERVICE_NAME
 
 
 pytestmark = [
@@ -36,19 +37,19 @@ def service_account(configure_security):
     """
     try:
         service_account_info = transport_encryption.setup_service_account(
-            config.FOLDERED_SERVICE_NAME
+            foldered_name
         )
         yield service_account_info
     finally:
         transport_encryption.cleanup_service_account(
-            config.FOLDERED_SERVICE_NAME, service_account_info
+            foldered_name, service_account_info
         )
 
 
 @pytest.fixture(scope="module", autouse=True)
 def kerberos(configure_security):
     try:
-        principals = auth.get_service_principals(config.FOLDERED_SERVICE_NAME, sdk_auth.REALM)
+        principals = auth.get_service_principals(foldered_name, sdk_auth.REALM)
 
         kerberos_env = sdk_auth.KerberosEnvironment()
         kerberos_env.add_principals(principals)
@@ -69,7 +70,7 @@ def hdfs_server(kerberos, service_account):
     """
     service_options = {
         "service": {
-            "name": config.FOLDERED_SERVICE_NAME,
+            "name": foldered_name,
             "service_account": service_account["name"],
             "service_account_secret": service_account["secret"],
             "security": {
@@ -85,11 +86,11 @@ def hdfs_server(kerberos, service_account):
         "hdfs": {"security_auth_to_local": auth.get_principal_to_user_mapping()},
     }
 
-    sdk_install.uninstall(config.PACKAGE_NAME, config.FOLDERED_SERVICE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
     try:
         sdk_install.install(
             config.PACKAGE_NAME,
-            config.FOLDERED_SERVICE_NAME,
+            foldered_name,
             config.DEFAULT_TASK_COUNT,
             additional_options=service_options,
             timeout_seconds=30 * 60,
@@ -97,7 +98,7 @@ def hdfs_server(kerberos, service_account):
 
         yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.FOLDERED_SERVICE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -125,7 +126,7 @@ def hdfs_client(kerberos, hdfs_server):
                 "KDC_ADDRESS": kerberos.get_kdc_address(),
                 "JAVA_HOME": "/usr/lib/jvm/default-java",
                 "KRB5_CONFIG": "/etc/krb5.conf",
-                "HDFS_SERVICE_NAME": sdk_hosts._safe_name(config.FOLDERED_SERVICE_NAME),
+                "HDFS_SERVICE_NAME": sdk_hosts._safe_name(foldered_name),
                 "HADOOP_VERSION": config.HADOOP_VERSION,
             },
         }

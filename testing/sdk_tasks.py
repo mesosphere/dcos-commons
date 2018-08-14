@@ -365,8 +365,8 @@ def check_tasks_updated(
         # so makes for easier reading
         log.info(
             "Waiting for tasks%s to have updated ids:\n"
-            "- Old tasks (remaining): %s\n"
-            "- New tasks (launched): %s",
+            "- Old tasks (still running): %s\n"
+            "- New tasks (newly launched): %s",
             prefix_clause,
             old_remaining_set,
             newly_launched_set,
