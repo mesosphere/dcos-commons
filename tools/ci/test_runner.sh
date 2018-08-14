@@ -7,7 +7,6 @@ export DCOS_ENTERPRISE
 export PYTHONUNBUFFERED=1
 export SECURITY
 export PACKAGE_REGISTRY_ENABLED
-export PACKAGE_REGISTRY_STUB_URL
 export DCOS_FILES_PATH
 
 BUILD_TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -29,7 +28,6 @@ fi
 # First we need to build the framework(s)
 echo "Using FRAMEWORK_LIST:\n${FRAMEWORK_LIST}"
 echo "PACKAGE_REGISTRY_ENABLED ${PACKAGE_REGISTRY_ENABLED}"
-echo "PACKAGE_REGISTRY_STUB_URL ${PACKAGE_REGISTRY_STUB_URL}"
 echo "DCOS_FILES_PATH ${DCOS_FILES_PATH}"
 
 if [ -n "$STUB_UNIVERSE_URL" ]; then
@@ -48,21 +46,30 @@ else
         fi
 
         echo "Starting build for $framework at "`date`
-        export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/${framework}-universe-url
-        ${FRAMEWORK_DIR}/build.sh aws
-        if [ ! -f "$UNIVERSE_URL_PATH" ]; then
-            echo "Missing universe URL file: $UNIVERSE_URL_PATH"
-            exit 1
-        fi
-        if [ -z ${STUB_UNIVERSE_LIST} ]; then
-            STUB_UNIVERSE_LIST=$(cat ${UNIVERSE_URL_PATH})
+        if [ -n ${PACKAGE_REGISTRY_ENABLED} ]; then
+            ${FRAMEWORK_DIR}/build.sh .dcos_local
         else
-            STUB_UNIVERSE_LIST="${STUB_UNIVERSE_LIST},$(cat ${UNIVERSE_URL_PATH})"
+            export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/${framework}-universe-url
+            ${FRAMEWORK_DIR}/build.sh aws
+            if [ ! -f "$UNIVERSE_URL_PATH" ]; then
+                echo "Missing universe URL file: $UNIVERSE_URL_PATH"
+                exit 1
+            fi
+            if [ -z ${STUB_UNIVERSE_LIST} ]; then
+                STUB_UNIVERSE_LIST=$(cat ${UNIVERSE_URL_PATH})
+            else
+                STUB_UNIVERSE_LIST="${STUB_UNIVERSE_LIST},$(cat ${UNIVERSE_URL_PATH})"
+            fi
         fi
         echo "Finished build for $framework at "`date`
     done
-    export STUB_UNIVERSE_URL=${STUB_UNIVERSE_LIST}
-    echo "Using STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
+    if [ ${PACKAGE_REGISTRY_ENABLED} ]; then
+        echo "Using $DCOS_FILES_PATH as source of .dcos files for package registry :"
+        ls -lh $DCOS_FILES_PATH
+    else
+        export STUB_UNIVERSE_URL=${STUB_UNIVERSE_LIST}
+        echo "Using STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
+    fi
 fi
 
 

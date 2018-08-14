@@ -5,12 +5,12 @@ set -e -x
 user_usage() {
     # This script is generally called by an upstream 'build.sh' which would be invoked directly by users.
     # This function returns the syntax expected to be used by that upstream 'build.sh'
-    echo "Syntax: build.sh [-h|--help] [aws|local]"
+    echo "Syntax: build.sh [-h|--help] [aws|local|.dcos|.dcos_local]"
 }
 
 dev_usage() {
     # Called when a syntax error appears to be an error on the part of the developer.
-    echo "Developer syntax: build_package.sh <framework-name> </abs/path/to/framework> [-a 'path1' -a 'path2' ...] [aws|local]"
+    echo "Developer syntax: build_package.sh <framework-name> </abs/path/to/framework> [-a 'path1' -a 'path2' ...] [aws|local|.dcos|.dcos_local]"
 }
 
 # Optional envvars:
@@ -61,6 +61,10 @@ case $1 in
         publish_method=".dcos"
         shift
         ;;
+    .dcos_local)
+        publish_method=".dcos_local"
+        shift
+        ;;
     "")
         # no publish method specified
         ;;
@@ -98,6 +102,15 @@ case "$publish_method" in
         ;;
     .dcos)
         echo "Uploading .dcos files to S3"
+        PUBLISH_SCRIPT=${TOOLS_DIR}/publish_dcos_file.py
+        ;;
+    .dcos_local)
+        echo "Publishing .dcos files to local file system"
+        : ${DCOS_FILES_PATH?"Need to set DCOS_FILES_PATH if using dcos_local option"}
+        if [[ ${DCOS_FILES_PATH} != /* ]] || [[ ! -w ${DCOS_FILES_PATH} ]]; then
+            echo "DCOS_FILES_PATH : [DCOS_FILES_PATH] has to be a absolute path that is writable"
+            exit 1
+        fi
         PUBLISH_SCRIPT=${TOOLS_DIR}/publish_dcos_file.py
         ;;
     *)
