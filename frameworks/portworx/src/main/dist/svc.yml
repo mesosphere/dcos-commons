@@ -67,6 +67,11 @@ pods:
                 PORTWORX_KVDB={{PORTWORX_KVDB_SERVERS}}
                 {{/ETCD_ENABLED}}
 
+                startPort={{PORTWORX_START_PORT}}
+                if [[ "$startPort" != "9001" ]]; then
+                    START_PORT_OPTION="-r $startPort"
+                fi
+
                 echo "[Unit]
                     Description=Portworx Container
                     Before=docker.service
@@ -97,8 +102,7 @@ pods:
                           {{/SECRETS_ENABLED}}
                           -name=%n \
                           -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
-                          -r {{PORTWORX_START_PORT}} \
-                          -k $PORTWORX_KVDB
+                          $START_PORT_OPTION -k $PORTWORX_KVDB
                     KillMode=control-group
                     ExecStop=/opt/pwx/bin/runc kill %n
                     [Install]
