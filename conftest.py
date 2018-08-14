@@ -61,9 +61,15 @@ INTEGRATION_TEST_LOG_COLLECTION = is_env_var_set(
 
 
 @pytest.fixture(scope="session", autouse=True)
-def configure_universe(tmpdir_factory):
+def configure_universe():
     if is_env_var_set("PACKAGE_REGISTRY_ENABLED", default=""):
-        yield from sdk_package_registry.package_registry_session(tmpdir_factory)
+        # Package registry is 1.12 and above only.
+        min_dcos_version = "1.12"
+        if sdk_utils.dcos_version_less_than(min_dcos_version):
+            raise Exception("Min DC/OS {} required for package registry".format(min_dcos_version))
+        if sdk_utils.is_open_dcos():
+            raise Exception("Package Registry is an EE only feature")
+        yield from sdk_package_registry.package_registry_session()
     else:
         yield from sdk_repository.universe_session()
 

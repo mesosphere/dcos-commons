@@ -25,7 +25,8 @@ import universe
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-_REGISTRY_URL_TEMPLATE = "https://downloads.mesosphere.com/package-registry/" "binaries/cli/{os}/x86-64/latest/dcos-registry-{os}"
+_REGISTRY_URL_TEMPLATE = "https://downloads.mesosphere.com/package-registry/" \
+                         "binaries/cli/{os}/x86-64/latest/dcos-registry-{os}"
 
 
 class DCOSFilePublisher(object):
@@ -65,7 +66,7 @@ class DCOSFilePublisher(object):
         )
         self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
 
-    def upload(self):
+    def upload(self, local_dir=None):
         with tempfile.TemporaryDirectory() as scratch:
             builder = universe.UniversePackageBuilder(
                 universe.Package(self._pkg_name, self._pkg_version),
@@ -84,18 +85,24 @@ class DCOSFilePublisher(object):
                 shutil.copy2(src=artifact, dst=os.path.join(scratch, filename))
 
             bundle = migrate_and_build(scratch)
-            self._uploader.upload(bundle)
-            bundle_url_s3 = os.path.join(
-                self._uploader.get_s3_directory(), os.path.basename(bundle)
-            )
-            bundle_url_http = bundle_url_s3.replace(
-                "s3://{}".format(self._s3_bucket),
-                "https://{}.s3.amazonaws.com".format(self._s3_bucket),
-            )
-            logger.info("---")
-            logger.info("[S3 URL] DCOS BUNDLE: {}".format(bundle_url_s3))
-            logger.info("DCOS BUNDLE: {}".format(bundle_url_http))
-            logger.info("---")
+
+            if local_dir:
+                logger.info("Publishing .dcos file locally to {}".format(local_dir))
+                destination = shutil.copy2(bundle, local_dir)
+                logger.info("DCOS BUNDLE: {}".format(destination))
+            else:
+                self._uploader.upload(bundle)
+                bundle_url_s3 = os.path.join(
+                    self._uploader.get_s3_directory(), os.path.basename(bundle)
+                )
+                bundle_url_http = bundle_url_s3.replace(
+                    "s3://{}".format(self._s3_bucket),
+                    "https://{}.s3.amazonaws.com".format(self._s3_bucket),
+                )
+                logger.info("---")
+                logger.info("[S3 URL] DCOS BUNDLE: {}".format(bundle_url_s3))
+                logger.info("DCOS BUNDLE: {}".format(bundle_url_http))
+                logger.info("---")
 
 
 def migrate_and_build(scratchdir) -> str:
@@ -204,7 +211,7 @@ Artifacts:
         )
     )
 
-    DCOSFilePublisher(package_name, package_version, package_dir_path, artifact_paths).upload()
+    DCOSFilePublisher(package_name, package_version, package_dir_path, artifact_paths).upload(os.environ.get("DCOS_FILES_PATH"))
     return 0
 
 
