@@ -48,32 +48,22 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
     if not stub_universe_urls:
         return stub_urls
 
-    log.info("Adding stub URLs: {}".format(stub_universe_urls))
-    for idx, url in enumerate(stub_universe_urls):
-        log.info("URL {}: {}".format(idx, repr(url)))
-        package_name = "testpkg-{}".format(sdk_utils.random_string())
-        stub_urls[package_name] = url
-
     # clean up any duplicate repositories
     current_universes = sdk_cmd.run_cli("package repo list --json")
     for repo in json.loads(current_universes)["repositories"]:
-        if repo["uri"] in stub_urls.values():
+        if repo["uri"] in stub_universe_urls:
             log.info("Removing duplicate stub URL: {}".format(repo["uri"]))
             sdk_cmd.run_cli("package repo remove {}".format(repo["name"]))
 
     # add the needed universe repositories
-    for name, url in stub_urls.items():
-        log.info("Adding stub repo {} URL: {}".format(name, url))
-        sdk_cmd.run_cli("package repo add --index=0 {} {}".format(name, url), check=True)
-
-    log.info("Finished adding universe repos")
+    log.info("Adding stub URLs: {}".format(stub_universe_urls))
+    for url in stub_universe_urls:
+        sdk_cmd.run_cli("package repo add --index=0 testpkg-{} {}".format(sdk_utils.random_string(), url), check=True)
 
     return stub_urls
 
 
 def remove_universe_repos(stub_urls):
-    log.info("Removing universe repos")
-
     # clear out the added universe repositories at testing end
     for name, url in stub_urls.items():
         log.info("Removing stub URL: {}".format(url))
@@ -86,8 +76,6 @@ def remove_universe_repos(stub_urls):
                 raise Exception(
                     "Failed to remove stub repo: stdout=[{}], stderr=[{}]".format(stdout, stderr)
                 )
-
-    log.info("Finished removing universe repos")
 
 
 def universe_session():

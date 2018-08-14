@@ -1,5 +1,5 @@
-import pytest
 import logging
+import pytest
 
 import sdk_install
 import sdk_tasks
@@ -27,5 +27,5 @@ def test_launch_task_with_multiple_ports():
         additional_options={"service": {"yaml": "multiport"}},
     )
     assert (
-        sdk_tasks.get_completed_task_id("multiport-0-server") is not None
-    ), "Unable to find completed task id"
+        len(sdk_tasks.get_summary(with_completed=True, task_name="multiport-0-server")) != 0
+    ), "Unable to find matching completed task"
