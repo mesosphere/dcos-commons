@@ -354,12 +354,7 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "xpack_enabled": {
-          "description": "Whether or not to enable the commercial X-Pack plugin from Elastic",
-          "type": "boolean",
-          "default": false
-        },
-        "plugins": {
+          "plugins": {
           "description": "Comma-separated list of plugins to install",
           "type": "string",
           "default": ""
