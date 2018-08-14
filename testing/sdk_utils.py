@@ -18,6 +18,7 @@ import shakedown
 
 log = logging.getLogger(__name__)
 
+TIMEOUT_SECONDS = 15 * 60
 
 ###
 # Service/task names
