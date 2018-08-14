@@ -48,6 +48,7 @@ pods:
           size: {{MASTER_NODE_DISK}}
         cmd: |
           set -e
+          
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
           ./elastic-scheduler/java-dns-ttl.sh
           ./elastic-scheduler/install-plugins.sh
