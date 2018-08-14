@@ -47,6 +47,13 @@ def get_task_id_service_name(service_name):
     return service_name.lstrip("/").replace("/", ".")
 
 
+def get_scheduler_name(service_name):
+    """Marathon mangles foldered paths for schedulers in reverse order.
+
+    For example: /test/integration/foo => foo.integration.test"""
+    return get_task_id_service_name(service_name).reverse()
+
+
 def get_task_id_prefix(service_name, task_name):
     """Returns the TaskID prefix to be used for the provided service name and task name.
     The full TaskID would consist of this prefix, plus two underscores and a UUID.
