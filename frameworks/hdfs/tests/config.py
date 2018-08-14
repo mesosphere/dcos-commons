@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import retrying
+import uuid
 
 import sdk_cmd
 import sdk_plan
@@ -40,40 +41,54 @@ def hdfs_command(command):
     return "/{}/bin/hdfs dfs -{}".format(HADOOP_VERSION, command)
 
 
+def get_unique_filename(prefix: str) -> str:
+    return "{}.{}".format(prefix, str(uuid.uuid4()))
+
+
 def hdfs_write_command(content_to_write, filename):
-    return "echo {} | /{}/bin/hdfs dfs -put - {}".format(content_to_write, HADOOP_VERSION, filename)
+    return "echo {} | {}".format(content_to_write, hdfs_command("put - {}".format(filename)))
 
 
 def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMALL):
-    rc, _ = run_hdfs_command(service_name, hdfs_write_command(content_to_write, filename))
-    # rc being True is effectively it being 0...
-    return rc
+    # Custom check: If the command returned an error and printed "File exists", then assume the write has succeeded.
+    # This can happen when e.g. the SSH connection flakes but the data itself was written successfully.
+    success, _, stderr = run_hdfs_command(
+        service_name,
+        hdfs_write_command(content_to_write, filename),
+        success_check=lambda rc, stdout, stderr: rc == 0 or "File exists" in stderr)
+    if "File exists" in stderr:
+        log.info("Ignoring failure: Looks like the data was successfully written in a previous attempt")
+    return success
 
 
 def hdfs_read_command(filename):
-    return "/{}/bin/hdfs dfs -cat {}".format(HADOOP_VERSION, filename)
+    return hdfs_command("cat {}".format(filename))
 
 
 def read_data_from_hdfs(service_name, filename):
-    rc, output = run_hdfs_command(service_name, hdfs_read_command(filename))
-    return rc and output.rstrip() == TEST_CONTENT_SMALL
+    success, stdout, _ = run_hdfs_command(service_name, hdfs_read_command(filename))
+    return success and stdout.rstrip() == TEST_CONTENT_SMALL
 
 
 def hdfs_delete_file_command(filename):
-    return "/{}/bin/hdfs dfs -rm /{}".format(HADOOP_VERSION, filename)
+    return hdfs_command("rm /{}".format(filename))
 
 
 def delete_data_from_hdfs(service_name, filename):
-    rc, _ = run_hdfs_command(service_name, hdfs_delete_file_command(filename))
-    return rc
+    success, _, _ = run_hdfs_command(service_name, hdfs_delete_file_command(filename))
+    return success
 
 
 def write_lots_of_data_to_hdfs(service_name, filename):
-    write_command = "wget {} -qO- | /{}/bin/hdfs dfs -put /{}".format(
-        TEST_CONTENT_LARGE_SOURCE, HADOOP_VERSION, filename
+    write_command = "wget {} -qO- | {}".format(
+        TEST_CONTENT_LARGE_SOURCE, hdfs_command("put /{}".format(filename))
     )
-    rc, _ = run_hdfs_command(service_name, write_command)
-    return rc
+    success, _, stderr = run_hdfs_command(service_name, write_command)
+    if not success and "File exists" in stderr:
+        # Flake: First attempt timed out, but the data was written. Then on the retry we see the file exists.
+        log.info("Ignoring failure: Looks like the data was already written")
+        return True
+    return success
 
 
 def get_active_name_node(service_name):
@@ -92,16 +107,16 @@ def get_active_name_node(service_name):
     wait_fixed=1000, stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def get_name_node_status(service_name, name_node):
-    rc, output = run_hdfs_command(
+    success, stdout, _ = run_hdfs_command(
         service_name, "/{}/bin/hdfs haadmin -getServiceState {}".format(HADOOP_VERSION, name_node)
     )
-    if not rc:
-        return rc
+    if not success:
+        return success
 
-    return output.strip()
+    return stdout.strip()
 
 
-def run_hdfs_command(service_name, command):
+def run_hdfs_command(service_name, command, success_check=lambda rc, stdout, stderr: rc == 0):
     """
     Execute the command using the Docker client
     """
@@ -133,8 +148,8 @@ def run_hdfs_command(service_name, command):
         retry_on_result=lambda res: not res[0],
     )
     def fn():
-        rc, stdout, _ = sdk_cmd.master_ssh(full_command)
-        return (rc == 0, stdout)
+        rc, stdout, stderr = sdk_cmd.master_ssh(full_command)
+        return (success_check(rc, stdout, stderr), stdout, stderr)
 
     return fn()
 

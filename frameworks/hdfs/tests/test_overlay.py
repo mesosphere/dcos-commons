@@ -2,7 +2,6 @@ from xml.etree import ElementTree
 
 import pytest
 import retrying
-import uuid
 
 import sdk_cmd
 import sdk_hosts
@@ -68,7 +67,7 @@ def test_endpoints_on_overlay():
 @pytest.mark.data_integrity
 @pytest.mark.dcos_min_version("1.9")
 def test_write_and_read_data_on_overlay():
-    test_filename = get_unique_filename("test_overlay_data")
+    test_filename = config.get_unique_filename("test_data_overlay")
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
     config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
     config.check_healthy(service_name=config.SERVICE_NAME)
@@ -80,7 +79,7 @@ def test_integrity_on_data_node_failure():
     """
     Verifies proper data replication among data nodes.
     """
-    test_filename = get_unique_filename("test_datanode_fail")
+    test_filename = config.get_unique_filename("test_datanode_fail")
 
     # An HDFS write will only successfully return when the data replication has taken place
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
@@ -116,7 +115,7 @@ def test_integrity_on_name_node_failure():
 
     wait_for_failover_to_complete(predicted_active_name_node)
 
-    test_filename = get_unique_filename("test_namenode_fail")
+    test_filename = config.get_unique_filename("test_namenode_fail")
     config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
     config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
 
@@ -135,7 +134,3 @@ def wait_for_failover_to_complete(namenode):
     """
     status = config.get_name_node_status(config.SERVICE_NAME, namenode)
     return status == "active"
-
-
-def get_unique_filename(prefix: str) -> str:
-    return "{}.{}".format(prefix, str(uuid.uuid4()))

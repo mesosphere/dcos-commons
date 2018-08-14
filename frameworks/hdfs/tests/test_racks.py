@@ -33,9 +33,9 @@ def pre_test_setup():
 @pytest.mark.dcos_min_version("1.11")
 def test_detect_racks():
     print_topology_cmd = "/{}/bin/hdfs dfsadmin -printTopology".format(config.HADOOP_VERSION)
-    _, output = config.run_hdfs_command(config.SERVICE_NAME, print_topology_cmd)
+    _, stdout, stderr = config.run_hdfs_command(config.SERVICE_NAME, print_topology_cmd)
 
     # expecting e.g. "Rack: /aws/us-west-2b\n..."
-    rack = output.split("\n")[0]
+    rack = stdout.split("\n")[0]
     assert rack.startswith("Rack: /")
     assert sdk_fault_domain.is_valid_zone(rack[len("Rack: /") :])
