@@ -12,7 +12,6 @@ import sdk_recovery
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import shakedown
 
 from tests import config
 
