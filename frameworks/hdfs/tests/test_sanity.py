@@ -150,21 +150,21 @@ def test_kill_data_node():
 def test_kill_scheduler():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     scheduler_name = sdk_utils.get_scheduler_name(foldered_name)
-    scheduler_id = sdk_tasks.get_task_ids(foldered_name, scheduler_name)
+    scheduler_id = sdk_tasks.get_task_ids("marathon", scheduler_name)
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
 
     sdk_cmd.kill_task_with_pattern(
-        "hdfs.scheduler.Main", shakedown.get_service_ips("marathon").pop()
+        "./hdfs-scheduler/bin/hdfs",
+        sdk_marathon.get_scheduler_host(foldered_name),
     )
 
-    sdk_marathon.wait_for_deployment_and_app_running(foldered_name, 15 * 60)
-
-    sdk_tasks.check_task_relaunched(scheduler_name, scheduler_id)
+    sdk_tasks.check_tasks_updated("marathon", scheduler_name, scheduler_id)
     sdk_tasks.check_tasks_not_updated(foldered_name, "journal", journal_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "name", name_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "data", data_ids)
+    config.check_healthy(service_name=foldered_name)
 
 
 @pytest.mark.sanity
