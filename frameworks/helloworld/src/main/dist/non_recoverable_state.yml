@@ -1,13 +1,13 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 pods:
   hello:
     count: 1
-    user: {{FRAMEWORK_USER}}
     tasks:
       server:
-        goal: RUNNING
+        goal: FINISH
         cmd: "exit 1"
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
+        cpus: 0.1
+        memory: 256

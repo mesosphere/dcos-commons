@@ -1,24 +1,22 @@
 import pytest
 import sdk_utils
 import sdk_install
+import sdk_plan
 from tests import config
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_finish_install_on_failure(configure_security):
-    try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+def test_finish_install_on_failure():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+    with pytest.raises(sdk_plan.FailuresExceededError):
         sdk_install.install(
             config.PACKAGE_NAME,
             foldered_name,
-            config.DEFAULT_TASK_COUNT,
+            1,
             additional_options={
                 "service": {"name": foldered_name, "yaml": "non_recoverable_state"}
             },
         )
-
-        yield  # let the test session execute
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+    sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)

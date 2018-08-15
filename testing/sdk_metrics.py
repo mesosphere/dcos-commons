@@ -12,6 +12,7 @@ import logging
 
 import retrying
 import shakedown
+import typing
 
 import sdk_cmd
 
@@ -25,11 +26,29 @@ def get_scheduler_metrics(service_name, timeout_seconds=15 * 60):
     return sdk_cmd.service_request("GET", service_name, "/v1/metrics").json()
 
 
+def get_failure_metrics(service_name: str) -> typing.Dict:
+    history = sdk_cmd.history_request().json()
+    service_history = [h for h in history["frameworks"] if h["name"] == service_name]
+    if not service_history:
+        return dict()
+
+    def collect():
+        failure_keys = ["TASK_FAILED", "TASK_ERROR"]
+        for k, v in service_history[0].items():
+            if k not in failure_keys:
+                continue
+            yield k, v
+
+    return dict(collect())
+
+
 def get_scheduler_counter(service_name, counter_name, timeout_seconds=15 * 60):
     """Waits for and returns the specified counter value from the scheduler"""
 
     @retrying.retry(
-        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds * 1000,
+        retry_on_result=lambda res: not res,
     )
     def check_for_value():
         try:
@@ -50,7 +69,9 @@ def get_scheduler_counter(service_name, counter_name, timeout_seconds=15 * 60):
                 )
                 return None
             value = sched_counters[counter_name]["count"]
-            log.info("{} metric counter: {}={}".format(service_name, counter_name, value))
+            log.info(
+                "{} metric counter: {}={}".format(service_name, counter_name, value)
+            )
             return value
         except Exception as e:
             log.error("Caught exception trying to get metrics: {}".format(e))
@@ -66,7 +87,9 @@ def wait_for_scheduler_counter_value(
     For example, check that `offers.processed` is equal or greater to 1."""
 
     @retrying.retry(
-        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds * 1000,
+        retry_on_result=lambda res: not res,
     )
     def check_for_value():
         value = get_scheduler_counter(service_name, counter_name, timeout_seconds)
@@ -130,7 +153,9 @@ def get_metrics(package_name, service_name, task_name):
 
     app_response = sdk_cmd.cluster_request(
         "GET",
-        "/system/v1/agent/{}/metrics/v0/containers/{}/app".format(agent_id, task_container_id),
+        "/system/v1/agent/{}/metrics/v0/containers/{}/app".format(
+            agent_id, task_container_id
+        ),
         retry=False,
     )
     app_json = json.loads(app_response.text)
@@ -150,7 +175,9 @@ def check_metrics_presence(emitted_metrics, expected_metrics):
 
     if not metrics_exist:
         log.info(
-            "Metrics emitted: {},\nMetrics expected: {}".format(emitted_metrics, expected_metrics)
+            "Metrics emitted: {},\nMetrics expected: {}".format(
+                emitted_metrics, expected_metrics
+            )
         )
 
     log.info("Expected metrics exist: {}".format(metrics_exist))
@@ -172,7 +199,9 @@ def wait_for_service_metrics(
     """
 
     @retrying.retry(
-        wait_fixed=1000, stop_max_delay=timeout * 1000, retry_on_result=lambda res: not res
+        wait_fixed=1000,
+        stop_max_delay=timeout * 1000,
+        retry_on_result=lambda res: not res,
     )
     def check_for_service_metrics():
         try:
