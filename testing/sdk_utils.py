@@ -52,7 +52,9 @@ def get_scheduler_name(service_name):
     """Marathon mangles foldered paths for schedulers in reverse order.
 
     For example: /test/integration/foo => foo.integration.test"""
-    return get_task_id_service_name(service_name).reverse()
+    name_parts = get_task_id_service_name(service_name).split(".")
+    name_parts.reverse()
+    return ".".join(name_parts)
 
 
 def get_task_id_prefix(service_name, task_name):
