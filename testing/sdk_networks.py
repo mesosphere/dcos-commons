@@ -7,6 +7,8 @@ SHOULD ALSO BE APPLIED TO sdk_networks IN ANY OTHER PARTNER REPOS
 import logging
 import shakedown
 import sdk_cmd
+import retrying
+import typing
 
 log = logging.getLogger(__name__)
 
@@ -20,7 +22,9 @@ def check_task_network(task_name, expected_network_name="dcos"):
 
     assert _task is not None, "Unable to find task named {}".format(task_name)
     if type(_task) == list or type(_task) == tuple:
-        assert len(_task) == 1, "Found too many tasks matching {}, got {}".format(task_name, _task)
+        assert len(_task) == 1, "Found too many tasks matching {}, got {}".format(
+            task_name, _task
+        )
         _task = _task[0]
 
     for status in _task["statuses"]:
@@ -44,16 +48,28 @@ def check_task_network(task_name, expected_network_name="dcos"):
                     )
 
 
+@retrying.retry(
+    wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res
+)
+def wait_for_endpoint_info(
+    package_name: str, service_name: str, endpoint_name
+) -> typing.Dict:
+    ret = sdk_cmd.svc_cli(
+        package_name, service_name, "endpoints {}".format(endpoint_name), json=True
+    )
+    return ret
+
+
 def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_count):
     """Gets the endpoints for a service or the specified 'endpoint_to_get' similar to running
     $ docs <service> endpoints
     or
     $ dcos <service> endpoints <endpoint_to_get>
     Checks that there is the correct number of endpoints"""
-    endpoints = sdk_cmd.svc_cli(
-        package_name, service_name, "endpoints {}".format(endpoint_to_get), json=True
-    )
-    assert len(endpoints) == correct_count, "Wrong number of endpoints, got {} should be {}".format(
+    endpoints = wait_for_endpoint_info(package_name, service_name, endpoint_to_get)
+    assert (
+        len(endpoints) == correct_count
+    ), "Wrong number of endpoints, got {} should be {}".format(
         len(endpoints), correct_count
     )
     return endpoints
@@ -64,7 +80,9 @@ def check_endpoints_on_overlay(endpoints):
         # the overlay IP address should not contain any agent IPs
         return len(set(ip_addresses).intersection(set(shakedown.get_agents()))) == 0
 
-    assert "address" in endpoints, "endpoints: {} missing 'address' key".format(endpoints)
+    assert "address" in endpoints, "endpoints: {} missing 'address' key".format(
+        endpoints
+    )
     assert "dns" in endpoints, "endpoints: {} missing 'dns' key".format(endpoints)
 
     # endpoints should have the format <ip_address>:port
