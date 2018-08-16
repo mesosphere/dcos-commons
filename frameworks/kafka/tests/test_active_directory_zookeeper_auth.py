@@ -9,6 +9,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_utils
+import sdk_networks
 
 from tests import active_directory
 from tests import auth
@@ -43,7 +44,10 @@ def zookeeper_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port()),
+                    },
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
@@ -52,7 +56,9 @@ def zookeeper_server(kerberos):
     }
 
     try:
-        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
+        sdk_install.uninstall(
+            config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME
+        )
         sdk_install.install(
             config.ZOOKEEPER_PACKAGE_NAME,
             config.ZOOKEEPER_SERVICE_NAME,
@@ -61,21 +67,25 @@ def zookeeper_server(kerberos):
             timeout_seconds=30 * 60,
         )
 
-        yield {**service_kerberos_options, **{"package_name": config.ZOOKEEPER_PACKAGE_NAME}}
+        yield {
+            **service_kerberos_options,
+            **{"package_name": config.ZOOKEEPER_PACKAGE_NAME},
+        }
 
     finally:
-        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
+        sdk_install.uninstall(
+            config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME
+        )
 
 
 @pytest.fixture(scope="module", autouse=True)
 def kafka_server(kerberos, zookeeper_server):
 
     # Get the zookeeper DNS values
-    zookeeper_dns = sdk_cmd.svc_cli(
+    zookeeper_dns = sdk_networks.wait_for_endpoint_info(
         zookeeper_server["package_name"],
         zookeeper_server["service"]["name"],
-        "endpoint clientport",
-        json=True,
+        "clientport",
     )["dns"]
 
     service_kerberos_options = {
@@ -85,7 +95,10 @@ def kafka_server(kerberos, zookeeper_server):
                 "kerberos": {
                     "enabled": True,
                     "enabled_for_zookeeper": True,
-                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port()),
+                    },
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
@@ -113,7 +126,7 @@ def kafka_server(kerberos, zookeeper_server):
 def kafka_client(kerberos, kafka_server):
 
     brokers = sdk_cmd.svc_cli(
-        kafka_server["package_name"], kafka_server["service"]["name"], "endpoint broker", json=True
+        kafka_server["package_name"], kafka_server["service"]["name"], "broker"
     )["dns"]
 
     try:
@@ -123,7 +136,10 @@ def kafka_client(kerberos, kafka_server):
             "mem": 512,
             "container": {
                 "type": "MESOS",
-                "docker": {"image": "elezar/kafka-client:4b9c060", "forcePullImage": True},
+                "docker": {
+                    "image": "elezar/kafka-client:4b9c060",
+                    "forcePullImage": True,
+                },
                 "volumes": [
                     {
                         "containerPath": "/tmp/kafkaconfig/kafka-client.keytab",

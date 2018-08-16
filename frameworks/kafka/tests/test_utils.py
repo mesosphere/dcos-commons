@@ -3,14 +3,19 @@ import retrying
 
 import sdk_cmd
 import sdk_tasks
+import sdk_networks
 from tests import config
 
 log = logging.getLogger(__name__)
 
 
-@retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
+@retrying.retry(
+    wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res
+)
 def broker_count_check(count, service_name=config.SERVICE_NAME):
-    brokers = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "broker list", json=True)
+    brokers = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, service_name, "broker list", json=True
+    )
     return len(brokers) == count
 
 
@@ -20,7 +25,10 @@ def restart_broker_pods(service_name=config.SERVICE_NAME):
         task_name = "{}-{}".format(pod_name, config.DEFAULT_TASK_NAME)
         broker_id = sdk_tasks.get_task_ids(service_name, task_name)
         restart_info = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, service_name, "pod restart {}".format(pod_name), json=True
+            config.PACKAGE_NAME,
+            service_name,
+            "pod restart {}".format(pod_name),
+            json=True,
         )
         assert len(restart_info) == 2
         assert restart_info["tasks"][0] == task_name
@@ -32,7 +40,9 @@ def replace_broker_pod(service_name=config.SERVICE_NAME):
     pod_name = "{}-0".format(config.DEFAULT_POD_TYPE)
     task_name = "{}-{}".format(pod_name, config.DEFAULT_TASK_NAME)
     broker_0_id = sdk_tasks.get_task_ids(service_name, task_name)
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "pod replace {}".format(pod_name))
+    sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, service_name, "pod replace {}".format(pod_name)
+    )
     sdk_tasks.check_tasks_updated(service_name, task_name, broker_0_id)
     sdk_tasks.check_running(service_name, config.DEFAULT_BROKER_COUNT)
     # wait till all brokers register
@@ -40,7 +50,7 @@ def replace_broker_pod(service_name=config.SERVICE_NAME):
 
 
 def wait_for_broker_dns(package_name: str, service_name: str):
-    brokers = sdk_cmd.svc_cli(package_name, service_name, "endpoint broker", json=True)
+    brokers = sdk_networks.wait_for_endpoint_info(package_name, service_name, "broker")
     broker_dns = list(map(lambda x: x.split(":")[0], brokers["dns"]))
 
     def get_scheduler_task_id(service_name: str) -> str:
@@ -57,10 +67,15 @@ def wait_for_broker_dns(package_name: str, service_name: str):
 
 def create_topic(topic_name, service_name=config.SERVICE_NAME):
     # Get the list of topics that exist before we create a new topic
-    topic_list_before = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "topic list", json=True)
+    topic_list_before = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, service_name, "topic list", json=True
+    )
 
     create_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name, "topic create {}".format(topic_name), json=True
+        config.PACKAGE_NAME,
+        service_name,
+        "topic create {}".format(topic_name),
+        json=True,
     )
     log.info(create_info)
     assert 'Created topic "%s".\n' % topic_name in create_info["message"]
@@ -71,13 +86,18 @@ def create_topic(topic_name, service_name=config.SERVICE_NAME):
             in create_info["message"]
         )
 
-    topic_list_after = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "topic list", json=True)
+    topic_list_after = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, service_name, "topic list", json=True
+    )
 
     new_topics = set(topic_list_after) - set(topic_list_before)
     assert topic_name in new_topics
 
     topic_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name, "topic describe {}".format(topic_name), json=True
+        config.PACKAGE_NAME,
+        service_name,
+        "topic describe {}".format(topic_name),
+        json=True,
     )
     assert len(topic_info) == 1
     assert len(topic_info["partitions"]) == config.DEFAULT_PARTITION_COUNT
@@ -85,7 +105,10 @@ def create_topic(topic_name, service_name=config.SERVICE_NAME):
 
 def delete_topic(topic_name, service_name=config.SERVICE_NAME):
     delete_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name, "topic delete {}".format(topic_name), json=True
+        config.PACKAGE_NAME,
+        service_name,
+        "topic delete {}".format(topic_name),
+        json=True,
     )
     assert len(delete_info) == 1
     assert delete_info["message"].startswith(
@@ -93,7 +116,10 @@ def delete_topic(topic_name, service_name=config.SERVICE_NAME):
     )
 
     topic_info = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name, "topic describe {}".format(topic_name), json=True
+        config.PACKAGE_NAME,
+        service_name,
+        "topic describe {}".format(topic_name),
+        json=True,
     )
     assert len(topic_info) == 1
     assert len(topic_info["partitions"]) == config.DEFAULT_PARTITION_COUNT
@@ -110,7 +136,9 @@ def wait_for_topic(package_name: str, service_name: str, topic_name: str):
         wait_exponential_max=60 * 1000,
     )
     def describe(topic):
-        sdk_cmd.svc_cli(package_name, service_name, "topic describe {}".format(topic), json=True)
+        sdk_cmd.svc_cli(
+            package_name, service_name, "topic describe {}".format(topic), json=True
+        )
 
     describe(topic_name)
 

@@ -10,6 +10,7 @@ import sdk_hosts
 import sdk_install
 import sdk_security
 import sdk_utils
+import sdk_networks
 
 from security import kerberos as krb5
 
@@ -19,7 +20,9 @@ from tests import config
 
 
 pytestmark = [
-    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"),
+    pytest.mark.skipif(
+        sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"
+    ),
     pytest.mark.skipif(
         sdk_utils.dcos_version_less_than("1.10"),
         reason="Kerberos tests require DC/OS 1.10 or higher",
@@ -45,9 +48,13 @@ def kerberos(configure_security):
     try:
         kerberos_env = sdk_auth.KerberosEnvironment()
 
-        principals = auth.get_service_principals(config.SERVICE_NAME, kerberos_env.get_realm())
+        principals = auth.get_service_principals(
+            config.SERVICE_NAME, kerberos_env.get_realm()
+        )
         principals.extend(
-            get_zookeeper_principals(config.ZOOKEEPER_SERVICE_NAME, kerberos_env.get_realm())
+            get_zookeeper_principals(
+                config.ZOOKEEPER_SERVICE_NAME, kerberos_env.get_realm()
+            )
         )
 
         kerberos_env.add_principals(principals)
@@ -67,7 +74,10 @@ def zookeeper_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port()),
+                    },
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
@@ -80,12 +90,19 @@ def zookeeper_server(kerberos):
 
     if sdk_utils.is_strict_mode():
         service_options = sdk_utils.merge_dictionaries(
-            {"service": {"service_account": zk_account, "service_account_secret": zk_secret}},
+            {
+                "service": {
+                    "service_account": zk_account,
+                    "service_account_secret": zk_secret,
+                }
+            },
             service_options,
         )
 
     try:
-        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
+        sdk_install.uninstall(
+            config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME
+        )
         service_account_info = sdk_security.setup_security(
             config.ZOOKEEPER_SERVICE_NAME,
             linux_user="nobody",
@@ -104,19 +121,22 @@ def zookeeper_server(kerberos):
         yield {**service_options, **{"package_name": config.ZOOKEEPER_PACKAGE_NAME}}
 
     finally:
-        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
-        sdk_security.cleanup_security(config.ZOOKEEPER_SERVICE_NAME, service_account_info)
+        sdk_install.uninstall(
+            config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME
+        )
+        sdk_security.cleanup_security(
+            config.ZOOKEEPER_SERVICE_NAME, service_account_info
+        )
 
 
 @pytest.fixture(scope="module", autouse=True)
 def kafka_server(kerberos, zookeeper_server):
 
     # Get the zookeeper DNS values
-    zookeeper_dns = sdk_cmd.svc_cli(
+    zookeeper_dns = sdk_networks.wait_for_endpoint_info(
         zookeeper_server["package_name"],
         zookeeper_server["service"]["name"],
-        "endpoint clientport",
-        json=True,
+        "clientport",
     )["dns"]
 
     service_options = {
@@ -126,7 +146,10 @@ def kafka_server(kerberos, zookeeper_server):
                 "kerberos": {
                     "enabled": True,
                     "enabled_for_zookeeper": True,
-                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
+                    "kdc": {
+                        "hostname": kerberos.get_host(),
+                        "port": int(kerberos.get_port()),
+                    },
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
@@ -165,7 +188,9 @@ def kafka_client(kerberos):
 @sdk_utils.dcos_ee_only
 @pytest.mark.zookeeper
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_server, kerberos):
+def test_client_can_read_and_write(
+    kafka_client: client.KafkaClient, kafka_server, kerberos
+):
 
     topic_name = "authn.test"
     sdk_cmd.svc_cli(
