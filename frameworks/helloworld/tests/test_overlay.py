@@ -74,7 +74,8 @@ def test_overlay_network():
 
     # test that the tasks are all up, which tests the overlay DNS
     framework_tasks = [
-        task for task in shakedown.get_service_tasks(config.SERVICE_NAME, completed=False)
+        task
+        for task in shakedown.get_service_tasks(config.SERVICE_NAME, completed=False)
     ]
     framework_task_names = [t["name"] for t in framework_tasks]
 
@@ -85,30 +86,40 @@ def test_overlay_network():
 
     for task in framework_tasks:
         name = task["name"]
-        if "getter" in name:  # don't check the "getter" tasks because they don't use ports
+        if (
+            "getter" in name
+        ):  # don't check the "getter" tasks because they don't use ports
             continue
         resources = task["resources"]
         if "host" in name:
-            assert "ports" in resources.keys(), "Task {} should have port resources".format(name)
+            assert (
+                "ports" in resources.keys()
+            ), "Task {} should have port resources".format(
+                name
+            )
         if "overlay" in name:
-            assert "ports" not in resources.keys(), "Task {} should NOT have port resources".format(
+            assert (
+                "ports" not in resources.keys()
+            ), "Task {} should NOT have port resources".format(
                 name
             )
 
     sdk_networks.check_task_network("hello-overlay-0-server")
     sdk_networks.check_task_network("hello-overlay-vip-0-server")
     sdk_networks.check_task_network("hello-host-0-server", expected_network_name=None)
-    sdk_networks.check_task_network("hello-host-vip-0-server", expected_network_name=None)
+    sdk_networks.check_task_network(
+        "hello-host-vip-0-server", expected_network_name=None
+    )
 
     endpoints_result = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints", json=True
     )
-    assert len(endpoints_result) == 2, "Wrong number of endpoints got {} should be 2".format(
-        len(endpoints_result)
-    )
+    assert (
+        len(endpoints_result) == 2
+    ), "Wrong number of endpoints got {} should be 2".format(len(endpoints_result))
 
-    overlay_endpoints_result = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints overlay-vip", json=True
+    overlay_endpoints_result = sdk_networks.wait_for_endpoint_info(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "overlay-vip"
     )
     assert "address" in overlay_endpoints_result.keys(), (
         "overlay endpoints missing 'address'" "{}".format(overlay_endpoints_result)
@@ -123,8 +134,8 @@ def test_overlay_network():
         config.SERVICE_NAME, "hello-overlay-vip-0-server", 4044
     )
 
-    host_endpoints_result = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints host-vip", json=True
+    host_endpoints_result = sdk_networks.wait_for_endpoint_info(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "host-vip"
     )
     assert "address" in host_endpoints_result.keys(), (
         "overlay endpoints missing 'address'" "{}".format(host_endpoints_result)
@@ -147,7 +158,11 @@ def test_cni_labels():
     def check_labels(labels, idx):
         k = labels[idx]["key"]
         v = labels[idx]["value"]
-        assert k in EXPECTED_NETWORK_LABELS.keys(), "Got unexpected network key {}".format(k)
+        assert (
+            k in EXPECTED_NETWORK_LABELS.keys()
+        ), "Got unexpected network key {}".format(
+            k
+        )
         assert v == EXPECTED_NETWORK_LABELS[k], (
             "Value {obs} isn't correct, should be "
             "{exp}".format(obs=v, exp=EXPECTED_NETWORK_LABELS[k])
@@ -158,7 +173,9 @@ def test_cni_labels():
     ).json()
     assert len(r) == 1, "Got multiple responses from v1/pod/hello-overlay-vip-0/info"
     try:
-        cni_labels = r[0]["info"]["executor"]["container"]["networkInfos"][0]["labels"]["labels"]
+        cni_labels = r[0]["info"]["executor"]["container"]["networkInfos"][0]["labels"][
+            "labels"
+        ]
     except KeyError:
         assert False, "CNI labels not present"
     assert len(cni_labels) == 2, "Got {} labels, should be 2".format(len(cni_labels))
@@ -174,19 +191,25 @@ def test_cni_labels():
 @pytest.mark.dcos_min_version("1.9")
 def test_srv_records():
     def get_task_record(task_name, fmk_srv_records):
-        assert "tasks" in fmk_srv_records, "Framework SRV records missing 'tasks': {}".format(
+        assert (
+            "tasks" in fmk_srv_records
+        ), "Framework SRV records missing 'tasks': {}".format(
             fmk_srv_records
         )
         task_records = [t for t in fmk_srv_records["tasks"] if t["name"] == task_name]
         assert len(task_records) > 0, "Didn't find task record for {}".format(task_name)
         assert len(task_records) == 1, "Got redundant tasks for {}".format(task_name)
         task_record = task_records[0]
-        assert "records" in task_record, "Task record {} missing 'records'".format(task_record)
+        assert "records" in task_record, "Task record {} missing 'records'".format(
+            task_record
+        )
         return task_record["records"]
 
     def check_port_record(task_records, task_name, record_name):
         record_name_prefix = "_{}.".format(record_name)
-        matching_records = [r for r in task_records if r["name"].startswith(record_name_prefix)]
+        matching_records = [
+            r for r in task_records if r["name"].startswith(record_name_prefix)
+        ]
         assert (
             len(matching_records) == 1
         ), "Missing SRV record for {} (prefix={}) in task {}:\nmatching={}\nall={}".format(
@@ -217,19 +240,27 @@ def test_srv_records():
     # we can end up with "duplicate" frameworks left over from previous tests where the framework didn't successfully unregister.
     # in practice these "duplicate"s will appear as a framework entry with an empty list of tasks.
     framework_srvs = [
-        f for f in srvs["frameworks"] if f["name"] == config.SERVICE_NAME and len(f["tasks"]) > 0
+        f
+        for f in srvs["frameworks"]
+        if f["name"] == config.SERVICE_NAME and len(f["tasks"]) > 0
     ]
-    assert len(framework_srvs) == 1, "Got too many srv records matching service {}, got {}".format(
+    assert (
+        len(framework_srvs) == 1
+    ), "Got too many srv records matching service {}, got {}".format(
         config.SERVICE_NAME, framework_srvs
     )
     framework_srv = framework_srvs[0]
 
     for task_name in EXPECTED_TASKS:
-        assert "tasks" in framework_srv, "Framework SRV records missing 'tasks': {}".format(
+        assert (
+            "tasks" in framework_srv
+        ), "Framework SRV records missing 'tasks': {}".format(
             framework_srv
         )
         match_records = [t for t in framework_srv["tasks"] if t["name"] == task_name]
-        assert len(match_records) > 0, "Didn't find task record for {}".format(task_name)
+        assert len(match_records) > 0, "Didn't find task record for {}".format(
+            task_name
+        )
         assert len(match_records) == 1, "Got redundant tasks for {}".format(task_name)
         task_records = match_records[0]["records"]
         if task_name == "hello-overlay-0-server":
