@@ -6,13 +6,6 @@ In order to minimize errors in the system integration tests, static checks and c
 
 *Note*: These checks are only run against **modified** files relative to the target Git branch.
 
-### Python files
-
-In order to run the checks against *modified* Python files, run the following from the root of the repository:
-```bash
-./tools/ci/steps/check_python_files.sh
-```
-
 ### Using pre-commit
 
 The repository also contains a `.pre-commit-config.yaml` to be used with (`pre-commit`)[https://pre-commit.com/]. Once `pre-commit` is installed, the hooks can be added using
@@ -20,6 +13,20 @@ The repository also contains a `.pre-commit-config.yaml` to be used with (`pre-c
 pre-commit install
 ```
 in the project root.
+
+### Python files
+
+In order to run the checks against *modified* Python files, run the following from the root of the repository:
+```bash
+./tools/ci/steps/check_python_files.sh
+```
+
+The project uses (`black`)[https://github.com/ambv/black] formatting, and this is included in the `pre-commit` configuration. In order to format staged files run:
+```bash
+pre-commit run black-format
+```
+
+*Note*: This assumes that you have `pre-commit` installed.
 
 ## System integration tests
 

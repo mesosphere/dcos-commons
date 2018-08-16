@@ -76,8 +76,10 @@
             "foobar_service_name",
             "gpu_resource",
             "graceful-shutdown",
+            "host-volume",
             "marathon_constraint",
             "multistep_plan",
+            "multiport",
             "nonessential_tasks",
             "overlay",
             "pause",
@@ -166,6 +168,11 @@
           "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `0`",
           "type": "integer",
           "default": 0
+        },
+        "port_one": {
+          "description": "any arbitrary port can be used",
+          "type": "integer",
+          "default": 1729
         }
       },
       "required": [

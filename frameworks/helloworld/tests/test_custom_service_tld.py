@@ -1,8 +1,6 @@
 import logging
 
 import pytest
-import shakedown
-import time
 
 import sdk_hosts
 import sdk_install
@@ -14,12 +12,12 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -31,14 +29,12 @@ def test_custom_service_tld():
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         1,
-        additional_options={
-            "service": {
-                "custom_service_tld": custom_tld,
-                "yaml": "custom_tld",
-            }
-        })
+        additional_options={"service": {"custom_service_tld": custom_tld, "yaml": "custom_tld"}},
+    )
 
     # Verify the endpoints are correct
-    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "test", 2)
+    endpoints = sdk_networks.get_and_test_endpoints(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "test", 2
+    )
     for entry in endpoints["dns"]:
         assert custom_tld in entry

@@ -25,13 +25,18 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
             @JsonProperty("delay") Integer delay,
             @JsonProperty("interval") Integer interval,
             @JsonProperty("timeout") Integer timeout,
-            @JsonProperty("grace-period") Integer gracePeriod) {
+            @JsonProperty("grace-period") Integer gracePeriod,
+            // TODO(nickbp): Remove this parameter on or after Jan 2019.
+            //               Needed for upgrade compatibility from SDK 0.51.0 and earlier.
+            @JsonProperty("gracePeriod") Integer gracePeriodForUpgradeCompatibility) {
         this.command = command;
         this.maxConsecutiveFailures = maxConsecutiveFailures;
         this.delay = delay;
         this.interval = interval;
         this.timeout = timeout;
-        this.gracePeriod = gracePeriod;
+        // "grace-period": Used in 0.52.0 and later. Try this first.
+        // "gracePeriod": Used in 0.51.0 and earlier. Fall back to this only if "grace-period" isn't set.
+        this.gracePeriod = gracePeriod != null ? gracePeriod : gracePeriodForUpgradeCompatibility;
     }
 
     private DefaultHealthCheckSpec(Builder builder) {
@@ -41,6 +46,7 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
                 builder.delay,
                 builder.interval,
                 builder.timeout,
+                builder.gracePeriod,
                 builder.gracePeriod);
         ValidationUtils.nonEmpty(this, "command", command);
         ValidationUtils.atLeastOne(this, "maxConsecutiveFailures", maxConsecutiveFailures);
@@ -98,6 +104,17 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
     @Override
     @JsonProperty("grace-period")
     public Integer getGracePeriod() {
+        return gracePeriod;
+    }
+
+    /**
+     * Produce a "gracePeriod" value in addition to "grace-period". This ensures downgrade compatibility to SDK 0.51.0
+     * (and earlier).
+     *
+     * TODO(nickbp): Remove this function on or after Jan 2019.
+     */
+    @JsonProperty("gracePeriod")
+    public Integer getGracePeriodForDowngradeCompatibility() {
         return gracePeriod;
     }
 
@@ -200,9 +217,7 @@ public class DefaultHealthCheckSpec implements HealthCheckSpec {
         }
 
         /**
-         * Returns a {@code DefaultHealthCheckSpec} built from the parameters previously set.
-         *
-         * @return a {@code DefaultHealthCheckSpec} built with parameters of this {@code DefaultHealthCheckSpec.Builder}
+         * Returns a {@link DefaultHealthCheckSpec} built from the parameters previously set.
          */
         public DefaultHealthCheckSpec build() {
             return new DefaultHealthCheckSpec(this);

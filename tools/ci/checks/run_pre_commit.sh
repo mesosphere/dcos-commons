@@ -7,4 +7,4 @@ docker run --rm -t \
     -v $(pwd):/build:ro \
     -w /build \
         ${DOCKER_IMAGE} \
-            flake8 "$@"
+            pre-commit run "$@"
