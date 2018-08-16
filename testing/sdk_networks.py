@@ -69,8 +69,8 @@ def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_
     endpoints = wait_for_endpoint_info(package_name, service_name, endpoint_to_get)
     assert (
         len(endpoints) == correct_count
-    ), "Wrong number of endpoints, got {} should be {}".format(
-        len(endpoints), correct_count
+    ), "Wrong number of endpoints, got {} should be size {}".format(
+        endpoints, correct_count
     )
     return endpoints
 
