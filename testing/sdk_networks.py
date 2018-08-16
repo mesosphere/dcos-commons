@@ -52,10 +52,10 @@ def check_task_network(task_name, expected_network_name="dcos"):
     wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res
 )
 def wait_for_endpoint_info(
-    package_name: str, service_name: str, endpoint_name: str
+    package_name: str, service_name: str, endpoint_name: str, json: bool = True
 ) -> typing.Dict:
     ret = sdk_cmd.svc_cli(
-        package_name, service_name, "endpoints {}".format(endpoint_name), json=True
+        package_name, service_name, "endpoints {}".format(endpoint_name), json=json
     )
     return ret
 
