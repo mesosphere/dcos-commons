@@ -16,30 +16,46 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 
-def flatmap(f, items):
-    """
-    lines = ["one,two", "three", "four,five"]
-    f     = lambda s: s.split(",")
-
-    >>> map(f, lines)
-    [['one', 'two'], ['three'], ['four', 'five']]
-
-    >>> flatmap(f, lines)
-    ['one', 'two', 'three', 'four', 'five']
-    """
-    return chain.from_iterable(map(f, items))
-
-
 def parse_stub_universe_url_string(stub_universe_url_string):
     """Handles newline-, space-, and comma-separated strings."""
+
+    def flatmap(f, items):
+        """
+        lines = ["one,two", "three", "four,five"]
+        f     = lambda s: s.split(",")
+
+        >>> map(f, lines)
+        [['one', 'two'], ['three'], ['four', 'five']]
+
+        >>> flatmap(f, lines)
+        ['one', 'two', 'three', 'four', 'five']
+        """
+        return chain.from_iterable(map(f, items))
+
     lines = stub_universe_url_string.split()
     return list(filter(None, flatmap(lambda s: s.split(","), lines)))
 
 
-def get_universe_repos() -> List:
+def get_repos() -> List:
     # prepare needed universe repositories
     stub_universe_url_string = os.environ.get("STUB_UNIVERSE_URL", "")
     return parse_stub_universe_url_string(stub_universe_url_string)
+
+
+def remove_repo(repo_name) -> bool:
+    rc, stdout, stderr = sdk_cmd.run_raw_cli("package repo remove {}".format(repo_name))
+    if stderr.endswith("is not present in the list"):
+        # tried to remove something that wasn't there, move on.
+        return True
+    return rc == 0
+
+
+def add_repo(repo_name, repo_url, index=None) -> bool:
+    index_arg = "" if index is None else " --index={}".format(index)
+    rc, _, _ = sdk_cmd.run_raw_cli(
+        "package repo add{} {} {}".format(index_arg, repo_name, repo_url)
+    )
+    return rc == 0
 
 
 def add_stub_universe_urls(stub_universe_urls: list) -> dict:
@@ -53,12 +69,12 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
     for repo in json.loads(current_universes)["repositories"]:
         if repo["uri"] in stub_universe_urls:
             log.info("Removing duplicate stub URL: {}".format(repo["uri"]))
-            sdk_cmd.run_cli("package repo remove {}".format(repo["name"]))
+            assert remove_repo(repo["name"])
 
     # add the needed universe repositories
     log.info("Adding stub URLs: {}".format(stub_universe_urls))
     for url in stub_universe_urls:
-        sdk_cmd.run_cli("package repo add --index=0 testpkg-{} {}".format(sdk_utils.random_string(), url), check=True)
+        assert add_repo("testpkg-{}".format(sdk_utils.random_string()), url, 0)
 
     return stub_urls
 
@@ -67,15 +83,7 @@ def remove_universe_repos(stub_urls):
     # clear out the added universe repositories at testing end
     for name, url in stub_urls.items():
         log.info("Removing stub URL: {}".format(url))
-        rc, stdout, stderr = sdk_cmd.run_raw_cli("package repo remove {}".format(name))
-        if rc != 0 or stderr:
-            if stderr.endswith("is not present in the list"):
-                # tried to remove something that wasn't there, move on.
-                pass
-            else:
-                raise Exception(
-                    "Failed to remove stub repo: stdout=[{}], stderr=[{}]".format(stdout, stderr)
-                )
+        assert remove_repo(name)
 
 
 def universe_session():
@@ -89,7 +97,7 @@ def universe_session():
     """
     stub_urls = {}
     try:
-        stub_urls = add_stub_universe_urls(get_universe_repos())
+        stub_urls = add_stub_universe_urls(get_repos())
         yield
     finally:
         remove_universe_repos(stub_urls)

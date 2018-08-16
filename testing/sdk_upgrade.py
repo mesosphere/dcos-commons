@@ -14,6 +14,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_repository
 import sdk_tasks
 import sdk_utils
 
@@ -49,8 +50,8 @@ def test_upgrade(
     universe_version = None
     try:
         # Move the Universe repo to the top of the repo list so that we can first install the release version.
-        _remove_package_repo("Universe")
-        assert _add_package_repo("Universe", universe_url, 0)
+        sdk_repository.remove_repo("Universe")
+        assert sdk_repository.add_repo("Universe", universe_url, 0)
         log.info(
             "Waiting for Universe release version of {} to appear: version != {}".format(
                 package_name, test_version
@@ -70,8 +71,8 @@ def test_upgrade(
     finally:
         if universe_version:
             # Return the Universe repo back to the bottom of the repo list so that we can upgrade to the build version.
-            _remove_package_repo("Universe")
-            assert _add_package_repo("Universe", universe_url)
+            sdk_repository.remove_repo("Universe")
+            assert sdk_repository.add_repo("Universe", universe_url)
             log.info(
                 "Waiting for test build version of {} to appear: version != {}".format(
                     package_name, universe_version
@@ -271,21 +272,6 @@ def _get_pkg_version(package_name):
         )
         log.warning(traceback.format_exc())
         return None
-
-
-def _remove_package_repo(repo_name) -> bool:
-    rc, _, _ = sdk_cmd.run_raw_cli("package repo remove {}".format(repo_name))
-    return rc == 0
-
-
-def _add_package_repo(repo_name, repo_url, index=None) -> bool:
-    if index is None:
-        rc, _, _ = sdk_cmd.run_raw_cli("package repo add {} {}".format(repo_name, repo_url))
-    else:
-        rc, _, _ = sdk_cmd.run_raw_cli(
-            "package repo add --index={} {} {}".format(index, repo_name, repo_url)
-        )
-    return rc == 0
 
 
 @retrying.retry(

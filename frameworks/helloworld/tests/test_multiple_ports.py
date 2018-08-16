@@ -26,6 +26,4 @@ def test_launch_task_with_multiple_ports():
         0,
         additional_options={"service": {"yaml": "multiport"}},
     )
-    assert (
-        len(sdk_tasks.get_summary(with_completed=True, task_name="multiport-0-server")) != 0
-    ), "Unable to find matching completed task"
+    assert sdk_tasks.get_summary(with_completed=True, task_name="multiport-0-server"), "Unable to find matching completed task"

@@ -18,8 +18,6 @@ FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
 TEST_CONTENT_SMALL = "This is some test data"
-# use long-read alignments to human chromosome 1 as large file input (11GB)
-TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
 DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:stable"
@@ -38,7 +36,7 @@ def get_kerberized_hdfs_client_app():
 
 
 def hdfs_command(command):
-    return "/{}/bin/hdfs dfs -{}".format(HADOOP_VERSION, command)
+    return "dfs -{}".format(command)
 
 
 def get_unique_filename(prefix: str) -> str:
@@ -79,46 +77,31 @@ def delete_data_from_hdfs(service_name, filename):
     return success
 
 
-def write_lots_of_data_to_hdfs(service_name, filename):
-    write_command = "wget {} -qO- | {}".format(
-        TEST_CONTENT_LARGE_SOURCE, hdfs_command("put /{}".format(filename))
-    )
-    success, _, stderr = run_hdfs_command(service_name, write_command)
-    if not success and "File exists" in stderr:
-        # Flake: First attempt timed out, but the data was written. Then on the retry we see the file exists.
-        log.info("Ignoring failure: Looks like the data was already written")
-        return True
-    return success
-
-
 def get_active_name_node(service_name):
     name_node_0_status = get_name_node_status(service_name, "name-0-node")
-    if name_node_0_status == "active":
+    if name_node_0_status[0] and name_node_0_status[1] == "active":
         return "name-0-node"
 
     name_node_1_status = get_name_node_status(service_name, "name-1-node")
-    if name_node_1_status == "active":
+    if name_node_0_status[0] and name_node_1_status[1] == "active":
         return "name-1-node"
 
     raise Exception("Failed to determine active name node")
 
 
 @retrying.retry(
-    wait_fixed=1000, stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000, retry_on_result=lambda res: not res
+    wait_fixed=1000, stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000, retry_on_result=lambda res: not res[0]
 )
 def get_name_node_status(service_name, name_node):
     success, stdout, _ = run_hdfs_command(
-        service_name, "/{}/bin/hdfs haadmin -getServiceState {}".format(HADOOP_VERSION, name_node)
+        service_name, "haadmin -getServiceState {}".format(name_node)
     )
-    if not success:
-        return success
-
-    return stdout.strip()
+    return (success, stdout.strip())
 
 
-def run_hdfs_command(service_name, command, success_check=lambda rc, stdout, stderr: rc == 0):
+def run_hdfs_command(service_name, hdfs_args, success_check=lambda rc, stdout, stderr: rc == 0):
     """
-    Execute the command using the Docker client
+    Execute the command (provided as args to the 'hdfs' binary) using the Docker client
     """
 
     def get_bash_command(cmd: str, environment: str) -> str:
@@ -137,7 +120,7 @@ def run_hdfs_command(service_name, command, success_check=lambda rc, stdout, std
         "HDFS_SERVICE_NAME={}".format(service_name),
         DOCKER_IMAGE_NAME,
         get_bash_command(
-            "/{}/configure-hdfs.sh && /bin/bash -c '{}'".format(HADOOP_VERSION, command), ""
+            "/{}/configure-hdfs.sh && /bin/bash -c '/{}/bin/hdfs {}'".format(HADOOP_VERSION, HADOOP_VERSION, hdfs_args), ""
         ),
     ]
     full_command = " ".join(cmd)

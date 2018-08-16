@@ -64,16 +64,14 @@ def _retried_install_impl(
             )
         )
         install_cmd.append("--cli")
-        sdk_cmd.run_raw_cli(" ".join(install_cmd), check=True)
     elif options:
         # Write options to a temporary json file to be accessed by the CLI:
-        with tempfile.NamedTemporaryFile("w") as options_file:
-            json.dump(options, options_file)
-            options_file.flush()  # ensure content is available for the CLI to read below
-            install_cmd.append("--options={}".format(options_file.name))
-            sdk_cmd.run_cli(" ".join(install_cmd), check=True)
-    else:
-        sdk_cmd.run_cli(" ".join(install_cmd), check=True)
+        options_file = tempfile.NamedTemporaryFile("w")
+        json.dump(options, options_file)
+        options_file.flush()  # ensure content is available for the CLI to read below
+        install_cmd.append("--options={}".format(options_file.name))
+
+    sdk_cmd.run_cli(" ".join(install_cmd), check=True)
 
     # Wait for expected tasks to come up
     if expected_running_tasks > 0:

@@ -19,7 +19,12 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-pytestmark = sdk_utils.dcos_ee_only
+pytestmark = [
+    sdk_utils.dcos_ee_only,
+    pytest.mark.skipif(
+        sdk_utils.dcos_version_less_than("1.10"), reason="TLS tests require DC/OS 1.10+"
+    ),
+]
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -136,8 +141,6 @@ DEFAULT_DATA_NODE_TLS_PORT = 9006
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.dcos_min_version("1.10")
-@sdk_utils.dcos_ee_only
 @pytest.mark.parametrize(
     "node_type,port",
     [
@@ -173,8 +176,6 @@ def test_verify_https_ports(hdfs_client, node_type, port):
     assert "401 Authentication required" in stdout
 
 
-@pytest.mark.dcos_min_version("1.10")
-@sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
@@ -193,8 +194,6 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     assert stdout == config.TEST_CONTENT_SMALL
 
 
-@pytest.mark.dcos_min_version("1.10")
-@sdk_utils.dcos_ee_only
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_users_have_appropriate_permissions(hdfs_client, kerberos):

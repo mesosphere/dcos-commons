@@ -115,9 +115,8 @@ def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
     all instances of a given task. The returned values are ordered chronologically from first to
     last.
 
-    If with_completed_tasks is set to False, then the statuses will only be for tasks which are
-    currently running. Any statuses from any completed / failed tasks(e.g. from prior tests) will be
-    omitted from the returned history.
+    : param task_name: The name of the task whose history should be retrieved.
+    : param with_completed_tasks: Whether to include the status history of previous versions of the task which had since exited. Unlike with get_service_tasks(), this may include tasks from previous versions of the service.
     """
     cluster_tasks = sdk_cmd.cluster_request("GET", "/mesos/tasks").json()["tasks"]
     statuses = []
@@ -138,19 +137,44 @@ def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
     return history
 
 
-def get_task_ids(service_name, task_prefix=""):
+def check_task_count(service_name: str, expected_task_count: int) -> list:
+    """Verifies that the service contains exactly the expected number of tasks.
+    Returns the task entries as produced by get_service_tasks().
+
+    : param service_name: The name of the Mesos framework to be verified.
+    : param expected_task_count: The expected number of tasks.
+    """
+    service_tasks = get_service_tasks(service_name)
+    assert len(service_tasks) == expected_task_count, "Expected {} tasks in service {}, got {}: {}".format(
+        expected_task_count, service_name, len(service_tasks), [t.name for t in service_tasks]
+    )
+    return service_tasks
+
+
+def get_task_ids(service_name: str, task_prefix="") -> list:
+    """Returns a list of task IDs for all running tasks in the specified Mesos framework.
+
+    : param service_name: The name of the Mesos framework whose task ids should be retrieved.
+    : param task_prefix: Filters the returned ids for task names which match the provided prefix.
+    """
     return [t.id for t in get_service_tasks(service_name, task_prefix=task_prefix)]
 
 
-def get_service_tasks(service_name, task_prefix="", with_completed_tasks=False):
+def get_service_tasks(service_name: str, task_prefix="", with_completed_tasks=False) -> list:
+    """Returns a list of task objects for tasks in the specified Mesos framework.
+
+    : param service_name: The name of the Mesos framework whose task information should be retrieved.
+    : param task_prefix: Filters the returned tasks for task names which match the provided prefix.
+    : param with_completed_tasks: Whether to include previous tasks which had since exited. These tasks are only from the current version of the framework, not previous versions.
+    """
     return _get_service_tasks(
         service_name, _get_agentid_to_hostname(), task_prefix, with_completed_tasks
     )
 
 
 def _get_service_tasks(
-    service_name, agentid_to_hostname, task_prefix="", with_completed_tasks=False
-):
+    service_name: str, agentid_to_hostname: dict, task_prefix="", with_completed_tasks=False
+) -> list:
     """Returns a summary of all tasks in the specified Mesos framework.
 
     Returns a list of Task objects.
@@ -170,7 +194,7 @@ def _get_service_tasks(
     return service_tasks
 
 
-def get_summary(with_completed=False, task_name=None):
+def get_summary(with_completed=False, task_name=None) -> list:
     """Returns a summary of all cluster tasks in the cluster, or just a specified task.
     This may be used instead of invoking 'dcos task [--all]' directly.
 
@@ -184,20 +208,20 @@ def get_summary(with_completed=False, task_name=None):
     else:
         output = list(filter(lambda t: not t.is_completed, all_tasks))
     if task_name:
-        output = list(filter(lambda t: t.name == task_name, all_tasks))
+        output = list(filter(lambda t: t.name == task_name, output))
     log.info(
-        "Task summary (with_completed={}) (task_name=[{}]):\n- {}".format(
+        "Task summary (with_completed={}, task_name=[{}]):\n- {}".format(
             with_completed, task_name, "\n- ".join([str(e) for e in output])
         )
     )
     return output
 
 
-def _get_agentid_to_hostname():
+def _get_agentid_to_hostname() -> dict:
     return {agent["id"]: agent["hostname"] for agent in sdk_agents.get_agents()}
 
 
-def get_tasks_avoiding_scheduler(service_name, task_name_pattern):
+def get_tasks_avoiding_scheduler(service_name, task_name_pattern) -> list:
     """Returns a list of tasks which are not located on the Scheduler's machine.
 
     Avoid also killing the system that the scheduler is on. This is just to speed up testing.

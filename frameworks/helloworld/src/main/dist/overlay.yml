@@ -3,9 +3,9 @@ scheduler:
   user: {{FRAMEWORK_USER}}
   principal: {{FRAMEWORK_PRINCIPAL}}
 pods:
-  hello-overlay-vip:
+  overlay-vip:
     count: 1
-    # join the 'dcos' overlay network
+    # Join the 'dcos' overlay network
     networks:
       dcos:
        labels: "key0:val0,key1:val1"
@@ -22,15 +22,16 @@ pods:
             vip:
               prefix: overlay-vip
               port: 80
+            env-key: PORT_OVERLAY_VIP
         cmd: |
           echo "hello from the overlay network with a VIP" > content &&
-          python3 -m http.server 4044
+          python3 -m http.server $PORT_OVERLAY_VIP
         readiness-check:
           cmd: "curl -f -X GET overlay-vip.$FRAMEWORK_VIP_HOST:80/content >> output"
           interval: 10
           delay: 15
           timeout: 120
-  hello-overlay:
+  overlay:
     count: 1
     networks:
       dcos:
@@ -47,15 +48,19 @@ pods:
           overlay-dynport:
             port: 0
             env-key: PORT_OVERLAY_DYNPORT
+        # Upload resulting dynamic port value to scheduler, to be fetched and used by getter-<N>-check-comm below.
         cmd: |
           echo "hello from the overlay network" > content &&
+          echo $PORT_OVERLAY_DYNPORT > dynport
+          echo "Uploading overlay-dynport to scheduler: $(cat dynport)"
+          curl -v -X PUT -F "file=@dynport" ${SCHEDULER_API_HOSTNAME}:${SCHEDULER_API_PORT}/v1/state/files/OVERLAY_DYNPORT_VALUE
           python3 -m http.server $PORT_OVERLAY_DYNPORT
         readiness-check:
-          cmd: "curl -f -X GET hello-overlay-0-server.$FRAMEWORK_HOST:1026/content >> output"
+          cmd: "curl -f -X GET $TASK_NAME.$FRAMEWORK_HOST:$PORT_OVERLAY_DYNPORT/content >> output"
           interval: 10
           delay: 15
           timeout: 120
-  hello-host-vip:
+  host-vip:
     count: 1
     image: python:3.7
     tasks:
@@ -70,15 +75,16 @@ pods:
             vip:
               prefix: host-vip
               port: 80
+            env-key: PORT_HOST_VIP
         cmd: |
           echo "hello from the host network with a VIP" > content &&
-          python3 -m http.server 4044
+          python3 -m http.server $PORT_HOST_VIP
         readiness-check:
           cmd: "curl -f -X GET host-vip.$FRAMEWORK_VIP_HOST:80/content >> output"
           interval: 10
           delay: 15
           timeout: 120
-  hello-host:
+  host:
     count: 1
     image: python:3.7
     tasks:
@@ -89,11 +95,12 @@ pods:
         ports:
           host-port:
             port: 4044
+            env-key: PORT_HOST
         cmd: |
           echo "hello from the host network" > content &&
-          python3 -m http.server 4044
+          python3 -m http.server $PORT_HOST
         readiness-check:
-          cmd: "curl -f -X GET hello-host-0-server.$FRAMEWORK_HOST:4044/content >> output"
+          cmd: "curl -f -X GET $TASK_NAME.$FRAMEWORK_HOST:$PORT_HOST/content >> output"
           interval: 10
           delay: 15
           timeout: 120
@@ -106,11 +113,14 @@ pods:
         goal: ONCE
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
+        # Fetch dynamic port from scheduler, uploaded by overlay-0-server above.
         cmd: |
+          curl ${SCHEDULER_API_HOSTNAME}:${SCHEDULER_API_PORT}/v1/state/files/OVERLAY_DYNPORT_VALUE > dynport
+          echo "Fetched overlay-dynport from scheduler: $(cat dynport)"
           curl -f -X GET overlay-vip.$FRAMEWORK_VIP_HOST:80/content >> output &&
-          curl -f -X GET hello-overlay-0-server.$FRAMEWORK_HOST:1026/content >> output &&
+          curl -f -X GET overlay-0-server.$FRAMEWORK_HOST:$(cat dynport)/content >> output &&
           curl -f -X GET host-vip.$FRAMEWORK_VIP_HOST:80/content >> output &&
-          curl -f -X GET hello-host-0-server.$FRAMEWORK_HOST:4044/content >> output &&
+          curl -f -X GET host-0-server.$FRAMEWORK_HOST:4044/content >> output &&
           date >> success
         readiness-check:
           cmd: "if [ ! -f success ]; then echo 'no success file' && exit 1; fi"

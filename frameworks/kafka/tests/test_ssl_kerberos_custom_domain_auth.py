@@ -17,7 +17,11 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-pytestmark = sdk_utils.dcos_ee_only
+pytestmark = [
+    sdk_utils.dcos_ee_only,
+    pytest.mark.skipif(
+        sdk_utils.dcos_version_less_than("1.10"), reason="TLS tests require DC/OS 1.10+")
+]
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -106,8 +110,6 @@ def kafka_client(kerberos):
         kafka_client.uninstall()
 
 
-@pytest.mark.dcos_min_version("1.10")
-@sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_server, kerberos):
 

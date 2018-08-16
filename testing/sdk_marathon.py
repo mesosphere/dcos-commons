@@ -50,55 +50,6 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     return config
 
 
-def _is_app_healthy(app: dict, add_log="") -> bool:
-    staged = app.get("tasksStaged", 0)
-    running = app.get("tasksRunning", 0)
-    unhealthy = app.get("tasksUnhealthy", 0)
-    healthy = app.get("tasksHealthy", 0)
-    deployments = app.get("deployments", [])
-
-    expect_instances = app.get("instances", 1)
-    app_id = app.get("id", "???")
-    if app.get("healthChecks", []) or app.get("readinessChecks", []):
-        # App defines health or readiness check.
-        # Use the healthy count to determine when the app has finished.
-        check_instances = healthy
-        log.info(
-            "{}: staged={}/0, running={}, unhealthy={}/0, healthy={}/{}+, deployments={}/0{}".format(
-                app_id,
-                staged,
-                running,
-                unhealthy,
-                healthy,
-                expect_instances,
-                len(deployments),
-                add_log,
-            )
-        )
-    else:
-        # No health checks, just check 'running'
-        check_instances = running
-        log.info(
-            "{}: staged={}/0, running={}/{}+, unhealthy={}/0, healthy={}, deployments={}/0{}".format(
-                app_id,
-                staged,
-                running,
-                expect_instances,
-                unhealthy,
-                healthy,
-                len(deployments),
-                add_log,
-            )
-        )
-
-    return (
-        staged == 0
-        and unhealthy == 0
-        and len(deployments) == 0
-        and check_instances >= expect_instances
-    )
-
-
 class _deployment_result(object):
     def __init__(self, version, errmsg):
         self._version = version
@@ -118,17 +69,54 @@ def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> N
     )
     def _wait_for_deployment() -> bool:
         app = _get_config(app_name)
-        if expected_version is None:
-            # No expected version: Just check deployments + health
-            # This should ONLY be used when installing a new app, NOT when reconfiguring an existing app.
-            return _is_app_healthy(app)
-        else:
-            # Specific version expected: Check deployments + health + version
+
+        staged = app.get("tasksStaged", 0)
+        running = app.get("tasksRunning", 0)
+        unhealthy = app.get("tasksUnhealthy", 0)
+        healthy = app.get("tasksHealthy", 0)
+        deployments = app.get("deployments", [])
+
+        expect_instances = app.get("instances", 1)
+        app_id = app.get("id", "???")
+
+        if expected_version:
+            # Specific version expected: Check version in addition to other checks
             # This avoids a race when reconfiguring a marathon app, where it may initially look
             # healthy/deployed BEFORE the deployment has started.
             version = app.get("version", "")
-            running = _is_app_healthy(app, ", version={}/{}".format(version, expected_version))
-            return running and expected_version == version
+            log_extra = ", version={}/{}".format(version, expected_version)
+            check_extra = expected_version == version
+        else:
+            # No expected version: Just check deployments + health
+            # This should ONLY be used when installing a new app, NOT when reconfiguring an existing app.
+            log_extra = ""
+            check_extra = True
+
+        if app.get("healthChecks", []) or app.get("readinessChecks", []):
+            # App defines health or readiness check.
+            # Use the healthy count to determine when the app has finished.
+            log_expected_running = ""
+            log_expected_healthy = "/{}+".format(expect_instances)
+            check_instances = healthy >= expect_instances
+        else:
+            # No health checks, just check 'running'
+            log_expected_running = "/{}+".format(expect_instances)
+            log_expected_healthy = ""
+            check_instances = running >= expect_instances
+
+        log.info(
+            "%s: staged=%s/0, running=%s%s, unhealthy=%s/0, healthy=%s%s, deployments=%s/0%s",
+            app_id,
+            staged,
+            running,
+            log_expected_running,
+            unhealthy,
+            healthy,
+            log_expected_healthy,
+            len(deployments),
+            log_extra,
+        )
+        return staged == 0 and unhealthy == 0 and len(deployments) == 0 and check_instances and check_extra
 
     if expected_version:
         log.info(

@@ -63,12 +63,9 @@ def test_indexing(default_populated_index):
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_tasks_on_overlay():
-    task_names = [t.name for t in sdk_tasks.get_service_tasks(config.SERVICE_NAME)]
-    assert len(task_names) == config.DEFAULT_TASK_COUNT, "Expected {} tasks, got {}".format(
-        config.DEFAULT_TASK_COUNT, task_names
-    )
-    for task_name in task_names:
-        sdk_networks.check_task_network(task_name)
+    tasks = sdk_tasks.check_task_count(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+    for task in tasks:
+        sdk_networks.check_task_network(task.name)
 
 
 @pytest.mark.sanity

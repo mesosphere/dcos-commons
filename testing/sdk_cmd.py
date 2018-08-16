@@ -148,30 +148,17 @@ def svc_cli(
     service_cmd,
     json=False,
     print_output=True,
-    return_stderr_in_stdout=False,
     check=False,
 ):
     full_cmd = "{} --name={} {}".format(package_name, service_name, service_cmd)
-
-    if not json:
-        return run_cli(
-            full_cmd,
-            print_output=print_output,
-            return_stderr_in_stdout=return_stderr_in_stdout,
-            check=check,
-        )
-    else:
-        # TODO(elezar): We shouldn't use json=True and return_stderr_in_stdout=True together
-        # assert not return_stderr_in_stdout, json=True and return_stderr_in_stdout=True should not be used together
+    if json:
         return get_json_output(full_cmd, print_output=print_output, check=False)
+    else:
+        return run_cli(full_cmd, print_output=print_output, check=check)
 
 
-def run_cli(cmd, print_output=True, return_stderr_in_stdout=False, check=False):
-    _, stdout, stderr = run_raw_cli(cmd, print_output, check=check)
-
-    if return_stderr_in_stdout:
-        return stdout + "\n" + stderr
-
+def run_cli(cmd, print_output=True, check=False):
+    _, stdout, _ = run_raw_cli(cmd, print_output, check=check)
     return stdout
 
 
@@ -179,8 +166,8 @@ def run_raw_cli(cmd, print_output=True, check=False):
     """Runs the command with `dcos` as the prefix to the shell command
     and returns a tuple containing exit code, stdout, and stderr.
 
-    eg. `cmd`= "package install <package-name>" results in:
-    $ dcos package install < package - name >
+    eg. `cmd`= "package install pkg-name" results in:
+    $ dcos package install pkg-name
     """
     dcos_cmd = "dcos {}".format(cmd)
     log.info("(CLI) {}".format(dcos_cmd))
@@ -395,9 +382,8 @@ def _scp(
         upload_file.write(file_content)
         upload_file.flush()
 
-        scp_cmd = "scp {}{} {} {}@{}:{}".format(
-            common_args, proxy_arg, upload_file.name, SSH_USERNAME, host, remote_path
-        )
+        dest = "{}@{}:{}".format(SSH_USERNAME, host, remote_path)
+        scp_cmd = "scp {}{} {} {}".format(common_args, proxy_arg, upload_file.name, dest)
         rc, _, _ = _run_cmd(scp_cmd, print_output, check, timeout_seconds=timeout_seconds)
         return rc
 

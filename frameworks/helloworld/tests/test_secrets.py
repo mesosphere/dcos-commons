@@ -354,9 +354,10 @@ def test_secrets_dcos_space():
         # Now, manually check that the deploy plan is stuck. Just wait for 5 minutes.
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, timeout_seconds=5 * 60)
         assert False, "Should have failed to install"
-    except AssertionError as arg:
-        raise arg
+    except AssertionError as e:
+        raise e
     except Exception:
+        log.info("Deployment failed as expected")
         pass  # Plan is expected to not complete
 
     # clean up and delete secrets

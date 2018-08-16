@@ -32,8 +32,7 @@ def pre_test_setup():
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.11")
 def test_detect_racks():
-    print_topology_cmd = "/{}/bin/hdfs dfsadmin -printTopology".format(config.HADOOP_VERSION)
-    _, stdout, stderr = config.run_hdfs_command(config.SERVICE_NAME, print_topology_cmd)
+    _, stdout, stderr = config.run_hdfs_command(config.SERVICE_NAME, "dfsadmin -printTopology")
 
     # expecting e.g. "Rack: /aws/us-west-2b\n..."
     rack = stdout.split("\n")[0]

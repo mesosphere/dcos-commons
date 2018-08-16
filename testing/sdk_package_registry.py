@@ -84,7 +84,7 @@ def add_dcos_files_to_registry(tmpdir_factory) -> None:  # _pytest.TempdirFactor
         valid_path_set = False
     if not valid_path_set:
         dcos_files_path = str(tmpdir_factory.mktemp(sdk_utils.random_string()))
-    stub_universe_urls = sdk_repository.get_universe_repos()
+    stub_universe_urls = sdk_repository.get_repos()
     log.info(
         "Using {} to build .dcos files (if not exists) from {}".format(
             dcos_files_path, stub_universe_urls

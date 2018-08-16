@@ -298,13 +298,12 @@ def test_state_refresh_disable_cache():
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
-        output = sdk_cmd.svc_cli(
+        rc, stdout, stderr = sdk_cmd.svc_cli(
             config.PACKAGE_NAME,
             foldered_name,
-            "debug state refresh_cache",
-            return_stderr_in_stdout=True,
+            "debug state refresh_cache"
         )
-        return "failed: 409 Conflict" in output
+        return rc != 0 and stdout == "" and "failed: 409 Conflict" in stderr
 
     check_cache_refresh_fails_409conflict()
 
