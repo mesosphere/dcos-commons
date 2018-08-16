@@ -9,6 +9,7 @@ import sdk_hosts
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
+import sdk_networks
 
 log = logging.getLogger(__name__)
 

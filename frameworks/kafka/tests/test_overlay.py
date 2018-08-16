@@ -1,5 +1,4 @@
 import pytest
-import sdk_cmd
 import sdk_install as install
 import sdk_networks
 import sdk_tasks
