@@ -121,10 +121,6 @@ def test_crud_over_tls(elastic_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.skipif(
-    sdk_utils.dcos_version_at_least("1.12"),
-    reason="MESOS-9008: Mesos Fetcher fails to extract Kibana archive",
-)
 def test_kibana_tls(kibana_application):
     config.check_kibana_adminrouter_integration(
         "service/{}/login".format(config.KIBANA_SERVICE_NAME)
