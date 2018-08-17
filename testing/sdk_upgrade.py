@@ -134,7 +134,8 @@ def soak_upgrade_downgrade(
 
 
 def _get_universe_url():
-    repositories = json.loads(sdk_cmd.run_cli("package repo list --json"))["repositories"]
+    _, stdout, _ = sdk_cmd.run_cli("package repo list --json")
+    repositories = json.loads(stdout)["repositories"]
     for repo in repositories:
         if repo["name"] == "Universe":
             log.info("Found Universe URL: {}".format(repo["uri"]))
@@ -148,17 +149,16 @@ def _get_universe_url():
 def get_config(package_name, service_name):
     """Return the active config for the current service.
     This is retried 15 times, waiting 10s between retries."""
-
     try:
         # Refrain from dumping the full ServiceSpec to stdout
-        target_config = sdk_cmd.svc_cli(
-            package_name, service_name, "debug config target", json=True, print_output=False
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            package_name, service_name, "debug config target", print_output=False
         )
+        assert rc == 0, "Target config fetch failed"
+        return json.loads(stdout)
     except Exception as e:
         log.error("Could not determine target config: %s", str(e))
         return None
-
-    return target_config
 
 
 def update_or_upgrade_or_downgrade(
@@ -246,7 +246,7 @@ def _wait_for_deployment(package_name, service_name, initial_config, task_ids, t
 def _get_pkg_version(package_name):
     cmd = "package describe {}".format(package_name)
     # Only log stdout/stderr if there's actually an error.
-    rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd, print_output=False)
+    rc, stdout, stderr = sdk_cmd.run_cli(cmd, print_output=False)
     if rc != 0:
         log.warning('Failed to run "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
         return None

@@ -202,7 +202,7 @@ def _dump_threads(item: pytest.Item, service_name: str):
 
 def _dump_diagnostics_bundle(item: pytest.Item):
     """Creates and downloads a DC/OS diagnostics bundle, and saves it to the artifact path for this test."""
-    rc, _, _ = sdk_cmd.run_raw_cli("node diagnostics create all")
+    rc, _, _ = sdk_cmd.run_cli("node diagnostics create all")
     if rc:
         log.error("Diagnostics bundle creation failed.")
         return
@@ -213,7 +213,7 @@ def _dump_diagnostics_bundle(item: pytest.Item):
         retry_on_result=lambda result: result is None,
     )
     def wait_for_bundle_file():
-        rc, stdout, stderr = sdk_cmd.run_raw_cli("node diagnostics --status --json")
+        rc, stdout, stderr = sdk_cmd.run_cli("node diagnostics --status --json")
         if rc:
             return None
 

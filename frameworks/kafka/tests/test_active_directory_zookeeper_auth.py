@@ -8,6 +8,7 @@ import pytest
 import sdk_cmd
 import sdk_install
 import sdk_marathon
+import sdk_networks
 import sdk_utils
 
 from tests import active_directory
@@ -71,11 +72,10 @@ def zookeeper_server(kerberos):
 def kafka_server(kerberos, zookeeper_server):
 
     # Get the zookeeper DNS values
-    zookeeper_dns = sdk_cmd.svc_cli(
+    zookeeper_dns = sdk_networks.get_endpoint(
         zookeeper_server["package_name"],
         zookeeper_server["service"]["name"],
-        "endpoint clientport",
-        json=True,
+        "clientport"
     )["dns"]
 
     service_kerberos_options = {
@@ -112,9 +112,7 @@ def kafka_server(kerberos, zookeeper_server):
 @pytest.fixture(scope="module", autouse=True)
 def kafka_client(kerberos, kafka_server):
 
-    brokers = sdk_cmd.svc_cli(
-        kafka_server["package_name"], kafka_server["service"]["name"], "endpoint broker", json=True
-    )["dns"]
+    brokers = sdk_networks.get_endpoint(kafka_server["package_name"], kafka_server["service"]["name"], "broker")["dns"]
 
     try:
         client_id = "kafka-client"
@@ -161,7 +159,6 @@ def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
         kafka_server["package_name"],
         kafka_server["service"]["name"],
         "topic create {}".format(topic_name),
-        json=True,
     )
 
     test_utils.wait_for_topic(

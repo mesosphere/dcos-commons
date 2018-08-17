@@ -1,14 +1,18 @@
+import json
 import pytest
 import retrying
+
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_metrics
+import sdk_networks
 import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
+
 from tests import config, test_utils
 
 
@@ -43,11 +47,10 @@ def test_endpoints_address():
 
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def wait():
-        ret = sdk_cmd.svc_cli(
+        ret = sdk_networks.get_endpoint(
             config.PACKAGE_NAME,
             foldered_name,
-            "endpoints {}".format(config.DEFAULT_TASK_NAME),
-            json=True,
+            config.DEFAULT_TASK_NAME
         )
         if len(ret["address"]) == config.DEFAULT_BROKER_COUNT:
             return ret
@@ -68,7 +71,7 @@ def test_endpoints_address():
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints zookeeper")
+    zookeeper = sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "zookeeper", json=False)
     assert zookeeper.rstrip("\n") == "master.mesos:2181/{}".format(
         sdk_utils.get_zk_path(foldered_name)
     )
@@ -98,13 +101,14 @@ def test_custom_zookeeper():
     # wait for brokers to finish registering
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
-    zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints zookeeper")
+    zookeeper = sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "zookeeper", json=False)
     assert zookeeper.rstrip("\n") == zk_path
 
     # topic created earlier against default zk should no longer be present:
-    topic_list_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "topic list", json=True)
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "topic list")
+    assert rc == 0, "Topic list command failed"
 
-    test_utils.assert_topic_lists_are_equal_without_automatic_topics([], topic_list_info)
+    test_utils.assert_topic_lists_are_equal_without_automatic_topics([], json.loads(stdout))
 
     # tests from here continue with the custom ZK path...
 
@@ -115,13 +119,13 @@ def test_custom_zookeeper():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_broker_list():
-    brokers = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "broker list",
-        json=True,
     )
-    assert set(brokers) == set([str(i) for i in range(config.DEFAULT_BROKER_COUNT)])
+    assert rc == 0, "Broker list command failed"
+    assert set(json.loads(stdout)) == set([str(i) for i in range(config.DEFAULT_BROKER_COUNT)])
 
 
 @pytest.mark.smoke
@@ -132,7 +136,6 @@ def test_broker_invalid():
             config.PACKAGE_NAME,
             sdk_utils.get_foldered_name(config.SERVICE_NAME),
             "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1),
-            json=True,
         )
         assert False, "Should have failed"
     except AssertionError as arg:

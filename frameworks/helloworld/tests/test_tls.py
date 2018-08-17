@@ -79,7 +79,7 @@ def configure_package(configure_security):
         )
 
         # Make sure that all the TLS artifacts were removed from the secrets store.
-        output = sdk_cmd.run_cli("security secrets list {name}".format(name=config.SERVICE_NAME))
+        _, output, _ = sdk_cmd.run_cli("security secrets list {name}".format(name=config.SERVICE_NAME))
         artifact_suffixes = [
             "certificate",
             "private-key",

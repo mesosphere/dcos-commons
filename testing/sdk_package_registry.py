@@ -65,7 +65,7 @@ def install_package_registry(service_secret_path: str) -> Dict:
     # If `describe` endpoint is working, registry is writable by AR.
     @retrying.retry(stop_max_delay=5 * 60 * 1000, wait_fixed=5 * 1000)
     def wait_for_registry_available():
-        code, stdout, stderr = sdk_cmd.run_raw_cli(
+        code, stdout, stderr = sdk_cmd.run_cli(
             "registry describe --package-name=hello --package-version=world"
         )
         assert code == 1 and "Version [world] of package [hello] not found" in stderr
@@ -97,14 +97,14 @@ def add_dcos_files_to_registry(tmpdir_factory) -> None:  # _pytest.TempdirFactor
 
     @retrying.retry(stop_max_delay=5 * 60 * 1000, wait_fixed=5 * 1000)
     def wait_for_added_registry(name, version):
-        code, stdout, stderr = sdk_cmd.run_raw_cli(
+        code, stdout, stderr = sdk_cmd.run_cli(
             "registry describe --package-name={} --package-version={} --json".format(name, version),
             print_output=False,
         )
         assert code == 0 and json.loads(stdout).get("status") == "Added"
 
     for file_path, name, version in dcos_files_list:
-        rc, out, err = sdk_cmd.run_raw_cli("registry add --dcos-file={} --json".format(file_path))
+        rc, out, err = sdk_cmd.run_cli("registry add --dcos-file={} --json".format(file_path))
         assert rc == 0
         assert len(json.loads(out)["packages"]) > 0, "No packages were added"
         wait_for_added_registry(name, version)
@@ -154,7 +154,7 @@ def build_dcos_file_from_universe_definition(
             sdk_utils.random_string()
         )
         package_json_file.write(json.dumps(package))
-        rc, _, _ = sdk_cmd.run_raw_cli(
+        rc, _, _ = sdk_cmd.run_cli(
             " ".join(
                 [
                     "registry",
@@ -173,7 +173,7 @@ def build_dcos_file_from_universe_definition(
 def grant_perms_for_registry_account(service_uid: str) -> None:
     # Grant only required permissions to registry
     perms = "dcos:adminrouter:ops:ca:rw"
-    rc, _, _ = sdk_cmd.run_raw_cli(
+    rc, _, _ = sdk_cmd.run_cli(
         " ".join(["security", "org", "users", "grant", service_uid, perms, "full"])
     )
     assert rc == 0, "Required perms [{}] could not be obtained for {}".format(perms, service_uid)

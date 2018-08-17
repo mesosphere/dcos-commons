@@ -64,7 +64,7 @@ def wait_for_toxic_sidecar():
     if sdk_utils.dcos_version_less_than("1.10"):
         # Note: As of this writing, 'task ls' does 'contains' comparisons of task ids correctly,
         # so we don't need to include a service name prefix here.
-        output = sdk_cmd.run_cli("task ls hello-0-server hello-container-path/toxic-output")
+        _, output, _ = sdk_cmd.run_cli("task ls hello-0-server hello-container-path/toxic-output")
         expected_output = ""
     else:
         _, output, _ = sdk_cmd.service_task_exec(

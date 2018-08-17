@@ -76,12 +76,14 @@ def get_zk_path(service_name):
 
 @functools.lru_cache()
 def dcos_url():
-    return sdk_cmd.run_cli("config show core.dcos_url").strip()
+    _, stdout, _ = sdk_cmd.run_cli("config show core.dcos_url").strip()
+    return stdout
 
 
 @functools.lru_cache()
 def dcos_token():
-    return sdk_cmd.run_cli("config show core.dcos_acs_token", print_output=False).strip()
+    _, stdout, _ = sdk_cmd.run_cli("config show core.dcos_acs_token", print_output=False).strip()
+    return stdout
 
 
 @functools.lru_cache()

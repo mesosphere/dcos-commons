@@ -115,7 +115,6 @@ def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_serve
         kafka_server["package_name"],
         kafka_server["service"]["name"],
         "topic create {}".format(topic_name),
-        json=True,
     )
 
     kafka_client.connect(kafka_server)

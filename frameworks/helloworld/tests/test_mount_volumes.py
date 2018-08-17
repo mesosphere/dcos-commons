@@ -1,5 +1,5 @@
+import json
 import logging
-
 import pytest
 
 import sdk_cmd
@@ -76,9 +76,11 @@ def verify_shared_executor(pod_name):
     - matching ExecutorInfo
     - both 'essential' and 'nonessential' present in shared-volume/ across both tasks
     """
-    tasks = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info {}".format(pod_name), json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info {}".format(pod_name)
     )
+    assert rc == 0, "Pod info failed"
+    tasks = json.loads(stdout)
     assert len(tasks) == 2
 
     # check that the task executors all match

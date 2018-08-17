@@ -480,7 +480,7 @@ def setup_constraint_switch():
 
 
 def get_task_host(task_name):
-    out = sdk_cmd.run_cli("task {} --json".format(task_name))
+    _, out, _ = sdk_cmd.run_cli("task {} --json".format(task_name))
     task_info = json.loads(out)[0]
 
     host = None

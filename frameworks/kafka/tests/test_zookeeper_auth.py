@@ -8,6 +8,7 @@ import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
+import sdk_networks
 import sdk_security
 import sdk_utils
 
@@ -112,11 +113,8 @@ def zookeeper_server(kerberos):
 def kafka_server(kerberos, zookeeper_server):
 
     # Get the zookeeper DNS values
-    zookeeper_dns = sdk_cmd.svc_cli(
-        zookeeper_server["package_name"],
-        zookeeper_server["service"]["name"],
-        "endpoint clientport",
-        json=True,
+    zookeeper_dns = sdk_networks.get_endpoint(
+        zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
     )["dns"]
 
     service_options = {
@@ -172,7 +170,6 @@ def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_serve
         kafka_server["package_name"],
         kafka_server["service"]["name"],
         "topic create {}".format(topic_name),
-        json=True,
     )
 
     kafka_client.connect(kafka_server)

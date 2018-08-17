@@ -1,5 +1,6 @@
 # NOTE: THIS FILE IS INTENTIONALLY NAMED TO BE RUN LAST. SEE test_shutdown_host().
 
+import json
 import logging
 import pytest
 import re
@@ -31,14 +32,17 @@ def test_pod_restart():
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
 
     # get current agent id:
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", json=True, print_output=False
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", print_output=False
     )
-    old_agent = jsonobj[0]["info"]["slaveId"]["value"]
+    assert rc == 0, "Pod info failed"
+    old_agent = json.loads(stdout)[0]["info"]["slaveId"]["value"]
 
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod restart hello-0", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod restart hello-0"
     )
+    assert rc == 0, "Pod restart failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj["pod"] == "hello-0"
     assert len(jsonobj["tasks"]) == 1
@@ -48,10 +52,11 @@ def test_pod_restart():
     check_healthy()
 
     # check agent didn't move:
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", json=True, print_output=False
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", print_output=False
     )
-    new_agent = jsonobj[0]["info"]["slaveId"]["value"]
+    assert rc == 0, "Second pod info failed"
+    new_agent = json.loads(stdout)[0]["info"]["slaveId"]["value"]
     assert old_agent == new_agent
 
 
@@ -59,9 +64,11 @@ def test_pod_restart():
 def test_pod_replace():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
 
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace world-0", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace world-0"
     )
+    assert rc == 0, "Pod replace failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj["pod"] == "world-0"
     assert len(jsonobj["tasks"]) == 1
@@ -77,22 +84,28 @@ def test_pod_pause_resume():
     """Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state"""
 
     # get current agent id:
-    taskinfo = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", json=True, print_output=False
-    )[0]["info"]
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", print_output=False
+    )
+    assert rc == 0, "Pod info failed"
+    taskinfo = json.loads(stdout)[0]["info"]
     old_agent = taskinfo["slaveId"]["value"]
     old_cmd = taskinfo["command"]["value"]
 
     # sanity check of pod status/plan status before we pause/resume:
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod status hello-0 --json", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod status hello-0 --json"
     )
+    assert rc == 0, "Pod status failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj["tasks"]) == 1
     assert jsonobj["tasks"][0]["name"] == "hello-0-server"
     assert jsonobj["tasks"][0]["status"] == "RUNNING"
-    phase = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "plan status deploy --json", json=True
-    )["phases"][0]
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "plan status deploy --json"
+    )
+    assert rc == 0, "Plan status failed"
+    phase = json.loads(stdout)["phases"][0]
     assert phase["name"] == "hello"
     assert phase["status"] == "COMPLETE"
     assert phase["steps"][0]["name"] == "hello-0:[server]"
@@ -100,9 +113,11 @@ def test_pod_pause_resume():
 
     # pause the pod, wait for it to relaunch
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "debug pod pause hello-0", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "debug pod pause hello-0"
     )
+    assert rc == 0, "Pod pause failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj["pod"] == "hello-0"
     assert len(jsonobj["tasks"]) == 1
@@ -114,28 +129,34 @@ def test_pod_pause_resume():
     check_healthy(expected_recovery_state=["STARTED", "IN_PROGRESS"])
 
     # check agent didn't move, and that the command has changed:
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", json=True, print_output=False
-    )[0]["info"]
-    assert old_agent == jsonobj["slaveId"]["value"]
-    cmd = jsonobj["command"]["value"]
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", print_output=False
+    )
+    assert rc == 0, "Pod info failed"
+    taskinfo = json.loads(stdout)[0]["info"]
+    assert old_agent == taskinfo["slaveId"]["value"]
+    cmd = taskinfo["command"]["value"]
     assert "This task is PAUSED" in cmd
 
     if sdk_utils.dcos_version_at_least("1.10"):
         # validate readiness check (default executor)
-        readiness_check = jsonobj["check"]["command"]["command"]["value"]
+        readiness_check = taskinfo["check"]["command"]["command"]["value"]
         assert "exit 1" == readiness_check
 
     # check PAUSED state in plan and in pod status:
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod status hello-0 --json", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod status hello-0 --json"
     )
+    assert rc == 0, "Pod status failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj["tasks"]) == 1
     assert jsonobj["tasks"][0]["name"] == "hello-0-server"
     assert jsonobj["tasks"][0]["status"] == "PAUSED"
-    phase = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "plan status deploy --json", json=True
-    )["phases"][0]
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "plan status deploy --json"
+    )
+    assert rc == 0, "Plan status failed"
+    phase = json.loads(stdout)["phases"][0]
     assert phase["name"] == "hello"
     assert phase["status"] == "COMPLETE"
     assert phase["steps"][0]["name"] == "hello-0:[server]"
@@ -143,9 +164,11 @@ def test_pod_pause_resume():
 
     # resume the pod again, wait for it to relaunch
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "debug pod resume hello-0", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "debug pod resume hello-0"
     )
+    assert rc == 0, "Pod resume failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj["pod"] == "hello-0"
     assert len(jsonobj["tasks"]) == 1
@@ -155,22 +178,28 @@ def test_pod_pause_resume():
     check_healthy()
 
     # check again that the agent didn't move:
-    taskinfo = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", json=True, print_output=False
-    )[0]["info"]
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info hello-0", print_output=False
+    )
+    assert rc == 0, "Pod info failed"
+    taskinfo = json.loads(stdout)[0]["info"]
     assert old_agent == taskinfo["slaveId"]["value"]
     assert old_cmd == taskinfo["command"]["value"]
 
     # check that the pod/plan status is back to normal:
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod status hello-0 --json", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod status hello-0 --json"
     )
+    assert rc == 0, "Pod status failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj["tasks"]) == 1
     assert jsonobj["tasks"][0]["name"] == "hello-0-server"
     assert jsonobj["tasks"][0]["status"] == "RUNNING"
-    phase = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "plan status deploy --json", json=True
-    )["phases"][0]
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "plan status deploy --json"
+    )
+    assert rc == 0, "Plan status failed"
+    phase = json.loads(stdout)["phases"][0]
     assert phase["name"] == "hello"
     assert phase["status"] == "COMPLETE"
     assert phase["steps"][0]["name"] == "hello-0:[server]"
@@ -184,9 +213,11 @@ def test_pods_restart_graceful_shutdown():
 
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
 
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod restart world-0", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod restart world-0"
     )
+    assert rc == 0, "Pod restart failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj["pod"] == "world-0"
     assert len(jsonobj["tasks"]) == 1
@@ -198,7 +229,7 @@ def test_pods_restart_graceful_shutdown():
     # ensure the SIGTERM was sent via the "all clean" message in the world
     # service's signal trap/handler, BUT not the shell command, indicated
     # by "echo".
-    stdout = sdk_cmd.run_cli("task log --completed --lines=1000 {}".format(world_ids[0]))
+    _, stdout, _ = sdk_cmd.run_cli("task log --completed --lines=1000 {}".format(world_ids[0]))
     clean_msg = None
     for s in stdout.split("\n"):
         if s.find("echo") < 0 and s.find("all clean") >= 0:

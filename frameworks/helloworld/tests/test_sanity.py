@@ -1,8 +1,9 @@
+import json
 import logging
-import re
-
 import pytest
+import re
 import retrying
+
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -120,7 +121,9 @@ def test_increase_decrease_world_nodes():
 @pytest.mark.sanity
 def test_pod_list():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod list", json=True)
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod list")
+    assert rc == 0, "Pod list failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj) == config.configured_task_count(foldered_name)
     # expect: X instances of 'hello-#' followed by Y instances of 'world-#',
     # in alphanumerical order
@@ -141,7 +144,9 @@ def test_pod_status_all():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # /test/integration/hello-world => test.integration.hello-world
     sanitized_name = sdk_utils.get_task_id_service_name(foldered_name)
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod status --json", json=True)
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod status --json")
+    assert rc == 0, "Pod status failed"
+    jsonobj = json.loads(stdout)
     assert jsonobj["service"] == foldered_name
     for pod in jsonobj["pods"]:
         assert re.match("(hello|world)", pod["name"])
@@ -161,9 +166,9 @@ def test_pod_status_one():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # /test/integration/hello-world => test.integration.hello-world
     sanitized_name = sdk_utils.get_task_id_service_name(foldered_name)
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name, "pod status --json hello-0", json=True
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod status --json hello-0")
+    assert rc == 0, "Pod status failed"
+    jsonobj = json.loads(stdout)
     assert jsonobj["name"] == "hello-0"
     assert len(jsonobj["tasks"]) == 1
     task = jsonobj["tasks"][0]
@@ -175,12 +180,13 @@ def test_pod_status_one():
 
 @pytest.mark.sanity
 def test_pod_info():
-    jsonobj = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "pod info world-1",
-        json=True,
     )
+    assert rc == 0, "Pod info failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2
@@ -193,9 +199,9 @@ def test_pod_info():
 def test_state_properties_get():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
-    jsonobj = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name, "debug state properties", json=True
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state properties")
+    assert rc == 0, "State properties failed"
+    jsonobj = json.loads(stdout)
     # Just check that some expected properties are present. The following may also be present:
     # - "suppressed": Depends on internal scheduler state at the time of the query.
     # - "world-[2,3]-server:task-status": Leftovers from an earlier expansion to 4 world tasks.
@@ -223,17 +229,19 @@ def test_help_cli():
 @pytest.mark.sanity
 def test_config_cli():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    configs = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug config list", json=True)
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug config list")
+    assert rc == 0, "Config list fetch failed"
+    configs = json.loads(stdout)
     assert len(configs) >= 1  # refrain from breaking this test if earlier tests did a config update
 
-    assert sdk_cmd.svc_cli(
+    assert 0 == sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         foldered_name,
         "debug config show {}".format(configs[0]),
-        print_output=False,
-    )  # noisy output
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug config target", json=True)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug config target_id", json=True)
+        print_output=False,  # noisy output
+    )[0]
+    _check_json_output(foldered_name, "debug config target")
+    _check_json_output(foldered_name, "debug config target_id")
 
 
 @pytest.mark.sanity
@@ -242,27 +250,16 @@ def test_plan_cli():
     plan_name = "deploy"
     phase_name = "world"
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan list", json=True)
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))
-    assert sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name, "plan show --json {}".format(plan_name), json=True
-    )
-    assert sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name, "plan show {} --json".format(plan_name), json=True
-    )
+    assert _check_json_output(foldered_name, "plan list")[0]
+    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))[0]
+    assert _check_json_output(foldered_name, "plan show --json {}".format(plan_name))
+    assert _check_json_output(foldered_name, "plan show {} --json".format(plan_name))
 
     # trigger a restart so that the plan is in a non-complete state.
     # the 'interrupt' command will fail if the plan is already complete:
-    assert sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name, "plan force-restart {}".format(plan_name)
-    )
-
-    assert sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name)
-    )
-    assert sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name)
-    )
+    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan force-restart {}".format(plan_name))[0]
+    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name))[0]
+    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name))[0]
 
     # now wait for plan to finish before continuing to other tests:
     assert sdk_plan.wait_for_completed_plan(foldered_name, plan_name)
@@ -271,10 +268,8 @@ def test_plan_cli():
 @pytest.mark.sanity
 def test_state_cli():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    assert sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, foldered_name, "debug state framework_id", json=True
-    )
-    assert sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state properties", json=True)
+    assert _check_json_output(foldered_name, "debug state framework_id")
+    assert _check_json_output(foldered_name, "debug state properties")
 
 
 @pytest.mark.sanity
@@ -285,7 +280,8 @@ def test_state_refresh_disable_cache():
     task_ids = sdk_tasks.get_task_ids(foldered_name, "")
 
     # caching enabled by default:
-    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state refresh_cache")
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state refresh_cache")
+    assert rc == 0, "Refresh cache failed"
     assert "Received cmd: refresh" in stdout
 
     marathon_config = sdk_marathon.get_config(foldered_name)
@@ -317,7 +313,9 @@ def test_state_refresh_disable_cache():
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def check_cache_refresh():
-        return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state refresh_cache")
+        rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state refresh_cache")
+        assert rc == 0, "Refresh cache failed"
+        return stdout
 
     stdout = check_cache_refresh()
     assert "Received cmd: refresh" in stdout
@@ -379,3 +377,10 @@ def test_tmp_directory_created():
         config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar | grep bar"
     )
     assert code > 0
+
+
+def _check_json_output(svc_name, cmd):
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, svc_name, cmd)
+    assert rc == 0, "Command failed: {}".format(cmd)
+    # Check that stdout is valid json:
+    json.loads(stdout)

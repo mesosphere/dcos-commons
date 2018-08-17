@@ -1,3 +1,4 @@
+import json
 import pytest
 
 import sdk_cmd
@@ -128,11 +129,12 @@ def test_kibana_tls(kibana_application):
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_tls_recovery(elastic_service, service_account):
-    pod_list = sdk_cmd.svc_cli(
-        elastic_service["package_name"], elastic_service["service"]["name"], "pod list", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        elastic_service["package_name"], elastic_service["service"]["name"], "pod list"
     )
+    assert rc == 0, "Pod list failed"
 
-    for pod in pod_list:
+    for pod in json.loads(stdout):
         sdk_recovery.check_permanent_recovery(
             elastic_service["package_name"],
             elastic_service["service"]["name"],

@@ -1,5 +1,5 @@
+import json
 import logging
-
 import os.path
 import pytest
 
@@ -79,9 +79,11 @@ def verify_shared_executor(
     - matching ExecutorInfo
     - both 'essential' and 'nonessential' present in shared-volume/ across both tasks
     """
-    tasks = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info {}".format(pod_name), json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info {}".format(pod_name)
     )
+    assert rc == 0, "Pod info failed"
+    tasks = json.loads(stdout)
     assert len(tasks) == 2
 
     # check that the task executors all match
@@ -93,7 +95,7 @@ def verify_shared_executor(
     task_names = [task["info"]["name"] for task in tasks]
     for task_name in task_names:
         # 1.9 just uses the host filesystem in 'task exec', so use 'task ls' across the board instead
-        filenames = sdk_cmd.run_cli("task ls {} shared-volume/".format(task_name)).strip().split()
+        _, filenames, _ = sdk_cmd.run_cli("task ls {} shared-volume/".format(task_name)).strip().split()
         assert set(expected_files) == set(filenames)
 
     # delete files from volume in preparation for a following task relaunch

@@ -60,11 +60,10 @@ def kafka_server(zookeeper_server):
     try:
 
         # Get the zookeeper DNS values
-        zookeeper_dns = sdk_cmd.svc_cli(
+        zookeeper_dns = sdk_networks.get_endpoint(
             zookeeper_server["package_name"],
             zookeeper_server["service"]["name"],
-            "endpoint clientport",
-            json=True,
+            "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -92,7 +91,7 @@ def test_zookeeper_reresolution(kafka_server):
     broker_log_line = []
 
     for id in range(0, config.DEFAULT_BROKER_COUNT):
-        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 1".format(id))
+        rc, stdout, _ = sdk_cmd.run_cli("task log kafka-{}-broker --lines 1".format(id))
 
         if rc or not stdout:
             raise Exception("No task logs for kafka-{}-broker".format(id))
@@ -117,7 +116,7 @@ def test_zookeeper_reresolution(kafka_server):
     # Now, verify that Kafka remains happy
     @retrying.retry(wait_fixed=1000, stop_max_attempt_number=3)
     def check_broker(id: int):
-        rc, stdout, _ = sdk_cmd.run_raw_cli(
+        rc, stdout, _ = sdk_cmd.run_cli(
             "task log kafka-{}-broker --lines 1000".format(id), print_output=False
         )
 

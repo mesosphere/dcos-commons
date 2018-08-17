@@ -6,6 +6,7 @@ import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_marathon
+import sdk_networks
 import sdk_plan
 import sdk_tasks
 import sdk_utils
@@ -301,9 +302,7 @@ def _master_zero_http_port(service_name):
     '''Returns a master node hostname+port endpoint that can be queried from within the cluster.
     We cache this value because it is an autoip endpoint and doesn't change even if the master is replaced or restarted.
     '''
-    dns = sdk_cmd.svc_cli(
-        PACKAGE_NAME, service_name, "endpoints master-http", json=True, print_output=False
-    )["dns"]
+    dns = sdk_networks.get_endpoint(PACKAGE_NAME, service_name, "master-http")["dns"]
     # 'dns' array will look something like this in CCM: [
     #   "master-0-node.[svcname].[...autoip...]:1025",
     #   "master-1-node.[svcname].[...autoip...]:1025",

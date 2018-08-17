@@ -68,25 +68,25 @@ def test_tasks_on_overlay():
         sdk_networks.check_task_network(task.name)
 
 
-@pytest.mark.sanity
+@pytest.mark.nick
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_endpoints_on_overlay():
-    endpoint_types_without_ingest = (
-        "coordinator-http",
-        "coordinator-transport",
-        "data-http",
-        "data-transport",
-        "master-http",
-        "master-transport",
+    endpoints_on_overlay_to_count = {
+        "coordinator-http": 1,
+        "coordinator-transport": 1,
+        "data-http": 2,
+        "data-transport": 2,
+        "master-http": 3,
+        "master-transport": 3,
+    }
+    endpoints_not_on_overlay = (
+        "ingest-http",
+        "ingest-transport",
     )
 
-    observed_endpoints = sdk_networks.get_and_test_endpoints(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "", len(endpoint_types_without_ingest)
-    )
-    for endpoint in endpoint_types_without_ingest:
-        assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        specific_endpoint = sdk_networks.get_and_test_endpoints(
-            config.PACKAGE_NAME, config.SERVICE_NAME, endpoint, 3
-        )
-        sdk_networks.check_endpoints_on_overlay(specific_endpoint)
+    endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
+    assert set(endpoints_on_overlay_to_count.keys() + endpoints_not_on_overlay) == set(endpoint_names)
+
+    for endpoint_name, expected_count in endpoints_on_overlay_to_count.items():
+        sdk_networks.check_endpoint_on_overlay(config.PACKAGE_NAME, config.SERVICE_NAME, endpoint_name, expected_count)

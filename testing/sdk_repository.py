@@ -54,7 +54,7 @@ def get_repos() -> list:
 
 
 def remove_repo(repo_name) -> bool:
-    rc, stdout, stderr = sdk_cmd.run_raw_cli("package repo remove {}".format(repo_name))
+    rc, stdout, stderr = sdk_cmd.run_cli("package repo remove {}".format(repo_name))
     if stderr.endswith("is not present in the list"):
         # tried to remove something that wasn't there, move on.
         return True
@@ -63,7 +63,7 @@ def remove_repo(repo_name) -> bool:
 
 def add_repo(repo_name, repo_url, index=None) -> bool:
     index_arg = "" if index is None else " --index={}".format(index)
-    rc, _, _ = sdk_cmd.run_raw_cli(
+    rc, _, _ = sdk_cmd.run_cli(
         "package repo add{} {} {}".format(index_arg, repo_name, repo_url)
     )
     return rc == 0
@@ -76,7 +76,7 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
         return stub_urls
 
     # clean up any duplicate repositories
-    current_universes = sdk_cmd.run_cli("package repo list --json")
+    _, current_universes, _ = sdk_cmd.run_cli("package repo list --json")
     for repo in json.loads(current_universes)["repositories"]:
         if repo["uri"] in stub_universe_urls:
             log.info("Removing duplicate stub URL: {}".format(repo["uri"]))

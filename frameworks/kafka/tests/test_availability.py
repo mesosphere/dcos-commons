@@ -1,5 +1,5 @@
 import datetime
-
+import json
 import pytest
 import os
 import re
@@ -61,12 +61,13 @@ def test_service_startup_rapid():
         if "records sent" in stdout:
             break
 
-    jsonobj = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
         "pod restart {}".format(task_short_name),
-        json=True,
     )
+    assert rc == 0, "Pod restart failed"
+    jsonobj = json.loads(stdout)
     assert len(jsonobj) == 2
     assert jsonobj["pod"] == task_short_name
     assert jsonobj["tasks"] == ["{}-broker".format(task_short_name)]
@@ -84,7 +85,7 @@ def test_service_startup_rapid():
     starting_time = started_time = None
     retry_seconds_remaining = max_restart_seconds + startup_padding_seconds
     while retry_seconds_remaining > 0.0 and (starting_time is None or started_time is None):
-        stdout = sdk_cmd.run_cli("task log --lines=1000 {}".format(broker_task_id_1))
+        _, stdout, _ = sdk_cmd.run_cli("task log --lines=1000 {}".format(broker_task_id_1))
         task_lines = stdout.split("\n")
         for log_line in reversed(task_lines):
             if starting_time is None and " starting (kafka.server.KafkaServer)" in log_line:

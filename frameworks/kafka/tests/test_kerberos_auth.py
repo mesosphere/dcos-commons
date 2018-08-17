@@ -81,10 +81,10 @@ def kafka_client(kerberos):
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_no_vip(kafka_server):
-    endpoints = sdk_networks.get_and_test_endpoints(
-        kafka_server["package_name"], kafka_server["service"]["name"], "broker", 2
+    broker_endpoint = sdk_networks.get_endpoint(
+        kafka_server["package_name"], kafka_server["service"]["name"], "broker"
     )
-    assert "vip" not in endpoints
+    assert "vip" not in broker_endpoint
 
 
 @pytest.mark.dcos_min_version("1.10")
@@ -97,7 +97,6 @@ def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
         kafka_server["package_name"],
         kafka_server["service"]["name"],
         "topic create {}".format(topic_name),
-        json=True,
     )
 
     kafka_client.connect(kafka_server)

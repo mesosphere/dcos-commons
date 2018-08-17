@@ -54,16 +54,16 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_cmd.run_cli("package install --cli dcos-enterprise-cli --yes")
-        try_delete_secrets("{}/".format(config.SERVICE_NAME))
-        try_delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
-        try_delete_secrets()
+        delete_secrets("{}/".format(config.SERVICE_NAME))
+        delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
+        delete_secrets()
 
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        try_delete_secrets("{}/".format(config.SERVICE_NAME))
-        try_delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
-        try_delete_secrets()
+        delete_secrets("{}/".format(config.SERVICE_NAME))
+        delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
+        delete_secrets()
 
 
 @pytest.mark.sanity
@@ -188,21 +188,14 @@ def test_secrets_update():
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
-    sdk_cmd.run_cli(
-        "security secrets update --value={} {}/secret1".format(
-            secret_content_alternative, config.SERVICE_NAME
+    def update_secret(secret_name):
+        sdk_cmd.run_cli(
+            "security secrets update --value={} {}".format(secret_content_alternative, secret_name)
         )
-    )
-    sdk_cmd.run_cli(
-        "security secrets update --value={} {}/secret2".format(
-            secret_content_alternative, config.SERVICE_NAME
-        )
-    )
-    sdk_cmd.run_cli(
-        "security secrets update --value={} {}/secret3".format(
-            secret_content_alternative, config.SERVICE_NAME
-        )
-    )
+
+    update_secret("{}/secret1".format(config.SERVICE_NAME))
+    update_secret("{}/secret2".format(config.SERVICE_NAME))
+    update_secret("{}/secret3".format(config.SERVICE_NAME))
 
     # Verify with hello-0 and world-0, just check with one of the pods
 
@@ -286,7 +279,7 @@ def test_secrets_config_update():
     delete_secrets("{}/".format(config.SERVICE_NAME))
 
     # create new secrets with new content -- New Value
-    create_secrets(secret_content_arg=secret_content_alternative)
+    create_secrets(secret_content=secret_content_alternative)
 
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config["env"]["HELLO_SECRET1"] = "secret1"
@@ -364,39 +357,24 @@ def test_secrets_dcos_space():
     delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
 
 
-def create_secrets(path_prefix="", secret_content_arg=secret_content_default):
-    sdk_cmd.run_cli(
-        "security secrets create --value={} {}secret1".format(secret_content_arg, path_prefix)
-    )
-    sdk_cmd.run_cli(
-        "security secrets create --value={} {}secret2".format(secret_content_arg, path_prefix)
-    )
-    sdk_cmd.run_cli(
-        "security secrets create --value={} {}secret3".format(secret_content_arg, path_prefix)
-    )
+def create_secrets(path_prefix="", secret_content=secret_content_default):
+    def create_secret(secret_name):
+        sdk_cmd.run_cli(
+            "security secrets create --value={} {}".format(secret_content, secret_name)
+        )
+
+    create_secret("{}secret1".format(path_prefix))
+    create_secret("{}secret2".format(path_prefix))
+    create_secret("{}secret3".format(path_prefix))
 
 
 def delete_secrets(path_prefix=""):
-    sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
-    sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
-    sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
+    def delete_secret(secret_name):
+        sdk_cmd.run_cli("security secrets delete {}".format(secret_name))
 
-
-def try_delete_secrets(path_prefix=""):
-    # if there is any secret left, delete
-    # use in teardown_module
-    try:
-        sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
-    except Exception:
-        pass
-    try:
-        sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
-    except Exception:
-        pass
-    try:
-        sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
-    except Exception:
-        pass
+    delete_secret("{}secret1".format(path_prefix))
+    delete_secret("{}secret2".format(path_prefix))
+    delete_secret("{}secret3".format(path_prefix))
 
 
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)

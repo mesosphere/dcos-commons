@@ -146,23 +146,32 @@ def svc_cli(
     package_name,
     service_name,
     service_cmd,
-    json=False,
     print_output=True,
     check=False,
 ):
-    full_cmd = "{} --name={} {}".format(package_name, service_name, service_cmd)
-    if json:
-        return get_json_output(full_cmd, print_output=print_output, check=False)
-    else:
-        return run_cli(full_cmd, print_output=print_output, check=check)
+    return run_cli(
+        "{} --name={} {}".format(package_name, service_name, service_cmd),
+        print_output=print_output,
+        check=check
+    )
 
 
-def run_cli(cmd, print_output=True, check=False):
-    _, stdout, _ = run_raw_cli(cmd, print_output, check=check)
-    return stdout
+def _get_json_output(cmd, print_output=True, check=False):
+    _, stdout, stderr = run_cli(cmd, print_output, check=check)
+
+    if stderr:
+        log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)
+
+    try:
+        json_stdout = jsonlib.loads(stdout)
+    except Exception as e:
+        log.warning("Error converting stdout to json:\n%s", stdout)
+        raise e
+
+    return json_stdout
 
 
-def run_raw_cli(cmd, print_output=True, check=False):
+def run_cli(cmd, print_output=True, check=False) -> tuple:
     """Runs the command with `dcos` as the prefix to the shell command
     and returns a tuple containing exit code, stdout, and stderr.
 
@@ -450,7 +459,7 @@ def _task_exec(task_id_prefix: str, cmd: str) -> tuple:
     else:
         full_cmd = cmd
 
-    return run_raw_cli("task exec {} {}".format(task_id_prefix, cmd))
+    return run_cli("task exec {} {}".format(task_id_prefix, cmd))
 
 
 def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str = "./bootstrap") -> bool:
@@ -483,21 +492,6 @@ def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str = "./
     return resolved
 
 
-def get_json_output(cmd, print_output=True, check=False):
-    _, stdout, stderr = run_raw_cli(cmd, print_output, check=check)
-
-    if stderr:
-        log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)
-
-    try:
-        json_stdout = jsonlib.loads(stdout)
-    except Exception as e:
-        log.warning("Error converting stdout to json:\n%s", stdout)
-        raise e
-
-    return json_stdout
-
-
 def get_task_sandbox_path(task_id_prefix: str) -> str:
     task_info = _get_task_info(task_id_prefix)
 
@@ -525,7 +519,7 @@ def _get_task_info(task_id_prefix: str) -> dict:
     """
     : return (dict): Get the task information for the specified task
     """
-    raw_tasks = run_cli("task {task_id_prefix} --json".format(task_id_prefix=task_id_prefix))
+    _, raw_tasks, _ = run_cli("task {task_id_prefix} --json".format(task_id_prefix=task_id_prefix))
     if not raw_tasks:
         log.warning("No data returned for tasks matching id '%s'", task_id_prefix)
         return {}

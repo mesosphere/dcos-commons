@@ -27,7 +27,7 @@ def install_enterprise_cli(force=False):
 
     log.info("Installing DC/OS enterprise CLI")
     if not force:
-        _, stdout, _ = sdk_cmd.run_raw_cli("security --version", print_output=False)
+        _, stdout, _ = sdk_cmd.run_cli("security --version", print_output=False)
         if stdout:
             log.info("DC/OS enterprise version %s CLI already installed", stdout.strip())
             return

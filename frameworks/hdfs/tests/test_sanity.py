@@ -7,6 +7,7 @@ import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_metrics
+import sdk_networks
 import sdk_plan
 import sdk_recovery
 import sdk_tasks
@@ -57,7 +58,7 @@ def pre_test_setup():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints core-site.xml")
+        sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "core-site.xml", json=False)
     )
     check_properties(
         core_site,
@@ -65,7 +66,7 @@ def test_endpoints():
     )
 
     hdfs_site = etree.fromstring(
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints hdfs-site.xml")
+        sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "hdfs-site.xml", json=False)
     )
     expect = {
         "dfs.namenode.shared.edits.dir": "qjournal://{}/hdfs".format(

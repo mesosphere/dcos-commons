@@ -113,7 +113,6 @@ def test_authz_acls_required(
             kafka_server["package_name"],
             kafka_server["service"]["name"],
             "topic create {}".format(topic_name),
-            json=True,
         )
 
         kafka_client.connect(kafka_server)
@@ -218,7 +217,6 @@ def test_authz_acls_not_required(
             kafka_server["package_name"],
             kafka_server["service"]["name"],
             "topic create {}".format(topic_name),
-            json=True,
         )
 
         kafka_client.connect(kafka_server)

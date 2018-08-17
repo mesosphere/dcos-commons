@@ -153,5 +153,6 @@ def expect_recovery(service_name):
 
 
 def get_pod_type_instances(pod_type_prefix, service_name=SERVICE_NAME):
-    pod_types = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, "pod list", json=True)
-    return [pod_type for pod_type in pod_types if pod_type.startswith(pod_type_prefix)]
+    rc, stdout, _ = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, "pod list")
+    assert rc == 0
+    return [pod_type for pod_type in json.loads(stdout) if pod_type.startswith(pod_type_prefix)]

@@ -8,6 +8,7 @@ import sdk_auth
 import sdk_cmd
 import sdk_install
 import sdk_marathon
+import sdk_networks
 import sdk_plan
 import sdk_utils
 
@@ -540,25 +541,22 @@ def update_service(package_name: str, service_name: str, options: dict):
 
 
 def service_get_brokers(kafka_server: dict, endpoint_name: str) -> list:
-    brokers = sdk_cmd.svc_cli(
+    return sdk_networks.get_endpoint(
         kafka_server["package_name"],
         kafka_server["service"]["name"],
-        "endpoint {}".format(endpoint_name),
-        json=True,
+        endpoint_name
     )["dns"]
-
-    return brokers
 
 
 def service_has_brokers(
     kafka_server: dict, endpoint_name: str, number_of_brokers: int = None
 ) -> bool:
-    endpoints = sdk_cmd.svc_cli(
-        kafka_server["package_name"], kafka_server["service"]["name"], "endpoint", json=True
+    endpoint_names = sdk_networks.get_endpoint_names(
+        kafka_server["package_name"], kafka_server["service"]["name"]
     )
 
-    if endpoint_name not in endpoints:
-        log.error("Expecting endpoint %s. Found %s", endpoint_name, endpoints)
+    if endpoint_name not in endpoint_names:
+        log.error("Expecting endpoint %s. Found %s", endpoint_name, endpoint_names)
         return False
 
     brokers = service_get_brokers(kafka_server, endpoint_name)
@@ -583,7 +581,6 @@ def client_can_read_and_write(
         kafka_server["package_name"],
         kafka_server["service"]["name"],
         "topic create {}".format(topic_name),
-        json=True,
     )
 
     test_utils.wait_for_topic(

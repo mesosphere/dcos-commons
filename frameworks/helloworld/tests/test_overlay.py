@@ -70,14 +70,10 @@ def test_overlay_network():
         else:
             assert False, "Unknown task {}".format(name)
 
-    endpoints_result = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints", json=True
-    )
+    endpoints_result = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
     assert len(endpoints_result) == 2, "Expected 2 endpoints, got: {}".format(endpoints_result)
 
-    overlay_endpoints_result = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints overlay-vip", json=True
-    )
+    overlay_endpoints_result = sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, "overlay-vip")
     assert (
         "address" in overlay_endpoints_result.keys()
     ), "overlay endpoints missing 'address': {}".format(
@@ -93,9 +89,7 @@ def test_overlay_network():
         config.SERVICE_NAME, "overlay-vip-0-server", 4044
     )
 
-    host_endpoints_result = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints host-vip", json=True
-    )
+    host_endpoints_result = sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, "host-vip")
     assert (
         "address" in host_endpoints_result.keys()
     ), "overlay endpoints missing 'address': {}".format(

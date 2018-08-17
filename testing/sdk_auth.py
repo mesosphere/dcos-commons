@@ -44,7 +44,7 @@ def _get_kdc_task(task_name: str) -> dict:
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
     log.info("Getting KDC task")
-    raw_tasks = sdk_cmd.run_cli("task --json", print_output=False)
+    _, raw_tasks, _ = sdk_cmd.run_cli("task --json", print_output=False)
     if raw_tasks:
         tasks = json.loads(raw_tasks)
         for task in tasks:
@@ -66,7 +66,7 @@ def _get_host_name(host_id: str) -> str:
     :return (str): Name of the host running the KDC app.
     """
     log.info("Getting hostname")
-    raw_nodes = sdk_cmd.run_cli("node --json")
+    _, raw_nodes, _ = sdk_cmd.run_cli("node --json")
     if raw_nodes:
         nodes = json.loads(raw_nodes)
         for node in nodes:

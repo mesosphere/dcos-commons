@@ -44,19 +44,14 @@ def test_tasks_on_overlay():
 
 
 @pytest.mark.overlay
-@pytest.mark.sanity
+@pytest.mark.nick
 @pytest.mark.dcos_min_version("1.9")
 def test_endpoints_on_overlay():
-    observed_endpoints = sdk_networks.get_and_test_endpoints(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "", 2
-    )
-    expected_endpoints = ("hdfs-site.xml", "core-site.xml")
-    for endpoint in expected_endpoints:
-        assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        xmlout = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints {}".format(endpoint)
-        )
-        ElementTree.fromstring(xmlout)
+    endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
+    assert set(endpoint_names) == set(["hdfs-site.xml", "core-site.xml"])
+    for endpoint_name in endpoint_names:
+        # Validate that XML is parseable:
+        ElementTree.fromstring(sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, endpoint_name, json=False))
 
 
 @pytest.mark.overlay
