@@ -1,11 +1,9 @@
 {
-  "tf_defaults": {
+  "defaults": {
     "os": "coreos_1235.9.0",
     "user": "core",
     "aws_region": "us-west-2",
-    "admin_cidr": "0.0.0.0/0"
-  },
-  "custom_defaults": {
+    "admin_cidr": "0.0.0.0/0",
     "aws_bootstrap_instance_type": "m3.large",
     "aws_master_instance_type": "m4.xlarge",
     "aws_agent_instance_type": "m4.xlarge",
@@ -15,17 +13,18 @@
     "num_of_private_agents": "3"
   },
   "environment": {
-    "dcos_version": "$DCOS_VERSION",
-    "ssh_key_name": "$SSH_KEY_NAME",
-    "aws_profile": "$AWS_PROFILE",
-    "dcos_aws_access_key_id": "$AWS_ACCESS_KEY_ID",
-    "dcos_aws_secret_access_key": "$AWS_SECRET_ACCESS_KEY",
+    "ssh_key_name": "{AWS_SSH_KEY_NAME}",
+    "aws_profile": "{AWS_PROFILE}",
+    "dcos_aws_access_key_id": "{AWS_ACCESS_KEY_ID}",
+    "dcos_aws_secret_access_key": "{AWS_SECRET_ACCESS_KEY}",
+    "dcos_version": "{DCOS_VERSION}",
     "enterprise": {
-      "dcos_security": "permissive",
-      "dcos_license_key_contents": $DCOS_LICENSE
+      "dcos_security": "{DCOS_SECURITY}",
+      "dcos_license_key_contents": "{DCOS_LICENSE}"
     }
   },
   "frameworks": {
+    "framework" : "{FRAMEWORK}",
     "cassandra": {
       "num_of_public_agents": "0",
       "num_of_private_agents": "4",

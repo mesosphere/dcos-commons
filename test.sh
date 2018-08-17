@@ -57,6 +57,8 @@ else
     pytest_m="sanity and not azure"
 fi
 gradle_cache="${REPO_ROOT_DIR}/.gradle_cache"
+ssh_path="${HOME}/.ssh/ccm.pem"
+enterprise="true"
 headless="false"
 interactive="false"
 package_registry="false"

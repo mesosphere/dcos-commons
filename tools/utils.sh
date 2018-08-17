@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 # Common functions and variables to be shared across multiple shell scripts.
 
-ssh_path="${HOME}/.ssh/ccm.pem"
 aws_creds_path="${HOME}/.aws/credentials"
-enterprise="true"
 
 function info { echo "[INFO]" "[$BASH_LINENO]" "$@"; }
 
