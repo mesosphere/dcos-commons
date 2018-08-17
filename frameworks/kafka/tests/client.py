@@ -30,7 +30,7 @@ class KafkaService:
     def get_zookeeper_connect(self) -> str:
         return str(
             sdk_networks.wait_for_endpoint_info(
-                self._package_name, self._service_name, "zookeeper"
+                self._package_name, self._service_name, "zookeeper", json=False
             )
         ).strip()
 
