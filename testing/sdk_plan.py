@@ -46,9 +46,7 @@ def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=
     ).json()
 
 
-def get_plan(
-    service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None
-):
+def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
     if multiservice_name is None:
         path = "/v1/plans/{}".format(plan)
     else:
@@ -80,9 +78,7 @@ def start_plan(service_name, plan, parameters=None):
 def wait_for_completed_recovery(
     service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None
 ):
-    return wait_for_completed_plan(
-        service_name, "recovery", timeout_seconds, multiservice_name
-    )
+    return wait_for_completed_plan(service_name, "recovery", timeout_seconds, multiservice_name)
 
 
 def wait_for_in_progress_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS):
@@ -100,9 +96,7 @@ def wait_for_kicked_off_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS):
 def wait_for_completed_deployment(
     service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None
 ):
-    return wait_for_completed_plan(
-        service_name, "deploy", timeout_seconds, multiservice_name
-    )
+    return wait_for_completed_plan(service_name, "deploy", timeout_seconds, multiservice_name)
 
 
 def wait_for_completed_plan(
@@ -113,12 +107,8 @@ def wait_for_completed_plan(
     )
 
 
-def wait_for_completed_phase(
-    service_name, plan_name, phase_name, timeout_seconds=TIMEOUT_SECONDS
-):
-    return wait_for_phase_status(
-        service_name, plan_name, phase_name, "COMPLETE", timeout_seconds
-    )
+def wait_for_completed_phase(service_name, plan_name, phase_name, timeout_seconds=TIMEOUT_SECONDS):
+    return wait_for_phase_status(service_name, plan_name, phase_name, "COMPLETE", timeout_seconds)
 
 
 def wait_for_completed_step(
@@ -144,17 +134,15 @@ def wait_for_starting_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECO
 
 
 def wait_for_plan_status(
-    service_name,
-    plan_name,
-    status,
-    timeout_seconds=TIMEOUT_SECONDS,
-    multiservice_name=None,
+    service_name, plan_name, status, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None
 ):
     """Wait for a plan to have one of the specified statuses"""
     if isinstance(status, str):
         statuses = [status]
     else:
         statuses = status
+
+    initial_failures = sum(sdk_metrics.get_failure_metrics(service_name).values())
 
     @retrying.retry(
         wait_fixed=1000,
@@ -165,10 +153,8 @@ def wait_for_plan_status(
     def fn():
         failure_metrics = sdk_metrics.get_failure_metrics(service_name)
         failures = sum(failure_metrics.values())
-        if failures > ALLOWED_FAILURES:
-            raise FailuresExceededError(
-                "Service not recoverable: {}".format(service_name)
-            )
+        if failures - initial_failures > ALLOWED_FAILURES:
+            raise FailuresExceededError("Service not recoverable: {}".format(service_name))
 
         plan = get_plan(
             service_name,
@@ -193,9 +179,7 @@ def wait_for_phase_status(
     service_name, plan_name, phase_name, status, timeout_seconds=TIMEOUT_SECONDS
 ):
     @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000,
-        retry_on_result=lambda res: not res,
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
     def fn():
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
@@ -214,17 +198,10 @@ def wait_for_phase_status(
 
 
 def wait_for_step_status(
-    service_name,
-    plan_name,
-    phase_name,
-    step_name,
-    status,
-    timeout_seconds=TIMEOUT_SECONDS,
+    service_name, plan_name, phase_name, step_name, status, timeout_seconds=TIMEOUT_SECONDS
 ):
     @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000,
-        retry_on_result=lambda res: not res,
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
     def fn():
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
@@ -244,11 +221,7 @@ def wait_for_step_status(
 
 def recovery_plan_is_empty(service_name):
     plan = get_recovery_plan(service_name)
-    return (
-        len(plan["phases"]) == 0
-        and len(plan["errors"]) == 0
-        and plan["status"] == "COMPLETE"
-    )
+    return len(plan["phases"]) == 0 and len(plan["errors"]) == 0 and plan["status"] == "COMPLETE"
 
 
 def get_phase(plan, name):
@@ -290,15 +263,11 @@ def plan_string(plan_name, plan):
         return "\n- {} {}: {}".format(
             phase["name"],
             phase["status"],
-            ", ".join(
-                "{}={}".format(step["name"], step["status"]) for step in phase["steps"]
-            ),
+            ", ".join("{}={}".format(step["name"], step["status"]) for step in phase["steps"]),
         )
 
     plan_str = "{} {}:{}".format(
-        plan_name,
-        plan["status"],
-        "".join(phase_string(phase) for phase in plan["phases"]),
+        plan_name, plan["status"], "".join(phase_string(phase) for phase in plan["phases"])
     )
     if plan.get("errors", []):
         plan_str += "\n- errors: {}".format(", ".join(plan["errors"]))
