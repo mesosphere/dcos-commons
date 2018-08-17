@@ -10,15 +10,21 @@
 # Exit immediately on errors
 set -e
 
+source "$(dirname "${BASH_SOURCE[0]}")/tools/utils.sh"
+
 timestamp="$(date +%y%m%d-%H%M%S)"
 # Create a temp file for docker env.
 # When the script exits (successfully or otherwise), clean up the file automatically.
 credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}-XXXX.tmp)"
 envfile="$(mktemp /tmp/sdk-test-env-${timestamp}-XXXX.tmp)"
+tmp_dcos_file_dir="$(mktemp -d /tmp/sdk-test-package-registry-${timestamp}-XXXX.tmp)"
+
 function cleanup {
     rm -f ${credsfile}
     rm -f ${envfile}
+    rm -rf ${tmp_dcos_file_dir}
 }
+
 trap cleanup EXIT
 
 REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -51,9 +57,6 @@ else
     pytest_m="sanity and not azure"
 fi
 gradle_cache="${REPO_ROOT_DIR}/.gradle_cache"
-ssh_path="${HOME}/.ssh/ccm.pem"
-aws_creds_path="${HOME}/.aws/credentials"
-enterprise="true"
 headless="false"
 interactive="false"
 package_registry="false"
@@ -85,7 +88,7 @@ function usage()
     echo "  --headless"
     echo "    Run docker command in headless mode, without attaching to stdin. Sometimes needed in CI."
     echo "  --package-registry"
-    echo "    Enables using a package registry to install packages. Requires \$PACKAGE_REGISTRY_STUB_URL."
+    echo "    Enables using a package registry to install packages. Works only with EE 1.12+ clusters"
     echo "  --dcos-files-path DIR"
     echo "    Sets the directory to look for .dcos files. If empty, uses stub universe urls to build .dcos file(s)."
     echo "  --gradle-cache $gradle_cache"
@@ -214,6 +217,17 @@ fi
 
 volume_args="-v ${REPO_ROOT_DIR}:$WORK_DIR"
 
+
+if [ -z "$CLUSTER_URL" ]; then
+    echo "CLUSTER_URL is not set. Exiting.."
+    exit 1
+elif [[ x"$SECURITY" == x"strict" ]] && [[ $CLUSTER_URL != https* ]]; then
+    echo "CLUSTER_URL must be https in strict mode: $CLUSTER_URL"
+    exit 1
+fi
+
+: ${ssh_path?"SSH key not found at $ssh_path. Use -p <path/to/id_rsa> to customize this path. An SSH key is required for communication with the provided CLUSTER_URL=$CLUSTER_URL"}
+
 # Configure SSH key for getting into the cluster during tests
 if [ -f "$ssh_path" ]; then
     volume_args="$volume_args -v $ssh_path:/ssh/key" # pass provided key into docker env
@@ -234,17 +248,8 @@ elif [ -n "$AWS_PROFILE" ]; then
     echo "Using provided AWS_PROFILE: $AWS_PROFILE"
     aws_profile=$AWS_PROFILE
 elif [ -f "${aws_creds_path}" ]; then
-    # Check the creds file. If there's exactly one profile, then use that profile.
-    available_profiles=$(grep -oE '^\[\S+\]' $aws_creds_path | tr -d '[]') # find line(s) that look like "[profile]", remove "[]"
-    available_profile_count=$(echo "$available_profiles" | wc -l)
-    if [ "$available_profile_count" == "1" ]; then
-        aws_profile=$available_profiles
-        echo "Using sole profile in $aws_creds_path: $aws_profile"
-    else
-        echo "Expected 1 profile in $aws_creds_path, found $available_profile_count: ${available_profiles}"
-        echo "Please specify --aws-profile or \$AWS_PROFILE to select a profile"
-        exit 1
-    fi
+    aws_profile=$(parse_aws_credential_file ${aws_creds_path})
+    echo "Using sole profile in $aws_creds_path: $aws_profile"
 else
     echo "No AWS profile specified, using 'default'"
     aws_profile="default"
@@ -255,8 +260,8 @@ if [ -f "${aws_creds_path}" ]; then
     cat $aws_creds_path > $credsfile
 else
     # CI environments may have creds in AWS_DEV_* envvars, map them to AWS_*:
-    if [ -n "${AWS_DEV_ACCESS_KEY_ID}" -a -n "${AWS_DEV_SECRET_ACCESS_KEY}}" ]; then
-	AWS_ACCESS_KEY_ID=${AWS_DEV_ACCESS_KEY_ID}
+    if [ -n "${AWS_DEV_ACCESS_KEY_ID}" -a -n "${AWS_DEV_SECRET_ACCESS_KEY}" ]; then
+	    AWS_ACCESS_KEY_ID=${AWS_DEV_ACCESS_KEY_ID}
         AWS_SECRET_ACCESS_KEY=${AWS_DEV_SECRET_ACCESS_KEY}
     fi
     # Check AWS_* envvars for credentials, create temp creds file using those credentials:
@@ -302,9 +307,9 @@ if [ -n "$pytest_m" ]; then
 fi
 
 if [ x"$package_registry" == x"true" ]; then
-    if [ -z "$PACKAGE_REGISTRY_STUB_URL" ]; then
-        echo "PACKAGE_REGISTRY_STUB_URL not found in environment. Exiting..."
-        exit 1
+    if [ -z "$dcos_files_path" ]; then
+        dcos_files_path=${tmp_dcos_file_dir}
+        echo "dcos_files_path is not set. Using $dcos_files_path to store .dcos files"
     fi
 fi
 
@@ -337,7 +342,6 @@ DCOS_LOGIN_PASSWORD=$DCOS_LOGIN_PASSWORD
 DCOS_LOGIN_USERNAME=$DCOS_LOGIN_USERNAME
 FRAMEWORK=$framework
 PACKAGE_REGISTRY_ENABLED=$package_registry
-PACKAGE_REGISTRY_STUB_URL=$PACKAGE_REGISTRY_STUB_URL
 PYTEST_ARGS=$PYTEST_ARGS
 S3_BUCKET=$S3_BUCKET
 SECURITY=$security

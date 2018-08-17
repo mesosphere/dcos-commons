@@ -1,6 +1,7 @@
 FROM ubuntu:18.04
 
 ENV GO_VERSION=1.10.2
+ENV TERRAFORM_VERSION=0.11.7
 
 # Install JDK via PPA: https://github.com/franzwong/til/blob/master/java/silent-install-oracle-jdk8-ubuntu.md
 RUN apt-get update && \
@@ -29,7 +30,13 @@ RUN apt-get update && \
     curl -O https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.tar.gz && \
     tar -xf go${GO_VERSION}.linux-amd64.tar.gz && \
     mv go /usr/local && \
-    rm -f go${GO_VERSION}.linux-amd64.tar.gz
+    rm -f go${GO_VERSION}.linux-amd64.tar.gz && \
+    curl -L -O https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip && \
+    unzip ./terraform*.zip && \
+    chmod +x terraform && \
+    mv terraform /usr/local/bin && \
+    terraform --help && \
+    rm -f terraform*.zip
 
 ENV PATH=$PATH:/usr/local/go/bin
 RUN go version

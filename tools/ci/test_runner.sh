@@ -7,7 +7,6 @@ export DCOS_ENTERPRISE
 export PYTHONUNBUFFERED=1
 export SECURITY
 export PACKAGE_REGISTRY_ENABLED
-export PACKAGE_REGISTRY_STUB_URL
 export DCOS_FILES_PATH
 
 BUILD_TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
@@ -29,7 +28,6 @@ fi
 # First we need to build the framework(s)
 echo "Using FRAMEWORK_LIST:\n${FRAMEWORK_LIST}"
 echo "PACKAGE_REGISTRY_ENABLED ${PACKAGE_REGISTRY_ENABLED}"
-echo "PACKAGE_REGISTRY_STUB_URL ${PACKAGE_REGISTRY_STUB_URL}"
 echo "DCOS_FILES_PATH ${DCOS_FILES_PATH}"
 
 if [ -n "$STUB_UNIVERSE_URL" ]; then
@@ -48,44 +46,30 @@ else
         fi
 
         echo "Starting build for $framework at "`date`
-        export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/${framework}-universe-url
-        ${FRAMEWORK_DIR}/build.sh aws
-        if [ ! -f "$UNIVERSE_URL_PATH" ]; then
-            echo "Missing universe URL file: $UNIVERSE_URL_PATH"
-            exit 1
-        fi
-        if [ -z ${STUB_UNIVERSE_LIST} ]; then
-            STUB_UNIVERSE_LIST=$(cat ${UNIVERSE_URL_PATH})
+        if [ -n ${PACKAGE_REGISTRY_ENABLED} ]; then
+            ${FRAMEWORK_DIR}/build.sh .dcos_local
         else
-            STUB_UNIVERSE_LIST="${STUB_UNIVERSE_LIST},$(cat ${UNIVERSE_URL_PATH})"
+            export UNIVERSE_URL_PATH=${FRAMEWORK_DIR}/${framework}-universe-url
+            ${FRAMEWORK_DIR}/build.sh aws
+            if [ ! -f "$UNIVERSE_URL_PATH" ]; then
+                echo "Missing universe URL file: $UNIVERSE_URL_PATH"
+                exit 1
+            fi
+            if [ -z ${STUB_UNIVERSE_LIST} ]; then
+                STUB_UNIVERSE_LIST=$(cat ${UNIVERSE_URL_PATH})
+            else
+                STUB_UNIVERSE_LIST="${STUB_UNIVERSE_LIST},$(cat ${UNIVERSE_URL_PATH})"
+            fi
         fi
         echo "Finished build for $framework at "`date`
     done
-    export STUB_UNIVERSE_URL=${STUB_UNIVERSE_LIST}
-    echo "Using STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
-fi
-
-
-# Now create a cluster if it doesn't exist.
-if [ -z "$CLUSTER_URL" ]; then
-    echo "No DC/OS cluster specified. Attempting to create one now"
-
-    ${BUILD_TOOL_DIR}/launch_cluster.sh ${REPO_ROOT_DIR}/config.yaml ${REPO_ROOT_DIR}/cluster_info.json
-
-    if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
-        export CLUSTER_URL=https://$(dcos-launch describe --info-path=${REPO_ROOT_DIR}/cluster_info.json | jq -r .masters[0].public_ip)
-        if [ -z $CLUSTER_URL ]; then
-            echo "Could not determine CLUSTER_URL"
-            exit 1
-        fi
-        CLUSTER_WAS_CREATED="True"
+    if [ ${PACKAGE_REGISTRY_ENABLED} ]; then
+        echo "Using $DCOS_FILES_PATH as source of .dcos files for package registry :"
+        ls -lh $DCOS_FILES_PATH
     else
-        echo "Error creating cluster"
-        exit 1
+        export STUB_UNIVERSE_URL=${STUB_UNIVERSE_LIST}
+        echo "Using STUB_UNIVERSE_URL: $STUB_UNIVERSE_URL"
     fi
-elif [[ x"$SECURITY" == x"strict" ]] && [[ $CLUSTER_URL != https* ]]; then
-    echo "CLUSTER_URL must be https in strict mode: $CLUSTER_URL"
-    exit 1
 fi
 
 echo "Configuring dcoscli for cluster: $CLUSTER_URL"
@@ -170,11 +154,5 @@ for framework in $FRAMEWORK_LIST; do
 done
 
 echo "Finished integration tests at "`date`
-
-if [ -n "$CLUSTER_WAS_CREATED" ]; then
-    echo "The DC/OS cluster $CLUSTER_URL was created. Please run"
-    echo "\t\$ dcos-launch delete --info-path=${CLUSTER_INFO_FILE}"
-    echo "to remove the cluster."
-fi
 
 exit $exit_code
