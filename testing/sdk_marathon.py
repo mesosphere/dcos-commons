@@ -208,11 +208,15 @@ def _api_url(path):
     return "/marathon/v2/{}".format(path)
 
 
-def get_scheduler_host(service_name):
-    # Marathon mangles foldered paths as follows: "/path/to/svc" => "svc.to.path"
+def get_scheduler_task_prefix(service_name):
+    '''Marathon mangles foldered paths as follows: "/path/to/svc" => "svc.to.path"'''
     task_name_elems = service_name.lstrip("/").split("/")
     task_name_elems.reverse()
-    app_name = ".".join(task_name_elems)
+    return ".".join(task_name_elems)
+
+
+def get_scheduler_host(service_name):
+    app_name = get_scheduler_task_prefix(service_name)
     ips = shakedown.get_service_ips("marathon", app_name)
     if len(ips) == 0:
         raise Exception(
