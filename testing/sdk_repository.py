@@ -4,20 +4,26 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_repository IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
+import itertools
 import json
 import logging
 import os
-from itertools import chain
-from typing import List
 
 import sdk_cmd
 import sdk_utils
 
 log = logging.getLogger(__name__)
 
+_STUB_UNIVERSE_URL_ENVVAR = "STUB_UNIVERSE_URL"
+
 
 def parse_stub_universe_url_string(stub_universe_url_string):
     """Handles newline-, space-, and comma-separated strings."""
+
+    if stub_universe_url_string.strip().lower() == "none":
+        # User is explicitly requesting to test released versions of the package.
+        # "none" must be explicitly specified to avoid accidentally testing the wrong version.
+        return []
 
     def flatmap(f, items):
         """
@@ -30,15 +36,20 @@ def parse_stub_universe_url_string(stub_universe_url_string):
         >>> flatmap(f, lines)
         ['one', 'two', 'three', 'four', 'five']
         """
-        return chain.from_iterable(map(f, items))
-
+        return itertools.chain.from_iterable(map(f, items))
     lines = stub_universe_url_string.split()
-    return list(filter(None, flatmap(lambda s: s.split(","), lines)))
+    urls = list(filter(None, flatmap(lambda s: s.split(","), lines)))
+
+    if not urls:
+        # User didn't specify "none", yet we still didn't get any urls.
+        # However, this check isn't perfect. Maybe the user gave us a valid but unrelated URL? Or gave us one URL correctly but should have given multiple?
+        raise Exception("Invalid {env}. Provide comma and/or newline-separated URL(s), or specify '{env}=none' to test release versions.".format(env=_STUB_UNIVERSE_URL_ENVVAR))
+    return urls
 
 
-def get_repos() -> List:
+def get_repos() -> list:
     # prepare needed universe repositories
-    stub_universe_url_string = os.environ.get("STUB_UNIVERSE_URL", "")
+    stub_universe_url_string = os.environ.get(_STUB_UNIVERSE_URL_ENVVAR, "")
     return parse_stub_universe_url_string(stub_universe_url_string)
 
 

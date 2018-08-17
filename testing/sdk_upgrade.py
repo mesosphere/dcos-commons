@@ -175,11 +175,7 @@ def update_or_upgrade_or_downgrade(
     if (to_package_version and not is_cli_supports_service_version_upgrade()) or (
         additional_options and not is_cli_supports_service_options_update()
     ):
-        log.info(
-            "Using marathon flow to upgrade to package name : {} version : [{}]".format(
-                package_name, to_package_version
-            )
-        )
+        log.info("Using marathon flow to upgrade %s to version [%s]", service_name, to_package_version)
         sdk_marathon.destroy_app(service_name)
         sdk_install.install(
             package_name,
@@ -200,15 +196,13 @@ def update_or_upgrade_or_downgrade(
 def _update_service_with_cli(
     package_name, service_name, to_package_version=None, additional_options=None
 ):
-    log.info(
-        "Using CLI to update to package name : {} version : [{}]".format(
-            package_name, to_package_version
-        )
-    )
     update_cmd = ["update", "start"]
     if to_package_version:
         ensure_cli_supports_service_version_upgrade()
         update_cmd.append("--package-version={}".format(to_package_version))
+        log.info("Using CLI to upgrade %s to version [%s]", service_name, to_package_version)
+    else:
+        log.info("Using CLI to update %s", service_name)
     if additional_options:
         ensure_cli_supports_service_options_update()
         options_file = tempfile.NamedTemporaryFile("w")
