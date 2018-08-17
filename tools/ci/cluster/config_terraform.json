@@ -1,0 +1,55 @@
+{
+  "tf_defaults": {
+    "os": "coreos_1235.9.0",
+    "user": "core",
+    "aws_region": "us-west-2",
+    "admin_cidr": "0.0.0.0/0"
+  },
+  "custom_defaults": {
+    "aws_bootstrap_instance_type": "m3.large",
+    "aws_master_instance_type": "m4.xlarge",
+    "aws_agent_instance_type": "m4.xlarge",
+    "aws_public_agent_instance_type": "m4.large",
+    "num_of_masters": "1",
+    "num_of_public_agents": "1",
+    "num_of_private_agents": "3"
+  },
+  "environment": {
+    "dcos_version": "$DCOS_VERSION",
+    "ssh_key_name": "$SSH_KEY_NAME",
+    "aws_profile": "$AWS_PROFILE",
+    "dcos_aws_access_key_id": "$AWS_ACCESS_KEY_ID",
+    "dcos_aws_secret_access_key": "$AWS_SECRET_ACCESS_KEY",
+    "enterprise": {
+      "dcos_security": "permissive",
+      "dcos_license_key_contents": $DCOS_LICENSE
+    }
+  },
+  "frameworks": {
+    "cassandra": {
+      "num_of_public_agents": "0",
+      "num_of_private_agents": "4",
+      "owner": "cassandra-it-$WHOAMI"
+    },
+    "elastic": {
+      "num_of_public_agents": "0",
+      "num_of_private_agents": "4",
+      "owner": "elastic-it-$WHOAMI"
+    },
+    "hdfs": {
+      "num_of_public_agents": "0",
+      "num_of_private_agents": "5",
+      "owner": "hdfs-it-$WHOAMI"
+    },
+    "helloworld": {
+      "num_of_public_agents": "1",
+      "num_of_private_agents": "5",
+      "owner": "helloworld-it-$WHOAMI"
+    },
+    "kafka": {
+      "num_of_public_agents": "0",
+      "num_of_private_agents": "5",
+      "owner": "kafka-it-$WHOAMI"
+    }
+  }
+}

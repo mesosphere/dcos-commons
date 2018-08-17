@@ -72,29 +72,6 @@ else
     fi
 fi
 
-
-# Now create a cluster if it doesn't exist.
-if [ -z "$CLUSTER_URL" ]; then
-    echo "No DC/OS cluster specified. Attempting to create one now"
-
-    ${BUILD_TOOL_DIR}/launch_cluster.sh ${REPO_ROOT_DIR}/config.yaml ${REPO_ROOT_DIR}/cluster_info.json
-
-    if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
-        export CLUSTER_URL=https://$(dcos-launch describe --info-path=${REPO_ROOT_DIR}/cluster_info.json | jq -r .masters[0].public_ip)
-        if [ -z $CLUSTER_URL ]; then
-            echo "Could not determine CLUSTER_URL"
-            exit 1
-        fi
-        CLUSTER_WAS_CREATED="True"
-    else
-        echo "Error creating cluster"
-        exit 1
-    fi
-elif [[ x"$SECURITY" == x"strict" ]] && [[ $CLUSTER_URL != https* ]]; then
-    echo "CLUSTER_URL must be https in strict mode: $CLUSTER_URL"
-    exit 1
-fi
-
 echo "Configuring dcoscli for cluster: $CLUSTER_URL"
 echo "\tDCOS_ENTERPRISE=$DCOS_ENTERPRISE"
 ${REPO_ROOT_DIR}/tools/dcos_login.py
@@ -177,11 +154,5 @@ for framework in $FRAMEWORK_LIST; do
 done
 
 echo "Finished integration tests at "`date`
-
-if [ -n "$CLUSTER_WAS_CREATED" ]; then
-    echo "The DC/OS cluster $CLUSTER_URL was created. Please run"
-    echo "\t\$ dcos-launch delete --info-path=${CLUSTER_INFO_FILE}"
-    echo "to remove the cluster."
-fi
 
 exit $exit_code
