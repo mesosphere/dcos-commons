@@ -23,15 +23,10 @@ log = logging.getLogger(__name__)
 
 
 pytestmark = [
-    pytest.mark.skip(
-        reason="INFINTY-INFINITY-3367: Address issues in Kafka security toggle"
-    ),
+    pytest.mark.skip(reason="INFINTY-INFINITY-3367: Address issues in Kafka security toggle"),
+    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Security tests require DC/OS EE"),
     pytest.mark.skipif(
-        sdk_utils.is_open_dcos(), reason="Security tests require DC/OS EE"
-    ),
-    pytest.mark.skipif(
-        sdk_utils.dcos_version_less_than("1.10"),
-        reason="Security tests require DC/OS 1.10+",
+        sdk_utils.dcos_version_less_than("1.10"), reason="Security tests require DC/OS 1.10+"
     ),
 ]
 
@@ -50,9 +45,7 @@ def service_account(configure_security):
 
         yield service_account_info
     finally:
-        transport_encryption.cleanup_service_account(
-            config.SERVICE_NAME, service_account_info
-        )
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME, service_account_info)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -65,9 +58,7 @@ def kerberos():
     try:
         kerberos_env = sdk_auth.KerberosEnvironment()
 
-        principals = auth.get_service_principals(
-            config.SERVICE_NAME, kerberos_env.get_realm()
-        )
+        principals = auth.get_service_principals(config.SERVICE_NAME, kerberos_env.get_realm())
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
 
@@ -124,10 +115,7 @@ def kafka_client(kerberos):
             "mem": 512,
             "container": {
                 "type": "MESOS",
-                "docker": {
-                    "image": "elezar/kafka-client:4b9c060",
-                    "forcePullImage": True,
-                },
+                "docker": {"image": "elezar/kafka-client:4b9c060", "forcePullImage": True},
                 "volumes": [
                     {
                         "containerPath": "/tmp/kafkaconfig/kafka-client.keytab",
@@ -164,9 +152,7 @@ def test_initial_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
     assert service_has_brokers(
         kafka_server, "broker", config.DEFAULT_BROKER_COUNT
     ), "non-TLS enpoints expected"
-    assert not service_has_brokers(
-        kafka_server, "broker-tls"
-    ), "TLS enpoints not expected"
+    assert not service_has_brokers(kafka_server, "broker-tls"), "TLS enpoints not expected"
 
     write_success, read_successes = client_can_read_and_write(
         "default", kafka_client, kafka_server, "broker"
@@ -178,18 +164,13 @@ def test_initial_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
 
 
 @pytest.mark.incremental
-def test_forward_kerberos_on_tls_off_plaintext_off(
-    kafka_client, kafka_server, kerberos
-):
+def test_forward_kerberos_on_tls_off_plaintext_off(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc": {
-                        "hostname": kerberos.get_host(),
-                        "port": int(kerberos.get_port()),
-                    },
+                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
@@ -199,16 +180,12 @@ def test_forward_kerberos_on_tls_off_plaintext_off(
 
     brokers = service_get_brokers(kafka_server, "broker")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert service_has_brokers(
         kafka_server, "broker", config.DEFAULT_BROKER_COUNT
     ), "non-TLS enpoints expected"
-    assert not service_has_brokers(
-        kafka_server, "broker-tls"
-    ), "TLS enpoints not expected"
+    assert not service_has_brokers(kafka_server, "broker-tls"), "TLS enpoints not expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -226,17 +203,13 @@ def test_forward_kerberos_on_tls_off_plaintext_off(
 def test_forward_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
-            "security": {
-                "transport_encryption": {"enabled": True, "allow_plaintext": True}
-            }
+            "security": {"transport_encryption": {"enabled": True, "allow_plaintext": True}}
         }
     }
 
     brokers = service_get_brokers(kafka_server, "broker")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert service_has_brokers(
         kafka_server, "broker", config.DEFAULT_BROKER_COUNT
@@ -275,21 +248,15 @@ def test_forward_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, ker
 def test_forward_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
-            "security": {
-                "transport_encryption": {"enabled": True, "allow_plaintext": False}
-            }
+            "security": {"transport_encryption": {"enabled": True, "allow_plaintext": False}}
         }
     }
 
     brokers = service_get_brokers(kafka_server, "broker-tls")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert not service_has_brokers(
-        kafka_server, "broker"
-    ), "non-TLS enpoints not expected"
+    assert not service_has_brokers(kafka_server, "broker"), "non-TLS enpoints not expected"
     assert service_has_brokers(
         kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT
     ), "TLS enpoints expected"
@@ -312,13 +279,9 @@ def test_forward_kerberos_off_tls_on_plaintext_off(kafka_client, kafka_server):
 
     brokers = service_get_brokers(kafka_server, "broker-tls")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert not service_has_brokers(
-        kafka_server, "broker"
-    ), "non-TLS enpoints not expected"
+    assert not service_has_brokers(kafka_server, "broker"), "non-TLS enpoints not expected"
     assert service_has_brokers(
         kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT
     ), "TLS enpoints expected"
@@ -339,17 +302,13 @@ def test_forward_kerberos_off_tls_on_plaintext_off(kafka_client, kafka_server):
 def test_forward_kerberos_off_tls_on_plaintext_on(kafka_client, kafka_server):
     update_options = {
         "service": {
-            "security": {
-                "transport_encryption": {"enabled": True, "allow_plaintext": True}
-            }
+            "security": {"transport_encryption": {"enabled": True, "allow_plaintext": True}}
         }
     }
 
     brokers = service_get_brokers(kafka_server, "broker-tls")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert service_has_brokers(
         kafka_server, "broker", config.DEFAULT_BROKER_COUNT
@@ -388,17 +347,13 @@ def test_forward_kerberos_off_tls_on_plaintext_on(kafka_client, kafka_server):
 def test_forward_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
     update_options = {
         "service": {
-            "security": {
-                "transport_encryption": {"enabled": False, "allow_plaintext": False}
-            }
+            "security": {"transport_encryption": {"enabled": False, "allow_plaintext": False}}
         }
     }
 
     brokers = service_get_brokers(kafka_server, "broker")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert service_has_brokers(
         kafka_server, "broker", config.DEFAULT_BROKER_COUNT
@@ -426,9 +381,7 @@ def test_reverse_kerberos_off_tls_on_plaintext_on(kafka_client, kafka_server, ke
 
 
 @pytest.mark.incremental
-def test_reverse_kerberos_off_tls_on_plaintext_off(
-    kafka_client, kafka_server, kerberos
-):
+def test_reverse_kerberos_off_tls_on_plaintext_off(kafka_client, kafka_server, kerberos):
     test_forward_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, None)
 
 
@@ -439,10 +392,7 @@ def test_reverse_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, ke
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc": {
-                        "hostname": kerberos.get_host(),
-                        "port": int(kerberos.get_port()),
-                    },
+                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
@@ -452,13 +402,9 @@ def test_reverse_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, ke
 
     brokers = service_get_brokers(kafka_server, "broker-tls")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
-    assert not service_has_brokers(
-        kafka_server, "broker"
-    ), "non-TLS enpoints not expected"
+    assert not service_has_brokers(kafka_server, "broker"), "non-TLS enpoints not expected"
     assert service_has_brokers(
         kafka_server, "broker-tls", config.DEFAULT_BROKER_COUNT
     ), "TLS enpoints expected"
@@ -479,17 +425,13 @@ def test_reverse_kerberos_on_tls_on_plaintext_off(kafka_client, kafka_server, ke
 def test_reverse_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
-            "security": {
-                "transport_encryption": {"enabled": True, "allow_plaintext": True}
-            }
+            "security": {"transport_encryption": {"enabled": True, "allow_plaintext": True}}
         }
     }
 
     brokers = service_get_brokers(kafka_server, "broker-tls")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert service_has_brokers(
         kafka_server, "broker", config.DEFAULT_BROKER_COUNT
@@ -525,29 +467,21 @@ def test_reverse_kerberos_on_tls_on_plaintext_on(kafka_client, kafka_server, ker
 
 
 @pytest.mark.incremental
-def test_reverse_kerberos_on_tls_off_plaintext_off(
-    kafka_client, kafka_server, kerberos
-):
+def test_reverse_kerberos_on_tls_off_plaintext_off(kafka_client, kafka_server, kerberos):
     update_options = {
         "service": {
-            "security": {
-                "transport_encryption": {"enabled": False, "allow_plaintext": False}
-            }
+            "security": {"transport_encryption": {"enabled": False, "allow_plaintext": False}}
         }
     }
 
     brokers = service_get_brokers(kafka_server, "broker")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert service_has_brokers(
         kafka_server, "broker", config.DEFAULT_BROKER_COUNT
     ), "non-TLS enpoints expected"
-    assert not service_has_brokers(
-        kafka_server, "broker-tls"
-    ), "TLS enpoints not expected"
+    assert not service_has_brokers(kafka_server, "broker-tls"), "TLS enpoints not expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -567,16 +501,12 @@ def test_reverse_kerberos_off_tls_off_plaintext_off(kafka_client, kafka_server):
 
     brokers = service_get_brokers(kafka_server, "broker")
 
-    update_service(
-        kafka_server["package_name"], kafka_server["service"]["name"], update_options
-    )
+    update_service(kafka_server["package_name"], kafka_server["service"]["name"], update_options)
 
     assert service_has_brokers(
         kafka_server, "broker", config.DEFAULT_BROKER_COUNT
     ), "non-TLS enpoints expected"
-    assert not service_has_brokers(
-        kafka_server, "broker-tls"
-    ), "TLS enpoints not expected"
+    assert not service_has_brokers(kafka_server, "broker-tls"), "TLS enpoints not expected"
 
     updated_brokers = service_get_brokers(kafka_server, "broker")
     assert set(brokers) == set(updated_brokers), "Brokers should not change"
@@ -622,10 +552,7 @@ def service_has_brokers(
     kafka_server: dict, endpoint_name: str, number_of_brokers: int = None
 ) -> bool:
     endpoints = sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "endpoint",
-        json=True,
+        kafka_server["package_name"], kafka_server["service"]["name"], "endpoint", json=True
     )
 
     if endpoint_name not in endpoints:
@@ -637,11 +564,7 @@ def service_has_brokers(
 
 
 def client_can_read_and_write(
-    test_id: str,
-    kafka_client: dict,
-    kafka_server: dict,
-    endpoint_name: str,
-    krb5: object = None,
+    test_id: str, kafka_client: dict, kafka_server: dict, endpoint_name: str, krb5: object = None
 ) -> tuple:
     client_id = kafka_client["id"]
 
@@ -704,21 +627,13 @@ def get_settings(cn: str, task: str, security_options: bool) -> tuple:
     return properties, environment
 
 
-def write_to_topic(
-    cn: str, task: str, topic: str, message: str, brokers: str, tls: bool
-) -> bool:
+def write_to_topic(cn: str, task: str, topic: str, message: str, brokers: str, tls: bool) -> bool:
 
     properties, environment = get_settings(cn, task, tls)
-    return auth.write_to_topic(
-        cn, task, topic, message, properties, environment, brokers
-    )
+    return auth.write_to_topic(cn, task, topic, message, properties, environment, brokers)
 
 
-def read_from_topic(
-    cn: str, task: str, topic: str, messages: int, brokers: str, tls: bool
-) -> str:
+def read_from_topic(cn: str, task: str, topic: str, messages: int, brokers: str, tls: bool) -> str:
 
     properties, environment = get_settings(cn, task, tls)
-    return auth.read_from_topic(
-        cn, task, topic, messages, properties, environment, brokers
-    )
+    return auth.read_from_topic(cn, task, topic, messages, properties, environment, brokers)

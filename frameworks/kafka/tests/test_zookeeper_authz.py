@@ -23,9 +23,7 @@ log = logging.getLogger(__name__)
 
 
 pytestmark = [
-    pytest.mark.skipif(
-        sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"
-    ),
+    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"),
     pytest.mark.skipif(
         sdk_utils.dcos_version_less_than("1.10"),
         reason="Kerberos tests require DC/OS 1.10 or higher",
@@ -48,13 +46,9 @@ def kerberos(configure_security):
     try:
         kerberos_env = sdk_auth.KerberosEnvironment()
 
-        principals = auth.get_service_principals(
-            config.SERVICE_NAME, kerberos_env.get_realm()
-        )
+        principals = auth.get_service_principals(config.SERVICE_NAME, kerberos_env.get_realm())
         principals.extend(
-            get_zookeeper_principals(
-                config.ZOOKEEPER_SERVICE_NAME, kerberos_env.get_realm()
-            )
+            get_zookeeper_principals(config.ZOOKEEPER_SERVICE_NAME, kerberos_env.get_realm())
         )
 
         kerberos_env.add_principals(principals)
@@ -74,10 +68,7 @@ def zookeeper_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc": {
-                        "hostname": kerberos.get_host(),
-                        "port": int(kerberos.get_port()),
-                    },
+                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
@@ -90,19 +81,12 @@ def zookeeper_server(kerberos):
 
     if sdk_utils.is_strict_mode():
         service_options = sdk_utils.merge_dictionaries(
-            {
-                "service": {
-                    "service_account": zk_account,
-                    "service_account_secret": zk_secret,
-                }
-            },
+            {"service": {"service_account": zk_account, "service_account_secret": zk_secret}},
             service_options,
         )
 
     try:
-        sdk_install.uninstall(
-            config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME
-        )
+        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
         service_account_info = sdk_security.setup_security(
             config.ZOOKEEPER_SERVICE_NAME,
             linux_user="nobody",
@@ -121,12 +105,8 @@ def zookeeper_server(kerberos):
         yield {**service_options, **{"package_name": config.ZOOKEEPER_PACKAGE_NAME}}
 
     finally:
-        sdk_install.uninstall(
-            config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME
-        )
-        sdk_security.cleanup_security(
-            config.ZOOKEEPER_SERVICE_NAME, service_account_info
-        )
+        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
+        sdk_security.cleanup_security(config.ZOOKEEPER_SERVICE_NAME, service_account_info)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -143,14 +123,10 @@ def kafka_client(kerberos):
 @pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_authz_acls_required(
-    kafka_client: client.KafkaClient, zookeeper_server, kerberos
-):
+def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server, kerberos):
     try:
         zookeeper_dns = sdk_networks.wait_for_endpoint_info(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "clientport",
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -161,17 +137,11 @@ def test_authz_acls_required(
                     "kerberos": {
                         "enabled": True,
                         "enabled_for_zookeeper": True,
-                        "kdc": {
-                            "hostname": kerberos.get_host(),
-                            "port": int(kerberos.get_port()),
-                        },
+                        "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
                         "realm": kerberos.get_realm(),
                         "keytab_secret": kerberos.get_keytab_path(),
                     },
-                    "authorization": {
-                        "enabled": True,
-                        "super_users": "User:{}".format("super"),
-                    },
+                    "authorization": {"enabled": True, "super_users": "User:{}".format("super")},
                 },
             },
             "kafka": {"kafka_zookeeper_uri": ",".join(zookeeper_dns)},
@@ -216,12 +186,10 @@ def test_authz_acls_required(
             write_success, _, read_messages = kafka_client.can_write_and_read(
                 user, kafka_server, topic_name, kerberos
             )
-            assert not write_success, "Write not expected to succeed (user={})".format(
+            assert not write_success, "Write not expected to succeed (user={})".format(user)
+            assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(
                 user
             )
-            assert auth.is_not_authorized(
-                read_messages
-            ), "Unauthorized expected (user={}".format(user)
 
         log.info("Writing and reading: Adding acl for authorized user")
         kafka_client.add_acls("authorized", kafka_server, topic_name)
@@ -244,12 +212,10 @@ def test_authz_acls_required(
             write_success, _, read_messages = kafka_client.can_write_and_read(
                 user, kafka_server, topic_name, kerberos
             )
-            assert not write_success, "Write not expected to succeed (user={})".format(
+            assert not write_success, "Write not expected to succeed (user={})".format(user)
+            assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(
                 user
             )
-            assert auth.is_not_authorized(
-                read_messages
-            ), "Unauthorized expected (user={}".format(user)
 
     finally:
         # Ensure that we clean up the ZK state.
@@ -261,14 +227,10 @@ def test_authz_acls_required(
 @pytest.mark.dcos_min_version("1.10")
 @pytest.mark.ee_only
 @pytest.mark.sanity
-def test_authz_acls_not_required(
-    kafka_client: client.KafkaClient, zookeeper_server, kerberos
-):
+def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_server, kerberos):
     try:
         zookeeper_dns = sdk_networks.wait_for_endpoint_info(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "clientport",
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -279,10 +241,7 @@ def test_authz_acls_not_required(
                     "kerberos": {
                         "enabled": True,
                         "enabled_for_zookeeper": True,
-                        "kdc": {
-                            "hostname": kerberos.get_host(),
-                            "port": int(kerberos.get_port()),
-                        },
+                        "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
                         "realm": kerberos.get_realm(),
                         "keytab_secret": kerberos.get_keytab_path(),
                     },
@@ -352,12 +311,10 @@ def test_authz_acls_not_required(
             write_success, _, read_messages = kafka_client.can_write_and_read(
                 user, kafka_server, topic_name, kerberos
             )
-            assert not write_success, "Write not expected to succeed (user={})".format(
+            assert not write_success, "Write not expected to succeed (user={})".format(user)
+            assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(
                 user
             )
-            assert auth.is_not_authorized(
-                read_messages
-            ), "Unauthorized expected (user={}".format(user)
 
     finally:
         # Ensure that we clean up the ZK state.

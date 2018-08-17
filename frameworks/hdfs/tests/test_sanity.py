@@ -65,11 +65,7 @@ def test_endpoints():
     )
     check_properties(
         core_site,
-        {
-            "ha.zookeeper.parent-znode": "/{}/hadoop-ha".format(
-                sdk_utils.get_zk_path(foldered_name)
-            )
-        },
+        {"ha.zookeeper.parent-znode": "/{}/hadoop-ha".format(sdk_utils.get_zk_path(foldered_name))},
     )
 
     hdfs_site = etree.fromstring(
@@ -81,9 +77,7 @@ def test_endpoints():
         "dfs.namenode.shared.edits.dir": "qjournal://{}/hdfs".format(
             ";".join(
                 [
-                    sdk_hosts.autoip_host(
-                        foldered_name, "journal-{}-node".format(i), 8485
-                    )
+                    sdk_hosts.autoip_host(foldered_name, "journal-{}-node".format(i), 8485)
                     for i in range(3)
                 ]
             )
@@ -91,12 +85,12 @@ def test_endpoints():
     }
     for i in range(2):
         name_node = "name-{}-node".format(i)
-        expect[
-            "dfs.namenode.rpc-address.hdfs.{}".format(name_node)
-        ] = sdk_hosts.autoip_host(foldered_name, name_node, 9001)
-        expect[
-            "dfs.namenode.http-address.hdfs.{}".format(name_node)
-        ] = sdk_hosts.autoip_host(foldered_name, name_node, 9002)
+        expect["dfs.namenode.rpc-address.hdfs.{}".format(name_node)] = sdk_hosts.autoip_host(
+            foldered_name, name_node, 9001
+        )
+        expect["dfs.namenode.http-address.hdfs.{}".format(name_node)] = sdk_hosts.autoip_host(
+            foldered_name, name_node, 9002
+        )
     check_properties(hdfs_site, expect)
 
 
@@ -134,9 +128,7 @@ def test_kill_name_node():
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
 
-    sdk_cmd.kill_task_with_pattern(
-        "namenode", sdk_hosts.system_host(foldered_name, "name-0-node")
-    )
+    sdk_cmd.kill_task_with_pattern("namenode", sdk_hosts.system_host(foldered_name, "name-0-node"))
     config.expect_recovery(service_name=foldered_name)
     sdk_tasks.check_tasks_updated(foldered_name, "name", name_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "journal", journal_ids)
@@ -151,9 +143,7 @@ def test_kill_data_node():
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
 
-    sdk_cmd.kill_task_with_pattern(
-        "datanode", sdk_hosts.system_host(foldered_name, "data-0-node")
-    )
+    sdk_cmd.kill_task_with_pattern("datanode", sdk_hosts.system_host(foldered_name, "data-0-node"))
     config.expect_recovery(service_name=foldered_name)
     sdk_tasks.check_tasks_updated(foldered_name, "data", data_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "journal", journal_ids)
@@ -174,14 +164,10 @@ def test_kill_scheduler():
 def test_kill_all_journalnodes():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
-    data_ids = sdk_tasks.get_task_ids(
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), "data"
-    )
+    data_ids = sdk_tasks.get_task_ids(sdk_utils.get_foldered_name(config.SERVICE_NAME), "data")
 
     for journal_pod in config.get_pod_type_instances("journal", foldered_name):
-        sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, foldered_name, "pod restart {}".format(journal_pod)
-        )
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod restart {}".format(journal_pod))
 
     config.expect_recovery(service_name=foldered_name)
 
@@ -199,9 +185,7 @@ def test_kill_all_namenodes():
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
 
     for name_pod in config.get_pod_type_instances("name", foldered_name):
-        sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, foldered_name, "pod restart {}".format(name_pod)
-        )
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod restart {}".format(name_pod))
 
     config.expect_recovery(service_name=foldered_name)
 
@@ -219,9 +203,7 @@ def test_kill_all_datanodes():
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
 
     for data_pod in config.get_pod_type_instances("data", foldered_name):
-        sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, foldered_name, "pod restart {}".format(data_pod)
-        )
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod restart {}".format(data_pod))
 
     config.expect_recovery(service_name=foldered_name)
 
@@ -302,9 +284,7 @@ def test_bump_data_nodes():
 
     sdk_marathon.bump_task_count_config(foldered_name, "DATA_COUNT")
 
-    config.check_healthy(
-        service_name=foldered_name, count=config.DEFAULT_TASK_COUNT + 1
-    )
+    config.check_healthy(service_name=foldered_name, count=config.DEFAULT_TASK_COUNT + 1)
     sdk_tasks.check_tasks_not_updated(foldered_name, "data", data_ids)
 
 

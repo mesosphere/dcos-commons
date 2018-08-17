@@ -53,9 +53,7 @@ def pre_test_setup():
 def default_populated_index():
     config.delete_index(config.DEFAULT_INDEX_NAME, service_name=foldered_name)
     config.create_index(
-        config.DEFAULT_INDEX_NAME,
-        config.DEFAULT_SETTINGS_MAPPINGS,
-        service_name=foldered_name,
+        config.DEFAULT_INDEX_NAME, config.DEFAULT_SETTINGS_MAPPINGS, service_name=foldered_name
     )
     config.create_document(
         config.DEFAULT_INDEX_NAME,
@@ -116,10 +114,7 @@ def test_indexing(default_populated_index):
     )
     assert indices_stats["_all"]["primaries"]["docs"]["count"] == 1
     doc = config.get_document(
-        config.DEFAULT_INDEX_NAME,
-        config.DEFAULT_INDEX_TYPE,
-        1,
-        service_name=foldered_name,
+        config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1, service_name=foldered_name
     )
     assert doc["_source"]["name"] == "Loren"
 
@@ -142,9 +137,7 @@ def test_metrics():
         # elasticsearch.test__integration__elastic.node.data-0-node.thread_pool.listener.completed
         # To prevent this from breaking we drop the service name from the metric name
         # => data-0-node.thread_pool.listener.completed
-        metric_names = [
-            ".".join(metric_name.split(".")[2:]) for metric_name in emitted_metrics
-        ]
+        metric_names = [".".join(metric_name.split(".")[2:]) for metric_name in emitted_metrics]
         return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(
@@ -171,9 +164,7 @@ def test_custom_yaml_base64():
     base64_str = "Y2x1c3RlcjoNCiAgcm91dGluZzoNCiAgICBhbGxvY2F0aW9uOg0KIC" "AgICAgbm9kZV9pbml0aWFsX3ByaW1hcmllc19yZWNvdmVyaWVzOiAz"
 
     config.update_app(
-        foldered_name,
-        {"CUSTOM_YAML_BLOCK_BASE64": base64_str},
-        current_expected_task_count,
+        foldered_name, {"CUSTOM_YAML_BLOCK_BASE64": base64_str}, current_expected_task_count
     )
     config.check_custom_elasticsearch_cluster_setting(service_name=foldered_name)
     sdk_plan.wait_for_completed_deployment(foldered_name)
@@ -191,9 +182,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     config.verify_commercial_api_status(False, service_name=foldered_name)
 
     log.info("\n***** Test kibana with X-Pack disabled...")
-    elasticsearch_url = "http://" + sdk_hosts.vip_host(
-        foldered_name, "coordinator", 9200
-    )
+    elasticsearch_url = "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200)
     sdk_install.install(
         config.KIBANA_PACKAGE_NAME,
         config.KIBANA_PACKAGE_NAME,
@@ -203,9 +192,7 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         wait_for_deployment=False,
         insert_strict_options=False,
     )
-    config.check_kibana_adminrouter_integration(
-        "service/{}/".format(config.KIBANA_PACKAGE_NAME)
-    )
+    config.check_kibana_adminrouter_integration("service/{}/".format(config.KIBANA_PACKAGE_NAME))
     log.info("Uninstall kibana with X-Pack disabled")
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
@@ -258,17 +245,12 @@ def test_xpack_toggle_with_kibana(default_populated_index):
     log.info("\n***** Verify we can still read what we wrote when X-Pack was enabled.")
     config.verify_commercial_api_status(False, service_name=foldered_name)
     doc = config.get_document(
-        config.DEFAULT_INDEX_NAME,
-        config.DEFAULT_INDEX_TYPE,
-        2,
-        service_name=foldered_name,
+        config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 2, service_name=foldered_name
     )
     assert doc["_source"]["name"] == "X-Pack"
 
     # reset upgrade strategy to serial
-    config.update_app(
-        foldered_name, {"UPDATE_STRATEGY": "serial"}, current_expected_task_count
-    )
+    config.update_app(foldered_name, {"UPDATE_STRATEGY": "serial"}, current_expected_task_count)
 
     sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
@@ -350,13 +332,9 @@ def test_plugin_install_and_uninstall(default_populated_index):
     config.check_elasticsearch_plugin_installed(plugin_name, service_name=foldered_name)
 
     config.update_app(
-        foldered_name,
-        {"TASKCFG_ALL_ELASTICSEARCH_PLUGINS": ""},
-        current_expected_task_count,
+        foldered_name, {"TASKCFG_ALL_ELASTICSEARCH_PLUGINS": ""}, current_expected_task_count
     )
-    config.check_elasticsearch_plugin_uninstalled(
-        plugin_name, service_name=foldered_name
-    )
+    config.check_elasticsearch_plugin_uninstalled(plugin_name, service_name=foldered_name)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
 
@@ -396,8 +374,6 @@ def test_adding_data_node_only_restarts_masters():
     sdk_tasks.check_running(foldered_name, current_expected_task_count)
     sdk_tasks.check_tasks_updated(foldered_name, "master", initial_master_task_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "data", initial_data_task_ids)
-    sdk_tasks.check_tasks_not_updated(
-        foldered_name, "coordinator", initial_coordinator_task_ids
-    )
+    sdk_tasks.check_tasks_not_updated(foldered_name, "coordinator", initial_coordinator_task_ids)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)

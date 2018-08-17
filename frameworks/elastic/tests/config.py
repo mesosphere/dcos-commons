@@ -80,9 +80,7 @@ def check_kibana_adminrouter_integration(path):
 
 
 @retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res,
+    wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
     result = _curl_query(service_name, "GET", "_cluster/health/{}".format(index_name))
@@ -90,9 +88,7 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
 
 
 @retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res,
+    wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
     result = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")
@@ -111,20 +107,12 @@ def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
 
 
 @retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res,
+    wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
-def wait_for_expected_nodes_to_exist(
-    service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT
-):
+def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
     result = _curl_query(service_name, "GET", "_cluster/health")
     if not result or "number_of_nodes" not in result:
-        log.warning(
-            "Missing 'number_of_nodes' key in cluster health response: {}".format(
-                result
-            )
-        )
+        log.warning("Missing 'number_of_nodes' key in cluster health response: {}".format(result))
         return False
     node_count = result["number_of_nodes"]
     log.info("Waiting for {} healthy nodes, got {}".format(task_count, node_count))
@@ -132,9 +120,7 @@ def wait_for_expected_nodes_to_exist(
 
 
 @retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res,
+    wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     task_sandbox = sdk_cmd.get_task_sandbox_path(service_name)
@@ -152,9 +138,7 @@ def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
 
 
 @retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res,
+    wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
@@ -162,9 +146,7 @@ def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME)
 
 
 @retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=DEFAULT_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res,
+    wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def check_elasticsearch_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
     result = _get_hosts_with_plugin(service_name, plugin_name)
@@ -178,9 +160,7 @@ def _get_hosts_with_plugin(service_name, plugin_name):
     return [host for host in output.split("\n") if plugin_name in host]
 
 
-@retrying.retry(
-    wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res
-)
+@retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
 def get_elasticsearch_master(service_name=SERVICE_NAME):
     output = _curl_query(service_name, "GET", "_cat/master", return_json=False)
     if output is not None and len(output.split()) > 0:
@@ -188,9 +168,7 @@ def get_elasticsearch_master(service_name=SERVICE_NAME):
     return False
 
 
-@retrying.retry(
-    wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res
-)
+@retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
 def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
     query = {
         "query": {"match": {"name": "*"}},
@@ -223,17 +201,12 @@ def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
 #   "connections": []
 # }
 def is_graph_endpoint_active(response):
-    return isinstance(response["vertices"], list) and isinstance(
-        response["connections"], list
-    )
+    return isinstance(response["vertices"], list) and isinstance(response["connections"], list)
 
 
 def set_xpack(is_enabled, service_name=SERVICE_NAME):
     # Toggling X-Pack requires full cluster restart, not a rolling restart
-    options = {
-        "TASKCFG_ALL_XPACK_ENABLED": str(is_enabled).lower(),
-        "UPDATE_STRATEGY": "parallel",
-    }
+    options = {"TASKCFG_ALL_XPACK_ENABLED": str(is_enabled).lower(), "UPDATE_STRATEGY": "parallel"}
     update_app(service_name, options, DEFAULT_TASK_COUNT)
 
 
@@ -245,15 +218,11 @@ def update_app(service_name, options, expected_task_count):
     sdk_tasks.check_running(service_name, expected_task_count)
 
 
-@retrying.retry(
-    wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res
-)
+@retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
 def verify_xpack_license(service_name=SERVICE_NAME):
     xpack_license = _curl_query(service_name, "GET", "_xpack/license")
     if "license" not in xpack_license:
-        log.warning(
-            "Missing 'license' key in _xpack/license response: {}".format(xpack_license)
-        )
+        log.warning("Missing 'license' key in _xpack/license response: {}".format(xpack_license))
         return False  # retry
     assert xpack_license["license"]["status"] == "active"
     return True  # done
@@ -271,9 +240,7 @@ def delete_index(index_name, service_name=SERVICE_NAME, https=False):
     return _curl_query(service_name, "DELETE", index_name, https=https)
 
 
-def create_document(
-    index_name, index_type, doc_id, params, service_name=SERVICE_NAME, https=False
-):
+def create_document(index_name, index_type, doc_id, params, service_name=SERVICE_NAME, https=False):
     return _curl_query(
         service_name,
         "PUT",
@@ -283,14 +250,9 @@ def create_document(
     )
 
 
-def get_document(
-    index_name, index_type, doc_id, service_name=SERVICE_NAME, https=False
-):
+def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME, https=False):
     return _curl_query(
-        service_name,
-        "GET",
-        "{}/{}/{}".format(index_name, index_type, doc_id),
-        https=https,
+        service_name, "GET", "{}/{}/{}".format(index_name, index_type, doc_id), https=https
     )
 
 
@@ -300,17 +262,9 @@ def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
 
 # Here we only retry if the command itself failed, or if the data couldn't be parsed as JSON when return_json=True.
 # Upstream callers may want to have their own retry loop against the content of the returned data (e.g. expected field is missing).
-@retrying.retry(
-    wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: res is None
-)
+@retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: res is None)
 def _curl_query(
-    service_name,
-    method,
-    endpoint,
-    json_data=None,
-    role="master",
-    https=False,
-    return_json=True,
+    service_name, method, endpoint, json_data=None, role="master", https=False, return_json=True
 ):
     protocol = "https" if https else "http"
     host = sdk_hosts.autoip_host(
@@ -320,24 +274,16 @@ def _curl_query(
         method, protocol, host, endpoint
     )
     if json_data:
-        curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(
-            json.dumps(json_data)
-        )
+        curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
     task_name = "master-0-node"
-    exit_code, stdout, stderr = sdk_cmd.service_task_exec(
-        service_name, task_name, curl_cmd
-    )
+    exit_code, stdout, stderr = sdk_cmd.service_task_exec(service_name, task_name, curl_cmd)
 
     def build_errmsg(msg):
-        return "{}\nCommand:\n{}\nstdout:\n{}\nstderr:\n{}".format(
-            msg, curl_cmd, stdout, stderr
-        )
+        return "{}\nCommand:\n{}\nstdout:\n{}\nstderr:\n{}".format(msg, curl_cmd, stdout, stderr)
 
     if exit_code:
         log.warning(
-            build_errmsg(
-                "Failed to run command on {}, retrying or giving up.".format(task_name)
-            )
+            build_errmsg("Failed to run command on {}, retrying or giving up.".format(task_name))
         )
         return None
 
@@ -347,16 +293,12 @@ def _curl_query(
     try:
         return json.loads(stdout)
     except Exception:
-        log.warning(
-            build_errmsg("Failed to parse stdout as JSON, retrying or giving up.")
-        )
+        log.warning(build_errmsg("Failed to parse stdout as JSON, retrying or giving up."))
         return None
 
 
 def _master_zero_http_port(service_name):
-    dns = sdk_networks.wait_for_endpoint_info(
-        PACKAGE_NAME, service_name, "master-http"
-    )["dns"]
+    dns = sdk_networks.wait_for_endpoint_info(PACKAGE_NAME, service_name, "master-http")["dns"]
     # 'dns' array will look something like this in CCM: [
     #   "master-0-node.elastic.[...]:1025",
     #   "master-1-node.elastic.[...]:1025",

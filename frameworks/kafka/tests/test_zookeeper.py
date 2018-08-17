@@ -11,35 +11,23 @@ import sdk_networks
 from tests import config, test_utils
 
 
-pytestmark = pytest.mark.skip(
-    reason="INFINITY-3363: Skipping test until it is better implemented"
-)
+pytestmark = pytest.mark.skip(reason="INFINITY-3363: Skipping test until it is better implemented")
 
 
 @pytest.fixture(scope="module", autouse=True)
 def zookeeper_server(configure_security):
     service_options = {
-        "service": {
-            "name": config.ZOOKEEPER_SERVICE_NAME,
-            "virtual_network_enabled": True,
-        }
+        "service": {"name": config.ZOOKEEPER_SERVICE_NAME, "virtual_network_enabled": True}
     }
 
     zk_account = "test-zookeeper-service-account"
     zk_secret = "test-zookeeper-secret"
 
     try:
-        sdk_install.uninstall(
-            config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME
-        )
+        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
         if sdk_utils.is_strict_mode():
             service_options = sdk_utils.merge_dictionaries(
-                {
-                    "service": {
-                        "service_account": zk_account,
-                        "service_account_secret": zk_secret,
-                    }
-                },
+                {"service": {"service_account": zk_account, "service_account_secret": zk_secret}},
                 service_options,
             )
 
@@ -62,12 +50,8 @@ def zookeeper_server(configure_security):
         yield {**service_options, **{"package_name": config.ZOOKEEPER_PACKAGE_NAME}}
 
     finally:
-        sdk_install.uninstall(
-            config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME
-        )
-        sdk_security.cleanup_security(
-            config.ZOOKEEPER_SERVICE_NAME, service_account_info
-        )
+        sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
+        sdk_security.cleanup_security(config.ZOOKEEPER_SERVICE_NAME, service_account_info)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -76,9 +60,7 @@ def kafka_server(zookeeper_server):
 
         # Get the zookeeper DNS values
         zookeeper_dns = sdk_networks.wait_for_endpoint_info(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "clientport",
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -87,15 +69,11 @@ def kafka_server(zookeeper_server):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
-            additional_options={
-                "kafka": {"kafka_zookeeper_uri": ",".join(zookeeper_dns)}
-            },
+            additional_options={"kafka": {"kafka_zookeeper_uri": ",".join(zookeeper_dns)}},
         )
 
         # wait for brokers to finish registering before starting tests
-        test_utils.broker_count_check(
-            config.DEFAULT_BROKER_COUNT, service_name=config.SERVICE_NAME
-        )
+        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=config.SERVICE_NAME)
 
         yield  # let the test session execute
     finally:
@@ -110,9 +88,7 @@ def test_zookeeper_reresolution(kafka_server):
     broker_log_line = []
 
     for id in range(0, config.DEFAULT_BROKER_COUNT):
-        rc, stdout, _ = sdk_cmd.run_raw_cli(
-            "task log kafka-{}-broker --lines 1".format(id)
-        )
+        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 1".format(id))
 
         if rc or not stdout:
             raise Exception("No task logs for kafka-{}-broker".format(id))
@@ -149,9 +125,7 @@ def test_zookeeper_reresolution(kafka_server):
             "zookeeper state changed (SyncConnected) (org.I0Itec.zkclient.ZkClient)"
         )
 
-        assert (
-            last_log_index > -1 and last_log_index < success_index
-        ), "{}:{} STDOUT: {}".format(
+        assert last_log_index > -1 and last_log_index < success_index, "{}:{} STDOUT: {}".format(
             last_log_index, success_index, stdout
         )
 

@@ -24,9 +24,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            additional_options={
-                "service": {"name": config.get_foldered_service_name()}
-            },
+            additional_options={"service": {"name": config.get_foldered_service_name()}},
         )
 
         yield  # let the test session execute
@@ -68,20 +66,14 @@ def test_repair_cleanup_plans_complete():
         ],
         after_jobs=[
             config.get_delete_data_job(node_address=config.get_foldered_node_address()),
-            config.get_verify_deletion_job(
-                node_address=config.get_foldered_node_address()
-            ),
+            config.get_verify_deletion_job(node_address=config.get_foldered_node_address()),
         ],
     ):
 
-        sdk_plan.start_plan(
-            config.get_foldered_service_name(), "cleanup", parameters=parameters
-        )
+        sdk_plan.start_plan(config.get_foldered_service_name(), "cleanup", parameters=parameters)
         sdk_plan.wait_for_completed_plan(config.get_foldered_service_name(), "cleanup")
 
-        sdk_plan.start_plan(
-            config.get_foldered_service_name(), "repair", parameters=parameters
-        )
+        sdk_plan.start_plan(config.get_foldered_service_name(), "repair", parameters=parameters)
         sdk_plan.wait_for_completed_plan(config.get_foldered_service_name(), "repair")
 
 

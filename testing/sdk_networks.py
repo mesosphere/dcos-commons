@@ -22,9 +22,7 @@ def check_task_network(task_name, expected_network_name="dcos"):
 
     assert _task is not None, "Unable to find task named {}".format(task_name)
     if type(_task) == list or type(_task) == tuple:
-        assert len(_task) == 1, "Found too many tasks matching {}, got {}".format(
-            task_name, _task
-        )
+        assert len(_task) == 1, "Found too many tasks matching {}, got {}".format(task_name, _task)
         _task = _task[0]
 
     for status in _task["statuses"]:
@@ -48,9 +46,7 @@ def check_task_network(task_name, expected_network_name="dcos"):
                     )
 
 
-@retrying.retry(
-    wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res
-)
+@retrying.retry(wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res)
 def wait_for_endpoint_info(
     package_name: str, service_name: str, endpoint_name: str, json: bool = True
 ) -> typing.Dict:
@@ -80,9 +76,7 @@ def check_endpoints_on_overlay(endpoints):
         # the overlay IP address should not contain any agent IPs
         return len(set(ip_addresses).intersection(set(shakedown.get_agents()))) == 0
 
-    assert "address" in endpoints, "endpoints: {} missing 'address' key".format(
-        endpoints
-    )
+    assert "address" in endpoints, "endpoints: {} missing 'address' key".format(endpoints)
     assert "dns" in endpoints, "endpoints: {} missing 'dns' key".format(endpoints)
 
     # endpoints should have the format <ip_address>:port
