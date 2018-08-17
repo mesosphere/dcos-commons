@@ -10,13 +10,11 @@
     "aws_public_agent_instance_type": "m4.large",
     "num_of_masters": "1",
     "num_of_public_agents": "1",
-    "num_of_private_agents": "3"
-  },
-  "environment": {
+    "num_of_private_agents": "3",
     "ssh_key_name": "{AWS_SSH_KEY_NAME}",
     "aws_profile": "{AWS_PROFILE}",
-    "dcos_aws_access_key_id": "{AWS_ACCESS_KEY_ID}",
-    "dcos_aws_secret_access_key": "{AWS_SECRET_ACCESS_KEY}",
+    "aws_access_key_id": "{AWS_ACCESS_KEY_ID}",
+    "aws_secret_access_key": "{AWS_SECRET_ACCESS_KEY}",
     "dcos_version": "{DCOS_VERSION}",
     "enterprise": {
       "dcos_security": "{DCOS_SECURITY}",
@@ -28,27 +26,27 @@
     "cassandra": {
       "num_of_public_agents": "0",
       "num_of_private_agents": "4",
-      "owner": "cassandra-it-$WHOAMI"
+      "owner": "cassandra-it"
     },
     "elastic": {
       "num_of_public_agents": "0",
       "num_of_private_agents": "4",
-      "owner": "elastic-it-$WHOAMI"
+      "owner": "elastic-it"
     },
     "hdfs": {
       "num_of_public_agents": "0",
       "num_of_private_agents": "5",
-      "owner": "hdfs-it-$WHOAMI"
+      "owner": "hdfs-it"
     },
     "helloworld": {
       "num_of_public_agents": "1",
       "num_of_private_agents": "5",
-      "owner": "helloworld-it-$WHOAMI"
+      "owner": "helloworld-it"
     },
     "kafka": {
       "num_of_public_agents": "0",
       "num_of_private_agents": "5",
-      "owner": "kafka-it-$WHOAMI"
+      "owner": "kafka-it"
     }
   }
 }
