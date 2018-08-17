@@ -46,14 +46,7 @@ def service_request(
         "/service/{}/".format(service_name), service_path.lstrip("/")
     )
     return cluster_request(
-        method,
-        cluster_path,
-        retry,
-        raise_on_error,
-        log_args,
-        verify,
-        timeout_seconds,
-        **kwargs,
+        method, cluster_path, retry, raise_on_error, log_args, verify, timeout_seconds, **kwargs
     )
 
 
@@ -104,14 +97,10 @@ def cluster_request(
         except dcos.errors.DCOSUnprocessableException as e:
             # unlike the the above, this directly extends DCOSHTTPException
             response = e.response
-        log_msg = "Got {} for {} {}".format(
-            response.status_code, method.upper(), cluster_path
-        )
+        log_msg = "Got {} for {} {}".format(response.status_code, method.upper(), cluster_path)
         if kwargs:
             # log arg content (or just arg names, with hack to avoid 'dict_keys([...])') if present
-            log_msg += " (args: {})".format(
-                kwargs if log_args else [e for e in kwargs.keys()]
-            )
+            log_msg += " (args: {})".format(kwargs if log_args else [e for e in kwargs.keys()])
         log.info(log_msg)
         if not response.ok:
             # Query failed (>= 400). Before (potentially) throwing, print response payload which may
@@ -119,9 +108,7 @@ def cluster_request(
             response_text = response.text
             if response_text:
                 log.info(
-                    "Response content ({} bytes):\n{}".format(
-                        len(response_text), response_text
-                    )
+                    "Response content ({} bytes):\n{}".format(len(response_text), response_text)
                 )
             else:
                 log.info("No response content")
@@ -175,11 +162,7 @@ def run_raw_cli(cmd, print_output=True, check=False):
     dcos_cmd = "dcos {}".format(cmd)
     log.info("(CLI) {}".format(dcos_cmd))
     result = subprocess.run(
-        [dcos_cmd],
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        check=check,
+        [dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=check
     )
     stdout = ""
     stderr = ""
@@ -209,13 +192,9 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False, check=False):
     return stdout
 
 
-def kill_task_with_pattern(
-    pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS
-):
+def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000,
-        retry_on_result=lambda res: not res,
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
     def fn():
         command = (
@@ -235,9 +214,7 @@ def kill_task_with_pattern(
 
 
 @retrying.retry(
-    stop_max_attempt_number=3,
-    wait_fixed=1000,
-    retry_on_result=lambda result: not result,
+    stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
 def create_task_text_file(marathon_task_name: str, filename: str, lines: list) -> bool:
     output_cmd = """bash -c \"cat >{output_file} << EOL
@@ -249,11 +226,7 @@ EOL\"""".format(
 
     if rc or stderr:
         log.warning(
-            "Error creating file %s. rc=%s stdout=%s stderr=%s",
-            filename,
-            rc,
-            stdout,
-            stderr,
+            "Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr
         )
         return False
 
@@ -262,11 +235,7 @@ EOL\"""".format(
 
     if rc or stderr:
         log.warning(
-            "Error checking file %s. rc=%s stdout=%s stderr=%s",
-            filename,
-            rc,
-            stdout,
-            stderr,
+            "Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr
         )
         return False
 
@@ -291,9 +260,7 @@ EOL\"""".format(
 
 def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000,
-        retry_on_result=lambda res: not res,
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
     def fn():
         ok, stdout = agent_ssh(agent_ip, "sudo shutdown -h +1")
@@ -306,13 +273,9 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     # We use a manual check to detect that the host is down. Mesos takes ~5-20 minutes to detect a
     # dead agent, so relying on Mesos to tell us this isn't really feasible for a test.
 
-    log.info(
-        "Waiting for agent {} to appear inactive in /mesos/slaves".format(agent_ip)
-    )
+    log.info("Waiting for agent {} to appear inactive in /mesos/slaves".format(agent_ip))
 
-    @retrying.retry(
-        wait_fixed=1000, stop_max_delay=5 * 60 * 1000, retry_on_result=lambda res: res
-    )
+    @retrying.retry(wait_fixed=1000, stop_max_delay=5 * 60 * 1000, retry_on_result=lambda res: res)
     def wait_for_unresponsive_agent():
         try:
             response = cluster_request("GET", "/mesos/slaves", retry=False).json()
@@ -383,9 +346,7 @@ def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
     # - 'partial task ID' is only prefix/startswith matching, not 'contains' as the wording would imply.
     # - Regexes don't work at all.
     # Therefore, we need to provide a full TaskID prefix, including "servicename__taskname":
-    task_id_prefix = "{}__{}__".format(
-        sdk_utils.get_task_id_service_name(service_name), task_name
-    )
+    task_id_prefix = "{}__{}__".format(sdk_utils.get_task_id_service_name(service_name), task_name)
     rc, stdout, stderr = _task_exec(task_id_prefix, cmd)
 
     if "Cannot find a task with ID containing" in stderr:
@@ -410,9 +371,7 @@ def _task_exec(task_id_prefix: str, cmd: str) -> tuple:
     return run_raw_cli("task exec {} {}".format(task_id_prefix, cmd))
 
 
-def resolve_hosts(
-    marathon_task_name: str, hosts: list, bootstrap_cmd: str = "./bootstrap"
-) -> bool:
+def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str = "./bootstrap") -> bool:
     """
     Use bootstrap to resolve the specified list of hosts
     """
@@ -484,9 +443,7 @@ def _get_task_info(task_id_prefix: str) -> dict:
     """
     :return (dict): Get the task information for the specified task
     """
-    raw_tasks = run_cli(
-        "task {task_id_prefix} --json".format(task_id_prefix=task_id_prefix)
-    )
+    raw_tasks = run_cli("task {task_id_prefix} --json".format(task_id_prefix=task_id_prefix))
     if not raw_tasks:
         log.warning("No data returned for tasks matching id '%s'", task_id_prefix)
         return {}

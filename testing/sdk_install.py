@@ -40,8 +40,7 @@ def get_installed_service_names() -> set:
 
 
 @retrying.retry(
-    stop_max_attempt_number=3,
-    retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException),
+    stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException)
 )
 def _retried_install_impl(
     package_name,
@@ -68,9 +67,7 @@ def _retried_install_impl(
     # Trigger package install, but only if it's not already installed.
     # We expect upstream to have confirmed that it wasn't already installed beforehand.
     if sdk_marathon.app_exists(service_name):
-        log.info(
-            "Marathon app={} exists, skipping package install call".format(service_name)
-        )
+        log.info("Marathon app={} exists, skipping package install call".format(service_name))
     else:
         package_manager.install_app(pkg, options)
 
@@ -162,9 +159,7 @@ def install(
     retry_on_exception=lambda e: isinstance(e, Exception),
 )
 def _retried_run_janitor(service_name):
-    auth_token = sdk_cmd.run_cli(
-        "config show core.dcos_acs_token", print_output=False
-    ).strip()
+    auth_token = sdk_cmd.run_cli("config show core.dcos_acs_token", print_output=False).strip()
 
     cmd_list = [
         "docker",
@@ -247,19 +242,13 @@ def _verify_completed_uninstall(service_name):
     if orphaned_frameworks:
         log.error(
             "{} orphaned frameworks named {} after uninstall of {}: {}".format(
-                len(orphaned_frameworks),
-                service_name,
-                service_name,
-                orphaned_frameworks,
+                len(orphaned_frameworks), service_name, service_name, orphaned_frameworks
             )
         )
         log.error(state_summary)
         raise Exception(
             "Found {} orphaned frameworks named {} after uninstall of {}: {}".format(
-                len(orphaned_frameworks),
-                service_name,
-                service_name,
-                orphaned_frameworks,
+                len(orphaned_frameworks), service_name, service_name, orphaned_frameworks
             )
         )
     log.info("No orphaned frameworks for service {} were found".format(service_name))
