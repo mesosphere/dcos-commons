@@ -28,7 +28,7 @@ class KafkaService:
         self._service_name = service_options["service"]["name"]
 
     def get_zookeeper_connect(self) -> str:
-        return sdk_networks.wait_for_endpoint_info(
+        return sdk_networks.wait_for_endpoint_info_string(
             self._package_name, self._service_name, "zookeeper"
         )
 
