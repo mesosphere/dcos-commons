@@ -32,11 +32,11 @@ function populate_terraform_config() {
     fi
 
     if [[ x"$DCOS_ENTERPRISE" == x"true" ]]; then
-        : ${DCOS_SECURITY?"Set DCOS_SECURITY to one of (permissive, strict, disabled) for EE clusters"}
+        : ${SECURITY?"Set SECURITY to one of (permissive, strict, disabled) for EE clusters"}
         : ${DCOS_LICENSE?"Set DCOS_LICENSE with a valid license for DCOS_VERSION ${DCOS_VERSION} EE cluster"}
     else
         info "Skipping enterprise config as DCOS_ENTERPRISE is set to [$DCOS_ENTERPRISE]"
-        DCOS_SECURITY=""
+        SECURITY=""
         DCOS_LICENSE=""
     fi
 
@@ -47,7 +47,7 @@ function populate_terraform_config() {
         -e "s/{AWS_ACCESS_KEY_ID}/${AWS_ACCESS_KEY_ID}/" \
         -e "s/{AWS_SECRET_ACCESS_KEY}/${AWS_SECRET_ACCESS_KEY}/" \
         -e "s/{AWS_PROFILE}/${AWS_PROFILE}/" \
-        -e "s/{DCOS_SECURITY}/${DCOS_SECURITY}/" \
+        -e "s/{SECURITY}/${SECURITY}/" \
         -e "s/{DCOS_LICENSE}/${DCOS_LICENSE}/" \
         ${TERRAFORM_CONFIG_TEMPLATE} \
         > "${TERRAFORM_CLUSTER_PROFILE}.json"

@@ -17,7 +17,7 @@
     "aws_secret_access_key": "{AWS_SECRET_ACCESS_KEY}",
     "dcos_version": "{DCOS_VERSION}",
     "enterprise": {
-      "dcos_security": "{DCOS_SECURITY}",
+      "dcos_security": "{SECURITY}",
       "dcos_license_key_contents": "{DCOS_LICENSE}"
     }
   },
