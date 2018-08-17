@@ -68,9 +68,7 @@ def test_endpoints_zookeeper_default():
     zookeeper = sdk_networks.wait_for_endpoint_info_string(
         config.PACKAGE_NAME, foldered_name, "zookeeper"
     )
-    assert zookeeper.rstrip("\n") == "master.mesos:2181/{}".format(
-        sdk_utils.get_zk_path(foldered_name)
-    )
+    assert zookeeper == "master.mesos:2181/{}".format(sdk_utils.get_zk_path(foldered_name))
 
 
 @pytest.mark.smoke
@@ -100,7 +98,7 @@ def test_custom_zookeeper():
     zookeeper = sdk_networks.wait_for_endpoint_info_string(
         config.PACKAGE_NAME, foldered_name, "zookeeper"
     )
-    assert zookeeper.rstrip("\n") == zk_path
+    assert zookeeper == zk_path
 
     # topic created earlier against default zk should no longer be present:
     topic_list_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "topic list", json=True)
