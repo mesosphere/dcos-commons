@@ -47,13 +47,21 @@ def check_task_network(task_name, expected_network_name="dcos"):
 
 
 @retrying.retry(wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res)
-def wait_for_endpoint_info(
-    package_name: str, service_name: str, endpoint_name: str, json: bool = True
-) -> typing.Dict:
-    ret = sdk_cmd.svc_cli(
+def _get_endpoint_info(
+    package_name: str, service_name, endpoint_name: str, json: bool
+) -> typing.Union[typing.Dict, str]:
+    return sdk_cmd.svc_cli(
         package_name, service_name, "endpoints {}".format(endpoint_name), json=json
     )
-    return ret
+
+
+def wait_for_endpoint_info(package_name: str, service_name: str, endpoint_name: str) -> typing.Dict:
+    return _get_endpoint_info(package_name, service_name, endpoint_name, True)
+
+
+def wait_for_endpoint_info_string(package_name: str, service_name: str, endpoint_name: str) -> str:
+    info = _get_endpoint_info(package_name, service_name, endpoint_name, False)
+    return info.strip()
 
 
 def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_count):

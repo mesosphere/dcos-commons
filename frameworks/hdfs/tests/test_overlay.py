@@ -58,8 +58,8 @@ def test_endpoints_on_overlay():
     expected_endpoints = ("hdfs-site.xml", "core-site.xml")
     for endpoint in expected_endpoints:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        xmlout = sdk_networks.wait_for_endpoint_info(
-            config.PACKAGE_NAME, config.SERVICE_NAME, endpoint, json=False
+        xmlout = sdk_networks.wait_for_endpoint_info_string(
+            config.PACKAGE_NAME, config.SERVICE_NAME, endpoint
         )
         ElementTree.fromstring(xmlout)
 

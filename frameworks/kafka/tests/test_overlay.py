@@ -52,12 +52,10 @@ def test_overlay_network_deployment_and_endpoints():
     )
     sdk_networks.check_endpoints_on_overlay(broker_endpoints)
 
-    zookeeper = sdk_networks.wait_for_endpoint_info(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "zookeeper", json=False
+    zookeeper = sdk_networks.wait_for_endpoint_info_string(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "zookeeper"
     )
-    assert zookeeper.rstrip() == "master.mesos:2181/{}".format(
-        sdk_utils.get_zk_path(config.SERVICE_NAME)
-    )
+    assert zookeeper == "master.mesos:2181/{}".format(sdk_utils.get_zk_path(config.SERVICE_NAME))
 
 
 @pytest.mark.sanity

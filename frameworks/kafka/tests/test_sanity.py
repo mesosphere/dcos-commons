@@ -65,8 +65,8 @@ def test_endpoints_address():
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    zookeeper = sdk_networks.wait_for_endpoint_info(
-        config.PACKAGE_NAME, foldered_name, "zookeeper", json=False
+    zookeeper = sdk_networks.wait_for_endpoint_info_string(
+        config.PACKAGE_NAME, foldered_name, "zookeeper"
     )
     assert zookeeper.rstrip("\n") == "master.mesos:2181/{}".format(
         sdk_utils.get_zk_path(foldered_name)
@@ -97,8 +97,8 @@ def test_custom_zookeeper():
     # wait for brokers to finish registering
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
-    zookeeper = sdk_networks.wait_for_endpoint_info(
-        config.PACKAGE_NAME, foldered_name, "zookeeper", json=False
+    zookeeper = sdk_networks.wait_for_endpoint_info_string(
+        config.PACKAGE_NAME, foldered_name, "zookeeper"
     )
     assert zookeeper.rstrip("\n") == zk_path
 
