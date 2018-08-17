@@ -13,9 +13,7 @@ from security import transport_encryption, cipher_suites
 from tests import config
 
 pytestmark = [
-    pytest.mark.skipif(
-        sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"
-    ),
+    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"),
     pytest.mark.skipif(
         sdk_utils.dcos_version_less_than("1.10"), reason="TLS tests require DC/OS 1.10+"
     ),
@@ -38,9 +36,7 @@ def service_account(configure_security):
 
         yield service_account_info
     finally:
-        transport_encryption.cleanup_service_account(
-            config.SERVICE_NAME, service_account_info
-        )
+        transport_encryption.cleanup_service_account(config.SERVICE_NAME, service_account_info)
 
 
 @pytest.fixture(scope="module")
@@ -73,9 +69,7 @@ def kafka_service(service_account):
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_tls_endpoints(kafka_service):
-    endpoints = sdk_networks.get_and_test_endpoints(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "", 2
-    )
+    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 2)
     assert BROKER_TLS_ENDPOINT in endpoints
     endpoint_tls = sdk_networks.wait_for_endpoint_info(
         config.PACKAGE_NAME, config.SERVICE_NAME, BROKER_TLS_ENDPOINT
@@ -117,9 +111,7 @@ def test_producer_over_tls(kafka_service):
         json=True,
     )
     assert len(write_info) == 1
-    assert write_info["message"].startswith(
-        "Output: {} records sent".format(num_messages)
-    )
+    assert write_info["message"].startswith("Output: {} records sent".format(num_messages))
 
 
 @pytest.mark.tls
@@ -134,9 +126,7 @@ def test_tls_ciphers(kafka_service):
     expected_ciphers = set(
         sdk_utils.get_in(
             ciphers_config_path,
-            sdk_cmd.svc_cli(
-                config.PACKAGE_NAME, config.SERVICE_NAME, "describe", json=True
-            ),
+            sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "describe", json=True),
             "",
         )
         .rstrip()
@@ -155,8 +145,7 @@ def test_tls_ciphers(kafka_service):
     # Output OpenSSL version.
     sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, "openssl version")
     log.warning(
-        "\n%s OpenSSL ciphers missing from the cipher_suites module:",
-        len(missing_openssl_ciphers),
+        "\n%s OpenSSL ciphers missing from the cipher_suites module:", len(missing_openssl_ciphers)
     )
     log.warning("\n".join(to_sorted(list(missing_openssl_ciphers))))
     log.info("\n%s expected ciphers:", len(expected_ciphers))
@@ -166,21 +155,13 @@ def test_tls_ciphers(kafka_service):
         log.info("%s (%s)", cipher_suites.rfc_name(openssl_cipher), openssl_cipher)
 
     for openssl_cipher in possible_openssl_ciphers:
-        if sdk_security.is_cipher_enabled(
-            config.SERVICE_NAME, task_name, openssl_cipher, endpoint
-        ):
+        if sdk_security.is_cipher_enabled(config.SERVICE_NAME, task_name, openssl_cipher, endpoint):
             enabled_ciphers.add(cipher_suites.rfc_name(openssl_cipher))
 
-    log.info(
-        "%s ciphers enabled out of %s:",
-        len(enabled_ciphers),
-        len(possible_openssl_ciphers),
-    )
+    log.info("%s ciphers enabled out of %s:", len(enabled_ciphers), len(possible_openssl_ciphers))
     log.info("\n".join(to_sorted(list(enabled_ciphers))))
 
-    assert (
-        expected_ciphers == enabled_ciphers
-    ), "Enabled ciphers should match expected ciphers"
+    assert expected_ciphers == enabled_ciphers, "Enabled ciphers should match expected ciphers"
 
 
 def to_sorted(coll):
@@ -194,10 +175,7 @@ def to_sorted(coll):
 @pytest.mark.recovery
 def test_tls_recovery(kafka_service, service_account):
     pod_list = sdk_cmd.svc_cli(
-        kafka_service["package_name"],
-        kafka_service["service"]["name"],
-        "pod list",
-        json=True,
+        kafka_service["package_name"], kafka_service["service"]["name"], "pod list", json=True
     )
 
     for pod in pod_list:
