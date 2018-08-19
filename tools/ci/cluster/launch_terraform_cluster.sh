@@ -58,8 +58,10 @@ function create_cluster {
     CWD=$(pwd)
     cd ${TERRAFORM_CONFIG_DIR}
     terraform init -from-module git@github.com:mesosphere/enterprise-terraform-dcos//aws
+    # ee
     # terraform init -from-module git@github.com:dcos/terraform-dcos//aws
-
+    # open
+    terraform init -from-module github.com/dcos/terraform-dcos/aws
     # Create a tfvars file from the json file.
     json_file="${TERRAFORM_CLUSTER_PROFILE}.json"
     info "Terraform config being used : $(cat ${json_file})"
