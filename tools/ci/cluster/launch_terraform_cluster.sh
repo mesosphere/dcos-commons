@@ -3,12 +3,12 @@
 
 set -o errexit -o pipefail -o xtrace
 
-source "$(dirname "${BASH_SOURCE[0]}")/../../utils.sh"
-
 CURRENT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 TERRAFORM_CONFIG_DIR="${CURRENT_DIR}/config_terraform"
 TERRAFORM_CONFIG_TEMPLATE="${TERRAFORM_CONFIG_DIR}.json"
 TERRAFORM_CLUSTER_PROFILE="${TERRAFORM_CONFIG_DIR}/desired_cluster_profile.tfvars"
+
+aws_creds_path="${HOME}/.aws/credentials"
 
 function clean {
     rm -rf ${TERRAFORM_CONFIG_DIR}
@@ -58,7 +58,7 @@ function create_cluster {
     CWD=$(pwd)
     cd ${TERRAFORM_CONFIG_DIR}
     terraform init -from-module git@github.com:mesosphere/enterprise-terraform-dcos//aws
-    #terraform init -from-module git@github.com:dcos/terraform-dcos//aws
+    # terraform init -from-module git@github.com:dcos/terraform-dcos//aws
 
     # Create a tfvars file from the json file.
     json_file="${TERRAFORM_CLUSTER_PROFILE}.json"
@@ -114,6 +114,30 @@ function destroy_cluster {
 #
 #
 #}
+
+function info { echo "[INFO]" "[$BASH_LINENO]" "$@"; }
+
+function teamcityEnvVariable {
+  local name=$1
+  local value=$2
+  if [ -n "${TEAMCITY_VERSION}" ]; then
+    echo "##teamcity[setParameter name='env.$name' value='$value']"
+  fi
+}
+
+function parse_aws_credential_file() {
+    file_path=${1:-$aws_creds_path}
+    # Check the creds file. If there's exactly one profile, then use that profile.
+    available_profiles=$(grep -oE '^\[\S+\]' ${file_path} | tr -d '[]') # find line(s) that look like "[profile]", remove "[]"
+    available_profile_count=$(echo "$available_profiles" | wc -l)
+    if [[ $((available_profile_count)) != 1 ]]; then
+        echo "Expected 1 profile in $file_path, found $available_profile_count: ${available_profiles}"
+        echo "Please specify \$AWS_PROFILE to select a profile"
+        exit 1
+    else
+        echo ${available_profiles}
+    fi
+}
 
 function init {
     clean

@@ -10,8 +10,6 @@
 # Exit immediately on errors
 set -e
 
-source "$(dirname "${BASH_SOURCE[0]}")/tools/utils.sh"
-
 timestamp="$(date +%y%m%d-%H%M%S)"
 # Create a temp file for docker env.
 # When the script exits (successfully or otherwise), clean up the file automatically.
@@ -58,6 +56,7 @@ else
 fi
 gradle_cache="${REPO_ROOT_DIR}/.gradle_cache"
 ssh_path="${HOME}/.ssh/ccm.pem"
+aws_creds_path="${HOME}/.aws/credentials"
 enterprise="true"
 headless="false"
 interactive="false"
@@ -242,6 +241,20 @@ else
     fi
     # Don't need ssh key now: test_runner.sh will extract the key after cluster launch
 fi
+
+function parse_aws_credential_file() {
+    file_path=${1:-$aws_creds_path}
+    # Check the creds file. If there's exactly one profile, then use that profile.
+    available_profiles=$(grep -oE '^\[\S+\]' ${file_path} | tr -d '[]') # find line(s) that look like "[profile]", remove "[]"
+    available_profile_count=$(echo "$available_profiles" | wc -l)
+    if [[ $((available_profile_count)) != 1 ]]; then
+        echo "Expected 1 profile in $file_path, found $available_profile_count: ${available_profiles}"
+        echo "Please specify \$AWS_PROFILE to select a profile"
+        exit 1
+    else
+        echo ${available_profiles}
+    fi
+}
 
 # Configure the AWS credentials profile
 if [ -n "${aws_profile}" ]; then
