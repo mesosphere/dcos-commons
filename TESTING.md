@@ -79,6 +79,49 @@ The detected frameworks would be:
 
 If no `frameworks` folder exists, the current folder is assumed to be the root of a single framework. Note that the name of the framework displayed in this case (and above) is purely cosmetic, and the package name for the framework is determined from the catalog definition files.
 
+#### Running tests interactively
+
+The default when invoking `test.sh` is to run all tests defined for a given framework. It may, however be desirable to run a subset of tests interactively while developing a feature or the related tests themselves.
+
+The following command:
+```bash
+CLUSTER_URL=$(dcos config show core.dcos_url) ./test.sh -i
+```
+starts an interactive shell in a Docker container with the requirements for running the tests installed. The folder from which `./test.sh` was started is mounted into the container as `/build` and the default (or specified) SSH key is mounted at `/ssh/key`.
+
+**Note:** In order to run tests against a strict mode cluster and additional `-s` flag is required when starting the container.
+
+##### Setting up
+Before running test we perform the following steps inside the container:
+* Connect to the cluster: `dcos cluster setup ${CLUSTER_URL}`
+* Add the SSH key to the SSH agent: `eval $(ssh-agent -s); ssh-add /ssh/key`
+* Set the `PYTHONPATH` environment variable: `export PYTHONPATH=testing`
+
+Most system integration tests rely on a stub-universe being set up allowing us to install the version of the framework under test. Thus it is required to run:
+```bash
+export STUB_UNIVERSE_URL="https://universe-converter.mesosphere.com/transform?url=https://infinity-artifacts.s3.amazonaws.com/autodelete7d/my-framework/20180806-125351-sdEdQ7mRfHFXQzmT/stub-universe-my-framework.json
+```
+The stub-universe URL can be optained from an earlier build, or by building the framework (`my-framework` in this case) in the container by running the following command:
+```bash
+./frameworks/my-framwork/build.sh aws
+```
+(where this assumes a multi-framework repository)
+or simply:
+```bash
+./build.sh aws
+```
+for a single framework repository.
+
+##### Interacting with tests
+At this point, we are able to interactively run the tests using `py.test`. For example to check the tests available we could run we pass the `--collect-only` flag to the `py.test` command:
+```bash
+py.test -vv -s -m "sanity" --collect-only frameworks/my-framework/tests
+```
+
+If we're happy with the tests that will be run, we can drop the `--collect-only` flag and run the tests.
+
+**Note:** The tooling included with SDK-based projects includes collecting task logs for failed tests. This is useful for CI jobs, but does add quite a bit of verbosity when running interactively. In order to disable this, run `export INTEGRATION_TEST_LOG_COLLECTION=False` before running the tests.
+
 #### Advanced usage
 Running
 ```bash
