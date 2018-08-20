@@ -13,10 +13,10 @@ set -e
 timestamp="$(date +%y%m%d-%H%M%S)"
 # Create a temp file for docker env.
 # When the script exits (successfully or otherwise), clean up the file automatically.
-tmp_credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}-XXXX.tmp)"
+tmp_aws_creds_path="$(mktemp /tmp/sdk-test-creds-${timestamp}-XXXX.tmp)"
 envfile="$(mktemp /tmp/sdk-test-env-${timestamp}-XXXX.tmp)"
 function cleanup {
-    rm -f ${tmp_credsfile}
+    rm -f ${tmp_aws_creds_path}
     rm -f ${envfile}
 }
 trap cleanup EXIT
@@ -266,8 +266,8 @@ else
     fi
     # Check AWS_* envvars for credentials, create temp creds file using those credentials:
     if [ -n "${AWS_ACCESS_KEY_ID}" -a -n "${AWS_SECRET_ACCESS_KEY}}" ]; then
-        echo "Writing AWS env credentials to temporary file: $tmp_credsfile"
-        cat > $tmp_credsfile <<EOF
+        echo "Writing AWS env credentials to temporary file: $tmp_aws_creds_path"
+        cat > $tmp_aws_creds_path <<EOF
 [${aws_profile}]
 aws_access_key_id = ${AWS_ACCESS_KEY_ID}
 aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
@@ -276,7 +276,7 @@ EOF
         echo "Missing AWS credentials file (${aws_creds_path}) and AWS env (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)"
         exit 1
     fi
-    aws_credential_file_mount_target="${tmp_credsfile}"
+    aws_credential_file_mount_target="${tmp_aws_creds_path}"
 fi
 volume_args="$volume_args -v $aws_credential_file_mount_target:/root/.aws/credentials:ro"
 
