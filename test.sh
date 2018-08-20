@@ -252,16 +252,16 @@ fi
 
 # Write the AWS credential file (deleted on script exit)
 if [ -f "${aws_creds_path}" ]; then
-    cat $aws_creds_path > $credsfile
+    aws_credential_file_path="${aws_creds_path}"
 else
     # CI environments may have creds in AWS_DEV_* envvars, map them to AWS_*:
     if [ -n "${AWS_DEV_ACCESS_KEY_ID}" -a -n "${AWS_DEV_SECRET_ACCESS_KEY}}" ]; then
-	AWS_ACCESS_KEY_ID=${AWS_DEV_ACCESS_KEY_ID}
-        AWS_SECRET_ACCESS_KEY=${AWS_DEV_SECRET_ACCESS_KEY}
+        AWS_ACCESS_KEY_ID="${AWS_DEV_ACCESS_KEY_ID}"
+        AWS_SECRET_ACCESS_KEY="${AWS_DEV_SECRET_ACCESS_KEY}"
     fi
     # Check AWS_* envvars for credentials, create temp creds file using those credentials:
     if [ -n "${AWS_ACCESS_KEY_ID}" -a -n "${AWS_SECRET_ACCESS_KEY}}" ]; then
-	echo "Writing AWS env credentials to temporary file: $credsfile"
+        echo "Writing AWS env credentials to temporary file: $credsfile"
         cat > $credsfile <<EOF
 [${aws_profile}]
 aws_access_key_id = ${AWS_ACCESS_KEY_ID}
@@ -271,8 +271,10 @@ EOF
         echo "Missing AWS credentials file (${aws_creds_path}) and AWS env (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)"
         exit 1
     fi
+    chmod 500 "${credsfile}"
+    aws_credential_file_path="${credsfile}"
 fi
-volume_args="$volume_args -v $credsfile:/root/.aws/credentials:ro"
+volume_args="$volume_args -v $aws_credential_file_path:/root/.aws/credentials:ro"
 
 if [ -n "$gradle_cache" ]; then
     echo "Setting Gradle cache to ${gradle_cache}"
