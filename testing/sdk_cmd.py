@@ -54,6 +54,7 @@ def cluster_request(
     cluster_path,
     retry=True,
     raise_on_error=True,
+    log_output=True,
     log_args=True,
     verify=None,
     timeout_seconds=60,
@@ -69,6 +70,7 @@ def cluster_request(
     :param retry: Whether to retry the request automatically if an HTTP error (>=400) is returned.
     :param raise_on_error: Whether to raise a `requests.exceptions.HTTPError` if the response code is >=400.
                            Disabling this effectively implies `retry=False` where HTTP status is concerned.
+    :param log_output: Whether to log messages at all. Can be disabled to reduce noise.
     :param log_args: Whether to log the contents of `kwargs`. Can be disabled to reduce noise.
     :param verify: Whether to verify the TLS certificate returned by the cluster, or a path to a certificate file.
     :param kwargs: Additional arguments to requests.request(), such as `json={"example": "content"}`
@@ -79,7 +81,8 @@ def cluster_request(
     url = shakedown.dcos_url_path(cluster_path)
     # consistently include slash prefix for clearer logging below
     cluster_path = "/" + cluster_path.lstrip("/")
-    log.info("(HTTP {}) {}".format(method.upper(), cluster_path))
+    if log_output:
+        log.info("(HTTP {}) {}".format(method.upper(), cluster_path))
 
     def fn():
         # Underlying dcos.http.request will wrap responses in custom exceptions. This messes with
@@ -96,17 +99,19 @@ def cluster_request(
         if kwargs:
             # log arg content (or just arg names, with hack to avoid 'dict_keys([...])') if present
             log_msg += " (args: {})".format(kwargs if log_args else [e for e in kwargs.keys()])
-        log.info(log_msg)
+        if log_output:
+            log.info(log_msg)
         if not response.ok:
             # Query failed (>= 400). Before (potentially) throwing, print response payload which may
             # include additional error details.
             response_text = response.text
-            if response_text:
-                log.info(
-                    "Response content ({} bytes):\n{}".format(len(response_text), response_text)
-                )
-            else:
-                log.info("No response content")
+            if log_output:
+                if response_text:
+                    log.info(
+                        "Response content ({} bytes):\n{}".format(len(response_text), response_text)
+                    )
+                else:
+                    log.info("No response content")
         if raise_on_error:
             response.raise_for_status()
         return response

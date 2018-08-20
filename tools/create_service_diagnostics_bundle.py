@@ -1,0 +1,225 @@
+#!/usr/bin/env python3
+
+# Dependencies:
+# - DC/OS CLI
+# - jq
+
+# Notes:
+# - When run in the dcos-commons docker image the CLI version is specified in the test_requirements.txt
+#   file.
+
+from typing import Any
+import argparse
+import json
+import logging
+import sys
+
+from diagnostics import FullBundle
+import sdk_cmd
+
+log = logging.getLogger(__name__)
+
+
+def current_cluster_name() -> (bool, str):
+    rc, stdout, stderr = sdk_cmd.run_raw_cli("config show cluster.name", print_output=False)
+
+    if rc != 0:
+        if "Property 'cluster.name' doesn't exist" in stderr:
+            return (
+                False,
+                "No cluster is set up. Please run `dcos cluster setup`\nstdout: '{}'\nstderr: '{}'".format(
+                    stdout, stderr
+                ),
+            )
+        else:
+            return (False, "Unexpected error\nstdout: '{}'\nstderr: '{}'".format(stdout, stderr))
+
+    return (True, stdout)
+
+
+def is_authenticated_to_dcos_cluster() -> (bool, str):
+    rc, stdout, stderr = sdk_cmd.run_raw_cli("service", print_output=False)
+
+    if rc != 0:
+        (success, cluster_name_or_error) = current_cluster_name()
+
+        if "dcos auth login" or "Missing required config parameter" in stderr:
+            if success:
+                return (
+                    False,
+                    "Not authenticated to {}. Please run `dcos auth login`".format(
+                        cluster_name_or_error
+                    ),
+                )
+            else:
+                return (False, cluster_name_or_error)
+        else:
+            return (False, "Unexpected error\nstdout: '{}'\nstderr: '{}'".format(stdout, stderr))
+
+    return (True, "Authenticated")
+
+
+def attached_dcos_cluster() -> (int, Any):
+    rc, stdout, stderr = sdk_cmd.run_raw_cli("cluster list --attached", print_output=False)
+
+    if rc != 0:
+        if "No cluster is attached" in stderr:
+            return (rc, stderr)
+        else:
+            return (False, "Unexpected error\nstdout: '{}'\nstderr: '{}'".format(stdout, stderr))
+
+    (cluster_name, _cluster_id, _cluster_status, dcos_version, cluster_url) = stdout.split("\n")[
+        -1
+    ].split()
+    return (rc, (cluster_name, dcos_version, cluster_url))
+
+
+def get_marathon_app(service_name: str) -> (int, Any):
+    rc, stdout, stderr = sdk_cmd.run_raw_cli(
+        "marathon app show {}".format(service_name), print_output=False
+    )
+
+    if rc != 0:
+        if "does not exist" in stderr:
+            return (rc, "Service {} does not exist".format(service_name))
+        else:
+            return (rc, "Unexpected error\nstdout: '{}'\nstderr: '{}'".format(stdout, stderr))
+
+    try:
+        return (rc, json.loads(stdout))
+    except json.JSONDecodeError as e:
+        return (1, "Error decoding JSON: {}".format(e))
+
+
+def parse_args() -> dict:
+    parser = argparse.ArgumentParser(description="Create an SDK service Diagnostics bundle")
+
+    parser.add_argument(
+        "--package-name",
+        type=str,
+        required=True,
+        default=None,
+        help="The package name for the service to create the bundle for",
+    )
+
+    parser.add_argument(
+        "--service-name",
+        type=str,
+        required=True,
+        default=None,
+        help="The service name to create the bundle for",
+    )
+
+    parser.add_argument(
+        "--bundles-directory",
+        type=str,
+        required=True,
+        default=None,
+        help="The directory where bundles will be written to",
+    )
+
+    parser.add_argument(
+        "--yes",
+        action="store_true",
+        help="Disable interactive mode and assume 'yes' is the answer to all prompts.",
+    )
+
+    return parser.parse_args()
+
+
+def preflight_check() -> (int, bool, dict):
+    args = parse_args()
+    package_name_given = args.package_name
+    service_name = args.service_name
+    bundles_directory = args.bundles_directory
+    should_prompt_user = not args.yes
+
+    (is_authenticated, message) = is_authenticated_to_dcos_cluster()
+    if not is_authenticated:
+        log.error(
+            "We were unable to verify that you're authenticated to a DC/OS cluster.\nError: %s",
+            message,
+        )
+        return (1, False, {})
+
+    (rc, cluster_or_error) = attached_dcos_cluster()
+    if rc != 0:
+        log.error(
+            "We were unable to verify the cluster you're attached to.\nError: %s",
+            service_name,
+            cluster_or_error,
+        )
+        return (rc, False, {})
+
+    (cluster_name, dcos_version, cluster_url) = cluster_or_error
+
+    (rc, marathon_app_or_error) = get_marathon_app(service_name)
+    if rc == 0:
+        package_name = marathon_app_or_error.get("labels", {}).get("DCOS_PACKAGE_NAME")
+        package_version = marathon_app_or_error.get("labels", {}).get("DCOS_PACKAGE_VERSION")
+    else:
+        log.info(
+            "We were unable to get details about '%s'.\nIssue: %s",
+            service_name,
+            marathon_app_or_error,
+        )
+        log.info(
+            "Maybe the '%s' scheduler is not running. That's ok, we can still try to fetch any "
+            + "artifacts related to it",
+            service_name,
+        )
+        package_name = package_name_given
+        package_version = "n/a"
+
+    if package_name_given != package_name:
+        log.error(
+            "Package name given '%s' is different than actual '%s' package name: '%s'",
+            package_name_given,
+            service_name,
+            package_name,
+        )
+        log.info("Try '--package-name=%s'", package_name)
+        return (1, False, {})
+
+    return (
+        0,
+        True,
+        {
+            "package_name": package_name,
+            "service_name": service_name,
+            "package_version": package_version,
+            "cluster_name": cluster_name,
+            "bundles_directory": bundles_directory,
+            "dcos_version": dcos_version,
+            "cluster_url": cluster_url,
+            "should_prompt_user": should_prompt_user,
+        },
+    )
+
+
+def main(argv):
+    (rc, should_proceed, args) = preflight_check()
+    if not should_proceed:
+        return rc
+
+    print("\nWill create bundle for:")
+    print("  Package:         {}".format(args.get("package_name")))
+    print("  Package version: {}".format(args.get("package_version")))
+    print("  Service name:    {}".format(args.get("service_name")))
+    print("  DC/OS version:   {}".format(args.get("dcos_version")))
+    print("  Cluster URL:     {}".format(args.get("cluster_url")))
+
+    if args.get("should_prompt_user"):
+        answer = input("\nProceed? [Y/n]: ")
+        if answer.strip().lower() in ["n", "no", "false"]:
+            return 0
+
+    (rc, _) = FullBundle(
+        args.get("package_name"), args.get("service_name"), args.get("bundles_directory")
+    ).create()
+
+    return rc
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv))
