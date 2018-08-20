@@ -95,7 +95,11 @@ starts an interactive shell in a Docker container with the requirements for runn
 Before running test we perform the following steps inside the container:
 * Connect to the cluster: `dcos cluster setup ${CLUSTER_URL}`
 * Add the SSH key to the SSH agent: `eval $(ssh-agent -s); ssh-add /ssh/key`
-* Set the `PYTHONPATH` environment variable: `export PYTHONPATH=testing`
+
+It may also be required to set the `PYTHONPATH` environment variable:
+```bash
+export PYTHONPATH=/build/testing
+```
 
 Most system integration tests rely on a stub-universe being set up allowing us to install the version of the framework under test. Thus it is required to run:
 ```bash
