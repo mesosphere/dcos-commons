@@ -191,8 +191,7 @@ def uninstall(
         log.info(traceback.format_exc())
         raise
     finally:
-        log.info('Reserved resources post uninstall:')
-        sdk_utils.list_reserved_resources()
+        sdk_utils.list_reserved_resources(service_name, 'post uninstall')
 
     cleanup_start = time.time()
 
@@ -207,10 +206,12 @@ def uninstall(
     except Exception:
         log.info('Got exception when cleaning up {}'.format(service_name))
         log.info(traceback.format_exc())
+        sdk_utils.list_reserved_resources(service_name, 'post cleanup')
         raise
-    finally:
-        log.info('Reserved resources post cleanup:')
-        sdk_utils.list_reserved_resources()
+    else:
+        if sdk_utils.list_reserved_resources(service_name, 'post cleanup'):
+            raise dcos.errors.DCOSException('Leaked resource reservations found.')
+
 
     finish = time.time()
 

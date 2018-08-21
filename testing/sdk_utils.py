@@ -31,18 +31,30 @@ def get_service_name(default: str) -> str:
     return os.environ.get("INTEGRATION_TEST__SERVICE_NAME") or default
 
 
-def list_reserved_resources():
-    '''Displays the currently reserved resources on all agents via state.json;
-       Currently for INFINITY-1881 where we believe uninstall may not be
-       always doing its job correctly.'''
-    state_json_slaveinfo = dcos.mesos.DCOSClient().get_state_summary()['slaves']
+def list_reserved_resources(service_name: str, context: str) -> bool:
+    """
+    Logs all reserved resources and returns a true value if there are some for this service's role.
 
-    for slave in state_json_slaveinfo:
+    The reservations are retrieved from state.json.
+    This is for debugging DCOS-40654.
+    """
+    service_role = service_name.strip("/").replace("/", "__") + "-role"
+    state_json_slave_info = dcos.mesos.DCOSClient().get_state_summary()['slaves']
+    reserved_resources_messages = []
+    found_for_this_service = False
+    msg = 'on slaveid=%s hostname=%s reserved resources: %s'
+    for slave in state_json_slave_info:
         reserved_resources = slave['reserved_resources']
-        if reserved_resources == {}:
+        if not reserved_resources:
             continue
-        msg = 'on slaveid=%s hostname=%s reserved resources: %s'
-        log.info(msg % (slave['id'], slave['hostname'], reserved_resources))
+        reserved_resources_messages.append(msg % (slave['id'], slave['hostname'], reserved_resources))
+        if service_role in reserved_resources:
+            found_for_this_service = True
+    if reserved_resources_messages:
+        log.info('Found reserved resources %s', context)
+        for reserved_resources_message in reserved_resources_messages:
+            log.info(reserved_resources_message)
+    return found_for_this_service
 
 
 def get_foldered_name(service_name):
