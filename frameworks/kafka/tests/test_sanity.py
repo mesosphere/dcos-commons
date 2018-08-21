@@ -47,9 +47,7 @@ def test_service_health():
 @pytest.mark.sanity
 def test_endpoints_address():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    endpoints = sdk_networks.wait_for_endpoint_info(
-        config.PACKAGE_NAME, foldered_name, config.DEFAULT_TASK_NAME
-    )
+    endpoints = sdk_networks.wait_for_endpoint_info(config.PACKAGE_NAME, foldered_name, "broker")
 
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints["address"]) == config.DEFAULT_BROKER_COUNT

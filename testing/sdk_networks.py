@@ -5,10 +5,10 @@ SHOULD ALSO BE APPLIED TO sdk_networks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 import logging
-import shakedown
-import sdk_cmd
-import retrying
 import typing
+import shakedown
+import retrying
+import sdk_cmd
 
 log = logging.getLogger(__name__)
 
