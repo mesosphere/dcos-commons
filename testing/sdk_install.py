@@ -234,8 +234,10 @@ def _uninstall(
             if 'marathon' in str(e):
                 log.info('Detected a probable marathon flake. Raising so retry will trigger.')
                 raise
-        finally:
-            sdk_utils.list_reserved_resources()
+            sdk_utils.list_reserved_resources(service_name)
+        else:
+            if sdk_utils.list_reserved_resources(service_name):
+                raise dcos.errors.DCOSException('Leaked resource reservations found.')
 
 
 def merge_dictionaries(dict1, dict2):
