@@ -6,12 +6,14 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 import logging
+import re
 import retrying
 
 import sdk_cmd
 import sdk_tasks
 
 TIMEOUT_SECONDS = 15 * 60
+APP_EXISTS_ERROR_PATTERN = re.compile(r".*An app with id \[.*\] already exists.*")
 
 log = logging.getLogger(__name__)
 
@@ -58,6 +60,9 @@ class _deployment_result(object):
     def raise_on_error(self) -> None:
         if self._errmsg is not None:
             raise Exception("Operation failed with error message: {}".format(self._errmsg))
+
+    def error_message(self) -> str:
+        return self._errmsg
 
     def version(self) -> str:
         return self._version
@@ -176,6 +181,11 @@ def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
         return _handle_marathon_deployment_response(response)
 
     result = _install()
+    if result.error_message() and APP_EXISTS_ERROR_PATTERN.match(result.error_message()):
+        # App exists already, left over from previous run? Delete and try again.
+        destroy_app(app_name, timeout=timeout)
+        result = _install()
+
     result.raise_on_error()
 
     wait_for_deployment(app_name, timeout, result.version())

@@ -6,6 +6,7 @@ import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_install
+import sdk_marathon
 import sdk_recovery
 import sdk_utils
 
@@ -70,6 +71,17 @@ def hdfs_service(service_account):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.fixture(scope="module", autouse=True)
+def hdfs_client():
+    try:
+        client = config.get_hdfs_client_app(config.SERVICE_NAME)
+        sdk_marathon.install_app(client)
+        yield client
+
+    finally:
+        sdk_marathon.destroy_app(client["id"])
+
+
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
@@ -81,10 +93,10 @@ def test_healthy(hdfs_service):
 @pytest.mark.sanity
 @pytest.mark.data_integrity
 @sdk_utils.dcos_ee_only
-def test_write_and_read_data_over_tls(hdfs_service):
+def test_write_and_read_data_over_tls(hdfs_service, hdfs_client):
     test_filename = config.get_unique_filename("test_data_tls")
-    config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
-    config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
+    config.write_data_to_hdfs(test_filename)
+    config.read_data_from_hdfs(test_filename)
 
 
 @pytest.mark.tls

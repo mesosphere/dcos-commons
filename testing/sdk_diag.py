@@ -107,8 +107,8 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     This should be called in a hookimpl fixture.
     See also handle_test_setup() which must be called in a pytest_runtest_setup() hook."""
 
-    if not result.failed:
-        return  # passed, nothing to do
+    if not result.failed or os.environ.get('DISABLE_DIAG'):
+        return  # passed, nothing to do, or diagnostics collection disabled
 
     # Fetch all state from all currently-installed services.
     # We do this retrieval first in order to be closer to the actual test failure.

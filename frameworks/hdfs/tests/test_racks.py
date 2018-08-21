@@ -1,6 +1,7 @@
 import pytest
 import sdk_fault_domain
 import sdk_install
+import sdk_marathon
 import sdk_utils
 from tests import config
 
@@ -28,11 +29,23 @@ def pre_test_setup():
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
+@pytest.fixture(scope="module", autouse=True)
+def hdfs_client():
+    try:
+        client = config.get_hdfs_client_app(config.SERVICE_NAME)
+        sdk_marathon.install_app(client)
+        yield client
+
+    finally:
+        sdk_marathon.destroy_app(client["id"])
+
+
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.11")
 def test_detect_racks():
-    _, stdout, stderr = config.run_hdfs_command(config.SERVICE_NAME, "dfsadmin -printTopology")
+    success, stdout, stderr = config.run_client_command(config.hadoop_command("dfsadmin -printTopology"))
+    assert success
 
     # expecting e.g. "Rack: /aws/us-west-2b\n..."
     rack = stdout.split("\n")[0]

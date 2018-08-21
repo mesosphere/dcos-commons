@@ -96,7 +96,7 @@ def get_metrics(package_name, service_name, pod_name, task_name):
 
     # Find task's container id via recent TaskStatus:
     rc, stdout, _ = sdk_cmd.svc_cli(
-        package_name, service_name, "pod info {}".format(pod_name)
+        package_name, service_name, "pod info {}".format(pod_name), print_output=False
     )
     assert rc == 0, "Pod info failed"
     pod_info = json.loads(stdout)
