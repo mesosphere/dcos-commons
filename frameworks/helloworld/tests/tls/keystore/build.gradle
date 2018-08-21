@@ -3,8 +3,15 @@ version '0.1-SNAPSHOT'
 
 buildscript {
     repositories {
-        mavenCentral()
         jcenter()
+        mavenLocal()
+        mavenCentral()
+        maven {
+            url 'http://downloads.mesosphere.com/maven/'
+        }
+        maven {
+            url 'http://downloads.mesosphere.com/maven-snapshot/'
+        }
     }
     dependencies {
         classpath "com.github.jengelman.gradle.plugins:shadow:2.0.1"
@@ -20,7 +27,15 @@ ext {
 }
 
 repositories {
+    jcenter()
+    mavenLocal()
     mavenCentral()
+    maven {
+        url 'http://downloads.mesosphere.com/maven/'
+    }
+    maven {
+        url 'http://downloads.mesosphere.com/maven-snapshot/'
+    }
 }
 
 dependencies {
@@ -41,4 +56,3 @@ task integrationTestZip(type: Zip, dependsOn: 'shadowJar') {
     from shadowJar.archivePath
     from('config/integration-test.yml')
 }
-

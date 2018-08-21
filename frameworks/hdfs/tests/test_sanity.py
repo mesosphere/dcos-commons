@@ -145,6 +145,7 @@ def test_kill_data_node():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_scheduler():
+    task_ids = sdk_tasks.get_task_ids(foldered_name, "")
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(foldered_name)
     scheduler_ids = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix)
     assert len(scheduler_ids) == 1, "Expected to find one scheduler task"
@@ -154,7 +155,9 @@ def test_kill_scheduler():
         sdk_marathon.get_scheduler_host(foldered_name),
     )
 
+    # scheduler should be restarted, but service tasks should be left as-is:
     sdk_tasks.check_tasks_updated("marathon", scheduler_task_prefix, scheduler_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
     config.check_healthy(service_name=foldered_name)
 
 
