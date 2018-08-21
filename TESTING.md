@@ -85,7 +85,7 @@ The default when invoking `test.sh` is to run all tests defined for a given fram
 
 The following command:
 ```bash
-CLUSTER_URL=$(dcos config show core.dcos_url) ./test.sh -i
+./test.sh -i
 ```
 starts an interactive shell in a Docker container with the requirements for running the tests installed. The folder from which `./test.sh` was started is mounted into the container as `/build` and the default (or specified) SSH key is mounted at `/ssh/key`.
 
