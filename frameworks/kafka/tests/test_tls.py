@@ -81,7 +81,7 @@ def test_tls_endpoints(kafka_service):
 
 @pytest.mark.tls
 @pytest.mark.smoke
-@pytest.mark.nick
+@pytest.mark.sanity
 def test_producer_over_tls(kafka_service):
     sdk_cmd.svc_cli(
         config.PACKAGE_NAME,

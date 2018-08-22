@@ -419,6 +419,9 @@ def marathon_task_exec(task_name: str, cmd: str) -> tuple:
     : param task_name: Name of task to run 'cmd' on.
     : param cmd: The command to execute.
     : return: a tuple consisting of the task exec's exit code, stdout, and stderr
+              NOTE: The exit code only is only for whether the task exec call itself succeeded,
+              NOT if the underlying command succeded! This is a side effect of how the CLI handles task exec.
+              To check for errors in underlying commands, check stderr.
     """
     # Marathon TaskIDs are of the form "<name>.<uuid>"
     return _task_exec(task_name, cmd)
@@ -431,6 +434,9 @@ def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
     : param task_name: Name of task to run 'cmd' on.
     : param cmd: The command to execute.
     : return: a tuple consisting of the task exec's exit code, stdout, and stderr
+              NOTE: The exit code only is only for whether the task exec call itself succeeded,
+              NOT if the underlying command succeded! This is a side effect of how the CLI handles task exec.
+              To check for errors in underlying commands, check stderr.
     """
 
     # Contrary to CLI's help text for 'dcos task exec':

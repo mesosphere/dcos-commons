@@ -250,10 +250,10 @@ def test_plan_cli():
     plan_name = "deploy"
     phase_name = "world"
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    assert _check_json_output(foldered_name, "plan list")[0]
+    _check_json_output(foldered_name, "plan list")
     assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))[0]
-    assert _check_json_output(foldered_name, "plan show --json {}".format(plan_name))
-    assert _check_json_output(foldered_name, "plan show {} --json".format(plan_name))
+    _check_json_output(foldered_name, "plan show --json {}".format(plan_name))
+    _check_json_output(foldered_name, "plan show {} --json".format(plan_name))
 
     # trigger a restart so that the plan is in a non-complete state.
     # the 'interrupt' command will fail if the plan is already complete:
@@ -268,8 +268,8 @@ def test_plan_cli():
 @pytest.mark.sanity
 def test_state_cli():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    assert _check_json_output(foldered_name, "debug state framework_id")
-    assert _check_json_output(foldered_name, "debug state properties")
+    _check_json_output(foldered_name, "debug state framework_id")
+    _check_json_output(foldered_name, "debug state properties")
 
 
 @pytest.mark.sanity

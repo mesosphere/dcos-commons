@@ -62,7 +62,7 @@ def test_functionality():
         sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, "repair")
 
 
-@pytest.mark.nick
+@pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_endpoints():

@@ -72,9 +72,9 @@ def hdfs_service(service_account):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_client():
+def hdfs_client(hdfs_service):
     try:
-        client = config.get_hdfs_client_app(config.SERVICE_NAME)
+        client = config.get_hdfs_client_app(hdfs_service["service"]["name"])
         sdk_marathon.install_app(client)
         yield client
 
@@ -95,8 +95,8 @@ def test_healthy(hdfs_service):
 @sdk_utils.dcos_ee_only
 def test_write_and_read_data_over_tls(hdfs_service, hdfs_client):
     test_filename = config.get_unique_filename("test_data_tls")
-    config.write_data_to_hdfs(test_filename)
-    config.read_data_from_hdfs(test_filename)
+    config.hdfs_client_write_data(test_filename)
+    config.hdfs_client_read_data(test_filename)
 
 
 @pytest.mark.tls

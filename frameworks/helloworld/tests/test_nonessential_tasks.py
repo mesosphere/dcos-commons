@@ -80,11 +80,15 @@ def verify_shared_executor(
     - both 'essential' and 'nonessential' present in shared-volume/ across both tasks
     """
     rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info {}".format(pod_name)
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info {}".format(pod_name), print_output=False
     )
     assert rc == 0, "Pod info failed"
-    tasks = json.loads(stdout)
-    assert len(tasks) == 2
+    try:
+        tasks = json.loads(stdout)
+    except Exception:
+        log.exception("Failed to parse pod info: {}".format(stdout))
+        assert False, "Failed to parse pod info, see above"
+    assert len(tasks) == 2, "Expected 2 tasks: {}".format(stdout)
 
     # check that the task executors all match
     executor = tasks[0]["info"]["executor"]
@@ -95,7 +99,7 @@ def verify_shared_executor(
     task_names = [task["info"]["name"] for task in tasks]
     for task_name in task_names:
         # 1.9 just uses the host filesystem in 'task exec', so use 'task ls' across the board instead
-        _, filenames, _ = sdk_cmd.run_cli("task ls {} shared-volume/".format(task_name)).strip().split()
+        filenames = sdk_cmd.run_cli("task ls {} shared-volume/".format(task_name))[1].strip().split()
         assert set(expected_files) == set(filenames)
 
     # delete files from volume in preparation for a following task relaunch

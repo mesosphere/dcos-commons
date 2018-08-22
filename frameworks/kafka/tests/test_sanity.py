@@ -131,17 +131,13 @@ def test_broker_list():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_broker_invalid():
-    try:
-        sdk_cmd.svc_cli(
-            config.PACKAGE_NAME,
-            sdk_utils.get_foldered_name(config.SERVICE_NAME),
-            "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1),
-        )
-        assert False, "Should have failed"
-    except AssertionError as arg:
-        raise arg
-    except Exception:
-        pass  # expected to fail
+    rc, stdout, stderr = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1),
+    )
+    assert rc != 0, "Invalid broker id should have failed"
+    assert "Got 404" in stdout
 
 
 # --------- Pods -------------

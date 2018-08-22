@@ -68,7 +68,7 @@ def test_tasks_on_overlay():
         sdk_networks.check_task_network(task.name)
 
 
-@pytest.mark.nick
+@pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_endpoints_on_overlay():
@@ -80,13 +80,9 @@ def test_endpoints_on_overlay():
         "master-http": 3,
         "master-transport": 3,
     }
-    endpoints_not_on_overlay = (
-        "ingest-http",
-        "ingest-transport",
-    )
 
     endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
-    assert set(endpoints_on_overlay_to_count.keys() + endpoints_not_on_overlay) == set(endpoint_names)
+    assert set(endpoints_on_overlay_to_count.keys()) == set(endpoint_names)
 
     for endpoint_name, expected_count in endpoints_on_overlay_to_count.items():
         sdk_networks.check_endpoint_on_overlay(config.PACKAGE_NAME, config.SERVICE_NAME, endpoint_name, expected_count)

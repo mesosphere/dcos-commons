@@ -50,46 +50,79 @@ def get_unique_filename(prefix: str) -> str:
     return "{}.{}".format(prefix, str(uuid.uuid4()))
 
 
-def write_data_to_hdfs(
+def hdfs_client_write_data(
         filename,
         expect_failure_message=None,
-        content_to_write=TEST_CONTENT_SMALL) -> tuple:
-    # Custom check: If the command returned an error of "File exists", then assume the write has succeeded.
-    # This can happen when e.g. the SSH connection flakes but the data itself was written successfully.
+        content_to_write=TEST_CONTENT_SMALL,
+) -> tuple:
+    def success_check(rc, stdout, stderr):
+        if rc == 0 and not stderr:
+            # rc is still zero even if the "put" command failed! This is because "task exec" eats the return code.
+            # Therefore we must also check stderr to tell if the command actually succeeded.
+            # In practice, stderr is empty when a "put" operation has succeeded.
+            return True
+        elif expect_failure_message and expect_failure_message in stderr:
+            # The expected failure message has occurred. Stop trying.
+            return True
+        elif "File exists" in stderr:
+            # If the command returned an error of "File exists", then assume the write had succeeded on a previous run.
+            # This can happen when e.g. the write succeeded in a previous attempt, but then the connection flaked, or
+            # if hdfs had previously successfully completed the write when also outputting some warning on stderr.
+            log.info("Ignoring failure: Looks like the data was successfully written in a previous attempt")
+            return True
+        else:
+            # Try again
+            return False
+
     success, stdout, stderr = run_client_command(
         "echo {} | {}".format(content_to_write, hdfs_command("put - {}".format(filename))),
-        success_check=lambda rc, stdout, stderr: rc == 0 or (expect_failure_message and expect_failure_message in stderr) or "File exists" in stderr
+        success_check=success_check,
     )
-    if "File exists" in stderr:
-        log.info("Ignoring failure: Looks like the data was successfully written in a previous attempt")
-    elif not expect_failure_message:
-        assert success, "Failed to write {}: {}".format(filename, stderr)
+    assert success, "Failed to write {}: {}".format(filename, stderr)
     return (success, stdout, stderr)
 
 
-def read_data_from_hdfs(
+def hdfs_client_read_data(
         filename,
         expect_failure_message=None,
-        content_to_verify=TEST_CONTENT_SMALL) -> tuple:
+        content_to_verify=TEST_CONTENT_SMALL,
+) -> tuple:
+    def success_check(rc, stdout, stderr):
+        if rc == 0 and not stderr:
+            # rc only tells us if the 'task exec' operation itself failed. It is zero when the hdfs command fails.
+            # This is because "task exec" eats that return code. Therefore we must also check stderr to tell if the command actually succeeded.
+            return True
+        elif expect_failure_message and expect_failure_message in stderr:
+            # The expected failure message has occurred. Stop trying.
+            return True
+        else:
+            # Try again
+            return False
+
     success, stdout, stderr = run_client_command(
         hdfs_command("cat {}".format(filename)),
-        success_check=lambda rc, stdout, stderr: rc == 0 or (expect_failure_message and expect_failure_message in stderr),
+        success_check=success_check,
     )
-    if not expect_failure_message:
-        success = success and stdout.rstrip() == content_to_verify
-        assert success, "Failed to read {}: {}".format(filename, stderr)
+    assert success, "Failed to read {}: {}".format(filename, stderr)
+    if content_to_verify and not expect_failure_message:
+        assert stdout.rstrip() == content_to_verify, "File {} had content '{}', when '{}' was expected.".format(
+            filename, stdout.rstrip(), content_to_verify)
     return (success, stdout, stderr)
 
 
-def delete_data_from_hdfs(filename) -> tuple:
-    return run_client_command(hdfs_command("rm /{}".format(filename)))
-
-
-def list_files_in_hdfs(filename) -> tuple:
+def hdfs_client_list_files(filename) -> tuple:
     return run_client_command(hdfs_command("ls {}".format(filename)))
 
 
 def get_hdfs_client_app(service_name, kerberos=None) -> dict:
+    """
+    Returns a Marathon app definition for an HDFS client against the specified service.
+
+    This app should be installed AFTER the service is up and running, or else it may fail with an error like:
+
+    18/08/21 20:36:57 FATAL conf.Configuration: error parsing conf core-site.xml
+           org.xml.sax.SAXParseException; Premature end of file.
+    """
     app = {
         "id": CLIENT_APP_NAME,
         "mem": 1024,
@@ -129,18 +162,19 @@ def get_hdfs_client_app(service_name, kerberos=None) -> dict:
 
 def run_client_command(hdfs_command, success_check=lambda rc, stdout, stderr: rc == 0):
     """
-    Execute the command (provided as args to the 'hdfs' binary) using the Docker client
+    Execute the provided shell command within the HDFS Docker client.
+    Client app must have first been installed to marathon, see using get_hdfs_client_app().
     """
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res[0],
     )
-    def _run_hdfs_command():
+    def _run_client_command():
         rc, stdout, stderr = sdk_cmd.marathon_task_exec(CLIENT_APP_NAME, "/bin/bash -c '{}'".format(hdfs_command))
         return (success_check(rc, stdout, stderr), stdout, stderr)
 
-    return _run_hdfs_command()
+    return _run_client_command()
 
 
 def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=False):

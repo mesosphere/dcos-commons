@@ -36,7 +36,7 @@ def test_service_overlay_health():
 
 
 @pytest.mark.smoke
-@pytest.mark.nick
+@pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_overlay_network_deployment_and_endpoints():

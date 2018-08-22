@@ -127,8 +127,8 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     )
 
     test_filename = config.get_unique_filename("test_active_directory_auth_write_read")
-    config.write_data_to_hdfs(test_filename)
-    config.read_data_from_hdfs(test_filename)
+    config.hdfs_client_write_data(test_filename)
+    config.hdfs_client_read_data(test_filename)
 
 
 @pytest.mark.auth
@@ -156,14 +156,14 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("alice")
     )
 
-    config.write_data_to_hdfs(test_filename)
-    config.read_data_from_hdfs(test_filename)
-    _, stdout, _ = config.list_files_in_hdfs(alice_dir)
+    config.hdfs_client_write_data(test_filename)
+    config.hdfs_client_read_data(test_filename)
+    _, stdout, _ = config.hdfs_client_list_files(alice_dir)
     assert test_filename in stdout
 
     # bob doesn't have read/write access to alice's directory
     sdk_auth.kdestroy(hdfs_client["id"])
     sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("bob"))
 
-    config.write_data_to_hdfs(test_filename, expect_failure_message="put: Permission denied: user=bob")
-    config.read_data_from_hdfs(test_filename, expect_failure_message="cat: Permission denied: user=bob")
+    config.hdfs_client_write_data(test_filename, expect_failure_message="put: Permission denied: user=bob")
+    config.hdfs_client_read_data(test_filename, expect_failure_message="cat: Permission denied: user=bob")

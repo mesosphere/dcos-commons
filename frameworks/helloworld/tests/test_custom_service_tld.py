@@ -22,7 +22,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.mark.nick
+@pytest.mark.sanity
 def test_custom_service_tld():
     task_count = 1
     custom_tld = sdk_hosts.get_crypto_id_domain()
@@ -34,7 +34,7 @@ def test_custom_service_tld():
     )
 
     # Verify the endpoint entry is correct
-    assert set(["test"]) == sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
+    assert set(["test"]) == set(sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME))
     test_endpoint = sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, "test")
     assert set(["address", "dns"]) == set(test_endpoint.keys())
 

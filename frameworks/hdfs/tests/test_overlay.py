@@ -72,8 +72,8 @@ def test_endpoints_on_overlay():
 @pytest.mark.dcos_min_version("1.9")
 def test_write_and_read_data_on_overlay(hdfs_client):
     test_filename = config.get_unique_filename("test_data_overlay")
-    config.write_data_to_hdfs(test_filename)
-    config.read_data_from_hdfs(test_filename)
+    config.hdfs_client_write_data(test_filename)
+    config.hdfs_client_read_data(test_filename)
     config.check_healthy(config.SERVICE_NAME)
 
 
@@ -86,7 +86,7 @@ def test_integrity_on_data_node_failure(hdfs_client):
     test_filename = config.get_unique_filename("test_datanode_fail")
 
     # An HDFS write will only successfully return when the data replication has taken place
-    config.write_data_to_hdfs(test_filename)
+    config.hdfs_client_write_data(test_filename)
 
     sdk_cmd.kill_task_with_pattern(
         "DataNode", sdk_hosts.system_host(config.SERVICE_NAME, "data-0-node")
@@ -95,7 +95,7 @@ def test_integrity_on_data_node_failure(hdfs_client):
         "DataNode", sdk_hosts.system_host(config.SERVICE_NAME, "data-1-node")
     )
 
-    config.read_data_from_hdfs(test_filename)
+    config.hdfs_client_read_data(test_filename)
 
     config.check_healthy(config.SERVICE_NAME)
 
@@ -117,7 +117,6 @@ def test_integrity_on_name_node_failure(hdfs_client):
         for candidate in ("name-0-node", "name-1-node"):
             if is_name_node_active(candidate):
                 return candidate
-
         raise Exception("Failed to determine active name node")
 
     active_name_node = _get_active_name_node()
@@ -143,27 +142,8 @@ def test_integrity_on_name_node_failure(hdfs_client):
 
     test_filename = config.get_unique_filename("test_namenode_fail")
 
-    # Retries are needed for this data access verification. Command may flake due to DNS resolution
-    # errors on the killed name node. For example:
-    # WARN hdfs.DFSUtil: Namenode for hdfs remains unresolved for ID name-0-node.
-    #     Check your hdfs-site.xml file to ensure namenodes are configured properly.
-    # -put: java.net.UnknownHostException: name-0-node.hdfs.autoip.dcos.thisdcos.directory
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
-    )
-    def _retried_data_write():
-        config.write_data_to_hdfs(test_filename)
-
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
-    )
-    def _retried_data_read():
-        config.read_data_from_hdfs(test_filename)
-
-    _retried_data_write()
-    _retried_data_read()
+    config.hdfs_client_write_data(test_filename)
+    config.hdfs_client_read_data(test_filename)
 
     config.check_healthy(config.SERVICE_NAME)
 
