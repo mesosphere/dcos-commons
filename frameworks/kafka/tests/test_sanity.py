@@ -137,7 +137,7 @@ def test_broker_invalid():
         "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1),
     )
     assert rc != 0, "Invalid broker id should have failed"
-    assert "Got 404" in stdout
+    assert "Got 404" in stderr
 
 
 # --------- Pods -------------

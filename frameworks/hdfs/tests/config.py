@@ -88,9 +88,15 @@ def hdfs_client_read_data(
         content_to_verify=TEST_CONTENT_SMALL,
 ) -> tuple:
     def success_check(rc, stdout, stderr):
-        if rc == 0 and not stderr:
+        if rc == 0 and stdout.rstrip() == content_to_verify:
             # rc only tells us if the 'task exec' operation itself failed. It is zero when the hdfs command fails.
-            # This is because "task exec" eats that return code. Therefore we must also check stderr to tell if the command actually succeeded.
+            # This is because "task exec" eats that return code.
+            # However, we CANNOT just check for an empty stderr here because hdfs can put superfluous warnings there even when the operation succeeds.
+            # So to determine success, we just directly check that the content of stdout matches what we're looking for.
+            # Example stderr garbage:
+            #   18/08/22 02:43:28 WARN shortcircuit.DomainSocketFactory: error creating DomainSocket
+            #   java.net.ConnectException: connect(2) error: No such file or directory when trying to connect to 'dn_socket'
+            #   ...
             return True
         elif expect_failure_message and expect_failure_message in stderr:
             # The expected failure message has occurred. Stop trying.
@@ -103,10 +109,7 @@ def hdfs_client_read_data(
         hdfs_command("cat {}".format(filename)),
         success_check=success_check,
     )
-    assert success, "Failed to read {}: {}".format(filename, stderr)
-    if content_to_verify and not expect_failure_message:
-        assert stdout.rstrip() == content_to_verify, "File {} had content '{}', when '{}' was expected.".format(
-            filename, stdout.rstrip(), content_to_verify)
+    assert success, "Failed to read {}, or content didn't match expected value '{}': {}".format(filename, content_to_verify, stderr)
     return (success, stdout, stderr)
 
 
