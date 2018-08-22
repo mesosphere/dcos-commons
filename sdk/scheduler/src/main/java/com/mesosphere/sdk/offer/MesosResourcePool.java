@@ -2,6 +2,8 @@ package com.mesosphere.sdk.offer;
 
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.specification.VolumeSpec;
+
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
@@ -128,14 +130,21 @@ public class MesosResourcePool {
         return Optional.ofNullable(mesosResource);
     }
 
-    public Optional<MesosResource> consumeAtomic(String resourceName, Value value) {
+    public Optional<MesosResource> consumeAtomic(String resourceName, VolumeSpec spec) {
         List<MesosResource> atomicResources = unreservedAtomicPool.get(resourceName);
         List<MesosResource> filteredResources = new ArrayList<>();
         Optional<MesosResource> sufficientResource = Optional.empty();
 
         if (atomicResources != null) {
             for (MesosResource atomicResource : atomicResources) {
-                if (!sufficientResource.isPresent() && sufficientValue(value, atomicResource.getValue())) {
+                final Optional<Resource.DiskInfo.Source> diskSource =
+                        ResourceUtils.getDiskSource(atomicResource.getResource());
+                final Optional<String> profile = diskSource.isPresent() && diskSource.get().hasProfile()
+                        ? Optional.of(diskSource.get().getProfile()) : Optional.empty();
+
+                if (!sufficientResource.isPresent() &&
+                        sufficientValue(spec.getValue(), atomicResource.getValue()) &&
+                        matchAnyProfile(spec.getProfiles(), profile)) {
                     sufficientResource = Optional.of(atomicResource);
                     // do NOT break: ensure filteredResources is fully populated
                 } else {
@@ -154,10 +163,14 @@ public class MesosResourcePool {
             if (atomicResources == null) {
                 LOGGER.info("Offer lacks any atomic resources named {}", resourceName);
             } else {
+                String desired = spec.getValue().toString();
+                if (spec.getProfiles() != null) {
+                    desired += "(profiles: " + spec.getProfiles() + ")";
+                }
                 LOGGER.info("Offered quantity in all {} instances of {} is insufficient: desired {}",
                         atomicResources.size(),
                         resourceName,
-                        value);
+                        desired);
             }
         }
 
@@ -269,6 +282,18 @@ public class MesosResourcePool {
 
         Value difference = ValueUtils.subtract(desired, available);
         return ValueUtils.compare(difference, ValueUtils.getZero(desired.getType())) <= 0;
+    }
+
+    private static boolean matchAnyProfile(List<String> desired, Optional<String> actual) {
+        if (desired != null && actual.isPresent()) {
+            for (String profile : desired) {
+                if (profile.equals(actual.get())) {
+                    return true;
+                }
+            }
+        }
+
+        return desired == null && !actual.isPresent();
     }
 
     private static Collection<MesosResource> getMesosResources(Offer offer, Optional<String> role) {

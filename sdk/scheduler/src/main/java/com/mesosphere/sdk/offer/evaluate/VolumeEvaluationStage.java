@@ -141,7 +141,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<MesosResource> mesosResourceOptional;
             if (!resourceId.isPresent()) {
                 mesosResourceOptional =
-                        mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec.getValue());
+                        mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec);
             } else {
                 mesosResourceOptional =
                         mesosResourcePool.getReservedResourceById(resourceId.get());

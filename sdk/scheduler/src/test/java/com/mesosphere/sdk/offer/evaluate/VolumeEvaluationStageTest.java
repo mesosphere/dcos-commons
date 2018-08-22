@@ -19,12 +19,12 @@ import java.util.UUID;
 public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testCreateSucceeds() throws Exception {
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000, Optional.empty());
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1000);
+                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1000, null);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
@@ -72,12 +72,12 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testCreateFails() throws Exception {
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(1000);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.empty());
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 2000);
+                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 2000, null);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
