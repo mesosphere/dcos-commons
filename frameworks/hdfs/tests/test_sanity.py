@@ -101,15 +101,14 @@ def check_properties(xml, expect):
 
 @pytest.mark.recovery
 def test_kill_journal_node():
-    journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal-0")
+    journal_task = sdk_tasks.get_service_tasks(foldered_name, "journal-0")[0]
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
 
-    sdk_cmd.kill_task_with_pattern(
-        "journalnode", sdk_hosts.system_host(foldered_name, "journal-0-node")
-    )
+    sdk_cmd.kill_task_with_pattern("journalnode", "nobody", agent_host=journal_task.host)
+
     config.expect_recovery(service_name=foldered_name)
-    sdk_tasks.check_tasks_updated(foldered_name, "journal", journal_ids)
+    sdk_tasks.check_tasks_updated(foldered_name, "journal", [journal_task.id])
     sdk_tasks.check_tasks_not_updated(foldered_name, "name", name_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "data", data_ids)
 
@@ -117,13 +116,14 @@ def test_kill_journal_node():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_name_node():
-    name_ids = sdk_tasks.get_task_ids(foldered_name, "name-0")
+    name_task = sdk_tasks.get_service_tasks(foldered_name, "name-0")[0]
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
 
-    sdk_cmd.kill_task_with_pattern("namenode", sdk_hosts.system_host(foldered_name, "name-0-node"))
+    sdk_cmd.kill_task_with_pattern("namenode", "nobody", agent_host=name_task.host)
+
     config.expect_recovery(service_name=foldered_name)
-    sdk_tasks.check_tasks_updated(foldered_name, "name", name_ids)
+    sdk_tasks.check_tasks_updated(foldered_name, "name", [name_task.id])
     sdk_tasks.check_tasks_not_updated(foldered_name, "journal", journal_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "data", data_ids)
 
@@ -131,13 +131,14 @@ def test_kill_name_node():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_data_node():
-    data_ids = sdk_tasks.get_task_ids(foldered_name, "data-0")
+    data_task = sdk_tasks.get_service_tasks(foldered_name, "data-0")[0]
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
 
-    sdk_cmd.kill_task_with_pattern("datanode", sdk_hosts.system_host(foldered_name, "data-0-node"))
+    sdk_cmd.kill_task_with_pattern("datanode", "nobody", agent_host=data_task.host)
+
     config.expect_recovery(service_name=foldered_name)
-    sdk_tasks.check_tasks_updated(foldered_name, "data", data_ids)
+    sdk_tasks.check_tasks_updated(foldered_name, "data", [data_task.id])
     sdk_tasks.check_tasks_not_updated(foldered_name, "journal", journal_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, "name", name_ids)
 
@@ -152,7 +153,8 @@ def test_kill_scheduler():
 
     sdk_cmd.kill_task_with_pattern(
         "./hdfs-scheduler/bin/hdfs",
-        sdk_marathon.get_scheduler_host(foldered_name),
+        "nobody",
+        agent_host=sdk_marathon.get_scheduler_host(foldered_name),
     )
 
     # scheduler should be restarted, but service tasks should be left as-is:

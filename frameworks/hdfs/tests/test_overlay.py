@@ -4,7 +4,6 @@ import pytest
 import retrying
 
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_networks
@@ -88,12 +87,10 @@ def test_integrity_on_data_node_failure(hdfs_client):
     # An HDFS write will only successfully return when the data replication has taken place
     config.hdfs_client_write_data(test_filename)
 
-    sdk_cmd.kill_task_with_pattern(
-        "DataNode", sdk_hosts.system_host(config.SERVICE_NAME, "data-0-node")
-    )
-    sdk_cmd.kill_task_with_pattern(
-        "DataNode", sdk_hosts.system_host(config.SERVICE_NAME, "data-1-node")
-    )
+    # Should have 3 data nodes (data-0,1,2), kill 2 of them:
+    data_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "data")
+    for idx in range(2):
+        sdk_cmd.kill_task_with_pattern("DataNode", "nobody", agent_host=data_tasks[idx].host)
 
     config.hdfs_client_read_data(test_filename)
 
@@ -121,7 +118,9 @@ def test_integrity_on_name_node_failure(hdfs_client):
 
     active_name_node = _get_active_name_node()
     sdk_cmd.kill_task_with_pattern(
-        "NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node)
+        "NameNode",
+        "nobody",
+        agent_host=sdk_tasks.get_service_tasks(config.SERVICE_NAME, active_name_node)[0].host,
     )
 
     # After the previous active namenode was killed, the opposite namenode should marked active:

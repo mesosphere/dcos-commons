@@ -277,14 +277,14 @@ def get_scheduler_task_prefix(service_name):
 
 def get_scheduler_host(service_name):
     task_prefix = get_scheduler_task_prefix(service_name)
-    ips = [t.host for t in sdk_tasks.get_service_tasks("marathon", task_prefix=task_prefix)]
-    if len(ips) == 0:
+    tasks = sdk_tasks.get_service_tasks("marathon", task_prefix=task_prefix)
+    if len(tasks) == 0:
         raise Exception(
             "No marathon tasks starting with '{}' were found. Available tasks are: {}".format(
                 task_prefix, [task["name"] for task in sdk_tasks.get_service_tasks("marathon")]
             )
         )
-    return ips.pop()
+    return tasks.pop().host
 
 
 def bump_cpu_count_config(service_name, key_name, delta=0.1):

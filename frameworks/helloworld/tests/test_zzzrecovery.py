@@ -12,7 +12,6 @@ import sdk_marathon
 import sdk_plan
 import sdk_tasks
 import sdk_utils
-import sdk_hosts
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -246,7 +245,8 @@ def test_kill_scheduler():
 
     sdk_cmd.kill_task_with_pattern(
         "./hello-world-scheduler/bin/helloworld",
-        sdk_marathon.get_scheduler_host(config.SERVICE_NAME),
+        "nobody",
+        agent_host=sdk_marathon.get_scheduler_host(config.SERVICE_NAME),
     )
 
     sdk_tasks.check_tasks_updated("marathon", scheduler_task_prefix, scheduler_ids)
@@ -257,7 +257,11 @@ def test_kill_scheduler():
 def test_kill_hello_task():
     hello_task = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix="hello-0")[0]
 
-    sdk_cmd.kill_task_with_pattern("hello-container-path/output", hello_task.host)
+    sdk_cmd.kill_task_with_pattern(
+        "hello-container-path/output",
+        "nobody",
+        agent_host=hello_task.host,
+    )
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0", [hello_task.id])
     check_healthy()
@@ -267,7 +271,11 @@ def test_kill_hello_task():
 def test_kill_world_executor():
     world_task = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix="world-0")[0]
 
-    sdk_cmd.kill_task_with_pattern("mesos-default-executor", world_task.host)
+    sdk_cmd.kill_task_with_pattern(
+        "mesos-default-executor",
+        "nobody",
+        agent_host=world_task.host,
+    )
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "world-0", [world_task.id])
     check_healthy()
@@ -278,7 +286,11 @@ def test_kill_all_executors():
     tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME)
 
     for task in tasks:
-        sdk_cmd.kill_task_with_pattern("mesos-default-executor", task.host)
+        sdk_cmd.kill_task_with_pattern(
+            "mesos-default-executor",
+            "nobody",
+            agent_host=task.host,
+        )
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "", [task.id for task in tasks])
     check_healthy()
@@ -286,14 +298,14 @@ def test_kill_all_executors():
 
 @pytest.mark.sanity
 def test_kill_master():
-    sdk_cmd.kill_task_with_pattern("mesos-master")
+    sdk_cmd.kill_task_with_pattern("mesos-master", "root")
 
     check_healthy()
 
 
 @pytest.mark.sanity
 def test_kill_zk():
-    sdk_cmd.kill_task_with_pattern("zookeeper")
+    sdk_cmd.kill_task_with_pattern("QuorumPeerMain", "dcos_exhibitor")
 
     check_healthy()
 
@@ -304,17 +316,20 @@ def test_kill_zk():
     reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9",
 )
 def test_config_update_while_partitioned():
-    world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world")
-    host = sdk_hosts.system_host(config.SERVICE_NAME, "world-0-server")
-    sdk_agents.partition_agent(host)
+    world_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "world")
+    partition_host = world_tasks[0].host
+
+    sdk_agents.partition_agent(partition_host)
 
     service_config = sdk_marathon.get_config(config.SERVICE_NAME)
     updated_cpus = float(service_config["env"]["WORLD_CPUS"]) + 0.1
     service_config["env"]["WORLD_CPUS"] = str(updated_cpus)
     sdk_marathon.update_app(service_config, wait_for_completed_deployment=False)
 
-    sdk_agents.reconnect_agent(host)
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "world", world_ids)
+    sdk_agents.reconnect_agent(partition_host)
+
+    # check that ALL the world tasks are updated after the agent reconnects:
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "world", [t.id for t in world_tasks])
     check_healthy()
     all_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME)
     running_tasks = [

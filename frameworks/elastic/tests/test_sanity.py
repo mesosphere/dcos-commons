@@ -253,7 +253,9 @@ def test_losing_and_regaining_index_health(default_populated_index):
         config.DEFAULT_INDEX_NAME, "green", service_name=foldered_name
     )
     sdk_cmd.kill_task_with_pattern(
-        "data__.*Elasticsearch", sdk_hosts.system_host(foldered_name, "data-0-node")
+        "data__.*Elasticsearch",
+        "nobody",
+        agent_host=sdk_tasks.get_service_tasks(foldered_name, "data-0-node")[0].host,
     )
     config.check_elasticsearch_index_health(
         config.DEFAULT_INDEX_NAME, "yellow", service_name=foldered_name
@@ -271,7 +273,9 @@ def test_losing_and_regaining_index_health(default_populated_index):
 def test_master_reelection():
     initial_master = config.get_elasticsearch_master(service_name=foldered_name)
     sdk_cmd.kill_task_with_pattern(
-        "master__.*Elasticsearch", sdk_hosts.system_host(foldered_name, initial_master)
+        "master__.*Elasticsearch",
+        "nobody",
+        agent_host=sdk_tasks.get_service_tasks(foldered_name, initial_master)[0].host,
     )
     sdk_plan.wait_for_in_progress_recovery(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)

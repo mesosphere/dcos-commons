@@ -256,13 +256,30 @@ wc -l {output_file}"'''.format(
 @retrying.retry(
     stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
-def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+def kill_task_with_pattern(pattern, user, agent_host=None):
     """SSHes into the leader node (or the provided agent node) and kills any tasks matching the
-    provided regex pattern in their command.
+    provided regex pattern in their command which are running as the provided user.
+
+    pattern: Pattern to search for in the task name or arguments. The oldest task with this will be killed.
+    user: The name of the user running the task, e.g. "nobody". This helps filtering the tasks and avoids pkill killing itself.
+    agent_host: The agent to SSH into, or None to SSH into the master. See sdk_tasks.Task.host.
     """
+    # pkill args:
     # -f: Patterns may be against arguments in the command itself
     # -o: Kill the oldest command: avoid killing ourself, assuming there's another command that matches the pattern..
-    command = "sudo pkill -9 -f -o {}".format(pattern)
+    # -U: Only match processes running under the specified user
+    if user:
+        command = (
+            "sudo pkill -9 -f -U {} -o {}".format(user, pattern)
+            + " && echo Successfully killed process by user {} containing {}".format(user, pattern)
+            + " || (echo Process containing {} under user {} not found: && ps aux && exit 1)".format(pattern, user)
+        )
+    else:
+        command = (
+            "sudo pkill -9 -f -o {}".format(pattern)
+            + " && echo Successfully killed process containing {}".format(pattern)
+            + " || (echo Process containing {} not found: && ps aux && exit 1)".format(pattern)
+        )
     if agent_host is None:
         rc, _, _ = master_ssh(command)
     else:

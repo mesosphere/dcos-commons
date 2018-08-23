@@ -3,7 +3,6 @@ import logging
 import pytest
 
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_plan
 import sdk_tasks
@@ -30,19 +29,20 @@ def test_kill_node():
     """kill the node task, verify that the node task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
 
-    old_node_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-node")
-    assert len(old_node_ids) == 1
-    old_agent_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-agent")
-    assert len(old_agent_ids) == 1
+    old_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "hello-0")
+    assert len(old_tasks) == 2
+    old_node_task = [t for t in old_tasks if t.name == "hello-0-node"][0]
+    old_agent_task = [t for t in old_tasks if t.name == "hello-0-agent"][0]
 
     sdk_cmd.kill_task_with_pattern(
         "node-container-path/output",  # hardcoded in cmd, see yml
-        sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-node"),
+        "nobody",
+        agent_host=old_node_task.host,
     )
 
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0-node", old_node_ids)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0-node", [old_node_task.id])
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
-    sdk_tasks.check_tasks_not_updated(config.SERVICE_NAME, "hello-0-agent", old_agent_ids)
+    sdk_tasks.check_tasks_not_updated(config.SERVICE_NAME, "hello-0-agent", [old_agent_task.id])
 
     # the first verify_shared_executor call deleted the files. only the nonessential file came back via its relaunch.
     verify_shared_executor("hello-0")
@@ -53,19 +53,20 @@ def test_kill_agent():
     """kill the agent task, verify that the agent task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
 
-    old_node_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-node")
-    assert len(old_node_ids) == 1
-    old_agent_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-agent")
-    assert len(old_agent_ids) == 1
+    old_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "hello-0")
+    assert len(old_tasks) == 2
+    old_node_task = [t for t in old_tasks if t.name == "hello-0-node"][0]
+    old_agent_task = [t for t in old_tasks if t.name == "hello-0-agent"][0]
 
     sdk_cmd.kill_task_with_pattern(
         "agent-container-path/output",  # hardcoded in cmd, see yml
-        sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-agent"),
+        "nobody",
+        agent_host=old_agent_task.host,
     )
 
-    sdk_tasks.check_tasks_not_updated(config.SERVICE_NAME, "hello-0-node", old_node_ids)
+    sdk_tasks.check_tasks_not_updated(config.SERVICE_NAME, "hello-0-node", [old_node_task.id])
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0-agent", old_agent_ids)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0-agent", [old_agent_task.id])
 
     # the first verify_shared_executor call deleted the files. only the nonessential file came back via its relaunch.
     verify_shared_executor("hello-0")
