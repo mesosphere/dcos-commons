@@ -62,7 +62,7 @@ def test_endpoints_on_overlay():
     assert set(endpoint_names) == set(["hdfs-site.xml", "core-site.xml"])
     for endpoint_name in endpoint_names:
         # Validate that XML is parseable:
-        ElementTree.fromstring(sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, endpoint_name, json=False))
+        ElementTree.fromstring(sdk_networks.get_endpoint_string(config.PACKAGE_NAME, config.SERVICE_NAME, endpoint_name))
 
 
 @pytest.mark.overlay

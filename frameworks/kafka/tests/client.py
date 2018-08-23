@@ -28,7 +28,7 @@ class KafkaService:
         self._service_name = service_options["service"]["name"]
 
     def get_zookeeper_endpoint(self) -> str:
-        zookeeper_str = sdk_networks.get_endpoint(self._package_name, self._service_name, "zookeeper", json=False)
+        zookeeper_str = sdk_networks.get_endpoint_string(self._package_name, self._service_name, "zookeeper")
         return zookeeper_str.strip()
 
     def get_endpoint_dns(self, endpoint_name: str) -> list:

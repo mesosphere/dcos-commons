@@ -58,7 +58,9 @@ def pre_test_setup():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(
-        sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "core-site.xml", json=False)
+        sdk_networks.get_endpoint_string(
+            config.PACKAGE_NAME, foldered_name, "core-site.xml"
+        )
     )
     check_properties(
         core_site,
@@ -66,7 +68,9 @@ def test_endpoints():
     )
 
     hdfs_site = etree.fromstring(
-        sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "hdfs-site.xml", json=False)
+        sdk_networks.get_endpoint_string(
+            config.PACKAGE_NAME, foldered_name, "hdfs-site.xml"
+        )
     )
     expect = {
         "dfs.namenode.shared.edits.dir": "qjournal://{}/hdfs".format(
