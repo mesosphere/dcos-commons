@@ -41,7 +41,7 @@ def replace_broker_pod(service_name=config.SERVICE_NAME):
 
 
 def wait_for_broker_dns(package_name: str, service_name: str):
-    brokers = sdk_networks.wait_for_endpoint_info(package_name, service_name, "broker")
+    brokers = sdk_networks.get_endpoint(package_name, service_name, "broker")
     broker_dns = list(map(lambda x: x.split(":")[0], brokers["dns"]))
 
     def get_scheduler_task_id(service_name: str) -> str:

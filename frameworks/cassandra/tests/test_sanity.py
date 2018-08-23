@@ -44,7 +44,7 @@ def test_service_health():
 @pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    endpoints = sdk_networks.wait_for_endpoint_info(
+    endpoints = sdk_networks.get_endpoint(
         config.PACKAGE_NAME, config.get_foldered_service_name(), "native-client"
     )
     assert endpoints["dns"][0] == sdk_hosts.autoip_host(

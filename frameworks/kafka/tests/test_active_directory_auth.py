@@ -72,7 +72,7 @@ def kafka_server(kerberos):
 @pytest.fixture(scope="module", autouse=True)
 def kafka_client(kerberos, kafka_server):
 
-    brokers = sdk_networks.wait_for_endpoint_info(
+    brokers = sdk_networks.get_endpoint(
         kafka_server["package_name"], kafka_server["service"]["name"], "broker"
     )["dns"]
 

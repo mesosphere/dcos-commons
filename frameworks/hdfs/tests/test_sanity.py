@@ -58,7 +58,7 @@ def test_endpoints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(
-        sdk_networks.wait_for_endpoint_info_string(
+        sdk_networks.get_endpoint_string(
             config.PACKAGE_NAME, foldered_name, "core-site.xml"
         )
     )
@@ -68,7 +68,7 @@ def test_endpoints():
     )
 
     hdfs_site = etree.fromstring(
-        sdk_networks.wait_for_endpoint_info_string(
+        sdk_networks.get_endpoint_string(
             config.PACKAGE_NAME, foldered_name, "hdfs-site.xml"
         )
     )

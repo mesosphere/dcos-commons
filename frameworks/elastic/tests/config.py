@@ -298,7 +298,7 @@ def _curl_query(
 
 
 def _master_zero_http_port(service_name):
-    dns = sdk_networks.wait_for_endpoint_info(PACKAGE_NAME, service_name, "master-http")["dns"]
+    dns = sdk_networks.get_endpoint(PACKAGE_NAME, service_name, "master-http")["dns"]
     # 'dns' array will look something like this in CCM: [
     #   "master-0-node.elastic.[...]:1025",
     #   "master-1-node.elastic.[...]:1025",

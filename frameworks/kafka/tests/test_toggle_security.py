@@ -541,7 +541,7 @@ def update_service(package_name: str, service_name: str, options: dict):
 
 
 def service_get_brokers(kafka_server: dict, endpoint_name: str) -> list:
-    brokers = sdk_networks.wait_for_endpoint_info(
+    brokers = sdk_networks.get_endpoint(
         kafka_server["package_name"], kafka_server["service"]["name"], endpoint_name
     )["dns"]
 

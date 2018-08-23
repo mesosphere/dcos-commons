@@ -47,7 +47,7 @@ def test_service_health():
 @pytest.mark.sanity
 def test_endpoints_address():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    endpoints = sdk_networks.wait_for_endpoint_info(config.PACKAGE_NAME, foldered_name, "broker")
+    endpoints = sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "broker")
 
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints["address"]) == config.DEFAULT_BROKER_COUNT
@@ -63,7 +63,7 @@ def test_endpoints_address():
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    zookeeper = sdk_networks.wait_for_endpoint_info_string(
+    zookeeper = sdk_networks.get_endpoint_string(
         config.PACKAGE_NAME, foldered_name, "zookeeper"
     )
     assert zookeeper == "master.mesos:2181/{}".format(sdk_utils.get_zk_path(foldered_name))
@@ -93,7 +93,7 @@ def test_custom_zookeeper():
     # wait for brokers to finish registering
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
-    zookeeper = sdk_networks.wait_for_endpoint_info_string(
+    zookeeper = sdk_networks.get_endpoint_string(
         config.PACKAGE_NAME, foldered_name, "zookeeper"
     )
     assert zookeeper == zk_path

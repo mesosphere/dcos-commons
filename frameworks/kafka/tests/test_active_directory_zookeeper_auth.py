@@ -72,7 +72,7 @@ def zookeeper_server(kerberos):
 def kafka_server(kerberos, zookeeper_server):
 
     # Get the zookeeper DNS values
-    zookeeper_dns = sdk_networks.wait_for_endpoint_info(
+    zookeeper_dns = sdk_networks.get_endpoint(
         zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
     )["dns"]
 

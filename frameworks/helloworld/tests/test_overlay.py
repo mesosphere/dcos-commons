@@ -107,7 +107,7 @@ def test_overlay_network():
         len(endpoints_result)
     )
 
-    overlay_endpoints_result = sdk_networks.wait_for_endpoint_info(
+    overlay_endpoints_result = sdk_networks.get_endpoint(
         config.PACKAGE_NAME, config.SERVICE_NAME, "overlay-vip"
     )
     assert "address" in overlay_endpoints_result.keys(), (
@@ -123,7 +123,7 @@ def test_overlay_network():
         config.SERVICE_NAME, "hello-overlay-vip-0-server", 4044
     )
 
-    host_endpoints_result = sdk_networks.wait_for_endpoint_info(
+    host_endpoints_result = sdk_networks.get_endpoint(
         config.PACKAGE_NAME, config.SERVICE_NAME, "host-vip"
     )
     assert "address" in host_endpoints_result.keys(), (
