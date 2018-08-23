@@ -110,7 +110,7 @@ def kafka_server(kerberos, zookeeper_server):
 @pytest.fixture(scope="module", autouse=True)
 def kafka_client(kerberos, kafka_server):
 
-    brokers = sdk_cmd.svc_cli(
+    brokers = sdk_networks.get_endpoint(
         kafka_server["package_name"], kafka_server["service"]["name"], "broker"
     )["dns"]
 
