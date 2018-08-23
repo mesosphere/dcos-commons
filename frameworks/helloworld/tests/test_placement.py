@@ -29,21 +29,28 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 def test_scheduler_task_placement_by_marathon():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    # This test ensures that the placement of the scheduler task itself works as expected.
-    some_private_agent = shakedown.get_private_agents().pop()
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        expected_running_tasks=1,
-        additional_options={
-            "service": {
-                "constraints": [["hostname", "CLUSTER", some_private_agent]],
-                "yaml": "simple",
-            }
-        },
-        wait_for_deployment=False,
-    )
-    assert get_task_host(config.SERVICE_NAME) == some_private_agent
+    try:
+        # This test ensures that the placement of the scheduler task itself works as expected.
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        some_private_agent = shakedown.get_private_agents().pop()
+        logging.info("Constraining scheduler placement to [{}]".format(some_private_agent))
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            expected_running_tasks=1,
+            additional_options={
+                "service": {
+                    "constraints": [["hostname", "CLUSTER", "{}".format(some_private_agent)]],
+                    "yaml": "simple"
+                }
+            },
+            wait_for_deployment=False,
+        )
+        summary = sdk_tasks.get_summary(with_completed=False, task_name=config.SERVICE_NAME)
+        assert len(summary) == 1, "More than 1 task matched name [{}] : [{}]".format(config.SERVICE_NAME, summary)
+        assert some_private_agent == summary.pop().host, "Scheduler task constraint placement failed by marathon"
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.dcos_min_version("1.11")
@@ -65,25 +72,6 @@ def test_region_zone_injection():
     assert fault_domain_vars_are_present("world-0")
     assert fault_domain_vars_are_present("world-1")
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
-def _escape_placement_for_1_9(options: dict) -> dict:
-    # 1.9 requires `\"` to be escaped to `\\\"`
-    # when submitting placement constraints
-    log.info(options)
-    if sdk_utils.dcos_version_at_least("1.10"):
-        log.info("DC/OS version >= 1.10")
-        return options
-
-    def escape_section_placement(section: str, options: dict) -> dict:
-        if section in options and "placement" in options[section]:
-            options[section]["placement"] = options[section]["placement"].replace('"', '\\"')
-            log.info("Escaping %s", section)
-
-        log.info(options)
-        return options
-
-    return escape_section_placement("hello", escape_section_placement("world", options))
 
 
 @pytest.mark.dcos_min_version("1.9")
@@ -295,6 +283,25 @@ def test_rr_by_hostname():
     ensure_max_count_per_agent(hello_count=2, world_count=2)
 
 
+def _escape_placement_for_1_9(options: dict) -> dict:
+    # 1.9 requires `\"` to be escaped to `\\\"`
+    # when submitting placement constraints
+    log.info(options)
+    if sdk_utils.dcos_version_at_least("1.10"):
+        log.info("DC/OS version >= 1.10")
+        return options
+
+    def escape_section_placement(section: str, options: dict) -> dict:
+        if section in options and "placement" in options[section]:
+            options[section]["placement"] = options[section]["placement"].replace('"', '\\"')
+            log.info("Escaping %s", section)
+
+        log.info(options)
+        return options
+
+    return escape_section_placement("hello", escape_section_placement("world", options))
+
+
 @pytest.mark.sanity
 def test_cluster():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -501,7 +508,10 @@ def setup_constraint_switch():
 
 def get_task_host(task_name):
     _, out, _ = sdk_cmd.run_cli("task {} --json".format(task_name))
-    task_info = json.loads(out)[0]
+    tasks_json = json.loads(out)
+    matching_tasks = list(filter(lambda t: t["name"] == task_name, tasks_json))
+    assert len(matching_tasks) == 1, "Duplicate tasks found with same name : [{}]".format(tasks_json)
+    task_info = matching_tasks.pop()
 
     host = None
     for label in task_info["labels"]:
@@ -521,8 +531,8 @@ def get_task_host(task_name):
             else:
                 # CLI's hostname doesn't match the TaskInfo labels. Bug!
                 raise Exception(
-                    "offer_hostname label {} doesn't match CLI output!\nTask:\n{}".format(
-                        task.host, task_info
+                    "offer_hostname label [{}] doesn't match CLI output [{}]\nTask:\n{}".format(
+                        host, task.host, task_info
                     )
                 )
 
