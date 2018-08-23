@@ -5,7 +5,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
-import com.mesosphere.sdk.scheduler.Metrics;
+import com.mesosphere.sdk.metrics.Metrics;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

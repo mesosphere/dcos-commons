@@ -153,7 +153,7 @@
           "default": 0.1
         },
         "disable_suppress": {
-          "description": "If set, suppress would be disabled.",
+          "description": "If set (to any non empty value), suppress would be disabled.",
           "type": "string",
           "default": ""
         },
