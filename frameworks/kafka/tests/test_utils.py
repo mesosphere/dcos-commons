@@ -5,6 +5,7 @@ import retrying
 import sdk_cmd
 import sdk_networks
 import sdk_tasks
+
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -19,7 +20,7 @@ def broker_count_check(count, service_name=config.SERVICE_NAME):
 def restart_broker_pods(service_name=config.SERVICE_NAME):
     for i in range(config.DEFAULT_BROKER_COUNT):
         pod_name = "{}-{}".format(config.DEFAULT_POD_TYPE, i)
-        task_name = "{}-{}".format(pod_name, config.DEFAULT_TASK_NAME)
+        task_name = "{}-{}".format(pod_name, "broker")
         broker_id = sdk_tasks.get_task_ids(service_name, task_name)
         rc, stdout, _ = sdk_cmd.svc_cli(
             config.PACKAGE_NAME, service_name, "pod restart {}".format(pod_name)
@@ -34,7 +35,7 @@ def restart_broker_pods(service_name=config.SERVICE_NAME):
 
 def replace_broker_pod(service_name=config.SERVICE_NAME):
     pod_name = "{}-0".format(config.DEFAULT_POD_TYPE)
-    task_name = "{}-{}".format(pod_name, config.DEFAULT_TASK_NAME)
+    task_name = "{}-{}".format(pod_name, "broker")
     broker_0_id = sdk_tasks.get_task_ids(service_name, task_name)
     sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "pod replace {}".format(pod_name))
     sdk_tasks.check_tasks_updated(service_name, task_name, broker_0_id)

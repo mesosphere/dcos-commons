@@ -6,27 +6,43 @@ SHOULD ALSO BE APPLIED TO sdk_networks IN ANY OTHER PARTNER REPOS
 """
 import json as jsonlib
 import logging
+import typing
+import retrying
 
 import sdk_agents
 import sdk_cmd
 import sdk_tasks
 
+
 log = logging.getLogger(__name__)
+
 
 ENABLE_VIRTUAL_NETWORKS_OPTIONS = {"service": {"virtual_network_enabled": True}}
 
 
+@retrying.retry(wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res)
+def _wait_for_endpoint_info(
+    package_name: str, service_name: str, endpoint_name: str, json: bool
+) -> typing.Union[typing.Dict, str]:
+
+    cmd = " ".join(part for part in ["endpoints", endpoint_name] if part)
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        package_name, service_name, cmd
+    )
+    assert rc == 0, "Failed to get endpoint named {}".format(endpoint_name)
+    if json:
+        return jsonlib.loads(stdout)
+
+    return stdout
+
+
 def get_endpoint_names(package_name, service_name) -> list:
     """Returns a list of endpoint names for the specified service."""
-    rc, stdout, _ = sdk_cmd.svc_cli(package_name, service_name, "endpoints")
-    assert rc == 0, "Failed to get list of endpoints"
-    return jsonlib.loads(stdout)
+    return _wait_for_endpoint_info(package_name, service_name, None, json=True)
 
 
-def get_endpoint(package_name, service_name, endpoint_to_get, json=True) -> str:
-    """Returns the content of the specified endpoint definition.
-
-    Default endpoints can use 'json=True' (default) to get a JSON object like this:
+def get_endpoint(package_name: str, service_name: str, endpoint_name: str) -> typing.Dict:
+    """Returns the content of the specified endpoint definition as a JSON object.
 
     {
       "address": [
@@ -41,20 +57,23 @@ def get_endpoint(package_name, service_name, endpoint_to_get, json=True) -> str:
       ],
       "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
     }
-
-    Meanwhile, custom service-defined endpoints may require json=False as they can contain free-form text."""
-
+    """
     # Catch if an empty string is passed in. Technically the command would succeed and return a list of endpoint names,
     # but they should use get_endpoint_names() for this.
-    assert endpoint_to_get, "Missing endpoint_to_get. To get list of endpoint names, use get_endpoint_names()."
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        package_name, service_name, "endpoints {}".format(endpoint_to_get)
-    )
-    assert rc == 0, "Failed to get endpoint named {}".format(endpoint_to_get)
-    if json:
-        return jsonlib.loads(stdout)
-    else:
-        return stdout
+    assert endpoint_name, "Missing endpoint_name. To get list of endpoint names, use get_endpoint_names()."
+
+    return _wait_for_endpoint_info(package_name, service_name, endpoint_name, True)
+
+
+def get_endpoint_string(package_name: str, service_name: str, endpoint_name: str) -> str:
+    """Returns the content of the specified custom endpoint definition as a string.
+    """
+    # Catch if an empty string is passed in. Technically the command would succeed and return a list of endpoint names,
+    # but they should use get_endpoint_names() for this.
+    assert endpoint_name, "Missing endpoint_name. To get list of endpoint names, use get_endpoint_names()."
+
+    info = _wait_for_endpoint_info(package_name, service_name, endpoint_name, False)
+    return info.strip()
 
 
 def check_task_network(task_name, expected_network_name="dcos"):
