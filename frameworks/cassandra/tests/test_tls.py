@@ -126,7 +126,7 @@ def test_tls_connection(cassandra_service, dcos_ca_bundle):
 @pytest.mark.tls
 @pytest.mark.sanity
 def test_tls_recovery(cassandra_service, service_account):
-    rc, stdout, _ = sdk_cmd.svc_cli(
+    _, stdout, _ = sdk_cmd.svc_cli(
         cassandra_service["package_name"],
         cassandra_service["service"]["name"],
         "pod list",
