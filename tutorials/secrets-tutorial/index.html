@@ -132,7 +132,7 @@ scheduler:
   user: {{SERVICE_USER}}
 pods:
   hello:
-    image: ubuntu:14.04
+    image: ubuntu:18.04
     count: {{HELLO_COUNT}}
     placement: '{{{HELLO_PLACEMENT}}}'
     secrets:
@@ -198,7 +198,7 @@ pods:
           "secret1": "hello-world/secret1",
           "secret2": "hello-world/secret2",
           "secret3": "hello-world/secret3"
-          }
+      }
 }
 </code></pre></div></div>
 
@@ -208,7 +208,7 @@ pods:
 
 <p>Use the <code class="highlighter-rouge">dcos task exec</code> command to attach to the container that is running the task you want to examine.</p>
 
-<p><em>Note</em>: The tasks of the <code class="highlighter-rouge">hello</code> pod in our example are running inside a docker image (<code class="highlighter-rouge">ubuntu:14.04</code>).</p>
+<p><em>Note</em>: The tasks of the <code class="highlighter-rouge">hello</code> pod in our example are running inside a docker image (<code class="highlighter-rouge">ubuntu:18.04</code>).</p>
 
 <p>Run the following command to attach to the same container that is running the first task of the <code class="highlighter-rouge">hello</code> pod, that is <code class="highlighter-rouge">hello-0-server</code> (task name is <code class="highlighter-rouge">server</code>):</p>
 

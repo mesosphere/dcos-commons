@@ -1609,7 +1609,7 @@ SDK-based example service using DC/OS secrets.</p>
 <span class="na">pods</span><span class="pi">:</span>
   <span class="na">pod-with-image</span><span class="pi">:</span>
     <span class="na">count</span><span class="pi">:</span> <span class="pi">{{</span><span class="nv">COUNT</span><span class="pi">}}</span>
-    <span class="na">image</span><span class="pi">:</span> <span class="s">ubuntu:14.04</span>
+    <span class="na">image</span><span class="pi">:</span> <span class="s">ubuntu:18.04</span>
     <span class="na">user</span><span class="pi">:</span> <span class="s">nobody</span>
     <span class="na">secrets</span><span class="pi">:</span>
       <span class="na">secret_name4</span><span class="pi">:</span>
@@ -1864,7 +1864,7 @@ DNSName([port-1-vip-prefix].[service-name].l4lb.thisdcos.directory)
 <h2 id="integration-tests">
 <a id="integration-tests" class="anchor" href="#integration-tests" aria-hidden="true"><span class="octicon octicon-link"></span></a>Integration tests</h2>
 
-<p>Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called <a href="https://github.com/dcos/shakedown">shakedown</a>. Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The hello-world framework provides <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py">some example integration tests</a>.</p>
+<p>Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The SDK provides utilities in its <a href="http://github.com/mesosphere/dcos-commons/tree/master/testing">testing/</a> directory centered around writing these tests. These make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The reference hello-world framework provides many <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py">example integration tests</a> which are used to validate SDK behavior.</p>
 
 <p>You can run integration tests manually using <code class="highlighter-rouge">py.test</code>.  The
 integration tests assume you have a running DC/OS cluster, and have

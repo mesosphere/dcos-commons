@@ -141,10 +141,6 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>(package private) static int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/queries/StateQueries.html#FILE_SIZE_LIMIT">FILE_SIZE_LIMIT</a></span></code>&nbsp;</td>
 </tr>
-<tr class="rowColor">
-<td class="colFirst"><code>(package private) static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/queries/StateQueries.html#NO_FILENAME_ERROR_MESSAGE">NO_FILENAME_ERROR_MESSAGE</a></span></code>&nbsp;</td>
-</tr>
 </table>
 </li>
 </ul>
@@ -163,7 +159,7 @@ extends java.lang.Object</pre>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static Response</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/queries/StateQueries.html#getFile-com.mesosphere.sdk.state.StateStore-java.lang.String-">getFile</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-       java.lang.String&nbsp;fileName)</code>&nbsp;</td>
+       java.lang.String&nbsp;name)</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>(package private) static java.util.Collection&lt;java.lang.String&gt;</code></td>
@@ -219,10 +215,11 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>static Response</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/queries/StateQueries.html#putFile-com.mesosphere.sdk.state.StateStore-java.io.InputStream-FormDataContentDisposition-">putFile</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/http/queries/StateQueries.html#putFile-com.mesosphere.sdk.state.StateStore-java.lang.String-java.io.InputStream-FormDataContentDisposition-">putFile</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+       java.lang.String&nbsp;name,
        java.io.InputStream&nbsp;uploadedInputStream,
        FormDataContentDisposition&nbsp;fileDetails)</code>
-<div class="block">Endpoint for uploading arbitrary files of size up to 1024 Bytes.</div>
+<div class="block">Endpoint for uploading arbitrary content of size up to 1024 Bytes.</div>
 </td>
 </tr>
 <tr id="i10" class="altColor">
@@ -278,26 +275,13 @@ extends java.lang.Object</pre>
 <a name="FILE_SIZE_LIMIT">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>FILE_SIZE_LIMIT</h4>
 <pre>static final&nbsp;int FILE_SIZE_LIMIT</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.http.queries.StateQueries.FILE_SIZE_LIMIT">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-<a name="NO_FILENAME_ERROR_MESSAGE">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>NO_FILENAME_ERROR_MESSAGE</h4>
-<pre>static final&nbsp;java.lang.String NO_FILENAME_ERROR_MESSAGE</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.http.queries.StateQueries.NO_FILENAME_ERROR_MESSAGE">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -335,21 +319,23 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>getFile</h4>
 <pre>public static&nbsp;Response&nbsp;getFile(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                               java.lang.String&nbsp;fileName)</pre>
+                               java.lang.String&nbsp;name)</pre>
 </li>
 </ul>
-<a name="putFile-com.mesosphere.sdk.state.StateStore-java.io.InputStream-FormDataContentDisposition-">
+<a name="putFile-com.mesosphere.sdk.state.StateStore-java.lang.String-java.io.InputStream-FormDataContentDisposition-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>putFile</h4>
 <pre>public static&nbsp;Response&nbsp;putFile(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                               java.lang.String&nbsp;name,
                                java.io.InputStream&nbsp;uploadedInputStream,
                                FormDataContentDisposition&nbsp;fileDetails)</pre>
-<div class="block">Endpoint for uploading arbitrary files of size up to 1024 Bytes.</div>
+<div class="block">Endpoint for uploading arbitrary content of size up to 1024 Bytes.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>name</code> - The name of the entry to store in ZK.</dd>
 <dd><code>uploadedInputStream</code> - The input stream containing the data.</dd>
 <dd><code>fileDetails</code> - The details of the file to upload.</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
