@@ -5,7 +5,9 @@ SHOULD ALSO BE APPLIED TO sdk_networks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 import logging
+import typing
 import shakedown
+import retrying
 import sdk_cmd
 
 log = logging.getLogger(__name__)
@@ -44,17 +46,35 @@ def check_task_network(task_name, expected_network_name="dcos"):
                     )
 
 
+@retrying.retry(wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res)
+def _wait_for_endpoint_info(
+    package_name: str, service_name, endpoint_name: str, json: bool
+) -> typing.Union[typing.Dict, str]:
+    return sdk_cmd.svc_cli(
+        package_name, service_name, "endpoints {}".format(endpoint_name), json=json
+    )
+
+
+def get_endpoint(package_name: str, service_name: str, endpoint_name: str) -> typing.Dict:
+    return _wait_for_endpoint_info(package_name, service_name, endpoint_name, True)
+
+
+def get_endpoint_string(package_name: str, service_name: str, endpoint_name: str) -> str:
+    info = _wait_for_endpoint_info(package_name, service_name, endpoint_name, False)
+    return info.strip()
+
+
 def get_and_test_endpoints(package_name, service_name, endpoint_to_get, correct_count):
     """Gets the endpoints for a service or the specified 'endpoint_to_get' similar to running
     $ docs <service> endpoints
     or
     $ dcos <service> endpoints <endpoint_to_get>
     Checks that there is the correct number of endpoints"""
-    endpoints = sdk_cmd.svc_cli(
-        package_name, service_name, "endpoints {}".format(endpoint_to_get), json=True
-    )
-    assert len(endpoints) == correct_count, "Wrong number of endpoints, got {} should be {}".format(
-        len(endpoints), correct_count
+    endpoints = get_endpoint(package_name, service_name, endpoint_to_get)
+    assert (
+        len(endpoints) == correct_count
+    ), "Wrong number of endpoints, got {} should be size {}".format(
+        endpoints, correct_count
     )
     return endpoints
 

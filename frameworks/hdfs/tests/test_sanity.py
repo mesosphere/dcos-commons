@@ -12,6 +12,7 @@ import sdk_recovery
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
+import sdk_networks
 
 from tests import config
 
@@ -57,7 +58,9 @@ def test_endpoints():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints core-site.xml")
+        sdk_networks.get_endpoint_string(
+            config.PACKAGE_NAME, foldered_name, "core-site.xml"
+        )
     )
     check_properties(
         core_site,
@@ -65,7 +68,9 @@ def test_endpoints():
     )
 
     hdfs_site = etree.fromstring(
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints hdfs-site.xml")
+        sdk_networks.get_endpoint_string(
+            config.PACKAGE_NAME, foldered_name, "hdfs-site.xml"
+        )
     )
     expect = {
         "dfs.namenode.shared.edits.dir": "qjournal://{}/hdfs".format(
@@ -154,8 +159,7 @@ def test_kill_scheduler():
     assert len(scheduler_ids) == 1, "Expected to find one scheduler task"
 
     sdk_cmd.kill_task_with_pattern(
-        "./hdfs-scheduler/bin/hdfs",
-        sdk_marathon.get_scheduler_host(foldered_name),
+        "./hdfs-scheduler/bin/hdfs", sdk_marathon.get_scheduler_host(foldered_name)
     )
 
     sdk_tasks.check_tasks_updated("marathon", scheduler_task_prefix, scheduler_ids)

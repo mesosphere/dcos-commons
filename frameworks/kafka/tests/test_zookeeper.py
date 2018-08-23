@@ -6,6 +6,7 @@ import sdk_install
 import sdk_plan
 import sdk_security
 import sdk_utils
+import sdk_networks
 
 from tests import config, test_utils
 
@@ -58,11 +59,8 @@ def kafka_server(zookeeper_server):
     try:
 
         # Get the zookeeper DNS values
-        zookeeper_dns = sdk_cmd.svc_cli(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "endpoint clientport",
-            json=True,
+        zookeeper_dns = sdk_networks.get_endpoint(
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)

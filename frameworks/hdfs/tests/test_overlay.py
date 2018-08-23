@@ -55,11 +55,11 @@ def test_endpoints_on_overlay():
     observed_endpoints = sdk_networks.get_and_test_endpoints(
         config.PACKAGE_NAME, config.SERVICE_NAME, "", 2
     )
-    expected_endpoints = ("hdfs-site.xml", "core-site.xml")
+    expected_endpoints = ["hdfs-site.xml", "core-site.xml"]
     for endpoint in expected_endpoints:
         assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        xmlout = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints {}".format(endpoint)
+        xmlout = sdk_networks.get_endpoint_string(
+            config.PACKAGE_NAME, config.SERVICE_NAME, endpoint
         )
         ElementTree.fromstring(xmlout)
 

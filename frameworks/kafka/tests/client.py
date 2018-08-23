@@ -8,6 +8,7 @@ import sdk_auth
 import sdk_cmd
 import sdk_marathon
 import sdk_utils
+import sdk_networks
 
 from tests import auth
 from tests import test_utils
@@ -27,13 +28,13 @@ class KafkaService:
         self._service_name = service_options["service"]["name"]
 
     def get_zookeeper_connect(self) -> str:
-        return str(
-            sdk_cmd.svc_cli(self._package_name, self._service_name, "endpoint zookeeper")
-        ).strip()
+        return sdk_networks.get_endpoint_string(
+            self._package_name, self._service_name, "zookeeper"
+        )
 
     def get_brokers_endpoints(self, endpoint_name: str) -> list:
-        brokers = sdk_cmd.svc_cli(
-            self._package_name, self._service_name, "endpoint {}".format(endpoint_name), json=True
+        brokers = sdk_networks.get_endpoint(
+            self._package_name, self._service_name, endpoint_name
         )["dns"]
 
         return brokers

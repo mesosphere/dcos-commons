@@ -3,6 +3,7 @@ import retrying
 
 import sdk_cmd
 import sdk_tasks
+import sdk_networks
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -17,7 +18,7 @@ def broker_count_check(count, service_name=config.SERVICE_NAME):
 def restart_broker_pods(service_name=config.SERVICE_NAME):
     for i in range(config.DEFAULT_BROKER_COUNT):
         pod_name = "{}-{}".format(config.DEFAULT_POD_TYPE, i)
-        task_name = "{}-{}".format(pod_name, config.DEFAULT_TASK_NAME)
+        task_name = "{}-{}".format(pod_name, "broker")
         broker_id = sdk_tasks.get_task_ids(service_name, task_name)
         restart_info = sdk_cmd.svc_cli(
             config.PACKAGE_NAME, service_name, "pod restart {}".format(pod_name), json=True
@@ -30,7 +31,7 @@ def restart_broker_pods(service_name=config.SERVICE_NAME):
 
 def replace_broker_pod(service_name=config.SERVICE_NAME):
     pod_name = "{}-0".format(config.DEFAULT_POD_TYPE)
-    task_name = "{}-{}".format(pod_name, config.DEFAULT_TASK_NAME)
+    task_name = "{}-{}".format(pod_name, "broker")
     broker_0_id = sdk_tasks.get_task_ids(service_name, task_name)
     sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "pod replace {}".format(pod_name))
     sdk_tasks.check_tasks_updated(service_name, task_name, broker_0_id)
@@ -40,7 +41,7 @@ def replace_broker_pod(service_name=config.SERVICE_NAME):
 
 
 def wait_for_broker_dns(package_name: str, service_name: str):
-    brokers = sdk_cmd.svc_cli(package_name, service_name, "endpoint broker", json=True)
+    brokers = sdk_networks.get_endpoint(package_name, service_name, "broker")
     broker_dns = list(map(lambda x: x.split(":")[0], brokers["dns"]))
 
     def get_scheduler_task_id(service_name: str) -> str:

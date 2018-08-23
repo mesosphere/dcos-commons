@@ -1,5 +1,4 @@
 import pytest
-import sdk_cmd
 import sdk_install as install
 import sdk_networks
 import sdk_tasks
@@ -53,10 +52,10 @@ def test_overlay_network_deployment_and_endpoints():
     )
     sdk_networks.check_endpoints_on_overlay(broker_endpoints)
 
-    zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "endpoints zookeeper")
-    assert zookeeper.rstrip() == "master.mesos:2181/{}".format(
-        sdk_utils.get_zk_path(config.SERVICE_NAME)
+    zookeeper = sdk_networks.get_endpoint_string(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "zookeeper"
     )
+    assert zookeeper == "master.mesos:2181/{}".format(sdk_utils.get_zk_path(config.SERVICE_NAME))
 
 
 @pytest.mark.sanity

@@ -6,6 +6,7 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_utils
+import sdk_networks
 
 from tests import active_directory
 from tests import auth
@@ -71,8 +72,8 @@ def kafka_server(kerberos):
 @pytest.fixture(scope="module", autouse=True)
 def kafka_client(kerberos, kafka_server):
 
-    brokers = sdk_cmd.svc_cli(
-        kafka_server["package_name"], kafka_server["service"]["name"], "endpoint broker", json=True
+    brokers = sdk_networks.get_endpoint(
+        kafka_server["package_name"], kafka_server["service"]["name"], "broker"
     )["dns"]
 
     try:

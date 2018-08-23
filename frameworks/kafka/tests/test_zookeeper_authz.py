@@ -10,6 +10,7 @@ import sdk_hosts
 import sdk_install
 import sdk_security
 import sdk_utils
+import sdk_networks
 
 from security import kerberos as krb5
 
@@ -124,11 +125,8 @@ def kafka_client(kerberos):
 @pytest.mark.sanity
 def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server, kerberos):
     try:
-        zookeeper_dns = sdk_cmd.svc_cli(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "endpoint clientport",
-            json=True,
+        zookeeper_dns = sdk_networks.get_endpoint(
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -231,11 +229,8 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server,
 @pytest.mark.sanity
 def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_server, kerberos):
     try:
-        zookeeper_dns = sdk_cmd.svc_cli(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "endpoint clientport",
-            json=True,
+        zookeeper_dns = sdk_networks.get_endpoint(
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)

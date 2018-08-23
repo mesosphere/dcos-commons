@@ -10,6 +10,7 @@ import sdk_hosts
 import sdk_install
 import sdk_security
 import sdk_utils
+import sdk_networks
 
 from security import kerberos as krb5
 
@@ -112,11 +113,8 @@ def zookeeper_server(kerberos):
 def kafka_server(kerberos, zookeeper_server):
 
     # Get the zookeeper DNS values
-    zookeeper_dns = sdk_cmd.svc_cli(
-        zookeeper_server["package_name"],
-        zookeeper_server["service"]["name"],
-        "endpoint clientport",
-        json=True,
+    zookeeper_dns = sdk_networks.get_endpoint(
+        zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
     )["dns"]
 
     service_options = {

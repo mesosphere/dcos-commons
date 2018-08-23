@@ -1,5 +1,5 @@
 import pytest
-import retrying
+import sdk_networks
 import sdk_cmd
 import sdk_hosts
 import sdk_install
@@ -47,20 +47,8 @@ def test_service_health():
 @pytest.mark.sanity
 def test_endpoints_address():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    endpoints = sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "broker")
 
-    @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
-    def wait():
-        ret = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME,
-            foldered_name,
-            "endpoints {}".format(config.DEFAULT_TASK_NAME),
-            json=True,
-        )
-        if len(ret["address"]) == config.DEFAULT_BROKER_COUNT:
-            return ret
-        return False
-
-    endpoints = wait()
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints["address"]) == config.DEFAULT_BROKER_COUNT
     assert len(endpoints["dns"]) == config.DEFAULT_BROKER_COUNT
@@ -75,10 +63,10 @@ def test_endpoints_address():
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints zookeeper")
-    assert zookeeper.rstrip("\n") == "master.mesos:2181/{}".format(
-        sdk_utils.get_zk_path(foldered_name)
+    zookeeper = sdk_networks.get_endpoint_string(
+        config.PACKAGE_NAME, foldered_name, "zookeeper"
     )
+    assert zookeeper == "master.mesos:2181/{}".format(sdk_utils.get_zk_path(foldered_name))
 
 
 @pytest.mark.smoke
@@ -105,8 +93,10 @@ def test_custom_zookeeper():
     # wait for brokers to finish registering
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
-    zookeeper = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "endpoints zookeeper")
-    assert zookeeper.rstrip("\n") == zk_path
+    zookeeper = sdk_networks.get_endpoint_string(
+        config.PACKAGE_NAME, foldered_name, "zookeeper"
+    )
+    assert zookeeper == zk_path
 
     # topic created earlier against default zk should no longer be present:
     topic_list_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "topic list", json=True)

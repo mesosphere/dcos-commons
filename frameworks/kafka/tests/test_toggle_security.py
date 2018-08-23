@@ -10,6 +10,7 @@ import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_utils
+import sdk_networks
 
 from security import transport_encryption
 
@@ -540,11 +541,8 @@ def update_service(package_name: str, service_name: str, options: dict):
 
 
 def service_get_brokers(kafka_server: dict, endpoint_name: str) -> list:
-    brokers = sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "endpoint {}".format(endpoint_name),
-        json=True,
+    brokers = sdk_networks.get_endpoint(
+        kafka_server["package_name"], kafka_server["service"]["name"], endpoint_name
     )["dns"]
 
     return brokers
