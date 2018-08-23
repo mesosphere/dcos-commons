@@ -87,7 +87,9 @@ def test_pod_replace_then_immediate_config_update():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     for endpoint in config.ENDPOINT_TYPES:
-        endpoints = sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, endpoint)
+        endpoints = sdk_networks.get_endpoint(
+            config.PACKAGE_NAME, foldered_name, endpoint
+        )
         host = endpoint.split("-")[0]  # 'coordinator-http' => 'coordinator'
         assert endpoints["dns"][0].startswith(
             sdk_hosts.autoip_host(foldered_name, host + "-0-node")

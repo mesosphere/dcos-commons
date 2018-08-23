@@ -73,11 +73,11 @@ def test_overlay_network():
     endpoints_result = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
     assert len(endpoints_result) == 2, "Expected 2 endpoints, got: {}".format(endpoints_result)
 
-    overlay_endpoints_result = sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, "overlay-vip")
-    assert (
-        "address" in overlay_endpoints_result.keys()
-    ), "overlay endpoints missing 'address': {}".format(
-        overlay_endpoints_result
+    overlay_endpoints_result = sdk_networks.get_endpoint(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "overlay-vip"
+    )
+    assert "address" in overlay_endpoints_result.keys(), (
+        "overlay endpoints missing 'address': {}".format(overlay_endpoints_result)
     )
     assert len(overlay_endpoints_result["address"]) == 1
     assert overlay_endpoints_result["address"][0].startswith("9")
@@ -89,11 +89,11 @@ def test_overlay_network():
         config.SERVICE_NAME, "overlay-vip-0-server", 4044
     )
 
-    host_endpoints_result = sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, "host-vip")
-    assert (
-        "address" in host_endpoints_result.keys()
-    ), "overlay endpoints missing 'address': {}".format(
-        host_endpoints_result
+    host_endpoints_result = sdk_networks.get_endpoint(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "host-vip"
+    )
+    assert "address" in host_endpoints_result.keys(), (
+        "overlay endpoints missing 'address'" "{}".format(host_endpoints_result)
     )
     assert len(host_endpoints_result["address"]) == 1
     assert host_endpoints_result["address"][0].startswith("10")

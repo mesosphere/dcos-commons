@@ -73,9 +73,7 @@ def kafka_server(kerberos, zookeeper_server):
 
     # Get the zookeeper DNS values
     zookeeper_dns = sdk_networks.get_endpoint(
-        zookeeper_server["package_name"],
-        zookeeper_server["service"]["name"],
-        "clientport"
+        zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
     )["dns"]
 
     service_kerberos_options = {
@@ -112,7 +110,9 @@ def kafka_server(kerberos, zookeeper_server):
 @pytest.fixture(scope="module", autouse=True)
 def kafka_client(kerberos, kafka_server):
 
-    brokers = sdk_networks.get_endpoint(kafka_server["package_name"], kafka_server["service"]["name"], "broker")["dns"]
+    brokers = sdk_networks.get_endpoint(
+        kafka_server["package_name"], kafka_server["service"]["name"], "broker"
+    )["dns"]
 
     try:
         client_id = "kafka-client"

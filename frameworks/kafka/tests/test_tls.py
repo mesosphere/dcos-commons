@@ -75,7 +75,9 @@ def test_tls_endpoints(kafka_service):
     assert BROKER_TLS_ENDPOINT in endpoint_names
 
     # Test that broker-tls endpoint is available
-    endpoint_tls = sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, BROKER_TLS_ENDPOINT)
+    endpoint_tls = sdk_networks.get_endpoint(
+        config.PACKAGE_NAME, config.SERVICE_NAME, BROKER_TLS_ENDPOINT
+    )
     assert len(endpoint_tls["dns"]) == config.DEFAULT_BROKER_COUNT
 
 
@@ -122,9 +124,7 @@ def test_producer_over_tls(kafka_service):
 def test_tls_ciphers(kafka_service):
     task_name = "kafka-0-broker"
     endpoint = sdk_networks.get_endpoint(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        BROKER_TLS_ENDPOINT
+        config.PACKAGE_NAME, config.SERVICE_NAME, BROKER_TLS_ENDPOINT
     )["dns"][0]
     ciphers_config_path = ["service", "security", "transport_encryption", "ciphers"]
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "describe")

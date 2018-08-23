@@ -126,9 +126,7 @@ def kafka_client(kerberos):
 def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server, kerberos):
     try:
         zookeeper_dns = sdk_networks.get_endpoint(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "clientport"
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -231,9 +229,7 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server,
 def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_server, kerberos):
     try:
         zookeeper_dns = sdk_networks.get_endpoint(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "clientport"
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)

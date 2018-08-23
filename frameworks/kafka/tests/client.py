@@ -28,10 +28,14 @@ class KafkaService:
         self._service_name = service_options["service"]["name"]
 
     def get_zookeeper_endpoint(self) -> str:
-        return sdk_networks.get_endpoint_string(self._package_name, self._service_name, "zookeeper")
+        return sdk_networks.get_endpoint_string(
+            self._package_name, self._service_name, "zookeeper"
+        )
 
     def get_endpoint_dns(self, endpoint_name: str) -> list:
-        return sdk_networks.get_endpoint(self._package_name, self._service_name, endpoint_name)["dns"]
+        return sdk_networks.get_endpoint(
+            self._package_name, self._service_name, endpoint_name
+        )["dns"]
 
     def wait_for_topic(self, topic_name: str):
         if not topic_name:

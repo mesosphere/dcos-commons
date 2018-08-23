@@ -26,13 +26,11 @@ def _wait_for_endpoint_info(
 ) -> typing.Union[typing.Dict, str]:
 
     cmd = " ".join(part for part in ["endpoints", endpoint_name] if part)
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        package_name, service_name, cmd
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(package_name, service_name, cmd)
     assert rc == 0, "Failed to get endpoint named {}".format(endpoint_name)
+
     if json:
         return jsonlib.loads(stdout)
-
     return stdout
 
 

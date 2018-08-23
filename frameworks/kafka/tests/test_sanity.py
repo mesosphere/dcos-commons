@@ -45,6 +45,7 @@ def test_endpoints_address():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     endpoints = sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "broker")
 
+    # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints["address"]) == config.DEFAULT_BROKER_COUNT
     assert len(endpoints["dns"]) == config.DEFAULT_BROKER_COUNT
     for i in range(len(endpoints["dns"])):
