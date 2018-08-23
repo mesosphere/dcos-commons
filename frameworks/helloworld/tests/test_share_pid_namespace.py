@@ -29,7 +29,7 @@ def configure_package(configure_security):
 def test_deploy():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
-    log.info("deployment plan: " + str(deployment_plan))
+    log.info(sdk_plan.plan_string("deploy", deployment_plan))
 
     assert len(deployment_plan["phases"]) == 2
     assert deployment_plan["phases"][0]["name"] == "server-deploy"

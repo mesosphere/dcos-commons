@@ -2,13 +2,12 @@ from xml.etree import ElementTree
 
 import pytest
 import retrying
-import uuid
 
 import sdk_cmd
-import sdk_hosts
 import sdk_install
+import sdk_marathon
 import sdk_networks
-import shakedown
+import sdk_tasks
 
 from tests import config
 
@@ -35,108 +34,119 @@ def pre_test_setup():
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
-@pytest.mark.sanity
+@pytest.fixture(scope="module", autouse=True)
+def hdfs_client():
+    try:
+        client = config.get_hdfs_client_app(config.SERVICE_NAME)
+        sdk_marathon.install_app(client)
+        yield client
+
+    finally:
+        sdk_marathon.destroy_app(client["id"])
+
+
 @pytest.mark.overlay
+@pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
 def test_tasks_on_overlay():
-    hdfs_tasks = shakedown.shakedown.get_service_task_ids(config.SERVICE_NAME)
-    assert len(hdfs_tasks) == config.DEFAULT_TASK_COUNT, (
-        "Not enough tasks got launched,"
-        "should be {} got {}".format(len(hdfs_tasks), config.DEFAULT_TASK_COUNT)
-    )
-    for task in hdfs_tasks:
-        sdk_networks.check_task_network(task)
+    tasks = sdk_tasks.check_task_count(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+    for task in tasks:
+        sdk_networks.check_task_network(task.name)
 
 
 @pytest.mark.overlay
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
 def test_endpoints_on_overlay():
-    observed_endpoints = sdk_networks.get_and_test_endpoints(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "", 2
-    )
-    expected_endpoints = ["hdfs-site.xml", "core-site.xml"]
-    for endpoint in expected_endpoints:
-        assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        xmlout = sdk_networks.get_endpoint_string(
-            config.PACKAGE_NAME, config.SERVICE_NAME, endpoint
-        )
-        ElementTree.fromstring(xmlout)
+    endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
+    assert set(endpoint_names) == set(["hdfs-site.xml", "core-site.xml"])
+    for endpoint_name in endpoint_names:
+        # Validate that XML is parseable:
+        ElementTree.fromstring(sdk_networks.get_endpoint_string(config.PACKAGE_NAME, config.SERVICE_NAME, endpoint_name))
 
 
 @pytest.mark.overlay
 @pytest.mark.sanity
 @pytest.mark.data_integrity
 @pytest.mark.dcos_min_version("1.9")
-def test_write_and_read_data_on_overlay():
-    test_filename = get_unique_filename("test_overlay_data")
-    config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
-    config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
-    config.check_healthy(service_name=config.SERVICE_NAME)
+def test_write_and_read_data_on_overlay(hdfs_client):
+    test_filename = config.get_unique_filename("test_data_overlay")
+    config.hdfs_client_write_data(test_filename)
+    config.hdfs_client_read_data(test_filename)
+    config.check_healthy(config.SERVICE_NAME)
 
 
 @pytest.mark.data_integrity
 @pytest.mark.sanity
-def test_integrity_on_data_node_failure():
+def test_integrity_on_data_node_failure(hdfs_client):
     """
     Verifies proper data replication among data nodes.
     """
-    test_filename = get_unique_filename("test_datanode_fail")
+    test_filename = config.get_unique_filename("test_datanode_fail")
 
     # An HDFS write will only successfully return when the data replication has taken place
-    config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
+    config.hdfs_client_write_data(test_filename)
 
-    sdk_cmd.kill_task_with_pattern(
-        "DataNode", sdk_hosts.system_host(config.SERVICE_NAME, "data-0-node")
-    )
-    sdk_cmd.kill_task_with_pattern(
-        "DataNode", sdk_hosts.system_host(config.SERVICE_NAME, "data-1-node")
-    )
+    # Should have 3 data nodes (data-0,1,2), kill 2 of them:
+    data_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "data")
+    for idx in range(2):
+        sdk_cmd.kill_task_with_pattern("DataNode", "nobody", agent_host=data_tasks[idx].host)
 
-    config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
+    config.hdfs_client_read_data(test_filename)
 
-    config.check_healthy(service_name=config.SERVICE_NAME)
+    config.check_healthy(config.SERVICE_NAME)
 
 
 @pytest.mark.data_integrity
 @pytest.mark.sanity
-def test_integrity_on_name_node_failure():
+def test_integrity_on_name_node_failure(hdfs_client):
     """
     The first name node (name-0-node) is the active name node by default when HDFS gets installed.
     This test checks that it is possible to write and read data after the active name node fails
     so as to verify a failover sustains expected functionality.
     """
-    active_name_node = config.get_active_name_node(config.SERVICE_NAME)
+
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000
+    )
+    def _get_active_name_node():
+        for candidate in ("name-0-node", "name-1-node"):
+            if is_name_node_active(candidate):
+                return candidate
+        raise Exception("Failed to determine active name node")
+
+    active_name_node = _get_active_name_node()
     sdk_cmd.kill_task_with_pattern(
-        "NameNode", sdk_hosts.system_host(config.SERVICE_NAME, active_name_node)
+        "NameNode",
+        "nobody",
+        agent_host=sdk_tasks.get_service_tasks(config.SERVICE_NAME, active_name_node)[0].host,
     )
 
-    predicted_active_name_node = "name-1-node"
+    # After the previous active namenode was killed, the opposite namenode should marked active:
     if active_name_node == "name-1-node":
-        predicted_active_name_node = "name-0-node"
+        new_active_name_node = "name-0-node"
+    else:
+        new_active_name_node = "name-1-node"
 
-    wait_for_failover_to_complete(predicted_active_name_node)
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
+        retry_on_result=lambda res: not res,
+    )
+    def _wait_for_failover_to_complete(namenode):
+        return is_name_node_active(namenode)
 
-    test_filename = get_unique_filename("test_namenode_fail")
-    config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
-    config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
+    _wait_for_failover_to_complete(new_active_name_node)
 
-    config.check_healthy(service_name=config.SERVICE_NAME)
+    test_filename = config.get_unique_filename("test_namenode_fail")
 
+    config.hdfs_client_write_data(test_filename)
+    config.hdfs_client_read_data(test_filename)
 
-@retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
-    retry_on_result=lambda res: not res,
-)
-def wait_for_failover_to_complete(namenode):
-    """
-    Inspects the name node logs to make sure ZK signals a complete failover.
-    The given namenode is the one to become active after the failover is complete.
-    """
-    status = config.get_name_node_status(config.SERVICE_NAME, namenode)
-    return status == "active"
+    config.check_healthy(config.SERVICE_NAME)
 
 
-def get_unique_filename(prefix: str) -> str:
-    return "{}.{}".format(prefix, str(uuid.uuid4()))
+def is_name_node_active(namenode):
+    success, stdout, _ = config.run_client_command(config.hadoop_command("haadmin -getServiceState {}".format(namenode)))
+    return success and stdout.strip() == "active"

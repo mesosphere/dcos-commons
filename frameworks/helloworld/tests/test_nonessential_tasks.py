@@ -1,10 +1,9 @@
+import json
 import logging
-
 import os.path
 import pytest
 
 import sdk_cmd
-import sdk_hosts
 import sdk_install
 import sdk_plan
 import sdk_tasks
@@ -32,16 +31,18 @@ def test_kill_essential():
     """kill the essential task, verify that both tasks are relaunched against a matching executor"""
     verify_shared_executor("hello-0")
 
-    old_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
-    assert len(old_ids) == 2
+    old_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "hello-0")
+    assert len(old_tasks) == 2
 
+    # kill the essential task process. both tasks are on the same pod, so same host:
     sdk_cmd.kill_task_with_pattern(
         "shared-volume/essential",  # hardcoded in cmd, see yml
-        sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-essential"),
+        "nobody",
+        agent_host=old_tasks[0].host,
     )
 
-    # wait for ids to change...
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0", old_ids)
+    # wait for both task ids to change...
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0", [t.id for t in old_tasks])
     # ...and for tasks to be up and running
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
@@ -54,19 +55,21 @@ def test_kill_nonessential():
     """kill the nonessential task, verify that the nonessential task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
 
-    old_essential_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-essential")
-    assert len(old_essential_ids) == 1
-    old_nonessential_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-nonessential")
-    assert len(old_nonessential_ids) == 1
+    old_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "hello-0")
+    assert len(old_tasks) == 2
+    old_essential_task = [t for t in old_tasks if t.name == "hello-0-essential"][0]
+    old_nonessential_task = [t for t in old_tasks if t.name == "hello-0-nonessential"][0]
 
+    # kill the nonessential task process. both tasks are in the same pod, so same host:
     sdk_cmd.kill_task_with_pattern(
         "shared-volume/nonessential",  # hardcoded in cmd, see yml
-        sdk_hosts.system_host(config.SERVICE_NAME, "hello-0-nonessential"),
+        "nobody",
+        agent_host=old_nonessential_task.host,
     )
 
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0-nonessential", old_nonessential_ids)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0-nonessential", [old_nonessential_task.id])
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
-    sdk_tasks.check_tasks_not_updated(config.SERVICE_NAME, "hello-0-essential", old_essential_ids)
+    sdk_tasks.check_tasks_not_updated(config.SERVICE_NAME, "hello-0-essential", [old_essential_task.id])
 
     # the first verify_shared_executor call deleted the files. only the nonessential file came back via its relaunch.
     verify_shared_executor("hello-0", expected_files=["nonessential"])
@@ -79,10 +82,16 @@ def verify_shared_executor(
     - matching ExecutorInfo
     - both 'essential' and 'nonessential' present in shared-volume/ across both tasks
     """
-    tasks = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info {}".format(pod_name), json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "pod info {}".format(pod_name), print_output=False
     )
-    assert len(tasks) == 2
+    assert rc == 0, "Pod info failed"
+    try:
+        tasks = json.loads(stdout)
+    except Exception:
+        log.exception("Failed to parse pod info: {}".format(stdout))
+        assert False, "Failed to parse pod info, see above"
+    assert len(tasks) == 2, "Expected 2 tasks: {}".format(stdout)
 
     # check that the task executors all match
     executor = tasks[0]["info"]["executor"]
@@ -93,7 +102,7 @@ def verify_shared_executor(
     task_names = [task["info"]["name"] for task in tasks]
     for task_name in task_names:
         # 1.9 just uses the host filesystem in 'task exec', so use 'task ls' across the board instead
-        filenames = sdk_cmd.run_cli("task ls {} shared-volume/".format(task_name)).strip().split()
+        filenames = sdk_cmd.run_cli("task ls {} shared-volume/".format(task_name))[1].strip().split()
         assert set(expected_files) == set(filenames)
 
     # delete files from volume in preparation for a following task relaunch

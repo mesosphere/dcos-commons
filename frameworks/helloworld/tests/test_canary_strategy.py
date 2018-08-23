@@ -1,7 +1,8 @@
+import json
 import logging
-
 import pytest
 import retrying
+
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -43,9 +44,9 @@ def test_canary_init():
     @retrying.retry(wait_fixed=1000, stop_max_delay=600 * 1000, retry_on_result=lambda res: not res)
     def wait_for_empty():
         # check for empty list internally rather than returning empty list.
-        return (
-            sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list", json=True) == []
-        )
+        rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
+        assert rc == 0, "Pod list failed"
+        return json.loads(stdout) == []
 
     wait_for_empty()
 
@@ -81,10 +82,9 @@ def test_canary_first():
 
     expected_tasks = ["hello-0"]
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert (
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list", json=True)
-        == expected_tasks
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
+    assert rc == 0, "Pod list failed"
+    assert json.loads(stdout) == expected_tasks
 
     # do not use service_plan always
     # when here, plan should always return properly
@@ -132,10 +132,9 @@ def test_canary_plan_continue_noop():
         pass  # expected
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
-    assert (
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list", json=True)
-        == expected_tasks
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
+    assert rc == 0, "Pod list failed"
+    assert json.loads(stdout) == expected_tasks
 
 
 @pytest.mark.sanity
@@ -157,10 +156,9 @@ def test_canary_second():
         pass  # expected
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
-    assert (
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list", json=True)
-        == expected_tasks
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
+    assert rc == 0, "Pod list failed"
+    assert json.loads(stdout) == expected_tasks
 
     pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     log.info(pl)
@@ -194,10 +192,9 @@ def test_canary_third():
 
     expected_tasks = ["hello-0", "hello-1", "hello-2", "hello-3", "world-0"]
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert (
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list", json=True)
-        == expected_tasks
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
+    assert rc == 0, "Pod list failed"
+    assert json.loads(stdout) == expected_tasks
 
     pl = sdk_plan.wait_for_completed_phase(config.SERVICE_NAME, "deploy", "hello-deploy")
     log.info(pl)
@@ -240,10 +237,9 @@ def test_canary_fourth():
         "world-3",
     ]
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert (
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list", json=True)
-        == expected_tasks
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
+    assert rc == 0, "Pod list failed"
+    assert json.loads(stdout) == expected_tasks
 
     pl = sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, "deploy")
     log.info(pl)
@@ -293,10 +289,9 @@ def test_increase_count():
     except Exception:
         pass  # expected to fail
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert (
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list", json=True)
-        == expected_tasks
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
+    assert rc == 0, "Pod list failed"
+    assert json.loads(stdout) == expected_tasks
 
     pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, "deploy", "WAITING")
     log.info(pl)
@@ -338,10 +333,9 @@ def test_increase_count():
         "world-3",
     ]
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert (
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list", json=True)
-        == expected_tasks
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
+    assert rc == 0, "Pod list failed"
+    assert json.loads(stdout) == expected_tasks
 
     pl = sdk_plan.wait_for_plan_status(config.SERVICE_NAME, "deploy", "COMPLETE")
     log.info(pl)
@@ -414,10 +408,10 @@ def test_increase_cpu():
         "world-3",
     ]
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
-    assert (
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list", json=True)
-        == expected_tasks
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
+    assert rc == 0, "Pod list failed"
+    assert json.loads(stdout) == expected_tasks
+
     assert hello_0_ids == sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-server")
 
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "plan continue deploy hello-deploy")

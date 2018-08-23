@@ -8,9 +8,9 @@ import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
+import sdk_networks
 import sdk_security
 import sdk_utils
-import sdk_networks
 
 from security import kerberos as krb5
 
@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 
 pytestmark = [
-    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"),
+    sdk_utils.dcos_ee_only,
     pytest.mark.skipif(
         sdk_utils.dcos_version_less_than("1.10"),
         reason="Kerberos tests require DC/OS 1.10 or higher",
@@ -160,7 +160,6 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server,
             kafka_server["package_name"],
             kafka_server["service"]["name"],
             "topic create {}".format(topic_name),
-            json=True,
         )
 
         kafka_client.connect(kafka_server)
@@ -269,7 +268,6 @@ def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_ser
             kafka_server["package_name"],
             kafka_server["service"]["name"],
             "topic create {}".format(topic_name),
-            json=True,
         )
 
         kafka_client.connect(kafka_server)

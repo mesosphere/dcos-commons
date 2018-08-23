@@ -1,15 +1,14 @@
 import json
 import logging
-
 import retrying
-import shakedown
 
 import sdk_cmd
 import sdk_hosts
 import sdk_marathon
+import sdk_networks
 import sdk_plan
 import sdk_tasks
-import sdk_networks
+import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -73,10 +72,10 @@ DEFAULT_SETTINGS_MAPPINGS = {
 )
 def check_kibana_adminrouter_integration(path):
     curl_cmd = 'curl -I -k -H "Authorization: token={}" -s {}/{}'.format(
-        shakedown.dcos_acs_token(), shakedown.dcos_url().rstrip("/"), path.lstrip("/")
+        sdk_utils.dcos_token(), sdk_utils.dcos_url().rstrip("/"), path.lstrip("/")
     )
-    exit_ok, output = sdk_cmd.master_ssh(curl_cmd)
-    return exit_ok and output and "HTTP/1.1 200" in output
+    rc, stdout, _ = sdk_cmd.master_ssh(curl_cmd)
+    return rc == 0 and stdout and "HTTP/1.1 200" in stdout
 
 
 @retrying.retry(
@@ -213,7 +212,7 @@ def set_xpack(is_enabled, service_name=SERVICE_NAME):
 def update_app(service_name, options, expected_task_count):
     config = sdk_marathon.get_config(service_name)
     config["env"].update(options)
-    sdk_marathon.update_app(service_name, config)
+    sdk_marathon.update_app(config)
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_tasks.check_running(service_name, expected_task_count)
 
@@ -298,11 +297,14 @@ def _curl_query(
 
 
 def _master_zero_http_port(service_name):
+    '''Returns a master node hostname+port endpoint that can be queried from within the cluster.
+    We cannot cache this value because while the hostnames remain static, the ports are dynamic and may change if the master is replaced.
+    '''
     dns = sdk_networks.get_endpoint(PACKAGE_NAME, service_name, "master-http")["dns"]
     # 'dns' array will look something like this in CCM: [
-    #   "master-0-node.elastic.[...]:1025",
-    #   "master-1-node.elastic.[...]:1025",
-    #   "master-2-node.elastic.[...]:1025"
+    #   "master-0-node.[svcname].[...autoip...]:1027",
+    #   "master-1-node.[svcname].[...autoip...]:1026",
+    #   "master-2-node.[svcname].[...autoip...]:1025"
     # ]
 
     port = dns[0].split(":")[-1]

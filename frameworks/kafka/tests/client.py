@@ -7,8 +7,8 @@ import uuid
 import sdk_auth
 import sdk_cmd
 import sdk_marathon
-import sdk_utils
 import sdk_networks
+import sdk_utils
 
 from tests import auth
 from tests import test_utils
@@ -27,17 +27,15 @@ class KafkaService:
         self._package_name = service_options["package_name"]
         self._service_name = service_options["service"]["name"]
 
-    def get_zookeeper_connect(self) -> str:
+    def get_zookeeper_endpoint(self) -> str:
         return sdk_networks.get_endpoint_string(
             self._package_name, self._service_name, "zookeeper"
         )
 
-    def get_brokers_endpoints(self, endpoint_name: str) -> list:
-        brokers = sdk_networks.get_endpoint(
+    def get_endpoint_dns(self, endpoint_name: str) -> list:
+        return sdk_networks.get_endpoint(
             self._package_name, self._service_name, endpoint_name
         )["dns"]
-
-        return brokers
 
     def wait_for_topic(self, topic_name: str):
         if not topic_name:
@@ -135,7 +133,7 @@ class KafkaClient:
         service = KafkaService(kafka_server)
 
         if not self.brokers:
-            brokers_list = service.get_brokers_endpoints(self.get_endpoint_name())
+            brokers_list = service.get_endpoint_dns(self.get_endpoint_name())
             broker_hosts = map(lambda b: b.split(":")[0], brokers_list)
             brokers = ",".join(brokers_list)
 
@@ -203,11 +201,11 @@ class KafkaClient:
 
         # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
         environment = None
-        topics.add_acls(user, self.id, topic_name, service.get_zookeeper_connect(), environment)
+        topics.add_acls(user, self.id, topic_name, service.get_zookeeper_endpoint(), environment)
 
     def remove_acls(self, user: str, kafka_server: dict, topic_name: str):
         service = KafkaService(kafka_server)
 
         # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
         environment = None
-        topics.remove_acls(user, self.id, topic_name, service.get_zookeeper_connect(), environment)
+        topics.remove_acls(user, self.id, topic_name, service.get_zookeeper_endpoint(), environment)

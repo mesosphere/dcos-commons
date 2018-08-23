@@ -5,20 +5,16 @@ FOR THE TIME BEING WHATEVER MODIFICATIONS ARE APPLIED TO THIS FILE
 SHOULD ALSO BE APPLIED TO sdk_install IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
+import json
 import logging
 import time
-
-import dcos.cosmos
-import dcos.errors
-import dcos.marathon
-import dcos.packagemanager
-import dcos.subcommand
 import retrying
-import shakedown
+import tempfile
 
 import sdk_cmd
 import sdk_marathon
 import sdk_plan
+import sdk_tasks
 import sdk_utils
 
 log = logging.getLogger(__name__)
@@ -26,7 +22,7 @@ log = logging.getLogger(__name__)
 TIMEOUT_SECONDS = 15 * 60
 
 """List of services which are currently installed via install().
-Used by post-test diagnostics to retrieve stuff from currently running services."""
+Used by post - test diagnostics to retrieve stuff from currently running services."""
 _installed_service_names = set([])
 
 """List of dead agents which should be ignored when checking for orphaned resources.
@@ -39,9 +35,7 @@ def get_installed_service_names() -> set:
     return _installed_service_names
 
 
-@retrying.retry(
-    stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, dcos.errors.DCOSException)
-)
+@retrying.retry(stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, Exception))
 def _retried_install_impl(
     package_name,
     service_name,
@@ -50,14 +44,6 @@ def _retried_install_impl(
     package_version=None,
     timeout_seconds=TIMEOUT_SECONDS,
 ):
-    """Cleaned up version of shakedown's package_install()."""
-    package_manager = dcos.packagemanager.PackageManager(dcos.cosmos.get_cosmos_url())
-    pkg = package_manager.get_package_version(package_name, package_version)
-
-    if package_version is None:
-        # Get the resolved version for logging below
-        package_version = "auto:{}".format(pkg.version())
-
     log.info(
         "Installing package={} service={} with options={} version={}".format(
             package_name, service_name, options, package_version
@@ -66,25 +52,33 @@ def _retried_install_impl(
 
     # Trigger package install, but only if it's not already installed.
     # We expect upstream to have confirmed that it wasn't already installed beforehand.
-    if sdk_marathon.app_exists(service_name):
-        log.info("Marathon app={} exists, skipping package install call".format(service_name))
-    else:
-        package_manager.install_app(pkg, options)
+    install_cmd = ["package", "install", package_name, "--yes"]
 
-    # Install CLI while package starts to install
-    if pkg.cli_definition():
-        log.info("Installing CLI for package={}".format(package_name))
-        dcos.subcommand.install(pkg)
+    if package_version:
+        install_cmd.append("--package-version={}".format(package_version))
+
+    if sdk_marathon.app_exists(service_name):
+        log.info(
+            "Marathon app={} exists, ensuring CLI for package={} is installed".format(
+                service_name, package_name
+            )
+        )
+        install_cmd.append("--cli")
+    elif options:
+        # Write options to a temporary json file to be accessed by the CLI:
+        options_file = tempfile.NamedTemporaryFile("w")
+        json.dump(options, options_file)
+        options_file.flush()  # ensure content is available for the CLI to read below
+        install_cmd.append("--options={}".format(options_file.name))
+
+    sdk_cmd.run_cli(" ".join(install_cmd), check=True)
 
     # Wait for expected tasks to come up
     if expected_running_tasks > 0:
-        shakedown.wait_for_service_tasks_running(
-            service_name, expected_running_tasks, timeout_seconds
-        )
+        sdk_tasks.check_running(service_name, expected_running_tasks, timeout_seconds)
 
     # Wait for completed marathon deployment
-    app_id = pkg.marathon_json(options).get("id")
-    shakedown.deployment_wait(timeout_seconds, app_id)
+    sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
 
 
 def install(
@@ -145,7 +139,7 @@ def install(
 
     log.info(
         "Installed package={} service={} after {}".format(
-            package_name, service_name, shakedown.pretty_duration(time.time() - start)
+            package_name, service_name, sdk_utils.pretty_duration(time.time() - start)
         )
     )
 
@@ -159,8 +153,6 @@ def install(
     retry_on_exception=lambda e: isinstance(e, Exception),
 )
 def _retried_run_janitor(service_name):
-    auth_token = sdk_cmd.run_cli("config show core.dcos_acs_token", print_output=False).strip()
-
     cmd_list = [
         "docker",
         "run",
@@ -172,10 +164,10 @@ def _retried_run_janitor(service_name):
         service_name + "-principal",
         "-z",
         sdk_utils.get_zk_path(service_name),
-        "--auth_token={}".format(auth_token),
+        "--auth_token={}".format(sdk_utils.dcos_token()),
     ]
-
-    sdk_cmd.master_ssh(" ".join(cmd_list))
+    rc, _, _ = sdk_cmd.master_ssh(" ".join(cmd_list))
+    assert rc == 0, "Janitor command failed"
 
 
 @retrying.retry(
@@ -183,8 +175,42 @@ def _retried_run_janitor(service_name):
     wait_fixed=5000,
     retry_on_exception=lambda e: isinstance(e, Exception),
 )
-def _retried_uninstall_package_and_wait(*args, **kwargs):
-    shakedown.uninstall_package_and_wait(*args, **kwargs)
+def _retried_uninstall_package_and_wait(package_name, service_name):
+    if sdk_marathon.app_exists(service_name):
+        log.info("Uninstalling package {} with service name {}".format(package_name, service_name))
+        sdk_cmd.run_cli(
+            "package uninstall {} --app-id={} --yes".format(package_name, service_name), check=True
+        )
+
+        # Wait on the app no longer being listed in Marathon, at which point it is uninstalled.
+        # At the same time, log the deploy plan state as we wait for the app to finish uninstalling.
+        @retrying.retry(
+            stop_max_delay=TIMEOUT_SECONDS * 1000,
+            wait_fixed=5000,
+            retry_on_result=lambda result: not result,
+        )
+        def wait_for_removal_log_deploy_plan():
+            if not sdk_marathon.app_exists(service_name):
+                return True
+
+            # App still exists, print the deploy plan. Best effort: It is expected for the scheduler
+            # to become unavailable once uninstall completes.
+            try:
+                log.info(
+                    sdk_plan.plan_string("deploy", sdk_plan.get_plan_once(service_name, "deploy"))
+                )
+            except Exception:
+                pass  # best effort attempt at logging plan content
+            return False
+
+        log.info("Waiting for {} to be removed".format(service_name))
+        wait_for_removal_log_deploy_plan()
+    else:
+        log.info(
+            'Skipping uninstall of package {}/service {}: App named "{}" doesn\'t exist'.format(
+                package_name, service_name, service_name
+            )
+        )
 
 
 def _verify_completed_uninstall(service_name):
@@ -198,6 +224,7 @@ def _verify_completed_uninstall(service_name):
         # resources should be grouped by role. check for any resources in our expected role:
         matching_reserved_resources = agent["reserved_resources"].get(service_role)
         if matching_reserved_resources:
+            global _dead_agent_hosts
             if agent["hostname"] in _dead_agent_hosts:
                 # The test told us ahead of time to expect orphaned resources on this host.
                 log.info(
@@ -258,6 +285,7 @@ def ignore_dead_agent(agent_host):
     """Marks the specified agent as destroyed. When uninstall() is next called, any orphaned
     resources against this agent will be logged but will not result in a thrown exception.
     """
+    global _dead_agent_hosts
     _dead_agent_hosts.add(agent_host)
     log.info(
         "Added {} to expected dead agents for resource validation purposes: {}".format(
@@ -277,7 +305,7 @@ def uninstall(package_name, service_name):
     log.info("Uninstalling {}".format(service_name))
 
     try:
-        _retried_uninstall_package_and_wait(package_name, service_name=service_name)
+        _retried_uninstall_package_and_wait(package_name, service_name)
     except Exception:
         log.exception("Got exception when uninstalling {}".format(service_name))
         raise
@@ -289,12 +317,6 @@ def uninstall(package_name, service_name):
             # 1.9 and earlier: Run janitor to unreserve resources
             log.info("Janitoring {}".format(service_name))
             _retried_run_janitor(service_name)
-        else:
-            # 1.10 and later: Wait for uninstall scheduler to finish and be removed by Cosmos
-            log.info("Waiting for Marathon app to be removed {}".format(service_name))
-            sdk_marathon.retried_wait_for_deployment_and_app_removal(
-                sdk_marathon.get_app_id(service_name), timeout=TIMEOUT_SECONDS
-            )
     except Exception:
         log.exception("Got exception when cleaning up {}".format(service_name))
         raise
@@ -304,9 +326,9 @@ def uninstall(package_name, service_name):
     log.info(
         "Uninstalled {} after pkg({}) + cleanup({}) = total({})".format(
             service_name,
-            shakedown.pretty_duration(cleanup_start - start),
-            shakedown.pretty_duration(finish - cleanup_start),
-            shakedown.pretty_duration(finish - start),
+            sdk_utils.pretty_duration(cleanup_start - start),
+            sdk_utils.pretty_duration(finish - cleanup_start),
+            sdk_utils.pretty_duration(finish - start),
         )
     )
 

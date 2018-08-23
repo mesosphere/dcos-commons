@@ -1,15 +1,17 @@
+import json
 import pytest
-import sdk_networks
+
 import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_metrics
+import sdk_networks
 import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import shakedown
+
 from tests import config, test_utils
 
 
@@ -32,12 +34,6 @@ def configure_package(configure_security):
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-
-
-@pytest.mark.sanity
-@pytest.mark.smoke
-def test_service_health():
-    assert shakedown.service_healthy(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 # --------- Endpoints -------------
@@ -85,7 +81,7 @@ def test_custom_zookeeper():
     # use a custom zk path that's WITHIN the 'dcos-service-' path, so that it's automatically cleaned up in uninstall:
     zk_path = "master.mesos:2181/{}/CUSTOMPATH".format(sdk_utils.get_zk_path(foldered_name))
     marathon_config["env"]["KAFKA_ZOOKEEPER_URI"] = zk_path
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
 
     sdk_tasks.check_tasks_updated(foldered_name, "{}-".format(config.DEFAULT_POD_TYPE), broker_ids)
     sdk_plan.wait_for_completed_deployment(foldered_name)
@@ -99,9 +95,10 @@ def test_custom_zookeeper():
     assert zookeeper == zk_path
 
     # topic created earlier against default zk should no longer be present:
-    topic_list_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "topic list", json=True)
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "topic list")
+    assert rc == 0, "Topic list command failed"
 
-    test_utils.assert_topic_lists_are_equal_without_automatic_topics([], topic_list_info)
+    test_utils.assert_topic_lists_are_equal_without_automatic_topics([], json.loads(stdout))
 
     # tests from here continue with the custom ZK path...
 
@@ -112,30 +109,25 @@ def test_custom_zookeeper():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_broker_list():
-    brokers = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
         "broker list",
-        json=True,
     )
-    assert set(brokers) == set([str(i) for i in range(config.DEFAULT_BROKER_COUNT)])
+    assert rc == 0, "Broker list command failed"
+    assert set(json.loads(stdout)) == set([str(i) for i in range(config.DEFAULT_BROKER_COUNT)])
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_broker_invalid():
-    try:
-        sdk_cmd.svc_cli(
-            config.PACKAGE_NAME,
-            sdk_utils.get_foldered_name(config.SERVICE_NAME),
-            "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1),
-            json=True,
-        )
-        assert False, "Should have failed"
-    except AssertionError as arg:
-        raise arg
-    except Exception:
-        pass  # expected to fail
+    rc, stdout, stderr = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1),
+    )
+    assert rc != 0, "Invalid broker id should have failed"
+    assert "Got 404" in stderr
 
 
 # --------- Pods -------------
@@ -172,6 +164,7 @@ def test_metrics():
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        "kafka-0",
         "kafka-0-broker",
         config.DEFAULT_KAFKA_TIMEOUT,
         expected_metrics_exist,

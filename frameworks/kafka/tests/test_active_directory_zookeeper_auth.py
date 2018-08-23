@@ -8,8 +8,8 @@ import pytest
 import sdk_cmd
 import sdk_install
 import sdk_marathon
-import sdk_utils
 import sdk_networks
+import sdk_utils
 
 from tests import active_directory
 from tests import auth
@@ -159,7 +159,6 @@ def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
         kafka_server["package_name"],
         kafka_server["service"]["name"],
         "topic create {}".format(topic_name),
-        json=True,
     )
 
     test_utils.wait_for_topic(

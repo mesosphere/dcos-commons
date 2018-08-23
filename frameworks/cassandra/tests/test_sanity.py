@@ -3,10 +3,10 @@ import sdk_hosts
 import sdk_install
 import sdk_jobs
 import sdk_metrics
+import sdk_networks
 import sdk_plan
 import sdk_upgrade
-import sdk_networks
-import shakedown
+
 from tests import config
 
 
@@ -33,12 +33,6 @@ def configure_package(configure_security):
 
         for job in test_jobs:
             sdk_jobs.remove_job(job)
-
-
-@pytest.mark.sanity
-@pytest.mark.smoke
-def test_service_health():
-    assert shakedown.service_healthy(config.get_foldered_service_name())
 
 
 @pytest.mark.sanity
@@ -93,6 +87,7 @@ def test_metrics():
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         config.get_foldered_service_name(),
+        "node-0",
         "node-0-server",
         config.DEFAULT_CASSANDRA_TIMEOUT,
         expected_metrics_exist,

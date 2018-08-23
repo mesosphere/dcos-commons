@@ -25,6 +25,6 @@ def test_uninstall():
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     env = marathon_config["env"]
     env["SDK_UNINSTALL"] = "w00t"
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     sdk_tasks.check_running(config.SERVICE_NAME, 0, allow_more=False)

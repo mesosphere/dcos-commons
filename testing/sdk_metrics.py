@@ -9,11 +9,10 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 """
 import json
 import logging
-
 import retrying
-import shakedown
 
 import sdk_cmd
+import sdk_tasks
 
 log = logging.getLogger(__name__)
 
@@ -75,7 +74,7 @@ def wait_for_scheduler_counter_value(
     return check_for_value()
 
 
-def get_metrics(package_name, service_name, task_name):
+def get_metrics(package_name, service_name, pod_name, task_name):
     """Return a list of DC/OS metrics datapoints.
 
     Keyword arguments:
@@ -83,36 +82,38 @@ def get_metrics(package_name, service_name, task_name):
     service_name -- the name of the service to get metrics for
     task_name -- the name of the task whose agent to run metrics commands from
     """
-    tasks = shakedown.get_service_tasks(service_name)
+
+    # Find task entry in mesos state:
+    tasks = sdk_tasks.get_service_tasks(service_name)
     for task in tasks:
-        if task["name"] == task_name:
+        if task.name == task_name:
             task_to_check = task
-
+            break
     if task_to_check is None:
-        raise Exception("Could not find task")
+        raise Exception(
+            "Task named {} not found in service {}: {}".format(task_name, service_name, tasks)
+        )
 
-    agent_id = task_to_check["slave_id"]
-    executor_id = task_to_check["executor_id"]
-
-    pod_name = "-".join(task_name.split("-")[:2])
-    pod_info = sdk_cmd.svc_cli(
-        package_name, service_name, "pod info {}".format(pod_name), json=True
+    # Find task's container id via recent TaskStatus:
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        package_name, service_name, "pod info {}".format(pod_name), print_output=False
     )
-    task_info = None
+    assert rc == 0, "Pod info failed"
+    pod_info = json.loads(stdout)
+    task_container_id = None
     for task in pod_info:
         if task["info"]["name"] == task_name:
-            task_info = task
+            task_container_id = task["status"]["containerStatus"]["containerId"]["value"]
             break
-
-    if not task_info:
+    if task_container_id is None:
+        log.warning("Task named {} not found in pod {}: {}".format(task_name, pod_name, pod_info))
         return []
 
-    task_container_id = task_info["status"]["containerStatus"]["containerId"]["value"]
-
-    # Not related to functionality but consuming this
-    # endpoint to verify downstream integrity
+    # Not related to functionality, but consuming this endpoint to verify metrics integrity
     containers_response = sdk_cmd.cluster_request(
-        "GET", "/system/v1/agent/{}/metrics/v0/containers".format(agent_id), retry=False
+        "GET",
+        "/system/v1/agent/{}/metrics/v0/containers".format(task_to_check.agent_id),
+        retry=False,
     )
     reported_container_ids = json.loads(containers_response.text)
 
@@ -120,24 +121,26 @@ def get_metrics(package_name, service_name, task_name):
     for container_id in reported_container_ids:
         if container_id == task_container_id:
             container_id_reported = True
-
+            break
     if not container_id_reported:
         raise ValueError(
-            "The metrics /container endpoint returned {}, expecting {} to be returned as well".format(
-                reported_container_ids, task_container_id
+            "The metrics /container endpoint returned {} for agent {}, expected {} to be returned as well".format(
+                reported_container_ids, task_to_check.agent_id, task_container_id
             )
         )
 
     app_response = sdk_cmd.cluster_request(
         "GET",
-        "/system/v1/agent/{}/metrics/v0/containers/{}/app".format(agent_id, task_container_id),
+        "/system/v1/agent/{}/metrics/v0/containers/{}/app".format(
+            task_to_check.agent_id, task_container_id
+        ),
         retry=False,
     )
     app_json = json.loads(app_response.text)
-    if app_json["dimensions"]["executor_id"] == executor_id:
+    if app_json["dimensions"]["executor_id"] == task_to_check.executor_id:
         return app_json["datapoints"]
 
-    raise Exception("No metrics found")
+    raise Exception("No metrics found for task {} in service {}".format(task_name, service_name))
 
 
 def check_metrics_presence(emitted_metrics, expected_metrics):
@@ -158,7 +161,7 @@ def check_metrics_presence(emitted_metrics, expected_metrics):
 
 
 def wait_for_service_metrics(
-    package_name, service_name, task_name, timeout, expected_metrics_exist
+    package_name, service_name, pod_name, task_name, timeout, expected_metrics_callback
 ):
     """Checks that the service is emitting the expected values into DC/OS Metrics.
     The assumption is that if the expected metrics are being emitted then so
@@ -168,7 +171,7 @@ def wait_for_service_metrics(
     package_name -- the name of the package the service is using
     service_name -- the name of the service to get metrics for
     task_name -- the name of the task whose agent to run metrics commands from
-    expected_metrics_exist -- serivce-specific callback that checks for service-specific metrics
+    expected_metrics_callback -- service-specific callback that checks for service-specific metrics
     """
 
     @retrying.retry(
@@ -176,10 +179,12 @@ def wait_for_service_metrics(
     )
     def check_for_service_metrics():
         try:
-            log.info("verifying metrics exist for {}".format(service_name))
-            service_metrics = get_metrics(package_name, service_name, task_name)
+            log.info(
+                "Verifying metrics exist for task {} in service {}".format(task_name, service_name)
+            )
+            service_metrics = get_metrics(package_name, service_name, pod_name, task_name)
             emitted_metric_names = [metric["name"] for metric in service_metrics]
-            return expected_metrics_exist(emitted_metric_names)
+            return expected_metrics_callback(emitted_metric_names)
 
         except Exception as e:
             log.error("Caught exception trying to get metrics: {}".format(e))

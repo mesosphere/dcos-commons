@@ -34,6 +34,12 @@ RUN apt-get update && \
 ENV PATH=$PATH:/usr/local/go/bin
 RUN go version
 
+# Get DC/OS CLI
+RUN curl -O https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.12/dcos && \
+    chmod +x dcos && \
+    mv dcos /usr/local/bin && \
+    dcos --version
+
 # AWS CLI for uploading build artifacts
 RUN pip3 install awscli
 # Install the lint+testing dependencies
@@ -52,7 +58,7 @@ RUN mkdir /tmp/repo/
 COPY / /tmp/repo/
 # gradlew: Heat up jar cache. pre-commit: Heat up lint tooling cache.
 RUN cd /tmp/repo/ && \
-    ./gradlew classes && \
+    ./gradlew testClasses && \
     pre-commit install-hooks && \
     cd / && \
     rm -rf /tmp/repo/

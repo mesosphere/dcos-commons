@@ -8,9 +8,9 @@ import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
+import sdk_networks
 import sdk_security
 import sdk_utils
-import sdk_networks
 
 from security import kerberos as krb5
 
@@ -20,7 +20,7 @@ from tests import config
 
 
 pytestmark = [
-    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"),
+    sdk_utils.dcos_ee_only,
     pytest.mark.skipif(
         sdk_utils.dcos_version_less_than("1.10"),
         reason="Kerberos tests require DC/OS 1.10 or higher",
@@ -170,7 +170,6 @@ def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_serve
         kafka_server["package_name"],
         kafka_server["service"]["name"],
         "topic create {}".format(topic_name),
-        json=True,
     )
 
     kafka_client.connect(kafka_server)

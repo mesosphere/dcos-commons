@@ -6,12 +6,11 @@ import sdk_hosts
 import sdk_install
 import sdk_marathon
 import sdk_metrics
+import sdk_networks
 import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import sdk_networks
-import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -64,12 +63,6 @@ def default_populated_index():
     )
 
 
-@pytest.mark.smoke
-@pytest.mark.sanity
-def test_service_health():
-    assert shakedown.service_healthy(foldered_name)
-
-
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_pod_replace_then_immediate_config_update():
@@ -82,7 +75,7 @@ def test_pod_replace_then_immediate_config_update():
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace data-0")
 
     # issue config update immediately
-    sdk_marathon.update_app(foldered_name, cfg)
+    sdk_marathon.update_app(cfg)
 
     # ensure all nodes, especially data-0, get launched with the updated config
     config.check_elasticsearch_plugin_installed(plugin_name, service_name=foldered_name)
@@ -143,6 +136,7 @@ def test_metrics():
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         foldered_name,
+        "data-0",
         "data-0-node",
         config.DEFAULT_TIMEOUT,
         expected_metrics_exist,
@@ -179,6 +173,8 @@ def test_xpack_toggle_with_kibana(default_populated_index):
 
     log.info("\n***** Test kibana with X-Pack disabled...")
     elasticsearch_url = "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200)
+    # It can take several minutes for kibana's health check to start passing once it's running.
+    # Therefore we use a 30m timeout instead of the 15m default.
     sdk_install.install(
         config.KIBANA_PACKAGE_NAME,
         config.KIBANA_PACKAGE_NAME,
@@ -258,8 +254,10 @@ def test_losing_and_regaining_index_health(default_populated_index):
     config.check_elasticsearch_index_health(
         config.DEFAULT_INDEX_NAME, "green", service_name=foldered_name
     )
-    shakedown.kill_process_on_host(
-        sdk_hosts.system_host(foldered_name, "data-0-node"), "data__.*Elasticsearch"
+    sdk_cmd.kill_task_with_pattern(
+        "data__.*Elasticsearch",
+        "nobody",
+        agent_host=sdk_tasks.get_service_tasks(foldered_name, "data-0-node")[0].host,
     )
     config.check_elasticsearch_index_health(
         config.DEFAULT_INDEX_NAME, "yellow", service_name=foldered_name
@@ -276,8 +274,10 @@ def test_losing_and_regaining_index_health(default_populated_index):
 @pytest.mark.sanity
 def test_master_reelection():
     initial_master = config.get_elasticsearch_master(service_name=foldered_name)
-    shakedown.kill_process_on_host(
-        sdk_hosts.system_host(foldered_name, initial_master), "master__.*Elasticsearch"
+    sdk_cmd.kill_task_with_pattern(
+        "master__.*Elasticsearch",
+        "nobody",
+        agent_host=sdk_tasks.get_service_tasks(foldered_name, initial_master)[0].host,
     )
     sdk_plan.wait_for_in_progress_recovery(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
@@ -319,7 +319,7 @@ def test_coordinator_node_replace():
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
 def test_plugin_install_and_uninstall(default_populated_index):
-    plugin_name = "analysis-phonetic"
+    plugin_name = "analysis-icu"
     config.update_app(
         foldered_name,
         {"TASKCFG_ALL_ELASTICSEARCH_PLUGINS": plugin_name},
@@ -345,7 +345,7 @@ def test_bump_node_counts():
     marathon_config["env"]["INGEST_NODE_COUNT"] = str(ingest_nodes + 1)
     coordinator_nodes = int(marathon_config["env"]["COORDINATOR_NODE_COUNT"])
     marathon_config["env"]["COORDINATOR_NODE_COUNT"] = str(coordinator_nodes + 1)
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     global current_expected_task_count
     current_expected_task_count += 2
@@ -363,7 +363,7 @@ def test_adding_data_node_only_restarts_masters():
     marathon_config = sdk_marathon.get_config(foldered_name)
     data_nodes = int(marathon_config["env"]["DATA_NODE_COUNT"])
     marathon_config["env"]["DATA_NODE_COUNT"] = str(data_nodes + 1)
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     global current_expected_task_count
     current_expected_task_count += 1

@@ -46,7 +46,7 @@ def run_plan(plan_name, params=None):
     sdk_plan.start_plan(config.SERVICE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, plan_name)
-    log.info("sidecar plan: " + str(started_plan))
+    log.info(sdk_plan.plan_string(plan_name, started_plan))
     assert len(started_plan["phases"]) == 1
     assert started_plan["phases"][0]["name"] == plan_name + "-deploy"
     assert len(started_plan["phases"][0]["steps"]) == 1

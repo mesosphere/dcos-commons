@@ -32,8 +32,6 @@ log = logging.getLogger(__name__)
 
 KERBEROS_APP_ID = "kdc"
 DCOS_BASE64_PREFIX = "__dcos_base64__"
-LINUX_USER = "core"
-KERBEROS_CONF = "krb5.conf"
 REALM = "LOCAL"
 
 # Note: Some of the helper functions in this module are wrapped in basic retry logic to provide some
@@ -46,7 +44,7 @@ def _get_kdc_task(task_name: str) -> dict:
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
     log.info("Getting KDC task")
-    raw_tasks = sdk_cmd.run_cli("task --json", print_output=False)
+    _, raw_tasks, _ = sdk_cmd.run_cli("task --json", print_output=False)
     if raw_tasks:
         tasks = json.loads(raw_tasks)
         for task in tasks:
@@ -68,7 +66,7 @@ def _get_host_name(host_id: str) -> str:
     :return (str): Name of the host running the KDC app.
     """
     log.info("Getting hostname")
-    raw_nodes = sdk_cmd.run_cli("node --json")
+    _, raw_nodes, _ = sdk_cmd.run_cli("node --json")
     if raw_nodes:
         nodes = json.loads(raw_nodes)
         for node in nodes:
@@ -84,7 +82,7 @@ def _get_master_public_ip() -> str:
     """
     :return (str): The public IP of the master node in the DC/OS cluster.
     """
-    response = sdk_cmd.cluster_request("GET", "/metadata", verify=False).json()
+    response = sdk_cmd.cluster_request("GET", "/metadata").json()
     if "PUBLIC_IPV4" not in response:
         raise KeyError(
             "Cluster metadata does not include master's public ip: {response}".format(
@@ -196,16 +194,6 @@ class KerberosEnvironment:
         return kdc_app_def
 
     def install(self) -> dict:
-        @retrying.retry(
-            stop_max_delay=3 * 60 * 1000,
-            wait_exponential_multiplier=1000,
-            wait_exponential_max=120 * 1000,
-            retry_on_result=lambda result: not result,
-        )
-        def _install_marathon_app(app_definition):
-            success, _ = sdk_marathon.install_app(app_definition)
-            return success
-
         if sdk_marathon.app_exists(self.app_definition["id"]):
             if self._persist:
                 log.info("Found installed KDC app, reusing it")
@@ -214,7 +202,7 @@ class KerberosEnvironment:
             sdk_marathon.destroy_app(self.app_definition["id"])
 
         log.info("Installing KDC Marathon app")
-        _install_marathon_app(self.app_definition)
+        sdk_marathon.install_app(self.app_definition)
         log.info("KDC app installed successfully")
 
         return _get_kdc_task(self.app_definition["id"])
@@ -413,14 +401,7 @@ class KerberosEnvironment:
 
         create_secret_cmd = " ".join(cmd_list)
         log.info("Creating secret %s: %s", self.get_keytab_path(), create_secret_cmd)
-        rc, stdout, stderr = sdk_cmd.run_raw_cli(create_secret_cmd)
-        if rc != 0:
-            raise RuntimeError(
-                "Failed ({}) to create secret: {}\nstdout: {}\nstderr: {}".format(
-                    rc, create_secret_cmd, stdout, stderr
-                )
-            )
-
+        sdk_cmd.run_cli(create_secret_cmd, check=True)
         log.info("Successfully uploaded a base64-encoded keytab file to the secret store")
 
     def finalize(self):
