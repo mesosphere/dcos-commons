@@ -12,7 +12,6 @@ import sdk_recovery
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import shakedown
 
 from tests import config
 
@@ -148,10 +147,20 @@ def test_kill_data_node():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_scheduler():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    task_ids = sdk_tasks.get_task_ids(foldered_name, "")
+    scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(foldered_name)
+    scheduler_ids = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix)
+    assert len(scheduler_ids) == 1, "Expected to find one scheduler task"
+
     sdk_cmd.kill_task_with_pattern(
-        "hdfs.scheduler.Main", shakedown.get_service_ips("marathon").pop()
+        "./hdfs-scheduler/bin/hdfs",
+        sdk_marathon.get_scheduler_host(foldered_name),
     )
-    config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
+
+    sdk_tasks.check_tasks_updated("marathon", scheduler_task_prefix, scheduler_ids)
+    sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
+    config.check_healthy(service_name=foldered_name)
 
 
 @pytest.mark.sanity
