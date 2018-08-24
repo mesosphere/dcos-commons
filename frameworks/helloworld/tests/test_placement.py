@@ -25,45 +25,52 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-def _escape_placement_for_1_9(options: dict) -> dict:
-    # 1.9 requires `\"` to be escaped to `\\\"`
-    # when submitting placement constraints
-    log.info(options)
-    if sdk_utils.dcos_version_at_least("1.10"):
-        log.info("DC/OS version >= 1.10")
-        return options
-
-    def escape_section_placement(section: str, options: dict) -> dict:
-        if section in options and "placement" in options[section]:
-            options[section]["placement"] = options[section]["placement"].replace('"', '\\"')
-            log.info("Escaping %s", section)
-
-        log.info(options)
-        return options
-
-    return escape_section_placement("hello", escape_section_placement("world", options))
+@pytest.mark.dcos_min_version("1.12")
+@pytest.mark.sanity
+def test_scheduler_task_placement_by_marathon():
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    try:
+        # This test ensures that the placement of the scheduler task itself works as expected.
+        some_private_agent = sdk_agents.get_private_agents().pop()["hostname"]
+        logging.info("Constraining scheduler placement to [{}]".format(some_private_agent))
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            expected_running_tasks=1,
+            additional_options={
+                "service": {
+                    "constraints": [["hostname", "CLUSTER", "{}".format(some_private_agent)]],
+                    "yaml": "simple"
+                }
+            },
+            wait_for_deployment=False,
+        )
+        summary = sdk_tasks.get_service_tasks("marathon", config.SERVICE_NAME)
+        assert len(summary) == 1, "More than 1 task matched name [{}] : [{}]".format(config.SERVICE_NAME, summary)
+        assert some_private_agent == summary.pop().host, "Scheduler task constraint placement failed by marathon"
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 def test_region_zone_injection():
+    def fault_domain_vars_are_present(pod_instance):
+        info = sdk_cmd.service_request(
+            "GET", config.SERVICE_NAME, "/v1/pod/{}/info".format(pod_instance), log_response=False
+        ).json()[0]["info"]
+        variables = info["command"]["environment"]["variables"]
+        region = next((var for var in variables if var["name"] == "REGION"), ["NO_REGION"])
+        zone = next((var for var in variables if var["name"] == "ZONE"), ["NO_ZONE"])
+
+        return region != "NO_REGION" and zone != "NO_ZONE" and len(region) > 0 and len(zone) > 0
+
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
     assert fault_domain_vars_are_present("hello-0")
     assert fault_domain_vars_are_present("world-0")
     assert fault_domain_vars_are_present("world-1")
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
-def fault_domain_vars_are_present(pod_instance):
-    info = sdk_cmd.service_request(
-        "GET", config.SERVICE_NAME, "/v1/pod/{}/info".format(pod_instance)
-    ).json()[0]["info"]
-    variables = info["command"]["environment"]["variables"]
-    region = next((var for var in variables if var["name"] == "REGION"), ["NO_REGION"])
-    zone = next((var for var in variables if var["name"] == "ZONE"), ["NO_ZONE"])
-
-    return region != "NO_REGION" and zone != "NO_ZONE" and len(region) > 0 and len(zone) > 0
 
 
 @pytest.mark.dcos_min_version("1.9")
@@ -191,61 +198,6 @@ def test_group_by_zone_fails():
     fail_placement(options)
 
 
-def succeed_placement(options):
-    """
-    This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
-    """
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0, additional_options=options)
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
-def fail_placement(options):
-    """
-    This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
-    """
-
-    # scheduler should fail to deploy, don't wait for it to complete:
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        0,
-        additional_options=options,
-        wait_for_deployment=False,
-    )
-    sdk_plan.wait_for_step_status(
-        config.SERVICE_NAME, "deploy", "world", "world-0:[server]", "COMPLETE"
-    )
-
-    pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
-
-    # check that everything is still stuck looking for a match:
-    assert pl["status"] == "IN_PROGRESS"
-
-    assert len(pl["phases"]) == 2
-
-    phase1 = pl["phases"][0]
-    assert phase1["status"] == "COMPLETE"
-    steps1 = phase1["steps"]
-    assert len(steps1) == 1
-
-    phase2 = pl["phases"][1]
-    assert phase2["status"] == "IN_PROGRESS"
-    steps2 = phase2["steps"]
-    assert len(steps2) == 2
-    assert steps2[0]["status"] == "COMPLETE"
-    assert steps2[1]["status"] in ("PREPARED", "PENDING")
-
-    try:
-        sdk_tasks.check_running(config.SERVICE_NAME, 3, timeout_seconds=30)
-        assert False, "Should have failed to deploy world-1"
-    except AssertionError as arg:
-        raise arg
-    except Exception:
-        pass  # expected to fail
-
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
 @pytest.mark.sanity
 def test_hostname_unique():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -330,6 +282,25 @@ def test_rr_by_hostname():
     ensure_max_count_per_agent(hello_count=2, world_count=2)
 
 
+def _escape_placement_for_1_9(options: dict) -> dict:
+    # 1.9 requires `\"` to be escaped to `\\\"`
+    # when submitting placement constraints
+    log.info(options)
+    if sdk_utils.dcos_version_at_least("1.10"):
+        log.info("DC/OS version >= 1.10")
+        return options
+
+    def escape_section_placement(section: str, options: dict) -> dict:
+        if section in options and "placement" in options[section]:
+            options[section]["placement"] = options[section]["placement"].replace('"', '\\"')
+            log.info("Escaping %s", section)
+
+        log.info(options)
+        return options
+
+    return escape_section_placement("hello", escape_section_placement("world", options))
+
+
 @pytest.mark.sanity
 def test_cluster():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -352,6 +323,61 @@ def test_cluster():
         additional_options=options,
     )
     ensure_count_per_agent(hello_count=get_num_private_agents(), world_count=0)
+
+
+def succeed_placement(options):
+    """
+    This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
+    """
+    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0, additional_options=options)
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+def fail_placement(options):
+    """
+    This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
+    """
+
+    # scheduler should fail to deploy, don't wait for it to complete:
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        0,
+        additional_options=options,
+        wait_for_deployment=False,
+    )
+    sdk_plan.wait_for_step_status(
+        config.SERVICE_NAME, "deploy", "world", "world-0:[server]", "COMPLETE"
+    )
+
+    pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
+
+    # check that everything is still stuck looking for a match:
+    assert pl["status"] == "IN_PROGRESS"
+
+    assert len(pl["phases"]) == 2
+
+    phase1 = pl["phases"][0]
+    assert phase1["status"] == "COMPLETE"
+    steps1 = phase1["steps"]
+    assert len(steps1) == 1
+
+    phase2 = pl["phases"][1]
+    assert phase2["status"] == "IN_PROGRESS"
+    steps2 = phase2["steps"]
+    assert len(steps2) == 2
+    assert steps2[0]["status"] == "COMPLETE"
+    assert steps2[1]["status"] in ("PREPARED", "PENDING")
+
+    try:
+        sdk_tasks.check_running(config.SERVICE_NAME, 3, timeout_seconds=30)
+        assert False, "Should have failed to deploy world-1"
+    except AssertionError as arg:
+        raise arg
+    except Exception:
+        pass  # expected to fail
+
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 def get_hello_world_agent_sets():
@@ -481,7 +507,10 @@ def setup_constraint_switch():
 
 def get_task_host(task_name):
     _, out, _ = sdk_cmd.run_cli("task {} --json".format(task_name))
-    task_info = json.loads(out)[0]
+    tasks_json = json.loads(out)
+    matching_tasks = list(filter(lambda t: t["name"] == task_name, tasks_json))
+    assert len(matching_tasks) == 1, "Duplicate tasks found with same name : [{}]".format(tasks_json)
+    task_info = matching_tasks.pop()
 
     host = None
     for label in task_info["labels"]:
@@ -501,8 +530,8 @@ def get_task_host(task_name):
             else:
                 # CLI's hostname doesn't match the TaskInfo labels. Bug!
                 raise Exception(
-                    "offer_hostname label {} doesn't match CLI output!\nTask:\n{}".format(
-                        task.host, task_info
+                    "offer_hostname label [{}] doesn't match CLI output [{}]\nTask:\n{}".format(
+                        host, task.host, task_info
                     )
                 )
 
