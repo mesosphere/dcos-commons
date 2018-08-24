@@ -31,8 +31,7 @@ def test_scheduler_task_placement_by_marathon():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     try:
         # This test ensures that the placement of the scheduler task itself works as expected.
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        some_private_agent = shakedown.get_private_agents().pop()
+        some_private_agent = sdk_agents.get_private_agents().pop()["hostname"]
         logging.info("Constraining scheduler placement to [{}]".format(some_private_agent))
         sdk_install.install(
             config.PACKAGE_NAME,
@@ -46,7 +45,7 @@ def test_scheduler_task_placement_by_marathon():
             },
             wait_for_deployment=False,
         )
-        summary = sdk_tasks.get_summary(with_completed=False, task_name=config.SERVICE_NAME)
+        summary = sdk_tasks.get_service_tasks("marathon", config.SERVICE_NAME)
         assert len(summary) == 1, "More than 1 task matched name [{}] : [{}]".format(config.SERVICE_NAME, summary)
         assert some_private_agent == summary.pop().host, "Scheduler task constraint placement failed by marathon"
     finally:
@@ -59,7 +58,7 @@ def test_scheduler_task_placement_by_marathon():
 def test_region_zone_injection():
     def fault_domain_vars_are_present(pod_instance):
         info = sdk_cmd.service_request(
-            "GET", config.SERVICE_NAME, "/v1/pod/{}/info".format(pod_instance)
+            "GET", config.SERVICE_NAME, "/v1/pod/{}/info".format(pod_instance), log_response=False
         ).json()[0]["info"]
         variables = info["command"]["environment"]["variables"]
         region = next((var for var in variables if var["name"] == "REGION"), ["NO_REGION"])

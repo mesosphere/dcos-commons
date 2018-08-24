@@ -18,6 +18,6 @@ repos:
     - id: pylint
       name: pylint
       entry: pylint
-      args: [-E, -j4, --disable=invalid-sequence-index, --disable=no-member, --disable=no-name-in-module, --disable=import-error]
+      args: [-E, -j4, --disable=invalid-sequence-index, --disable=no-member, --disable=no-name-in-module]
       language: system
       types: [python]

@@ -125,7 +125,7 @@
               }
             ]
           },
-          "description": "Marathon constraints for the scheduler task placement by marathon",
+          "description": "Placement constraint for the hello-world scheduler",
           "default": []
         }
       }
