@@ -121,65 +121,30 @@ def kafka_client(kerberos):
         kafka_client.uninstall()
 
 
-@pytest.fixture(autouse=True)
-def kafka_client_setup(
-    kafka_client: client.KafkaClient,
-    zookeeper_server: typing.Dict,
-    kerberos: sdk_auth.KerberosEnvironment,
-):
-    try:
-        zookeeper_dns = sdk_networks.get_endpoint(
-            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
-        )["dns"]
-
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        service_options = {
-            "service": {
-                "name": config.SERVICE_NAME,
-                "security": {
-                    "kerberos": {
-                        "enabled": True,
-                        "enabled_for_zookeeper": True,
-                        "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
-                        "realm": kerberos.get_realm(),
-                        "keytab_secret": kerberos.get_keytab_path(),
-                    },
-                    "authorization": {
-                        "enabled": True,
-                        "super_users": "User:{}".format("super"),
-                        "allow_everyone_if_no_acl_found": True,
-                    },
+def _get_service_options(
+    allow_everyone: bool, kerberos: sdk_auth.KerberosEnvironment, zookeeper_dns: str
+) -> typing.Dict:
+    service_options = {
+        "service": {
+            "name": config.SERVICE_NAME,
+            "security": {
+                "kerberos": {
+                    "enabled": True,
+                    "enabled_for_zookeeper": True,
+                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
+                    "realm": kerberos.get_realm(),
+                    "keytab_secret": kerberos.get_keytab_path(),
                 },
+                "authorization": {"enabled": True, "super_users": "User:{}".format("super")},
             },
-            "kafka": {"kafka_zookeeper_uri": ",".join(zookeeper_dns)},
-        }
-
-        config.install(
-            config.PACKAGE_NAME,
-            config.SERVICE_NAME,
-            config.DEFAULT_BROKER_COUNT,
-            additional_options=service_options,
-        )
-
-        kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
-
-        topic_name = "authz.test"
-        sdk_cmd.svc_cli(
-            kafka_server["package_name"],
-            kafka_server["service"]["name"],
-            "topic create {}".format(topic_name),
-        )
-
-        kafka_client.connect(kafka_server)
-
-        # Clear the ACLs
-        kafka_client.remove_acls("authorized", kafka_server, topic_name)
-        yield Permissions(kerberos, kafka_server, kafka_client, topic_name)
-    finally:
-        # Ensure that we clean up the ZK state.
-        kafka_client.remove_acls("authorized", kafka_server, topic_name)
-
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        },
+        "kafka": {"kafka_zookeeper_uri": ",".join(zookeeper_dns)},
+    }
+    if allow_everyone:
+        service_options["service"]["security"]["authorization"][
+            "allow_everyone_if_no_acl_found"
+        ] = True
+    return service_options
 
 
 class Permissions:
@@ -220,39 +185,107 @@ class Permissions:
             )
 
 
+def configure_kafka_cluster(
+    kafka_client: client.KafkaClient,
+    zookeeper_server: typing.Dict,
+    kerberos: sdk_auth.KerberosEnvironment,
+    allow_everyone: bool,
+) -> Permissions:
+    zookeeper_dns = sdk_networks.get_endpoint(
+        zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
+    )["dns"]
+
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    service_options = _get_service_options(allow_everyone, kerberos, zookeeper_dns)
+
+    config.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        config.DEFAULT_BROKER_COUNT,
+        additional_options=service_options,
+    )
+
+    kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
+
+    topic_name = "authz.test"
+    sdk_cmd.svc_cli(
+        kafka_server["package_name"],
+        kafka_server["service"]["name"],
+        "topic create {}".format(topic_name),
+    )
+
+    kafka_client.connect(kafka_server)
+
+    # Clear the ACLs
+    kafka_client.remove_acls("authorized", kafka_server, topic_name)
+    return Permissions(kerberos, kafka_server, kafka_client, topic_name)
+
+
+@pytest.fixture()
+def allow_all_permission(
+    kafka_client: client.KafkaClient,
+    zookeeper_server: typing.Dict,
+    kerberos: sdk_auth.KerberosEnvironment,
+):
+    try:
+        permissions = configure_kafka_cluster(kafka_client, zookeeper_server, kerberos, True)
+        yield permissions
+    finally:
+        # Ensure that we clean up the ZK state.
+        kafka_client.remove_acls("authorized", permissions.kafka_server, permissions.topic_name)
+
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+@pytest.fixture()
+def default_permission(
+    kafka_client: client.KafkaClient,
+    zookeeper_server: typing.Dict,
+    kerberos: sdk_auth.KerberosEnvironment,
+):
+    try:
+        permissions = configure_kafka_cluster(kafka_client, zookeeper_server, kerberos, False)
+        yield permissions
+    finally:
+        # Ensure that we clean up the ZK state.
+        kafka_client.remove_acls("authorized", permissions.kafka_server, permissions.topic_name)
+
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
 @pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 @pytest.mark.acl_auth
-def test_authz_acls_required(kafka_client_setup: Permissions):
+def test_authz_acls_required(default_permission: Permissions):
     # Since no ACLs are specified, only the super user can read and write
-    kafka_client_setup.check_grant_of_permissions(["super"])
-    kafka_client_setup.check_lack_of_permissions(["authorized", "unauthorized"])
+    default_permission.check_grant_of_permissions(["super"])
+    default_permission.check_lack_of_permissions(["authorized", "unauthorized"])
 
     log.info("Writing and reading: Adding acl for authorized user")
-    kafka_client_setup.kafka_client.add_acls(
-        "authorized", kafka_client_setup.kafka_server, kafka_client_setup.topic_name
+    default_permission.kafka_client.add_acls(
+        "authorized", default_permission.kafka_server, default_permission.topic_name
     )
 
     # After adding ACLs the authorized user and super user should still have access to the topic.
-    kafka_client_setup.check_grant_of_permissions(["authorized", "super"])
-    kafka_client_setup.check_lack_of_permissions(["unauthorized"])
+    default_permission.check_grant_of_permissions(["authorized", "super"])
+    default_permission.check_lack_of_permissions(["unauthorized"])
 
 
 @pytest.mark.dcos_min_version("1.10")
 @pytest.mark.ee_only
 @pytest.mark.sanity
 @pytest.mark.acl_auth
-def test_authz_acls_not_required(kafka_client_setup: Permissions):
+def test_authz_acls_not_required(allow_all_permission: Permissions):
 
     # Since no ACLs are specified, all users can read and write.
-    kafka_client_setup.check_grant_of_permissions(["authorized", "unauthorized", "super"])
+    allow_all_permission.check_grant_of_permissions(["authorized", "unauthorized", "super"])
 
     log.info("Writing and reading: Adding acl for authorized user")
-    kafka_client_setup.kafka_client.add_acls(
-        "authorized", kafka_client_setup.kafka_server, kafka_client_setup.topic_name
+    allow_all_permission.kafka_client.add_acls(
+        "authorized", allow_all_permission.kafka_server, allow_all_permission.topic_name
     )
 
     # After adding ACLs the authorized user and super user should still have access to the topic.
-    kafka_client_setup.check_grant_of_permissions(["authorized", "super"])
-    kafka_client_setup.check_lack_of_permissions(["unauthorized"])
+    allow_all_permission.check_grant_of_permissions(["authorized", "super"])
+    allow_all_permission.check_lack_of_permissions(["unauthorized"])
