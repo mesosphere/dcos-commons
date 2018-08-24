@@ -46,6 +46,13 @@ RUN pip3 install awscli
 COPY test_requirements.txt test_requirements.txt
 RUN pip3 install --upgrade -r test_requirements.txt
 
+# Deprecated libraries used by external repos.
+# As of PR#2616, these libraries aren't used by dcos-commons anymore.
+# However external repos using this image currently still need them.
+# Remove these once external repos aren't depending on them anymore.
+RUN pip3 install git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc && \
+    pip3 install dcos-shakedown==1.4.12
+
 # dcos-cli and lint tooling require this to output cleanly
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 # use an arbitrary path for temporary build artifacts
