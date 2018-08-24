@@ -15,6 +15,7 @@ import subprocess
 import tempfile
 import time
 import urllib.parse
+import urllib3
 
 import sdk_utils
 
@@ -23,6 +24,13 @@ log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
 SSH_USERNAME = os.environ.get("DCOS_SSH_USERNAME", "core")
+
+# Silence this warning. We expect certs to be self-signed:
+# /usr/local/lib/python3.6/dist-packages/urllib3/connectionpool.py:857:
+#     InsecureRequestWarning: Unverified HTTPS request is being made.
+#     Adding certificate verification is strongly advised.
+#     See: https://urllib3.readthedocs.io/en/latest/advanced-usage.html#ssl-warnings
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def service_request(

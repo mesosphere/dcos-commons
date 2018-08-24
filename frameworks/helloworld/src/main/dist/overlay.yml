@@ -27,7 +27,11 @@ pods:
           echo "hello from the overlay network with a VIP" > content &&
           python3 -m http.server $PORT_OVERLAY_VIP
         readiness-check:
-          cmd: "curl -f -X GET overlay-vip.$FRAMEWORK_VIP_HOST:80/content >> output"
+          # On 1.10/1.11, VIPs are not reachable from readiness checks, but main task (e.g. in getter below) is fine.
+          # So to check readiness we instead query the server port directly.
+          # TODO switch to this VIP version when we only support 1.12+:
+          #cmd: "curl -f overlay-vip.$FRAMEWORK_VIP_HOST:80/content >> output"
+          cmd: "curl -f $TASK_NAME.$FRAMEWORK_HOST:$PORT_OVERLAY_VIP/content >> output"
           interval: 10
           delay: 15
           timeout: 120
@@ -56,7 +60,7 @@ pods:
           curl -v -X PUT -F "file=@dynport" ${SCHEDULER_API_HOSTNAME}:${SCHEDULER_API_PORT}/v1/state/files/OVERLAY_DYNPORT_VALUE
           python3 -m http.server $PORT_OVERLAY_DYNPORT
         readiness-check:
-          cmd: "curl -f -X GET $TASK_NAME.$FRAMEWORK_HOST:$PORT_OVERLAY_DYNPORT/content >> output"
+          cmd: "curl -f $TASK_NAME.$FRAMEWORK_HOST:$PORT_OVERLAY_DYNPORT/content >> output"
           interval: 10
           delay: 15
           timeout: 120
@@ -80,7 +84,7 @@ pods:
           echo "hello from the host network with a VIP" > content &&
           python3 -m http.server $PORT_HOST_VIP
         readiness-check:
-          cmd: "curl -f -X GET host-vip.$FRAMEWORK_VIP_HOST:80/content >> output"
+          cmd: "curl -f host-vip.$FRAMEWORK_VIP_HOST:80/content >> output"
           interval: 10
           delay: 15
           timeout: 120
@@ -100,7 +104,7 @@ pods:
           echo "hello from the host network" > content &&
           python3 -m http.server $PORT_HOST
         readiness-check:
-          cmd: "curl -f -X GET $TASK_NAME.$FRAMEWORK_HOST:$PORT_HOST/content >> output"
+          cmd: "curl -f $TASK_NAME.$FRAMEWORK_HOST:$PORT_HOST/content >> output"
           interval: 10
           delay: 15
           timeout: 120
@@ -117,10 +121,10 @@ pods:
         cmd: |
           curl ${SCHEDULER_API_HOSTNAME}:${SCHEDULER_API_PORT}/v1/state/files/OVERLAY_DYNPORT_VALUE > dynport
           echo "Fetched overlay-dynport from scheduler: $(cat dynport)"
-          curl -f -X GET overlay-vip.$FRAMEWORK_VIP_HOST:80/content >> output &&
-          curl -f -X GET overlay-0-server.$FRAMEWORK_HOST:$(cat dynport)/content >> output &&
-          curl -f -X GET host-vip.$FRAMEWORK_VIP_HOST:80/content >> output &&
-          curl -f -X GET host-0-server.$FRAMEWORK_HOST:4044/content >> output &&
+          curl -f overlay-vip.$FRAMEWORK_VIP_HOST:80/content >> output &&
+          curl -f overlay-0-server.$FRAMEWORK_HOST:$(cat dynport)/content >> output &&
+          curl -f host-vip.$FRAMEWORK_VIP_HOST:80/content >> output &&
+          curl -f host-0-server.$FRAMEWORK_HOST:4044/content >> output &&
           date >> success
         readiness-check:
           cmd: "if [ ! -f success ]; then echo 'no success file' && exit 1; fi"
