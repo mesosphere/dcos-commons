@@ -37,7 +37,6 @@ public class StateQueries {
     static final String FILE_NAME_PREFIX = "file-";
     static final Charset FILE_ENCODING = StandardCharsets.UTF_8;
     static final int FILE_SIZE_LIMIT = 1024; // state store shouldn't be holding big files anyway...
-    static final String NO_FILENAME_ERROR_MESSAGE = "Missing filename metadata in Content-Disposition header";
 
     private StateQueries() {
         // do not instantiate
@@ -74,12 +73,12 @@ public class StateQueries {
         }
     }
 
-    public static Response getFile(StateStore stateStore, String fileName) {
+    public static Response getFile(StateStore stateStore, String name) {
         try {
-            LOGGER.info("Getting file {}", fileName);
-            return ResponseUtils.plainOkResponse(getFileContent(stateStore, fileName));
+            LOGGER.info("Getting {}", name);
+            return ResponseUtils.plainOkResponse(getFileContent(stateStore, name));
         } catch (StateStoreException e) {
-            LOGGER.error(String.format("Failed to get file %s", fileName), e);
+            LOGGER.error(String.format("Failed to get file %s", name), e);
             return ResponseUtils.plainResponse(
                     String.format("Failed to get the file"),
                     Response.Status.NOT_FOUND
@@ -91,30 +90,28 @@ public class StateQueries {
     }
 
     /**
-     * Endpoint for uploading arbitrary files of size up to 1024 Bytes.
+     * Endpoint for uploading arbitrary content of size up to 1024 Bytes.
      *
+     * @param name The name of the entry to store in ZK.
      * @param uploadedInputStream The input stream containing the data.
      * @param fileDetails The details of the file to upload.
      * @return response indicating result of put operation.
      */
     public static Response putFile(
-            StateStore stateStore, InputStream uploadedInputStream, FormDataContentDisposition fileDetails) {
-        LOGGER.info(fileDetails.toString());
-        String fileName = fileDetails.getFileName();
-        if (fileName == null) {
-            return ResponseUtils.plainResponse(NO_FILENAME_ERROR_MESSAGE, Response.Status.BAD_REQUEST);
-        }
-        LOGGER.info("Storing {}", fileName);
-
+            StateStore stateStore,
+            String name,
+            InputStream uploadedInputStream,
+            FormDataContentDisposition fileDetails) {
+        LOGGER.info("Storing {}: {}", name, fileDetails.toString());
         try {
             byte[] data = RequestUtils.readData(uploadedInputStream, fileDetails, FILE_SIZE_LIMIT);
-            stateStore.storeProperty(FILE_NAME_PREFIX + fileName, data);
+            stateStore.storeProperty(FILE_NAME_PREFIX + name, data);
             return Response.status(Response.Status.OK).build();
         } catch (IllegalArgumentException e) {
             // Size limit exceeded or other user input error
             return ResponseUtils.plainResponse(e.getMessage(), Response.Status.BAD_REQUEST);
         } catch (StateStoreException | IOException e) {
-            LOGGER.error(String.format("Failed to store file %s", fileName), e);
+            LOGGER.error(String.format("Failed to store file %s", name), e);
             return Response.serverError().build();
         }
     }

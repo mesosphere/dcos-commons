@@ -1,7 +1,7 @@
+import json
 import os
-import uuid
-
 import pytest
+import uuid
 
 import sdk_cmd
 import sdk_install
@@ -15,7 +15,7 @@ from security import transport_encryption
 from tests import config
 
 pytestmark = [
-    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"),
+    sdk_utils.dcos_ee_only,
     pytest.mark.skipif(
         sdk_utils.dcos_version_less_than("1.10"), reason="TLS tests require DC/OS 1.10+"
     ),
@@ -126,13 +126,13 @@ def test_tls_connection(cassandra_service, dcos_ca_bundle):
 @pytest.mark.tls
 @pytest.mark.sanity
 def test_tls_recovery(cassandra_service, service_account):
-    pod_list = sdk_cmd.svc_cli(
+    _, stdout, _ = sdk_cmd.svc_cli(
         cassandra_service["package_name"],
         cassandra_service["service"]["name"],
         "pod list",
-        json=True,
     )
 
+    pod_list = json.loads(stdout)
     for pod in pod_list:
         sdk_recovery.check_permanent_recovery(
             cassandra_service["package_name"],

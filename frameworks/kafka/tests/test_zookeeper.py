@@ -3,6 +3,7 @@ import retrying
 
 import sdk_cmd
 import sdk_install
+import sdk_networks
 import sdk_plan
 import sdk_security
 import sdk_utils
@@ -15,9 +16,10 @@ pytestmark = pytest.mark.skip(reason="INFINITY-3363: Skipping test until it is b
 
 @pytest.fixture(scope="module", autouse=True)
 def zookeeper_server(configure_security):
-    service_options = {
-        "service": {"name": config.ZOOKEEPER_SERVICE_NAME, "virtual_network_enabled": True}
-    }
+    service_options = sdk_utils.merge_dictionaries(
+        sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
+        {"service": {"name": config.ZOOKEEPER_SERVICE_NAME}},
+    )
 
     zk_account = "test-zookeeper-service-account"
     zk_secret = "test-zookeeper-secret"
@@ -58,11 +60,8 @@ def kafka_server(zookeeper_server):
     try:
 
         # Get the zookeeper DNS values
-        zookeeper_dns = sdk_cmd.svc_cli(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "endpoint clientport",
-            json=True,
+        zookeeper_dns = sdk_networks.get_endpoint(
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -90,7 +89,7 @@ def test_zookeeper_reresolution(kafka_server):
     broker_log_line = []
 
     for id in range(0, config.DEFAULT_BROKER_COUNT):
-        rc, stdout, _ = sdk_cmd.run_raw_cli("task log kafka-{}-broker --lines 1".format(id))
+        rc, stdout, _ = sdk_cmd.run_cli("task log kafka-{}-broker --lines 1".format(id))
 
         if rc or not stdout:
             raise Exception("No task logs for kafka-{}-broker".format(id))
@@ -115,7 +114,7 @@ def test_zookeeper_reresolution(kafka_server):
     # Now, verify that Kafka remains happy
     @retrying.retry(wait_fixed=1000, stop_max_attempt_number=3)
     def check_broker(id: int):
-        rc, stdout, _ = sdk_cmd.run_raw_cli(
+        rc, stdout, _ = sdk_cmd.run_cli(
             "task log kafka-{}-broker --lines 1000".format(id), print_output=False
         )
 

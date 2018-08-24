@@ -1,7 +1,8 @@
-import uuid
+import json
 import logging
 import retrying
 import pytest
+import uuid
 
 import sdk_cmd
 import sdk_install
@@ -48,13 +49,15 @@ def test_topic_partition_count(kafka_server: dict):
     package_name = kafka_server["package_name"]
     service_name = kafka_server["service"]["name"]
 
-    sdk_cmd.svc_cli(
-        package_name, service_name, "topic create {}".format(config.DEFAULT_TOPIC_NAME), json=True
+    rc, _, _ = sdk_cmd.svc_cli(
+        package_name, service_name, "topic create {}".format(config.DEFAULT_TOPIC_NAME)
     )
-    topic_info = sdk_cmd.svc_cli(
-        package_name, service_name, "topic describe {}".format(config.DEFAULT_TOPIC_NAME), json=True
+    assert rc == 0, "Topic create failed"
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        package_name, service_name, "topic describe {}".format(config.DEFAULT_TOPIC_NAME)
     )
-    assert len(topic_info["partitions"]) == config.DEFAULT_PARTITION_COUNT
+    assert rc == 0, "Topic describe failed"
+    assert len(json.loads(stdout)["partitions"]) == config.DEFAULT_PARTITION_COUNT
 
 
 @pytest.mark.sanity
@@ -84,9 +87,11 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
         until the output is not the initial output specified
         """
         LOG.info("Getting offsets for %s", topic_name)
-        offsets = sdk_cmd.svc_cli(
-            package_name, service_name, 'topic offsets --time="-1" {}'.format(topic_name), json=True
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            package_name, service_name, 'topic offsets --time="-1" {}'.format(topic_name)
         )
+        assert rc == 0, "Topic offsets failed"
+        offsets = json.loads(stdout)
         LOG.info("offsets=%s", offsets)
         return initial_offsets, offsets
 
@@ -103,12 +108,13 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
 
     num_messages = 10
     LOG.info("Sending %s messages", num_messages)
-    write_info = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         package_name,
         service_name,
         "topic producer_test {} {}".format(topic_name, num_messages),
-        json=True,
     )
+    assert rc == 0, "Producer test failed"
+    write_info = json.loads(stdout)
     assert len(write_info) == 1
     assert write_info["message"].startswith("Output: {} records sent".format(num_messages))
 
@@ -124,15 +130,16 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
 
 @pytest.mark.sanity
 def test_decreasing_topic_partitions_fails(kafka_server: dict):
-    partition_info = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         kafka_server["service"]["name"],
         "topic partitions {} {}".format(
             config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT - 1
         ),
-        json=True,
     )
+    assert rc == 0, "Partition info failed"
 
+    partition_info = json.loads(stdout)
     assert len(partition_info) == 1
     assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
     assert "The number of partitions for a topic can only be increased" in partition_info["message"]
@@ -140,13 +147,14 @@ def test_decreasing_topic_partitions_fails(kafka_server: dict):
 
 @pytest.mark.sanity
 def test_setting_topic_partitions_to_same_value_fails(kafka_server: dict):
-    partition_info = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         kafka_server["service"]["name"],
         "topic partitions {} {}".format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT),
-        json=True,
     )
+    assert rc == 0, "Partition info failed"
 
+    partition_info = json.loads(stdout)
     assert len(partition_info) == 1
     assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
     assert "The number of partitions for a topic can only be increased" in partition_info["message"]
@@ -154,15 +162,16 @@ def test_setting_topic_partitions_to_same_value_fails(kafka_server: dict):
 
 @pytest.mark.sanity
 def test_increasing_topic_partitions_succeeds(kafka_server: dict):
-    partition_info = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         kafka_server["service"]["name"],
         "topic partitions {} {}".format(
             config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT + 1
         ),
-        json=True,
     )
+    assert rc == 0, "Partition info failed"
 
+    partition_info = json.loads(stdout)
     assert len(partition_info) == 1
     assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
     assert (
@@ -173,23 +182,21 @@ def test_increasing_topic_partitions_succeeds(kafka_server: dict):
 
 @pytest.mark.sanity
 def test_no_under_replicated_topics_exist(kafka_server: dict):
-    partition_info = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         kafka_server["service"]["name"],
         "topic under_replicated_partitions",
-        json=True,
     )
-
-    assert partition_info == {"message": ""}
+    assert rc == 0, "Under-replicated partitions failed"
+    assert json.loads(stdout) == {"message": ""}
 
 
 @pytest.mark.sanity
 def test_no_unavailable_partitions_exist(kafka_server: dict):
-    partition_info = sdk_cmd.svc_cli(
+    rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME,
         kafka_server["service"]["name"],
         "topic unavailable_partitions",
-        json=True,
     )
-
-    assert partition_info == {"message": ""}
+    assert rc == 0, "Unavailable partitions failed"
+    assert json.loads(stdout) == {"message": ""}

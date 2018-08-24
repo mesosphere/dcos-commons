@@ -107,8 +107,8 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     This should be called in a hookimpl fixture.
     See also handle_test_setup() which must be called in a pytest_runtest_setup() hook."""
 
-    if not result.failed:
-        return  # passed, nothing to do
+    if not result.failed or os.environ.get('DISABLE_DIAG'):
+        return  # passed, nothing to do, or diagnostics collection disabled
 
     # Fetch all state from all currently-installed services.
     # We do this retrieval first in order to be closer to the actual test failure.
@@ -127,9 +127,11 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
         )
         for service_name in service_names:
             try:
-                _dump_scheduler(item, service_name)
+                # Skip thread retrieval if plan retrieval fails:
+                _dump_plans(item, service_name)
+                _dump_threads(item, service_name)
             except Exception:
-                log.exception("Plan collection from service {} failed!".format(service_name))
+                log.exception("Plan/thread collection from service {} failed!".format(service_name))
 
     # Fetch all logs from tasks created since the last failure, or since the start of the suite.
     global _testlogs_ignored_task_ids
@@ -169,11 +171,6 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     log.info("Post-failure collection complete")
 
 
-def _dump_scheduler(item: pytest.Item, service_name: str):
-    _dump_plans(item, service_name)
-    _dump_threads(item, service_name)
-
-
 def _dump_plans(item: pytest.Item, service_name: str):
     """If the test had failed, writes the plan state(s) to log file(s)."""
 
@@ -193,8 +190,10 @@ def _dump_plans(item: pytest.Item, service_name: str):
 
 
 def _dump_threads(item: pytest.Item, service_name: str):
-    threads = sdk_cmd.service_request("GET", service_name, "v1/debug/threads", timeout_seconds=5)
-    out_path = _setup_artifact_path(item, "threads_{}.out".format(service_name.replace("/", "_")))
+    threads = sdk_cmd.service_request(
+        "GET", service_name, "v1/debug/threads", timeout_seconds=5
+    ).text
+    out_path = _setup_artifact_path(item, "threads_{}.txt".format(service_name.replace("/", "_")))
     log.info("=> Writing {} ({} bytes)".format(out_path, len(threads)))
     with open(out_path, "w") as f:
         f.write(threads)
@@ -203,7 +202,7 @@ def _dump_threads(item: pytest.Item, service_name: str):
 
 def _dump_diagnostics_bundle(item: pytest.Item):
     """Creates and downloads a DC/OS diagnostics bundle, and saves it to the artifact path for this test."""
-    rc, _, _ = sdk_cmd.run_raw_cli("node diagnostics create all")
+    rc, _, _ = sdk_cmd.run_cli("node diagnostics create all")
     if rc:
         log.error("Diagnostics bundle creation failed.")
         return
@@ -214,7 +213,7 @@ def _dump_diagnostics_bundle(item: pytest.Item):
         retry_on_result=lambda result: result is None,
     )
     def wait_for_bundle_file():
-        rc, stdout, stderr = sdk_cmd.run_raw_cli("node diagnostics --status --json")
+        rc, stdout, stderr = sdk_cmd.run_cli("node diagnostics --status --json")
         if rc:
             return None
 
@@ -240,9 +239,7 @@ def _dump_diagnostics_bundle(item: pytest.Item):
 def _dump_mesos_state(item: pytest.Item):
     """Downloads state from the Mesos master and saves it to the artifact path for this test."""
     for name in ["state.json", "slaves"]:
-        r = sdk_cmd.cluster_request(
-            "GET", "/mesos/{}".format(name), verify=False, raise_on_error=False
-        )
+        r = sdk_cmd.cluster_request("GET", "/mesos/{}".format(name), raise_on_error=False)
         if r.ok:
             if name.endswith(".json"):
                 name = name[: -len(".json")]  # avoid duplicate '.json'
