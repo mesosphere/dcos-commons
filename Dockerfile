@@ -51,6 +51,7 @@ RUN pip3 install --upgrade -r test_requirements.txt
 # However external repos using this image currently still need them.
 # Remove these once external repos aren't depending on them anymore.
 RUN pip3 install git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc && \
+    pip3 install git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc#egg=dcoscli&subdirectory=cli && \
     pip3 install dcos-shakedown==1.4.12
 
 # dcos-cli and lint tooling require this to output cleanly
