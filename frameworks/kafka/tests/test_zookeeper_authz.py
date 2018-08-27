@@ -147,7 +147,7 @@ def _get_service_options(
     return service_options
 
 
-class Permissions:
+class PermissionCheckWrapper:
     def __init__(
         self,
         kerberos: sdk_auth.KerberosEnvironment,
@@ -190,7 +190,7 @@ def _configure_kafka_cluster(
     zookeeper_server: typing.Dict,
     kerberos: sdk_auth.KerberosEnvironment,
     allow_everyone: bool,
-) -> Permissions:
+) -> PermissionCheckWrapper:
     zookeeper_dns = sdk_networks.get_endpoint(
         zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
     )["dns"]
@@ -218,7 +218,7 @@ def _configure_kafka_cluster(
 
     # Clear the ACLs
     kafka_client.remove_acls("authorized", kafka_server, topic_name)
-    return Permissions(kerberos, kafka_server, kafka_client, topic_name)
+    return PermissionCheckWrapper(kerberos, kafka_server, kafka_client, topic_name)
 
 
 def _test_permissions(
@@ -226,16 +226,14 @@ def _test_permissions(
     zookeeper_server: typing.Dict,
     kerberos: sdk_auth.KerberosEnvironment,
     allow_everyone: bool,
-    permission_test: typing.Callable[[Permissions], None],
+    permission_test: typing.Callable[[PermissionCheckWrapper], None],
 ):
     try:
-        permissions = _configure_kafka_cluster(
-            kafka_client, zookeeper_server, kerberos, allow_everyone
-        )
-        permission_test(permissions)
+        checker = _configure_kafka_cluster(kafka_client, zookeeper_server, kerberos, allow_everyone)
+        permission_test(checker)
     finally:
         # Ensure that we clean up the ZK state.
-        kafka_client.remove_acls("authorized", permissions.kafka_server, permissions.topic_name)
+        kafka_client.remove_acls("authorized", checker.kafka_server, checker.topic_name)
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -250,18 +248,16 @@ def test_authz_acls_required(
     kerberos: sdk_auth.KerberosEnvironment,
 ):
     # Since no ACLs are specified, only the super user can read and write
-    def permission_test(permissions: Permissions):
-        permissions.check_grant_of_permissions(["super"])
-        permissions.check_lack_of_permissions(["authorized", "unauthorized"])
+    def permission_test(checker: PermissionCheckWrapper):
+        checker.check_grant_of_permissions(["super"])
+        checker.check_lack_of_permissions(["authorized", "unauthorized"])
 
         log.info("Writing and reading: Adding acl for authorized user")
-        permissions.kafka_client.add_acls(
-            "authorized", permissions.kafka_server, permissions.topic_name
-        )
+        checker.kafka_client.add_acls("authorized", checker.kafka_server, checker.topic_name)
 
         # After adding ACLs the authorized user and super user should still have access to the topic.
-        permissions.check_grant_of_permissions(["authorized", "super"])
-        permissions.check_lack_of_permissions(["unauthorized"])
+        checker.check_grant_of_permissions(["authorized", "super"])
+        checker.check_lack_of_permissions(["unauthorized"])
 
     _test_permissions(kafka_client, zookeeper_server, kerberos, False, permission_test)
 
@@ -276,16 +272,14 @@ def test_authz_acls_not_required(
     kerberos: sdk_auth.KerberosEnvironment,
 ):
     # Since no ACLs are specified, all users can read and write.
-    def permission_test(permissions: Permissions):
-        permissions.check_grant_of_permissions(["authorized", "unauthorized", "super"])
+    def permission_test(checker: PermissionCheckWrapper):
+        checker.check_grant_of_permissions(["authorized", "unauthorized", "super"])
 
         log.info("Writing and reading: Adding acl for authorized user")
-        permissions.kafka_client.add_acls(
-            "authorized", permissions.kafka_server, permissions.topic_name
-        )
+        checker.kafka_client.add_acls("authorized", checker.kafka_server, checker.topic_name)
 
         # After adding ACLs the authorized user and super user should still have access to the topic.
-        permissions.check_grant_of_permissions(["authorized", "super"])
-        permissions.check_lack_of_permissions(["unauthorized"])
+        checker.check_grant_of_permissions(["authorized", "super"])
+        checker.check_lack_of_permissions(["unauthorized"])
 
     _test_permissions(kafka_client, zookeeper_server, kerberos, True, permission_test)
