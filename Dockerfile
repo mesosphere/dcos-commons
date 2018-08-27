@@ -34,25 +34,17 @@ RUN apt-get update && \
 ENV PATH=$PATH:/usr/local/go/bin
 RUN go version
 
-# Get DC/OS CLI
-RUN curl -O https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.12/dcos && \
-    chmod +x dcos && \
-    mv dcos /usr/local/bin && \
-    dcos --version
-
 # AWS CLI for uploading build artifacts
 RUN pip3 install awscli
 # Install the lint+testing dependencies
 COPY test_requirements.txt test_requirements.txt
 RUN pip3 install --upgrade -r test_requirements.txt
 
-# Deprecated libraries used by external repos.
-# As of PR#2616, these libraries aren't used by dcos-commons anymore.
-# However external repos using this image currently still need them.
-# Remove these once external repos aren't depending on them anymore.
-RUN pip3 install git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc && \
-    pip3 install git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc#egg=dcoscli&subdirectory=cli && \
-    pip3 install dcos-shakedown==1.4.12
+# Get DC/OS CLI
+RUN curl -O https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.12/dcos && \
+    chmod +x dcos && \
+    mv dcos /usr/local/bin && \
+    dcos --version
 
 # dcos-cli and lint tooling require this to output cleanly
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
