@@ -1,15 +1,23 @@
 repos:
--   repo: local
+-   repo: https://github.com/ambv/black
+    rev: stable
+    hooks:
+    - id: black
+      args: [--diff]
+      language_version: python3
+    - id: black
+      name: black-format
+      language_version: python3
+      stages: [manual]
+-   repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v1.3.0
     hooks:
     - id: flake8
-      name: flake8
-      language: script
-      entry: tools/ci/checks/run_flake8_checks.sh
-      files: \.py$
-      pass_filenames: true
+-   repo: local
+    hooks:
     - id: pylint
       name: pylint
-      language: script
-      entry: tools/ci/checks/run_pylint_checks.sh
-      files: \.py$
-      pass_filenames: true
+      entry: pylint
+      args: [-E, -j4, --disable=invalid-sequence-index, --disable=no-member, --disable=no-name-in-module]
+      language: system
+      types: [python]
