@@ -10,7 +10,7 @@ import logging
 import retrying
 
 import sdk_cmd
-import sdk_metrics
+import sdk_tasks
 
 TIMEOUT_SECONDS = 15 * 60
 SHORT_TIMEOUT_SECONDS = 30
@@ -143,7 +143,7 @@ def wait_for_plan_status(
     else:
         statuses = status
 
-    initial_failures = sdk_metrics.sum_service_failures(service_name)
+    initial_failures = sdk_tasks.get_task_failures_sum(service_name)
 
     @retrying.retry(
         wait_fixed=1000,
@@ -152,7 +152,7 @@ def wait_for_plan_status(
         retry_on_exception=lambda e: not isinstance(e, TaskFailuresExceededException),
     )
     def fn():
-        failures = sdk_metrics.sum_service_failures(service_name)
+        failures = sdk_tasks.get_task_failures_sum(service_name)
         if failures - initial_failures > ALLOWED_FAILURES_INCREASE:
             log.error(
                 "Service {} exceeded failures increase while "

@@ -25,30 +25,6 @@ def get_scheduler_metrics(service_name, timeout_seconds=15 * 60):
     return sdk_cmd.service_request("GET", service_name, "/v1/metrics").json()
 
 
-def get_failure_metrics(service_name: str) -> typing.Dict:
-    history = sdk_cmd.cluster_request(
-        "GET", "/dcos-history-service/history/last", retry=False
-    ).json()
-    service_history = [h for h in history["frameworks"] if h.get("name", "") == service_name]
-    if not service_history:
-        return dict()
-
-    assert len(service_history) == 1
-
-    def collect():
-        failure_keys = ["TASK_FAILED", "TASK_ERROR"]
-        for k, v in service_history[0].items():
-            if k not in failure_keys:
-                continue
-            yield k, v
-
-    return dict(collect())
-
-
-def sum_service_failures(service_name: str) -> int:
-    return sum(get_failure_metrics(service_name).values())
-
-
 def get_scheduler_counter(service_name, counter_name, timeout_seconds=15 * 60):
     """Waits for and returns the specified counter value from the scheduler"""
 

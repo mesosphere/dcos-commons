@@ -138,6 +138,28 @@ def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
     return history
 
 
+def get_task_failures_sum(service_name) -> int:
+    history_response = sdk_cmd.cluster_request(
+        "GET", "/dcos-history-service/history/last", retry=False
+    )
+    history_response.raise_for_status()
+    history = history_response.json()
+    service_history = [h for h in history["frameworks"] if h.get("name", "") == service_name]
+    if not service_history:
+        return 0
+
+    assert len(service_history) == 1
+
+    def collect():
+        failure_keys = ["TASK_FAILED", "TASK_ERROR"]
+        for k, v in service_history[0].items():
+            if k not in failure_keys:
+                continue
+            yield k, v
+
+    return sum(dict(collect()).values())
+
+
 def check_task_count(service_name: str, expected_task_count: int) -> list:
     """Verifies that the service contains exactly the expected number of tasks.
     Returns the task entries as produced by get_service_tasks().
@@ -146,7 +168,9 @@ def check_task_count(service_name: str, expected_task_count: int) -> list:
     : param expected_task_count: The expected number of tasks.
     """
     service_tasks = get_service_tasks(service_name)
-    assert len(service_tasks) == expected_task_count, "Expected {} tasks in service {}, got {}: {}".format(
+    assert (
+        len(service_tasks) == expected_task_count
+    ), "Expected {} tasks in service {}, got {}: {}".format(
         expected_task_count, service_name, len(service_tasks), [t.name for t in service_tasks]
     )
     return service_tasks
