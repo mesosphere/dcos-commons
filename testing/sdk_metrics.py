@@ -10,7 +10,6 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import retrying
-import typing
 
 import sdk_cmd
 import sdk_tasks
