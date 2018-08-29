@@ -16,9 +16,11 @@ import sdk_plan
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
 
+
 FATAL_TERMINAL_TASK_STATES = set(
     ["TASK_FAILED", "TASK_ERROR", "TASK_KILLED", "TASK_DROPPED", "TASK_GONE"]
 )
+
 
 # From dcos-cli:
 COMPLETED_TASK_STATES = set(
@@ -139,7 +141,7 @@ def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
     return history
 
 
-def get_task_failures_sum(service_name) -> int:
+def get_task_failed_count(service_name: str) -> int:
     history_response = sdk_cmd.cluster_request(
         "GET", "/dcos-history-service/history/last", retry=False
     )
