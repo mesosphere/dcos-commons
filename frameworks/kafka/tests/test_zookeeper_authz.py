@@ -238,10 +238,7 @@ def _test_permissions(
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.mark.dcos_min_version("1.10")
-@sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-@pytest.mark.acl_auth
 def test_authz_acls_required(
     kafka_client: client.KafkaClient,
     zookeeper_server: typing.Dict,
@@ -262,10 +259,7 @@ def test_authz_acls_required(
     _test_permissions(kafka_client, zookeeper_server, kerberos, False, permission_test)
 
 
-@pytest.mark.dcos_min_version("1.10")
-@pytest.mark.ee_only
 @pytest.mark.sanity
-@pytest.mark.acl_auth
 def test_authz_acls_not_required(
     kafka_client: client.KafkaClient,
     zookeeper_server: typing.Dict,
