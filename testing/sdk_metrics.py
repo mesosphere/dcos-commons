@@ -45,6 +45,10 @@ def get_failure_metrics(service_name: str) -> typing.Dict:
     return dict(collect())
 
 
+def sum_service_failures(service_name: str) -> int:
+    return sum(get_failure_metrics(service_name).values())
+
+
 def get_scheduler_counter(service_name, counter_name, timeout_seconds=15 * 60):
     """Waits for and returns the specified counter value from the scheduler"""
 
