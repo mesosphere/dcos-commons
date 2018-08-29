@@ -8,6 +8,7 @@ LAUNCH_SUCCESS="False"
 RETRY_LAUNCH="True"
 
 while [ x"${LAUNCH_SUCCESS}" == x"False" ]; do
+    rm -f ${CLUSTER_INFO_FILE} # dcos-launch complains if the file already exists
     dcos-launch create --config-path=${LAUNCH_CONFIG_FILE} --info-path=${CLUSTER_INFO_FILE}
     if [ x"$RETRY_LAUNCH" == x"True" ]; then
         set +e
