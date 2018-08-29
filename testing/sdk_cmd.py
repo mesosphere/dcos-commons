@@ -57,10 +57,6 @@ def service_request(
     )
 
 
-def history_request(retry=False) -> requests.Response:
-    return cluster_request("GET", "/dcos-history-service/history/last", retry=retry)
-
-
 def cluster_request(
     method,
     cluster_path,

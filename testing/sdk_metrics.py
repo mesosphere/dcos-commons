@@ -26,7 +26,9 @@ def get_scheduler_metrics(service_name, timeout_seconds=15 * 60):
 
 
 def get_failure_metrics(service_name: str) -> typing.Dict:
-    history = sdk_cmd.history_request().json()
+    history = sdk_cmd.cluster_request(
+        "GET", "/dcos-history-service/history/last", retry=False
+    ).json()
     service_history = [h for h in history["frameworks"] if h["name"] == service_name]
     if not service_history:
         return dict()
