@@ -155,8 +155,10 @@ def wait_for_plan_status(
         failures = sdk_tasks.get_task_failures_sum(service_name)
         if failures - initial_failures > ALLOWED_FAILURES_INCREASE:
             log.error(
-                "Service {} exceeded failures increase while "
-                "doing {} and trying to reach {}".format(service_name, plan_name, statuses)
+                "Service %s exceeded failures increase while doing %s and trying to reach %s",
+                service_name,
+                plan_name,
+                statuses,
             )
             raise TaskFailuresExceededException("Service not recoverable: {}".format(service_name))
 
@@ -166,9 +168,7 @@ def wait_for_plan_status(
             timeout_seconds=SHORT_TIMEOUT_SECONDS,
             multiservice_name=multiservice_name,
         )
-        log.info(
-            "Waiting for {} {} plan:\n{}".format(status, plan_name, plan_string(plan_name, plan))
-        )
+        log.info("Waiting for %s %s plan:\n%s", status, plan_name, plan_string(plan_name, plan))
         if plan and plan["status"] in statuses:
             return plan
         else:
