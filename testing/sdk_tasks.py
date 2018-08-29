@@ -16,21 +16,22 @@ import sdk_plan
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
 
+FATAL_TERMINAL_TASK_STATES = set(
+    ["TASK_FAILED", "TASK_ERROR", "TASK_KILLED", "TASK_DROPPED", "TASK_GONE"]
+)
+
 # From dcos-cli:
 COMPLETED_TASK_STATES = set(
     [
         "TASK_FINISHED",
-        "TASK_KILLED",
-        "TASK_FAILED",
         "TASK_LOST",
-        "TASK_ERROR",
-        "TASK_GONE",
         "TASK_GONE_BY_OPERATOR",
-        "TASK_DROPPED",
         "TASK_UNREACHABLE",
         "TASK_UNKNOWN",
+        *FATAL_TERMINAL_TASK_STATES,
     ]
 )
+
 
 log = logging.getLogger(__name__)
 
@@ -151,11 +152,8 @@ def get_task_failures_sum(service_name) -> int:
     assert len(service_history) == 1
 
     def collect():
-        failure_keys = ["TASK_FAILED", "TASK_ERROR"]
-        for k, v in service_history[0].items():
-            if k not in failure_keys:
-                continue
-            yield k, v
+        for status in FATAL_TERMINAL_TASK_STATES:
+            yield status, service_history[0].get(status, 0)
 
     return sum(dict(collect()).values())
 
