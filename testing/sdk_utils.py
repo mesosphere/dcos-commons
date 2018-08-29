@@ -25,7 +25,7 @@ def get_service_name(default: str) -> str:
     return os.environ.get("INTEGRATION_TEST__SERVICE_NAME") or default
 
 
-def list_reserved_resources(service_name: str) -> bool:
+def list_reserved_resources_after_uninstall(service_name: str) -> bool:
     """
     Logs all reserved resources and returns a true value if there are some for this service's role.
 
@@ -45,7 +45,7 @@ def list_reserved_resources(service_name: str) -> bool:
         if service_role in reserved_resources:
             found_for_this_service = True
     if reserved_resources_messages:
-        log.info('Found following reserved resources post uninstall.')
+        log.info('Found following reserved resources after uninstalling %s.', service_name)
         for reserved_resources_message in reserved_resources_messages:
             log.info(reserved_resources_message)
     return found_for_this_service

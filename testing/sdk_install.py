@@ -234,9 +234,9 @@ def _uninstall(
             if 'marathon' in str(e):
                 log.info('Detected a probable marathon flake. Raising so retry will trigger.')
                 raise
-            sdk_utils.list_reserved_resources(service_name)
+            sdk_utils.list_reserved_resources_after_uninstall(service_name)
         else:
-            if sdk_utils.list_reserved_resources(service_name):
+            if sdk_utils.list_reserved_resources_after_uninstall(service_name):
                 raise dcos.errors.DCOSException('Leaked resource reservations found.')
 
 
