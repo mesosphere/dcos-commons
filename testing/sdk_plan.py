@@ -155,6 +155,10 @@ def wait_for_plan_status(
         failure_metrics = sdk_metrics.get_failure_metrics(service_name)
         failures = sum(failure_metrics.values())
         if failures - initial_failures > ALLOWED_FAILURES_INCREASE:
+            log.error(
+                "Service {} exceeded failures increase while "
+                "doing {} and trying to reach {}".format(service_name, plan_name, statuses)
+            )
             raise TaskFailuresExceededException("Service not recoverable: {}".format(service_name))
 
         plan = get_plan(
