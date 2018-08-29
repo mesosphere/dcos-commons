@@ -14,10 +14,10 @@ import sdk_metrics
 
 TIMEOUT_SECONDS = 15 * 60
 SHORT_TIMEOUT_SECONDS = 30
-ALLOWED_FAILURES = 2
+ALLOWED_FAILURES_INCREASE = 2
 
 
-class FailuresExceededError(Exception):
+class TaskFailuresExceededException(Exception):
     pass
 
 
@@ -149,13 +149,13 @@ def wait_for_plan_status(
         wait_fixed=1000,
         stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res,
-        retry_on_exception=lambda e: not isinstance(e, FailuresExceededError),
+        retry_on_exception=lambda e: not isinstance(e, TaskFailuresExceededException),
     )
     def fn():
         failure_metrics = sdk_metrics.get_failure_metrics(service_name)
         failures = sum(failure_metrics.values())
-        if failures - initial_failures > ALLOWED_FAILURES:
-            raise FailuresExceededError("Service not recoverable: {}".format(service_name))
+        if failures - initial_failures > ALLOWED_FAILURES_INCREASE:
+            raise TaskFailuresExceededException("Service not recoverable: {}".format(service_name))
 
         plan = get_plan(
             service_name,
@@ -164,9 +164,7 @@ def wait_for_plan_status(
             multiservice_name=multiservice_name,
         )
         log.info(
-            "Waiting for {} {} plan:\n{}".format(
-                status, plan_name, plan_string(plan_name, plan)
-            )
+            "Waiting for {} {} plan:\n{}".format(status, plan_name, plan_string(plan_name, plan))
         )
         if plan and plan["status"] in statuses:
             return plan

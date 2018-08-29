@@ -10,7 +10,7 @@ from tests import config
 def test_finish_install_on_failure():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-    with pytest.raises(sdk_plan.FailuresExceededError):
+    with pytest.raises(sdk_plan.TaskFailuresExceededException):
         sdk_install.install(
             config.PACKAGE_NAME,
             foldered_name,
