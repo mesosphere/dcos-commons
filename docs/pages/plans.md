@@ -1,5 +1,5 @@
 ---
-title: Plans
+title: Plans and Deployment
 menuWeight: 1
 toc: true
 ---
@@ -82,21 +82,21 @@ Some steps, but not all, represent the work needed to deploy tasks in the cluste
 
 In short, the flow works as follows:
 1. Get Plans from PlanManagers
-  - Plans may be dynamically generated, e.g. `recovery`
+    - Plans may be dynamically generated, e.g. `recovery`
 2. Get active Steps from Plans: determined by Strategies in Plans/Phases
-  - `serial`, `parallel`, custom(`dependency`), ...
+    - `serial`, `parallel`, custom(`dependency`), ...
 3. Filter any Steps which operate on the same Assets (Tasks)
-  - Avoid multiple Steps working on the same Task at the same time
-  - Priority: `deploy`, `recovery`, `decommission`, custom plans
+    - Avoid multiple Steps working on the same Task at the same time
+    - Priority: `deploy`, `recovery`, `decommission`, custom plans
 4. Execute the Steps, fetch any `PodInstanceRequirement`s
-  - Evaluate `PodInstanceRequirement` (if any) against Offers
-  - Notify Step whether any Offer did or didn't match
+    - Evaluate `PodInstanceRequirement` (if any) against Offers
+    - Notify Step whether any Offer did or didn't match
 
 ### Plan parallelism
 
 By default, services come with two plans up-front. One is the `deploy` plan, which deals with rolling out changes to the service's configuration, and the other is the `recovery` plan, which automatically recovers tasks that have exited or been restarted by the user. If pods are being decommissioned, a third plan named `decommission` will also be added.
 
-These plans will all be processed in parallel, where Steps from each plan are fetched and then executed in a single pass. However, some of these Steps may be doing work on the same underlying object, e.g. one Step may be trying to update a given pod, while another may be trying to tear it down. To avoid contention, we have the concept of Dirtied Assets, where two Steps cannot be performing work on the same object (a Pod in this case) at the same time. This is enforced in the [PlanCoordinator](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.java), which selects candidate Steps from all plans defined in the Scheduler. The priority of plans is defined as follows: `deploy`, `recovery`, `decommission`, and then any custom plans. For example if we're in the middle of deploying a new version of a task in the `deploy` plan, there isn't much point in trying to recover the old version of that task in the `recovery` plan.
+These plans will all be processed in parallel, where Steps from each plan are fetched and then executed in a single pass. However, some of these Steps may be doing work on the same underlying object, e.g. one Step may be trying to update a given pod, while another may be trying to tear it down. To avoid contention, we have the concept of Dirtied Assets, where two Steps cannot be performing work on the same object (a Pod in this case) at the same time. This is enforced in the [`PlanCoordinator`](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.java), which selects candidate Steps from all plans defined in the Scheduler. The priority of plans is defined as follows: `deploy`, `recovery`, `decommission`, and then any custom plans. For example if we're in the middle of deploying a new version of a task in the `deploy` plan, there isn't much point in trying to recover the old version of that task in the `recovery` plan.
 
 But why would we want these to run in parallel in the first place? This is intentional. The main reason is so that work in one plan isn't necessarily blocked waiting on work in another plan. For example, there isn't any reason that the Scheduler can't be updating pod-2-task while it also recovers pod-4-task. But per above we want to avoid having multiple plans performing operations to the same tasks at the same time.
 
@@ -110,30 +110,35 @@ Once the `deploy` Plan starts, it will begin the process of moving tasks to the 
 
 ## Defining Plans
 
-TODO intro
-
-- Default plans: deploy, recovery, and sometimes decommission
-  - Generated based on declared pods/tasks or current config state
-  - Good enough for most services
-  - Deploy pods in the order they were declared, wait for tasks to be RUNNING/FINISHED, and honor any declared readiness checks
-- Custom plans: YAML
-  - Specify custom ordering of deploy/upgrade operations
-  - Specify custom Operator-invoked Plans for things like backup/restore/cleanup
-- Custom plans: Java
-  - Fully customizable, can define custom Step/Strategy implementations
-  - Examples: Uninstall, Decommission
+The Service developer is expected to provide plans for any custom behavior they require. If these are not provided, default plans will be automatically generated based on the declared pods. Plan customizations may be defined within the YAML service specification, or using the SDK Java APIs.
 
 ### Default Plans
 
-TODO default autogenerated plan (nothing in YAML)
+By default, the `deploy` plan will be populated with a reasonable default. The default will be to sequentially deploy each of the declared pods in the order that they were declared in the YAML specification. Any declared readiness checks and goal states will be honored as the rollout is performed.
+
+For basic services, this behavior is typically "good enough". Service developers can change this default behavior using the YAML service specification or via the Java API as described below.
 
 ### Custom YAML Plans
 
-TODO describe overriding `deploy` and `update`, vs defining new custom plans to be manually invoked (and describe envvars and caveats there: scheduler doesn't know what's valid). Can provide example of cassandra plan with one extra step on node-0. Refer to YAML reference for more info.
+The developer can specify custom plans in their YAML service specification. These can either be used to override default plans, or to define new plans that can be manually invoked by the operator.
+
+- A YAML `deploy` Plan will override the behavior of initial deployment and configuration changes. A separate `update` plan may also be specified, in which case `deploy` will handle initial deployment and `update` will handle configuration changes.
+- If the YAML Plan has a custom name, then it can be manually launched by the operator. The operator may specify environment variables in their request which will be passed to the tasks run by the plan. One caveat of this is that the scheduler doesn't currently know what environment variables are expected so there is no validation that values required by the operation have actually been provided.
+
+For more information on the syntax for declaring plans in the YAML service specification, see the [YAML Reference](../yaml-reference).
+The [Cassandra service specification](https://github.com/mesosphere/dcos-commons/blob/4910aeb/frameworks/cassandra/src/main/dist/svc.yml#L266) provides an example of a customized `deploy` plan (additional `init_system_keyspaces` step for `node-0`), as well as several custom Plans which may be manually triggered by the operator.
 
 ### Custom Java Plans
 
-TODO describe general concept and provide example of uninstall/decommission
+While YAML plans allow the developer to statically declare new plans and/or override default plans like `deploy` and `update`, the Java Plan APIs allow the developer to customize things further.
+
+The Java APIs allow the service developer to:
+- Customize dynamic plans like `recovery` to define custom recovery behavior when certain tasks fail. By default, the `recovery` plan just relaunches the task to get it to the desired goal state (e.g. keep it `RUNNING`, or relaunch it until it successfully `FINISH`es), but some services may require that additional operations be performed in certain cases.
+- Use a custom dependency structure (other than `serial` or `parallel`) in Plans/Phases.
+
+For example, the developer could specify a `PlanCustomizer` which edits the content of a plan before it's used by the scheduler itself, or the developer can simply add a set of plans when first creating the service.
+
+[`UninstallPlanFactory`](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/uninstall/UninstallPlanFactory.java) and [`DecommissionPlanFactory`](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.java) each provide similar examples of constructing Plans in Java which use custom Strategies.
 
 ## Use cases
 
@@ -246,25 +251,43 @@ deploy (serial strategy) (IN_PROGRESS)
 
 The `world-0` pod will be updated to have 1.5 CPUs from its prior allocation of 2.0, and then the `world-1` pod will be updated to have 1.5 CPUs from its prior allocation of 1.0.
 
-### Pod Restart/Replace
+### Recovery: Pod Restart/Replace
 
-TODO grab from slides
+As hinted at elsewhere, the `recovery` Plan is special because starts in an empty state and is later automatically populated with any detected tasks that need to be recovered. At the moment, completed operations can remain as `COMPLETE` phases in the `recovery` plan indefinitely until the scheduler process is restarted. To show an example of how the `recovery` plan typically opeprates we can also look at what happens when an operator requests a `pod restart` or `pod replace` operation. These operations rely on the `recovery` Plan to relaunch the task. As such, the recovery of restarted/replaced pods can likewise be customized by the developer.
 
-- `pod restart`:
-  1. Mesos is told to kill task
-  2. We get a `TaskStatus`(`TASK_KILLED`)
-  3. `recovery` plan is auto-populated with a Phase+Step to relaunch the task.
-  4. Step's `PodInstanceRequirement` specifies `RecoveryType.TRANSIENT`, evaluator looks for footprint matching the existing task.
-  5. Offer for task's original resources is found, task is relaunched.
-- `pod replace`:
-  1. Same as above, except the task is marked with a permanently-failed label, and the `PodInstanceRequirement` has `RecoveryType.PERMANENT`.
-  2. Given this `RecoveryType`, the offer evaluator looks for any Offer which fits the task's requirements, from scratch.
-  3. The previous resources are garbage collected (unreserved) if/when offered.
+For `pod restart` (kill and relaunch pod at current location), the sequence works as follows:
+1. Mesos is told to kill task
+2. Scheduler receives a terminal `TaskStatus`, typically `TASK_KILLED`.
+3. `recovery` plan is automatically populated with a Phase to relaunch the task.
+4. The `RecoveryStep`'s `PodInstanceRequirement` specifies `RecoveryType.TRANSIENT`. Offer evaluation sees this and looks for an offer containing `resource_id`s matching the original task.
+5. Once an Offer for the task's original resources is found, the task is relaunched back into that footprint.
+
+Meanwhile, `pod replace` (kill and destroy pod, launch with fresh slate) is similar, with some differences:
+- Before Mesos is told to kill the task, the `TaskInfo` in ZK is updated to contain a `permanently-failed` label.
+- The `PodInstanceRequirement` in the `RecoveryStep` has `RecoveryType.PERMANENT`. The offer evaluator therefore looks for any Offer which can be used to launch the task from scratch.
+- The previous resources used by the pod are garbage collected (unreserved) if/when offered by Mesos.
 
 ### Uninstall
 
-TODO describe sequence, and describe stuck uninstall scenario in particular (and again mention force-complete to get out of it: "override what the scheduler thinks is the state of the system")
+The Uninstall flow is displayed via the "`deploy`" Plan when the service is uninstalling. This can be confusing, but there are two reasons for doing this:
+- The `deploy` Plan can be thought of as dealing with transitioning the service between configurations. In this case, the target configuration is `NULL`. This is a bit pedantic, but there's a better reason...
+- In practice, the `deploy` Plan is what's checked to see how a change to the service is proceeding.
+
+The Uninstall process can be summarized as follows:
+1. Kill all tasks
+2. Wait to be offered the reserved resources of those tasks. Unreserve those resources as they are offered.
+3. Once there are no known resources left to be unreserved, tell Mesos to tear down the framework.
+4. Advertise a completed `deploy` Plan. could arguably be called `uninstall`, but `deploy` is what's used everywhere else...)
+5. The Scheduler's Marathon app is automatically deleted by Cosmos, the DC/OS packaging service, which polls the `deploy` plan during uninstall to detect completion.
+
+The reason for this long and involved process is ultimately due to issues with Mesos itself:
+1. First, resources are reserved against _roles_, not _frameworks_. Therefore, simply destroying the Mesos framework doesn't automatically clean up the resources which that framework had reserved, despite the fact that SDK frameworks always have a 1:1 relationship with roles. This is why the manual dereservations are required in the first place.
+2. Second, Mesos never simply _tells_ the framework what's currently reserved, instead the reservations are _offered_ via the non-deterministic offer cycle. The best the Scheduler can do is keep a snapshot of what resources it _thinks_ it has, and to treat that as a checklist when the service is being uninstalled. This can then lead to problems when the Scheduler's view of its resources isn't aligned with Mesos' view. For example, an uninstalling Scheduler can end up indefinitely stuck waiting to be offered resources on an agent system which no longer exists. The operator can get out of this situation by issuing `plan force-complete` calls for any Steps representing the nonexistent resources, and thereby override what the Scheduler thinks is the state of its reservations, since it cannot simply fetch this information from Mesos itself.
 
 ## Operations
 
-TODO describe force-complete etc, and show examples of outcomes. point out that overrides are literally assigning new state values, to be picked up on the next plan poll. also point out that they do not survive restarts, as plans are effectively ephemeral and aren't stored to ZK.
+The details of individual Plan commands can be found in the per-service documentation in the Operations section, such as [Cassandra's](https://docs.mesosphere.com/services/cassandra/2.3.0-3.0.16/operations/). Rather than looking at the individual commands, we can instead look into how they work.
+
+Plan operations are effectively reaching into the objects themselves and manually setting their `state` field to a particular value. For example, a `force-complete` call will do the equivalent of `Step.setState(COMPLETE)`. As such, these overrides do not survive across Scheduler restarts, and technically neither do the plans themselves. After a given `state` value has been updated, the change will take effect the next time the Plan's status is checked. In the `force-complete` case, the Phase Strategy will observe that the Step in question appears to be `COMPLETE`, and it will proceed to any other Step(s) in the Phase.
+
+Plan commands should be considered an escape hatch for situations where the Scheduler is doing the wrong thing and needs to be overridden. This can be used to get around a bad situation, but it does not itself automatically resolve the problem that caused the issue to begin with. If used improperly, Plan commands can leave the service in a confused or even broken state.
