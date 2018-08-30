@@ -143,7 +143,7 @@ def wait_for_plan_status(
     else:
         statuses = status
 
-    initial_failures = sdk_tasks.get_task_failed_count(service_name, retry=True)
+    initial_failures = sdk_tasks.get_failed_task_count(service_name, retry=True)
 
     @retrying.retry(
         wait_fixed=1000,
@@ -152,7 +152,7 @@ def wait_for_plan_status(
         retry_on_exception=lambda e: not isinstance(e, TaskFailuresExceededException),
     )
     def fn():
-        failures = sdk_tasks.get_task_failed_count(service_name)
+        failures = sdk_tasks.get_failed_task_count(service_name)
         if failures - initial_failures > MAX_NEW_TASK_FAILURES:
             log.error(
                 "Service %s exceeded failures increase while doing %s and trying to reach %s",
