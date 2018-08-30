@@ -30,15 +30,19 @@ Plans as a concept have several benefits:
 - They allow operators to assign the state of running operations via editing the state of Plan elements. For example, a stuck uninstall could be updated to stop waiting to clean up resources that no longer exist in the cluster.
 - They allow developers to customize how common operations are performed, or to define new custom operations that can be triggered by end-users. For more information on this, see the [developer guide](../developer-guide/#plans).
 
+It is worth keeping in mind that Plans are effectively a runtime-only concept. Unlike the ServiceSpec, they are not persisted to Zookeeper and therefore are reevaluated when the Scheduler restarts. This can be observed by how Plans can be present in the [`RawServiceSpec`](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/yaml/RawServiceSpec.java#L137) but are not part of the [`ServiceSpec`](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java). The `RawServiceSpec` just represents the YAML Schema, which is then internally translated into a `ServiceSpec` representing the service configuration that's persisted to ZK and a list of Plan objects that only exist in the Scheduler runtime. Similarly, any manual Plan state overrides via [Plan operations](#plan-operations) are lost if the Scheduler restarts.
+
+The ephemeral nature of Plans is intentional. Plans drive the transition between current and desired states, and are built based on the current progress of that transition. They are not themselves part of those states.
+
 ## Statuses
 
-All plan elements have a Status value. However, the Plan status is solely determined based on the statuses of its child Phases, and the Phases in turn determine their statuses based on their Steps. For example, a Phase with 3 `PENDING` Steps will also be `PENDING`, but once one of those Steps moves to e.g. `STARTING`, then the parent Phase will be `IN_PROGRESS`. This logic is handled by [PlanUtils.getAggregateStatus()](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/PlanUtils.java#L93).
+All plan elements have a Status value. However, the Plan status is solely determined based on the statuses of its child Phases, and the Phases in turn determine their statuses based on their Steps. For example, a Phase with 3 `PENDING` Steps will also be `PENDING`, but once one of those Steps moves to e.g. `STARTING`, then the parent Phase will be `IN_PROGRESS`. This logic is handled by [`PlanUtils.getAggregateStatus()`](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/PlanUtils.java#L93).
 
 The Status values are what drive the determination of what work needs to be done at any given time. For example, a Step that's `COMPLETE` will be ignored by the scheduler, whereas a step that's `PENDING` or `PREPARED` will be considered part of the active work set.
 
-The Scheduler offers a Plans API which can be used to manually override statuses. For example, the `plan force-complete` command can be used to force a Step into a `COMPLETE` step. The scheduler will then consider this step complete and will move on to other work. Similarly, the `plan restart` command can be used to set a Step back to `PENDING` so that the Scheduler is forced to invoke that Step a second time. For some examples of this manipulation, see [Operations](#operations).
+The Scheduler offers a Plans API which can be used to manually override statuses. For example, the `plan force-complete` command can be used to force a Step into a `COMPLETE` step. The scheduler will then consider this step complete and will move on to other work. Similarly, the `plan restart` command can be used to set a Step back to `PENDING` so that the Scheduler is forced to invoke that Step a second time. For some examples of this manipulation, see [Plan Operations](#operations).
 
-A full list of statuses can be found in [Status.java](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Status.java).
+A full list of statuses can be found in [`Status.java`](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Status.java).
 
 ## Strategies
 
@@ -216,7 +220,7 @@ Now that we have a deployed service, we could make the following changes:
 - Increase the number of `hello` pods from 1 to 2.
 - Double the CPU resources of the `world` pods from 1 to 2 CPUs.
 
-This change will manifest as a restart of the Scheduler process. The Scheduler will be relaunched with updated envvars for each change to the configuration. The envvars will all get rendered into the YAML spec (parsed as a `RawServiceSpec`), which will then be internally converted into the lower-level `ServiceSpec`.
+This change will manifest as a restart of the Scheduler process. The Scheduler will be relaunched with updated envvars for each change to the configuration. The envvars will all get rendered into the YAML spec (parsed as a [`RawServiceSpec`](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/yaml/RawServiceSpec.java)), which will then be internally converted into the lower-level [`ServiceSpec`](https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java).
 
 The Scheduler will then compare this new `ServiceSpec` configuration against the previous `ServiceSpec`(s) referenced by UUID in the current tasks. The two changes will be detected and the Scheduler will generate a `deploy` plan that looks like the following:
 ```
