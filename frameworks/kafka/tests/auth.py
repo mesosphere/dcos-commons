@@ -170,10 +170,11 @@ def write_to_topic(
             if "LEADER_NOT_AVAILABLE" in stderr:
                 LOG.warning("Write failed with LEADER_NOT_AVAILABLE")
                 return True
-            if not is_not_authorized(output):
+            if is_not_authorized(stderr):
                 LOG.warning("Write failed with AuthorizationException")
                 return False
-            raise Exception("Not yet captured error while sending")
+            LOG.error("Unexpected error while sending: %s", stderr)
+            raise Exception("Unexpected error while sending")
 
         LOG.info("Write appears to have succeeded")
         return False
