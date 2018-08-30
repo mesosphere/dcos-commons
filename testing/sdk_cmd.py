@@ -61,7 +61,7 @@ def service_request(
         log_args=log_args,
         log_response=log_response,
         timeout_seconds=timeout_seconds,
-        **kwargs
+        **kwargs,
     )
 
 
@@ -150,17 +150,11 @@ def cluster_request(
         return _cluster_request()
 
 
-def svc_cli(
-    package_name,
-    service_name,
-    service_cmd,
-    print_output=True,
-    check=False,
-):
+def svc_cli(package_name, service_name, service_cmd, print_output=True, check=False):
     return run_cli(
         "{} --name={} {}".format(package_name, service_name, service_cmd),
         print_output=print_output,
-        check=check
+        check=check,
     )
 
 
@@ -280,7 +274,9 @@ def kill_task_with_pattern(pattern, user, agent_host=None):
         command = (
             "sudo pkill -9 -f -U {} -o {}".format(user, pattern)
             + " && echo Successfully killed process by user {} containing {}".format(user, pattern)
-            + " || (echo Process containing {} under user {} not found: && ps aux && exit 1)".format(pattern, user)
+            + " || (echo Process containing {} under user {} not found: && ps aux && exit 1)".format(
+                pattern, user
+            )
         )
     else:
         command = (

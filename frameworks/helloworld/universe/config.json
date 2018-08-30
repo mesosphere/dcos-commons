@@ -96,6 +96,7 @@
             "tls",
             "uri",
             "web-url",
+            "non_recoverable_state",
             ""
           ],
           "default": "svc"

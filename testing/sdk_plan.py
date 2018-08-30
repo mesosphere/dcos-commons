@@ -10,9 +10,16 @@ import logging
 import retrying
 
 import sdk_cmd
+import sdk_tasks
 
 TIMEOUT_SECONDS = 15 * 60
 SHORT_TIMEOUT_SECONDS = 30
+MAX_NEW_TASK_FAILURES = 2
+
+
+class TaskFailuresExceededException(Exception):
+    pass
+
 
 log = logging.getLogger(__name__)
 
@@ -136,21 +143,32 @@ def wait_for_plan_status(
     else:
         statuses = status
 
+    initial_failures = sdk_tasks.get_failed_task_count(service_name, retry=True)
+
     @retrying.retry(
-        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds * 1000,
+        retry_on_result=lambda res: not res,
+        retry_on_exception=lambda e: not isinstance(e, TaskFailuresExceededException),
     )
     def fn():
+        failures = sdk_tasks.get_failed_task_count(service_name)
+        if failures - initial_failures > MAX_NEW_TASK_FAILURES:
+            log.error(
+                "Service %s exceeded failures increase while doing %s and trying to reach %s",
+                service_name,
+                plan_name,
+                statuses,
+            )
+            raise TaskFailuresExceededException("Service not recoverable: {}".format(service_name))
+
         plan = get_plan(
             service_name,
             plan_name,
             timeout_seconds=SHORT_TIMEOUT_SECONDS,
             multiservice_name=multiservice_name,
         )
-        log.info(
-            "Waiting for {} {} plan:\n{}".format(
-                status, plan_name, plan_string(plan_name, plan)
-            )
-        )
+        log.info("Waiting for %s %s plan:\n%s", status, plan_name, plan_string(plan_name, plan))
         if plan and plan["status"] in statuses:
             return plan
         else:
