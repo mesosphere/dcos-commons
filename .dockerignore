@@ -4,8 +4,6 @@
 *.pyc
 .*
 
-!/.git
-!/.git/**
 !test_requirements.txt
 !test_runner.sh
 !/tools/ci
