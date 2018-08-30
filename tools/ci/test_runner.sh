@@ -6,9 +6,6 @@ set -e -x
 export DCOS_ENTERPRISE
 export PYTHONUNBUFFERED=1
 export SECURITY
-export PACKAGE_REGISTRY_ENABLED
-export PACKAGE_REGISTRY_STUB_URL
-export DCOS_FILES_PATH
 
 BUILD_TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT_DIR="${REPO_ROOT:-$1}"
@@ -28,9 +25,6 @@ fi
 
 # First we need to build the framework(s)
 echo "Using FRAMEWORK_LIST:\n${FRAMEWORK_LIST}"
-echo "PACKAGE_REGISTRY_ENABLED ${PACKAGE_REGISTRY_ENABLED}"
-echo "PACKAGE_REGISTRY_STUB_URL ${PACKAGE_REGISTRY_STUB_URL}"
-echo "DCOS_FILES_PATH ${DCOS_FILES_PATH}"
 
 if [ -n "$STUB_UNIVERSE_URL" ]; then
     if [ x"$SINGLE_FRAMEWORK" == x"False" ]; then
@@ -83,9 +77,6 @@ if [ -z "$CLUSTER_URL" ]; then
         echo "Error creating cluster"
         exit 1
     fi
-elif [[ x"$SECURITY" == x"strict" ]] && [[ $CLUSTER_URL != https* ]]; then
-    echo "CLUSTER_URL must be https in strict mode: $CLUSTER_URL"
-    exit 1
 fi
 
 echo "Configuring dcoscli for cluster: $CLUSTER_URL"
@@ -149,7 +140,7 @@ fi
 # First in the root.
 if [ -d ${REPO_ROOT_DIR}/tests ]; then
     FRAMEWORK_TESTS_DIR=${REPO_ROOT_DIR}/tests
-    echo "Starting test for $FRAMEWORK_TESTS_DIR with pytest args [${pytest_args[@]}] at "`date`
+    echo "Starting test for $FRAMEWORK_TESTS_DIR at "`date`
     py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_TESTS_DIR}
     exit_code=$?
     echo "Finished test for $FRAMEWORK_TESTS_DIR at "`date`
@@ -162,7 +153,7 @@ for framework in $FRAMEWORK_LIST; do
     if [ ! -d ${FRAMEWORK_TESTS_DIR} ]; then
         echo "No tests found for ${framework} at ${FRAMEWORK_TESTS_DIR}"
     else
-        echo "Starting test for $FRAMEWORK_TESTS_DIR with pytest args [${pytest_args[@]}] at "`date`
+        echo "Starting test for $FRAMEWORK_TESTS_DIR at "`date`
         py.test -vv -s "${pytest_args[@]}" ${FRAMEWORK_TESTS_DIR}
         exit_code=$?
         echo "Finished test for $FRAMEWORK_TESTS_DIR at "`date`
