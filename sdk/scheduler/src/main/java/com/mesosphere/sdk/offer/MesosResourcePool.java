@@ -163,9 +163,9 @@ public class MesosResourcePool {
             if (atomicResources == null) {
                 LOGGER.info("Offer lacks any atomic resources named {}", resourceName);
             } else {
-                String desired = spec.getValue().toString();
-                if (spec.getProfiles() != null) {
-                    desired += "(profiles: " + spec.getProfiles() + ")";
+                String desired = TextFormat.shortDebugString(spec.getValue());
+                if (!spec.getProfiles().isEmpty()) {
+                    desired += String.format(" (profiles: %s)", spec.getProfiles());
                 }
                 LOGGER.info("Offered quantity in all {} instances of {} is insufficient: desired {}",
                         atomicResources.size(),
@@ -285,15 +285,17 @@ public class MesosResourcePool {
     }
 
     private static boolean matchAnyProfile(List<String> desired, Optional<String> actual) {
-        if (desired != null && actual.isPresent()) {
-            for (String profile : desired) {
-                if (profile.equals(actual.get())) {
-                    return true;
-                }
+        if (!actual.isPresent()) {
+            return desired.isEmpty();
+        }
+
+        for (String profile : desired) {
+            if (profile.equals(actual.get())) {
+                return true;
             }
         }
 
-        return desired == null && !actual.isPresent();
+        return false;
     }
 
     private static Collection<MesosResource> getMesosResources(Offer offer, Optional<String> role) {

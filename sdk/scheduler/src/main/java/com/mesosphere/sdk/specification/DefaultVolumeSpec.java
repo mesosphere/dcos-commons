@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.Constants;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -55,8 +56,6 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
                 role,
                 preReservedRole,
                 principal);
-
-        validateVolume();
     }
 
     @JsonCreator
@@ -72,7 +71,9 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         super(name, value, role, preReservedRole, principal);
         this.type = type;
         this.containerPath = containerPath;
-        this.profiles = profiles;
+        this.profiles = profiles == null ? Collections.emptyList() : profiles;
+
+        validateVolume();
     }
 
     @Override
@@ -118,20 +119,17 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         validateResource();
         ValidationUtils.matchesRegex(this, "containerPath", containerPath, VALID_CONTAINER_PATH_PATTERN);
 
-        if (type == Type.MOUNT) {
-            ValidationUtils.nonEmptyAllowNull(this, "profiles", profiles);
-        } else {
-            ValidationUtils.isNull(this, "profiles", profiles);
+        ValidationUtils.nonNull(this, "profiles", profiles);
+        if (type != Type.MOUNT) {
+            ValidationUtils.isEmpty(this, "profiles", profiles);
         }
 
-        if (profiles != null) {
-            int index = 0;
-            for (String profile : profiles) {
-                ValidationUtils.matchesRegex(this, "profiles[" + index + "]", profile, VALID_PROFILE_PATTERN);
-                index++;
-            }
-
-            ValidationUtils.isUnique(this, "profiles", profiles.stream());
+        int index = 0;
+        for (String profile : profiles) {
+            ValidationUtils.matchesRegex(this, "profiles[" + index + "]", profile, VALID_PROFILE_PATTERN);
+            index++;
         }
+
+        ValidationUtils.isUnique(this, "profiles", profiles.stream());
     }
 }

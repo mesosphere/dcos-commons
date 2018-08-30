@@ -34,6 +34,10 @@ public class PodInstanceRequirementTestUtils {
         return getRootVolumeRequirement(cpus, diskSize, 0);
     }
 
+    public static PodInstanceRequirement getMountVolumeRequirement(double cpus, double diskSize) {
+        return getMountVolumeRequirement(cpus, diskSize, Collections.emptyList(), 0);
+    }
+
     public static PodInstanceRequirement getMountVolumeRequirement(
             double cpus, double diskSize, List<String> profiles) {
         return getMountVolumeRequirement(cpus, diskSize, profiles, 0);
@@ -82,7 +86,7 @@ public class PodInstanceRequirementTestUtils {
      * @param diskSize The disk size required.
      */
     private static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.ROOT.name(), null);
+        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.ROOT.name(), Collections.emptyList());
     }
 
     private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize, List<String> profiles) {

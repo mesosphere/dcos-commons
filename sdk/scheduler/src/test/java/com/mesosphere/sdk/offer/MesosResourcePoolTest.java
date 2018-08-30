@@ -14,6 +14,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -65,7 +66,7 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
                 ValueUtils.getValue(offerResource).getScalar().getValue(),
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
-                null,
+                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -141,7 +142,7 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
                 ValueUtils.getValue(offerResource).getScalar().getValue(),
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
-                null,
+                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);

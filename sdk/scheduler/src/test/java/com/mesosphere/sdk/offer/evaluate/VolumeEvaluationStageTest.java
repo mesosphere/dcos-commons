@@ -24,7 +24,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1000, null);
+                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1000);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
@@ -77,7 +77,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         PodInstanceRequirement podInstanceRequirement =
-                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 2000, null);
+                PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 2000);
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),

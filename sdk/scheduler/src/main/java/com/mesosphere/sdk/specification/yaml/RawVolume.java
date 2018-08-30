@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -21,7 +22,7 @@ public class RawVolume {
             @JsonProperty("size") int size) {
         this.path = path;
         this.type = type;
-        this.profiles = profiles;
+        this.profiles = profiles == null ? Collections.emptyList() : profiles;
         this.size = size;
     }
 

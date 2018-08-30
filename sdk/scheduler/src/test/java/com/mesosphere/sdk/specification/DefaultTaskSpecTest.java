@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
@@ -35,7 +36,7 @@ public class DefaultTaskSpecTest {
                                 100,
                                 VolumeSpec.Type.ROOT,
                                 TestConstants.CONTAINER_PATH,
-                                null,
+                                Collections.emptyList(),
                                 TestConstants.ROLE,
                                 TestConstants.PRE_RESERVED_ROLE,
                                 TestConstants.PRINCIPAL)))

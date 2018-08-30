@@ -9,6 +9,7 @@ import org.apache.mesos.Protos;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -165,10 +166,11 @@ public class DefaultResourceSet implements ResourceSet {
             return addScalarResource(memory, "mem");
         }
 
-        public Builder addVolume(String volumeType,
-                                 Double size,
-                                 String containerPath,
-                                 List<String> profiles) {
+        public Builder addVolume(String volumeType, Double size, String containerPath) {
+            return addVolume(volumeType, size, containerPath, Collections.emptyList());
+        }
+
+        public Builder addVolume(String volumeType, Double size, String containerPath, List<String> profiles) {
             VolumeSpec.Type volumeTypeEnum;
             try {
                 volumeTypeEnum = VolumeSpec.Type.valueOf(volumeType);

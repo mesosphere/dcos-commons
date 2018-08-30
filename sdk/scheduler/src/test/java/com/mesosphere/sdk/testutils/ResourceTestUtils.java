@@ -12,6 +12,7 @@ import org.apache.mesos.Protos.Volume;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 
+import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -59,7 +60,7 @@ public class ResourceTestUtils {
                 diskSize,
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
-                null,
+                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);

@@ -13,6 +13,7 @@ import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -217,7 +218,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
-                null,
+                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -252,7 +253,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
-                null,
+                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -324,7 +325,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
-                null,
+                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -363,7 +364,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
-                null,
+                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -435,7 +436,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
-                null,
+                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -473,7 +474,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 10,
                 VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
-                null,
+                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
