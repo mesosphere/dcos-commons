@@ -141,9 +141,9 @@ def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
     return history
 
 
-def get_task_failed_count(service_name: str) -> int:
+def get_task_failed_count(service_name: str, retry=False) -> int:
     history_response = sdk_cmd.cluster_request(
-        "GET", "/dcos-history-service/history/last", retry=False
+        "GET", "/dcos-history-service/history/last", retry=retry
     )
     history_response.raise_for_status()
     history = history_response.json()
