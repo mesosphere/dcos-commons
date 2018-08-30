@@ -126,7 +126,9 @@ Since a single pod instance was requested via the *count* element, only a single
 
 ## Plans
 
-In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks. You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
+In the simple example above, it is obvious *how* to deploy this service.  It consists of a launching a single task. For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks. You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
+
+For more in-depth information about how Plans work internally, see the [Plans and Deployment](../plans/) documentation.
 
 ### Default Deployment Plan
 

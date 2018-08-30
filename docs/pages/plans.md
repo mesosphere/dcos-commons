@@ -6,7 +6,7 @@ toc: true
 
 Plans are how SDK Services convey progress through service management operations, such as repairing failed tasks and/or rolling out changes to the service's configuration. This document describes what Plans are, how they work, and how they can be used in the context of running a service as an operator or building a new service as a developer.
 
-For more information about customizing Plans in a service that's under development, see the [developer guide](../developer-guide/#plans).
+This document focuses on the mechanics of how Plans actually work behind the scenes. For more general information about customizing Plans in the context of developing a service, see the [developer guide](../developer-guide/#plans).
 
 ## Overview
 
@@ -125,7 +125,7 @@ The developer can specify custom plans in their YAML service specification. Thes
 - A YAML `deploy` Plan will override the behavior of initial deployment and configuration changes. A separate `update` plan may also be specified, in which case `deploy` will handle initial deployment and `update` will handle configuration changes.
 - If the YAML Plan has a custom name, then it can be manually launched by the operator. The operator may specify environment variables in their request which will be passed to the tasks run by the plan. One caveat of this is that the scheduler doesn't currently know what environment variables are expected so there is no validation that values required by the operation have actually been provided.
 
-For more information on the syntax for declaring plans in the YAML service specification, see the [YAML Reference](../yaml-reference).
+For more information on the syntax for declaring plans in the YAML service specification, see the [YAML Reference](../yaml-reference). For theoretical examples of custom YAML plans, see the [Developer Guide](../developer-guide#custom-deployment-plan).
 The [Cassandra service specification](https://github.com/mesosphere/dcos-commons/blob/4910aeb/frameworks/cassandra/src/main/dist/svc.yml#L266) provides an example of a customized `deploy` plan (additional `init_system_keyspaces` step for `node-0`), as well as several custom Plans which may be manually triggered by the operator.
 
 ### Custom Java Plans
