@@ -59,6 +59,7 @@ COPY / /tmp/repo/
 # gradlew: Heat up jar cache. pre-commit: Heat up lint tooling cache.
 RUN cd /tmp/repo/ && \
     ./gradlew testClasses && \
+    git init && \
     pre-commit install-hooks && \
     cd / && \
     rm -rf /tmp/repo/
