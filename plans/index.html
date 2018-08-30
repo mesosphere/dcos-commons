@@ -1,0 +1,462 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Plans and Deployment</title>
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/layout.css" />
+<link rel="shortcut icon" type="image/png" href="https://mesosphere.com/favicon.ico"/>
+<!-- The Dropdown library is written by Stephen Morley, licensed CC0 1.0 Universal (Public Domain Dedication)-->
+<link rel="stylesheet" type="text/css" media="all" href="/dcos-commons/style/Dropdown.css" />
+<script src="/dcos-commons/style/Dropdown.js"></script>
+<style type="text/css">
+/* set the background color of menu items */
+.dropdown, .dropdown ul { background: #555555; clear: both; }
+/* set the background color of active items */
+.dropdown li:hover > a, .dropdown li:hover > span, .dropdown li.dropdownOpen > a, .dropdown li.dropdownOpen > span { background: #af87e0; }
+/* pad items, set their text color, and fade their background color */
+.dropdown a, .dropdown span { padding: 0.25em 0.5em; color: white; transition: background 0.2s; }
+/* show '+' on expandable items */
+.dropdown span:after { content: " +"; }
+
+/* toc style: remove extra margin between elements */
+.section-nav ul { margin: 0; }
+</style>
+</head>
+
+<body>
+<div id="wrapper">
+
+<a href="/dcos-commons/">
+<img style="float: left; margin-bottom: 2em" src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250" alt="DC/OS Software Development Kit" />
+</a>
+<img style="float: right" src="https://img.shields.io/badge/Status-Alpha-BF97F0.svg?style=flat-square" alt="Status: Alpha" />
+
+
+
+<ul class="dropdown" style="clear: both">
+  <li>
+    <a href="/dcos-commons/">Home</a>
+  </li>
+  <li>
+    <span>Documentation</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/developer-guide/">SDK Developer Guide</a></li>
+      
+      <li><a href="/dcos-commons/plans/">Plans and Deployment</a></li>
+      
+      <li><a href="/dcos-commons/multi-service/">Building Multi-Service Schedulers</a></li>
+      
+      <li><a href="/dcos-commons/yaml-reference/">YAML Reference</a></li>
+      
+      <li><a href="/dcos-commons/faq/">Frequently Asked Questions</a></li>
+      
+      <li><a href="/dcos-commons/glossary/">Glossary</a></li>
+      
+      <li><a href="/dcos-commons/reference/api">Javadoc Reference</a></li>
+      <li><a href="/dcos-commons/reference/swagger-api">REST APIs</a></li>
+    </ul>
+  </li>
+  <li>
+    <span>Tutorials</span>
+    <ul>
+      
+      
+      
+      <li><a href="/dcos-commons/tutorials/secrets-tutorial/">Secrets Tutorial</a></li>
+      
+      <li><a href="/dcos-commons/tutorials/kafka-tutorial/">Kafka Tutorial</a></li>
+      
+    </ul>
+  </li>
+  
+  <li><a href="https://github.com/mesosphere/dcos-commons/blob/master/CONTRIBUTING.md">Contributing</a></li>
+  <li><a href="http://chat.dcos.io" target="_blank">Slack</a></li>
+</ul>
+<h1>Plans and Deployment</h1>
+<div id="content">
+
+<ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#overview">Overview</a></li>
+<li class="toc-entry toc-h2"><a href="#statuses">Statuses</a></li>
+<li class="toc-entry toc-h2"><a href="#strategies">Strategies</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#default-strategies">Default strategies</a></li>
+<li class="toc-entry toc-h3"><a href="#custom-strategies">Custom strategies</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#plan-execution">Plan execution</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#plan-parallelism">Plan parallelism</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#how-deployment-works">How deployment works</a></li>
+<li class="toc-entry toc-h2"><a href="#defining-plans">Defining Plans</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#default-plans">Default Plans</a></li>
+<li class="toc-entry toc-h3"><a href="#custom-yaml-plans">Custom YAML Plans</a></li>
+<li class="toc-entry toc-h3"><a href="#custom-java-plans">Custom Java Plans</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#use-cases">Use cases</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#initial-deployment">Initial deployment</a></li>
+<li class="toc-entry toc-h3"><a href="#configuration-change">Configuration change</a></li>
+<li class="toc-entry toc-h3"><a href="#recovery-pod-restartreplace">Recovery: Pod Restart/Replace</a></li>
+<li class="toc-entry toc-h3"><a href="#uninstall">Uninstall</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#plan-operations">Plan Operations</a></li>
+</ul><p>Plans are how SDK Services convey progress through service management operations, such as repairing failed tasks and/or rolling out changes to the service’s configuration. This document describes what Plans are, how they work, and how they can be used in the context of running a service as an operator or building a new service as a developer.</p>
+
+<p>This document focuses on the mechanics of how Plans actually work behind the scenes. For more general information about customizing Plans in the context of developing a service, see the <a href="../developer-guide/#plans">developer guide</a>.</p>
+
+<h2 id="overview">
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span class="octicon octicon-link"></span></a>Overview</h2>
+
+<p>Each Plan is a tree with a fixed three-level hierarchy of the Plan itself, its Phases, and then Steps within those Phases. These are all collectively referred to as “Elements”. The choice of three levels was arbitrarily chosen as “enough levels for anybody”. The fixed tree hierarchy was chosen in order to simplify building UIs that display plan content. In particular, lots of suggestions were made to have a full DAG structure, which were ultimately rejected. This three-level hierarchy can look as follows:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>Plan foo
+├─ Phase bar
+│  ├─ Step qux
+│  └─ Step quux
+└─ Phase baz
+   ├─ Step quuz
+   ├─ Step corge
+   └─ Step grault
+</code></pre></div></div>
+
+<p>Plans are advertised by the Scheduler via <code class="highlighter-rouge">/v1/plans</code> endpoints. In practice, most (but not all) work performed by the Scheduler is conveyed via Plans. A given service can have multiple Plans, all doing work in parallel. This work can include deploying the service, rolling out configuration changes or upgrades, relaunching failed or replaced tasks, decommissioning pods, and uninstalling the service. The developer can even define their own custom plans to be manually invoked by the operator. If the Scheduler is running <a href="../multi-service/">multiple services</a>, then each of those services will have its own independent set of Plans, accessible at <code class="highlighter-rouge">/v1/multi/&lt;svcname&gt;/plans</code>.</p>
+
+<p>Plans as a concept have several benefits:</p>
+<ul>
+  <li>They allow operators to see what the service is currently doing, and to visualize the broader operation such as for a config rollout. The fixed structure of that information meanwhile makes it straightforward to build UIs and tooling on top.</li>
+  <li>They allow operators to assign the state of running operations via editing the state of Plan elements. For example, a stuck uninstall could be updated to stop waiting to clean up resources that no longer exist in the cluster.</li>
+  <li>They allow developers to customize how common operations are performed, or to define new custom operations that can be triggered by end-users. For more information on this, see the <a href="../developer-guide/#plans">developer guide</a>.</li>
+</ul>
+
+<p>It is worth keeping in mind that Plans are effectively a runtime-only concept. Unlike the ServiceSpec, they are not persisted to Zookeeper and therefore are reevaluated when the Scheduler restarts. This can be observed by how Plans can be present in the <a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/yaml/RawServiceSpec.java#L137"><code class="highlighter-rouge">RawServiceSpec</code></a> but are not part of the <a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java"><code class="highlighter-rouge">ServiceSpec</code></a>. The <code class="highlighter-rouge">RawServiceSpec</code> just represents the YAML Schema, which is then internally translated into a <code class="highlighter-rouge">ServiceSpec</code> representing the service configuration that’s persisted to ZK and a list of Plan objects that only exist in the Scheduler runtime. Similarly, any manual Plan state overrides via <a href="#plan-operations">Plan Operations</a> are lost if the Scheduler restarts.</p>
+
+<p>The ephemeral nature of Plans is intentional. Plans drive the transition between current and desired states, and are built based on the current progress of that transition. They are not themselves part of those states.</p>
+
+<h2 id="statuses">
+<a id="statuses" class="anchor" href="#statuses" aria-hidden="true"><span class="octicon octicon-link"></span></a>Statuses</h2>
+
+<p>All plan elements have a Status value. However, the Plan status is solely determined based on the statuses of its child Phases, and the Phases in turn determine their statuses based on their Steps. For example, a Phase with 3 <code class="highlighter-rouge">PENDING</code> Steps will also be <code class="highlighter-rouge">PENDING</code>, but once one of those Steps moves to e.g. <code class="highlighter-rouge">STARTING</code>, then the parent Phase will be <code class="highlighter-rouge">IN_PROGRESS</code>. This logic is handled by <a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/PlanUtils.java#L93"><code class="highlighter-rouge">PlanUtils.getAggregateStatus()</code></a>.</p>
+
+<p>The Status values are what drive the determination of what work needs to be done at any given time. For example, a Step that’s <code class="highlighter-rouge">COMPLETE</code> will be ignored by the scheduler, whereas a step that’s <code class="highlighter-rouge">PENDING</code> or <code class="highlighter-rouge">PREPARED</code> will be considered part of the active work set.</p>
+
+<p>The Scheduler offers a Plans API which can be used to manually override statuses. For example, the <code class="highlighter-rouge">plan force-complete</code> command can be used to force a Step into a <code class="highlighter-rouge">COMPLETE</code> step. The scheduler will then consider this step complete and will move on to other work. Similarly, the <code class="highlighter-rouge">plan restart</code> command can be used to set a Step back to <code class="highlighter-rouge">PENDING</code> so that the Scheduler is forced to invoke that Step a second time. For some examples of this manipulation, see <a href="#plan-operations">Plan Operations</a>.</p>
+
+<p>A full list of statuses and what they mean can be found in <a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/Status.java"><code class="highlighter-rouge">Status.java</code></a>.</p>
+
+<h2 id="strategies">
+<a id="strategies" class="anchor" href="#strategies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Strategies</h2>
+
+<p>When deciding what work to do next, the Scheduler polls the Plan for a list of Candidate Steps. Candidate Steps are the steps which are due to be processed. The Plan uses its assigned Strategy to pick the candidate Phases which then use their respective Strategies to decide their candidate Steps. The Scheduler then attempts to process the list of Candidate Steps that it got back.</p>
+
+<p>These Strategies are effectively implementations of some dependency structure, based on the statuses of the elements they’re wrapping. For example, a parallel Strategy would return all elements that haven’t been completed yet, while a serial Strategy would only return the next incomplete element in some ordered sequence. For example, the following Plan shows a mix of serial and parallel strategies:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>foo (serial strategy) (IN_PROGRESS)
+├─ bar (serial strategy) (COMPLETE)
+│  ├─ Step qux (COMPLETE)
+│  └─ Step quux (COMPLETE)
+└─ baz (parallel strategy) (IN_PROGRESS)
+   ├─ Step quuz (STARTING)
+   ├─ Step corge (PENDING)
+   └─ Step grault (COMPLETE)
+</code></pre></div></div>
+
+<p>Plan <code class="highlighter-rouge">foo</code> has a serial strategy, so it wants to run Phase <code class="highlighter-rouge">bar</code> before Phase <code class="highlighter-rouge">baz</code>. In this case, we see that Phase <code class="highlighter-rouge">bar</code> is already <code class="highlighter-rouge">COMPLETE</code>d, so <code class="highlighter-rouge">baz</code> is selected as a Phase to be checked for candidate Steps. Phase <code class="highlighter-rouge">baz</code> has a parallel Strategy, so it returns all non-<code class="highlighter-rouge">COMPLETE</code> Steps. In this case, that’s <code class="highlighter-rouge">quuz</code> and <code class="highlighter-rouge">corge</code>, so those would be returned to the Scheduler as the current Candidate Steps to be run.</p>
+
+<h3 id="default-strategies">
+<a id="default-strategies" class="anchor" href="#default-strategies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Default strategies</h3>
+
+<p>The following strategies are available by default, these can be used in a Service’s YAML definition:</p>
+<ul>
+  <li>
+<code class="highlighter-rouge">serial</code> and <code class="highlighter-rouge">parallel</code>
+</li>
+  <li>
+<code class="highlighter-rouge">serial-canary</code> (or just <code class="highlighter-rouge">canary</code>) and <code class="highlighter-rouge">parallel-canary</code>
+</li>
+</ul>
+
+<p>The <code class="highlighter-rouge">-canary</code> variants produce a basic canary rollout where a single element is allowed to launch before any other elements may launch. When a canary strategy is used, the elements will be waiting for the operator to run <code class="highlighter-rouge">plan continue</code> commands. The first <code class="highlighter-rouge">plan continue</code> would cause the Strategy to mark the first element as eligible, then a second <code class="highlighter-rouge">plan continue</code> would allow the rest of the rollout to complete normally.</p>
+
+<h3 id="custom-strategies">
+<a id="custom-strategies" class="anchor" href="#custom-strategies" aria-hidden="true"><span class="octicon octicon-link"></span></a>Custom strategies</h3>
+
+<p>In addition to those defaults, a Java developer can implement their own custom Strategy. For example custom strategies are used to define the dependencies in uninstall and decommission plans generated by the SDK.</p>
+
+<h2 id="plan-execution">
+<a id="plan-execution" class="anchor" href="#plan-execution" aria-hidden="true"><span class="octicon octicon-link"></span></a>Plan execution</h2>
+
+<p>We’ve looked at how the Scheduler uses Strategies to select any Steps to be executed, but how does that execution work in practice?</p>
+
+<p>The first <em>step</em> is to figure out what Steps are candidates for doing work. This is done by looking at their statuses. After the Steps have been selected, they will be invoked directly via their <code class="highlighter-rouge">start()</code> function.
+Steps can optionally have a <code class="highlighter-rouge">PodInstanceRequirement</code>, which contains information about a pod of tasks that the Step wants to deploy.</p>
+
+<p>Some steps, but not all, represent the work needed to deploy tasks in the cluster. This is ultimately determined by the presence of a <code class="highlighter-rouge">PodInstanceRequirement</code>, which defines the required footprint for the pod, and the task(s) that should be launched into that pod. If the Step has this, then the Scheduler will evaluate offers against that <code class="highlighter-rouge">PodInstanceRequirement</code> and then notify the Step whether that evaluation succeeded by invoking its <code class="highlighter-rouge">updateOfferStatus()</code> method. This lets the Step know that a launch has started. As the Scheduler receives <code class="highlighter-rouge">TaskStatus</code> messages from Mesos about the task, those will automatically be passed to the <code class="highlighter-rouge">Step</code>. For example, if the Step is expecting the task to enter a <code class="highlighter-rouge">TASK_RUNNING</code> state, the Step can mark itself <code class="highlighter-rouge">COMPLETE</code> once it has received this <code class="highlighter-rouge">TaskStatus</code>.</p>
+
+<p>In short, the flow works as follows:</p>
+<ol>
+  <li>Get Plans from PlanManagers
+    <ul>
+      <li>Plans may be dynamically generated, e.g. <code class="highlighter-rouge">recovery</code>
+</li>
+    </ul>
+  </li>
+  <li>Get active Steps from Plans: determined by Strategies in Plans/Phases
+    <ul>
+      <li>
+<code class="highlighter-rouge">serial</code>, <code class="highlighter-rouge">parallel</code>, custom(<code class="highlighter-rouge">dependency</code>), …</li>
+    </ul>
+  </li>
+  <li>Filter any Steps which operate on the same Assets (Tasks)
+    <ul>
+      <li>Avoid multiple Steps working on the same Task at the same time</li>
+      <li>Priority: <code class="highlighter-rouge">deploy</code>, <code class="highlighter-rouge">recovery</code>, <code class="highlighter-rouge">decommission</code>, custom plans</li>
+    </ul>
+  </li>
+  <li>Execute the Steps, fetch any <code class="highlighter-rouge">PodInstanceRequirement</code>s
+    <ul>
+      <li>Evaluate <code class="highlighter-rouge">PodInstanceRequirement</code> (if any) against Offers</li>
+      <li>Notify Step whether any Offer did or didn’t match</li>
+    </ul>
+  </li>
+</ol>
+
+<h3 id="plan-parallelism">
+<a id="plan-parallelism" class="anchor" href="#plan-parallelism" aria-hidden="true"><span class="octicon octicon-link"></span></a>Plan parallelism</h3>
+
+<p>By default, services come with two plans up-front. One is the <code class="highlighter-rouge">deploy</code> plan, which deals with rolling out changes to the service’s configuration, and the other is the <code class="highlighter-rouge">recovery</code> plan, which automatically recovers tasks that have exited or been restarted by the user. If pods are being decommissioned, a third plan named <code class="highlighter-rouge">decommission</code> will also be added.</p>
+
+<p>These plans will all be processed in parallel, where Steps from each plan are fetched and then executed in a single pass. However, some of these Steps may be doing work on the same underlying object, e.g. one Step may be trying to update a given pod, while another may be trying to tear it down. To avoid contention, we have the concept of Dirtied Assets, where two Steps cannot be performing work on the same object (a Pod in this case) at the same time. This is enforced in the <a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/plan/DefaultPlanCoordinator.java"><code class="highlighter-rouge">PlanCoordinator</code></a>, which selects candidate Steps from all plans defined in the Scheduler. The priority of plans is defined as follows: <code class="highlighter-rouge">deploy</code>, <code class="highlighter-rouge">recovery</code>, <code class="highlighter-rouge">decommission</code>, and then any custom plans. For example if we’re in the middle of deploying a new version of a task in the <code class="highlighter-rouge">deploy</code> plan, there isn’t much point in trying to recover the old version of that task in the <code class="highlighter-rouge">recovery</code> plan.</p>
+
+<p>But why would we want these to run in parallel in the first place? This is intentional. The main reason is so that work in one plan isn’t necessarily blocked waiting on work in another plan. For example, there isn’t any reason that the Scheduler can’t be updating pod-2-task while it also recovers pod-4-task. But per above we want to avoid having multiple plans performing operations to the same tasks at the same time.</p>
+
+<h2 id="how-deployment-works">
+<a id="how-deployment-works" class="anchor" href="#how-deployment-works" aria-hidden="true"><span class="octicon octicon-link"></span></a>How deployment works</h2>
+
+<p>Deployment, as handled by the <code class="highlighter-rouge">deploy</code> plan, is defined as moving the service from its current state to some target configuration. In the case of initial install, the <code class="highlighter-rouge">deploy</code> plan is moving from a null configuration to an initial deployment. When reconfiguring the service, it’s moving from one or more previous configurations to a new target configuration. Finally, even uninstall is considered a “deployment” where the service is being moved back to a null configuration.</p>
+
+<p>This deployment depends on the ability of the scheduler to detect the current configuration of launched tasks, so that it knows which ones need to be deployed. The way this works is each task’s <code class="highlighter-rouge">TaskInfo</code> is stored in ZK with a <code class="highlighter-rouge">target_configuration</code> label, which points to the UUID of the config which was used to generate and launch that task. The Scheduler can cross-reference the stored UUIDs with its history of prior configurations to figure out whether a given task needs to be updated – this is what is ultimately used to populate the <code class="highlighter-rouge">deploy</code> plan with in<code class="highlighter-rouge">COMPLETE</code> Steps for any operations to be performed. Similarly, this is what the <code class="highlighter-rouge">recovery</code> plan uses in its role of relaunching tasks into their <em>current</em> configuration.</p>
+
+<p>Once the <code class="highlighter-rouge">deploy</code> Plan starts, it will begin the process of moving tasks to the new target config, according to the Strategies configured in the Plan itself. Meanwhile, the <code class="highlighter-rouge">recovery</code> plan will also be active, but it <em>only</em> relaunch failed tasks into their current configuration. So if the <code class="highlighter-rouge">deploy</code> plan is currently upgrading <code class="highlighter-rouge">node-3</code> and <code class="highlighter-rouge">node-5</code> fails, then the <code class="highlighter-rouge">recovery</code> plan will relaunch <code class="highlighter-rouge">node-5</code> back into the old config, not the new one. This is intentional, as we want the <code class="highlighter-rouge">deploy</code> plan to have full control over the upgrade process. If the <code class="highlighter-rouge">recovery</code> plan was automatically relaunching tasks into the new configuration, then the steps laid out in the <code class="highlighter-rouge">deploy</code> Plan would effectively be getting overridden in the process.</p>
+
+<h2 id="defining-plans">
+<a id="defining-plans" class="anchor" href="#defining-plans" aria-hidden="true"><span class="octicon octicon-link"></span></a>Defining Plans</h2>
+
+<p>The Service developer is expected to provide plans for any custom behavior they require. If these are not provided, default plans will be automatically generated based on the declared pods. Plan customizations may be defined within the YAML service specification, or using the SDK Java APIs.</p>
+
+<h3 id="default-plans">
+<a id="default-plans" class="anchor" href="#default-plans" aria-hidden="true"><span class="octicon octicon-link"></span></a>Default Plans</h3>
+
+<p>By default, the <code class="highlighter-rouge">deploy</code> plan will be populated with a reasonable default. The default will be to sequentially deploy each of the declared pods in the order that they were declared in the YAML specification. Any declared readiness checks and goal states will be honored as the rollout is performed.</p>
+
+<p>For basic services, this behavior is typically “good enough”. Service developers can change this default behavior using the YAML service specification or via the Java API as described below.</p>
+
+<h3 id="custom-yaml-plans">
+<a id="custom-yaml-plans" class="anchor" href="#custom-yaml-plans" aria-hidden="true"><span class="octicon octicon-link"></span></a>Custom YAML Plans</h3>
+
+<p>The developer can specify custom plans in their YAML service specification. These can either be used to override default plans, or to define new plans that can be manually invoked by the operator.</p>
+
+<ul>
+  <li>A YAML <code class="highlighter-rouge">deploy</code> Plan will override the behavior of initial deployment and configuration changes. A separate <code class="highlighter-rouge">update</code> plan may also be specified, in which case <code class="highlighter-rouge">deploy</code> will handle initial deployment and <code class="highlighter-rouge">update</code> will handle configuration changes.</li>
+  <li>If the YAML Plan has a custom name, then it can be manually launched by the operator. The operator may specify environment variables in their request which will be passed to the tasks run by the plan. One caveat of this is that the scheduler doesn’t currently know what environment variables are expected so there is no validation that values required by the operation have actually been provided.</li>
+</ul>
+
+<p>For more information on the syntax for declaring plans in the YAML service specification, see the <a href="../yaml-reference">YAML Reference</a>. For theoretical examples of custom YAML plans, see the <a href="../developer-guide#custom-deployment-plan">Developer Guide</a>.
+The <a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/frameworks/cassandra/src/main/dist/svc.yml#L266">Cassandra service specification</a> provides an example of a customized <code class="highlighter-rouge">deploy</code> plan (additional <code class="highlighter-rouge">init_system_keyspaces</code> step for <code class="highlighter-rouge">node-0</code>), as well as several custom Plans which may be manually triggered by the operator.</p>
+
+<h3 id="custom-java-plans">
+<a id="custom-java-plans" class="anchor" href="#custom-java-plans" aria-hidden="true"><span class="octicon octicon-link"></span></a>Custom Java Plans</h3>
+
+<p>While YAML plans allow the developer to statically declare new plans and/or override default plans like <code class="highlighter-rouge">deploy</code> and <code class="highlighter-rouge">update</code>, the Java Plan APIs allow the developer to customize things further.</p>
+
+<p>The Java APIs allow the service developer to:</p>
+<ul>
+  <li>Customize dynamic plans like <code class="highlighter-rouge">recovery</code> to define custom recovery behavior when certain tasks fail. By default, the <code class="highlighter-rouge">recovery</code> plan just relaunches the task to get it to the desired goal state (e.g. keep it <code class="highlighter-rouge">RUNNING</code>, or relaunch it until it successfully <code class="highlighter-rouge">FINISH</code>es), but some services may require that additional operations be performed in certain cases.</li>
+  <li>Use a custom dependency structure (other than <code class="highlighter-rouge">serial</code> or <code class="highlighter-rouge">parallel</code>) in Plans/Phases.</li>
+</ul>
+
+<p>For example, the developer could specify a <code class="highlighter-rouge">PlanCustomizer</code> which edits the content of a plan before it’s used by the scheduler itself, or the developer can simply add a set of plans when first creating the service.</p>
+
+<p><a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/uninstall/UninstallPlanFactory.java"><code class="highlighter-rouge">UninstallPlanFactory</code></a> and <a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.java"><code class="highlighter-rouge">DecommissionPlanFactory</code></a> each provide similar examples of constructing Plans in Java which use custom Strategies.</p>
+
+<h2 id="use-cases">
+<a id="use-cases" class="anchor" href="#use-cases" aria-hidden="true"><span class="octicon octicon-link"></span></a>Use cases</h2>
+
+<p>Now that we have a basic understanding of how the Plans are structured, how are they put to practice? Lets look at some common scenarios and see how they behave.</p>
+
+<h3 id="initial-deployment">
+<a id="initial-deployment" class="anchor" href="#initial-deployment" aria-hidden="true"><span class="octicon octicon-link"></span></a>Initial deployment</h3>
+
+<p>First, we can look at initial deployment of a <code class="highlighter-rouge">hello-world</code> service with 1 <code class="highlighter-rouge">hello</code> pod and 2 <code class="highlighter-rouge">world</code> pods. “Initial deployment” means that this is the first time the service is being launched into the cluster. It doesn’t have any existing resources to launch against, so it will just look for anything that matches.</p>
+
+<p>When the service starts, it would be initialized with the following <code class="highlighter-rouge">deploy</code> plan:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deploy (serial strategy) (PENDING)
+├─ hello (serial strategy) (PENDING)
+│  └─ hello-0:[server] (PENDING)
+└─ world (serial strategy) (PENDING)
+   ├─ world-0:[server, sidecar] (PENDING)
+   └─ world-1:[server, sidecar] (PENDING)
+</code></pre></div></div>
+
+<p>At this point, the service uses the Plan/Phase strategies to select the active Step(s). We can see that the <code class="highlighter-rouge">deploy</code> Plan has a <code class="highlighter-rouge">serial</code> strategy, so it would select <code class="highlighter-rouge">hello</code>, the first incomplete Phase. The <code class="highlighter-rouge">hello</code> phase meanwhile would select <code class="highlighter-rouge">hello-0</code>, the first incomplete Step.</p>
+
+<p>In deploying <code class="highlighter-rouge">hello-0</code>, the service would fetch the <code class="highlighter-rouge">PodInstanceRequirement</code> returned by that Step, which would contain the footprint required by the pod and the instruction to launch <code class="highlighter-rouge">hello-0-server</code> task within that pod. The service will tell the <code class="highlighter-rouge">hello-0</code> Step that it’s now processing offers on the Step’s behalf, and the Step will update its internal state to <code class="highlighter-rouge">PREPARED</code> to reflect that it’s currently being evaluated:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deploy (serial strategy) (IN_PROGRESS)
+├─ hello (serial strategy) (IN_PROGRESS)
+│  └─ hello-0:[server] (PREPARED)
+└─ world (serial strategy) (PENDING)
+   ├─ world-0:[server, sidecar] (PENDING)
+   └─ world-1:[server, sidecar] (PENDING)
+</code></pre></div></div>
+
+<p>Once the service has found a Mesos offer which matches the Step’s <code class="highlighter-rouge">PodInstanceRequirement</code>, the service would tell Mesos to reserve the required resources and to launch the <code class="highlighter-rouge">hello-0-server</code> task. The service would then notify the <code class="highlighter-rouge">hello-0</code> Step that the launch had occured. The Step will set its internal state to <code class="highlighter-rouge">STARTING</code> to reflect that it’s waiting for the task to actually launch:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deploy (serial strategy) (STARTING)
+├─ hello (serial strategy) (STARTING)
+│  └─ hello-0:[server] (STARTING)
+└─ world (serial strategy) (PENDING)
+   ├─ world-0:[server, sidecar] (PENDING)
+   └─ world-1:[server, sidecar] (PENDING)
+</code></pre></div></div>
+
+<p>At some point in the near future, Mesos will (hopefully) send us a <code class="highlighter-rouge">TaskStatus</code> for <code class="highlighter-rouge">hello-0</code> saying that it’s <code class="highlighter-rouge">RUNNING</code>. If the <code class="highlighter-rouge">hello-0</code> pod has a readiness check defined, its Step will be set to <code class="highlighter-rouge">STARTED</code> and we will wait for another <code class="highlighter-rouge">TaskStatus</code> saying that the readiness check had completed. If there is no readiness check then the Step will immediately go to <code class="highlighter-rouge">COMPLETE</code>. For this example we will assume there is a readiness check defined:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deploy (serial strategy) (STARTED)
+├─ hello (serial strategy) (STARTED)
+│  └─ hello-0:[server] (STARTED)
+└─ world (serial strategy) (PENDING)
+   ├─ world-0:[server, sidecar] (PENDING)
+   └─ world-1:[server, sidecar] (PENDING)
+</code></pre></div></div>
+
+<p>Eventually, the readiness check passes and the Step is marked <code class="highlighter-rouge">COMPLETE</code>. If the readiness check never passed, then the Scheduler would wait indefinitely. The Operator could intervene in a couple ways: 1) Restart the task so that it gets relaunched and can try the readiness check again or 2) force-complete the Step if the lack of readiness check should be ignored. However the latter comes with several risks and should only be used in cases where the readiness check should indeed be ignored. This is explained further in <a href="#plan-operations">Plan Operations</a>.</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deploy (serial strategy) (IN_PROGRESS)
+├─ hello (serial strategy) (COMPLETE)
+│  └─ hello-0:[server] (COMPLETE)
+└─ world (serial strategy) (PENDING)
+   ├─ world-0:[server, sidecar] (PENDING)
+   └─ world-1:[server, sidecar] (PENDING)
+</code></pre></div></div>
+
+<p>Now that the <code class="highlighter-rouge">hello</code> phase is <code class="highlighter-rouge">COMPLETE</code> the <code class="highlighter-rouge">deploy</code> Plan strategy will return the <code class="highlighter-rouge">world</code> Phase, and that Phase will return the <code class="highlighter-rouge">world-0</code> Step. Deployment will proceed with <code class="highlighter-rouge">world-0</code> in that Phase until it is <code class="highlighter-rouge">COMPLETE</code>, and then will move to <code class="highlighter-rouge">world-1</code>. As can be seen in the plan, these Steps would launch 2 tasks into each of the <code class="highlighter-rouge">world</code> pods; one named <code class="highlighter-rouge">server</code> and the other named <code class="highlighter-rouge">world-N-sidecar</code>. At this point the <code class="highlighter-rouge">deploy</code> plan will be <code class="highlighter-rouge">COMPLETE</code> and the service will be fully deployed:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deploy (serial strategy) (COMPLETE)
+├─ hello (serial strategy) (COMPLETE)
+│  └─ hello-0:[server] (COMPLETE)
+└─ world (serial strategy) (COMPLETE)
+   ├─ world-0:[server, sidecar] (COMPLETE)
+   └─ world-1:[server, sidecar] (COMPLETE)
+</code></pre></div></div>
+
+<h3 id="configuration-change">
+<a id="configuration-change" class="anchor" href="#configuration-change" aria-hidden="true"><span class="octicon octicon-link"></span></a>Configuration change</h3>
+
+<p>Now that we have a deployed service, we could make the following changes:</p>
+<ul>
+  <li>Increase the number of <code class="highlighter-rouge">hello</code> pods from 1 to 2.</li>
+  <li>Double the CPU resources of the <code class="highlighter-rouge">world</code> pods from 1 to 2 CPUs.</li>
+</ul>
+
+<p>This change will manifest as a restart of the Scheduler process. The Scheduler will be relaunched with updated envvars for each change to the configuration. The envvars will all get rendered into the YAML spec (parsed as a <a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/yaml/RawServiceSpec.java"><code class="highlighter-rouge">RawServiceSpec</code></a>), which will then be internally converted into the lower-level <a href="https://github.com/mesosphere/dcos-commons/blob/4910aeb/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java"><code class="highlighter-rouge">ServiceSpec</code></a>.</p>
+
+<p>The Scheduler will then compare this new <code class="highlighter-rouge">ServiceSpec</code> configuration against the previous <code class="highlighter-rouge">ServiceSpec</code>(s) referenced by UUID in the current tasks. The two changes will be detected and the Scheduler will generate a <code class="highlighter-rouge">deploy</code> plan that looks like the following:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deploy (serial strategy) (IN_PROGRESS)
+├─ hello (serial strategy) (IN_PROGRESS)
+│  ├─ hello-0:[server] (COMPLETE)
+│  └─ hello-1:[server] (PENDING)
+└─ world (serial strategy) (PENDING)
+   ├─ world-0:[server, sidecar] (PENDING)
+   └─ world-1:[server, sidecar] (PENDING)
+</code></pre></div></div>
+
+<p>The Scheduler will then execute this plan. For the new <code class="highlighter-rouge">hello-1</code> pod, it’s a new deployment the first valid location will be used. Meanwhile the two <code class="highlighter-rouge">world</code> pods will specifically be relaunched in their current locations. This is enforced behind the scenes by looking for existing <code class="highlighter-rouge">resource_id</code> labels in offered <code class="highlighter-rouge">ReservationInfo</code>s.</p>
+
+<p>Finally, once the changes have been rolled out, the <code class="highlighter-rouge">deploy</code> Plan will return again to a <code class="highlighter-rouge">COMPLETE</code> state. But what happens if we changed our minds partway through this deployment? For example, we realized that 2 CPUs was too much for the world tasks, and that 1.5 CPUs would be better, but <code class="highlighter-rouge">world-1</code> hadn’t been deployed with the new change yet.</p>
+
+<p>In that situation, the Scheduler would be restarted again, and it would have a mix of tasks across two different configurations.</p>
+<ul>
+  <li>
+<code class="highlighter-rouge">hello-0</code>, <code class="highlighter-rouge">hello-1</code> up to date (no changes there since last deployment)</li>
+  <li>
+<code class="highlighter-rouge">world-0</code> has 2.0 CPUs, want 1.5</li>
+  <li>
+<code class="highlighter-rouge">world-1</code> has 1.0 CPUs, want 1.5</li>
+</ul>
+
+<p>As such, the Scheduler would create a new <code class="highlighter-rouge">deploy</code> plan as follows, moving both of the <code class="highlighter-rouge">world</code> pods to the <em>current</em> configuration, regardless of what their prior configuration may be:</p>
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>deploy (serial strategy) (IN_PROGRESS)
+├─ hello (serial strategy) (COMPLETE)
+│  ├─ hello-0:[server] (COMPLETE)
+│  └─ hello-1:[server] (COMPLETE)
+└─ world (serial strategy) (PENDING)
+   ├─ world-0:[server, sidecar] (PENDING)
+   └─ world-1:[server, sidecar] (PENDING)
+</code></pre></div></div>
+
+<p>The <code class="highlighter-rouge">world-0</code> pod will be updated to have 1.5 CPUs from its prior allocation of 2.0, and then the <code class="highlighter-rouge">world-1</code> pod will be updated to have 1.5 CPUs from its prior allocation of 1.0.</p>
+
+<h3 id="recovery-pod-restartreplace">
+<a id="recovery-pod-restartreplace" class="anchor" href="#recovery-pod-restartreplace" aria-hidden="true"><span class="octicon octicon-link"></span></a>Recovery: Pod Restart/Replace</h3>
+
+<p>As hinted at elsewhere, the <code class="highlighter-rouge">recovery</code> Plan is special because starts in an empty state and is later automatically populated with any detected tasks that need to be recovered. At the moment, completed operations can remain as <code class="highlighter-rouge">COMPLETE</code> phases in the <code class="highlighter-rouge">recovery</code> plan indefinitely until the scheduler process is restarted. To show an example of how the <code class="highlighter-rouge">recovery</code> plan typically opeprates we can also look at what happens when an operator requests a <code class="highlighter-rouge">pod restart</code> or <code class="highlighter-rouge">pod replace</code> operation. These operations rely on the <code class="highlighter-rouge">recovery</code> Plan to relaunch the task. As such, the recovery of restarted/replaced pods can likewise be customized by the developer.</p>
+
+<p>For <code class="highlighter-rouge">pod restart</code> (kill and relaunch pod at current location), the sequence works as follows:</p>
+<ol>
+  <li>Mesos is told to kill task</li>
+  <li>Scheduler receives a terminal <code class="highlighter-rouge">TaskStatus</code>, typically <code class="highlighter-rouge">TASK_KILLED</code>.</li>
+  <li>
+<code class="highlighter-rouge">recovery</code> plan is automatically populated with a Phase to relaunch the task.</li>
+  <li>The <code class="highlighter-rouge">RecoveryStep</code>’s <code class="highlighter-rouge">PodInstanceRequirement</code> specifies <code class="highlighter-rouge">RecoveryType.TRANSIENT</code>. Offer evaluation sees this and looks for an offer containing <code class="highlighter-rouge">resource_id</code>s matching the original task.</li>
+  <li>Once an Offer for the task’s original resources is found, the task is relaunched back into that footprint.</li>
+</ol>
+
+<p>Meanwhile, <code class="highlighter-rouge">pod replace</code> (kill and destroy pod, launch with fresh slate) is similar, with some differences:</p>
+<ul>
+  <li>Before Mesos is told to kill the task, the <code class="highlighter-rouge">TaskInfo</code> in ZK is updated to contain a <code class="highlighter-rouge">permanently-failed</code> label.</li>
+  <li>The <code class="highlighter-rouge">PodInstanceRequirement</code> in the <code class="highlighter-rouge">RecoveryStep</code> has <code class="highlighter-rouge">RecoveryType.PERMANENT</code>. The offer evaluator therefore looks for any Offer which can be used to launch the task from scratch.</li>
+  <li>The previous resources used by the pod are garbage collected (unreserved) if/when offered by Mesos.</li>
+</ul>
+
+<h3 id="uninstall">
+<a id="uninstall" class="anchor" href="#uninstall" aria-hidden="true"><span class="octicon octicon-link"></span></a>Uninstall</h3>
+
+<p>The Uninstall flow is displayed via the “<code class="highlighter-rouge">deploy</code>” Plan when the service is uninstalling. This can be confusing, but there are two reasons for doing this:</p>
+<ul>
+  <li>The <code class="highlighter-rouge">deploy</code> Plan can be thought of as dealing with transitioning the service between configurations. In this case, the target configuration is <code class="highlighter-rouge">NULL</code>. This is a bit pedantic, but there’s a better reason…</li>
+  <li>In practice, the <code class="highlighter-rouge">deploy</code> Plan is what’s checked to see how a change to the service is proceeding.</li>
+</ul>
+
+<p>The Uninstall process can be summarized as follows:</p>
+<ol>
+  <li>Kill all tasks</li>
+  <li>Wait to be offered the reserved resources of those tasks. Unreserve those resources as they are offered.</li>
+  <li>Once there are no known resources left to be unreserved, tell Mesos to tear down the framework.</li>
+  <li>Advertise a completed <code class="highlighter-rouge">deploy</code> Plan. could arguably be called <code class="highlighter-rouge">uninstall</code>, but <code class="highlighter-rouge">deploy</code> is what’s used everywhere else…)</li>
+  <li>The Scheduler’s Marathon app is automatically deleted by Cosmos, the DC/OS packaging service, which polls the <code class="highlighter-rouge">deploy</code> plan during uninstall to detect completion.</li>
+</ol>
+
+<p>The reason for this long and involved process is ultimately due to issues with Mesos itself:</p>
+<ol>
+  <li>First, resources are reserved against <em>roles</em>, not <em>frameworks</em>. Therefore, simply destroying the Mesos framework doesn’t automatically clean up the resources which that framework had reserved, despite the fact that SDK frameworks always have a 1:1 relationship with roles. This is why the manual dereservations are required in the first place.</li>
+  <li>Second, Mesos never simply <em>tells</em> the framework what’s currently reserved, instead the reservations are <em>offered</em> via the non-deterministic offer cycle. The best the Scheduler can do is keep a snapshot of what resources it <em>thinks</em> it has, and to treat that as a checklist when the service is being uninstalled. This can then lead to problems when the Scheduler’s view of its resources isn’t aligned with Mesos’ view. For example, an uninstalling Scheduler can end up indefinitely stuck waiting to be offered resources on an agent system which no longer exists. The operator can get out of this situation by issuing <code class="highlighter-rouge">plan force-complete</code> calls for any Steps representing the nonexistent resources, and thereby override what the Scheduler thinks is the state of its reservations, since it cannot simply fetch this information from Mesos itself.</li>
+</ol>
+
+<h2 id="plan-operations">
+<a id="plan-operations" class="anchor" href="#plan-operations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Plan Operations</h2>
+
+<p>The details of individual Plan commands can be found in the per-service documentation in the Operations section, such as <a href="https://docs.mesosphere.com/services/cassandra/2.3.0-3.0.16/operations/">Cassandra’s</a>. Rather than looking at the individual commands, we can instead look into how they work.</p>
+
+<p>Plan Operations are effectively reaching into the objects themselves and manually setting their <code class="highlighter-rouge">state</code> field to a particular value. For example, a <code class="highlighter-rouge">force-complete</code> call will do the equivalent of <code class="highlighter-rouge">Step.setState(COMPLETE)</code>. As such, these overrides do not survive across Scheduler restarts, and technically neither do the plans themselves. After a given <code class="highlighter-rouge">state</code> value has been updated, the change will take effect the next time the Plan’s status is checked. In the <code class="highlighter-rouge">force-complete</code> case, the Phase Strategy will observe that the Step in question appears to be <code class="highlighter-rouge">COMPLETE</code>, and it will proceed to any other Step(s) in the Phase.</p>
+
+<p>Plan commands should be considered an escape hatch for situations where the Scheduler is doing the wrong thing and needs to be overridden. This can be used to get around a bad situation, but it does not itself automatically resolve the problem that caused the issue to begin with. If used improperly, Plan commands can leave the service in a confused or even broken state.</p>
+
+</div>
+</div>
+</body>
+
+</html>
