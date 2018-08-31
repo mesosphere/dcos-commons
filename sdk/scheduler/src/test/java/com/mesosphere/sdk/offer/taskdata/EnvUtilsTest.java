@@ -9,11 +9,11 @@ import org.junit.Test;
  */
 public class EnvUtilsTest {
 
-    private final String SECRET_KEY = "SECRET_KEY";
-    private final String SECRET_PATH = "SECRET_PATH";
-    private final String TEST_ENV_KEY = "TEST_KEY";
-    private final String TEST_ENV_VALUE = "TEST_VALUE";
-    private final String TEST_REPLACE_ENV_VALUE = "TEST_NEW_VALUE";
+    private final static String SECRET_KEY = "SECRET_KEY";
+    private final static String SECRET_PATH = "SECRET_PATH";
+    private final static String TEST_ENV_KEY = "TEST_KEY";
+    private final static String TEST_ENV_VALUE = "TEST_VALUE";
+    private final static String TEST_REPLACE_ENV_VALUE = "TEST_NEW_VALUE";
 
     /*
         Make sure that withEnvVar does not accidentally strip secrets.
