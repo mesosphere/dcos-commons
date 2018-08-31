@@ -3,7 +3,7 @@ import sdk_install
 import sdk_jobs
 import sdk_networks
 import sdk_plan
-import shakedown
+import sdk_tasks
 from tests import config
 
 
@@ -37,10 +37,9 @@ def configure_package(configure_security):
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_service_overlay_health():
-    shakedown.service_healthy(config.SERVICE_NAME)
-    node_tasks = ("node-0-server", "node-1-server", "node-2-server")
-    for task in node_tasks:
-        sdk_networks.check_task_network(task)
+    tasks = sdk_tasks.check_task_count(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+    for task in tasks:
+        sdk_networks.check_task_network(task.name)
 
 
 @pytest.mark.sanity
@@ -67,14 +66,7 @@ def test_functionality():
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_endpoints():
-    # tests that the correct number of endpoints are found, should just be "native-client":
-    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 1)
-    assert (
-        "native-client" in endpoints
-    ), "Cassandra endpoints should contain only 'native-client', got {}".format(
-        endpoints
-    )
-    endpoints = sdk_networks.get_and_test_endpoints(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", 2
-    )
-    sdk_networks.check_endpoints_on_overlay(endpoints)
+    endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
+    assert set(endpoint_names) == set(["native-client"])
+
+    sdk_networks.check_endpoint_on_overlay(config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", config.DEFAULT_TASK_COUNT)

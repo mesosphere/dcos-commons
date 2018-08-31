@@ -10,9 +10,16 @@ import logging
 import retrying
 
 import sdk_cmd
+import sdk_tasks
 
 TIMEOUT_SECONDS = 15 * 60
 SHORT_TIMEOUT_SECONDS = 30
+MAX_NEW_TASK_FAILURES = 2
+
+
+class TaskFailuresExceededException(Exception):
+    pass
+
 
 log = logging.getLogger(__name__)
 
@@ -39,24 +46,25 @@ def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=
     ).json()
 
 
-def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
+def get_plan_once(service_name, plan, multiservice_name=None):
     if multiservice_name is None:
         path = "/v1/plans/{}".format(plan)
     else:
         path = "/v1/service/{}/plans/{}".format(multiservice_name, plan)
 
-    # We need to DIY error handling/retry because the query will return 417 if the plan has errors.
+    response = sdk_cmd.service_request("GET", service_name, path, retry=False, raise_on_error=False)
+    if response.status_code == 417:
+        return response  # Plan has errors: Avoid throwing an exception, return plan as-is.
+    response.raise_for_status()
+    return response.json()
+
+
+def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
     @retrying.retry(wait_fixed=1000, stop_max_delay=timeout_seconds * 1000)
     def wait_for_plan():
-        response = sdk_cmd.service_request(
-            "GET", service_name, path, retry=False, raise_on_error=False
-        )
-        if response.status_code == 417:
-            return response  # avoid throwing, return plan with errors
-        response.raise_for_status()
-        return response
+        return get_plan_once(service_name, plan, multiservice_name)
 
-    return wait_for_plan().json()
+    return wait_for_plan()
 
 
 def start_plan(service_name, plan, parameters=None):
@@ -135,21 +143,32 @@ def wait_for_plan_status(
     else:
         statuses = status
 
+    initial_failures = sdk_tasks.get_failed_task_count(service_name, retry=True)
+
     @retrying.retry(
-        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds * 1000,
+        retry_on_result=lambda res: not res,
+        retry_on_exception=lambda e: not isinstance(e, TaskFailuresExceededException),
     )
     def fn():
+        failures = sdk_tasks.get_failed_task_count(service_name)
+        if failures - initial_failures > MAX_NEW_TASK_FAILURES:
+            log.error(
+                "Service %s exceeded failures increase while doing %s and trying to reach %s",
+                service_name,
+                plan_name,
+                statuses,
+            )
+            raise TaskFailuresExceededException("Service not recoverable: {}".format(service_name))
+
         plan = get_plan(
             service_name,
             plan_name,
             timeout_seconds=SHORT_TIMEOUT_SECONDS,
             multiservice_name=multiservice_name,
         )
-        log.info(
-            "Waiting for {} plan to have {} status:\n{}".format(
-                plan_name, status, plan_string(plan_name, plan)
-            )
-        )
+        log.info("Waiting for %s %s plan:\n%s", status, plan_name, plan_string(plan_name, plan))
         if plan and plan["status"] in statuses:
             return plan
         else:
@@ -168,8 +187,8 @@ def wait_for_phase_status(
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
         phase = get_phase(plan, phase_name)
         log.info(
-            "Waiting for {}.{} phase to have {} status:\n{}".format(
-                plan_name, phase_name, status, plan_string(plan_name, plan)
+            "Waiting for {} {}.{} phase:\n{}".format(
+                status, plan_name, phase_name, plan_string(plan_name, plan)
             )
         )
         if phase and phase["status"] == status:
@@ -190,8 +209,8 @@ def wait_for_step_status(
         plan = get_plan(service_name, plan_name, SHORT_TIMEOUT_SECONDS)
         step = get_step(get_phase(plan, phase_name), step_name)
         log.info(
-            "Waiting for {}.{}.{} step to have {} status:\n{}".format(
-                plan_name, phase_name, step_name, status, plan_string(plan_name, plan)
+            "Waiting for {} {}.{}.{} step:\n{}".format(
+                status, plan_name, phase_name, step_name, plan_string(plan_name, plan)
             )
         )
         if step and step["status"] == status:
@@ -243,13 +262,13 @@ def plan_string(plan_name, plan):
         - node-other PENDING: somestep=PENDING
         - errors: foo, bar
         """
-        return "\n- {} {}: {}".format(
+        return "\n- {} ({}): {}".format(
             phase["name"],
             phase["status"],
             ", ".join("{}={}".format(step["name"], step["status"]) for step in phase["steps"]),
         )
 
-    plan_str = "{} {}:{}".format(
+    plan_str = "{} ({}):{}".format(
         plan_name, plan["status"], "".join(phase_string(phase) for phase in plan["phases"])
     )
     if plan.get("errors", []):

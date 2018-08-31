@@ -16,6 +16,8 @@ pytestmark = pytest.mark.skipif(
 
 pre_reserved_options = {"service": {"yaml": "pre-reserved"}}
 
+pre_reserved_options = {"service": {"yaml": "pre-reserved"}}
+
 
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
@@ -77,27 +79,27 @@ def test_marathon_volume_collision():
         # Get its persistent Volume
         host = sdk_marathon.get_scheduler_host(marathon_app_name)
         # Should get e.g.: "/var/lib/mesos/slave/volumes/roles/slave_public/persistent-test#persistent-volume#76e7bb6d-64fa-11e8-abc5-8e679b292d5e"
-        ok, pv_path = sdk_cmd.agent_ssh(
+        rc, pv_path, _ = sdk_cmd.agent_ssh(
             host,
             "ls -d /var/lib/mesos/slave/volumes/roles/slave_public/{}#{}#*".format(
                 marathon_app_name, volume_name
             ),
         )
-        assert ok
+        assert rc == 0
 
         pv_path = pv_path.strip()
 
         @retrying.retry(wait_fixed=1000, stop_max_delay=60 * 1000)
         def check_content():
-            ok, pv_content = sdk_cmd.agent_ssh(host, "cat {}/test".format(pv_path))
-            assert pv_content.strip() == "this is a test"
+            rc, pv_content, _ = sdk_cmd.agent_ssh(host, "cat {}/test".format(pv_path))
+            assert rc == 0 and pv_content.strip() == "this is a test"
 
         check_content()
 
         # Scale down the Marathon app
         app_config = sdk_marathon.get_config(marathon_app_name)
         app_config["instances"] = 0
-        sdk_marathon.update_app(marathon_app_name, app_config)
+        sdk_marathon.update_app(app_config)
 
         # Install Hello World
         sdk_install.install(
@@ -119,7 +121,7 @@ def test_marathon_volume_collision():
         # Scale back up the marathon app
         app_config = sdk_marathon.get_config(marathon_app_name)
         app_config["instances"] = 1
-        sdk_marathon.update_app(marathon_app_name, app_config)
+        sdk_marathon.update_app(app_config)
 
         # Make sure the persistent volume is still there
         check_content()

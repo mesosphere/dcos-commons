@@ -4,6 +4,7 @@ import logging
 import pytest
 import re
 
+import sdk_agents
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -57,7 +58,7 @@ def test_node_replace_replaces_node():
         marathon_config["env"]["PLACEMENT_CONSTRAINT"] = '[["hostname", "UNLIKE", "{}"]]'.format(
             replace_task.host
         )
-        sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+        sdk_marathon.update_app(marathon_config)
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
@@ -73,7 +74,7 @@ def test_node_replace_replaces_node():
     finally:
         # revert to prior placement setting before proceeding with tests: avoid getting stuck.
         marathon_config["env"]["PLACEMENT_CONSTRAINT"] = original_constraint
-        sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+        sdk_marathon.update_app(marathon_config)
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
@@ -97,7 +98,7 @@ def test_shutdown_host():
     replace_pod_name = replace_task.name[: -len("-server")]
 
     # Instead of partitioning or reconnecting, we shut down the host permanently
-    sdk_cmd.shutdown_agent(replace_task.host)
+    sdk_agents.shutdown_agent(replace_task.host)
 
     sdk_cmd.svc_cli(
         config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace {}".format(replace_pod_name)
@@ -121,4 +122,4 @@ def test_shutdown_host():
         "Checking that the original pod has moved to a new agent:\n"
         "old={}\nnew={}".format(replace_task, new_task)
     )
-    assert replace_task.agent != new_task.agent
+    assert replace_task.agent_id != new_task.agent_id

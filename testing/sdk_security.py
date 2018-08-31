@@ -27,28 +27,20 @@ def install_enterprise_cli(force=False):
 
     log.info("Installing DC/OS enterprise CLI")
     if not force:
-        cmd = "security --version"
-        _, stdout, _ = sdk_cmd.run_raw_cli(cmd, print_output=False)
+        _, stdout, _ = sdk_cmd.run_cli("security --version", print_output=False)
         if stdout:
             log.info("DC/OS enterprise version %s CLI already installed", stdout.strip())
             return
 
-    cmd = "package install --yes --cli dcos-enterprise-cli"
-
     @retrying.retry(
-        stop_max_attempt_number=3, wait_fixed=2000, retry_on_result=lambda result: result
+        stop_max_attempt_number=3,
+        wait_fixed=2000,
+        retry_on_exception=lambda e: isinstance(e, Exception),
     )
     def _install_impl():
-        rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd)
-        if rc:
-            log.error("rc=%s stdout=%s stderr=%s", rc, stdout, stderr)
+        sdk_cmd.run_cli("package install --yes --cli dcos-enterprise-cli", check=True)
 
-        return rc
-
-    try:
-        _install_impl()
-    except Exception as e:
-        raise RuntimeError("Failed to install the dcos-enterprise-cli: {}".format(repr(e)))
+    _install_impl()
 
 
 def _grant(user: str, acl: str, description: str, action: str) -> None:

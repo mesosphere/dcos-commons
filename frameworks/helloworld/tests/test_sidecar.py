@@ -31,7 +31,7 @@ def configure_package(configure_security):
 def test_deploy():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
-    log.info("deployment plan: " + str(deployment_plan))
+    log.info(sdk_plan.plan_string("deploy", deployment_plan))
 
     assert len(deployment_plan["phases"]) == 2
     assert deployment_plan["phases"][0]["name"] == "server-deploy"
@@ -64,7 +64,7 @@ def wait_for_toxic_sidecar():
     if sdk_utils.dcos_version_less_than("1.10"):
         # Note: As of this writing, 'task ls' does 'contains' comparisons of task ids correctly,
         # so we don't need to include a service name prefix here.
-        output = sdk_cmd.run_cli("task ls hello-0-server hello-container-path/toxic-output")
+        _, output, _ = sdk_cmd.run_cli("task ls hello-0-server hello-container-path/toxic-output")
         expected_output = ""
     else:
         _, output, _ = sdk_cmd.service_task_exec(
@@ -99,7 +99,7 @@ def run_plan(plan_name, params=None):
     sdk_plan.start_plan(config.SERVICE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, plan_name)
-    log.info("sidecar plan: " + str(started_plan))
+    log.info(sdk_plan.plan_string(plan_name, started_plan))
     assert len(started_plan["phases"]) == 1
     assert started_plan["phases"][0]["name"] == plan_name + "-deploy"
     assert len(started_plan["phases"][0]["steps"]) == 2

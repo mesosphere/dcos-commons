@@ -7,7 +7,6 @@ SHOULD ALSO BE APPLIED TO sdk_upgrade IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import retrying
-import shakedown
 import tempfile
 import traceback
 
@@ -15,11 +14,13 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_repository
 import sdk_tasks
 import sdk_utils
 
-
 log = logging.getLogger(__name__)
+
+TIMEOUT_SECONDS = 25 * 60
 
 
 # Installs a universe version of a package, then upgrades it to a test version
@@ -32,7 +33,7 @@ def test_upgrade(
     expected_running_tasks,
     additional_options={},
     test_version_additional_options=None,
-    timeout_seconds=25 * 60,
+    timeout_seconds=TIMEOUT_SECONDS,
     wait_for_deployment=True,
 ):
     # allow providing different options dicts to the universe version vs the test version:
@@ -49,8 +50,8 @@ def test_upgrade(
     universe_version = None
     try:
         # Move the Universe repo to the top of the repo list so that we can first install the release version.
-        shakedown.remove_package_repo("Universe")
-        assert shakedown.add_package_repo("Universe", universe_url, 0)
+        sdk_repository.remove_repo("Universe")
+        assert sdk_repository.add_repo("Universe", universe_url, 0)
         log.info(
             "Waiting for Universe release version of {} to appear: version != {}".format(
                 package_name, test_version
@@ -70,8 +71,8 @@ def test_upgrade(
     finally:
         if universe_version:
             # Return the Universe repo back to the bottom of the repo list so that we can upgrade to the build version.
-            shakedown.remove_package_repo("Universe")
-            assert shakedown.add_package_repo("Universe", universe_url)
+            sdk_repository.remove_repo("Universe")
+            assert sdk_repository.add_repo("Universe", universe_url)
             log.info(
                 "Waiting for test build version of {} to appear: version != {}".format(
                     package_name, universe_version
@@ -102,7 +103,7 @@ def soak_upgrade_downgrade(
     service_name,
     expected_running_tasks,
     additional_options={},
-    timeout_seconds=25 * 60,
+    timeout_seconds=TIMEOUT_SECONDS,
     wait_for_deployment=True,
 ):
     sdk_cmd.run_cli("package install --cli {} --yes".format(package_name))
@@ -133,7 +134,8 @@ def soak_upgrade_downgrade(
 
 
 def _get_universe_url():
-    repositories = json.loads(sdk_cmd.run_cli("package repo list --json"))["repositories"]
+    _, stdout, _ = sdk_cmd.run_cli("package repo list --json")
+    repositories = json.loads(stdout)["repositories"]
     for repo in repositories:
         if repo["name"] == "Universe":
             log.info("Found Universe URL: {}".format(repo["uri"]))
@@ -147,17 +149,16 @@ def _get_universe_url():
 def get_config(package_name, service_name):
     """Return the active config for the current service.
     This is retried 15 times, waiting 10s between retries."""
-
     try:
         # Refrain from dumping the full ServiceSpec to stdout
-        target_config = sdk_cmd.svc_cli(
-            package_name, service_name, "debug config target", json=True, print_output=False
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            package_name, service_name, "debug config target", print_output=False
         )
+        assert rc == 0, "Target config fetch failed"
+        return json.loads(stdout)
     except Exception as e:
         log.error("Could not determine target config: %s", str(e))
         return None
-
-    return target_config
 
 
 def update_or_upgrade_or_downgrade(
@@ -167,18 +168,14 @@ def update_or_upgrade_or_downgrade(
     additional_options,
     expected_running_tasks,
     wait_for_deployment=True,
-    timeout_seconds=sdk_utils.TIMEOUT_SECONDS,
+    timeout_seconds=TIMEOUT_SECONDS,
 ):
     initial_config = get_config(package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, "")
     if (to_package_version and not is_cli_supports_service_version_upgrade()) or (
         additional_options and not is_cli_supports_service_options_update()
     ):
-        log.info(
-            "Using marathon flow to upgrade to package name : {} version : [{}]".format(
-                package_name, to_package_version
-            )
-        )
+        log.info("Using marathon flow to upgrade %s to version [%s]", service_name, to_package_version)
         sdk_marathon.destroy_app(service_name)
         sdk_install.install(
             package_name,
@@ -199,15 +196,13 @@ def update_or_upgrade_or_downgrade(
 def _update_service_with_cli(
     package_name, service_name, to_package_version=None, additional_options=None
 ):
-    log.info(
-        "Using CLI to update to package name : {} version : [{}]".format(
-            package_name, to_package_version
-        )
-    )
     update_cmd = ["update", "start"]
     if to_package_version:
         ensure_cli_supports_service_version_upgrade()
         update_cmd.append("--package-version={}".format(to_package_version))
+        log.info("Using CLI to upgrade %s to version [%s]", service_name, to_package_version)
+    else:
+        log.info("Using CLI to update %s", service_name)
     if additional_options:
         ensure_cli_supports_service_options_update()
         options_file = tempfile.NamedTemporaryFile("w")
@@ -251,7 +246,7 @@ def _wait_for_deployment(package_name, service_name, initial_config, task_ids, t
 def _get_pkg_version(package_name):
     cmd = "package describe {}".format(package_name)
     # Only log stdout/stderr if there's actually an error.
-    rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd, print_output=False)
+    rc, stdout, stderr = sdk_cmd.run_cli(cmd, print_output=False)
     if rc != 0:
         log.warning('Failed to run "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
         return None

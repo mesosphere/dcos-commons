@@ -6,6 +6,7 @@ import retrying
 import sdk_cmd
 import sdk_hosts
 import sdk_install
+import sdk_marathon
 import sdk_recovery
 import sdk_utils
 
@@ -15,7 +16,7 @@ from security import transport_encryption
 from tests import config
 
 pytestmark = [
-    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"),
+    sdk_utils.dcos_ee_only,
     pytest.mark.skipif(
         sdk_utils.dcos_version_less_than("1.10"), reason="TLS tests require DC/OS 1.10+"
     ),
@@ -70,6 +71,17 @@ def hdfs_service(service_account):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.fixture(scope="module", autouse=True)
+def hdfs_client(hdfs_service):
+    try:
+        client = config.get_hdfs_client_app(hdfs_service["service"]["name"])
+        sdk_marathon.install_app(client)
+        yield client
+
+    finally:
+        sdk_marathon.destroy_app(client["id"])
+
+
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
@@ -81,10 +93,10 @@ def test_healthy(hdfs_service):
 @pytest.mark.sanity
 @pytest.mark.data_integrity
 @sdk_utils.dcos_ee_only
-def test_write_and_read_data_over_tls(hdfs_service):
-    test_filename = "test_data_tls"  # must be unique among tests in this suite
-    config.write_data_to_hdfs(config.SERVICE_NAME, test_filename)
-    config.read_data_from_hdfs(config.SERVICE_NAME, test_filename)
+def test_write_and_read_data_over_tls(hdfs_service, hdfs_client):
+    test_filename = config.get_unique_filename("test_data_tls")
+    config.hdfs_client_write_data(test_filename)
+    config.hdfs_client_read_data(test_filename)
 
 
 @pytest.mark.tls
@@ -110,8 +122,8 @@ def test_verify_https_ports(node_type, port, hdfs_service):
         retry_on_result=lambda res: not res,
     )
     def fn():
-        exit_status, output = sdk_cmd.master_ssh(_curl_https_get_code(host))
-        return exit_status and output == "200"
+        rc, stdout, _ = sdk_cmd.master_ssh(_curl_https_get_code(host))
+        return rc == 0 and stdout == "200"
 
     assert fn()
 

@@ -8,12 +8,12 @@ import sdk_marathon
 import sdk_plan
 import sdk_security
 import sdk_utils
-import shakedown
+
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import ExtensionOID, NameOID
-from tests import config
 
+from tests import config
 from security import transport_encryption
 
 DEFAULT_BACKEND = default_backend()
@@ -70,9 +70,6 @@ def configure_package(configure_security):
 
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-        # Wait for service health check to pass
-        shakedown.service_healthy(config.SERVICE_NAME)
-
         yield  # let the test session execute
 
     finally:
@@ -82,7 +79,7 @@ def configure_package(configure_security):
         )
 
         # Make sure that all the TLS artifacts were removed from the secrets store.
-        output = sdk_cmd.run_cli("security secrets list {name}".format(name=config.SERVICE_NAME))
+        _, output, _ = sdk_cmd.run_cli("security secrets list {name}".format(name=config.SERVICE_NAME))
         artifact_suffixes = [
             "certificate",
             "private-key",
@@ -95,7 +92,6 @@ def configure_package(configure_security):
             assert suffix not in output
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
@@ -121,7 +117,6 @@ def test_java_truststore():
     assert "status=200" in output
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
@@ -154,7 +149,6 @@ def test_tls_basic_artifacts():
     assert root_ca_cert_in_truststore.signature == cluster_root_ca_cert.signature
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
@@ -191,7 +185,6 @@ def test_java_keystore():
     assert tls_verification_msg in stderr
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
@@ -217,7 +210,6 @@ def test_tls_nginx():
     assert "status=200" in output
 
 
-@pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
@@ -251,7 +243,7 @@ def test_changing_discovery_replaces_certificate_sans():
     # Run task update with new discovery prefix
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config["env"]["DISCOVERY_TASK_PREFIX"] = DISCOVERY_TASK_PREFIX + "-new"
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     _, stdout, _ = sdk_cmd.service_task_exec(

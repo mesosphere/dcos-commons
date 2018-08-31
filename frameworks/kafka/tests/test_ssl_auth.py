@@ -15,9 +15,7 @@ from tests import auth
 log = logging.getLogger(__name__)
 
 
-pytestmark = pytest.mark.skipif(
-    sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"
-)
+pytestmark = sdk_utils.dcos_ee_only
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -91,7 +89,6 @@ def test_authn_client_can_read_and_write(
             kafka_server["package_name"],
             kafka_server["service"]["name"],
             "topic create {}".format(topic_name),
-            json=True,
         )
 
         kafka_client.connect(kafka_server)
@@ -145,7 +142,6 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, service_account, 
             kafka_server["package_name"],
             kafka_server["service"]["name"],
             "topic create {}".format(topic_name),
-            json=True,
         )
 
         kafka_client.connect(kafka_server)
@@ -240,7 +236,6 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
             kafka_server["package_name"],
             kafka_server["service"]["name"],
             "topic create {}".format(topic_name),
-            json=True,
         )
 
         kafka_client.connect(kafka_server)
@@ -286,17 +281,3 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
 
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
-def write_to_topic(cn: str, task: str, topic: str, message: str) -> bool:
-
-    return auth.write_to_topic(
-        cn, task, topic, message, auth.get_ssl_client_properties(cn, False), environment=None
-    )
-
-
-def read_from_topic(cn: str, task: str, topic: str, messages: int) -> str:
-
-    return auth.read_from_topic(
-        cn, task, topic, messages, auth.get_ssl_client_properties(cn, False), environment=None
-    )

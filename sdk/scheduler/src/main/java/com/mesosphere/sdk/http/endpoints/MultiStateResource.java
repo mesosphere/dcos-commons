@@ -51,33 +51,34 @@ public class MultiStateResource {
     /**
      * @see StateQueries
      */
-    @Path("{sanitizedServiceName}/state/files/{file}")
+    @Path("{sanitizedServiceName}/state/files/{name}")
     @Produces(MediaType.TEXT_PLAIN)
     @GET
     public Response getFile(
-            @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("file") String fileName) {
+            @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("name") String name) {
         Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
-        return StateQueries.getFile(stateStore.get(), fileName);
+        return StateQueries.getFile(stateStore.get(), name);
     }
 
     /**
      * @see StateQueries
      */
-    @Path("{sanitizedServiceName}/state/files/{file}")
+    @Path("{sanitizedServiceName}/state/files/{name}")
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putFile(
             @PathParam("sanitizedServiceName") String sanitizedServiceName,
+            @PathParam("name") String name,
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetails) {
         Optional<StateStore> stateStore = getStateStore(sanitizedServiceName);
         if (!stateStore.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
-        return StateQueries.putFile(stateStore.get(), uploadedInputStream, fileDetails);
+        return StateQueries.putFile(stateStore.get(), name, uploadedInputStream, fileDetails);
     }
 
     /**

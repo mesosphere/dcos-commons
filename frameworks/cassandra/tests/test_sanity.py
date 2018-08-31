@@ -1,12 +1,12 @@
 import pytest
-import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_jobs
 import sdk_metrics
+import sdk_networks
 import sdk_plan
 import sdk_upgrade
-import shakedown
+
 from tests import config
 
 
@@ -36,19 +36,10 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
-def test_service_health():
-    assert shakedown.service_healthy(config.get_foldered_service_name())
-
-
-@pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    endpoints = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        config.get_foldered_service_name(),
-        "endpoints native-client",
-        json=True,
+    endpoints = sdk_networks.get_endpoint(
+        config.PACKAGE_NAME, config.get_foldered_service_name(), "native-client"
     )
     assert endpoints["dns"][0] == sdk_hosts.autoip_host(
         config.get_foldered_service_name(), "node-0-server", 9042
@@ -96,6 +87,7 @@ def test_metrics():
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         config.get_foldered_service_name(),
+        "node-0",
         "node-0-server",
         config.DEFAULT_CASSANDRA_TIMEOUT,
         expected_metrics_exist,
