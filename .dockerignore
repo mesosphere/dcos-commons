@@ -10,3 +10,4 @@
 !test.sh
 !TESTING.md
 !/tools/**/*.py
+!.pre-commit-config.yaml
