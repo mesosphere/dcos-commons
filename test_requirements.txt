@@ -1,10 +1,22 @@
-botocore
-py==1.5.1
+# Deprecated libraries which are still used by sdk-0.40 and external repos.
+# dcos-commons master meanwhile doesn't use these anymore as of PR#2616, but we still include them
+# here for now. Remove these once sdk-0.40 and external repos have upgraded their testing/.
+# - required for dcos.servicemanager library, used internally in the dcos library:
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc#egg=dcoscli&subdirectory=cli
+# - manually select the correct version of the dcos library to avoid a package_manager param count issue in the version declared by shakedown:
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc
+# - refrain from jumping to 1.5 since we're moving off shakedown anyway:
 dcos-shakedown==1.4.12
-git+https://github.com/dcos/dcos-test-utils.git@c9a4fc583a4a0bca18040ad4c7772e187e51aa74
-git+https://github.com/dcos/dcos-launch.git@e44c5cb521925cd6efd71da343a806ce2f22b496
+
+# Used by tools/create_testing_volumes.py (and for dcos-launch CLI):
+git+https://github.com/dcos/dcos-test-utils.git@3ebfc18ff9c5a1aa382311474a9192a68c98b0a7
+git+https://github.com/dcos/dcos-launch.git@dc1e116685fba5105f322b007549b7eb104cf441
+
+# CI:
 teamcity-messages
+
+# Lint:
+pre-commit
 flake8
 pylint
+black
