@@ -22,17 +22,23 @@ task sourceJar(type: Jar) {
 
 // Configure the SDKBuildInfo class generator
 def getGitHash = { ->
+    def valueOnFailure = "UNKNOWN"
     def stdout = new ByteArrayOutputStream()
-    exec {
-        commandLine 'git', 'rev-parse', '--short', 'HEAD'
-        standardOutput = stdout
+    try {
+        exec {
+            commandLine 'git', 'rev-parse', '--short', 'HEAD'
+            standardOutput = stdout
+        }
+        exec {
+            // Teamcity workaround: using 'git describe' to determine dirty status doesn't work there.
+            commandLine '/bin/sh', '-c', 'if [ -n "$(git diff --name-only HEAD)" ]; then echo -dirty; fi'
+            standardOutput = stdout
+        }
+        return stdout.toString().replace("\n", "")
+    } catch(Exception ex) {
+        logger.error("An error occurred while calculating the git hash. Using {}", valueOnFailure)
     }
-    exec {
-        // Teamcity workaround: using 'git describe' to determine dirty status doesn't work there.
-        commandLine '/bin/sh', '-c', 'if [ -n "$(git diff --name-only HEAD)" ]; then echo -dirty; fi'
-        standardOutput = stdout
-    }
-    return stdout.toString().replace("\n", "")
+    return valueOnFailure
 }
 buildConfig {
     packageName = 'com.mesosphere.sdk.generated'
