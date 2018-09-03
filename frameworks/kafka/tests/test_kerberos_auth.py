@@ -69,8 +69,10 @@ def kafka_server(kerberos):
 @pytest.fixture(scope="module", autouse=True)
 def kafka_client(kerberos):
     try:
-        kafka_client = client.KafkaClient("kafka-client")
-        kafka_client.install(kerberos)
+        kafka_client = client.KafkaClient(
+            "kafka-client", config.PACKAGE_NAME, config.SERVICE_NAME, kerberos
+        )
+        kafka_client.install()
 
         yield kafka_client
     finally:
@@ -99,15 +101,7 @@ def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
         "topic create {}".format(topic_name),
     )
 
-    kafka_client.connect(kafka_server)
+    kafka_client.connect()
     user = "client"
 
-    write_success, read_successes, _ = kafka_client.can_write_and_read(
-        user, kafka_server, topic_name, kerberos
-    )
-    assert write_success, "Write failed (user={})".format(user)
-    assert read_successes, (
-        "Read failed (user={}): "
-        "MESSAGES={} "
-        "read_successes={}".format(user, kafka_client.MESSAGES, read_successes)
-    )
+    kafka_client.check_grant_of_permissions([user], topic_name)
