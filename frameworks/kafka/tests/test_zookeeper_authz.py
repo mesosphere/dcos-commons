@@ -127,7 +127,7 @@ def kafka_client(kerberos: sdk_auth.KerberosEnvironment):
 
 
 def _get_service_options(
-    allow_everyone: bool, kerberos: sdk_auth.KerberosEnvironment, zookeeper_dns: str
+    allow_access_if_no_acl: bool, kerberos: sdk_auth.KerberosEnvironment, zookeeper_dns: list
 ) -> typing.Dict:
     service_options = {
         "service": {
@@ -145,7 +145,7 @@ def _get_service_options(
         },
         "kafka": {"kafka_zookeeper_uri": ",".join(zookeeper_dns)},
     }
-    if allow_everyone:
+    if allow_access_if_no_acl:
         service_options["service"]["security"]["authorization"][
             "allow_everyone_if_no_acl_found"
         ] = True
@@ -153,14 +153,16 @@ def _get_service_options(
 
 
 def _configure_kafka_cluster(
-    kafka_client: client.KafkaClient, zookeeper_server: typing.Dict, allow_everyone: bool
+    kafka_client: client.KafkaClient, zookeeper_server: typing.Dict, allow_access_if_no_acl: bool
 ) -> client.KafkaClient:
     zookeeper_dns = sdk_networks.get_endpoint(
         zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
     )["dns"]
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-    service_options = _get_service_options(allow_everyone, kafka_client.kerberos, zookeeper_dns)
+    service_options = _get_service_options(
+        allow_access_if_no_acl, kafka_client.kerberos, zookeeper_dns
+    )
 
     config.install(
         config.PACKAGE_NAME,
@@ -187,11 +189,11 @@ def _configure_kafka_cluster(
 def _test_permissions(
     kafka_client: client.KafkaClient,
     zookeeper_server: typing.Dict,
-    allow_everyone: bool,
+    allow_access_if_no_acl: bool,
     permission_test: typing.Callable[[client.KafkaClient, str], None],
 ):
     try:
-        checker = _configure_kafka_cluster(kafka_client, zookeeper_server, allow_everyone)
+        checker = _configure_kafka_cluster(kafka_client, zookeeper_server, allow_access_if_no_acl)
         permission_test(checker, TOPIC_NAME)
     finally:
         # Ensure that we clean up the ZK state.
