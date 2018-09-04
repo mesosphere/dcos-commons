@@ -5,6 +5,7 @@ import retrying
 import sdk_install
 import sdk_marathon
 import sdk_tasks
+import sdk_plan
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -29,7 +30,8 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_deploy():
-    wait_time = 30
+    wait_time = 600
+    sdk_plan.wait_for_kicked_off_deployment(config.SERVICE_NAME)
     # taskcfg.yml will initially fail to deploy because several options are missing in the default
     # sdk_marathon.json.mustache. verify that the tasks are failing before continuing.
     task_name = 'hello-0-server'
