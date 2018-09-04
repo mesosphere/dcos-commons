@@ -43,7 +43,7 @@ def test_deploy():
     # wait for new TASK_FAILEDs to appear:
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=1000*wait_time_in_seconds,
+        stop_max_delay=1000 * wait_time_in_seconds,
         retry_on_result=lambda res: not res)
     def wait_for_new_failures():
         new_state_history = _get_state_history(task_name)
