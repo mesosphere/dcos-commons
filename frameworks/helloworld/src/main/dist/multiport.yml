@@ -5,6 +5,8 @@ scheduler:
 pods:
   multiport:
     count: {{HELLO_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
     resource-sets:
       multi-port-resources:
         ports:
