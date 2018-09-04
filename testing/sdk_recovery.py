@@ -1,3 +1,4 @@
+import json
 import logging
 import typing
 
@@ -38,11 +39,11 @@ def check_permanent_recovery(
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_plan.wait_for_completed_recovery(service_name)
 
-    pod_list = set(sdk_cmd.svc_cli(package_name, service_name, "pod list", json=True))
+    rc, stdout, _ = sdk_cmd.svc_cli(package_name, service_name, "pod list")
+    assert rc == 0, "Pod list failed"
+    pod_list = set(json.loads(stdout))
 
-    pods_to_update = set(
-        pods_with_updated_tasks if pods_with_updated_tasks else [] + [pod_name]
-    )
+    pods_to_update = set(pods_with_updated_tasks if pods_with_updated_tasks else [] + [pod_name])
 
     tasks_to_replace = {}
     for pod in pods_to_update:
@@ -56,8 +57,7 @@ def check_permanent_recovery(
 
     LOG.info("Tasks in other pods should not be replaced: %s", tasks_in_other_pods)
 
-    replace_cmd = ["pod", "replace", pod_name]
-    sdk_cmd.svc_cli(package_name, service_name, " ".join(replace_cmd), json=True)
+    sdk_cmd.svc_cli(package_name, service_name, "pod replace {}".format(pod_name))
 
     sdk_plan.wait_for_kicked_off_recovery(service_name, recovery_timeout_s)
     sdk_plan.wait_for_completed_recovery(service_name, recovery_timeout_s)

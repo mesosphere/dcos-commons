@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.helloworld.scheduler;
 
+import com.google.common.base.Splitter;
 import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.curator.CuratorPersister;
 import com.mesosphere.sdk.framework.EnvStore;
@@ -17,8 +18,7 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
-import com.google.common.base.Splitter;
-
+import com.mesosphere.sdk.storage.PersisterUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -137,9 +137,11 @@ public class Main {
             SchedulerConfig schedulerConfig,
             EnvStore envStore,
             Collection<File> yamlFiles,
-            Collection<Scenario.Type> scenarios) throws Exception {
+            Collection<Scenario.Type> scenarios
+    ) throws Exception {
         FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
         Persister persister = getPersister(schedulerConfig, frameworkConfig);
+        PersisterUtils.checkAndMigrate(frameworkConfig, persister);
         MultiServiceManager multiServiceManager = new MultiServiceManager(schedulerConfig);
 
         // Add services represented by YAML files to the service manager:
@@ -147,6 +149,8 @@ public class Main {
             RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
             ServiceSpec serviceSpec =
                     DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile())
+                    // Override any framework-level params in the servicespec (role, principal, ...) with ours:
+                    .setMultiServiceFrameworkConfig(frameworkConfig)
                     .build();
             SchedulerBuilder builder = DefaultScheduler.newBuilder(serviceSpec, schedulerConfig, persister)
                     .setPlansFrom(rawServiceSpec)
@@ -194,12 +198,12 @@ public class Main {
         // Support both space-separated or comma-separated files:
         //   ./hello-world foo.yml bar.yml baz.yml
         //   ./hello-world foo.yml,bar.yml,baz.yml
-        for (int i = 0; i < args.length; ++i) {
-            yamlPaths.addAll(Splitter.on(',').trimResults().splitToList(args[i]));
+        for (String arg : args) {
+            yamlPaths.addAll(Splitter.on(',').trimResults().splitToList(arg));
         }
         LOGGER.info("Using YAML examples: {}", yamlPaths);
         return yamlPaths.stream()
-                .map(name -> ExampleMultiServiceResource.getYamlFile(name))
+                .map(ExampleMultiServiceResource::getYamlFile)
                 .collect(Collectors.toList());
     }
 

@@ -11,7 +11,7 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -20,10 +20,11 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             0,
-            { "service": { "yaml": "taskcfg" } },
-            wait_for_deployment=False)
+            {"service": {"yaml": "taskcfg"}},
+            wait_for_deployment=False,
+        )
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -37,7 +38,7 @@ def test_deploy():
     task_name = 'hello-0-server'
     log.info('Checking that {} is failing to launch within {}s'.format(task_name, wait_time_in_seconds))
 
-    original_statuses = sdk_tasks.get_status_history(task_name)
+    original_state_history = _get_state_history(task_name)
 
     # wait for new TASK_FAILEDs to appear:
     @retrying.retry(
@@ -45,21 +46,25 @@ def test_deploy():
         stop_max_delay=1000*wait_time_in_seconds,
         retry_on_result=lambda res: not res)
     def wait_for_new_failures():
-        new_statuses = sdk_tasks.get_status_history(task_name)
-        assert len(new_statuses) >= len(original_statuses)
+        new_state_history = _get_state_history(task_name)
+        assert len(new_state_history) >= len(original_state_history)
 
-        added_statuses = new_statuses[len(original_statuses):]
-        log.info('New {} statuses: {}'.format(task_name, ', '.join(added_statuses)))
-        return 'TASK_FAILED' in added_statuses
+        added_state_history = new_state_history[len(original_state_history) :]
+        log.info("Added {} state history: {}".format(task_name, ", ".join(added_state_history)))
+        return "TASK_FAILED" in added_state_history
 
     wait_for_new_failures()
 
     # add the needed envvars in marathon and confirm that the deployment succeeds:
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    env = marathon_config['env']
-    del env['SLEEP_DURATION']
-    env['TASKCFG_ALL_OUTPUT_FILENAME'] = 'output'
-    env['TASKCFG_ALL_SLEEP_DURATION'] = '1000'
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    env = marathon_config["env"]
+    del env["SLEEP_DURATION"]
+    env["TASKCFG_ALL_OUTPUT_FILENAME"] = "output"
+    env["TASKCFG_ALL_SLEEP_DURATION"] = "1000"
+    sdk_marathon.update_app(marathon_config)
 
     config.check_running()
+
+
+def _get_state_history(task_name):
+    return [s["state"] for s in sdk_tasks.get_all_status_history(task_name)]

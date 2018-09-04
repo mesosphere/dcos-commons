@@ -19,62 +19,57 @@ secret_content_default = "hello-world-secret-data"
 secret_content_alternative = secret_content_default + "-alternative"
 
 secret_options = {
-        "service": {
-            "yaml": "secrets"
-        },
-        "hello": {
-            "count": NUM_HELLO,
-            "secret1": "hello-world/secret1",
-            "secret2": "hello-world/secret2"
-        },
-        "world": {
-            "count": NUM_WORLD,
-            "secret1": "hello-world/secret1",
-            "secret2": "hello-world/secret2",
-            "secret3": "hello-world/secret3"
-        }
-    }
+    "service": {"yaml": "secrets"},
+    "hello": {
+        "count": NUM_HELLO,
+        "secret1": "hello-world/secret1",
+        "secret2": "hello-world/secret2",
+    },
+    "world": {
+        "count": NUM_WORLD,
+        "secret1": "hello-world/secret1",
+        "secret2": "hello-world/secret2",
+        "secret3": "hello-world/secret3",
+    },
+}
 
 options_dcos_space_test = {
-    "service": {
-        "yaml": "secrets"
-    },
+    "service": {"yaml": "secrets"},
     "hello": {
         "count": NUM_HELLO,
         "secret1": "hello-world/somePath/secret1",
-        "secret2": "hello-world/somePath/secret2"
+        "secret2": "hello-world/somePath/secret2",
     },
     "world": {
         "count": NUM_WORLD,
         "secret1": "hello-world/somePath/secret1",
         "secret2": "hello-world/somePath/secret2",
-        "secret3": "hello-world/somePath/secret3"
-    }
+        "secret3": "hello-world/somePath/secret3",
+    },
 }
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_cmd.run_cli("package install --cli dcos-enterprise-cli --yes")
-        try_delete_secrets("{}/".format(config.SERVICE_NAME))
-        try_delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
-        try_delete_secrets()
+        delete_secrets("{}/".format(config.SERVICE_NAME))
+        delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
+        delete_secrets()
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        try_delete_secrets("{}/".format(config.SERVICE_NAME))
-        try_delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
-        try_delete_secrets()
+        delete_secrets("{}/".format(config.SERVICE_NAME))
+        delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
+        delete_secrets()
 
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.secrets
 @sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 def test_secrets_basic():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -88,17 +83,22 @@ def test_secrets_basic():
 
     create_secrets("{}/".format(config.SERVICE_NAME))
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        NUM_HELLO + NUM_WORLD,
+        additional_options=secret_options,
+    )
 
     hello_tasks_0 = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-server")
     world_tasks_0 = sdk_tasks.get_task_ids(config.SERVICE_NAME, "word-0-server")
 
     # ensure that secrets work after replace
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace world-0')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace hello-0")
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace world-0")
 
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0-server", hello_tasks_0)
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0-server', world_tasks_0)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "world-0-server", world_tasks_0)
 
     # tasks will fail if secret files are not created by mesos module
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
@@ -109,9 +109,8 @@ def test_secrets_basic():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.secrets
 @sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 def test_secrets_verify():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -122,7 +121,12 @@ def test_secrets_verify():
 
     create_secrets("{}/".format(config.SERVICE_NAME))
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        NUM_HELLO + NUM_WORLD,
+        additional_options=secret_options,
+    )
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
@@ -130,7 +134,9 @@ def test_secrets_verify():
     # Verify secret content, one from each pod type
 
     # first secret: environment variable name is given in yaml
-    assert secret_content_default == read_secret("world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_default == read_secret(
+        "world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'"
+    )
 
     # second secret: file path is given in yaml
     assert secret_content_default == read_secret("world-0-server", "cat WORLD_SECRET2_FILE")
@@ -139,11 +145,12 @@ def test_secrets_verify():
     #            default file path is equal to secret path
     assert secret_content_default == read_secret("world-0-server", "cat hello-world/secret3")
 
-
     # hello tasks has container image, world tasks do not
 
     # first secret : environment variable name is given in yaml
-    assert secret_content_default == read_secret("hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_default == read_secret(
+        "hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'"
+    )
 
     # first secret : both environment variable name and file path are given in yaml
     assert secret_content_default == read_secret("hello-0-server", "cat HELLO_SECRET1_FILE")
@@ -157,9 +164,8 @@ def test_secrets_verify():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.secrets
 @sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 def test_secrets_update():
     # 1) create Secrets
     # 2) install examples/secrets.yml
@@ -172,15 +178,24 @@ def test_secrets_update():
 
     create_secrets("{}/".format(config.SERVICE_NAME))
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        NUM_HELLO + NUM_WORLD,
+        additional_options=secret_options,
+    )
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
+    def update_secret(secret_name):
+        sdk_cmd.run_cli(
+            "security secrets update --value={} {}".format(secret_content_alternative, secret_name)
+        )
 
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret1".format(secret_content_alternative, config.SERVICE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret2".format(secret_content_alternative, config.SERVICE_NAME))
-    sdk_cmd.run_cli("security secrets update --value={} {}/secret3".format(secret_content_alternative, config.SERVICE_NAME))
+    update_secret("{}/secret1".format(config.SERVICE_NAME))
+    update_secret("{}/secret2".format(config.SERVICE_NAME))
+    update_secret("{}/secret3".format(config.SERVICE_NAME))
 
     # Verify with hello-0 and world-0, just check with one of the pods
 
@@ -188,23 +203,29 @@ def test_secrets_update():
     world_tasks_old = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0-server")
 
     # restart pods to retrieve new secret's content
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart hello-0')
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart world-0')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod restart hello-0")
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod restart world-0")
 
     # wait pod restart to complete
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello-0-server", hello_tasks_old)
-    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'world-0-server', world_tasks_old)
+    sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "world-0-server", world_tasks_old)
 
     # wait till it is running
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
     # make sure content is changed
-    assert secret_content_alternative == read_secret("world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret(
+        "world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'"
+    )
     assert secret_content_alternative == read_secret("world-0-server", "cat WORLD_SECRET2_FILE")
-    assert secret_content_alternative == read_secret("world-0-server", "cat {}/secret3".format(config.SERVICE_NAME))
+    assert secret_content_alternative == read_secret(
+        "world-0-server", "cat {}/secret3".format(config.SERVICE_NAME)
+    )
 
     # make sure content is changed
-    assert secret_content_alternative == read_secret("hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret(
+        "hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'"
+    )
     assert secret_content_alternative == read_secret("hello-0-server", "cat HELLO_SECRET1_FILE")
     assert secret_content_alternative == read_secret("hello-0-server", "cat HELLO_SECRET2_FILE")
 
@@ -213,10 +234,9 @@ def test_secrets_update():
 
 
 @pytest.mark.sanity
-@pytest.mark.secrets
 @pytest.mark.smoke
 @sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 def test_secrets_config_update():
     # 1) install examples/secrets.yml
     # 2) create new Secrets, delete old Secrets
@@ -227,7 +247,12 @@ def test_secrets_config_update():
 
     create_secrets("{}/".format(config.SERVICE_NAME))
 
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO + NUM_WORLD, additional_options=secret_options)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        NUM_HELLO + NUM_WORLD,
+        additional_options=secret_options,
+    )
 
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
@@ -235,12 +260,18 @@ def test_secrets_config_update():
     # Verify secret content, one from each pod type
 
     # make sure it has the default value
-    assert secret_content_default == read_secret("world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_default == read_secret(
+        "world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'"
+    )
     assert secret_content_default == read_secret("world-0-server", "cat WORLD_SECRET2_FILE")
-    assert secret_content_default == read_secret("world-0-server", "cat {}/secret3".format(config.SERVICE_NAME))
+    assert secret_content_default == read_secret(
+        "world-0-server", "cat {}/secret3".format(config.SERVICE_NAME)
+    )
 
     # hello tasks has container image
-    assert secret_content_default == read_secret("hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_default == read_secret(
+        "hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'"
+    )
     assert secret_content_default == read_secret("hello-0-server", "cat HELLO_SECRET1_FILE")
     assert secret_content_default == read_secret("hello-0-server", "cat HELLO_SECRET2_FILE")
 
@@ -248,17 +279,17 @@ def test_secrets_config_update():
     delete_secrets("{}/".format(config.SERVICE_NAME))
 
     # create new secrets with new content -- New Value
-    create_secrets(secret_content_arg=secret_content_alternative)
+    create_secrets(secret_content=secret_content_alternative)
 
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    marathon_config['env']['HELLO_SECRET1'] = 'secret1'
-    marathon_config['env']['HELLO_SECRET2'] = 'secret2'
-    marathon_config['env']['WORLD_SECRET1'] = 'secret1'
-    marathon_config['env']['WORLD_SECRET2'] = 'secret2'
-    marathon_config['env']['WORLD_SECRET3'] = 'secret3'
+    marathon_config["env"]["HELLO_SECRET1"] = "secret1"
+    marathon_config["env"]["HELLO_SECRET2"] = "secret2"
+    marathon_config["env"]["WORLD_SECRET1"] = "secret1"
+    marathon_config["env"]["WORLD_SECRET2"] = "secret2"
+    marathon_config["env"]["WORLD_SECRET3"] = "secret3"
 
     # config update
-    sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
+    sdk_marathon.update_app(marathon_config)
 
     # wait till plan is complete - pods are supposed to restart
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
@@ -268,11 +299,15 @@ def test_secrets_config_update():
 
     # Verify secret content is changed
 
-    assert secret_content_alternative == read_secret("world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret(
+        "world-0-server", "bash -c 'echo $WORLD_SECRET1_ENV'"
+    )
     assert secret_content_alternative == read_secret("world-0-server", "cat WORLD_SECRET2_FILE")
     assert secret_content_alternative == read_secret("world-0-server", "cat secret3")
 
-    assert secret_content_alternative == read_secret("hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'")
+    assert secret_content_alternative == read_secret(
+        "hello-0-server", "bash -c 'echo $HELLO_SECRET1_ENV'"
+    )
     assert secret_content_alternative == read_secret("hello-0-server", "cat HELLO_SECRET1_FILE")
     assert secret_content_alternative == read_secret("hello-0-server", "cat HELLO_SECRET2_FILE")
 
@@ -282,9 +317,8 @@ def test_secrets_config_update():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-@pytest.mark.secrets
 @sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 def test_secrets_dcos_space():
     # 1) create secrets in hello-world/somePath, i.e. hello-world/somePath/secret1 ...
     # 2) Tasks with DCOS_SPACE hello-world/somePath
@@ -297,60 +331,57 @@ def test_secrets_dcos_space():
     # cannot access these secrets because of DCOS_SPACE authorization
     create_secrets("{}/somePath/".format(config.SERVICE_NAME))
 
+    # Disable any wait operations within the install call.
+    # - Don't wait for tasks to deploy (they won't)
+    # - Don't wait for deploy plan to complete (it won't)
+    # Instead, we manually verify that the service is stuck below.
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        0,
+        additional_options=options_dcos_space_test,
+        wait_for_deployment=False,
+    )
+
     try:
-        sdk_install.install(
-            config.PACKAGE_NAME,
-            config.SERVICE_NAME,
-            NUM_HELLO + NUM_WORLD,
-            additional_options=options_dcos_space_test,
-            timeout_seconds=5 * 60) # Wait for 5 minutes. We don't need to wait 15 minutes for hello-world to fail an install
-
+        # Now, manually check that the deploy plan is stuck. Just wait for 5 minutes.
+        sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, timeout_seconds=5 * 60)
         assert False, "Should have failed to install"
-
-    except AssertionError as arg:
-        raise arg
-
-    except:
-        pass  # expected to fail
+    except AssertionError as e:
+        raise e
+    except Exception:
+        log.info("Deployment failed as expected")
+        pass  # Plan is expected to not complete
 
     # clean up and delete secrets
     delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
 
 
-def create_secrets(path_prefix="", secret_content_arg=secret_content_default):
-    sdk_cmd.run_cli("security secrets create --value={} {}secret1".format(secret_content_arg, path_prefix))
-    sdk_cmd.run_cli("security secrets create --value={} {}secret2".format(secret_content_arg, path_prefix))
-    sdk_cmd.run_cli("security secrets create --value={} {}secret3".format(secret_content_arg, path_prefix))
+def create_secrets(path_prefix="", secret_content=secret_content_default):
+    def create_secret(secret_name):
+        sdk_cmd.run_cli(
+            "security secrets create --value={} {}".format(secret_content, secret_name)
+        )
+
+    create_secret("{}secret1".format(path_prefix))
+    create_secret("{}secret2".format(path_prefix))
+    create_secret("{}secret3".format(path_prefix))
 
 
 def delete_secrets(path_prefix=""):
-    sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
-    sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
-    sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
+    def delete_secret(secret_name):
+        sdk_cmd.run_cli("security secrets delete {}".format(secret_name))
+
+    delete_secret("{}secret1".format(path_prefix))
+    delete_secret("{}secret2".format(path_prefix))
+    delete_secret("{}secret3".format(path_prefix))
 
 
-def try_delete_secrets(path_prefix=""):
-    # if there is any secret left, delete
-    # use in teardown_module
-    try:
-        sdk_cmd.run_cli("security secrets delete {}secret1".format(path_prefix))
-    except:
-        pass
-    try:
-        sdk_cmd.run_cli("security secrets delete {}secret2".format(path_prefix))
-    except:
-        pass
-    try:
-        sdk_cmd.run_cli("security secrets delete {}secret3".format(path_prefix))
-    except:
-        pass
-
-
-@retrying.retry(wait_fixed=2000, stop_max_delay=5*60*1000)
+@retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
 def read_secret(task_name, command):
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
-    lines = [line.strip() for line in output.split('\n')]
-    log.info('Looking for %s...', secret_content_default)
+    lines = [line.strip() for line in output.split("\n")]
+    log.info("Looking for %s...", secret_content_default)
     for line in lines:
         if line.startswith(secret_content_default):
             return line

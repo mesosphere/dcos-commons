@@ -73,10 +73,13 @@
             "enable-disable",
             "executor_volume",
             "finish_state",
+            "foobar_service_name",
             "gpu_resource",
             "graceful-shutdown",
+            "host-volume",
             "marathon_constraint",
             "multistep_plan",
+            "multiport",
             "nonessential_tasks",
             "overlay",
             "pause",
@@ -93,6 +96,7 @@
             "tls",
             "uri",
             "web-url",
+            "non_recoverable_state",
             ""
           ],
           "default": "svc"
@@ -111,6 +115,19 @@
           "description": "Specifies a custom TLD to use for endpoints",
           "type": "string",
           "default": ""
+        },
+        "constraints": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": [
+              {
+                "type": "string"
+              }
+            ]
+          },
+          "description": "Placement constraint for the hello-world scheduler",
+          "default": []
         }
       }
     },
@@ -165,6 +182,11 @@
           "description": "The number of seconds of grace to await a clean shutdown following SIGTERM before sending SIGKILL, default: `0`",
           "type": "integer",
           "default": 0
+        },
+        "port_one": {
+          "description": "any arbitrary port can be used",
+          "type": "integer",
+          "default": 1729
         }
       },
       "required": [

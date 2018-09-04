@@ -34,9 +34,7 @@ def test_rack():
         },
     )
 
-    raw_status = nodetool.cmd(
-        config.get_foldered_service_name(), "node-0-server", "status"
-    )
+    raw_status = nodetool.cmd(config.get_foldered_service_name(), "node-0-server", "status")
     log.info("raw_status: {}".format(raw_status))
     stdout = raw_status[1]
     log.info("stdout: {}".format(stdout))

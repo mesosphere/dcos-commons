@@ -19,19 +19,19 @@ public class PersisterUtilsTest {
 
     @Test
     public void testJoinPath() {
-        assertEquals("test/path", PersisterUtils.join("test", "path"));
-        assertEquals("test/path", PersisterUtils.join("test", "/path"));
-        assertEquals("test/path", PersisterUtils.join("test/", "path"));
-        assertEquals("test/path", PersisterUtils.join("test/", "/path"));
-        assertEquals("test//path", PersisterUtils.join("test//", "/path"));
-        assertEquals("test//path", PersisterUtils.join("test/", "//path"));
+        assertEquals("test/path", PersisterUtils.joinPaths("test", "path"));
+        assertEquals("test/path", PersisterUtils.joinPaths("test", "/path"));
+        assertEquals("test/path", PersisterUtils.joinPaths("test/", "path"));
+        assertEquals("test/path", PersisterUtils.joinPaths("test/", "/path"));
+        assertEquals("test//path", PersisterUtils.joinPaths("test//", "/path"));
+        assertEquals("test//path", PersisterUtils.joinPaths("test/", "//path"));
 
-        assertEquals("/test/path", PersisterUtils.join("/test", "path"));
-        assertEquals("/test/path", PersisterUtils.join("/test", "/path"));
-        assertEquals("/test/path", PersisterUtils.join("/test/", "path"));
-        assertEquals("/test/path", PersisterUtils.join("/test/", "/path"));
-        assertEquals("/test//path", PersisterUtils.join("/test//", "/path"));
-        assertEquals("/test//path", PersisterUtils.join("/test/", "//path"));
+        assertEquals("/test/path", PersisterUtils.joinPaths("/test", "path"));
+        assertEquals("/test/path", PersisterUtils.joinPaths("/test", "/path"));
+        assertEquals("/test/path", PersisterUtils.joinPaths("/test/", "path"));
+        assertEquals("/test/path", PersisterUtils.joinPaths("/test/", "/path"));
+        assertEquals("/test//path", PersisterUtils.joinPaths("/test//", "/path"));
+        assertEquals("/test//path", PersisterUtils.joinPaths("/test/", "//path"));
     }
 
     @Test

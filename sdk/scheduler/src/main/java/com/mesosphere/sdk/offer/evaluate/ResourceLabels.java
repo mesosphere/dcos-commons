@@ -13,15 +13,12 @@ class ResourceLabels {
     private final ResourceSpec updated;
 
     private final String resourceId;
+    private final Optional<String> resourceNamespace;
     private final Optional<String> persistenceId;
     private final Optional<String> sourceRoot;
 
-    public ResourceLabels(ResourceSpec resourceSpec, String resourceId) {
-        this(resourceSpec, resourceSpec, resourceId);
-    }
-
-    public ResourceLabels(ResourceSpec original, ResourceSpec updated, String resourceId) {
-        this(original, updated, resourceId, Optional.empty(), Optional.empty());
+    ResourceLabels(ResourceSpec resourceSpec, String resourceId, Optional<String> resourceNamespace) {
+        this(resourceSpec, resourceSpec, resourceId, resourceNamespace, Optional.empty(), Optional.empty());
     }
 
     /**
@@ -36,15 +33,17 @@ class ResourceLabels {
      * To capture this change the concept of an "updated" ResourceSpec is needed.  We modify the ResourceSpec in this
      * scenario to match the actually consumed resources to facilitate consistent protobuf construction.
      */
-    public ResourceLabels(
+    ResourceLabels(
             ResourceSpec original,
             ResourceSpec updated,
             String resourceId,
+            Optional<String> resourceNamespace,
             Optional<String> persistenceId,
             Optional<String> sourceRoot) {
         this.original = original;
         this.updated = updated;
         this.resourceId = resourceId;
+        this.resourceNamespace = resourceNamespace;
         this.persistenceId = persistenceId;
         this.sourceRoot = sourceRoot;
     }
@@ -59,6 +58,10 @@ class ResourceLabels {
 
     public String getResourceId() {
         return resourceId;
+    }
+
+    public Optional<String> getResourceNamespace() {
+        return resourceNamespace;
     }
 
     public Optional<String> getPersistenceId() {

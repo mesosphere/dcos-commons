@@ -173,11 +173,11 @@ public class ServiceStore {
     }
 
     private static String getSanitizedServiceContextPath(String serviceName) {
-        return PersisterUtils.join(getSanitizedServiceBasePath(serviceName), CONTEXT_NODE);
+        return PersisterUtils.joinPaths(getSanitizedServiceBasePath(serviceName), CONTEXT_NODE);
     }
 
     private static String getRawServiceContextPath(String serviceName) {
-        return PersisterUtils.join(getRawServiceBasePath(serviceName), CONTEXT_NODE);
+        return PersisterUtils.joinPaths(getRawServiceBasePath(serviceName), CONTEXT_NODE);
     }
 
     private static String getSanitizedServiceBasePath(String serviceName) {
@@ -185,6 +185,6 @@ public class ServiceStore {
     }
 
     private static String getRawServiceBasePath(String serviceNodeName) {
-        return PersisterUtils.join(ROOT_PATH_NAME, serviceNodeName);
+        return PersisterUtils.joinPaths(ROOT_PATH_NAME, serviceNodeName);
     }
 }

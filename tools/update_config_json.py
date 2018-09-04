@@ -15,9 +15,8 @@ import difflib
 
 
 logging.basicConfig(
-    format='[%(asctime)s|%(name)s|%(levelname)s]: %(message)s',
-    level="INFO",
-    stream=sys.stdout)
+    format="[%(asctime)s|%(name)s|%(levelname)s]: %(message)s", level="INFO", stream=sys.stdout
+)
 
 LOG = logging.getLogger(__name__)
 
@@ -44,8 +43,9 @@ def write_json_file(file_path: str, content: collections.OrderedDict):
     write_file(file_path, json.dumps(content, indent=2))
 
 
-def reorder(original: collections.OrderedDict, head: list=[], tail: list=[],
-            mapper=lambda x: x) -> collections.OrderedDict:
+def reorder(
+    original: collections.OrderedDict, head: list = [], tail: list = [], mapper=lambda x: x
+) -> collections.OrderedDict:
     remaining = []
 
     if not isinstance(original, dict):
@@ -74,25 +74,25 @@ def reorder(original: collections.OrderedDict, head: list=[], tail: list=[],
 
 
 def reorder_property(schema: collections.OrderedDict) -> collections.OrderedDict:
-    return reorder(schema, head=["description", "type", "enum", "default", ], tail=["properties", ])
+    return reorder(schema, head=["description", "type", "enum", "default"], tail=["properties"])
 
 
 def reorder_service(service_properties: collections.OrderedDict) -> collections.OrderedDict:
-    expected_order_head = ["name",
-                           "user",
-                           "service_account",
-                           "service_account_secret",
-                           "virtual_network_enabled",
-                           "virtual_network_name",
-                           "virtual_network_plugin_labels",
-                           "mesos_api_version",
-                           "log_level", ]
+    expected_order_head = [
+        "name",
+        "user",
+        "service_account",
+        "service_account_secret",
+        "virtual_network_enabled",
+        "virtual_network_name",
+        "virtual_network_plugin_labels",
+        "mesos_api_version",
+        "log_level",
+    ]
 
-    expected_order_tail = ["security", ]
+    expected_order_tail = ["security"]
 
-    return reorder(service_properties,
-                   expected_order_head, expected_order_tail,
-                   reorder_property)
+    return reorder(service_properties, expected_order_head, expected_order_tail, reorder_property)
 
 
 def print_diff(original: collections.OrderedDict, new: collections.OrderedDict):

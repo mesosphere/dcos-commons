@@ -221,14 +221,7 @@ public class SchedulerConfig {
         this.envStore = envStore;
 
         if (!PRINTED_BUILD_INFO.getAndSet(true)) {
-            LOGGER.info("Build information:\n- {}: {}, built {}\n- SDK: {}/{}, built {}",
-                    getPackageName(),
-                    getPackageVersion(),
-                    Instant.ofEpochMilli(getPackageBuildTimeMs()),
-
-                    SDKBuildInfo.VERSION,
-                    SDKBuildInfo.GIT_SHA,
-                    Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
+            LOGGER.info("Build information:\n{} ", getBuildInfo().toString(2));
         }
     }
 
@@ -256,8 +249,8 @@ public class SchedulerConfig {
     }
 
     /**
-     * Returns the configured API port, or throws {@link ConfigException} if the environment lacked the required
-     * information.
+     * Returns the configured API port, or throws {@link EnvStore.ConfigException} if the environment lacked the
+     * required information.
      */
     public int getApiServerPort() {
         return envStore.getRequiredInt(MARATHON_API_PORT_ENV);
@@ -475,5 +468,17 @@ public class SchedulerConfig {
      */
     public String getSchedulerIP() {
         return envStore.getRequired(LIBPROCESS_IP_ENV);
+    }
+
+    public JSONObject getBuildInfo() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(PACKAGE_NAME_ENV, getPackageName());
+        jsonObject.put(PACKAGE_VERSION_ENV, getPackageVersion());
+        jsonObject.put("PACKAGE_BUILT_AT", Instant.ofEpochMilli(getPackageBuildTimeMs()));
+        jsonObject.put("SDK_NAME", SDKBuildInfo.NAME);
+        jsonObject.put("SDK_VERSION", SDKBuildInfo.VERSION);
+        jsonObject.put("SDK_GIT_SHA", SDKBuildInfo.GIT_SHA);
+        jsonObject.put("SDK_BUILT_AT", Instant.ofEpochMilli(SDKBuildInfo.BUILD_TIME_EPOCH_MS));
+        return jsonObject;
     }
 }

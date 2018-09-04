@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.framework.FrameworkConfig;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.*;
 import org.apache.mesos.Protos;
+import org.slf4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,6 +33,8 @@ import java.util.stream.IntStream;
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
 public class YAMLToInternalMappers {
+
+    private static final Logger LOGGER = LoggingUtils.getLogger(YAMLToInternalMappers.class);
 
     /**
      * Implementation for reading files from disk. Meant to be overridden by a mock in tests.
@@ -85,6 +89,7 @@ public class YAMLToInternalMappers {
             SchedulerConfig schedulerConfig,
             TaskEnvRouter taskEnvRouter,
             ConfigTemplateReader configTemplateReader) throws Exception {
+        LOGGER.info("Using framework config : {}", frameworkConfig.toString());
         verifyDistinctDiscoveryPrefixes(rawPods.values());
         verifyDistinctEndpointNames(rawPods.values());
 
@@ -122,15 +127,15 @@ public class YAMLToInternalMappers {
     private static void verifyDistinctDiscoveryPrefixes(Collection<RawPod> rawPods) {
         Map<String, Long> dnsPrefixCounts = rawPods.stream()
                 .flatMap(p -> p.getTasks().values().stream()
-                        .map(t -> t.getDiscovery())
-                        .filter(d -> d != null)
-                        .map(d -> d.getPrefix())
-                        .filter(prefix -> prefix != null)
+                        .map(RawTask::getDiscovery)
+                        .filter(Objects::nonNull)
+                        .map(RawDiscovery::getPrefix)
+                        .filter(Objects::nonNull)
                         .distinct())
                 .collect(Collectors.groupingBy(Function.identity(), Collectors.counting()));
         List<String> dnsNameDuplicates = dnsPrefixCounts.entrySet().stream()
                 .filter(e -> e.getValue() > 1)
-                .map(e -> e.getKey())
+                .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
         if (!dnsNameDuplicates.isEmpty()) {
             throw new IllegalArgumentException(String.format(
@@ -279,6 +284,15 @@ public class YAMLToInternalMappers {
                     .collect(Collectors.toList()));
 
             builder.secrets(secretSpecs);
+        }
+
+        if (!rawPod.getHostVolumes().isEmpty()) {
+            Collection<HostVolumeSpec> hostVolumeSpecs = new ArrayList<>();
+            hostVolumeSpecs.addAll(rawPod.getHostVolumes().values().stream()
+                    .map(v -> convertHostVolume(v))
+                    .collect(Collectors.toList()));
+
+            builder.hostVolumes(hostVolumeSpecs);
         }
 
         if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
@@ -486,6 +500,15 @@ public class YAMLToInternalMappers {
                 .secretPath(rawSecret.getSecretPath())
                 .envKey(rawSecret.getEnvKey())
                 .filePath(filePath)
+                .build();
+    }
+
+    private static DefaultHostVolumeSpec convertHostVolume(
+            RawHostVolume rawHostVolume) {
+
+        return DefaultHostVolumeSpec.newBuilder()
+                .hostPath(rawHostVolume.getHostPath())
+                .containerPath(rawHostVolume.getContainerPath())
                 .build();
     }
 

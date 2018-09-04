@@ -33,12 +33,8 @@ public class ResourceBuilder {
         ResourceBuilder builder = new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
                 .setRole(Optional.of(spec.getRole()))
                 .setPrincipal(Optional.of(spec.getPrincipal()));
-        if (resourceId.isPresent()) {
-            builder.setResourceId(resourceId.get());
-        }
-        if (resourceNamespace.isPresent()) {
-            builder.setResourceNamespace(resourceNamespace.get());
-        }
+        resourceId.ifPresent(builder::setResourceId);
+        resourceNamespace.ifPresent(builder::setResourceNamespace);
         return builder;
     }
 
