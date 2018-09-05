@@ -20,10 +20,10 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             0,
-            { "service": { "yaml": "taskcfg" } },
+            {"service": {"yaml": "taskcfg"}},
             wait_for_deployment=False)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
