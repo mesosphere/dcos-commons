@@ -40,8 +40,8 @@ public class EnvUtils {
         Environment.Builder envBuilder = Environment.newBuilder();
         for (Map.Entry<String, String> entry : environmentMap.entrySet()) {
             envBuilder.addVariablesBuilder()
-                    .setName(entry.getKey())
-                    .setValue(entry.getValue());
+                .setName(entry.getKey())
+                .setValue(entry.getValue());
         }
         return envBuilder.build();
     }
