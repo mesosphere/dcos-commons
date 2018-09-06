@@ -306,7 +306,7 @@ def uninstall(package_name, service_name):
 
     # Display current SDK Plan before uninstall, helps with debugging stuck uninstalls.
     log.info("Current plan status for {}".format(service_name))
-    sdk_cmd.svc_cli(package_name, service_name, check=False)
+    sdk_cmd.svc_cli(package_name, service_name, "plan deploy status", check=False)
 
     try:
         _retried_uninstall_package_and_wait(package_name, service_name)
