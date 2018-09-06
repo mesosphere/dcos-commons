@@ -303,7 +303,7 @@ def uninstall(package_name, service_name):
     start = time.time()
 
     log.info("Uninstalling {}".format(service_name))
-   
+
     # Display current SDK Plan before uninstall, helps with debugging stuck uninstalls.
     log.info("Current plan status for {}".format(service_name))
     sdk_cmd.svc_cli(package_name, service_name, check=False)
