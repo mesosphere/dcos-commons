@@ -204,8 +204,8 @@ def _test_permissions(
 
 @pytest.mark.sanity
 def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_service: typing.Dict):
-    # Since no ACLs are specified, only the super user can read and write
     def permission_test(c: client.KafkaClient, topic_name: str):
+        # Since no ACLs are specified, only the super user can read and write
         c.check_grant_of_permissions(["super"], topic_name)
         c.check_lack_of_permissions(["authorized", "unauthorized"], topic_name)
 
@@ -221,8 +221,8 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_service
 
 @pytest.mark.sanity
 def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_service: typing.Dict):
-    # Since no ACLs are specified, all users can read and write.
     def permission_test(c: client.KafkaClient, topic_name: str):
+        # Since no ACLs are specified, all users can read and write.
         c.check_grant_of_permissions(["authorized", "unauthorized", "super"], topic_name)
 
         log.info("Writing and reading: Adding acl for authorized user")
