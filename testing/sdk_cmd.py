@@ -291,7 +291,7 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
         full_cmd = os.path.join(get_task_sandbox_path(task_name), cmd)
 
         if cmd.startswith("./bootstrap"):
-            # On 1.9 we need to set LIB_PROCESS_IP for bootstrap
+            # On 1.9 we need to set LIBPROCESS_IP for bootstrap
             full_cmd = "bash -c \"LIBPROCESS_IP=0.0.0.0 {}\"".format(full_cmd)
     else:
         full_cmd = cmd
