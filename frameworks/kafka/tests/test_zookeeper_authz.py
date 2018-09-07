@@ -140,15 +140,15 @@ def _get_service_options(
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 },
-                "authorization": {"enabled": True, "super_users": "User:{}".format("super")},
+                "authorization": {
+                    "enabled": True,
+                    "super_users": "User:{}".format("super"),
+                    "allow_everyone_if_no_acl_found": allow_access_if_no_acl,
+                },
             },
         },
         "kafka": {"kafka_zookeeper_uri": ",".join(zookeeper_dns)},
     }
-    if allow_access_if_no_acl:
-        service_options["service"]["security"]["authorization"][
-            "allow_everyone_if_no_acl_found"
-        ] = True
     return service_options
 
 
