@@ -214,7 +214,7 @@ class KafkaClient:
 
     def check_users_can_read_and_write(self, users: typing.List[str], topic_name: str) -> None:
         for user in users:
-            log.info("Checking write / read permissions for user=%s", user)
+            log.info("Checking ability of write / read for user=%s", user)
             write_success, read_successes, _ = self.can_write_and_read(user, topic_name)
             assert write_success, "Write failed (user={})".format(user)
             assert read_successes, (
