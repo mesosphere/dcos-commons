@@ -123,15 +123,17 @@ def test_authz_acls_required(
         kafka_client.remove_acls("authorized", topic_name)
 
         # Since no ACLs are specified, only the super user can read and write
-        kafka_client.check_grant_of_permissions(["super"], topic_name)
-        kafka_client.check_lack_of_permissions(["authorized", "unauthorized"], topic_name)
+        kafka_client.check_users_can_read_and_write(["super"], topic_name)
+        kafka_client.check_users_are_not_authorized_to_read_and_write(
+            ["authorized", "unauthorized"], topic_name
+        )
 
         log.info("Writing and reading: Adding acl for authorized user")
         kafka_client.add_acls("authorized", topic_name)
 
         # After adding ACLs the authorized user and super user should still have access to the topic.
-        kafka_client.check_grant_of_permissions(["authorized", "super"], topic_name)
-        kafka_client.check_lack_of_permissions(["unauthorized"], topic_name)
+        kafka_client.check_users_can_read_and_write(["authorized", "super"], topic_name)
+        kafka_client.check_users_are_not_authorized_to_read_and_write(["unauthorized"], topic_name)
 
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -189,14 +191,16 @@ def test_authz_acls_not_required(
         kafka_client.remove_acls("authorized", topic_name)
 
         # Since no ACLs are specified, all users can read and write.
-        kafka_client.check_grant_of_permissions(["authorized", "unauthorized", "super"], topic_name)
+        kafka_client.check_users_can_read_and_write(
+            ["authorized", "unauthorized", "super"], topic_name
+        )
 
         log.info("Writing and reading: Adding acl for authorized user")
         kafka_client.add_acls("authorized", topic_name)
 
         # After adding ACLs the authorized user and super user should still have access to the topic.
-        kafka_client.check_grant_of_permissions(["authorized", "super"], topic_name)
-        kafka_client.check_lack_of_permissions(["unauthorized"], topic_name)
+        kafka_client.check_users_can_read_and_write(["authorized", "super"], topic_name)
+        kafka_client.check_users_are_not_authorized_to_read_and_write(["unauthorized"], topic_name)
 
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)

@@ -206,15 +206,17 @@ def _test_permissions(
 def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_service: typing.Dict):
     def permission_test(c: client.KafkaClient, topic_name: str):
         # Since no ACLs are specified, only the super user can read and write
-        c.check_grant_of_permissions(["super"], topic_name)
-        c.check_lack_of_permissions(["authorized", "unauthorized"], topic_name)
+        c.check_users_can_read_and_write(["super"], topic_name)
+        c.check_users_are_not_authorized_to_read_and_write(
+            ["authorized", "unauthorized"], topic_name
+        )
 
         log.info("Writing and reading: Adding acl for authorized user")
         c.add_acls("authorized", topic_name)
 
         # After adding ACLs the authorized user and super user should still have access to the topic.
-        c.check_grant_of_permissions(["authorized", "super"], topic_name)
-        c.check_lack_of_permissions(["unauthorized"], topic_name)
+        c.check_users_can_read_and_write(["authorized", "super"], topic_name)
+        c.check_users_are_not_authorized_to_read_and_write(["unauthorized"], topic_name)
 
     _test_permissions(kafka_client, zookeeper_service, False, permission_test)
 
@@ -223,13 +225,13 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_service
 def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_service: typing.Dict):
     def permission_test(c: client.KafkaClient, topic_name: str):
         # Since no ACLs are specified, all users can read and write.
-        c.check_grant_of_permissions(["authorized", "unauthorized", "super"], topic_name)
+        c.check_users_can_read_and_write(["authorized", "unauthorized", "super"], topic_name)
 
         log.info("Writing and reading: Adding acl for authorized user")
         c.add_acls("authorized", topic_name)
 
         # After adding ACLs the authorized user and super user should still have access to the topic.
-        c.check_grant_of_permissions(["authorized", "super"], topic_name)
-        c.check_lack_of_permissions(["unauthorized"], topic_name)
+        c.check_users_can_read_and_write(["authorized", "super"], topic_name)
+        c.check_users_are_not_authorized_to_read_and_write(["unauthorized"], topic_name)
 
     _test_permissions(kafka_client, zookeeper_service, True, permission_test)

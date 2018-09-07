@@ -212,7 +212,7 @@ class KafkaClient:
             user, self.id, topic_name, self.kafka_service.get_zookeeper_endpoint(), environment
         )
 
-    def check_grant_of_permissions(self, users: typing.List[str], topic_name: str) -> None:
+    def check_users_can_read_and_write(self, users: typing.List[str], topic_name: str) -> None:
         for user in users:
             log.info("Checking write / read permissions for user=%s", user)
             write_success, read_successes, _ = self.can_write_and_read(user, topic_name)
@@ -223,7 +223,9 @@ class KafkaClient:
                 "read_successes={}".format(user, self.MESSAGES, read_successes)
             )
 
-    def check_lack_of_permissions(self, users: typing.List[str], topic_name: str) -> None:
+    def check_users_are_not_authorized_to_read_and_write(
+        self, users: typing.List[str], topic_name: str
+    ) -> None:
         for user in users:
             log.info("Checking lack of write / read permissions for user=%s", user)
             write_success, _, read_messages = self.can_write_and_read(user, topic_name)
