@@ -437,8 +437,7 @@ public class OfferEvaluator {
             }
         }
 
-        if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent() &&
-                podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+        if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
             evaluationStages.add(new PlacementRuleEvaluationStage(
                     allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
         }
