@@ -92,8 +92,7 @@ def test_authn_client_can_read_and_write(
 
         kafka_client.connect()
 
-        user = "kafka-tester"
-        kafka_client.check_users_can_read_and_write([user], topic_name)
+        kafka_client.check_users_can_read_and_write(["kafka-tester"], topic_name)
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 

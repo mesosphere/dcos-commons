@@ -102,6 +102,5 @@ def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     )
 
     kafka_client.connect()
-    user = "client"
 
-    kafka_client.check_users_can_read_and_write([user], topic_name)
+    kafka_client.check_users_can_read_and_write(["client"], topic_name)
