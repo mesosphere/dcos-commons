@@ -1,19 +1,27 @@
 package com.mesosphere.sdk.framework;
 
+import com.mesosphere.mesos.HTTPAdapter.MesosToSchedulerDriverAdapter;
+import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import org.apache.commons.lang3.tuple.ImmutableTriple;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.v1.scheduler.V0Mesos;
+import org.apache.mesos.v1.scheduler.V1Mesos;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
-
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Stream;
 
 import static org.junit.Assert.*;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class SchedulerDriverFactoryTest {
@@ -43,7 +51,7 @@ public class SchedulerDriverFactoryTest {
     }
 
     @Test
-    public void testSuccessNoAuth() throws Exception {
+    public void testSuccessNoAuth() {
         CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory();
         assertNull(factory.create(
                 new NoOpScheduler(), FRAMEWORK_WITH_PRINCIPAL, MASTER_URL, mockSchedulerConfig));
@@ -53,7 +61,7 @@ public class SchedulerDriverFactoryTest {
     }
 
     @Test
-    public void testSuccessSidechannel() throws Exception {
+    public void testSuccessSidechannel() {
         when(mockSchedulerConfig.isSideChannelActive()).thenReturn(true);
         CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory();
         assertNull(factory.create(
@@ -64,7 +72,7 @@ public class SchedulerDriverFactoryTest {
     }
 
     @Test
-    public void testSuccessWithSecret() throws Exception {
+    public void testSuccessWithSecret() {
         CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory();
         assertNull(factory.create(
                 new NoOpScheduler(), FRAMEWORK_WITH_PRINCIPAL, MASTER_URL, mockSchedulerConfig, SECRET));
@@ -74,7 +82,7 @@ public class SchedulerDriverFactoryTest {
     }
 
     @Test
-    public void testSuccessWithSecretAndSidechannel() throws Exception {
+    public void testSuccessWithSecretAndSidechannel() {
         when(mockSchedulerConfig.isSideChannelActive()).thenReturn(true);
         CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory();
         assertNull(factory.create(
@@ -85,7 +93,7 @@ public class SchedulerDriverFactoryTest {
     }
 
     @Test
-    public void testEmptyPrincipalNoAuth() throws Exception {
+    public void testEmptyPrincipalNoAuth() {
         CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory();
         assertNull(factory.create(
                 new NoOpScheduler(), FRAMEWORK_EMPTY_PRINCIPAL, MASTER_URL, mockSchedulerConfig));
@@ -95,27 +103,27 @@ public class SchedulerDriverFactoryTest {
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void testEmptyPrincipalSidechannel() throws Exception {
+    public void testEmptyPrincipalSidechannel() {
         when(mockSchedulerConfig.isSideChannelActive()).thenReturn(true);
         new CustomSchedulerDriverFactory().create(
                 new NoOpScheduler(), FRAMEWORK_EMPTY_PRINCIPAL, MASTER_URL, mockSchedulerConfig);
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void testEmptyPrincipalWithSecret() throws Exception {
+    public void testEmptyPrincipalWithSecret() {
         new CustomSchedulerDriverFactory().create(
                 new NoOpScheduler(), FRAMEWORK_EMPTY_PRINCIPAL, MASTER_URL, mockSchedulerConfig, SECRET);
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void testEmptyPrincipalWithSecretAndSidechannel() throws Exception {
+    public void testEmptyPrincipalWithSecretAndSidechannel() {
         when(mockSchedulerConfig.isSideChannelActive()).thenReturn(true);
         new CustomSchedulerDriverFactory().create(
                 new NoOpScheduler(), FRAMEWORK_EMPTY_PRINCIPAL, MASTER_URL, mockSchedulerConfig, SECRET);
     }
 
     @Test
-    public void testMissingPrincipalNoAuth() throws Exception {
+    public void testMissingPrincipalNoAuth() {
         CustomSchedulerDriverFactory factory = new CustomSchedulerDriverFactory();
         assertNull(factory.create(
                 new NoOpScheduler(), FRAMEWORK_WITHOUT_PRINCIPAL, MASTER_URL, mockSchedulerConfig));
@@ -125,23 +133,52 @@ public class SchedulerDriverFactoryTest {
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void testMissingPrincipalSidechannel() throws Exception {
+    public void testMissingPrincipalSidechannel() {
         when(mockSchedulerConfig.isSideChannelActive()).thenReturn(true);
         new CustomSchedulerDriverFactory().create(
                 new NoOpScheduler(), FRAMEWORK_WITHOUT_PRINCIPAL, MASTER_URL, mockSchedulerConfig);
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void testMissingPrincipalWithSecret() throws Exception {
+    public void testMissingPrincipalWithSecret() {
         new CustomSchedulerDriverFactory().create(
                 new NoOpScheduler(), FRAMEWORK_WITHOUT_PRINCIPAL, MASTER_URL, mockSchedulerConfig, SECRET);
     }
 
     @Test(expected=IllegalArgumentException.class)
-    public void testMissingPrincipalWithSecretAndSidechannel() throws Exception {
+    public void testMissingPrincipalWithSecretAndSidechannel() {
         when(mockSchedulerConfig.isSideChannelActive()).thenReturn(true);
         new CustomSchedulerDriverFactory().create(
                 new NoOpScheduler(), FRAMEWORK_WITHOUT_PRINCIPAL, MASTER_URL, mockSchedulerConfig, SECRET);
+    }
+
+    @Test
+    public void createInternalTest() {
+        // This should have been an integration test but upstream has no version information (and it shouldn't have ?)
+        for (ImmutableTriple<Boolean, String, String> data : Arrays.asList(
+                // Capability boolean | Requested Version | Created Version
+                ImmutableTriple.of(true, SchedulerConfig.MESOS_API_VERSION_V1, V1Mesos.class.getCanonicalName()),
+                ImmutableTriple.of(new Random().nextBoolean(), "NOT_V1", V0Mesos.class.getCanonicalName())
+        )) {
+            try {
+                MesosToSchedulerDriverAdapter a = mock(MesosToSchedulerDriverAdapter.class);
+                SchedulerDriverFactory sdf = new SchedulerDriverFactory();
+                Capabilities capabilities = mock(Capabilities.class);
+                when(capabilities.supportsV1APIByDefault()).thenReturn(data.left);
+                sdf.startInternalCustom(
+                        capabilities,
+                        mock(FrameworkInfo.class),
+                        "masterUrl",
+                        null,
+                        data.middle
+                ).apply(a);
+            } catch (Throwable t) {
+                // If asked for V1 and capability is enabled, we should get V1
+                assertTrue(Stream
+                        .of(t.getStackTrace())
+                        .anyMatch(x -> x.getClassName().equals(data.right)));
+            }
+        }
     }
 
     private static class CustomSchedulerDriverFactory extends SchedulerDriverFactory {

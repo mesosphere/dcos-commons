@@ -118,7 +118,7 @@ public class SchedulerDriverFactory {
                     LOGGER.warn("Current DC/OS cluster doesn't support the Mesos V1 API");
                 }
             }
-            LOGGER.info("Using Mesos {} API", SchedulerConfig.MESOS_API_VERSION_V0);
+            LOGGER.info("Using Mesos V0 API");
             return new V0Mesos(
                     adapter,
                     EvolverDevolver.evolve(frameworkInfo),
