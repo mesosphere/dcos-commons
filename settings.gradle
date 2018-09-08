@@ -23,3 +23,6 @@ project(':sdk/scheduler').name = 'scheduler'
 
 include 'sdk/testing'
 project(':sdk/testing').name = 'testing'
+
+// For Gradle 5.0 Upgrade compatibility
+enableFeaturePreview('STABLE_PUBLISHING')
