@@ -20,6 +20,7 @@ import org.apache.mesos.v1.scheduler.V0Mesos;
 import org.apache.mesos.v1.scheduler.V1Mesos;
 import org.slf4j.Logger;
 
+import javax.annotation.Nullable;
 import java.util.function.Function;
 
 /**
@@ -103,7 +104,7 @@ public class SchedulerDriverFactory {
             final Capabilities capabilities,
             final FrameworkInfo frameworkInfo,
             final String masterUrl,
-            final Credential credential,
+            @Nullable final Credential credential,
             final String mesosAPIVersion) {
         return (MesosToSchedulerDriverAdapter adapter) -> {
             LOGGER.info("Trying to use Mesos {} API, isCredentialNull: {}", mesosAPIVersion, credential == null);
@@ -130,18 +131,19 @@ public class SchedulerDriverFactory {
     /**
      * Broken out into a separate function to allow testing with custom SchedulerDrivers.
      */
+    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
     protected SchedulerDriver createInternal(
             final Scheduler scheduler,
             final FrameworkInfo frameworkInfo,
             final String masterUrl,
-            final Credential credential,
+            @Nullable final Credential credential,
             final String mesosAPIVersion) {
         Capabilities capabilities = Capabilities.getInstance();
         // TODO(DCOS-29172): This can be removed if/when we switch to using our own Mesos Client
         // Love to work around the fact that the MesosToSchedulerDriverAdapter both depends directly on the
         // process environment *and* uses two unrelated constructors for the case of credential being null
-        return credential != null ?
-                new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true, credential) {
+        return credential == null ?
+                new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true) {
                     @Override
                     protected Mesos startInternal() {
                         return startInternalCustom(
@@ -153,7 +155,7 @@ public class SchedulerDriverFactory {
                         ).apply(this);
                     }
                 } :
-                new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true) {
+                new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true, credential) {
                     @Override
                     protected Mesos startInternal() {
                         return startInternalCustom(

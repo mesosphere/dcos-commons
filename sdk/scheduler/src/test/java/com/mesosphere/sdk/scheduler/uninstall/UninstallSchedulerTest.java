@@ -26,7 +26,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyCollectionOf;
 import static org.mockito.Mockito.*;
 
 public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {

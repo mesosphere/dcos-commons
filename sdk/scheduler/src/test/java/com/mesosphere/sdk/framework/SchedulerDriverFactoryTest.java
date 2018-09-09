@@ -8,6 +8,7 @@ import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.*;
 import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
+import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.V0Mesos;
 import org.apache.mesos.v1.scheduler.V1Mesos;
 import org.junit.Before;
@@ -155,28 +156,33 @@ public class SchedulerDriverFactoryTest {
     @Test
     public void createInternalTest() {
         // This should have been an integration test but upstream has no version information (and it shouldn't have ?)
-        for (ImmutableTriple<Boolean, String, String> data : Arrays.asList(
-                // Capability boolean | Requested Version | Created Version
-                ImmutableTriple.of(true, SchedulerConfig.MESOS_API_VERSION_V1, V1Mesos.class.getCanonicalName()),
-                ImmutableTriple.of(new Random().nextBoolean(), "NOT_V1", V0Mesos.class.getCanonicalName())
+        Random r = new Random();
+        for (ImmutableTriple<Boolean, String, ? extends Class<? extends Mesos>> data : Arrays.asList(
+                // Triple of (Boolean V1 Capability Supported | Requested Version | Created Version)
+                ImmutableTriple.of(true, SchedulerConfig.MESOS_API_VERSION_V1, V1Mesos.class),
+                ImmutableTriple.of(r.nextBoolean(), "NOT_V1", V0Mesos.class)
         )) {
+            Capabilities capabilities = mock(Capabilities.class);
+            when(capabilities.supportsV1APIByDefault()).thenReturn(data.left);
             try {
-                MesosToSchedulerDriverAdapter a = mock(MesosToSchedulerDriverAdapter.class);
-                SchedulerDriverFactory sdf = new SchedulerDriverFactory();
-                Capabilities capabilities = mock(Capabilities.class);
-                when(capabilities.supportsV1APIByDefault()).thenReturn(data.left);
-                sdf.startInternalCustom(
-                        capabilities,
-                        mock(FrameworkInfo.class),
-                        "masterUrl",
-                        null,
-                        data.middle
-                ).apply(a);
-            } catch (Throwable t) {
-                // If asked for V1 and capability is enabled, we should get V1
+                assertTrue(
+                        new SchedulerDriverFactory().startInternalCustom(
+                                capabilities,
+                                mock(FrameworkInfo.class),
+                                "masterUrl",
+                                mock(Credential.class),
+                                data.middle
+                        )
+                        .apply(mock(MesosToSchedulerDriverAdapter.class))
+                        .getClass()
+                        .getCanonicalName()
+                        .equals(data.right.getCanonicalName())
+                );
+            } catch (UnsatisfiedLinkError e) {
                 assertTrue(Stream
-                        .of(t.getStackTrace())
-                        .anyMatch(x -> x.getClassName().equals(data.right)));
+                        .of(e.getStackTrace())
+                        .anyMatch(x -> x.getClassName().equals(data.right.getCanonicalName()))
+                );
             }
         }
     }
