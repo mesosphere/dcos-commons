@@ -6,6 +6,7 @@ SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 
+import datetime
 import logging
 import retrying
 
@@ -14,7 +15,7 @@ import sdk_tasks
 
 TIMEOUT_SECONDS = 15 * 60
 SHORT_TIMEOUT_SECONDS = 30
-MAX_NEW_TASK_FAILURES = 2
+MAX_NEW_TASK_FAILURES = 10
 
 
 class TaskFailuresExceededException(Exception):
@@ -144,6 +145,7 @@ def wait_for_plan_status(
         statuses = status
 
     initial_failures = sdk_tasks.get_failed_task_count(service_name, retry=True)
+    wait_start = datetime.datetime.utcnow()
 
     @retrying.retry(
         wait_fixed=1000,
@@ -155,8 +157,10 @@ def wait_for_plan_status(
         failures = sdk_tasks.get_failed_task_count(service_name)
         if failures - initial_failures > MAX_NEW_TASK_FAILURES:
             log.error(
-                "Service %s exceeded failures increase while doing %s and trying to reach %s",
+                "Tasks in service %s failed %d times since starting %ds ago to wait for %s to reach %s, aborting.",
                 service_name,
+                MAX_NEW_TASK_FAILURES,
+                (datetime.datetime.utcnow() - wait_start).total_seconds(),
                 plan_name,
                 statuses,
             )
