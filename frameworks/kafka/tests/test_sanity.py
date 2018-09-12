@@ -152,7 +152,7 @@ def test_pod_replace():
 @pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
 @pytest.mark.skipif(
-    sdk_utils.dcos_version() == "1.12",
+    sdk_utils.dcos_version_at_least("1.12"),
     reason="Metrics are not working on 1.12. Reenable once this is fixed",
 )
 def test_metrics():
