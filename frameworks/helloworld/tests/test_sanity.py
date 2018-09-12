@@ -7,6 +7,7 @@ import retrying
 import sdk_cmd
 import sdk_install
 import sdk_marathon
+import sdk_metrics
 import sdk_plan
 import sdk_tasks
 import sdk_upgrade
@@ -38,6 +39,21 @@ def configure_package(configure_security):
 @pytest.mark.smoke
 def test_install():
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+
+
+@pytest.mark.sanity
+@pytest.mark.metrics
+@pytest.mark.smoke
+@pytest.mark.dcos_min_version("1.9")
+def test_metrics():
+    sdk_metrics.wait_for_service_metrics(
+        config.PACKAGE_NAME,
+        sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        "hello-0",
+        "hello-0-server",
+        timeout=10 * 60,
+        expected_metrics_callback=lambda x: True,
+    )
 
 
 @pytest.mark.sanity
@@ -181,9 +197,7 @@ def test_pod_status_one():
 @pytest.mark.sanity
 def test_pod_info():
     rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        "pod info world-1",
+        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), "pod info world-1"
     )
     assert rc == 0, "Pod info failed"
     jsonobj = json.loads(stdout)
@@ -234,12 +248,15 @@ def test_config_cli():
     configs = json.loads(stdout)
     assert len(configs) >= 1  # refrain from breaking this test if earlier tests did a config update
 
-    assert 0 == sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        foldered_name,
-        "debug config show {}".format(configs[0]),
-        print_output=False,  # noisy output
-    )[0]
+    assert (
+        0
+        == sdk_cmd.svc_cli(
+            config.PACKAGE_NAME,
+            foldered_name,
+            "debug config show {}".format(configs[0]),
+            print_output=False,  # noisy output
+        )[0]
+    )
     _check_json_output(foldered_name, "debug config target")
     _check_json_output(foldered_name, "debug config target_id")
 
@@ -251,15 +268,33 @@ def test_plan_cli():
     phase_name = "world"
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     _check_json_output(foldered_name, "plan list")
-    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))[0]
+    assert (
+        0
+        == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))[0]
+    )
     _check_json_output(foldered_name, "plan show --json {}".format(plan_name))
     _check_json_output(foldered_name, "plan show {} --json".format(plan_name))
 
     # trigger a restart so that the plan is in a non-complete state.
     # the 'interrupt' command will fail if the plan is already complete:
-    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan force-restart {}".format(plan_name))[0]
-    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name))[0]
-    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name))[0]
+    assert (
+        0
+        == sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "plan force-restart {}".format(plan_name)
+        )[0]
+    )
+    assert (
+        0
+        == sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name)
+        )[0]
+    )
+    assert (
+        0
+        == sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name)
+        )[0]
+    )
 
     # now wait for plan to finish before continuing to other tests:
     assert sdk_plan.wait_for_completed_plan(foldered_name, plan_name)
@@ -295,9 +330,7 @@ def test_state_refresh_disable_cache():
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
         rc, stdout, stderr = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME,
-            foldered_name,
-            "debug state refresh_cache"
+            config.PACKAGE_NAME, foldered_name, "debug state refresh_cache"
         )
         return rc != 0 and stdout == "" and "failed: 409 Conflict" in stderr
 
@@ -313,7 +346,9 @@ def test_state_refresh_disable_cache():
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def check_cache_refresh():
-        rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state refresh_cache")
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "debug state refresh_cache"
+        )
         assert rc == 0, "Refresh cache failed"
         return stdout
 
