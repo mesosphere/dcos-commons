@@ -109,12 +109,16 @@ def get_metrics(package_name, service_name, pod_name, task_name):
         log.warning("Task named {} not found in pod {}: {}".format(task_name, pod_name, pod_info))
         return []
 
+    url = "/system/v1/agent/{}/metrics/v0/containers".format(task_to_check.agent_id)
+    logging.info("url is ----> {}".format(url))
+
     # Not related to functionality, but consuming this endpoint to verify metrics integrity
     containers_response = sdk_cmd.cluster_request(
         "GET",
-        "/system/v1/agent/{}/metrics/v0/containers".format(task_to_check.agent_id),
+        url,
         retry=False,
     )
+    logging.info("Response --------------> ".format(containers_response))
     reported_container_ids = json.loads(containers_response.text)
 
     container_id_reported = False
