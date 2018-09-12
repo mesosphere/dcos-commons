@@ -33,7 +33,7 @@ pods:
         cmd: |
                 docker pull {{{PORTWORX_IMAGE_NAME}}}
 
-                newPxVersion="$(docker run --entrypoint /opt/pwx/bin/pxctl {{{PORTWORX_IMAGE_NAME}}} --version) (OCI)"
+                newPxVersion="$(docker run --rm --name px_version --entrypoint /opt/pwx/bin/pxctl {{{PORTWORX_IMAGE_NAME}}} --version) (OCI)"
                 if [ $? != 0 ]; then
                     echo 'Error finding portworx version from the given image {{{PORTWORX_IMAGE_NAME}}}'
                     exit 1
@@ -45,7 +45,7 @@ pods:
 
                     set -e
                     docker run --entrypoint /runc-entry-point.sh \
-                        --rm -i --privileged=true \
+                        --rm -i --privileged=true --name portworx_runc \
                         -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
                         {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade
                     set +e
