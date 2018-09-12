@@ -133,8 +133,9 @@ Running
 ```
 Will show all the options that are available for the `test.sh` script.
 
-##### Experimental Commands.
+#### Experimental Commands
 
-`helloworld` framework supports remote debugging in latest versions. This is ONLY for developing purposes. You can launch the framework with debug config enabled as shown in the `debug` section of config.json of helloworld and then bind to the remote port using
-`ssh -L ${DEBUG_PORT:-6242}:${CUSTOM_SERVICE_NAME:-"hello-world"}.marathon.mesos:${DEBUG_PORT} -N core@${MASTER_IP}`
-SDK prints SHA at bootstrap and that can be used to checkout the accurate codebase. Connect to the above debug server and you should be good to remotely debug the scheduler. 
+Remote debugging is supported in `helloworld` framework. This is ONLY for developing purposes. You can launch the `helloworld` framework with debugging as using the `debug` section of config.json. Once the marathon app for scheduler is ready, bind to the remote port using
+`ssh -L ${DEBUG_PORT:-6242}:${CUSTOM_SERVICE_NAME:-"hello-world"}.marathon.mesos:${DEBUG_PORT:-6242} -N core@${MASTER_IP}`
+
+SDK prints GIT SHA of its build at bootstrap and that can be used to checkout the current codebase. Connect to the above debug server and you should be able to remotely debug the scheduler.
