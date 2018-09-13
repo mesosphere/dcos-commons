@@ -22,11 +22,11 @@ class PackageVersion(object):
         self._package_name = package_name
 
     def get_version(self):
-        response_raw = self._get_cmd_stdout(
-            'dcos package describe {}'.format(self._package_name))
+        cmd = 'dcos package describe {}'.format(self._package_name)
+        response_raw = self._get_cmd_stdout(cmd)
         try:
             return json.loads(response_raw)['version']
-        except:
+        except:  # noqa: E722
             logger.error('Failed to parse version from output of command "{}": {}'.format(
                 cmd, response_raw))
             raise
@@ -40,7 +40,7 @@ class PackageVersion(object):
                 'git --git-dir={} fetch origin --tags'.format(repo_dotgit_path))
             # get the rev for the tag. use % instead of .format() to preserve a literal '{}':
             return self._get_cmd_stdout('git --git-dir=%s rev-parse %s^{}' % (repo_dotgit_path, version_tag))
-        except:
+        except:  # noqa: E722
             logger.error(
                 'Failed to retrieve SHA1 from git for tag "{}"'.format(version_tag))
             raise
@@ -57,7 +57,7 @@ class PackageVersion(object):
                     'git ls-remote --tags {} refs/tags/{}'.format(repo_url, version_tag))
             # output format: '<tag>           <refname>'
             return rev.split()[0]
-        except:
+        except:  # noqa: E722
             logger.error(
                 'Failed to retrieve SHA1 from git for tag "{}"'.format(version_tag))
             raise
@@ -69,7 +69,7 @@ class PackageVersion(object):
                 cmd.split(' ')).decode('utf-8').strip()
             logger.info("Output ({}b):\n{}".format(len(output), output))
             return output
-        except:
+        except:  # noqa: E722
             logger.error('Failed to run command: "{}"'.format(cmd))
             raise
 

@@ -110,7 +110,7 @@ def cluster_request(
         # Use wrapper to implement retry:
         @retrying.retry(
             wait_fixed=1000,
-            stop_max_delay=timeout_seconds*1000)
+            stop_max_delay=timeout_seconds * 1000)
         def retry_fn():
             return fn()
         return retry_fn()
@@ -172,7 +172,7 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
 def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         command = (
@@ -232,7 +232,7 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
 def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         ok, stdout = shakedown.run_command_on_agent(
@@ -251,7 +251,7 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=5*60*1000,
+        stop_max_delay=5 * 60 * 1000,
         retry_on_result=lambda res: res)
     def wait_for_unresponsive_agent():
         try:

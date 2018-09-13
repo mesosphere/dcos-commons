@@ -63,7 +63,7 @@ def test_endpoints():
         'endpoints native-client', json=True)
     assert endpoints['dns'][0] == sdk_hosts.autoip_host(
         config.get_foldered_service_name(), 'node-0-server', 9042)
-    assert not 'vip' in endpoints
+    assert 'vip' not in endpoints
 
 
 @pytest.mark.sanity

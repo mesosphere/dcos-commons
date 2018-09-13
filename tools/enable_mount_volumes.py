@@ -16,7 +16,6 @@ import botocore
 import logging
 import os
 import os.path
-#import pprint
 import sys
 import time
 import uuid
@@ -43,7 +42,6 @@ def filter_reservations_tags(reservations, filter_key, filter_value):
     logger.info('Values for {} (searching for "{}"):'.format(
         filter_key, filter_value))
     for reservation in reservations:
-        instances = reservation['Instances']
         if tag_match(reservation['Instances'][0], filter_key, filter_value):
             filtered_reservations.append(reservation)
     return filtered_reservations
@@ -182,7 +180,7 @@ def main(stack_id='', stdout=sys.stdout):
     stack_id_key = 'STACK_ID'
 
     # Read inputs from environment
-    if aws_profile_key not in os.environ or aws_region_key not in os.environ or stack_id_key not in environ:
+    if aws_profile_key not in os.environ or aws_region_key not in os.environ or stack_id_key not in os.environ:
         logger.error('{}, {} and {} envvars are required.'.format(
             aws_profile_key, aws_region_key, stack_id_key))
         return 1
@@ -197,9 +195,7 @@ def main(stack_id='', stdout=sys.stdout):
 
     # Get all provisioned instances
     instances = ec2.describe_instances()
-    #logger.info('Instances: {}'.format(pprint.pformat(instances)))
     all_reservations = instances.get('Reservations')
-    #logger.info('Reservations: {}'.format(pprint.pformat(all_reservations)))
 
     # Filter instances for the given stack-id
     stack_id_key = 'aws:cloudformation:stack-id'
@@ -214,11 +210,9 @@ def main(stack_id='', stdout=sys.stdout):
 
     # Extract all the instance objects
     instances = enumerate_instances(reservations)
-    #logger.info('Reservation instances:\n{}'.format(pprint.pformat(instances)))
 
     # Extract the public host from our list of instances
     gateway_instance = filter_gateway_instance(instances)
-    #logger.info('Gateway instance:\n{}'.format(pprint.pformat(gateway_instance)))
 
     # This gateway ip will be used as a jump host for SSH into private nodes
     gateway_ip = gateway_instance.get('PublicIpAddress')
