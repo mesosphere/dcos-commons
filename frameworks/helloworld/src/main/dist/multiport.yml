@@ -5,6 +5,8 @@ scheduler:
 pods:
   multiport:
     count: {{HELLO_COUNT}}
+    uris:
+      - {{BOOTSTRAP_URI}}
     resource-sets:
       multi-port-resources:
         ports:
@@ -18,6 +20,7 @@ pods:
         goal: ONCE
         resource-set: multi-port-resources
         cmd: |
+          ./bootstrap -verbose -resolve=true
           nc_alias=""
           if which ncat 2>/dev/null; then
               nc_alias=ncat

@@ -1,12 +1,13 @@
 import pytest
-import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_jobs
 import sdk_metrics
+import sdk_networks
 import sdk_plan
 import sdk_upgrade
-import shakedown
+import sdk_utils
+
 from tests import config
 
 
@@ -36,19 +37,10 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
-def test_service_health():
-    assert shakedown.service_healthy(config.get_foldered_service_name())
-
-
-@pytest.mark.sanity
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
-    endpoints = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        config.get_foldered_service_name(),
-        "endpoints native-client",
-        json=True,
+    endpoints = sdk_networks.get_endpoint(
+        config.PACKAGE_NAME, config.get_foldered_service_name(), "native-client"
     )
     assert endpoints["dns"][0] == sdk_hosts.autoip_host(
         config.get_foldered_service_name(), "node-0-server", 9042
@@ -83,6 +75,10 @@ def test_repair_cleanup_plans_complete():
 @pytest.mark.sanity
 @pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
+@pytest.mark.skipif(
+    sdk_utils.dcos_version_at_least("1.12"),
+    reason="Metrics are not working on 1.12. Reenable once this is fixed",
+)
 def test_metrics():
     expected_metrics = [
         "org.apache.cassandra.metrics.Table.CoordinatorReadLatency.system.hints.p999",
@@ -96,6 +92,7 @@ def test_metrics():
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
         config.get_foldered_service_name(),
+        "node-0",
         "node-0-server",
         config.DEFAULT_CASSANDRA_TIMEOUT,
         expected_metrics_exist,

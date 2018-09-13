@@ -1,3 +1,4 @@
+import json
 import pytest
 
 import sdk_cmd
@@ -24,14 +25,16 @@ def test_zones_not_referenced_in_placement_constraints():
 
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
-    broker_ids = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "broker list", json=True)
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "broker list")
+    assert rc == 0, "Broker list command failed"
 
-    for broker_id in broker_ids:
-        broker_info = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, foldered_name, "broker get {}".format(broker_id), json=True
+    for broker_id in json.loads(stdout):
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "broker get {}".format(broker_id)
         )
+        assert rc == 0, "Broker get command failed"
 
-        assert broker_info.get("rack") is None
+        assert json.loads(stdout).get("rack") is None
 
     sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
@@ -54,13 +57,15 @@ def test_zones_referenced_in_placement_constraints():
 
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
-    broker_ids = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "broker list", json=True)
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "broker list")
+    assert rc == 0, "Broker list command failed"
 
-    for broker_id in broker_ids:
-        broker_info = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, foldered_name, "broker get {}".format(broker_id), json=True
+    for broker_id in json.loads(stdout):
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "broker get {}".format(broker_id)
         )
+        assert rc == 0, "Broker get command failed"
 
-        assert sdk_fault_domain.is_valid_zone(broker_info.get("rack"))
+        assert sdk_fault_domain.is_valid_zone(json.loads(stdout).get("rack"))
 
     sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)

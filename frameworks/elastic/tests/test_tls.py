@@ -1,5 +1,5 @@
+import json
 import pytest
-import shakedown
 
 import sdk_cmd
 import sdk_install
@@ -12,7 +12,7 @@ from security import transport_encryption
 from tests import config
 
 pytestmark = [
-    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"),
+    sdk_utils.dcos_ee_only,
     pytest.mark.skipif(
         sdk_utils.dcos_version_less_than("1.10"), reason="TLS tests require DC/OS 1.10+"
     ),
@@ -89,12 +89,6 @@ def kibana_application(elastic_service):
 
 
 @pytest.mark.tls
-@pytest.mark.smoke
-def test_healthy(elastic_service):
-    assert shakedown.service_healthy(config.SERVICE_NAME)
-
-
-@pytest.mark.tls
 @pytest.mark.sanity
 def test_crud_over_tls(elastic_service):
     config.create_index(
@@ -121,10 +115,6 @@ def test_crud_over_tls(elastic_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.skipif(
-    sdk_utils.dcos_version_at_least("1.12"),
-    reason="MESOS-9008: Mesos Fetcher fails to extract Kibana archive",
-)
 def test_kibana_tls(kibana_application):
     config.check_kibana_adminrouter_integration(
         "service/{}/login".format(config.KIBANA_SERVICE_NAME)
@@ -135,11 +125,12 @@ def test_kibana_tls(kibana_application):
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_tls_recovery(elastic_service, service_account):
-    pod_list = sdk_cmd.svc_cli(
-        elastic_service["package_name"], elastic_service["service"]["name"], "pod list", json=True
+    rc, stdout, _ = sdk_cmd.svc_cli(
+        elastic_service["package_name"], elastic_service["service"]["name"], "pod list"
     )
+    assert rc == 0, "Pod list failed"
 
-    for pod in pod_list:
+    for pod in json.loads(stdout):
         sdk_recovery.check_permanent_recovery(
             elastic_service["package_name"],
             elastic_service["service"]["name"],

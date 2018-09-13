@@ -23,7 +23,7 @@ def debug_agent_files(agent_id: str) -> List[str]:
         "/slave/{}/files/debug".format(agent_id),
         retry=False,
         raise_on_error=False,
-        log_output=False,
+        log_response=False,
     )
 
     if is_http_server_error(response.status_code):
@@ -44,7 +44,7 @@ def browse_agent_path(agent_id: str, agent_path: str) -> List[dict]:
         "/slave/{}/files/browse?path={}".format(agent_id, agent_path),
         retry=False,
         raise_on_error=False,
-        log_output=False,
+        log_response=False,
     )
 
     if is_http_server_error(response.status_code):
@@ -89,7 +89,7 @@ def download_agent_path(
         "/slave/{}/files/download?path={}".format(agent_id, agent_file_path),
         retry=False,
         raise_on_error=False,
-        log_output=False,
+        log_response=False,
         stream=True,
     )
 

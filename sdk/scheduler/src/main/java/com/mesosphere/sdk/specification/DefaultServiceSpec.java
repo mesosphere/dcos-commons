@@ -386,7 +386,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 TaskTypeLabelConverter.class,
                 TaskTypeRule.class,
                 ZoneRule.class,
-                DefaultSecretSpec.class);
+                DefaultSecretSpec.class,
+                DefaultHostVolumeSpec.class);
 
         private final ObjectMapper objectMapper;
         private final GoalState referenceTerminalGoalState;

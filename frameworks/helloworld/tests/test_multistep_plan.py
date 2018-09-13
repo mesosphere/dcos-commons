@@ -3,7 +3,6 @@ import logging
 import pytest
 import sdk_install
 import sdk_tasks
-import shakedown
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -40,9 +39,7 @@ def test_bump_hello_cpus():
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, "hello", hello_ids)
     config.check_running(config.SERVICE_NAME)
 
-    all_tasks = shakedown.get_service_tasks(config.SERVICE_NAME)
-    running_tasks = [
-        t for t in all_tasks if t["name"].startswith("hello") and t["state"] == "TASK_RUNNING"
-    ]
+    all_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix="hello")
+    running_tasks = [t for t in all_tasks if t.state == "TASK_RUNNING"]
     for t in running_tasks:
-        assert close_enough(t["resources"]["cpus"], updated_cpus)
+        assert close_enough(t.resources["cpus"], updated_cpus)

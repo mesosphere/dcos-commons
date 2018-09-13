@@ -8,6 +8,7 @@ import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_install
+import sdk_networks
 import sdk_security
 import sdk_utils
 
@@ -22,7 +23,7 @@ log = logging.getLogger(__name__)
 
 
 pytestmark = [
-    pytest.mark.skipif(sdk_utils.is_open_dcos(), reason="Feature only supported in DC/OS EE"),
+    sdk_utils.dcos_ee_only,
     pytest.mark.skipif(
         sdk_utils.dcos_version_less_than("1.10"),
         reason="Kerberos tests require DC/OS 1.10 or higher",
@@ -124,11 +125,8 @@ def kafka_client(kerberos):
 @pytest.mark.sanity
 def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server, kerberos):
     try:
-        zookeeper_dns = sdk_cmd.svc_cli(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "endpoint clientport",
-            json=True,
+        zookeeper_dns = sdk_networks.get_endpoint(
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -162,7 +160,6 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server,
             kafka_server["package_name"],
             kafka_server["service"]["name"],
             "topic create {}".format(topic_name),
-            json=True,
         )
 
         kafka_client.connect(kafka_server)
@@ -231,11 +228,8 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_server,
 @pytest.mark.sanity
 def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_server, kerberos):
     try:
-        zookeeper_dns = sdk_cmd.svc_cli(
-            zookeeper_server["package_name"],
-            zookeeper_server["service"]["name"],
-            "endpoint clientport",
-            json=True,
+        zookeeper_dns = sdk_networks.get_endpoint(
+            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -274,7 +268,6 @@ def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_ser
             kafka_server["package_name"],
             kafka_server["service"]["name"],
             "topic create {}".format(topic_name),
-            json=True,
         )
 
         kafka_client.connect(kafka_server)

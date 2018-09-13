@@ -60,23 +60,24 @@ public class StateResource {
     /**
      * @see StateQueries
      */
-    @Path("/files/{file}")
+    @Path("/files/{name}")
     @Produces(MediaType.TEXT_PLAIN)
     @GET
-    public Response getFile(@PathParam("file") String fileName) {
-        return StateQueries.getFile(stateStore, fileName);
+    public Response getFile(@PathParam("name") String name) {
+        return StateQueries.getFile(stateStore, name);
     }
 
     /**
      * @see StateQueries
      */
-    @Path("/files/{file}")
+    @Path("/files/{name}")
     @PUT
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     public Response putFile(
+            @PathParam("name") String name,
             @FormDataParam("file") InputStream uploadedInputStream,
             @FormDataParam("file") FormDataContentDisposition fileDetails) {
-        return StateQueries.putFile(stateStore, uploadedInputStream, fileDetails);
+        return StateQueries.putFile(stateStore, name, uploadedInputStream, fileDetails);
     }
 
     /**

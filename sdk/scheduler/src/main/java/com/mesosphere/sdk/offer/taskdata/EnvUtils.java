@@ -23,11 +23,11 @@ public class EnvUtils {
      * In the event of duplicate labels, the last duplicate wins.
      * This is the inverse of {@link #toProto(Map)}.
      */
-    public static Map<String, String> toMap(Environment environment) {
+    public static Map<String, Environment.Variable> toMap(Environment environment) {
         // sort labels alphabetically for convenience in debugging/logging:
-        Map<String, String> map = new TreeMap<>();
+        Map<String, Environment.Variable> map = new TreeMap<>();
         for (Environment.Variable variable : environment.getVariablesList()) {
-            map.put(variable.getName(), variable.getValue());
+            map.put(variable.getName(), variable);
         }
         return map;
     }
@@ -40,8 +40,8 @@ public class EnvUtils {
         Environment.Builder envBuilder = Environment.newBuilder();
         for (Map.Entry<String, String> entry : environmentMap.entrySet()) {
             envBuilder.addVariablesBuilder()
-                .setName(entry.getKey())
-                .setValue(entry.getValue());
+                    .setName(entry.getKey())
+                    .setValue(entry.getValue());
         }
         return envBuilder.build();
     }
@@ -50,9 +50,16 @@ public class EnvUtils {
      * Adds or updates the provided environment variable entry in the provided command builder.
      */
     public static Environment withEnvVar(Environment environment, String key, String value) {
-        Map<String, String> envMap = toMap(environment);
-        envMap.put(key, value);
-        return toProto(envMap);
+        Map<String, Environment.Variable> envMap = toMap(environment);
+        envMap.put(key, Environment.Variable.newBuilder()
+                .setName(key)
+                .setValue(value)
+                .build());
+        Environment.Builder envBuilder = Environment.newBuilder();
+        for (Map.Entry<String, Environment.Variable> entry : envMap.entrySet()) {
+            envBuilder.addVariables(entry.getValue());
+        }
+        return envBuilder.build();
     }
 
     /**

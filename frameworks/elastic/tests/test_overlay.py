@@ -3,7 +3,6 @@ import retrying
 import sdk_install
 import sdk_networks
 import sdk_tasks
-import shakedown
 from tests import config
 
 
@@ -42,14 +41,6 @@ def default_populated_index():
 
 
 @pytest.mark.sanity
-@pytest.mark.smoke
-@pytest.mark.overlay
-@pytest.mark.dcos_min_version("1.9")
-def test_service_health():
-    assert shakedown.service_healthy(config.SERVICE_NAME)
-
-
-@pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 @retrying.retry(
@@ -72,35 +63,26 @@ def test_indexing(default_populated_index):
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_tasks_on_overlay():
-    elastic_tasks = shakedown.get_service_task_ids(config.SERVICE_NAME)
-    assert (
-        len(elastic_tasks) == config.DEFAULT_TASK_COUNT
-    ), "Incorrect number of tasks should be {} got {}".format(
-        config.DEFAULT_TASK_COUNT, len(elastic_tasks)
-    )
-    for task in elastic_tasks:
-        sdk_networks.check_task_network(task)
+    tasks = sdk_tasks.check_task_count(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+    for task in tasks:
+        sdk_networks.check_task_network(task.name)
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_endpoints_on_overlay():
-    endpoint_types_without_ingest = (
-        "coordinator-http",
-        "coordinator-transport",
-        "data-http",
-        "data-transport",
-        "master-http",
-        "master-transport",
-    )
+    endpoints_on_overlay_to_count = {
+        "coordinator-http": 1,
+        "coordinator-transport": 1,
+        "data-http": 2,
+        "data-transport": 2,
+        "master-http": 3,
+        "master-transport": 3,
+    }
 
-    observed_endpoints = sdk_networks.get_and_test_endpoints(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "", len(endpoint_types_without_ingest)
-    )
-    for endpoint in endpoint_types_without_ingest:
-        assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        specific_endpoint = sdk_networks.get_and_test_endpoints(
-            config.PACKAGE_NAME, config.SERVICE_NAME, endpoint, 3
-        )
-        sdk_networks.check_endpoints_on_overlay(specific_endpoint)
+    endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
+    assert set(endpoints_on_overlay_to_count.keys()) == set(endpoint_names)
+
+    for endpoint_name, expected_count in endpoints_on_overlay_to_count.items():
+        sdk_networks.check_endpoint_on_overlay(config.PACKAGE_NAME, config.SERVICE_NAME, endpoint_name, expected_count)
