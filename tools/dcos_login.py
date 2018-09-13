@@ -3,6 +3,7 @@ import json
 import logging
 import os
 import ssl
+import subprocess
 import time
 import urllib.parse
 import urllib.request
@@ -86,96 +87,8 @@ def http_request(
     )
 
 
-def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> str:
-    """Logs into the cluster, or throws an exception if login fails.
-
-    This internally implements a retry loop. We could use 'retrying', but this utility sticks to
-    the python stdlib to allow easy portability.
-    """
-    if is_enterprise:
-        log.info("Logging into {} as {}".format(dcosurl, username))
-        payload = {"uid": username, "password": password}
-    else:
-        log.info("Logging into {} with default open token".format(dcosurl))
-        payload = {"token": __CLI_LOGIN_OPEN_TOKEN}
-
-    return json.loads(
-        http_request(
-            "POST",
-            dcosurl,
-            "/acs/api/v1/auth/login",
-            token=None,
-            headers={"Content-Type": "application/json"},
-            log_args=False,
-            data=json.dumps(payload).encode("utf-8"),
-        )
-    )["token"]
-
-
 def _netloc(url: str):
     return url.split("-1")[-1]
-
-
-def attach_cluster(cluster_id: str) -> None:
-    """Adds an 'attached' file to the desired cluster_id, and removes any attached files from any
-    other clusters.
-    """
-    if not os.path.isdir(__CLUSTERS_PATH):
-        raise Exception("INTERNAL ERROR: Missing clusters directory: {}".format(__CLUSTERS_PATH))
-    for name in os.listdir(__CLUSTERS_PATH):
-        cluster_path = os.path.join(__CLUSTERS_PATH, name)
-        if not os.path.isdir(cluster_path):
-            continue
-        attached_file_path = os.path.join(cluster_path, "attached")
-        if name == cluster_id:
-            if not os.path.isfile(attached_file_path):
-                log.info("Attaching cluster: {}".format(cluster_id))
-                f = open(attached_file_path, "w")
-                f.close()
-                os.chmod(attached_file_path, 0o600)
-        elif os.path.isfile(attached_file_path):
-            log.info("Detaching cluster: {}".format(name))
-            os.unlink(attached_file_path)
-
-
-def configure_cli(dcosurl: str, token: str) -> None:
-    """Sets up a dcos cluster config for the specified cluster using the specified auth token."""
-    cluster_id = json.loads(http_request("GET", dcosurl, "/metadata", token))["CLUSTER_ID"]
-    state_summary = json.loads(http_request("GET", dcosurl, "/mesos/state-summary", token))
-
-    # Since we've got the state summary, print out some cluster stats:
-    agents = []
-    public_count = 0
-    for agent in state_summary.get("slaves", []):
-        # TODO log mount volumes. how do they look?
-        is_public = "public_ip" in agent.get("attributes", {})
-        if is_public:
-            public_count += 1
-        agents.append(
-            "- {} ({}): {} cpu, {} mem, {} disk".format(
-                agent.get("hostname", "???"),
-                "public" if is_public else "private",
-                agent.get("resources", {}).get("cpus", 0),
-                agent.get("resources", {}).get("mem", 0),
-                agent.get("resources", {}).get("disk", 0),
-            )
-        )
-    log.info(
-        "Configured cluster with {} public/{} private agents:\n{}".format(
-            public_count, len(agents) - public_count, "\n".join(agents)
-        )
-    )
-
-    # Write the cluster config file:
-    cluster_dir_path = os.path.join(__CLUSTERS_PATH, cluster_id)
-    os.makedirs(cluster_dir_path, exist_ok=True)
-    cluster_config_path = os.path.join(cluster_dir_path, "dcos.toml")
-    with open(cluster_config_path, "w") as f:
-        f.write(__TOML_TEMPLATE.format(name=state_summary["cluster"], token=token, url=dcosurl))
-    os.chmod(cluster_config_path, 0o600)
-
-    # Write the 'attach' file:
-    attach_cluster(cluster_id)
 
 
 def login_session() -> None:
@@ -185,8 +98,6 @@ def login_session() -> None:
     CLUSTER_URL: full URL to the test cluster
     DCOS_LOGIN_USERNAME: the EE user (defaults to bootstrapuser)
     DCOS_LOGIN_PASSWORD: the EE password (defaults to deleteme)
-    DCOS_ENTERPRISE: determine how to authenticate (defaults to false)
-    DCOS_ACS_TOKEN: bypass auth and use the user supplied token
     """
     cluster_url = os.environ.get("CLUSTER_URL")
     if not cluster_url:
@@ -202,16 +113,7 @@ def login_session() -> None:
 
     dcos_login_username = ignore_empty("DCOS_LOGIN_USERNAME", __CLI_LOGIN_EE_USERNAME)
     dcos_login_password = ignore_empty("DCOS_LOGIN_PASSWORD", __CLI_LOGIN_EE_PASSWORD)
-    dcos_enterprise = ignore_empty("DCOS_ENTERPRISE", "true").lower() == "true"
-    dcos_acs_token = os.environ.get("DCOS_ACS_TOKEN")
-    if not dcos_acs_token:
-        dcos_acs_token = login(
-            dcosurl=cluster_url,
-            username=dcos_login_username,
-            password=dcos_login_password,
-            is_enterprise=dcos_enterprise,
-        )
-    configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
+    subprocess.run(["dcos", "cluster", "setup", cluster_url, "--username", dcos_login_username, "--password", dcos_login_password])
 
 
 if __name__ == "__main__":
