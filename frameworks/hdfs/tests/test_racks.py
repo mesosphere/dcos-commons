@@ -19,7 +19,7 @@ def configure_package(configure_security):
             config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=additional_options,
-            timeout_seconds=30*60)
+            timeout_seconds=30 * 60)
 
         yield  # let the test session execute
     finally:

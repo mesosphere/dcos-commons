@@ -22,7 +22,7 @@ def configure_package(configure_security):
             config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
-            timeout_seconds=30*60)
+            timeout_seconds=30 * 60)
 
         yield  # let the test session execute
     finally:
@@ -120,7 +120,7 @@ def test_integrity_on_name_node_failure():
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=config.DEFAULT_HDFS_TIMEOUT*1000,
+    stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def wait_for_failover_to_complete(namenode):
     """

@@ -91,7 +91,7 @@ def get_active_name_node(service_name):
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+    stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
     retry_on_result=lambda res: not res)
 def get_name_node_status(service_name, name_node):
     rc, output = run_hdfs_command(
@@ -123,7 +123,7 @@ def run_hdfs_command(service_name, command):
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
+        stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res[0])
     def fn():
         rc, output = shakedown.run_command_on_master(full_command)
