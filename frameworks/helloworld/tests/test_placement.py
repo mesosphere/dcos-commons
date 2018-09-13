@@ -87,7 +87,7 @@ def test_rack_not_found():
     # scheduler should fail to deploy, don't wait for it to complete:
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
                         additional_options=options, wait_for_deployment=False)
-    with pytest.raises("Exception", message="Should have failed to deploy anything"):
+    with pytest.raises(Exception, message="Should have failed to deploy anything"):
         sdk_tasks.check_running(config.SERVICE_NAME, 1, timeout_seconds=60)
 
     pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
