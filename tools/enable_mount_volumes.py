@@ -20,8 +20,9 @@ import sys
 import time
 import uuid
 
-from fabric.api import run, env
-from fabric.tasks import execute
+# TODO: add fabric to the image we run pylint in.
+from fabric.api import run, env  # pylint: disable=E0401
+from fabric.tasks import execute  # pylint: disable=E0401
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(message)s")

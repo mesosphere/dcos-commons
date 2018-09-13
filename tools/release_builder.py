@@ -116,7 +116,6 @@ Source URL:      {}
 Package name:    {}
 Package version: {}
 Artifact output: {}
-Upgrades from:   {}
 ###'''.format(self._stub_universe_url,
               self._pkg_name,
               self._pkg_version,
