@@ -10,6 +10,7 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import retrying
+import typing
 
 import sdk_cmd
 import sdk_tasks
@@ -72,6 +73,34 @@ def wait_for_scheduler_counter_value(
         return value >= min_value
 
     return check_for_value()
+
+
+def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> typing.Dict:
+    @retrying.retry(
+        wait_fixed=1000,
+        stop_max_delay=timeout_seconds * 1000,
+        retry_on_result=lambda res: not res
+    )
+    def _getter():
+        return get_metrics_from_cli(task_name)
+
+    return _getter()
+
+
+def get_metrics_from_cli(task_name: str) -> typing.Dict:
+    cmd_list = ["task", "metrics", "details", "--json", task_name]
+    rc, stdout, stderr = sdk_cmd.run_cli(" ".join(cmd_list))
+    if rc:
+        log.error("Error fetching metrics for %s:\nSTDOUT=%s\nSTDERR=%s", task_name, stdout, stderr)
+        return dict()
+
+    try:
+        metrics = json.loads(stdout)
+    except json.JSONDecodeError as json_error:
+        log.error("Error decoding JSON from %s: %s", stdout, json_error)
+        raise
+
+    return metrics
 
 
 def get_metrics(package_name, service_name, pod_name, task_name):

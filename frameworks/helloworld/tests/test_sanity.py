@@ -12,6 +12,7 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
+
 from tests import config
 
 
@@ -19,7 +20,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def helloworld_service(configure_security):
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
@@ -30,7 +31,7 @@ def configure_package(configure_security):
             additional_options={"service": {"name": foldered_name}},
         )
 
-        yield  # let the test session execute
+        yield foldered_name  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
@@ -45,15 +46,11 @@ def test_install():
 @pytest.mark.metrics
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics():
-    sdk_metrics.wait_for_service_metrics(
-        config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        "hello-0",
-        "hello-0-server",
-        timeout=10 * 60,
-        expected_metrics_callback=lambda x: True,
-    )
+def test_metrics_cli(helloworld_service):
+    scheduler_task_id = sdk_tasks.get_task_ids("marathon", helloworld_service)
+    scheduler_metrics = sdk_metrics.wait_for_metrics_from_cli(scheduler_task_id, timeout_seconds=60)
+
+    assert scheduler_metrics, "Expecting a non-empty set of metrics"
 
 
 @pytest.mark.sanity
