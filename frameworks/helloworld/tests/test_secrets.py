@@ -333,21 +333,13 @@ def test_secrets_dcos_space():
     # cannot access these secrets because of DCOS_SPACE authorization
     create_secrets("{}/somePath/".format(config.SERVICE_NAME))
 
-    try:
+    with pytest.raises(Exception, message="Should have failed to install"):
         sdk_install.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             NUM_HELLO + NUM_WORLD,
             additional_options=options_dcos_space_test,
             timeout_seconds=5 * 60)  # Wait for 5 minutes. We don't need to wait 15 minutes for hello-world to fail an install
-
-        assert False, "Should have failed to install"
-
-    except AssertionError as arg:
-        raise arg
-
-    except:
-        pass  # expected to fail
 
     # clean up and delete secrets
     delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
@@ -371,23 +363,28 @@ def delete_secrets(path_prefix=""):
 def delete_secrets_all(path_prefix=""):
     # if there is any secret left, delete
     # use in teardown_module
+
+    # TODO: These try-except blocks seems like a clunky way to check for the
+    # existence of these secrets before deleting them and should be refactored.
+    # Looking at the possible code paths, there is no "sane" state where the
+    # calls to `run_cli` could raise in any case.
     try:
         sdk_cmd.run_cli("security secrets get {}secret1".format(path_prefix))
         sdk_cmd.run_cli(
             "security secrets delete {}secret1".format(path_prefix))
-    except:
+    except:  # noqa: E722
         pass
     try:
         sdk_cmd.run_cli("security secrets get {}secret2".format(path_prefix))
         sdk_cmd.run_cli(
             "security secrets delete {}secret2".format(path_prefix))
-    except:
+    except:  # noqa: E722
         pass
     try:
         sdk_cmd.run_cli("security secrets get {}secret3".format(path_prefix))
         sdk_cmd.run_cli(
             "security secrets delete {}secret3".format(path_prefix))
-    except:
+    except:  # noqa: E722
         pass
 
 
