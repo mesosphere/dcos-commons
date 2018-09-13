@@ -3,7 +3,7 @@ import os
 import pytest
 import sdk_install
 import sdk_networks
-import sdk_utils
+
 from tests import config
 
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
