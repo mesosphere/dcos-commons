@@ -85,6 +85,14 @@ pods:
         {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
       {{/TASKCFG_ALL_SECURITY_KERBEROS_ENABLED}}
 
+          # Getting needed env variables from bootstrap
+          ./bootstrap -resolve=false 2> bootstrap_stderr
+          cat bootstrap_stderr 1>&2
+          awk '/^[0-9]+\/[0-9]+\/[0-9]+ /{if (pr) {pr=0}}{if (pr) {print}}/Bootstrapping with environment/{pr=1}' bootstrap_stderr > bootstrap_env
+          eval `grep "MESOS_CONTAINER_IP" bootstrap_env`
+          eval `grep "LIBPROCESS_IP" bootstrap_env`
+          export MESOS_CONTAINER_IP LIBPROCESS_IP
+
           # setup-helper determines the correct listeners and security.inter.broker.protocol.
           # it relies on the task IP being stored in MESOS_CONTAINER_IP
           export MESOS_CONTAINER_IP=$( ./bootstrap --get-task-ip )
@@ -95,7 +103,15 @@ pods:
           export SETUP_HELPER_SECURITY_INTER_BROKER_PROTOCOL=`cat security.inter.broker.protocol`
           export SETUP_HELPER_SUPER_USERS=`cat super.users`
 
-          ./bootstrap -resolve=false
+          # Updating server.properties file with parameters obtained by setup-helper
+          sed -i.old -e "/# advertised\.listeners=PLAINTEXT:\/\/your\.host\.name:9092/a \
+            $SETUP_HELPER_LISTENERS" \
+            -e "/# advertised\.listeners=PLAINTEXT:\/\/your\.host\.name:9092/a \
+            $SETUP_HELPER_ADVERTISED_LISTENERS" \
+            -e "/## Inter Broker Protocol/a \
+            $SETUP_HELPER_SECURITY_INTER_BROKER_PROTOCOL" \
+            -e "s/super\.users=/super.users=$SETUP_HELPER_SUPER_USERS/" \
+            $MESOS_SANDBOX/{{KAFKA_VERSION_PATH}}/config/server.properties
 
           # NOTE: We add some custom statsd libraries for statsd metrics as well
           # as a custom zookeeper library to support our own ZK running
