@@ -118,7 +118,7 @@ class HTTPPublisher(object):
             subprocess.check_call('killall -9 {}'.format(procname).split())
             logger.info(
                 "Killed previous HTTP process(es): {}".format(procname))
-        except:
+        except:  # noqa: E722
             logger.info("No previous HTTP process found: {}".format(procname))
 
         if self._http_port == 0:
@@ -179,7 +179,7 @@ httpd.serve_forever()
             devnull = open(os.devnull, 'wb')
             subprocess.check_call(
                 'dcos -h'.split(), stdout=devnull, stderr=devnull)
-        except:
+        except:  # noqa: E722
             logger.info(
                 'No "dcos" command in $PATH, skipping automatic repo configuration')
             return False

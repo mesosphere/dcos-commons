@@ -29,7 +29,7 @@ def app_exists(app_name):
     try:
         _get_config_once(app_name)
         return True
-    except:
+    except Exception:
         return False
 
 
@@ -37,7 +37,7 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     # Be permissive of flakes when fetching the app content:
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout*1000)
+        stop_max_delay=timeout * 1000)
     def wait_for_response():
         return _get_config_once(app_name).json()['app']
 

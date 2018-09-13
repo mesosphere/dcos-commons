@@ -9,7 +9,6 @@ def cmd(pod_name, command):
 
 def parse_status(output):
     nodes = []
-    lines = _get_status_lines(output)
     for line in _get_status_lines(output):
         node = _parse_status_line(line)
         nodes.append(node)

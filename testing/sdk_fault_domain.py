@@ -30,7 +30,7 @@ AWS_REGIONS = [
 
 # TODO: use cloud provider library APIs to get list of zones.
 # a through h
-AWS_ZONE_SUFFIXES = [chr(i) for i in range(ord('a'), ord('h')+1)]
+AWS_ZONE_SUFFIXES = [chr(i) for i in range(ord('a'), ord('h') + 1)]
 
 
 # expect e.g. "aws/us-west-2" or "ca-central-1"
