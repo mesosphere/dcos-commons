@@ -5,7 +5,6 @@ import shakedown
 import sdk_install
 import sdk_utils
 import sdk_marathon
-import sdk_cmd
 
 from tests import config
 
@@ -89,7 +88,7 @@ def test_marathon_volume_collission():
 
         @retrying.retry(
             wait_fixed=1000,
-            stop_max_delay=60*1000
+            stop_max_delay=60 * 1000
         )
         def check_content():
             ok, pv_content = shakedown.run_command_on_agent(

@@ -1,17 +1,15 @@
 import logging
 
-import dcos
 import pytest
-import shakedown
 
 import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
-import sdk_tasks
 import sdk_utils
+
 from tests import config
-from tests.conftest import configure_universe
+
 
 log = logging.getLogger(__name__)
 

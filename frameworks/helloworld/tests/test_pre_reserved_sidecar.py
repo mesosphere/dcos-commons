@@ -1,11 +1,7 @@
 import logging
-
 import pytest
-import retrying
 
-import sdk_cmd
 import sdk_install
-import sdk_marathon
 import sdk_plan
 import sdk_utils
 from tests import config

@@ -57,7 +57,7 @@ def test_sidecar_parameterized():
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=600*1000,
+    stop_max_delay=600 * 1000,
     retry_on_result=lambda res: not res)
 def wait_for_toxic_sidecar():
     """

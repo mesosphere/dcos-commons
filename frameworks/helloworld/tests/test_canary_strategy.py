@@ -1,14 +1,13 @@
 import logging
-
 import pytest
 import retrying
+
 import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
 import sdk_tasks
-import sdk_utils
-import shakedown
+
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -43,7 +42,7 @@ def configure_package(configure_security):
 def test_canary_init():
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=600*1000,
+        stop_max_delay=600 * 1000,
         retry_on_result=lambda res: not res)
     def wait_for_empty():
         # check for empty list internally rather than returning empty list.
@@ -125,14 +124,9 @@ def test_canary_plan_continue_noop():
     # the plan doesn't have the waiting bit set, so telling it to continue should be a no-op
     # (the plan is currently just in WAITING for display purposes)
     expected_tasks = ['hello-0']
-    try:
+    with pytest.raises(Exception, message="Should not have deployed a second task"):
         sdk_tasks.check_running(config.SERVICE_NAME, len(
             expected_tasks) + 1, timeout_seconds=30)
-        assert False, "Shouldn't have deployed a second task"
-    except AssertionError as arg:
-        raise arg
-    except:
-        pass  # expected
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
@@ -149,14 +143,9 @@ def test_canary_second():
     # because the plan strategy is serial, the second phase just clears a wait bit without
     # proceeding to launch anything:
     expected_tasks = ['hello-0']
-    try:
+    with pytest.raises(Exception, message="Should not have deployed a second task"):
         sdk_tasks.check_running(config.SERVICE_NAME, len(
             expected_tasks) + 1, timeout_seconds=30)
-        assert False, "Shouldn't have deployed a second task"
-    except AssertionError as arg:
-        raise arg
-    except:
-        pass  # expected
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
 
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
@@ -272,14 +261,9 @@ def test_increase_count():
     expected_tasks = [
         'hello-0', 'hello-1', 'hello-2', 'hello-3',
         'world-0', 'world-1', 'world-2', 'world-3']
-    try:
+    with pytest.raises(Exception, message="Should not start a task now"):
         sdk_tasks.check_running(config.SERVICE_NAME, len(
             expected_tasks) + 1, timeout_seconds=60)
-        assert False, "Should not start task now"
-    except AssertionError as arg:
-        raise arg
-    except:
-        pass  # expected to fail
     sdk_tasks.check_running(config.SERVICE_NAME, len(expected_tasks))
     assert sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
                            'pod list', json=True) == expected_tasks

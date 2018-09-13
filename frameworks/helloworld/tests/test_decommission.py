@@ -1,17 +1,12 @@
 import logging
-import re
 
-import dcos.marathon
 import pytest
-import retrying
-import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
-import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import shakedown
+
 from tests import config
 
 

@@ -1,8 +1,5 @@
 import logging
-
 import pytest
-import shakedown
-import time
 
 import sdk_hosts
 import sdk_install

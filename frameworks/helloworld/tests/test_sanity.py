@@ -245,7 +245,7 @@ def test_state_refresh_disable_cache():
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
         output = sdk_cmd.svc_cli(
@@ -267,7 +267,7 @@ def test_state_refresh_disable_cache():
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def check_cache_refresh():
         return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
@@ -305,7 +305,7 @@ def test_lock():
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def wait_for_second_scheduler_to_fail():
         timestamp = marathon_client.get_app(foldered_name).get(

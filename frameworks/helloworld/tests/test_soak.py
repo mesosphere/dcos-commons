@@ -1,14 +1,11 @@
 import logging
 import os
 import time
-
 import pytest
 
 import sdk_cmd
-import sdk_plan
 import sdk_tasks
-import sdk_upgrade
-import sdk_utils
+
 from tests import config
 
 log = logging.getLogger(__name__)
