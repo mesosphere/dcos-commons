@@ -597,5 +597,11 @@
         <name>hadoop.security.impersonation.provider.class</name>
         <value>{{HADOOP_SECURITY_IMPERSONATION_PROVIDER_CLASS}}</value>
     </property>
+    {{#SECURITY_TRANSPARENT_ENCRYPTION_KEY_PROVIDER}}
+    <property>
+        <name>hadoop.security.key.provider.path</name>
+        <value>{{SECURITY_TRANSPARENT_ENCRYPTION_KEY_PROVIDER}}</value>
+    </property>
+    {{/SECURITY_TRANSPARENT_ENCRYPTION_KEY_PROVIDER}}
     {{/SECURITY_KERBEROS_ENABLED}}
 </configuration>

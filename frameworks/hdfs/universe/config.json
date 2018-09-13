@@ -114,6 +114,16 @@
                 }
               }
             },
+            "transparent_encryption": {
+              "type": "object",
+              "description": "Transparent encryption key provider (requires Kerberos)",
+              "properties": {
+                "key_provider": {
+                  "description": "Transparent encryption key provider URI",
+                  "type": "string"
+                }
+              }
+            },
             "transport_encryption": {
               "type": "object",
               "description": "Transport encryption settings",

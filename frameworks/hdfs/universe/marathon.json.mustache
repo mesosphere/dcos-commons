@@ -72,6 +72,10 @@
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
 
+    {{#service.security.transparent_encryption.key_provider}}
+    "SECURITY_TRANSPARENT_ENCRYPTION_KEY_PROVIDER": "{{service.security.transparent_encryption.key_provider}}",
+    {{/service.security.transparent_encryption.key_provider}}
+
     {{#service.security.transport_encryption.enabled}}
     "SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",

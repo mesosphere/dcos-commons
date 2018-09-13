@@ -873,7 +873,13 @@
             <name>dfs.web.authentication.kerberos.keytab</name>
             <value>hdfs.keytab</value>
         </property>
-
+        {{#SECURITY_TRANSPARENT_ENCRYPTION_KEY_PROVIDER}}
+        <!-- HDFS transparent encryption key provider -->
+        <property>
+            <name>dfs.encryption.key.provider.uri</name>
+            <value>{{SECURITY_TRANSPARENT_ENCRYPTION_KEY_PROVIDER}}</value>
+        </property>
+        {{/SECURITY_TRANSPARENT_ENCRYPTION_KEY_PROVIDER}}
 
 
         {{#NAMENODE}}
