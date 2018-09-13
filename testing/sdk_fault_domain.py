@@ -43,8 +43,8 @@ def is_valid_aws_region(region: str):
 
 # expect e.g. "aws/us-west-2c" or "ca-central-1h"
 def is_valid_aws_zone(zone: str):
-    region = zone[:-1] # all except last character
-    zone_suffix = zone[-1:] # last character
+    region = zone[:-1]  # all except last character
+    zone_suffix = zone[-1:]  # last character
     return is_valid_aws_region(region) and zone_suffix in AWS_ZONE_SUFFIXES
 
 

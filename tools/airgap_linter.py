@@ -71,7 +71,7 @@ def is_bad_uri(uri, file_name):
             return False
 
     print("Found a bad URI:", uri, "in:", file_name,
-                "Export URIs to resource.json to allow packaging for airgapped clusters.")
+          "Export URIs to resource.json to allow packaging for airgapped clusters.")
 
     return True
 
@@ -138,7 +138,8 @@ def main(argv):
     framework_directory = argv[1]
 
     if not os.path.isdir(framework_directory):
-        print("Supplied framework directory", framework_directory, "does not exist or is not a directory.")
+        print("Supplied framework directory", framework_directory,
+              "does not exist or is not a directory.")
 
     uris_valid = validate_all_uris(framework_directory)
     images_valid = validate_images(framework_directory)

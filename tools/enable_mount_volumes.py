@@ -40,7 +40,8 @@ def tag_match(instance, key, value):
 
 def filter_reservations_tags(reservations, filter_key, filter_value):
     filtered_reservations = []
-    logger.info('Values for {} (searching for "{}"):'.format(filter_key, filter_value))
+    logger.info('Values for {} (searching for "{}"):'.format(
+        filter_key, filter_value))
     for reservation in reservations:
         instances = reservation['Instances']
         if tag_match(reservation['Instances'][0], filter_key, filter_value):
@@ -138,16 +139,18 @@ def detach_volume(client, volume_id, instance_id, device='/dev/xvdm'):
 
 
 def configure_partition(device, partition_index, start, end, stdout):
-    device_partition = '{}{}'.format(device, partition_index) # e.g. /dev/xvdm1
-    mount_location = '/dcos/volume{}'.format(partition_index - 1) # e.g. /dcos/volume0
-    run('sudo parted -s {} mkpart primary ext4 {} {}'.format(device, start, end), 
-            stdout=stdout)
+    device_partition = '{}{}'.format(
+        device, partition_index)  # e.g. /dev/xvdm1
+    # e.g. /dcos/volume0
+    mount_location = '/dcos/volume{}'.format(partition_index - 1)
+    run('sudo parted -s {} mkpart primary ext4 {} {}'.format(device, start, end),
+        stdout=stdout)
     run('sudo mkfs -t ext4 {}'.format(device_partition), stdout=stdout)
     run('sudo mkdir -p {}'.format(mount_location), stdout=stdout)
     run('sudo mount {} {}'.format(device_partition, mount_location),
-            stdout=stdout)
+        stdout=stdout)
     run('sudo sh -c "echo \'{} {} ext4 defaults 0 2\' >> /etc/fstab"'.format(device_partition, mount_location),
-            stdout=stdout)
+        stdout=stdout)
 
 
 def configure_device(device='/dev/xvdm', stdout=sys.stdout):
@@ -173,14 +176,15 @@ def configure_mesos(stdout):
     run("sudo systemctl start dcos-mesos-slave", stdout=stdout)
 
 
-def main(stack_id = '', stdout=sys.stdout):
+def main(stack_id='', stdout=sys.stdout):
     aws_profile_key = 'AWS_PROFILE'
     aws_region_key = 'AWS_REGION'
     stack_id_key = 'STACK_ID'
 
     # Read inputs from environment
     if aws_profile_key not in os.environ or aws_region_key not in os.environ or stack_id_key not in environ:
-        logger.error('{}, {} and {} envvars are required.'.format(aws_profile_key, aws_region_key, stack_id_key))
+        logger.error('{}, {} and {} envvars are required.'.format(
+            aws_profile_key, aws_region_key, stack_id_key))
         return 1
 
     aws_profile = str(os.environ.get(aws_profile_key))
@@ -199,11 +203,14 @@ def main(stack_id = '', stdout=sys.stdout):
 
     # Filter instances for the given stack-id
     stack_id_key = 'aws:cloudformation:stack-id'
-    reservations = filter_reservations_tags(all_reservations, stack_id_key, stack_id)
+    reservations = filter_reservations_tags(
+        all_reservations, stack_id_key, stack_id)
     if not reservations:
-        logger.error('Unable to find any reservations with {} = {}.'.format(stack_id_key, stack_id))
+        logger.error('Unable to find any reservations with {} = {}.'.format(
+            stack_id_key, stack_id))
         return 1
-    logger.info('Found {} reservations with {} = {}'.format(len(reservations), stack_id_key, stack_id))
+    logger.info('Found {} reservations with {} = {}'.format(
+        len(reservations), stack_id_key, stack_id))
 
     # Extract all the instance objects
     instances = enumerate_instances(reservations)
@@ -223,7 +230,8 @@ def main(stack_id = '', stdout=sys.stdout):
     for instance in private_instances:
         # If an instance is not running, ignore it.
         if instance.get('State').get('Name') != 'running':
-            logger.info('Ignoring instance that is not running: {}'.format(instance))
+            logger.info(
+                'Ignoring instance that is not running: {}'.format(instance))
             continue
 
         instance_id = instance['InstanceId']
@@ -254,14 +262,15 @@ def main(stack_id = '', stdout=sys.stdout):
                 logger.error('Error occured: {}'.format(e))
                 if e.response['Error']['Code'] == 'RequestLimitExceeded':
                     curr_wait_time = 2**attempts * wait_time
-                    logger.error('Going to wait for: {} before retrying.'.format(curr_wait_time))
+                    logger.error(
+                        'Going to wait for: {} before retrying.'.format(curr_wait_time))
                     time.sleep(curr_wait_time)
                 else:
                     raise e
 
-
         # Attach the volume to our instance.
-        att_res = attach_volume(ec2, volume_id=volume_id, instance_id=instance_id)
+        att_res = attach_volume(ec2, volume_id=volume_id,
+                                instance_id=instance_id)
         logger.info('Attaching volume: {}'.format(att_res))
 
         # Wait for volume to attach.
@@ -274,7 +283,8 @@ def main(stack_id = '', stdout=sys.stdout):
             attempts += 1
             try:
                 volume_attach.wait(VolumeIds=[volume_id])
-                logger.info('Volume: {} is now attached to instance: {}'.format(volume_id, instance_id))
+                logger.info('Volume: {} is now attached to instance: {}'.format(
+                    volume_id, instance_id))
                 break
             except botocore.exceptions.WaiterError as e:
                 logger.error('Error occured: {}'.format(e))
@@ -283,13 +293,14 @@ def main(stack_id = '', stdout=sys.stdout):
                 logger.error('Error occured: {}'.format(e))
                 if e.response['Error']['Code'] == 'RequestLimitExceeded':
                     curr_wait_time = 2**attempts * wait_time
-                    logger.error('Going to wait for: {} before retrying.'.format(curr_wait_time))
+                    logger.error(
+                        'Going to wait for: {} before retrying.'.format(curr_wait_time))
                     time.sleep(curr_wait_time)
                 else:
                     raise e
 
-
-        conf_res = configure_delete_on_termination(ec2, volume_id=volume_id, instance_id=instance_id)
+        conf_res = configure_delete_on_termination(
+            ec2, volume_id=volume_id, instance_id=instance_id)
         logger.info('Delete on termination: {}'.format(conf_res))
 
         tag_res = tag_volume(ec2, volume_id=volume_id)
@@ -303,7 +314,8 @@ def main(stack_id = '', stdout=sys.stdout):
         logger.info('Creating partitions on agent: {}'.format(private_ip))
         execute(configure_device, '/dev/xvdm', stdout)
 
-        logger.info('Restarting agent so that it sees the partitions: {}'.format(private_ip))
+        logger.info(
+            'Restarting agent so that it sees the partitions: {}'.format(private_ip))
         execute(configure_mesos, stdout)
 
     logger.info('Mount volumes enabled. Exiting now...')

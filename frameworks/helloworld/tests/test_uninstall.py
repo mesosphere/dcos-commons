@@ -10,9 +10,10 @@ from tests import config
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+        sdk_install.install(config.PACKAGE_NAME,
+                            config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 

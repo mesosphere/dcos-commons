@@ -15,9 +15,9 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             foldered_name,
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": { "name": foldered_name } })
+            additional_options={"service": {"name": foldered_name}})
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
@@ -25,4 +25,4 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_install():
-    pass # package installed and appeared healthy!
+    pass  # package installed and appeared healthy!

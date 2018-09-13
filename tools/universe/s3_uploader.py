@@ -8,6 +8,7 @@ import subprocess
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
+
 class S3Uploader(object):
 
     def __init__(self, package_name, s3_directory, dry_run=False):
@@ -19,10 +20,8 @@ class S3Uploader(object):
         self._aws_region = os.environ.get('AWS_UPLOAD_REGION', '')
         self._dry_run = dry_run
 
-
     def get_s3_directory(self):
         return self._s3_directory
-
 
     def upload(self, filepath, content_type=None):
         filename = os.path.basename(filepath)
@@ -40,4 +39,5 @@ class S3Uploader(object):
         log.info(cmd)
         ret = os.system(cmd)
         if not ret == 0:
-            raise Exception('Failed to upload {} to {}'.format(filepath, dest_url))
+            raise Exception(
+                'Failed to upload {} to {}'.format(filepath, dest_url))

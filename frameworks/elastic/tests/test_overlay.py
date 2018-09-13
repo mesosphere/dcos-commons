@@ -18,22 +18,23 @@ def configure_package(configure_security):
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
 
 
 @pytest.fixture(autouse=True)
 def pre_test_setup():
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
-    config.wait_for_expected_nodes_to_exist(task_count=config.DEFAULT_TASK_COUNT)
+    config.wait_for_expected_nodes_to_exist(
+        task_count=config.DEFAULT_TASK_COUNT)
 
 
 @pytest.fixture
 def default_populated_index():
     config.delete_index(config.DEFAULT_INDEX_NAME)
-    config.create_index(config.DEFAULT_INDEX_NAME, config.DEFAULT_SETTINGS_MAPPINGS)
+    config.create_index(config.DEFAULT_INDEX_NAME,
+                        config.DEFAULT_SETTINGS_MAPPINGS)
     config.create_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1,
                            {"name": "Loren", "role": "developer"})
 
@@ -54,10 +55,13 @@ def test_service_health():
     stop_max_delay=config.DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def test_indexing(default_populated_index):
-    indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
+    indices_stats = config.get_elasticsearch_indices_stats(
+        config.DEFAULT_INDEX_NAME)
     observed_count = indices_stats["_all"]["primaries"]["docs"]["count"]
-    assert observed_count == 1, "Indices has incorrect count: should be 1, got {}".format(observed_count)
-    doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1)
+    assert observed_count == 1, "Indices has incorrect count: should be 1, got {}".format(
+        observed_count)
+    doc = config.get_document(
+        config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1)
     observed_name = doc["_source"]["name"]
     return observed_name == "Loren"
 
@@ -68,7 +72,8 @@ def test_indexing(default_populated_index):
 def test_tasks_on_overlay():
     elastic_tasks = shakedown.get_service_task_ids(config.SERVICE_NAME)
     assert len(elastic_tasks) == config.DEFAULT_TASK_COUNT, \
-        "Incorrect number of tasks should be {} got {}".format(config.DEFAULT_TASK_COUNT, len(elastic_tasks))
+        "Incorrect number of tasks should be {} got {}".format(
+            config.DEFAULT_TASK_COUNT, len(elastic_tasks))
     for task in elastic_tasks:
         sdk_networks.check_task_network(task)
 
@@ -85,6 +90,8 @@ def test_endpoints_on_overlay():
     observed_endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "",
                                                              len(endpoint_types_without_ingest))
     for endpoint in endpoint_types_without_ingest:
-        assert endpoint in observed_endpoints, "missing {} endpoint".format(endpoint)
-        specific_endpoint = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, endpoint, 3)
+        assert endpoint in observed_endpoints, "missing {} endpoint".format(
+            endpoint)
+        specific_endpoint = sdk_networks.get_and_test_endpoints(
+            config.PACKAGE_NAME, config.SERVICE_NAME, endpoint, 3)
         sdk_networks.check_endpoints_on_overlay(specific_endpoint)

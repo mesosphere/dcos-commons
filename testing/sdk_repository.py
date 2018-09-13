@@ -35,6 +35,7 @@ def parse_stub_universe_url_string(stub_universe_url_string):
     lines = stub_universe_url_string.split("\n")
     return list(filter(None, flatmap(lambda s: s.split(","), lines)))
 
+
 def add_universe_repos():
     log.info('Adding universe repos')
 
@@ -68,7 +69,8 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
     # add the needed universe repositories
     for name, url in stub_urls.items():
         log.info('Adding stub repo {} URL: {}'.format(name, url))
-        rc, stdout, stderr = sdk_cmd.run_raw_cli('package repo add --index=0 {} {}'.format(name, url))
+        rc, stdout, stderr = sdk_cmd.run_raw_cli(
+            'package repo add --index=0 {} {}'.format(name, url))
         if rc != 0 or stderr:
             raise Exception(
                 'Failed to add stub repo {} ({}): stdout=[{}], stderr=[{}]'.format(
@@ -85,13 +87,15 @@ def remove_universe_repos(stub_urls):
     # clear out the added universe repositores at testing end
     for name, url in stub_urls.items():
         log.info('Removing stub URL: {}'.format(url))
-        rc, stdout, stderr = sdk_cmd.run_raw_cli('package repo remove {}'.format(name))
+        rc, stdout, stderr = sdk_cmd.run_raw_cli(
+            'package repo remove {}'.format(name))
         if rc != 0 or stderr:
             if stderr.endswith('is not present in the list'):
                 # tried to remove something that wasn't there, move on.
                 pass
             else:
-                raise Exception('Failed to remove stub repo: stdout=[{}], stderr=[{}]'.format(stdout, stderr))
+                raise Exception(
+                    'Failed to remove stub repo: stdout=[{}], stderr=[{}]'.format(stdout, stderr))
 
     log.info('Finished removing universe repos')
 

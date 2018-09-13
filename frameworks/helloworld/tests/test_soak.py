@@ -38,22 +38,22 @@ def get_task_info(pod_info, task_name):
 def test_pause_single_task():
     # get current agent id:
     task_info = sdk_cmd.svc_cli(
-		config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True
-	)[0]['info']
+        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod info hello-0', json=True
+    )[0]['info']
     old_agent = task_info['slaveId']['value']
     old_cmd = task_info['command']['value']
 
     # sanity check of pod status/plan status before we pause/resume:
     pod_status = sdk_cmd.svc_cli(
-		config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True
-	)
+        config.PACKAGE_NAME, config.SERVICE_NAME, 'pod status hello-0 --json', json=True
+    )
     assert len(pod_status['tasks']) == 2
     server_task = get_task_status(pod_status, 'hello-0-server')
     assert server_task['status'] == 'RUNNING'
 
     phases = sdk_cmd.svc_cli(
-		config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True
-	)['phases']
+        config.PACKAGE_NAME, config.SERVICE_NAME, 'plan status deploy --json', json=True
+    )['phases']
     phase = phases[0]
     assert phase['name'] == 'hello-deploy'
     assert phase['status'] == 'COMPLETE'
@@ -300,22 +300,26 @@ def test_multiple_pod_pause():
             json=True
         )
         assert len(pod_status['tasks']) == 2
-        task_status = get_task_status(pod_status, 'hello-{}-server'.format(i))['status']
+        task_status = get_task_status(
+            pod_status, 'hello-{}-server'.format(i))['status']
         assert task_status == 'RUNNING'
 
-        task_status = get_task_status(pod_status, 'hello-{}-companion'.format(i))['status']
+        task_status = get_task_status(
+            pod_status, 'hello-{}-companion'.format(i))['status']
         assert task_status == 'RUNNING'
 
         assert phase['steps'][i * 2]['name'] == 'hello-{}:[server]'.format(i)
         assert phase['steps'][i * 2]['status'] == 'COMPLETE'
-        assert phase['steps'][i * 2 + 1]['name'] == 'hello-{}:[companion]'.format(i)
+        assert phase['steps'][i * 2 +
+                              1]['name'] == 'hello-{}:[companion]'.format(i)
         assert phase['steps'][i * 2 + 1]['status'] == 'COMPLETE'
 
     # get current task ids for all pods
     pod_task_ids = []
     for i in range(10):
         pod_task_ids.append(
-            sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-{}-server'.format(i))
+            sdk_tasks.get_task_ids(config.SERVICE_NAME,
+                                   'hello-{}-server'.format(i))
         )
 
     # pause all hello pods
@@ -365,7 +369,8 @@ def test_multiple_pod_pause():
         task_status = get_task_status(pod_status, 'hello-{}-server'.format(i))
         assert task_status['status'] == 'PAUSED'
 
-        task_status = get_task_status(pod_status, 'hello-{}-companion'.format(i))
+        task_status = get_task_status(
+            pod_status, 'hello-{}-companion'.format(i))
         assert task_status['status'] == 'RUNNING'
 
     # verify that the 11th hello pod is unaffacted
@@ -384,12 +389,12 @@ def test_multiple_pod_pause():
     assert phase['steps'][21]['name'] == 'hello-10:[companion]'
     assert phase['steps'][21]['status'] == 'COMPLETE'
 
-
     # get paused task ids
     paused_pod_task_ids = []
     for i in range(10):
         paused_pod_task_ids.append(
-            sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello-{}-server'.format(i))
+            sdk_tasks.get_task_ids(config.SERVICE_NAME,
+                                   'hello-{}-server'.format(i))
         )
 
     # resume all pods
@@ -409,7 +414,8 @@ def test_multiple_pod_pause():
         assert len(resume_result['tasks']) == 1
         assert resume_result['tasks'][0] == 'hello-{}-server'.format(i)
         sdk_tasks.check_tasks_updated(
-            config.SERVICE_NAME, 'hello-{}-server'.format(i), paused_pod_task_ids[i]
+            config.SERVICE_NAME, 'hello-{}-server'.format(
+                i), paused_pod_task_ids[i]
         )
     config.check_running()
 
@@ -442,5 +448,6 @@ def test_multiple_pod_pause():
 
         assert phase['steps'][i * 2]['name'] == 'hello-{}:[server]'.format(i)
         assert phase['steps'][i * 2]['status'] == 'COMPLETE'
-        assert phase['steps'][i * 2 + 1]['name'] == 'hello-{}:[companion]'.format(i)
+        assert phase['steps'][i * 2 +
+                              1]['name'] == 'hello-{}:[companion]'.format(i)
         assert phase['steps'][i * 2 + 1]['status'] == 'COMPLETE'

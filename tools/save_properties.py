@@ -11,12 +11,13 @@ import sys
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-PROPERTIES_FILE_NAME='stub-universe.properties'
+PROPERTIES_FILE_NAME = 'stub-universe.properties'
 
 
 def upload_to_s3(s3_dir_uri):
     jenkins_workspace_path = os.environ.get('WORKSPACE', '')
-    properties_file_path = "{}/{}".format(jenkins_workspace_path, PROPERTIES_FILE_NAME)
+    properties_file_path = "{}/{}".format(
+        jenkins_workspace_path, PROPERTIES_FILE_NAME)
     if not os.path.isfile(properties_file_path):
         err = 'Could not find properties file: {}'.format(properties_file_path)
         raise Exception(err)

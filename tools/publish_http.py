@@ -30,25 +30,27 @@ class HTTPPublisher(object):
             package_name,
             input_dir_path,
             artifact_paths,
-            package_version = 'stub-universe'):
+            package_version='stub-universe'):
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._input_dir_path = input_dir_path
 
-        self._http_dir = os.environ.get('HTTP_DIR', '/tmp/dcos-http-{}/'.format(package_name))
+        self._http_dir = os.environ.get(
+            'HTTP_DIR', '/tmp/dcos-http-{}/'.format(package_name))
         self._http_host = os.environ.get('HTTP_HOST', '172.17.0.1')
         self._http_port = int(os.environ.get('HTTP_PORT', '0'))
 
         if not os.path.isdir(input_dir_path):
-            raise Exception('Provided package path is not a directory: {}'.format(input_dir_path))
+            raise Exception(
+                'Provided package path is not a directory: {}'.format(input_dir_path))
 
         self._artifact_paths = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
-                err = 'Provided package path is not a file: {} (full list: {})'.format(artifact_path, artifact_paths)
+                err = 'Provided package path is not a file: {} (full list: {})'.format(
+                    artifact_path, artifact_paths)
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
-
 
     def _copy_artifact(self, http_url_root, filepath):
         filename = os.path.basename(filepath)
@@ -57,14 +59,16 @@ class HTTPPublisher(object):
         shutil.copyfile(filepath, destpath)
         return '{}/{}'.format(http_url_root, filename)
 
-
     def _spam_universe_url(self, universe_url):
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
         jenkins_workspace_path = os.environ.get('WORKSPACE', '')
         if jenkins_workspace_path:
-            properties_file = open(os.path.join(jenkins_workspace_path, '{}.properties'.format(self._pkg_version)), 'w')
-            properties_file.write('STUB_UNIVERSE_URL={}\n'.format(universe_url))
-            properties_file.write('STUB_UNIVERSE_S3_DIR={}\n'.format(self._s3_directory))
+            properties_file = open(os.path.join(
+                jenkins_workspace_path, '{}.properties'.format(self._pkg_version)), 'w')
+            properties_file.write(
+                'STUB_UNIVERSE_URL={}\n'.format(universe_url))
+            properties_file.write(
+                'STUB_UNIVERSE_S3_DIR={}\n'.format(self._s3_directory))
             properties_file.flush()
             properties_file.close()
         # write URL to provided text file path:
@@ -75,7 +79,6 @@ class HTTPPublisher(object):
             universe_url_file.flush()
             universe_url_file.close()
 
-
     def build(self, http_url_root):
         '''copies artifacts and a new stub universe into the http root directory'''
         universe_path = self._package_builder.build_package()
@@ -85,7 +88,8 @@ class HTTPPublisher(object):
             os.makedirs(self._http_dir)
         for filename in os.listdir(self._http_dir):
             path = os.path.join(self._http_dir, filename)
-            logger.info('Deleting preexisting file in artifact dir: {}'.format(path))
+            logger.info(
+                'Deleting preexisting file in artifact dir: {}'.format(path))
             os.remove(path)
 
         # print universe url early
@@ -94,7 +98,8 @@ class HTTPPublisher(object):
         logger.info('Built and copied stub universe:')
         logger.info(universe_url)
         logger.info('---')
-        logger.info('Copying {} artifacts into {}:'.format(len(self._artifact_paths), self._http_dir))
+        logger.info('Copying {} artifacts into {}:'.format(
+            len(self._artifact_paths), self._http_dir))
 
         for path in self._artifact_paths:
             self._copy_artifact(http_url_root, path)
@@ -111,7 +116,8 @@ class HTTPPublisher(object):
         procname = 'publish_httpd_{}.py'.format(self._pkg_name)
         try:
             subprocess.check_call('killall -9 {}'.format(procname).split())
-            logger.info("Killed previous HTTP process(es): {}".format(procname))
+            logger.info(
+                "Killed previous HTTP process(es): {}".format(procname))
         except:
             logger.info("No previous HTTP process found: {}".format(procname))
 
@@ -170,30 +176,40 @@ httpd.serve_forever()
 
     def add_repo_to_cli(self, repo_url):
         try:
-            devnull = open(os.devnull,'wb')
-            subprocess.check_call('dcos -h'.split(), stdout=devnull, stderr=devnull)
+            devnull = open(os.devnull, 'wb')
+            subprocess.check_call(
+                'dcos -h'.split(), stdout=devnull, stderr=devnull)
         except:
-            logger.info('No "dcos" command in $PATH, skipping automatic repo configuration')
+            logger.info(
+                'No "dcos" command in $PATH, skipping automatic repo configuration')
             return False
 
         repo_name = self._pkg_name + '-local'
         # check for any preexisting universes and remove them -- the cluster requires no duplicate uris
-        logger.info('Checking for duplicate repositories: name={}, url={}'.format(repo_name, repo_url))
-        cur_universes = subprocess.check_output('dcos package repo list --json'.split()).decode('utf-8')
+        logger.info('Checking for duplicate repositories: name={}, url={}'.format(
+            repo_name, repo_url))
+        cur_universes = subprocess.check_output(
+            'dcos package repo list --json'.split()).decode('utf-8')
         for repo in json.loads(cur_universes)['repositories']:
             # {u'name': u'Universe', u'uri': u'https://universe.mesosphere.com/repo'}
             if repo['name'] == repo_name or repo['uri'] == repo_url:
-                logger.info('Removing duplicate repository: {} {}'.format(repo['name'], repo['uri']))
-                subprocess.check_call('dcos package repo remove {}'.format(repo['name']).split())
+                logger.info('Removing duplicate repository: {} {}'.format(
+                    repo['name'], repo['uri']))
+                subprocess.check_call(
+                    'dcos package repo remove {}'.format(repo['name']).split())
         logger.info('Adding repository: {} {}'.format(repo_name, repo_url))
-        subprocess.check_call('dcos package repo add --index=0 {} {}'.format(repo_name, repo_url).split(' '))
+        subprocess.check_call(
+            'dcos package repo add --index=0 {} {}'.format(repo_name, repo_url).split(' '))
         return True
 
 
 def print_help(argv):
-    logger.info('Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))
-    logger.info('  Example: $ {} kafka /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
-    logger.info('In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
+    logger.info(
+        'Syntax: {} <package-name> <template-package-dir> [artifact files ...]'.format(argv[0]))
+    logger.info(
+        '  Example: $ {} kafka /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip'.format(argv[0]))
+    logger.info(
+        'In addition, environment variables named \'TEMPLATE_SOME_PARAMETER\' will be inserted against the provided package template (with params of the form \'{{some-parameter}}\')')
 
 
 def main(argv):
@@ -226,7 +242,8 @@ Artifacts:
     logger.info('- - - -\n')
     if not repo_added:
         logger.info('dcos package repo remove {}-local'.format(package_name))
-        logger.info('dcos package repo add --index=0 {}-local {}'.format(package_name, universe_url))
+        logger.info(
+            'dcos package repo add --index=0 {}-local {}'.format(package_name, universe_url))
     logger.info('dcos package install --yes {}'.format(package_name))
     return 0
 

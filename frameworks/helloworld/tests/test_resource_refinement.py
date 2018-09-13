@@ -15,10 +15,11 @@ pytestmark = pytest.mark.skipif(
     reason="secure hierarchical roles are only supported on 1.11+")
 
 pre_reserved_options = {
-                "service": {
-                    "yaml": "pre-reserved"
-                }
-            }
+    "service": {
+        "yaml": "pre-reserved"
+    }
+}
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -65,9 +66,9 @@ def test_marathon_volume_collission():
             "volumes": [
                 {
                     "persistent": {
-                    "type": "root",
-                    "size": 500,
-                    "constraints": []
+                        "type": "root",
+                        "size": 500,
+                        "constraints": []
                     },
                     "mode": "RW",
                     "containerPath": "persistent-volume"
@@ -80,7 +81,8 @@ def test_marathon_volume_collission():
 
         # Get its persistent Volume
         host = sdk_marathon.get_scheduler_host(marathon_app_name)
-        ok, pv_name = shakedown.run_command_on_agent(host, "ls /var/lib/mesos/slave/volumes/roles/slave_public")
+        ok, pv_name = shakedown.run_command_on_agent(
+            host, "ls /var/lib/mesos/slave/volumes/roles/slave_public")
         assert ok
 
         pv_name = pv_name.strip()
@@ -90,7 +92,8 @@ def test_marathon_volume_collission():
             stop_max_delay=60*1000
         )
         def check_content():
-            ok, pv_content = shakedown.run_command_on_agent(host, "cat /var/lib/mesos/slave/volumes/roles/slave_public/{}/test".format(pv_name))
+            ok, pv_content = shakedown.run_command_on_agent(
+                host, "cat /var/lib/mesos/slave/volumes/roles/slave_public/{}/test".format(pv_name))
             assert pv_content.strip() == "this is a test"
 
         check_content()

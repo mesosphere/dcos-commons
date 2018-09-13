@@ -71,7 +71,8 @@ def _get_host_name(host_id: str) -> str:
                 log.info("Host name is %s", node["hostname"])
                 return node["hostname"]
 
-    raise RuntimeError("Failed to get name of host running the KDC app: {nodes}")
+    raise RuntimeError(
+        "Failed to get name of host running the KDC app: {nodes}")
 
 
 @retrying.retry(stop_max_attempt_number=2, wait_fixed=1000)
@@ -113,7 +114,8 @@ def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_file
         for chunk in keytab_response.iter_content(chunk_size=128):
             fd.write(chunk)
 
-    log.info("Downloaded %d bytes to %s", os.stat(output_filename).st_size, output_filename)
+    log.info("Downloaded %d bytes to %s", os.stat(
+        output_filename).st_size, output_filename)
 
 
 def kinit(task_id: str, keytab: str, principal: str):
@@ -123,12 +125,14 @@ def kinit(task_id: str, keytab: str, principal: str):
     :param keytab: The keytab used by kinit to authenticate.
     :param principal: The name of the principal the user wants to authenticate as.
     """
-    kinit_cmd = "kinit -kt {keytab} {principal}".format(keytab=keytab, principal=principal)
-    log.info("Authenticating principal=%s with keytab=%s: %s", principal, keytab, kinit_cmd)
+    kinit_cmd = "kinit -kt {keytab} {principal}".format(
+        keytab=keytab, principal=principal)
+    log.info("Authenticating principal=%s with keytab=%s: %s",
+             principal, keytab, kinit_cmd)
     rc, stdout, stderr = sdk_cmd.task_exec(task_id, kinit_cmd)
     if rc != 0:
-        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n" \
-                           "stdout: {}\n" \
+        raise RuntimeError("Failed ({}) to authenticate with keytab={} principal={}\n"
+                           "stdout: {}\n"
                            "stderr: {}".format(rc, keytab, principal, stdout, stderr))
 
 
@@ -140,7 +144,8 @@ def kdestroy(task_id: str):
     log.info("Erasing auth session:")
     rc, stdout, stderr = sdk_cmd.task_exec(task_id, "kdestroy")
     if rc != 0:
-        raise RuntimeError("Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
+        raise RuntimeError(
+            "Failed ({}) to erase auth session\nstdout: {}\nstderr: {}".format(rc, stdout, stderr))
 
 
 class KerberosEnvironment:
@@ -219,7 +224,8 @@ class KerberosEnvironment:
         log.info("Running kadmin: {}".format(kadmin_cmd))
         rc, stdout, stderr = sdk_cmd.task_exec(self.task_id, kadmin_cmd)
         if rc != 0:
-            raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(rc, kadmin_cmd, stdout, stderr))
+            raise RuntimeError("Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(
+                rc, kadmin_cmd, stdout, stderr))
 
     def add_principals(self, principals: list):
         """
@@ -245,7 +251,8 @@ class KerberosEnvironment:
         # exception when the format of a principal is invalid.
         self.principals = list(map(lambda x: x.strip(), principals))
 
-        log.info("Adding the following list of principals to the KDC: {principals}".format(principals=self.principals))
+        log.info("Adding the following list of principals to the KDC: {principals}".format(
+            principals=self.principals))
         kadmin_options = ["-l"]
         kadmin_cmd = "add"
         kadmin_args = ["--use-defaults", "--random-password"]
@@ -275,7 +282,8 @@ class KerberosEnvironment:
             log.error("No principals specified not creating keytab")
             return None
 
-        log.info("Deleting any previous keytab just in case (kadmin will append to it)")
+        log.info(
+            "Deleting any previous keytab just in case (kadmin will append to it)")
         sdk_cmd.task_exec(self.task_id, "rm {}".format(name))
 
         kadmin_options = ["-l"]
@@ -296,10 +304,13 @@ class KerberosEnvironment:
         """
         Download a generated keytab for the specified list of principals
         """
-        remote_keytab_path = self.create_remote_keytab(keytab_id, principals=principals)
-        local_keytab_path = self.get_working_file_path(os.path.basename(remote_keytab_path))
+        remote_keytab_path = self.create_remote_keytab(
+            keytab_id, principals=principals)
+        local_keytab_path = self.get_working_file_path(
+            os.path.basename(remote_keytab_path))
 
-        _copy_file_to_localhost(self.kdc_host_id, remote_keytab_path, local_keytab_path)
+        _copy_file_to_localhost(
+            self.kdc_host_id, remote_keytab_path, local_keytab_path)
 
         # In a fun twist, at least in the HDFS tests, we sometimes wind up with a _bad_ keytab. I know, right?
         # We can validate if it is good or bad by checking it with some internal Java APIs.
@@ -346,11 +357,13 @@ class KerberosEnvironment:
                 with open(base64_encoded_keytab_path, "w") as f:
                     f.write(base64_encoding)
 
-                log.info("Finished base64-encoding secret content (%d bytes): %s", len(base64_encoding), base64_encoding)
+                log.info("Finished base64-encoding secret content (%d bytes): %s",
+                         len(base64_encoding), base64_encoding)
 
                 return ["--value-file", base64_encoded_keytab_path, ]
             except Exception as e:
-                raise Exception("Failed to base64-encode the keytab file: {}".format(repr(e)))
+                raise Exception(
+                    "Failed to base64-encode the keytab file: {}".format(repr(e)))
 
         log.info("Creating binary secret from %s", keytab_path)
         return ["-f", keytab_path]
@@ -360,7 +373,8 @@ class KerberosEnvironment:
         This method base64 encodes the keytab file and creates a secret with this encoded content so the
         tasks can fetch it.
         """
-        log.info("Creating and uploading the keytab file %s to the secret store", keytab_path)
+        log.info(
+            "Creating and uploading the keytab file %s to the secret store", keytab_path)
 
         encoding_options = self.__encode_secret(keytab_path)
 
@@ -377,12 +391,15 @@ class KerberosEnvironment:
         cmd_list.extend(encoding_options)
 
         create_secret_cmd = " ".join(cmd_list)
-        log.info("Creating secret %s: %s", self.get_keytab_path(), create_secret_cmd)
+        log.info("Creating secret %s: %s",
+                 self.get_keytab_path(), create_secret_cmd)
         rc, stdout, stderr = sdk_cmd.run_raw_cli(create_secret_cmd)
         if rc != 0:
-            raise RuntimeError("Failed ({}) to create secret: {}\nstdout: {}\nstderr: {}".format(rc, create_secret_cmd, stdout, stderr))
+            raise RuntimeError("Failed ({}) to create secret: {}\nstdout: {}\nstderr: {}".format(
+                rc, create_secret_cmd, stdout, stderr))
 
-        log.info("Successfully uploaded a base64-encoded keytab file to the secret store")
+        log.info(
+            "Successfully uploaded a base64-encoded keytab file to the secret store")
 
     def finalize(self):
         """

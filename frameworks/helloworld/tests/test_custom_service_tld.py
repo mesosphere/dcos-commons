@@ -19,7 +19,7 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -39,6 +39,7 @@ def test_custom_service_tld():
         })
 
     # Verify the endpoints are correct
-    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "test", 2)
+    endpoints = sdk_networks.get_and_test_endpoints(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "test", 2)
     for entry in endpoints["dns"]:
         assert custom_tld in entry

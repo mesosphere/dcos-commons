@@ -76,7 +76,8 @@ def check_kibana_adminrouter_integration(path):
     stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
-    result = _curl_query(service_name, "GET", "_cluster/health/{}".format(index_name))
+    result = _curl_query(service_name, "GET",
+                         "_cluster/health/{}".format(index_name))
     return result and result["status"] == color
 
 
@@ -85,12 +86,14 @@ def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAM
     stop_max_delay=DEFAULT_TIMEOUT*1000,
     retry_on_result=lambda res: not res)
 def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
-    result = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")
+    result = _curl_query(service_name, "GET",
+                         "_cluster/settings?include_defaults=true")
     if not result:
         return False
     expected_setting = 3
     setting = result["defaults"]["cluster"]["routing"]["allocation"]["node_initial_primaries_recoveries"]
-    log.info('check_custom_elasticsearch_cluster_setting expected {} and got {}'.format(expected_setting, setting))
+    log.info('check_custom_elasticsearch_cluster_setting expected {} and got {}'.format(
+        expected_setting, setting))
     return expected_setting == int(setting)
 
 
@@ -101,10 +104,12 @@ def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
 def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
     result = _curl_query(service_name, "GET", "_cluster/health")
     if not result or not "number_of_nodes" in result:
-        log.warning("Missing 'number_of_nodes' key in cluster health response: {}".format(result))
+        log.warning(
+            "Missing 'number_of_nodes' key in cluster health response: {}".format(result))
         return False
     node_count = result["number_of_nodes"]
-    log.info('Waiting for {} healthy nodes, got {}'.format(task_count, node_count))
+    log.info('Waiting for {} healthy nodes, got {}'.format(
+        task_count, node_count))
     return node_count == task_count
 
 
@@ -120,7 +125,8 @@ def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     # TODO(mpereira): improve this by making task environment variables
     # available in sdk_cmd.task_exec commands on 1.9.
     # Ticket: https://jira.mesosphere.com/browse/INFINITY-3360
-    cmd = "bash -c 'KIBANA_DIRECTORY=$(ls -d {}/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list'".format(task_sandbox)
+    cmd = "bash -c 'KIBANA_DIRECTORY=$(ls -d {}/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list'".format(
+        task_sandbox)
     _, stdout, _ = sdk_cmd.task_exec(service_name, cmd)
     return plugin_name in stdout
 
@@ -144,7 +150,8 @@ def check_elasticsearch_plugin_uninstalled(plugin_name, service_name=SERVICE_NAM
 
 
 def _get_hosts_with_plugin(service_name, plugin_name):
-    output = _curl_query(service_name, "GET", "_cat/plugins", return_json=False)
+    output = _curl_query(service_name, "GET",
+                         "_cat/plugins", return_json=False)
     if output is None:
         return None
     return [host for host in output.split("\n") if plugin_name in host]
@@ -167,9 +174,9 @@ def get_elasticsearch_master(service_name=SERVICE_NAME):
     retry_on_result=lambda res: not res)
 def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
     query = {
-        "query": { "match": { "name": "*" } },
-        "vertices": [ { "field": "name" } ],
-        "connections": { "vertices": [ { "field": "role" } ] }
+        "query": {"match": {"name": "*"}},
+        "vertices": [{"field": "name"}],
+        "connections": {"vertices": [{"field": "role"}]}
     }
 
     # The graph endpoint doesn't exist without X-Pack installed.
@@ -200,7 +207,8 @@ def is_graph_endpoint_active(response):
 
 def set_xpack(is_enabled, service_name=SERVICE_NAME):
     # Toggling X-Pack requires full cluster restart, not a rolling restart
-    options = {'TASKCFG_ALL_XPACK_ENABLED': str(is_enabled).lower(), 'UPDATE_STRATEGY': 'parallel'}
+    options = {'TASKCFG_ALL_XPACK_ENABLED': str(
+        is_enabled).lower(), 'UPDATE_STRATEGY': 'parallel'}
     update_app(service_name, options, DEFAULT_TASK_COUNT)
 
 
@@ -219,10 +227,11 @@ def update_app(service_name, options, expected_task_count):
 def verify_xpack_license(service_name=SERVICE_NAME):
     xpack_license = _curl_query(service_name, "GET", '_xpack/license')
     if not "license" in xpack_license:
-        log.warning("Missing 'license' key in _xpack/license response: {}".format(xpack_license))
-        return False # retry
+        log.warning(
+            "Missing 'license' key in _xpack/license response: {}".format(xpack_license))
+        return False  # retry
     assert xpack_license["license"]["status"] == "active"
-    return True # done
+    return True  # done
 
 
 def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
@@ -262,10 +271,13 @@ def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
     retry_on_result=lambda res: res is None)
 def _curl_query(service_name, method, endpoint, json_data=None, role="master", https=False, return_json=True):
     protocol = 'https' if https else 'http'
-    host = sdk_hosts.autoip_host(service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
-    curl_cmd = "/opt/mesosphere/bin/curl -sS -u elastic:changeme -X{} '{}://{}/{}'".format(method, protocol, host, endpoint)
+    host = sdk_hosts.autoip_host(
+        service_name, "{}-0-node".format(role), _master_zero_http_port(service_name))
+    curl_cmd = "/opt/mesosphere/bin/curl -sS -u elastic:changeme -X{} '{}://{}/{}'".format(
+        method, protocol, host, endpoint)
     if json_data:
-        curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
+        curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(
+            json.dumps(json_data))
     task_name = "master-0-node"
     exit_code, stdout, stderr = sdk_cmd.task_exec(task_name, curl_cmd)
 
@@ -273,7 +285,8 @@ def _curl_query(service_name, method, endpoint, json_data=None, role="master", h
         return "{}\nCommand:\n{}\nstdout:\n{}\nstderr:\n{}".format(msg, curl_cmd, stdout, stderr)
 
     if exit_code:
-        log.warning(build_errmsg("Failed to run command on {}, retrying or giving up.".format(task_name)))
+        log.warning(build_errmsg(
+            "Failed to run command on {}, retrying or giving up.".format(task_name)))
         return None
 
     if not return_json:
@@ -282,12 +295,14 @@ def _curl_query(service_name, method, endpoint, json_data=None, role="master", h
     try:
         return json.loads(stdout)
     except:
-        log.warning(build_errmsg("Failed to parse stdout as JSON, retrying or giving up."))
+        log.warning(build_errmsg(
+            "Failed to parse stdout as JSON, retrying or giving up."))
         return None
 
 
 def _master_zero_http_port(service_name):
-    dns = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, 'endpoints master-http', json=True, print_output=False)['dns']
+    dns = sdk_cmd.svc_cli(PACKAGE_NAME, service_name,
+                          'endpoints master-http', json=True, print_output=False)['dns']
     # 'dns' array will look something like this in CCM: [
     #   "master-0-node.elastic.[...]:1025",
     #   "master-1-node.elastic.[...]:1025",
