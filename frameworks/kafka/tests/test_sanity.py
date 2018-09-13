@@ -62,7 +62,7 @@ def test_endpoints_address():
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def wait():
         ret = sdk_cmd.svc_cli(

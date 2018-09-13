@@ -11,7 +11,7 @@ log = logging.getLogger(__name__)
 
 @retrying.retry(
     wait_fixed=1000,
-    stop_max_delay=120*1000,
+    stop_max_delay=120 * 1000,
     retry_on_result=lambda res: not res)
 def broker_count_check(count, service_name=config.SERVICE_NAME):
     brokers = sdk_cmd.svc_cli(
