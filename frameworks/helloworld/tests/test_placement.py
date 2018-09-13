@@ -87,13 +87,8 @@ def test_rack_not_found():
     # scheduler should fail to deploy, don't wait for it to complete:
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
                         additional_options=options, wait_for_deployment=False)
-    try:
+    with pytest.raises("Exception", message="Should have failed to deploy anything"):
         sdk_tasks.check_running(config.SERVICE_NAME, 1, timeout_seconds=60)
-        assert False, "Should have failed to deploy anything"
-    except AssertionError as arg:
-        raise arg
-    except:
-        pass  # expected to fail
 
     pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
 
@@ -251,13 +246,8 @@ def fail_placement(options):
     assert steps2[0]['status'] == 'COMPLETE'
     assert steps2[1]['status'] in ('PREPARED', 'PENDING')
 
-    try:
+    with pytest.raises(Exception, message="Should have failed to deploy world-1"):
         sdk_tasks.check_running(config.SERVICE_NAME, 3, timeout_seconds=30)
-        assert False, "Should have failed to deploy world-1"
-    except AssertionError as arg:
-        raise arg
-    except:
-        pass  # expected to fail
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -513,8 +503,8 @@ def get_task_host(task_name):
                 return host
             else:
                 # CLI's hostname doesn't match the TaskInfo labels. Bug!
-                raise Exception(
-                    "offer_hostname label {} doesn't match CLI output!\nTask:\n{}".format(task_info))
+                raise Exception("offer_hostname label {} doesn't match CLI output!\n"
+                                "Task:\n{}".format(host, task))
 
     # Unable to find desired task in CLI!
     raise Exception("Unable to find task named {} in CLI".format(task_name))
