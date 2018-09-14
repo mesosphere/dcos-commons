@@ -64,7 +64,8 @@ def test_bump_hello_cpus():
     config.check_running(foldered_name)
 
     all_tasks = shakedown.get_service_tasks(foldered_name)
-    running_tasks = [t for t in all_tasks if t['name'].startswith('hello') and t['state'] == "TASK_RUNNING"]
+    running_tasks = [t for t in all_tasks if t['name'].startswith(
+        'hello') and t['state'] == "TASK_RUNNING"]
     assert len(running_tasks) == config.hello_task_count(foldered_name)
     for t in running_tasks:
         assert config.close_enough(t['resources']['cpus'], updated_cpus)
@@ -85,7 +86,8 @@ def test_bump_world_cpus():
     config.check_running(foldered_name)
 
     all_tasks = shakedown.get_service_tasks(foldered_name)
-    running_tasks = [t for t in all_tasks if t['name'].startswith('world') and t['state'] == "TASK_RUNNING"]
+    running_tasks = [t for t in all_tasks if t['name'].startswith(
+        'world') and t['state'] == "TASK_RUNNING"]
     assert len(running_tasks) == config.world_task_count(foldered_name)
     for t in running_tasks:
         assert config.close_enough(t['resources']['cpus'], updated_cpus)
@@ -105,10 +107,13 @@ def test_increase_decrease_world_nodes():
     sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', 2)
 
     config.check_running(foldered_name)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
+    sdk_tasks.check_tasks_not_updated(
+        foldered_name, 'world', original_world_ids)
 
     # check 2 world tasks added:
-    assert 2 + len(original_world_ids) == len(sdk_tasks.get_task_ids(foldered_name, 'world'))
+    assert 2 + \
+        len(original_world_ids) == len(
+            sdk_tasks.get_task_ids(foldered_name, 'world'))
 
     # subtract 2 world nodes
     sdk_marathon.bump_task_count_config(foldered_name, 'WORLD_COUNT', -2)
@@ -122,8 +127,10 @@ def test_increase_decrease_world_nodes():
         len(original_hello_ids) + len(original_world_ids),
         allow_more=False)
     # check that original tasks weren't affected/relaunched in the process
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'hello', original_hello_ids)
-    sdk_tasks.check_tasks_not_updated(foldered_name, 'world', original_world_ids)
+    sdk_tasks.check_tasks_not_updated(
+        foldered_name, 'hello', original_hello_ids)
+    sdk_tasks.check_tasks_not_updated(
+        foldered_name, 'world', original_world_ids)
 
     # check that the world tasks are back to their prior state (also without changing task ids)
     assert original_world_ids == sdk_tasks.get_task_ids(foldered_name, 'world')
@@ -132,7 +139,8 @@ def test_increase_decrease_world_nodes():
 @pytest.mark.sanity
 def test_pod_list():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod list', json=True)
+    jsonobj = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, 'pod list', json=True)
     assert len(jsonobj) == config.configured_task_count(foldered_name)
     # expect: X instances of 'hello-#' followed by Y instances of 'world-#',
     # in alphanumerical order
@@ -151,7 +159,8 @@ def test_pod_list():
 @pytest.mark.sanity
 def test_pod_status_all():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'pod status --json', json=True)
+    jsonobj = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, 'pod status --json', json=True)
     assert jsonobj['service'] == foldered_name
     for pod in jsonobj['pods']:
         assert re.match('(hello|world)', pod['name'])
@@ -159,7 +168,8 @@ def test_pod_status_all():
             assert re.match('(hello|world)-[0-9]+', instance['name'])
             for task in instance['tasks']:
                 assert len(task) == 3
-                assert re.match('(hello|world)-[0-9]+-server__[0-9a-f-]+', task['id'])
+                assert re.match(
+                    '(hello|world)-[0-9]+-server__[0-9a-f-]+', task['id'])
                 assert re.match('(hello|world)-[0-9]+-server', task['name'])
                 assert task['status'] == 'RUNNING'
 
@@ -167,7 +177,7 @@ def test_pod_status_all():
 @pytest.mark.sanity
 def test_pod_status_one():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod status --json hello-0', json=True)
+                              sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod status --json hello-0', json=True)
     assert jsonobj['name'] == 'hello-0'
     assert len(jsonobj['tasks']) == 1
     task = jsonobj['tasks'][0]
@@ -180,7 +190,7 @@ def test_pod_status_one():
 @pytest.mark.sanity
 def test_pod_info():
     jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info world-1', json=True)
+                              sdk_utils.get_foldered_name(config.SERVICE_NAME), 'pod info world-1', json=True)
     assert len(jsonobj) == 1
     task = jsonobj[0]
     assert len(task) == 2
@@ -193,7 +203,8 @@ def test_pod_info():
 def test_state_properties_get():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
-    jsonobj = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
+    jsonobj = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, 'state properties', json=True)
     # Just check that some expected properties are present. The following may also be present:
     # - "suppressed": Depends on internal scheduler state at the time of the query.
     # - "world-[2,3]-server:task-status": Leftovers from an earlier expansion to 4 world tasks.
@@ -204,10 +215,10 @@ def test_state_properties_get():
         "hello-0-server:task-status",
         "last-completed-update-type",
         "world-0-server:task-status",
-        "world-1-server:task-status"]:
+            "world-1-server:task-status"]:
         assert required in jsonobj
     # also check that the returned list was in alphabetical order:
-    list_sorted = list(jsonobj) # copy
+    list_sorted = list(jsonobj)  # copy
     list_sorted.sort()
     assert list_sorted == jsonobj
 
@@ -220,7 +231,8 @@ def test_state_refresh_disable_cache():
     task_ids = sdk_tasks.get_task_ids(foldered_name, '')
 
     # caching enabled by default:
-    stdout = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
+    stdout = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
     assert "Received cmd: refresh" in stdout
 
     marathon_config = sdk_marathon.get_config(foldered_name)
@@ -233,10 +245,11 @@ def test_state_refresh_disable_cache():
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
-        output = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
+        output = sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
         if "failed: 409 Conflict" in output:
             return True
         return False
@@ -254,7 +267,7 @@ def test_state_refresh_disable_cache():
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def check_cache_refresh():
         return sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, 'state refresh_cache')
@@ -292,10 +305,11 @@ def test_lock():
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=120*1000,
+        stop_max_delay=120 * 1000,
         retry_on_result=lambda res: not res)
     def wait_for_second_scheduler_to_fail():
-        timestamp = marathon_client.get_app(foldered_name).get("lastTaskFailure", {}).get("timestamp", None)
+        timestamp = marathon_client.get_app(foldered_name).get(
+            "lastTaskFailure", {}).get("timestamp", None)
         return timestamp != old_timestamp
 
     wait_for_second_scheduler_to_fail()
@@ -305,10 +319,13 @@ def test_lock():
     assert zk_config_old == zk_config_new
 
     # In order to prevent the second scheduler instance from obtaining a lock, we undo the "scale-up" operation
-    marathon_client.update_app(foldered_name, {"labels": original_labels, "instances": 1}, force=True)
+    marathon_client.update_app(
+        foldered_name, {"labels": original_labels, "instances": 1}, force=True)
     shakedown.deployment_wait()
+
 
 @pytest.mark.sanity
 def test_tmp_directory_created():
-   code, stdout, stderr  = sdk_cmd.task_exec("hello-0-server", "echo bar > /tmp/bar && cat tmp/bar |  grep bar")
-   assert code > 0
+    code, stdout, stderr = sdk_cmd.task_exec(
+        "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar |  grep bar")
+    assert code > 0

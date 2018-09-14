@@ -11,10 +11,10 @@ LOG = logging.getLogger(__name__)
 
 
 USERS = [
-        "client",
-        "authorized",
-        "unauthorized",
-        "super"
+    "client",
+    "authorized",
+    "unauthorized",
+    "super"
 ]
 
 
@@ -32,9 +32,11 @@ def get_service_principals(service_name: str, realm: str, custom_domain: str = N
     ]
 
     if custom_domain:
-        instances = map(lambda task: sdk_hosts.custom_host(service_name, task, custom_domain), tasks)
+        instances = map(lambda task: sdk_hosts.custom_host(
+            service_name, task, custom_domain), tasks)
     else:
-        instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
+        instances = map(lambda task: sdk_hosts.autoip_host(
+            service_name, task), tasks)
 
     principals = kerberos.generate_principal_list(primaries, instances, realm)
     principals.extend(kerberos.generate_principal_list(USERS, [None, ], realm))
@@ -55,7 +57,8 @@ def wait_for_brokers(client: str, brokers: list):
                      '-resolve-hosts', ','.join(brokers)]
     bootstrap_output = sdk_cmd.task_exec(client, ' '.join(bootstrap_cmd))
     LOG.info(bootstrap_output)
-    assert "SDK Bootstrap successful" in ' '.join(str(bo) for bo in bootstrap_output)
+    assert "SDK Bootstrap successful" in ' '.join(
+        str(bo) for bo in bootstrap_output)
     return True
 
 
@@ -81,7 +84,8 @@ def get_ssl_client_properties(cn: str, has_kerberos: bool) -> list:
 
     client_properties.extend(["ssl.truststore.location = {cn}_truststore.jks".format(cn=cn),
                               "ssl.truststore.password = changeit",
-                              "ssl.keystore.location = {cn}_keystore.jks".format(cn=cn),
+                              "ssl.keystore.location = {cn}_keystore.jks".format(
+                                  cn=cn),
                               "ssl.keystore.password = changeit", ])
 
     return client_properties
@@ -109,14 +113,16 @@ def write_jaas_config_file(primary: str, task: str, krb5: object) -> str:
                           '    com.sun.security.auth.module.Krb5LoginModule required',
                           '    doNotPrompt=true',
                           '    useTicketCache=true',
-                          '    principal=\\"{primary}@{realm}\\"'.format(primary=primary, realm=krb5.get_realm()),
+                          '    principal=\\"{primary}@{realm}\\"'.format(
+                              primary=primary, realm=krb5.get_realm()),
                           '    useKeyTab=true',
                           '    serviceName=\\"kafka\\"',
                           '    keyTab=\\"/tmp/kafkaconfig/kafka-client.keytab\\"',
                           '    client=true;',
                           '};', ]
 
-    output = sdk_cmd.create_task_text_file(task, output_file, jaas_file_contents)
+    output = sdk_cmd.create_task_text_file(
+        task, output_file, jaas_file_contents)
     LOG.info(output)
 
     return output_file
@@ -142,7 +148,8 @@ def write_to_topic(cn: str, task: str, topic: str, message: str,
                    client_properties: list=[], environment: str=None,
                    broker_list: str="\$KAFKA_BROKER_LIST") -> bool:
 
-    client_properties_file = write_client_properties(cn, task, client_properties)
+    client_properties_file = write_client_properties(
+        cn, task, client_properties)
 
     cmd_list = ["echo", message,
                 "|",
@@ -196,7 +203,8 @@ def read_from_topic(cn: str, task: str, topic: str, messages: int,
                     client_properties: list=[], environment: str=None,
                     broker_list: str="\$KAFKA_BROKER_LIST") -> str:
 
-    client_properties_file = write_client_properties(cn, task, client_properties)
+    client_properties_file = write_client_properties(
+        cn, task, client_properties)
 
     cmd_list = ["kafka-console-consumer",
                 "--topic", topic,

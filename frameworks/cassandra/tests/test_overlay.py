@@ -23,7 +23,7 @@ def configure_package(configure_security):
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -64,10 +64,12 @@ def test_functionality():
                 config.get_verify_deletion_job()
             ]):
 
-        sdk_plan.start_plan(config.SERVICE_NAME, 'cleanup', parameters=parameters)
+        sdk_plan.start_plan(config.SERVICE_NAME, 'cleanup',
+                            parameters=parameters)
         sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, 'cleanup')
 
-        sdk_plan.start_plan(config.SERVICE_NAME, 'repair', parameters=parameters)
+        sdk_plan.start_plan(config.SERVICE_NAME, 'repair',
+                            parameters=parameters)
         sdk_plan.wait_for_completed_plan(config.SERVICE_NAME, 'repair')
 
 
@@ -76,7 +78,10 @@ def test_functionality():
 @pytest.mark.dcos_min_version('1.9')
 def test_endpoints():
     # tests that the correct number of endpoints are found, should just be "native-client":
-    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "", 1)
-    assert "native-client" in endpoints, "Cassandra endpoints should contain only 'native-client', got {}".format(endpoints)
-    endpoints = sdk_networks.get_and_test_endpoints(config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", 2)
+    endpoints = sdk_networks.get_and_test_endpoints(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "", 1)
+    assert "native-client" in endpoints, "Cassandra endpoints should contain only 'native-client', got {}".format(
+        endpoints)
+    endpoints = sdk_networks.get_and_test_endpoints(
+        config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", 2)
     sdk_networks.check_endpoints_on_overlay(endpoints)

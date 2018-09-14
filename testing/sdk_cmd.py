@@ -40,7 +40,8 @@ def service_request(
     """
     # Sanitize leading slash on service_path before calling urljoin() to avoid this:
     # 'http://example.com/service/myservice/' + '/v1/rpc' = 'http://example.com/v1/rpc'
-    cluster_path = urllib.parse.urljoin('/service/{}/'.format(service_name), service_path.lstrip('/'))
+    cluster_path = urllib.parse.urljoin(
+        '/service/{}/'.format(service_name), service_path.lstrip('/'))
     return cluster_request(method, cluster_path, retry, raise_on_error, log_args, verify, timeout_seconds, **kwargs)
 
 
@@ -71,7 +72,8 @@ def cluster_request(
     """
 
     url = shakedown.dcos_url_path(cluster_path)
-    cluster_path = '/' + cluster_path.lstrip('/')  # consistently include slash prefix for clearer logging below
+    # consistently include slash prefix for clearer logging below
+    cluster_path = '/' + cluster_path.lstrip('/')
 
     def fn():
         # Underlying dcos.http.request will wrap responses in custom exceptions. This messes with
@@ -84,17 +86,20 @@ def cluster_request(
         except dcos.errors.DCOSUnprocessableException as e:
             # unlike the the above, this directly extends DCOSHTTPException
             response = e.response
-        log_msg = 'Got {} for {} {}'.format(response.status_code, method.upper(), cluster_path)
+        log_msg = 'Got {} for {} {}'.format(
+            response.status_code, method.upper(), cluster_path)
         if kwargs:
             # log arg content (or just arg names, with hack to avoid 'dict_keys([...])') if present
-            log_msg += ' (args: {})'.format(kwargs if log_args else [e for e in kwargs.keys()])
+            log_msg += ' (args: {})'.format(
+                kwargs if log_args else [e for e in kwargs.keys()])
         log.info(log_msg)
         if not response.ok:
             # Query failed (>= 400). Before (potentially) throwing, print response payload which may
             # include additional error details.
             response_text = response.text
             if response_text:
-                log.info('Response content ({} bytes):\n{}'.format(len(response_text), response_text))
+                log.info('Response content ({} bytes):\n{}'.format(
+                    len(response_text), response_text))
             else:
                 log.info('No response content')
         if raise_on_error:
@@ -105,7 +110,7 @@ def cluster_request(
         # Use wrapper to implement retry:
         @retrying.retry(
             wait_fixed=1000,
-            stop_max_delay=timeout_seconds*1000)
+            stop_max_delay=timeout_seconds * 1000)
         def retry_fn():
             return fn()
         return retry_fn()
@@ -115,7 +120,8 @@ def cluster_request(
 
 
 def svc_cli(package_name, service_name, service_cmd, json=False, print_output=True, return_stderr_in_stdout=False):
-    full_cmd = '{} --name={} {}'.format(package_name, service_name, service_cmd)
+    full_cmd = '{} --name={} {}'.format(package_name,
+                                        service_name, service_cmd)
 
     if not json:
         return run_cli(full_cmd, print_output=print_output, return_stderr_in_stdout=return_stderr_in_stdout)
@@ -133,7 +139,8 @@ def run_raw_cli(cmd, print_output=True):
     $ dcos package install <package-name>
     """
     dcos_cmd = "dcos {}".format(cmd)
-    result = subprocess.run([dcos_cmd], shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    result = subprocess.run([dcos_cmd], shell=True,
+                            stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     stdout = ""
     stderr = ""
 
@@ -165,7 +172,7 @@ def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
 def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
         command = (
@@ -175,7 +182,8 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         if agent_host is None:
             exit_status, _ = shakedown.run_command_on_master(command)
         else:
-            exit_status, _ = shakedown.run_command_on_agent(agent_host, command)
+            exit_status, _ = shakedown.run_command_on_agent(
+                agent_host, command)
 
         return exit_status
 
@@ -194,14 +202,16 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
     rc, stdout, stderr = task_exec(task_name, output_cmd)
 
     if rc or stderr:
-        log.error("Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        log.error("Error creating file %s. rc=%s stdout=%s stderr=%s",
+                  filename, rc, stdout, stderr)
         return False
 
     linecount_cmd = "wc -l {output_file}".format(output_file=filename)
     rc, stdout, stderr = task_exec(task_name, linecount_cmd)
 
     if rc or stderr:
-        log.error("Error checking file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr)
+        log.error("Error checking file %s. rc=%s stdout=%s stderr=%s",
+                  filename, rc, stdout, stderr)
         return False
 
     written_lines = 0
@@ -222,11 +232,13 @@ EOL\"""".format(output_file=filename, content="\n".join(lines))
 def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=timeout_seconds*1000,
+        stop_max_delay=timeout_seconds * 1000,
         retry_on_result=lambda res: not res)
     def fn():
-        ok, stdout = shakedown.run_command_on_agent(agent_ip, 'sudo shutdown -h +1')
-        log.info('Shutdown agent {}: ok={}, stdout="{}"'.format(agent_ip, ok, stdout))
+        ok, stdout = shakedown.run_command_on_agent(
+            agent_ip, 'sudo shutdown -h +1')
+        log.info('Shutdown agent {}: ok={}, stdout="{}"'.format(
+            agent_ip, ok, stdout))
         return ok
     # Might not be able to connect to the agent on first try so we repeat until we can
     fn()
@@ -234,15 +246,17 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
     # We use a manual check to detect that the host is down. Mesos takes ~5-20 minutes to detect a
     # dead agent, so relying on Mesos to tell us this isn't really feasible for a test.
 
-    log.info('Waiting for agent {} to appear inactive in /mesos/slaves'.format(agent_ip))
+    log.info(
+        'Waiting for agent {} to appear inactive in /mesos/slaves'.format(agent_ip))
 
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=5*60*1000,
+        stop_max_delay=5 * 60 * 1000,
         retry_on_result=lambda res: res)
     def wait_for_unresponsive_agent():
         try:
-            response = cluster_request('GET', '/mesos/slaves', retry=False).json()
+            response = cluster_request(
+                'GET', '/mesos/slaves', retry=False).json()
             agent_statuses = {}
             for agent in response['slaves']:
                 agent_statuses[agent['hostname']] = agent['active']
@@ -261,7 +275,8 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
 
     wait_for_unresponsive_agent()
 
-    log.info('Agent {} appears inactive in /mesos/slaves, proceeding.'.format(agent_ip))
+    log.info(
+        'Agent {} appears inactive in /mesos/slaves, proceeding.'.format(agent_ip))
 
 
 def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -> tuple:
@@ -281,7 +296,8 @@ def task_exec(task_name: str, cmd: str, return_stderr_in_stdout: bool = False) -
     else:
         full_cmd = cmd
 
-    exec_cmd = "task exec {task_name} {cmd}".format(task_name=task_name, cmd=full_cmd)
+    exec_cmd = "task exec {task_name} {cmd}".format(
+        task_name=task_name, cmd=full_cmd)
     rc, stdout, stderr = run_raw_cli(exec_cmd)
 
     if return_stderr_in_stdout:
@@ -301,8 +317,10 @@ def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str='./bo
         '-install-certs=false',
         '-self-resolve=false',
         '-resolve-hosts', ','.join(hosts)]
-    log.info("Running bootstrap to wait for DNS resolution of: %s", ', '.join(hosts))
-    _, bootstrap_stdout, bootstrap_stderr = task_exec(marathon_task_name, ' '.join(bootstrap_cmd))
+    log.info("Running bootstrap to wait for DNS resolution of: %s",
+             ', '.join(hosts))
+    _, bootstrap_stdout, bootstrap_stderr = task_exec(
+        marathon_task_name, ' '.join(bootstrap_cmd))
 
     # Note that bootstrap returns its output in STDERR
     resolved = 'SDK Bootstrap successful.' in bootstrap_stderr

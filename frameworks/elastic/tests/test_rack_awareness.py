@@ -21,11 +21,11 @@ def test_zones_not_referenced_in_placement_constraints():
         service_name=config.SERVICE_NAME)
 
     for node_uid, node in nodes_info["nodes"].items():
-        assert None == sdk_utils.get_in([
+        assert sdk_utils.get_in([
             "settings", "cluster", "routing", "allocation", "awareness",
             "attributes"
-        ], node)
-        assert None == sdk_utils.get_in(["attributes", "zone"], node)
+        ], node) is None
+        assert sdk_utils.get_in(["attributes", "zone"], node) is None
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 

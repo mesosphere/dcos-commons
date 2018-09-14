@@ -173,7 +173,7 @@ def run_backup_and_restore(
     # the run_job() call will throw.
     try:
         sdk_jobs.run_job(delete_data_job)
-    except:
+    except:  # noqa: E722
         log.info("Error during delete (normal if no stale data)")
         log.info(traceback.format_exc())
 

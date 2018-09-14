@@ -108,7 +108,8 @@ def process(filename: str):
     contents = read_json_file(filename)
     original = read_json_file(filename)
 
-    reordered = reorder_service(contents["properties"]["service"]["properties"])
+    reordered = reorder_service(
+        contents["properties"]["service"]["properties"])
     contents["properties"]["service"]["properties"] = reordered
 
     print_diff(original, contents)
@@ -125,7 +126,7 @@ if __name__ == "__main__":
         "frameworks/helloworld/universe/config.json",
         "frameworks/kafka/universe/config.json",
         "frameworks/template/universe/config.json",
-        ]
+    ]
 
     for f in files:
         process(f)

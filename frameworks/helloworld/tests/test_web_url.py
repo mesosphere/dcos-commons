@@ -19,9 +19,10 @@ def configure_package(configure_security):
         }
 
         # this config produces 1 hello's + 0 world's:
-        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 1, additional_options=options)
+        sdk_install.install(config.PACKAGE_NAME,
+                            config.SERVICE_NAME, 1, additional_options=options)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 

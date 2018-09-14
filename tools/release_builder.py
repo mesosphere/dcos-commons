@@ -116,7 +116,6 @@ Source URL:      {}
 Package name:    {}
 Package version: {}
 Artifact output: {}
-Upgrades from:   {}
 ###'''.format(self._stub_universe_url,
               self._pkg_name,
               self._pkg_version,
@@ -405,7 +404,7 @@ Upgrades from:   {}
         pkgdir = self._unpack_stub_universe(stub_universe_json, scratchdir)
         try:
             return publisher.publish(scratchdir, pkgdir)
-        except:
+        except:  # noqa: E722
             log.error(
                 'Failed to create PR. '
                 'Note that any release artifacts were already uploaded to {}, '

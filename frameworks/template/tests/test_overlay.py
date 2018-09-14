@@ -3,11 +3,12 @@ import os
 import pytest
 import sdk_install
 import sdk_networks
-import sdk_utils
+
 from tests import config
 
 overlay_nostrict = pytest.mark.skipif(os.environ.get("SECURITY") == "strict",
-    reason="overlay tests currently broken in strict")
+                                      reason="overlay tests currently broken in strict")
+
 
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
@@ -19,7 +20,7 @@ def configure_package(configure_security):
             config.DEFAULT_TASK_COUNT,
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 

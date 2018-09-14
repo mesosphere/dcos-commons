@@ -19,7 +19,7 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -34,7 +34,8 @@ def _escape_placement_for_1_9(options: dict) -> dict:
 
     def escape_section_placement(section: str, options: dict) -> dict:
         if section in options and "placement" in options[section]:
-            options[section]["placement"] = options[section]["placement"].replace("\"", "\\\"")
+            options[section]["placement"] = options[section]["placement"].replace(
+                "\"", "\\\"")
             log.info("Escaping %s", section)
 
         log.info(options)
@@ -55,10 +56,13 @@ def test_region_zone_injection():
 
 
 def fault_domain_vars_are_present(pod_instance):
-    info = sdk_cmd.service_request('GET', config.SERVICE_NAME, '/v1/pod/{}/info'.format(pod_instance)).json()[0]['info']
+    info = sdk_cmd.service_request(
+        'GET', config.SERVICE_NAME, '/v1/pod/{}/info'.format(pod_instance)).json()[0]['info']
     variables = info['command']['environment']['variables']
-    region = next((var for var in variables if var['name'] == 'REGION'), ['NO_REGION'])
-    zone = next((var for var in variables if var['name'] == 'ZONE'), ['NO_ZONE'])
+    region = next(
+        (var for var in variables if var['name'] == 'REGION'), ['NO_REGION'])
+    zone = next(
+        (var for var in variables if var['name'] == 'ZONE'), ['NO_ZONE'])
 
     return region != 'NO_REGION' and zone != 'NO_ZONE' and len(region) > 0 and len(zone) > 0
 
@@ -82,14 +86,9 @@ def test_rack_not_found():
 
     # scheduler should fail to deploy, don't wait for it to complete:
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
-        additional_options=options, wait_for_deployment=False)
-    try:
+                        additional_options=options, wait_for_deployment=False)
+    with pytest.raises(Exception, message="Should have failed to deploy anything"):
         sdk_tasks.check_running(config.SERVICE_NAME, 1, timeout_seconds=60)
-        assert False, "Should have failed to deploy anything"
-    except AssertionError as arg:
-        raise arg
-    except:
-        pass # expected to fail
 
     pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
 
@@ -102,7 +101,8 @@ def test_rack_not_found():
     assert phase1['status'] == 'IN_PROGRESS'
     steps1 = phase1['steps']
     assert len(steps1) == 1
-    assert steps1[0]['status'] in ('PREPARED', 'PENDING') # first step may be PREPARED
+    # first step may be PREPARED
+    assert steps1[0]['status'] in ('PREPARED', 'PENDING')
 
     phase2 = pl['phases'][1]
     assert phase2['status'] == 'PENDING'
@@ -211,7 +211,8 @@ def succeed_placement(options):
     """
     This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
     """
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0, additional_options=options)
+    sdk_install.install(config.PACKAGE_NAME,
+                        config.SERVICE_NAME, 0, additional_options=options)
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
@@ -223,7 +224,8 @@ def fail_placement(options):
     # scheduler should fail to deploy, don't wait for it to complete:
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 0,
                         additional_options=options, wait_for_deployment=False)
-    sdk_plan.wait_for_step_status(config.SERVICE_NAME, 'deploy', 'world', 'world-0:[server]', 'COMPLETE')
+    sdk_plan.wait_for_step_status(
+        config.SERVICE_NAME, 'deploy', 'world', 'world-0:[server]', 'COMPLETE')
 
     pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
 
@@ -244,13 +246,8 @@ def fail_placement(options):
     assert steps2[0]['status'] == 'COMPLETE'
     assert steps2[1]['status'] in ('PREPARED', 'PENDING')
 
-    try:
+    with pytest.raises(Exception, message="Should have failed to deploy world-1"):
         sdk_tasks.check_running(config.SERVICE_NAME, 3, timeout_seconds=30)
-        assert False, "Should have failed to deploy world-1"
-    except AssertionError as arg:
-        raise arg
-    except:
-        pass # expected to fail
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -273,14 +270,17 @@ def test_hostname_unique():
     })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-        config.get_num_private_agents() * 2, additional_options=options)
+                        config.get_num_private_agents() * 2, additional_options=options)
     # hello deploys first. One "world" task should end up placed with each "hello" task.
     # ensure "hello" task can still be placed with "world" task
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    'pod replace hello-0')
     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
-    sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2 - 1, timeout_seconds=10)
-    sdk_tasks.check_running(config.SERVICE_NAME, config.get_num_private_agents() * 2)
+    sdk_tasks.check_running(
+        config.SERVICE_NAME, config.get_num_private_agents() * 2 - 1, timeout_seconds=10)
+    sdk_tasks.check_running(config.SERVICE_NAME,
+                            config.get_num_private_agents() * 2)
     ensure_count_per_agent(hello_count=1, world_count=1)
 
 
@@ -302,7 +302,7 @@ def test_max_per_hostname():
     })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-        config.get_num_private_agents() * 5, additional_options=options)
+                        config.get_num_private_agents() * 5, additional_options=options)
     ensure_max_count_per_agent(hello_count=2, world_count=3)
 
 
@@ -324,7 +324,7 @@ def test_rr_by_hostname():
     })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-        config.get_num_private_agents() * 4, additional_options=options)
+                        config.get_num_private_agents() * 4, additional_options=options)
     ensure_max_count_per_agent(hello_count=2, world_count=2)
 
 
@@ -346,8 +346,9 @@ def test_cluster():
     })
 
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME,
-        config.get_num_private_agents(), additional_options=options)
-    ensure_count_per_agent(hello_count=config.get_num_private_agents(), world_count=0)
+                        config.get_num_private_agents(), additional_options=options)
+    ensure_count_per_agent(
+        hello_count=config.get_num_private_agents(), world_count=0)
 
 
 def get_hello_world_agent_sets():
@@ -391,6 +392,7 @@ def ensure_max_count_per_agent(hello_count, world_count):
     assert_max_count(hello_agent_counts, hello_count)
     assert_max_count(world_agent_counts, world_count)
 
+
 @pytest.mark.sanity
 def test_updated_placement_constraints_not_applied_with_other_changes():
     some_agent, other_agent, old_ids = setup_constraint_switch()
@@ -423,7 +425,8 @@ def test_updated_placement_constraints_restarted_tasks_dont_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
     # Restart the task, and verify it doesn't move hosts
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod restart hello-0')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    'pod restart hello-0')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', old_ids)
 
     assert get_task_host('hello-0-server') == some_agent
@@ -434,7 +437,8 @@ def test_updated_placement_constraints_replaced_tasks_do_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
     # Replace the task, and verify it moves hosts
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'pod replace hello-0')
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME,
+                    'pod replace hello-0')
     sdk_tasks.check_tasks_updated(config.SERVICE_NAME, 'hello', old_ids)
 
     assert get_task_host('hello-0-server') == other_agent
@@ -461,13 +465,15 @@ def setup_constraint_switch():
             "count": 0
         }
     })
-    sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 1, additional_options=options)
+    sdk_install.install(config.PACKAGE_NAME,
+                        config.SERVICE_NAME, 1, additional_options=options)
     sdk_tasks.check_running(config.SERVICE_NAME, 1)
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, 'hello')
 
     # Now, stick it to other_agent
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    marathon_config['env']['HELLO_PLACEMENT'] = "[[\"hostname\", \"LIKE\", \"{}\"]]".format(other_agent)
+    marathon_config['env']['HELLO_PLACEMENT'] = "[[\"hostname\", \"LIKE\", \"{}\"]]".format(
+        other_agent)
     sdk_marathon.update_app(config.SERVICE_NAME, marathon_config)
     # Wait for the scheduler to be up and settled before advancing.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
@@ -486,7 +492,8 @@ def get_task_host(task_name):
             break
 
     if host is None:
-        raise Exception("offer_hostname label is not present!: {}".format(task_info))
+        raise Exception(
+            "offer_hostname label is not present!: {}".format(task_info))
 
     # Validation: Check that label matches summary returned by CLI
     for task in sdk_tasks.get_summary():
@@ -496,7 +503,8 @@ def get_task_host(task_name):
                 return host
             else:
                 # CLI's hostname doesn't match the TaskInfo labels. Bug!
-                raise Exception("offer_hostname label {} doesn't match CLI output!\nTask:\n{}".format(task_info))
+                raise Exception("offer_hostname label {} doesn't match CLI output!\n"
+                                "Task:\n{}".format(host, task))
 
     # Unable to find desired task in CLI!
     raise Exception("Unable to find task named {} in CLI".format(task_name))

@@ -10,5 +10,4 @@ __all__ = [
     "PackageManager",
     "UniversePackageBuilder",
     "UniversePackagePublisher",
-    "VersionResolver",
 ]

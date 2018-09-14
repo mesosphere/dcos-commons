@@ -1,6 +1,7 @@
 import pytest
 from tests import nodetool
 
+
 @pytest.mark.sanity
 def test_status_parsing():
     status = """Datacenter: datacenter1

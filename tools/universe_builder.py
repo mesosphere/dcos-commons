@@ -20,8 +20,8 @@ $ %(prog)s kafka 1.2.3-4.5.6 \\
 """
 
 EPILOGUE_STRING = "In addition, environment variables named 'TEMPLATE_SOME_PARAMETER' " \
-                "will be inserted against the provided package template (with params of the " \
-                " form '{{some-parameter}}')"
+    "will be inserted against the provided package template (with params of the " \
+    " form '{{some-parameter}}')"
 
 
 def main(argv):

@@ -19,9 +19,9 @@ def configure_package(configure_security):
             config.SERVICE_NAME,
             config.DEFAULT_TASK_COUNT,
             additional_options=additional_options,
-            timeout_seconds=30*60)
+            timeout_seconds=30 * 60)
 
-        yield # let the test session execute
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -36,7 +36,8 @@ def pre_test_setup():
 @pytest.mark.dcos_min_version('1.11')
 def test_detect_racks():
     print_topology_cmd = "./bin/hdfs dfsadmin -printTopology"
-    _, output = config.run_hdfs_command(config.SERVICE_NAME, print_topology_cmd)
+    _, output = config.run_hdfs_command(
+        config.SERVICE_NAME, print_topology_cmd)
 
     # expecting e.g. "Rack: /aws/us-west-2b\n..."
     rack = output.split('\n')[0]
