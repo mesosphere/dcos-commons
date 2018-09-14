@@ -46,11 +46,34 @@ def test_install():
 @pytest.mark.metrics
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_cli(helloworld_service):
+def test_metrics_cli_for_scheduler_metrics(helloworld_service):
     scheduler_task_id = sdk_tasks.get_task_ids("marathon", helloworld_service).pop()
     scheduler_metrics = sdk_metrics.wait_for_metrics_from_cli(scheduler_task_id, timeout_seconds=60)
 
     assert scheduler_metrics, "Expecting a non-empty set of metrics"
+
+
+@pytest.mark.sanity
+@pytest.mark.metrics
+@pytest.mark.smoke
+@pytest.mark.dcos_min_version("1.9")
+def test_metrics_cli_for_task_metrics(helloworld_service):
+
+    bash_command = sdk_cmd.get_bash_command(
+        'echo \\"test.metrics.name:1|c\\" | ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT',
+        environment=None,
+    )
+
+    sdk_cmd.service_task_exec(helloworld_service, "hello-0-server", bash_command)
+
+    sdk_metrics.wait_for_service_metrics(
+        config.PACKAGE_NAME,
+        helloworld_service,
+        "hello-0",
+        "hello-0-server",
+        timeout=5 * 60,
+        expected_metrics_callback=lambda x: "test.metrics.name" in x,
+    )
 
 
 @pytest.mark.sanity
