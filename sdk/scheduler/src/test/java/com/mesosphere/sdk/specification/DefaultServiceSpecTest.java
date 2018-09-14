@@ -411,6 +411,21 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
 
+    @Test
+    public void validLabels() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-labels.yml").getFile());
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        Assert.assertEquals("label1-value", defaultServiceSpec.getPods().get(0).getTasks().get(0).getLabels().get("label1"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidLabels() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-labels.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void invalidImageNull() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();

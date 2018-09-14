@@ -1,0 +1,11 @@
+name: "valid-labels-test"
+pods:
+  server:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "cmd"
+        cpus: 1
+        memory: 1024
+        labels: "label1:label1-value,label2:path:/"

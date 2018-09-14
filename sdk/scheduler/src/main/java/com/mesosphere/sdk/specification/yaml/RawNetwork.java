@@ -64,7 +64,7 @@ public final class RawNetwork {
 
   public List<String[]> getValidatedLabels() throws IllegalArgumentException {
     List<String[]> kvs = Arrays.stream(labelsCsv.split(","))
-        .map(s -> s.split(":"))
+        .map(s -> s.split(":", 2))
         .collect(Collectors.toList());
     kvs.forEach(kv -> {
       if (kv.length != 2) {
@@ -79,4 +79,3 @@ public final class RawNetwork {
     return kvs;
   }
 }
-

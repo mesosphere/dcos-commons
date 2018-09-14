@@ -11,6 +11,7 @@ import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,6 +34,16 @@ public class TaskLabelWriter {
    */
   public TaskLabelWriter(TaskInfo.Builder taskInfoBuilder) {
     writer = new LabelWriter(taskInfoBuilder.getLabels());
+  }
+
+  /**
+   * Sets additional arbitrary labels.
+   */
+  public TaskLabelWriter setAdditionalLabels(Map<String, String> labels) {
+    for (Map.Entry<String, String> entry : labels.entrySet()) {
+      writer.put(entry.getKey(), entry.getValue());
+    }
+    return this;
   }
 
   /**

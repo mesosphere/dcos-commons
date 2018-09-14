@@ -2,9 +2,11 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Raw YAML task.
@@ -16,6 +18,8 @@ public final class RawTask {
   private final Boolean essential;
 
   private final String cmd;
+
+  private final String labelsCsv;
 
   private final Map<String, String> env;
 
@@ -49,6 +53,7 @@ public final class RawTask {
       @JsonProperty("goal") String goal,
       @JsonProperty("essential") Boolean essential,
       @JsonProperty("cmd") String cmd,
+      @JsonProperty("labels") String labels,
       @JsonProperty("env") Map<String, String> env,
       @JsonProperty("configs") WriteOnceLinkedHashMap<String, RawConfig> configs,
       @JsonProperty("cpus") Double cpus,
@@ -67,6 +72,7 @@ public final class RawTask {
     this.goal = goal;
     this.essential = essential;
     this.cmd = cmd;
+    this.labelsCsv = labels;
     this.env = env;
     this.configs = configs;
     this.cpus = cpus;
@@ -125,6 +131,27 @@ public final class RawTask {
 
   public String getCmd() {
     return cmd;
+  }
+
+  public String getLabelsCsv() {
+    return labelsCsv;
+  }
+
+  public List<String[]> getValidatedLabels() throws IllegalArgumentException {
+    List<String[]> kvs = Arrays.stream(labelsCsv.split(","))
+      .map(s -> s.split(":", 2))
+      .collect(Collectors.toList());
+    kvs.forEach(kv -> {
+      if (kv.length != 2) {
+        throw new IllegalArgumentException(String.format(
+            "Illegal label string, got %s, should be " +
+                "comma-seperated key value pairs (seperated by colons)." +
+                " For example: k_0:v_0,k_1:v_1,...,k_n:v_n",
+            labelsCsv
+        ));
+      }
+    });
+    return kvs;
   }
 
   public Map<String, String> getEnv() {

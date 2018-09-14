@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Collection;
 import java.util.Optional;
+import java.util.Map;
 
 /**
  * Specification for a Task.
@@ -33,6 +34,9 @@ public interface TaskSpec {
 
   @JsonProperty("command-spec")
   Optional<CommandSpec> getCommand();
+
+  @JsonProperty("task-labels")
+  Map<String, String> getLabels();
 
   @JsonProperty("health-check-spec")
   Optional<HealthCheckSpec> getHealthCheck();

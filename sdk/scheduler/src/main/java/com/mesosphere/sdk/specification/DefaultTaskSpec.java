@@ -12,6 +12,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
+import java.util.Map;
 
 /**
  * Default implementation of a {@link TaskSpec}.
@@ -35,6 +36,8 @@ public final class DefaultTaskSpec implements TaskSpec {
 
   private final CommandSpec commandSpec;
 
+  private final Map<String, String> labels;
+
   private final HealthCheckSpec healthCheckSpec;
 
   private final ReadinessCheckSpec readinessCheckSpec;
@@ -57,6 +60,7 @@ public final class DefaultTaskSpec implements TaskSpec {
       @JsonProperty("essential") Boolean essential,
       @JsonProperty("resource-set") ResourceSet resourceSet,
       @JsonProperty("command-spec") CommandSpec commandSpec,
+      @JsonProperty("task-labels") Map<String, String> labels,
       @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
       @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
       @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles,
@@ -70,6 +74,7 @@ public final class DefaultTaskSpec implements TaskSpec {
     this.essential = (essential != null) ? essential : true;
     this.resourceSet = resourceSet;
     this.commandSpec = commandSpec;
+    this.labels = (labels != null) ? labels : Collections.emptyMap();
     this.healthCheckSpec = healthCheckSpec;
     this.readinessCheckSpec = readinessCheckSpec;
     this.configFiles = (configFiles != null) ? configFiles : Collections.emptyList();
@@ -89,6 +94,7 @@ public final class DefaultTaskSpec implements TaskSpec {
         builder.essential,
         builder.resourceSet,
         builder.commandSpec,
+        builder.labels,
         builder.healthCheckSpec,
         builder.readinessCheckSpec,
         builder.configFiles,
@@ -135,6 +141,7 @@ public final class DefaultTaskSpec implements TaskSpec {
     builder.essential = copy.isEssential();
     builder.resourceSet = copy.getResourceSet();
     builder.commandSpec = copy.getCommand().orElse(null);
+    builder.labels = copy.getLabels();
     builder.readinessCheckSpec(copy.getReadinessCheck().orElse(null));
     builder.healthCheckSpec = copy.getHealthCheck().orElse(null);
     builder.readinessCheckSpec = copy.getReadinessCheck().orElse(null);
@@ -168,6 +175,11 @@ public final class DefaultTaskSpec implements TaskSpec {
   @Override
   public Optional<CommandSpec> getCommand() {
     return Optional.ofNullable(commandSpec);
+  }
+
+  @Override
+  public Map<String, String> getLabels() {
+    return labels;
   }
 
   @Override
@@ -232,6 +244,8 @@ public final class DefaultTaskSpec implements TaskSpec {
     private ResourceSet resourceSet;
 
     private CommandSpec commandSpec;
+
+    private Map<String, String> labels;
 
     private HealthCheckSpec healthCheckSpec;
 
@@ -304,6 +318,18 @@ public final class DefaultTaskSpec implements TaskSpec {
      */
     public Builder commandSpec(CommandSpec commandSpec) {
       this.commandSpec = commandSpec;
+      return this;
+    }
+
+    /**
+     * Sets the {@code labels} and returns a reference to this Builder so that the methods can be
+     * chained together.
+     *
+     * @param labels the {@code labels} to set
+     * @return a reference to this Builder
+     */
+    public Builder taskLabels(Map<String, String> labels) {
+      this.labels = labels;
       return this;
     }
 

@@ -205,6 +205,15 @@ public final class TaskUtils {
       return true;
     }
 
+    // Labels
+
+    Map<String, String> oldLabels = oldTaskSpec.getLabels();
+    Map<String, String> newLabels = newTaskSpec.getLabels();
+    if (!Objects.equals(oldLabels, newLabels)) {
+      LOGGER.debug("Task labels '{}' and '{}' are different.", oldLabels, newLabels);
+      return true;
+    }
+
     // CommandSpecs
 
     Optional<CommandSpec> oldCommand = oldTaskSpec.getCommand();

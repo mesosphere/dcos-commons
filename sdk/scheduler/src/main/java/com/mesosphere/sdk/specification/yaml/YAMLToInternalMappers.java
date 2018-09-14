@@ -478,6 +478,11 @@ public final class YAMLToInternalMappers {
         .setTransportEncryption(transportEncryption)
         .name(taskName);
 
+    if (!Strings.isNullOrEmpty(rawTask.getLabelsCsv())) {
+      builder.taskLabels(rawTask.getValidatedLabels()
+          .stream().collect(Collectors.toMap(s -> s[0], s -> s[1])));
+    }
+
     if (StringUtils.isNotBlank(rawTask.getResourceSet())) {
       // Use resource set content:
       builder.resourceSet(
