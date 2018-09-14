@@ -81,13 +81,25 @@ To make it to pick up local changes made to modules:
    cd /path/to/dcos-commons
    ```
 
+1. Commit `VERSION` bump in `tools/create_service_diagnostics_bundle.sh`
+
+   ```bash
+   readonly VERSION='vx.y.z'
+   ```
+
 1. Build a Docker image tagged with the desire version
 
    ```bash
    docker build -t "mpereira/dcos-commons:diagnostics-${VERSION}" .
    ```
 
-1. Publish it
+1. Push Docker image tagged with the desire version
+
+   ```bash
+   docker push "mpereira/dcos-commons:diagnostics-${VERSION}"
+   ```
+
+1. Publish script (which will use the Docker image tagged with the same version)
 
    ```bash
    aws s3 cp \
