@@ -1,30 +1,24 @@
 #!/usr/bin/env python3
+
 import json
 import logging
 import os
 import ssl
+import subprocess
 import time
 import urllib.parse
 import urllib.request
+from urllib.error import URLError
 
-log = logging.getLogger(__name__)
 
 __CLI_LOGIN_OPEN_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9UQkVOakZFTWtWQ09VRTRPRVpGTlRNMFJrWXlRa015Tnprd1JrSkVRemRCTWpBM1FqYzVOZyJ9.eyJlbWFpbCI6ImFsYmVydEBiZWtzdGlsLm5ldCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc3MiOiJodHRwczovL2Rjb3MuYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA5OTY0NDk5MDExMTA4OTA1MDUwIiwiYXVkIjoiM3lGNVRPU3pkbEk0NVExeHNweHplb0dCZTlmTnhtOW0iLCJleHAiOjIwOTA4ODQ5NzQsImlhdCI6MTQ2MDE2NDk3NH0.OxcoJJp06L1z2_41_p65FriEGkPzwFB_0pA9ULCvwvzJ8pJXw9hLbmsx-23aY2f-ydwJ7LSibL9i5NbQSR2riJWTcW4N7tLLCCMeFXKEK4hErN2hyxz71Fl765EjQSO5KD1A-HsOPr3ZZPoGTBjE0-EFtmXkSlHb1T2zd0Z8T5Z2-q96WkFoT6PiEdbrDA-e47LKtRmqsddnPZnp0xmMQdTr2MjpVgvqG7TlRvxDcYc-62rkwQXDNSWsW61FcKfQ-TRIZSf2GS9F9esDF4b5tRtrXcBNaorYa9ql0XAWH5W_ct4ylRNl3vwkYKWa4cmPvOqT5Wlj9Tf0af4lNO40PQ"  # noqa
 __CLI_LOGIN_EE_USERNAME = "bootstrapuser"
 __CLI_LOGIN_EE_PASSWORD = "deleteme"
 
+__CLUSTER_URL_ENV = "CLUSTER_URL"
+
 __REQUEST_ATTEMPTS = 5
 __REQUEST_ATTEMPT_SLEEP_SECONDS = 2
-
-__CLUSTERS_PATH = os.path.expanduser(os.path.join("~", ".dcos", "clusters"))
-__TOML_TEMPLATE = """[cluster]
-name = "{name}"
-
-[core]
-dcos_acs_token = "{token}"
-dcos_url = "{url}"
-ssl_verify = "false"
-"""
 
 logging.basicConfig(format="[%(asctime)s|%(levelname)s]: %(message)s", level="INFO")
 log = logging.getLogger(__name__)
@@ -34,11 +28,10 @@ def http_request(
     method: str,
     cluster_url: str,
     cluster_path: str,
-    token: str,
+    token=None,
     headers={},
-    log_args=True,
     data=None,
-):
+) -> str:
     """Performs an http request, returning the text content on success, or throwing an exception on
     consistent failure.
 
@@ -61,6 +54,9 @@ def http_request(
             response = urllib.request.urlopen(
                 request, data=data, timeout=10, context=ignore_ssl_cert
             )
+        except URLError as err:
+            log.error(err.reason)
+            raise
         except Exception:
             log.error("Query failed: {} {}".format(method, query_url))
             raise
@@ -106,41 +102,13 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
             "/acs/api/v1/auth/login",
             token=None,
             headers={"Content-Type": "application/json"},
-            log_args=False,
             data=json.dumps(payload).encode("utf-8"),
         )
     )["token"]
 
 
-def _netloc(url: str):
-    return url.split("-1")[-1]
-
-
-def attach_cluster(cluster_id: str) -> None:
-    """Adds an 'attached' file to the desired cluster_id, and removes any attached files from any
-    other clusters.
-    """
-    if not os.path.isdir(__CLUSTERS_PATH):
-        raise Exception("INTERNAL ERROR: Missing clusters directory: {}".format(__CLUSTERS_PATH))
-    for name in os.listdir(__CLUSTERS_PATH):
-        cluster_path = os.path.join(__CLUSTERS_PATH, name)
-        if not os.path.isdir(cluster_path):
-            continue
-        attached_file_path = os.path.join(cluster_path, "attached")
-        if name == cluster_id:
-            if not os.path.isfile(attached_file_path):
-                log.info("Attaching cluster: {}".format(cluster_id))
-                f = open(attached_file_path, "w")
-                f.close()
-                os.chmod(attached_file_path, 0o600)
-        elif os.path.isfile(attached_file_path):
-            log.info("Detaching cluster: {}".format(name))
-            os.unlink(attached_file_path)
-
-
-def configure_cli(dcosurl: str, token: str) -> None:
+def print_state_summary(dcosurl: str, token: str) -> None:
     """Sets up a dcos cluster config for the specified cluster using the specified auth token."""
-    cluster_id = json.loads(http_request("GET", dcosurl, "/metadata", token))["CLUSTER_ID"]
     state_summary = json.loads(http_request("GET", dcosurl, "/mesos/state-summary", token))
 
     # Since we've got the state summary, print out some cluster stats:
@@ -166,19 +134,8 @@ def configure_cli(dcosurl: str, token: str) -> None:
         )
     )
 
-    # Write the cluster config file:
-    cluster_dir_path = os.path.join(__CLUSTERS_PATH, cluster_id)
-    os.makedirs(cluster_dir_path, exist_ok=True)
-    cluster_config_path = os.path.join(cluster_dir_path, "dcos.toml")
-    with open(cluster_config_path, "w") as f:
-        f.write(__TOML_TEMPLATE.format(name=state_summary["cluster"], token=token, url=dcosurl))
-    os.chmod(cluster_config_path, 0o600)
 
-    # Write the 'attach' file:
-    attach_cluster(cluster_id)
-
-
-def login_session() -> None:
+def login_session(cluster_url: str, is_old_cli: bool) -> None:
     """Login to DC/OS.
 
     Behavior is determined by the following environment variables:
@@ -187,11 +144,25 @@ def login_session() -> None:
     DCOS_LOGIN_PASSWORD: the EE password (defaults to deleteme)
     DCOS_ENTERPRISE: determine how to authenticate (defaults to false)
     DCOS_ACS_TOKEN: bypass auth and use the user supplied token
-    """
-    cluster_url = os.environ.get("CLUSTER_URL")
-    if not cluster_url:
-        raise Exception("Must have CLUSTER_URL set in environment!")
 
+    This is the current flow to login to a cluster
+    - Dockerfile downloads the latest cli that works for 1.10 and above ONLY.
+      |- If the cluster is 1.10 and above:
+         |- If Open:
+            |- Export DCOS_ACS_TOKEN
+            |- Then do a `dcos cluster setup <url>`, it should magically work!
+         |- If Enterprise:
+            |- A `dcos cluster setup` with username and password should work.
+      |- If the cluster is less than 1.10: <WE ONLY SUPPORT 1.9 - TO BE DEPRECATED>
+         |- Overwrite the binary to 1.9
+         |- If Open:
+            |- Use `dcos config set` for all the below properties
+               |- core.dcos_url
+               |- core.ssl_verify
+               |- core.dcos_acs_token
+         |- If Enterprise:
+            |- A `dcos auth login` with username and password should work.
+    """
     def ignore_empty(envvar, default):
         # Ignore the user passing in empty ENVVARs.
         value = os.environ.get(envvar, "").strip()
@@ -203,16 +174,80 @@ def login_session() -> None:
     dcos_login_username = ignore_empty("DCOS_LOGIN_USERNAME", __CLI_LOGIN_EE_USERNAME)
     dcos_login_password = ignore_empty("DCOS_LOGIN_PASSWORD", __CLI_LOGIN_EE_PASSWORD)
     dcos_enterprise = ignore_empty("DCOS_ENTERPRISE", "true").lower() == "true"
-    dcos_acs_token = os.environ.get("DCOS_ACS_TOKEN")
-    if not dcos_acs_token:
-        dcos_acs_token = login(
-            dcosurl=cluster_url,
-            username=dcos_login_username,
-            password=dcos_login_password,
-            is_enterprise=dcos_enterprise,
-        )
-    configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
+    dcos_acs_token = os.environ.get("DCOS_ACS_TOKEN", login(
+        dcosurl=cluster_url,
+        username=dcos_login_username,
+        password=dcos_login_password,
+        is_enterprise=dcos_enterprise,
+    ))
+    if is_old_cli:
+        # TODO(takirala) : We can remove this code path few months after 1.12 GA
+        if dcos_enterprise:
+            _run_cmd("dcos auth login {} --username {} --password {}".format(
+                cluster_url,
+                dcos_login_username,
+                dcos_login_password))
+        else:
+            _run_cmd("dcos config set core.dcos_url {}".format(cluster_url))
+            _run_cmd("dcos config set core.ssl_verify {}".format(False))
+            _run_cmd("dcos config set core.dcos_acs_token {}".format(dcos_acs_token))
+    else:
+        if dcos_enterprise:
+            _run_cmd("dcos cluster setup {} --username {} --password {} --insecure".format(
+                cluster_url,
+                dcos_login_username,
+                dcos_login_password))
+        else:
+            dcos_acs_token = os.environ.get("DCOS_ACS_TOKEN", dcos_acs_token)
+            _run_cmd("env DCOS_ACS_TOKEN={} dcos cluster setup {} --insecure".format(
+                dcos_acs_token, cluster_url))
+
+    print_state_summary(dcosurl=cluster_url, token=dcos_acs_token)
+
+
+def check_and_install_native_cli(cluster_url: str) -> bool:
+    old_cli = "https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.9/dcos"
+    response = http_request("GET", cluster_url, "dcos-metadata/dcos-version.json")
+    log.info("Version response for cluster {} is {}".format(cluster_url, response))
+    version = json.loads(response)["version"]
+    if version.startswith("1.9"):
+        rc, old_path, _ = _run_cmd("which dcos")
+        assert rc == 0, "dcos command not found"
+        rc, _, _ = _run_cmd("wget {} -o {}".format(old_cli, old_path))
+        assert rc == 0, "Installation of old cli failed"
+        return True
+    return False
+
+
+def _run_cmd(cmd):
+    result = subprocess.run(
+        [cmd],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+        check=True,
+    )
+
+    if result.returncode != 0:
+        log.info("Got exit code {} to command: {}".format(result.returncode, cmd))
+
+    if result.stdout:
+        stdout = result.stdout.decode("utf-8").strip()
+        log.info("STDOUT:\n{}".format(stdout))
+    else:
+        stdout = ""
+
+    if result.stderr:
+        stderr = result.stderr.decode("utf-8").strip()
+        log.info("STDERR:\n{}".format(stderr))
+    else:
+        stderr = ""
+
+    return result.returncode, stdout, stderr
 
 
 if __name__ == "__main__":
-    login_session()
+    if __CLUSTER_URL_ENV not in os.environ:
+        raise Exception("Must have {} set in environment!".format(__CLUSTER_URL_ENV))
+    _cluster_url = os.environ.get(__CLUSTER_URL_ENV)
+    login_session(_cluster_url, check_and_install_native_cli(_cluster_url))

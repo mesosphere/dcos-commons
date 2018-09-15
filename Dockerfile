@@ -41,7 +41,7 @@ COPY test_requirements.txt test_requirements.txt
 RUN pip3 install --upgrade -r test_requirements.txt
 
 # Get DC/OS CLI
-RUN curl -O https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.12/dcos && \
+RUN curl -O https://downloads.dcos.io/binaries/cli/linux/x86-64/latest/dcos && \
     chmod +x dcos && \
     mv dcos /usr/local/bin && \
     dcos --version
