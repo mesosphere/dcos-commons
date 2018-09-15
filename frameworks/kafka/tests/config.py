@@ -2,7 +2,7 @@ import sdk_install
 import sdk_utils
 
 # allow overriding these names via envvars, for confluent tests:
-PACKAGE_NAME = sdk_utils.get_package_name("kafka")
+PACKAGE_NAME = sdk_utils.get_package_name("portworx-kafka")
 SERVICE_NAME = sdk_utils.get_service_name(PACKAGE_NAME.lstrip("beta-"))
 
 DEFAULT_BROKER_COUNT = 3

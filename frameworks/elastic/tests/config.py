@@ -12,8 +12,8 @@ import sdk_tasks
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'elastic'
-SERVICE_NAME = 'elastic'
+PACKAGE_NAME = 'portworx-elastic'
+SERVICE_NAME = 'portworx-elastic'
 
 KIBANA_PACKAGE_NAME = 'kibana'
 

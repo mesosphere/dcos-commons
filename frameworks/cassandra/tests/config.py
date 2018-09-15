@@ -12,9 +12,9 @@ import sdk_utils
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = 'cassandra'
+PACKAGE_NAME = 'portworx-cassandra'
 
-SERVICE_NAME = os.environ.get('SOAK_SERVICE_NAME') or 'cassandra'
+SERVICE_NAME = os.environ.get('SOAK_SERVICE_NAME') or 'portworx-cassandra'
 
 DEFAULT_TASK_COUNT = 3
 DEFAULT_CASSANDRA_TIMEOUT = 600
