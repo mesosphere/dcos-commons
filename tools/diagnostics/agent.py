@@ -1,22 +1,19 @@
 import logging
 import os
 import re
-import retrying
 from typing import List
 
 import sdk_cmd
+import config
 
 logger = logging.getLogger(__name__)
-
-DEFAULT_RETRY_WAIT = 1000
-DEFAULT_RETRY_MAX_ATTEMPTS = 5
 
 
 def is_http_server_error(http_status_code: int) -> bool:
     return http_status_code >= 500 and http_status_code <= 599
 
 
-@retrying.retry(wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS)
+@config.retry
 def debug_agent_files(agent_id: str) -> List[str]:
     response = sdk_cmd.cluster_request(
         "GET",
@@ -37,7 +34,7 @@ def debug_agent_files(agent_id: str) -> List[str]:
     return response.json()
 
 
-@retrying.retry(wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS)
+@config.retry
 def browse_agent_path(agent_id: str, agent_path: str) -> List[dict]:
     response = sdk_cmd.cluster_request(
         "GET",
@@ -79,7 +76,7 @@ def browse_task_sandbox(agent_id: str, executor_sandbox_path: str, task_id: str)
         return []
 
 
-@retrying.retry(wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS)
+@config.retry
 def download_agent_path(
     agent_id: str, agent_file_path: str, output_file_path: str, chunk_size: int = 8192
 ) -> None:

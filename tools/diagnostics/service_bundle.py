@@ -1,7 +1,7 @@
 import logging
 import os
-import retrying
 
+import config
 import sdk_cmd
 import sdk_diag
 from sdk_utils import groupby
@@ -10,9 +10,6 @@ from diagnostics.bundle import Bundle
 import diagnostics.agent as agent
 
 log = logging.getLogger(__name__)
-
-DEFAULT_RETRY_WAIT = 1000
-DEFAULT_RETRY_MAX_ATTEMPTS = 5
 
 
 class ServiceBundle(Bundle):
@@ -26,9 +23,7 @@ class ServiceBundle(Bundle):
         self.framework_id = service.get("id")
         self.output_directory = output_directory
 
-    @retrying.retry(
-        wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS
-    )
+    @config.retry
     def install_cli(self):
         sdk_cmd.run_cli(
             "package install {} --cli --yes".format(self.package_name), print_output=False
@@ -65,9 +60,7 @@ class ServiceBundle(Bundle):
         )
         self.run_on_tasks(fn, task_ids)
 
-    @retrying.retry(
-        wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS
-    )
+    @config.retry
     def create_configuration_file(self):
         output = sdk_cmd.svc_cli(
             self.package_name, self.service_name, "describe", print_output=False
@@ -75,9 +68,7 @@ class ServiceBundle(Bundle):
 
         self.write_file("service_configuration.json", output)
 
-    @retrying.retry(
-        wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS
-    )
+    @config.retry
     def create_pod_status_file(self):
         output = sdk_cmd.svc_cli(
             self.package_name, self.service_name, "pod status --json", print_output=False
@@ -85,9 +76,7 @@ class ServiceBundle(Bundle):
 
         self.write_file("service_pod_status.json", output)
 
-    @retrying.retry(
-        wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS
-    )
+    @config.retry
     def create_plan_status_file(self, plan):
         output = sdk_cmd.svc_cli(
             self.package_name,
@@ -98,9 +87,7 @@ class ServiceBundle(Bundle):
 
         self.write_file("service_plan_status_{}.json".format(plan), output)
 
-    @retrying.retry(
-        wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS
-    )
+    @config.retry
     def create_plans_status_files(self):
         plans = sdk_cmd.svc_cli(
             self.package_name, self.service_name, "plan list", json=True, print_output=False

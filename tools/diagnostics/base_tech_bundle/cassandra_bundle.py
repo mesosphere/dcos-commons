@@ -1,20 +1,15 @@
 import logging
-import retrying
 
+import config
 import sdk_cmd
 
 from diagnostics.base_tech_bundle import BaseTechBundle
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_RETRY_WAIT = 1000
-DEFAULT_RETRY_MAX_ATTEMPTS = 5
-
 
 class CassandraBundle(BaseTechBundle):
-    @retrying.retry(
-        wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS
-    )
+    @config.retry
     def task_exec(self, task_id, cmd):
         full_cmd = " ".join(
             [

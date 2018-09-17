@@ -2,8 +2,8 @@ from datetime import date, datetime
 from typing import List
 import logging
 import os
-import retrying
 
+import config
 import sdk_cmd
 import sdk_utils
 
@@ -13,11 +13,7 @@ from diagnostics.bundle import Bundle
 
 log = logging.getLogger(__name__)
 
-DEFAULT_RETRY_WAIT = 1000
-DEFAULT_RETRY_MAX_ATTEMPTS = 5
-
-
-@retrying.retry(wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS)
+@config.retry
 def get_dcos_services() -> dict:
     return sdk_cmd.get_json_output("service --completed --inactive --json", print_output=False)
 
