@@ -25,7 +25,12 @@ class ElasticBundle(BaseTechBundle):
     def create_stats_file(self, task_id):
         command = "curl -s ${MESOS_CONTAINER_IP}:${PORT_HTTP}/_stats"
         rc, stdout, stderr = self.task_exec(task_id, command)
-        self.write_file("elasticsearch_stats_{}.json".format(task_id), stdout)
+        if rc != 0 or stderr:
+            logger.error(
+                "Could not get Elasticsearch /_stats\nstdout: '{}'\nstderr: '{}'", stdout, stderr
+            )
+        else:
+            self.write_file("elasticsearch_stats_{}.json".format(task_id), stdout)
 
     def create_tasks_stats_files(self):
         self.for_each_running_task_with_prefix("master", self.create_stats_file)

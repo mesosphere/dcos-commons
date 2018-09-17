@@ -25,12 +25,24 @@ class CassandraBundle(BaseTechBundle):
     def create_nodetool_status_file(self, task_id):
         rc, stdout, stderr = self.task_exec(task_id, "${CASSANDRA_DIRECTORY}/bin/nodetool status")
 
-        self.write_file("cassandra_nodetool_status_{}.txt".format(task_id), stdout)
+        if rc != 0 or stderr:
+            logger.error(
+                "Could not get Cassandra nodetool stats\nstdout: '{}'\nstderr: '{}'", stdout, stderr
+            )
+        else:
+            self.write_file("cassandra_nodetool_status_{}.txt".format(task_id), stdout)
 
     def create_nodetool_tpstats_file(self, task_id):
         rc, stdout, stderr = self.task_exec(task_id, "${CASSANDRA_DIRECTORY}/bin/nodetool tpstats")
 
-        self.write_file("cassandra_nodetool_tpstats_{}.txt".format(task_id), stdout)
+        if rc != 0 or stderr:
+            logger.error(
+                "Could not get Cassandra nodetool tpstats\nstdout: '{}'\nstderr: '{}'",
+                stdout,
+                stderr,
+            )
+        else:
+            self.write_file("cassandra_nodetool_tpstats_{}.txt".format(task_id), stdout)
 
     def create_tasks_nodetool_status_files(self):
         self.for_each_running_task_with_prefix("node", self.create_nodetool_status_file)
