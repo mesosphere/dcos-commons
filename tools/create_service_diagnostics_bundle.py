@@ -198,7 +198,7 @@ def preflight_check() -> (int, bool, dict):
 
 
 def main(argv):
-    (rc, should_proceed, args) = preflight_check()
+    rc, should_proceed, args = preflight_check()
     if not should_proceed:
         return rc
 
@@ -214,7 +214,7 @@ def main(argv):
         if answer.strip().lower() in ["n", "no", "false"]:
             return 0
 
-    (rc, _) = FullBundle(
+    rc, _ = FullBundle(
         args.get("package_name"), args.get("service_name"), args.get("bundles_directory")
     ).create()
 
