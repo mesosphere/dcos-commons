@@ -104,7 +104,7 @@ class ServiceBundle(Bundle):
             for plan in plans:
                 self.create_plan_status_file(plan)
 
-    def create_log_files(self):
+    def download_log_files(self):
         all_tasks = self.scheduler_tasks + self.tasks()
 
         tasks_by_agent_id = dict(groupby("slave_id", all_tasks))
@@ -145,4 +145,4 @@ class ServiceBundle(Bundle):
         self.create_configuration_file()
         self.create_pod_status_file()
         self.create_plans_status_files()
-        self.create_log_files()
+        self.download_log_files()
