@@ -111,7 +111,7 @@ class FullBundle(Bundle):
         active_services = [s for s in services if is_service_active(s)]
 
         if not active_services:
-            log.error("Could not find service named '%s'", self.service_name)
+            log.error("Could not find active service named '%s'", self.service_name)
             return 1, self
 
         if len(active_services) > 1:
