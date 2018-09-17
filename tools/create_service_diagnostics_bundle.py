@@ -43,7 +43,7 @@ def is_authenticated_to_dcos_cluster() -> (bool, str):
     if rc != 0:
         (success, cluster_name_or_error) = current_cluster_name()
 
-        if "dcos auth login" or "Missing required config parameter" in stderr:
+        if any(s in stderr for s in ("dcos auth login", "Missing required config parameter")):
             if success:
                 return (
                     False,
