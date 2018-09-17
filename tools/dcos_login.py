@@ -107,34 +107,6 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
     )["token"]
 
 
-def print_state_summary(dcosurl: str, token: str) -> None:
-    """Sets up a dcos cluster config for the specified cluster using the specified auth token."""
-    state_summary = json.loads(http_request("GET", dcosurl, "/mesos/state-summary", token))
-
-    # Since we've got the state summary, print out some cluster stats:
-    agents = []
-    public_count = 0
-    for agent in state_summary.get("slaves", []):
-        # TODO log mount volumes. how do they look?
-        is_public = "public_ip" in agent.get("attributes", {})
-        if is_public:
-            public_count += 1
-        agents.append(
-            "- {} ({}): {} cpu, {} mem, {} disk".format(
-                agent.get("hostname", "???"),
-                "public" if is_public else "private",
-                agent.get("resources", {}).get("cpus", 0),
-                agent.get("resources", {}).get("mem", 0),
-                agent.get("resources", {}).get("disk", 0),
-            )
-        )
-    log.info(
-        "Configured cluster with {} public/{} private agents:\n{}".format(
-            public_count, len(agents) - public_count, "\n".join(agents)
-        )
-    )
-
-
 def login_session(cluster_url: str, is_old_cli: bool) -> None:
     """Login to DC/OS.
 
@@ -155,13 +127,10 @@ def login_session(cluster_url: str, is_old_cli: bool) -> None:
             |- A `dcos cluster setup` with username and password should work.
       |- If the cluster is less than 1.10: <WE ONLY SUPPORT 1.9 - TO BE DEPRECATED>
          |- Overwrite the binary to 1.9
-         |- If Open:
-            |- Use `dcos config set` for all the below properties
-               |- core.dcos_url
-               |- core.ssl_verify
-               |- core.dcos_acs_token
-         |- If Enterprise:
-            |- A `dcos auth login` with username and password should work.
+         |- For Open AND Enterprise, use `dcos config set` for all the below properties:
+            |- core.dcos_url
+            |- core.ssl_verify
+            |- core.dcos_acs_token
     """
     def ignore_empty(envvar, default):
         # Ignore the user passing in empty ENVVARs.
@@ -174,35 +143,50 @@ def login_session(cluster_url: str, is_old_cli: bool) -> None:
     dcos_login_username = ignore_empty("DCOS_LOGIN_USERNAME", __CLI_LOGIN_EE_USERNAME)
     dcos_login_password = ignore_empty("DCOS_LOGIN_PASSWORD", __CLI_LOGIN_EE_PASSWORD)
     dcos_enterprise = ignore_empty("DCOS_ENTERPRISE", "true").lower() == "true"
-    dcos_acs_token = os.environ.get("DCOS_ACS_TOKEN", login(
-        dcosurl=cluster_url,
-        username=dcos_login_username,
-        password=dcos_login_password,
-        is_enterprise=dcos_enterprise,
-    ))
     if is_old_cli:
         # TODO(takirala) : We can remove this code path few months after 1.12 GA
+        _run_cmd("dcos config set core.dcos_url {}".format(cluster_url))
+        _run_cmd("dcos config set core.ssl_verify {}".format(False))
         if dcos_enterprise:
-            _run_cmd("dcos auth login {} --username {} --password {}".format(
-                cluster_url,
-                dcos_login_username,
-                dcos_login_password))
+            _run_cmd(
+                "dcos auth login --username {} --password {}".format(
+                    dcos_login_username,
+                    dcos_login_password
+                )
+            )
         else:
-            _run_cmd("dcos config set core.dcos_url {}".format(cluster_url))
-            _run_cmd("dcos config set core.ssl_verify {}".format(False))
-            _run_cmd("dcos config set core.dcos_acs_token {}".format(dcos_acs_token))
+            _run_cmd("dcos config set core.dcos_acs_token {}".format(
+                os.environ.get("DCOS_ACS_TOKEN", login(
+                    dcosurl=cluster_url,
+                    username=dcos_login_username,
+                    password=dcos_login_password,
+                    is_enterprise=dcos_enterprise,
+                ))),
+                check=True
+            )
     else:
         if dcos_enterprise:
-            _run_cmd("dcos cluster setup {} --username {} --password {} --insecure".format(
-                cluster_url,
-                dcos_login_username,
-                dcos_login_password))
+            _run_cmd(
+                "dcos cluster setup {} --username {} --password {} --insecure".format(
+                    cluster_url,
+                    dcos_login_username,
+                    dcos_login_password
+                ),
+                check=True
+            )
         else:
-            dcos_acs_token = os.environ.get("DCOS_ACS_TOKEN", dcos_acs_token)
-            _run_cmd("env DCOS_ACS_TOKEN={} dcos cluster setup {} --insecure".format(
-                dcos_acs_token, cluster_url))
-
-    print_state_summary(dcosurl=cluster_url, token=dcos_acs_token)
+            _run_cmd(
+                "env DCOS_ACS_TOKEN={} dcos cluster setup {} --insecure".format(
+                    os.environ.get("DCOS_ACS_TOKEN", login(
+                        dcosurl=cluster_url,
+                        username=dcos_login_username,
+                        password=dcos_login_password,
+                        is_enterprise=dcos_enterprise,
+                    )),
+                    cluster_url),
+                check=True
+            )
+    _run_cmd("dcos node --json", check=True)
 
 
 def check_and_install_native_cli(cluster_url: str) -> bool:
@@ -211,21 +195,26 @@ def check_and_install_native_cli(cluster_url: str) -> bool:
     log.info("Version response for cluster {} is {}".format(cluster_url, response))
     version = json.loads(response)["version"]
     if version.startswith("1.9"):
+        _run_cmd("dcos --version")
         rc, old_path, _ = _run_cmd("which dcos")
+        log.info("Over writing [{}] with [{}]".format(old_path, old_cli))
         assert rc == 0, "dcos command not found"
-        rc, _, _ = _run_cmd("wget {} -o {}".format(old_cli, old_path))
+        rc, _, _ = _run_cmd("wget -q {} -O {}".format(old_cli, old_path))
         assert rc == 0, "Installation of old cli failed"
+        _run_cmd("chmod +x {}".format(old_path))
+        _run_cmd("dcos --version")
         return True
     return False
 
 
-def _run_cmd(cmd):
+def _run_cmd(cmd, check=False):
+    log.info("[CMD] {}".format(cmd))
     result = subprocess.run(
         [cmd],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         shell=True,
-        check=True,
+        check=check,
     )
 
     if result.returncode != 0:
