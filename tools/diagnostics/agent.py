@@ -69,7 +69,6 @@ def browse_executor_tasks(agent_id: str, executor_sandbox_path: str) -> List[dic
     return browse_executor_sandbox(agent_id, os.path.join(executor_sandbox_path, "tasks"))
 
 
-@retrying.retry(wait_fixed=DEFAULT_RETRY_WAIT, stop_max_attempt_number=DEFAULT_RETRY_MAX_ATTEMPTS)
 def browse_task_sandbox(agent_id: str, executor_sandbox_path: str, task_id: str) -> List[dict]:
     executor_tasks = browse_executor_tasks(agent_id, executor_sandbox_path)
 
