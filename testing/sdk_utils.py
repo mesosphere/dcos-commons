@@ -205,17 +205,6 @@ def get_in(keys, coll, default=None):
         return default
 
 
-def sort(coll):
-    """ Sorts a collection and returns it. """
-    coll.sort()
-    return coll
-
-
-def invert_dict(d: dict) -> dict:
-    """ Returns a dictionary with its values being its keys and vice-versa. """
-    return dict((v, k) for k, v in d.items())
-
-
 # https://github.com/pytoolz/toolz/blob/2bd9139d0d0e17d3426cb467b5f58b1fb6d8a439/toolz/itertoolz.py#L791
 def getter(index):
     if isinstance(index, list):
