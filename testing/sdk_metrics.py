@@ -137,7 +137,7 @@ def get_metrics(package_name, service_name, pod_name, task_name):
         retry=False,
     )
     app_json = json.loads(app_response.text)
-    if app_json["dimensions"]["executor_id"] == task_to_check.executor_id:
+    if app_json["dimensions"]["executor_name"] == task_to_check.executor_name:
         return app_json["datapoints"]
 
     raise Exception("No metrics found for task {} in service {}".format(task_name, service_name))
