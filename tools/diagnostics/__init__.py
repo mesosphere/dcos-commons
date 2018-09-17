@@ -4,4 +4,4 @@ from diagnostics.full_bundle import FullBundle
 from diagnostics.service_bundle import ServiceBundle
 import diagnostics.agent as agent
 
-__all__ = ["FullBundle", "Bundle", "ServiceBundle", "BaseTechBundle", "agent"]
+__all__ = ["agent", "BaseTechBundle", "Bundle", "FullBundle", "ServiceBundle"]
