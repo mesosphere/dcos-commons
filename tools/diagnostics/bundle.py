@@ -5,7 +5,7 @@ import os
 log = logging.getLogger(__name__)
 
 
-class Bundle(object):
+class Bundle:
     def write_file(self, file_name, content, serialize_to_json=False):
         file_path = os.path.join(self.output_directory, file_name)
 
