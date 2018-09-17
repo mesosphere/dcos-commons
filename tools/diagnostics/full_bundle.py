@@ -57,7 +57,7 @@ def is_service_scheduler_task(package_name: str, service_name: str, task: dict) 
 
 
 def directory_date_string() -> str:
-    return date.strftime(datetime.now(), "%Y%m%d%H%M%S")
+    return date.strftime(datetime.utcnow(), "%Y%m%dT%H%M%SZ")
 
 
 class FullBundle(Bundle):
