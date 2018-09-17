@@ -1,7 +1,8 @@
+import json
 import logging
 import os
 
-import config
+import diagnostics.config as config
 import sdk_cmd
 import sdk_diag
 from sdk_utils import groupby
@@ -38,63 +39,70 @@ class ServiceBundle(Bundle):
     def running_tasks(self):
         return self.tasks_with_state("TASK_RUNNING")
 
-    def tasks_with_state_and_prefix(self, state, prefix):
-        return list(
-            filter(lambda task: task["name"].startswith(prefix), self.tasks_with_state(state))
-        )
-
     def run_on_tasks(self, fn, task_ids):
         for task_id in task_ids:
             fn(task_id)
 
-    def for_each_running_task(self, fn):
-        task_ids = list(map(lambda task: task["id"], self.running_tasks()))
-        self.run_on_tasks(fn, task_ids)
-
     def for_each_running_task_with_prefix(self, prefix, fn):
-        task_ids = list(
-            map(
-                lambda task: task["id"],
-                filter(lambda task: task["name"].startswith(prefix), self.running_tasks()),
-            )
-        )
+        task_ids = [t["id"] for t in self.running_tasks() if t["name"].startswith(prefix)]
         self.run_on_tasks(fn, task_ids)
 
     @config.retry
     def create_configuration_file(self):
-        output = sdk_cmd.svc_cli(
+        rc, stdout, stderr = sdk_cmd.svc_cli(
             self.package_name, self.service_name, "describe", print_output=False
         )
 
-        self.write_file("service_configuration.json", output)
+        if rc != 0 or stderr:
+            log.error(
+                "Could not get service configuration\nstdout: '{}'\nstderr: '{}'", stdout, stderr
+            )
+        else:
+            self.write_file("service_configuration.json", stdout)
 
     @config.retry
     def create_pod_status_file(self):
-        output = sdk_cmd.svc_cli(
+        rc, stdout, stderr = sdk_cmd.svc_cli(
             self.package_name, self.service_name, "pod status --json", print_output=False
         )
 
-        self.write_file("service_pod_status.json", output)
+        if rc != 0 or stderr:
+            log.error(
+                "Could not get pod status\nstdout: '{}'\nstderr: '{}'", stdout, stderr
+            )
+        else:
+            self.write_file("service_pod_status.json", stdout)
 
     @config.retry
     def create_plan_status_file(self, plan):
-        output = sdk_cmd.svc_cli(
+        rc, stdout, stderr = sdk_cmd.svc_cli(
             self.package_name,
             self.service_name,
             "plan status {} --json".format(plan),
             print_output=False,
         )
 
-        self.write_file("service_plan_status_{}.json".format(plan), output)
+        if rc != 0 or stderr:
+            log.error(
+                "Could not get pod status\nstdout: '{}'\nstderr: '{}'", stdout, stderr
+            )
+        else:
+            self.write_file("service_plan_status_{}.json".format(plan), stdout)
 
     @config.retry
     def create_plans_status_files(self):
-        plans = sdk_cmd.svc_cli(
-            self.package_name, self.service_name, "plan list", json=True, print_output=False
+        rc, stdout, stderr = sdk_cmd.svc_cli(
+            self.package_name, self.service_name, "plan list", print_output=False
         )
 
-        for plan in plans:
-            self.create_plan_status_file(plan)
+        if rc != 0 or stderr:
+            log.error(
+                "Could not get plan list\nstdout: '{}'\nstderr: '{}'", stdout, stderr
+            )
+        else:
+            plans = json.loads(stdout)
+            for plan in plans:
+                self.create_plan_status_file(plan)
 
     def create_log_files(self):
         all_tasks = self.scheduler_tasks + self.tasks()

@@ -3,19 +3,20 @@ from typing import List
 import logging
 import os
 
-import config
 import sdk_cmd
 import sdk_utils
 
+from diagnostics.bundle import Bundle
 from diagnostics.service_bundle import ServiceBundle
 import diagnostics.base_tech_bundle as base_tech
-from diagnostics.bundle import Bundle
+import diagnostics.config as config
 
 log = logging.getLogger(__name__)
 
+
 @config.retry
 def get_dcos_services() -> dict:
-    return sdk_cmd.get_json_output("service --completed --inactive --json", print_output=False)
+    return sdk_cmd._get_json_output("service --completed --inactive --json", print_output=False)
 
 
 def to_dcos_service_name(service_name: str) -> str:
@@ -80,7 +81,7 @@ class FullBundle(Bundle):
         )
 
     def _bundle_directory_name(self) -> str:
-        cluster_name = sdk_cmd.run_cli("config show cluster.name", print_output=False)
+        _, cluster_name, _ = sdk_cmd.run_cli("config show cluster.name", print_output=False)
         return "{}_{}_{}".format(
             cluster_name,
             sdk_utils.get_deslashed_service_name(self.service_name),
@@ -103,7 +104,8 @@ class FullBundle(Bundle):
 
         self.write_file("dcos_services.json", all_services, serialize_to_json=True)
 
-        # An SDK service might have multiple DC/OS service entries. We expect that at most one is "active".
+        # An SDK service might have multiple DC/OS service entries. We expect that at most one is
+        # "active".
         services = [s for s in all_services if is_service_named(self.service_name, s)]
         # TODO: handle inactive services too.
         active_services = [s for s in services if is_service_active(s)]

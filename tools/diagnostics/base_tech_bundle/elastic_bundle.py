@@ -1,6 +1,6 @@
 import logging
 
-import config
+import diagnostics.config as config
 import sdk_cmd
 
 from diagnostics.base_tech_bundle import BaseTechBundle

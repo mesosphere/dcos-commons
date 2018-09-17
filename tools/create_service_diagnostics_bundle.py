@@ -5,8 +5,8 @@
 # - jq
 
 # Notes:
-# - When run in the dcos-commons docker image the CLI version is specified in the test_requirements.txt
-#   file.
+# - When run in the dcos-commons docker image the CLI version is specified in the
+#   test_requirements.txt file.
 
 from typing import Any
 import argparse
@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 
 
 def current_cluster_name() -> (bool, str):
-    rc, stdout, stderr = sdk_cmd.run_raw_cli("config show cluster.name", print_output=False)
+    rc, stdout, stderr = sdk_cmd.run_cli("config show cluster.name", print_output=False)
 
     if rc != 0:
         if "Property 'cluster.name' doesn't exist" in stderr:
@@ -38,7 +38,7 @@ def current_cluster_name() -> (bool, str):
 
 
 def is_authenticated_to_dcos_cluster() -> (bool, str):
-    rc, stdout, stderr = sdk_cmd.run_raw_cli("service", print_output=False)
+    rc, stdout, stderr = sdk_cmd.run_cli("service", print_output=False)
 
     if rc != 0:
         (success, cluster_name_or_error) = current_cluster_name()
@@ -60,7 +60,7 @@ def is_authenticated_to_dcos_cluster() -> (bool, str):
 
 
 def attached_dcos_cluster() -> (int, Any):
-    rc, stdout, stderr = sdk_cmd.run_raw_cli("cluster list --attached", print_output=False)
+    rc, stdout, stderr = sdk_cmd.run_cli("cluster list --attached", print_output=False)
 
     if rc != 0:
         if "No cluster is attached" in stderr:
@@ -75,7 +75,7 @@ def attached_dcos_cluster() -> (int, Any):
 
 
 def get_marathon_app(service_name: str) -> (int, Any):
-    rc, stdout, stderr = sdk_cmd.run_raw_cli(
+    rc, stdout, stderr = sdk_cmd.run_cli(
         "marathon app show {}".format(service_name), print_output=False
     )
 
