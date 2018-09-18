@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
+import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -132,6 +133,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
             workSetTracker.updateWorkSet(activeWorkSet);
         } catch (NullPointerException e) {
             logger.warn("workset tracker is uninitialized, scheduler has his a null reference and is exiting.");
+            ProcessExit.exit(ProcessExit.ERROR, e);
 
         }
 
