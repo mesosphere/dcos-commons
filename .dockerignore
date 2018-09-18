@@ -3,6 +3,7 @@
 /**/__pycache__
 *.pyc
 .*
+/service-diagnostic-bundles
 
 !test_requirements.txt
 !test_runner.sh

@@ -61,3 +61,6 @@ frameworks/*/*-universe-url*
 
 # OS X
 .DS_Store
+
+# service diagnostics
+/service-diagnostic-bundles
