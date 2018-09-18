@@ -5,6 +5,7 @@ Provides facilities for gathering SDK-related service diagnostics artifacts.
 ## Requirements
 - Docker
 - Network access to DC/OS cluster
+- DC/OS 1.10+
 
 ## Usage
 
