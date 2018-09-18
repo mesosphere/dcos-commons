@@ -146,7 +146,6 @@ def preflight_check() -> (int, bool, dict):
     if rc != 0:
         log.error(
             "We were unable to verify the cluster you're attached to.\nError: %s",
-            service_name,
             cluster_or_error,
         )
         return (rc, False, {})
