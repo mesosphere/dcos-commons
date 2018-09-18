@@ -1,21 +1,15 @@
 #!/usr/bin/env python3
 
-import json
 import logging
 import os
-import ssl
 import subprocess
-import time
-import urllib.parse
-import urllib.request
-from urllib.error import URLError
-
 
 __CLI_LOGIN_OPEN_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9UQkVOakZFTWtWQ09VRTRPRVpGTlRNMFJrWXlRa015Tnprd1JrSkVRemRCTWpBM1FqYzVOZyJ9.eyJlbWFpbCI6ImFsYmVydEBiZWtzdGlsLm5ldCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc3MiOiJodHRwczovL2Rjb3MuYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA5OTY0NDk5MDExMTA4OTA1MDUwIiwiYXVkIjoiM3lGNVRPU3pkbEk0NVExeHNweHplb0dCZTlmTnhtOW0iLCJleHAiOjIwOTA4ODQ5NzQsImlhdCI6MTQ2MDE2NDk3NH0.OxcoJJp06L1z2_41_p65FriEGkPzwFB_0pA9ULCvwvzJ8pJXw9hLbmsx-23aY2f-ydwJ7LSibL9i5NbQSR2riJWTcW4N7tLLCCMeFXKEK4hErN2hyxz71Fl765EjQSO5KD1A-HsOPr3ZZPoGTBjE0-EFtmXkSlHb1T2zd0Z8T5Z2-q96WkFoT6PiEdbrDA-e47LKtRmqsddnPZnp0xmMQdTr2MjpVgvqG7TlRvxDcYc-62rkwQXDNSWsW61FcKfQ-TRIZSf2GS9F9esDF4b5tRtrXcBNaorYa9ql0XAWH5W_ct4ylRNl3vwkYKWa4cmPvOqT5Wlj9Tf0af4lNO40PQ"  # noqa
 __CLI_LOGIN_EE_USERNAME = "bootstrapuser"
 __CLI_LOGIN_EE_PASSWORD = "deleteme"
 
 __CLUSTER_URL_ENV = "CLUSTER_URL"
+__DCOS_ACS_TOKEN_ENV = "DCOS_ACS_TOKEN"
 
 __REQUEST_ATTEMPTS = 5
 __REQUEST_ATTEMPT_SLEEP_SECONDS = 2
@@ -24,90 +18,7 @@ logging.basicConfig(format="[%(asctime)s|%(levelname)s]: %(message)s", level="IN
 log = logging.getLogger(__name__)
 
 
-def http_request(
-    method: str,
-    cluster_url: str,
-    cluster_path: str,
-    token=None,
-    headers={},
-    data=None,
-) -> str:
-    """Performs an http request, returning the text content on success, or throwing an exception on
-    consistent failure.
-
-    To simplify portability, this internally sticks to only using python3 stdlib.
-    """
-
-    query_url = urllib.parse.urljoin(cluster_url, cluster_path)
-    if token:
-        headers["Authorization"] = "token={}".format(token)
-    request = urllib.request.Request(query_url, method=method, headers=headers, unverifiable=True)
-
-    # Disable SSL cert: test clusters are usually self-signed
-    ignore_ssl_cert = ssl.create_default_context()
-    ignore_ssl_cert.check_hostname = False
-    ignore_ssl_cert.verify_mode = ssl.CERT_NONE
-
-    for i in range(__REQUEST_ATTEMPTS):
-        start = time.time()
-        try:
-            response = urllib.request.urlopen(
-                request, data=data, timeout=10, context=ignore_ssl_cert
-            )
-        except URLError as err:
-            log.error(err.reason)
-            raise
-        except Exception:
-            log.error("Query failed: {} {}".format(method, query_url))
-            raise
-        end = time.time()
-
-        response_status = response.getcode()
-        log_msg = "(HTTP {}) {} => {} ({:.3f}s)".format(
-            method.upper(), cluster_path, response_status, end - start
-        )
-        encoding = response.info().get_content_charset("utf-8")
-        response_data = response.read().decode(encoding)
-        if response_status == 200:
-            log.info(log_msg)
-            return response_data
-        else:
-            log.error("{}\n{}".format(log_msg, response_data))
-            time.sleep(__REQUEST_ATTEMPT_SLEEP_SECONDS)
-
-    raise Exception(
-        "Failed to complete {} {} request after {} attempts".format(
-            method, query_url, __REQUEST_ATTEMPTS
-        )
-    )
-
-
-def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> str:
-    """Logs into the cluster, or throws an exception if login fails.
-
-    This internally implements a retry loop. We could use 'retrying', but this utility sticks to
-    the python stdlib to allow easy portability.
-    """
-    if is_enterprise:
-        log.info("Logging into {} as {}".format(dcosurl, username))
-        payload = {"uid": username, "password": password}
-    else:
-        log.info("Logging into {} with default open token".format(dcosurl))
-        payload = {"token": __CLI_LOGIN_OPEN_TOKEN}
-
-    return json.loads(
-        http_request(
-            "POST",
-            dcosurl,
-            "/acs/api/v1/auth/login",
-            token=None,
-            headers={"Content-Type": "application/json"},
-            data=json.dumps(payload).encode("utf-8"),
-        )
-    )["token"]
-
-
-def login_session(cluster_url: str, is_old_cli: bool) -> None:
+def login_session(cluster_url: str) -> None:
     """Login to DC/OS.
 
     Behavior is determined by the following environment variables:
@@ -135,82 +46,33 @@ def login_session(cluster_url: str, is_old_cli: bool) -> None:
     def ignore_empty(envvar, default):
         # Ignore the user passing in empty ENVVARs.
         value = os.environ.get(envvar, "").strip()
-        if not value:
-            return default
-
-        return value
+        return value if value else default
 
     dcos_login_username = ignore_empty("DCOS_LOGIN_USERNAME", __CLI_LOGIN_EE_USERNAME)
     dcos_login_password = ignore_empty("DCOS_LOGIN_PASSWORD", __CLI_LOGIN_EE_PASSWORD)
-    dcos_enterprise = ignore_empty("DCOS_ENTERPRISE", "true").lower() == "true"
-    if is_old_cli:
-        # TODO(takirala) : We can remove this code path few months after 1.12 GA
-        _run_cmd("dcos config set core.dcos_url {}".format(cluster_url))
-        _run_cmd("dcos config set core.ssl_verify {}".format(False))
-        if dcos_enterprise:
-            _run_cmd(
-                "dcos auth login --username {} --password {}".format(
-                    dcos_login_username,
-                    dcos_login_password
-                )
-            )
-        else:
-            _run_cmd("dcos config set core.dcos_acs_token {}".format(
-                os.environ.get("DCOS_ACS_TOKEN", login(
-                    dcosurl=cluster_url,
-                    username=dcos_login_username,
-                    password=dcos_login_password,
-                    is_enterprise=dcos_enterprise,
-                ))),
-                check=True
-            )
+    if ignore_empty("DCOS_ENTERPRISE", "true").lower() == "true":
+        _run_cmd(
+            "dcos cluster setup {} --username {} --password {} --insecure".format(
+                cluster_url,
+                dcos_login_username,
+                dcos_login_password
+            ),
+            check=True)
     else:
-        if dcos_enterprise:
-            _run_cmd(
-                "dcos cluster setup {} --username {} --password {} --insecure".format(
-                    cluster_url,
-                    dcos_login_username,
-                    dcos_login_password
-                ),
-                check=True
-            )
-        else:
-            _run_cmd(
-                "env DCOS_ACS_TOKEN={} dcos cluster setup {} --insecure".format(
-                    os.environ.get("DCOS_ACS_TOKEN", login(
-                        dcosurl=cluster_url,
-                        username=dcos_login_username,
-                        password=dcos_login_password,
-                        is_enterprise=dcos_enterprise,
-                    )),
-                    cluster_url),
-                check=True
-            )
+        # This would try to use `xdg-open` and print a warning that it was not found in the PATH,
+        # but reads stdin and cluster will setup successfully.
+        rc, _, _ = _run_cmd(
+            "dcos cluster setup {} --insecure".format(cluster_url),
+            check=True,
+            cmd_input=bytes(os.environ.get(__DCOS_ACS_TOKEN_ENV, __CLI_LOGIN_OPEN_TOKEN), encoding="utf-8"))
     _run_cmd("dcos node --json", check=True)
 
 
-def check_and_install_native_cli(cluster_url: str) -> bool:
-    old_cli = "https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.9/dcos"
-    response = http_request("GET", cluster_url, "dcos-metadata/dcos-version.json")
-    log.info("Version response for cluster {} is {}".format(cluster_url, response))
-    version = json.loads(response)["version"]
-    if version.startswith("1.9"):
-        _run_cmd("dcos --version")
-        rc, old_path, _ = _run_cmd("which dcos")
-        log.info("Over writing [{}] with [{}]".format(old_path, old_cli))
-        assert rc == 0, "dcos command not found"
-        rc, _, _ = _run_cmd("wget -q {} -O {}".format(old_cli, old_path))
-        assert rc == 0, "Installation of old cli failed"
-        _run_cmd("chmod +x {}".format(old_path))
-        _run_cmd("dcos --version")
-        return True
-    return False
-
-
-def _run_cmd(cmd, check=False):
+def _run_cmd(cmd, check=False, cmd_input=None):
     log.info("[CMD] {}".format(cmd))
     result = subprocess.run(
         [cmd],
+        input=cmd_input,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         shell=True,
@@ -239,4 +101,4 @@ if __name__ == "__main__":
     if __CLUSTER_URL_ENV not in os.environ:
         raise Exception("Must have {} set in environment!".format(__CLUSTER_URL_ENV))
     _cluster_url = os.environ.get(__CLUSTER_URL_ENV)
-    login_session(_cluster_url, check_and_install_native_cli(_cluster_url))
+    login_session(_cluster_url)
