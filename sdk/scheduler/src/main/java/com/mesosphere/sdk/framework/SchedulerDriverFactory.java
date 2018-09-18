@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.framework;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.mesos.HTTPAdapter.MesosToSchedulerDriverAdapter;
@@ -21,7 +20,6 @@ import org.apache.mesos.v1.scheduler.V1Mesos;
 import org.slf4j.Logger;
 
 import javax.annotation.Nullable;
-import java.util.function.Function;
 
 /**
  * Factory class for creating {@link MesosSchedulerDriver}s.
@@ -99,14 +97,13 @@ public class SchedulerDriverFactory {
         return createInternal(scheduler, frameworkInfo, masterUrl, credential, schedulerConfig.getMesosApiVersion());
     }
 
-    @VisibleForTesting
-    protected Function<MesosToSchedulerDriverAdapter, Mesos> startInternalCustom(
+    Mesos startInternalCustom(
+            MesosToSchedulerDriverAdapter adapter,
             final Capabilities capabilities,
             final FrameworkInfo frameworkInfo,
             final String masterUrl,
-            @Nullable final Credential credential,
+            final Credential credential,
             final String mesosAPIVersion) {
-        return (MesosToSchedulerDriverAdapter adapter) -> {
             LOGGER.info("Trying to use Mesos {} API, isCredentialNull: {}", mesosAPIVersion, credential == null);
             if (mesosAPIVersion.equals(SchedulerConfig.MESOS_API_VERSION_V1)) {
                 if (capabilities.supportsV1APIByDefault()) {
@@ -116,7 +113,8 @@ public class SchedulerDriverFactory {
                             masterUrl,
                             credential == null ? null : EvolverDevolver.evolve(credential));
                 } else {
-                    LOGGER.warn("Current DC/OS cluster doesn't support the Mesos V1 API");
+                    LOGGER.info("Current DC/OS cluster doesn't support the Mesos {} API",
+                            SchedulerConfig.MESOS_API_VERSION_V1);
                 }
             }
             LOGGER.info("Using Mesos V0 API");
@@ -125,13 +123,11 @@ public class SchedulerDriverFactory {
                     EvolverDevolver.evolve(frameworkInfo),
                     masterUrl,
                     credential == null ? null : EvolverDevolver.evolve(credential));
-        };
     }
 
     /**
      * Broken out into a separate function to allow testing with custom SchedulerDrivers.
      */
-    @edu.umd.cs.findbugs.annotations.SuppressFBWarnings("NP_LOAD_OF_KNOWN_NULL_VALUE")
     protected SchedulerDriver createInternal(
             final Scheduler scheduler,
             final FrameworkInfo frameworkInfo,
@@ -147,24 +143,26 @@ public class SchedulerDriverFactory {
                     @Override
                     protected Mesos startInternal() {
                         return startInternalCustom(
+                                this,
                                 capabilities,
                                 frameworkInfo,
                                 masterUrl,
-                                credential,
+                                null,
                                 mesosAPIVersion
-                        ).apply(this);
+                        );
                     }
                 } :
                 new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true, credential) {
                     @Override
                     protected Mesos startInternal() {
                         return startInternalCustom(
+                                this,
                                 capabilities,
                                 frameworkInfo,
                                 masterUrl,
                                 credential,
                                 mesosAPIVersion
-                        ).apply(this);
+                        );
                     }
                 };
     }

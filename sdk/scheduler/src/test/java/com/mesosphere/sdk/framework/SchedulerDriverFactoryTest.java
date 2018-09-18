@@ -156,33 +156,39 @@ public class SchedulerDriverFactoryTest {
     @Test
     public void createInternalTest() {
         // This should have been an integration test but upstream has no version information (and it shouldn't have ?)
-        Random r = new Random();
         for (ImmutableTriple<Boolean, String, ? extends Class<? extends Mesos>> data : Arrays.asList(
                 // Triple of (Boolean V1 Capability Supported | Requested Version | Created Version)
                 ImmutableTriple.of(true, SchedulerConfig.MESOS_API_VERSION_V1, V1Mesos.class),
-                ImmutableTriple.of(r.nextBoolean(), "NOT_V1", V0Mesos.class)
+                ImmutableTriple.of(true, "V0", V0Mesos.class),
+                ImmutableTriple.of(false, SchedulerConfig.MESOS_API_VERSION_V1, V0Mesos.class),
+                ImmutableTriple.of(false, "V0", V0Mesos.class)
         )) {
             Capabilities capabilities = mock(Capabilities.class);
             when(capabilities.supportsV1APIByDefault()).thenReturn(data.left);
             try {
+                // This assert will fail if the system doesn't have the required system library.
                 assertTrue(
                         new SchedulerDriverFactory().startInternalCustom(
+                                mock(MesosToSchedulerDriverAdapter.class),
                                 capabilities,
                                 mock(FrameworkInfo.class),
                                 "masterUrl",
                                 mock(Credential.class),
                                 data.middle
                         )
-                        .apply(mock(MesosToSchedulerDriverAdapter.class))
                         .getClass()
                         .getCanonicalName()
                         .equals(data.right.getCanonicalName())
                 );
             } catch (UnsatisfiedLinkError e) {
+                // We expect this to happen if there is no system library; test for the specific class name in trace.
                 assertTrue(Stream
                         .of(e.getStackTrace())
                         .anyMatch(x -> x.getClassName().equals(data.right.getCanonicalName()))
                 );
+            } catch (NoClassDefFoundError e) {
+                // JDK throws this error if we try to load up the system library more than once.
+                assertTrue(e.getMessage().endsWith(data.right.getCanonicalName()));
             }
         }
     }
