@@ -48,30 +48,23 @@ Created /service-diagnostic-bundles/my-dcos-cluster_prod__cassandra_20180912T142
 ## Development
 
 ### Working with the shell script
-The `./tools/diagnostics/create_service_diagnostics_bundle.sh` script runs Python scripts in a Docker container.
+The `./tools/diagnostics/create_service_diagnostics_bundle.sh` script runs a
+Python script in a Docker container.
 
-To make it to pick up local changes made to modules:
+To make it to pick up local changes made to Python modules just run the
+repository script:
 
 1. `cd` to your dcos-commons repository directory
-
    ```bash
    cd /path/to/dcos-commons
    ```
 
-1. Add dcos-commons mount volume to Docker exec command
+1. Make changes to Python modules under `/path/to/dcos-commons/tools/diagnostics`
 
+1. Run repository script
    ```bash
-   -v "$(pwd)":/dcos-commons:ro \
+   ./tools/diagnostics/create_service_diagnostics_bundle.sh cassandra /prod/cassandra
    ```
-
-1. Overwrite `SCRIPT_PATH` to point to `/dcos-commons` instead of `/dcos-commons-dist`
-
-   ```bash
-   readonly SCRIPT_PATH="/dcos-commons/tools/diagnostics/create_service_diagnostics_bundle.py"
-   ```
-
-   *TODO*: instead of doing all this manually make the script take a flag and do that automatically (e.g.
-   `--dcos-commons-directory=/path/to/dcos-commons`)
 
 ### Publishing a new version
 

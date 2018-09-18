@@ -2,6 +2,35 @@
 
 set -eu -o pipefail
 
+readonly SCRIPT_DIRECTORY="$(cd "$(dirname "${BASH_SOURCE[0]}")" >/dev/null && pwd)"
+readonly DCOS_COMMONS_SCRIPT_PATH="tools/diagnostics"
+
+function is_dcos_commons_repository_script() {
+  [[ ${SCRIPT_DIRECTORY} = *${DCOS_COMMONS_SCRIPT_PATH} ]]
+}
+
+function is_development_mode() {
+  is_dcos_commons_repository_script
+}
+
+if is_development_mode; then
+  echo "dcos-commons repository detected, running in development mode"
+  echo
+  echo "In development mode all Python modules will be picked up from your current"
+  echo "dcos-commons repository instead of the Docker image's /dcos-commons-dist "
+  echo "directory that contains a static git checkout"
+  echo
+  set -x
+  readonly CONTAINER_DCOS_COMMONS_DIRECTORY="/dcos-commons"
+  readonly CONTAINER_DCOS_COMMONS_VOLUME_MOUNT="-v $(pwd):${CONTAINER_DCOS_COMMONS_DIRECTORY}:ro"
+else
+  readonly CONTAINER_DCOS_COMMONS_DIRECTORY="/dcos-commons-dist"
+  # We don't mount the dcos-commons directory in the container because the
+  # script will use /dcos-commons-dist which is added to the Docker image during
+  # build time.
+  readonly CONTAINER_DCOS_COMMONS_VOLUME_MOUNT=
+fi
+
 readonly VERSION='v0.1.0'
 
 function version () {
@@ -39,15 +68,14 @@ for requirement in ${REQUIREMENTS}; do
   fi
 done
 
-readonly DCOS_COMMONS_DIRECTORY="/dcos-commons-dist"
-readonly DOCKER_IMAGE="mpereira/dcos-commons:diagnostics-${VERSION}"
-readonly SCRIPT_PATH="${DCOS_COMMONS_DIRECTORY}/tools/create_service_diagnostics_bundle.py"
-
 readonly PACKAGE_NAME="${1:-}"
 readonly SERVICE_NAME="${2:-}"
 readonly PROCEED="${3:-}"
 
 readonly BUNDLES_DIRECTORY="service-diagnostic-bundles"
+readonly DOCKER_IMAGE="mpereira/dcos-commons:diagnostics-${VERSION}"
+readonly SCRIPT_NAME="create_service_diagnostics_bundle.py"
+
 readonly CONTAINER_BUNDLES_DIRECTORY="/${BUNDLES_DIRECTORY}"
 readonly CONTAINER_SCRIPT_DIRECTORY="${CONTAINER_DCOS_COMMONS_DIRECTORY}/${DCOS_COMMONS_SCRIPT_PATH}"
 readonly CONTAINER_SCRIPT_PATH="${CONTAINER_SCRIPT_DIRECTORY}/${SCRIPT_NAME}"
@@ -61,6 +89,7 @@ docker run \
        -it \
        -v "$(pwd)/${BUNDLES_DIRECTORY}:${CONTAINER_BUNDLES_DIRECTORY}" \
        -v "${HOME}/.dcos":/root/.dcos \
+       ${CONTAINER_DCOS_COMMONS_VOLUME_MOUNT} \
        "${DOCKER_IMAGE}" \
        bash -c "PYTHONPATH=${CONTAINER_PYTHONPATH} ${CONTAINER_SCRIPT_PATH} \
                   --package-name ${PACKAGE_NAME} \
