@@ -1,5 +1,6 @@
 from datetime import date, datetime
 from typing import List
+import json
 import logging
 import os
 
@@ -15,8 +16,15 @@ log = logging.getLogger(__name__)
 
 
 @config.retry
-def get_dcos_services() -> dict:
-    return sdk_cmd._get_json_output("service --completed --inactive --json", print_output=False)
+def get_dcos_services() -> (bool, str):
+    rc, stdout, stderr = sdk_cmd.run_cli(
+        "service --completed --inactive --json", print_output=False
+    )
+
+    if rc != 0 or stderr:
+        return (False, "Could not get services state\nstdout: '{}'\nstderr: '{}'".format(stdout, stderr))
+    else:
+        return (True, stdout)
 
 
 def to_dcos_service_name(service_name: str) -> str:
@@ -100,7 +108,13 @@ class FullBundle(Bundle):
     def create(self) -> (int, "FullBundle"):
         self._configure_logging()
 
-        all_services = get_dcos_services()
+        success, all_services_or_error = get_dcos_services()
+
+        if not success:
+            log.error(all_services_or_error)
+            return 1, self
+
+        all_services = json.loads(all_services_or_error)
 
         self.write_file("dcos_services.json", all_services, serialize_to_json=True)
 
