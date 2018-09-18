@@ -92,7 +92,7 @@ class FullBundle(Bundle):
         directory_name = os.path.join(self.bundles_directory, self._bundle_directory_name())
 
         if not os.path.exists(directory_name):
-            log.info("Creating directory {}".format(directory_name))
+            log.info("Creating directory %s", directory_name)
             os.makedirs(directory_name)
 
         return directory_name

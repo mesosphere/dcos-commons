@@ -10,7 +10,7 @@ class Bundle:
         file_path = os.path.join(self.output_directory, file_name)
 
         with open(file_path, "w") as f:
-            log.info("Writing file {}".format(file_path))
+            log.info("Writing file %s", file_path)
             if serialize_to_json:
                 json.dump(content, f, indent=2, sort_keys=True)
             else:
