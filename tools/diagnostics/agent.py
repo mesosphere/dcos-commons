@@ -4,7 +4,8 @@ import re
 from typing import List
 
 import sdk_cmd
-import diagnostics.config as config
+
+import config
 
 logger = logging.getLogger(__name__)
 

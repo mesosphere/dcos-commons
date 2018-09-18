@@ -14,7 +14,7 @@ import json
 import logging
 import sys
 
-from diagnostics import FullBundle
+from full_bundle import FullBundle
 import sdk_cmd
 
 log = logging.getLogger(__name__)

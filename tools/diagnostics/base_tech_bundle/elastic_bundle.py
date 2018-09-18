@@ -1,9 +1,9 @@
 import logging
 
-import diagnostics.config as config
 import sdk_cmd
 
-from diagnostics.base_tech_bundle import BaseTechBundle
+from base_tech_bundle import BaseTechBundle
+import config
 
 logger = logging.getLogger(__name__)
 

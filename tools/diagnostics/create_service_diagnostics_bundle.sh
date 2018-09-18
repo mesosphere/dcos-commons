@@ -34,6 +34,9 @@ readonly PROCEED="${3:-}"
 
 readonly BUNDLES_DIRECTORY="service-diagnostic-bundles"
 readonly CONTAINER_BUNDLES_DIRECTORY="/${BUNDLES_DIRECTORY}"
+readonly CONTAINER_SCRIPT_DIRECTORY="${CONTAINER_DCOS_COMMONS_DIRECTORY}/${DCOS_COMMONS_SCRIPT_PATH}"
+readonly CONTAINER_SCRIPT_PATH="${CONTAINER_SCRIPT_DIRECTORY}/${SCRIPT_NAME}"
+readonly CONTAINER_PYTHONPATH="${CONTAINER_DCOS_COMMONS_DIRECTORY}/testing:${CONTAINER_SCRIPT_DIRECTORY}"
 
 mkdir -p "${BUNDLES_DIRECTORY}"
 
@@ -44,7 +47,7 @@ docker run \
        -v "$(pwd)/${BUNDLES_DIRECTORY}:${CONTAINER_BUNDLES_DIRECTORY}" \
        -v "${HOME}/.dcos":/root/.dcos \
        "${DOCKER_IMAGE}" \
-       bash -c "PYTHONPATH=${DCOS_COMMONS_DIRECTORY}/testing ./${SCRIPT_PATH} \
+       bash -c "PYTHONPATH=${CONTAINER_PYTHONPATH} ${CONTAINER_SCRIPT_PATH} \
                   --package-name ${PACKAGE_NAME} \
                   --service-name ${SERVICE_NAME} \
                   --bundles-directory ${CONTAINER_BUNDLES_DIRECTORY}"

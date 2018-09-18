@@ -2,13 +2,13 @@ import json
 import logging
 import os
 
-import diagnostics.config as config
+from sdk_utils import groupby
 import sdk_cmd
 import sdk_diag
-from sdk_utils import groupby
 
-from diagnostics.bundle import Bundle
-import diagnostics.agent as agent
+from bundle import Bundle
+import agent
+import config
 
 log = logging.getLogger(__name__)
 

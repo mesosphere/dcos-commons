@@ -1,4 +1,4 @@
-from diagnostics.service_bundle import ServiceBundle
+from service_bundle import ServiceBundle
 
 
 class BaseTechBundle(ServiceBundle):

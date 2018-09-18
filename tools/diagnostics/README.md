@@ -42,13 +42,13 @@ Make sure the information looks correct and press ENTER.
 When the script finishes running it will create a directory under your current `$(pwd)/service-diagnostic-bundles`
 directory. You can see the bundle directory name at the end of the script output. E.g.:
 ```
-Created /service-diagnostic-bundles/my-dcos-cluster_prod__cassandra_20180912142246
+Created /service-diagnostic-bundles/my-dcos-cluster_prod__cassandra_20180912T142246Z
 ```
 
 ## Development
 
 ### Working with the shell script
-The `./tools/create_service_diagnostics_bundle.sh` script runs Python scripts in a Docker container.
+The `./tools/diagnostics/create_service_diagnostics_bundle.sh` script runs Python scripts in a Docker container.
 
 To make it to pick up local changes made to modules:
 
@@ -67,7 +67,7 @@ To make it to pick up local changes made to modules:
 1. Overwrite `SCRIPT_PATH` to point to `/dcos-commons` instead of `/dcos-commons-dist`
 
    ```bash
-   readonly SCRIPT_PATH="/dcos-commons/tools/create_service_diagnostics_bundle.py"
+   readonly SCRIPT_PATH="/dcos-commons/tools/diagnostics/create_service_diagnostics_bundle.py"
    ```
 
    *TODO*: instead of doing all this manually make the script take a flag and do that automatically (e.g.
@@ -81,7 +81,7 @@ To make it to pick up local changes made to modules:
    cd /path/to/dcos-commons
    ```
 
-1. Commit `VERSION` bump in `tools/create_service_diagnostics_bundle.sh`
+1. Commit `VERSION` bump in `tools/diagnostics/create_service_diagnostics_bundle.sh`
 
    ```bash
    readonly VERSION='vx.y.z'
@@ -104,6 +104,6 @@ To make it to pick up local changes made to modules:
    ```bash
    aws s3 cp \
      --acl=public-read \
-     tools/create_service_diagnostics_bundle.sh \
+     tools/diagnostics/create_service_diagnostics_bundle.sh \
      "s3://infinity-artifacts/dcos-commons/diagnostics/${VERSION}/create_service_diagnostics_bundle.sh"
    ```

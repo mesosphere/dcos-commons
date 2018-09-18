@@ -1,6 +1,6 @@
 import logging
 
-from diagnostics.base_tech_bundle import BaseTechBundle
+from base_tech_bundle import BaseTechBundle
 
 logger = logging.getLogger(__name__)
 

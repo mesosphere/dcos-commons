@@ -6,10 +6,10 @@ import os
 import sdk_cmd
 import sdk_utils
 
-from diagnostics.bundle import Bundle
-from diagnostics.service_bundle import ServiceBundle
-import diagnostics.base_tech_bundle as base_tech
-import diagnostics.config as config
+from bundle import Bundle
+from service_bundle import ServiceBundle
+import base_tech_bundle as base_tech
+import config
 
 log = logging.getLogger(__name__)
 
