@@ -9,10 +9,10 @@ class BaseTechBundle(ServiceBundle):
         raise NotImplementedError
 
 
-from .cassandra_bundle import CassandraBundle
-from .elastic_bundle import ElasticBundle
-from .hdfs_bundle import HdfsBundle
-from .kafka_bundle import KafkaBundle
+from .cassandra_bundle import CassandraBundle  # noqa: E402
+from .elastic_bundle import ElasticBundle  # noqa: E402
+from .hdfs_bundle import HdfsBundle  # noqa: E402
+from .kafka_bundle import KafkaBundle  # noqa: E402
 
 
 BASE_TECH_BUNDLE = {
