@@ -127,10 +127,13 @@ public abstract class AbstractScheduler implements MesosEventClient {
                     inProgressSteps.stream().map(step -> step.getMessage()).collect(Collectors.toList()));
         }
         activeWorkSet.addAll(inProgressSteps);
-        if (workSetTracker == null) {
-            logger.warn("workset tracker is uninitialized, scheduler will hit a null reference and exit.");
+
+        try {
+            workSetTracker.updateWorkSet(activeWorkSet);
+        } catch (NullPointerException e) {
+            logger.warn("workset tracker is uninitialized, scheduler has his a null reference and is exiting.");
+
         }
-        workSetTracker.updateWorkSet(activeWorkSet);
 
         return getStatus();
     }
