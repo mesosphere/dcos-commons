@@ -27,7 +27,7 @@ class CassandraBundle(BaseTechBundle):
 
         if rc != 0 or stderr:
             logger.error(
-                "Could not get Cassandra nodetool stats\nstdout: '{}'\nstderr: '{}'", stdout, stderr
+                "Could not get Cassandra nodetool stats\nstdout: '%s'\nstderr: '%s'", stdout, stderr
             )
         else:
             self.write_file("cassandra_nodetool_status_{}.txt".format(task_id), stdout)
@@ -37,7 +37,7 @@ class CassandraBundle(BaseTechBundle):
 
         if rc != 0 or stderr:
             logger.error(
-                "Could not get Cassandra nodetool tpstats\nstdout: '{}'\nstderr: '{}'",
+                "Could not get Cassandra nodetool tpstats\nstdout: '%s'\nstderr: '%s'",
                 stdout,
                 stderr,
             )

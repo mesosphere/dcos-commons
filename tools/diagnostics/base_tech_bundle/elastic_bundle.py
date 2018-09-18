@@ -27,7 +27,7 @@ class ElasticBundle(BaseTechBundle):
         rc, stdout, stderr = self.task_exec(task_id, command)
         if rc != 0 or stderr:
             logger.error(
-                "Could not get Elasticsearch /_stats\nstdout: '{}'\nstderr: '{}'", stdout, stderr
+                "Could not get Elasticsearch /_stats\nstdout: '%s'\nstderr: '%s'", stdout, stderr
             )
         else:
             self.write_file("elasticsearch_stats_{}.json".format(task_id), stdout)
