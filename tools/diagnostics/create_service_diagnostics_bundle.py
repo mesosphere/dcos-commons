@@ -4,8 +4,8 @@
 # - DC/OS CLI
 
 # Notes:
-# - When run in the dcos-commons docker image the CLI version is specified in the
-#   test_requirements.txt file.
+# - When run in the dcos-commons Docker image the DC/OS CLI version is specified either in
+# - the image's test_requirements.txt or Dockerfile.
 
 from typing import Any
 import argparse
