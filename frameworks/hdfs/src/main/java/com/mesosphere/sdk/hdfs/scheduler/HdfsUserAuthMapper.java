@@ -7,10 +7,10 @@ import java.util.Map;
 
 public class HdfsUserAuthMapper {
 
-    private String primary;
-    private String frameworkHost;
-    private String realm;
-    private String frameworkUser;
+    private final String primary;
+    private final String frameworkHost;
+    private final String realm;
+    private final String frameworkUser;
     private final String AUTH_TO_LOCAL_DEFAULT_TEMPLATE = "RULE:[2:$1/$2@$0](%s/%s.%s@%s)s/.*/%s/";
     private final ArrayList<String> authMappings = new ArrayList<>();
 
@@ -34,12 +34,11 @@ public class HdfsUserAuthMapper {
             String authMapping = String.format(AUTH_TO_LOCAL_DEFAULT_TEMPLATE, primary, taskName,
                     frameworkHost, realm, frameworkUser);
             authMappings.add(authMapping);
-
         }
     }
 
     public String getUserAuthMappingString() {
-        return String.join("/n", authMappings);
+        return String.join("\n", authMappings);
     }
 
 }
