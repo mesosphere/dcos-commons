@@ -127,7 +127,7 @@ def parse_args() -> dict:
     return parser.parse_args()
 
 
-def preflight_check() -> (int, bool, dict):
+def preflight_check() -> (int, dict):
     args = parse_args()
     package_name_given = args.package_name
     service_name = args.service_name
@@ -140,7 +140,7 @@ def preflight_check() -> (int, bool, dict):
             "We were unable to verify that you're authenticated to a DC/OS cluster.\nError: %s",
             message,
         )
-        return (1, False, {})
+        return (1, {})
 
     (rc, cluster_or_error) = attached_dcos_cluster()
     if rc != 0:
@@ -148,7 +148,7 @@ def preflight_check() -> (int, bool, dict):
             "We were unable to verify the cluster you're attached to.\nError: %s",
             cluster_or_error,
         )
-        return (rc, False, {})
+        return (rc, {})
 
     (cluster_name, dcos_version, cluster_url) = cluster_or_error
 
@@ -178,11 +178,10 @@ def preflight_check() -> (int, bool, dict):
             package_name,
         )
         log.info("Try '--package-name=%s'", package_name)
-        return (1, False, {})
+        return (1, {})
 
     return (
         0,
-        True,
         {
             "package_name": package_name,
             "service_name": service_name,
@@ -196,9 +195,9 @@ def preflight_check() -> (int, bool, dict):
     )
 
 
-def main(argv):
-    rc, should_proceed, args = preflight_check()
-    if not should_proceed:
+def main(argv) -> int:
+    rc, args = preflight_check()
+    if rc != 0:
         return rc
 
     print("\nWill create bundle for:")
