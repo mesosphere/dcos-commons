@@ -269,15 +269,13 @@ def test_config_cli():
     configs = json.loads(stdout)
     assert len(configs) >= 1  # refrain from breaking this test if earlier tests did a config update
 
-    assert (
-        0
-        == sdk_cmd.svc_cli(
-            config.PACKAGE_NAME,
-            foldered_name,
-            "debug config show {}".format(configs[0]),
-            print_output=False,  # noisy output
-        )[0]
+    rc, _, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME,
+        foldered_name,
+        "debug config show {}".format(configs[0]),
+        print_output=False,  # noisy output
     )
+    assert rc == 0
     _check_json_output(foldered_name, "debug config target")
     _check_json_output(foldered_name, "debug config target_id")
 
@@ -289,33 +287,25 @@ def test_plan_cli():
     phase_name = "world"
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     _check_json_output(foldered_name, "plan list")
-    assert (
-        0
-        == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))[0]
-    )
+    rc, _, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))
+    assert rc == 0
     _check_json_output(foldered_name, "plan show --json {}".format(plan_name))
     _check_json_output(foldered_name, "plan show {} --json".format(plan_name))
 
     # trigger a restart so that the plan is in a non-complete state.
     # the 'interrupt' command will fail if the plan is already complete:
-    assert (
-        0
-        == sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, foldered_name, "plan force-restart {}".format(plan_name)
-        )[0]
+    rc, _, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, "plan force-restart {}".format(plan_name)
     )
-    assert (
-        0
-        == sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name)
-        )[0]
+    assert rc == 0
+    rc, _, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name)
     )
-    assert (
-        0
-        == sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name)
-        )[0]
+    assert rc == 0
+    rc = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name)
     )
+    assert rc == 0
 
     # now wait for plan to finish before continuing to other tests:
     assert sdk_plan.wait_for_completed_plan(foldered_name, plan_name)
