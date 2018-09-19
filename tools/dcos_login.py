@@ -36,39 +36,31 @@ def login_session(cluster_url: str) -> None:
             |- Then do a `dcos cluster setup <url>`, it should magically work!
          |- If Enterprise:
             |- A `dcos cluster setup` with username and password should work.
-      |- If the cluster is less than 1.10: <WE ONLY SUPPORT 1.9 - TO BE DEPRECATED>
-         |- Overwrite the binary to 1.9
-         |- For Open AND Enterprise, use `dcos config set` for all the below properties:
-            |- core.dcos_url
-            |- core.ssl_verify
-            |- core.dcos_acs_token
+      |- If the cluster is less than 1.10: <DEPRECATED>
+         |- If tried, above cluster setup will fail.
     """
-    def ignore_empty(envvar, default):
+    def ignore_empty(envvar, default) -> str:
         # Ignore the user passing in empty ENVVARs.
         value = os.environ.get(envvar, "").strip()
         return value if value else default
 
-    dcos_login_username = ignore_empty("DCOS_LOGIN_USERNAME", __CLI_LOGIN_EE_USERNAME)
-    dcos_login_password = ignore_empty("DCOS_LOGIN_PASSWORD", __CLI_LOGIN_EE_PASSWORD)
     if ignore_empty("DCOS_ENTERPRISE", "true").lower() == "true":
-        _run_cmd(
-            "dcos cluster setup {} --username {} --password {} --insecure".format(
-                cluster_url,
-                dcos_login_username,
-                dcos_login_password
-            ),
-            check=True)
+        os.environ["DCOS_USERNAME"] = ignore_empty("DCOS_LOGIN_USERNAME", __CLI_LOGIN_EE_USERNAME)
+        os.environ["DCOS_PASSWORD"] = ignore_empty("DCOS_LOGIN_PASSWORD", __CLI_LOGIN_EE_PASSWORD)
+        _run_cmd("dcos cluster setup {} --insecure".format(cluster_url))
     else:
         # This would try to use `xdg-open` and print a warning that it was not found in the PATH,
         # but reads stdin and cluster will setup successfully.
-        rc, _, _ = _run_cmd(
+        _run_cmd(
             "dcos cluster setup {} --insecure".format(cluster_url),
-            check=True,
-            cmd_input=bytes(os.environ.get(__DCOS_ACS_TOKEN_ENV, __CLI_LOGIN_OPEN_TOKEN), encoding="utf-8"))
-    _run_cmd("dcos node --json", check=True)
+            cmd_input=bytes(os.environ.get(__DCOS_ACS_TOKEN_ENV, __CLI_LOGIN_OPEN_TOKEN), encoding="utf-8")
+        )
+    _run_cmd("dcos --help")
+    _run_cmd("dcos cluster list")
+    _run_cmd("dcos node --json")
 
 
-def _run_cmd(cmd, check=False, cmd_input=None):
+def _run_cmd(cmd, check=True, cmd_input=None):
     log.info("[CMD] {}".format(cmd))
     result = subprocess.run(
         [cmd],
@@ -76,7 +68,7 @@ def _run_cmd(cmd, check=False, cmd_input=None):
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         shell=True,
-        check=check,
+        check=check
     )
 
     if result.returncode != 0:
