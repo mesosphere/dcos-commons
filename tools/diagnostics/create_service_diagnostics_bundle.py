@@ -2,7 +2,6 @@
 
 # Dependencies:
 # - DC/OS CLI
-# - jq
 
 # Notes:
 # - When run in the dcos-commons docker image the CLI version is specified in the
