@@ -36,6 +36,8 @@ public class Main {
     private static final String JOURNAL_POD_TYPE = "journal";
     private static final String NAME_POD_TYPE = "name";
     private static final String DATA_POD_TYPE = "data";
+    private static final int JOURNAL_NODE_COUNT = 3;
+    private static final int NAME_NODE_COUNT = 2;
 
     static final String SERVICE_ZK_ROOT_TASKENV = "SERVICE_ZK_ROOT";
     static final String HDFS_SITE_XML = "hdfs-site.xml";
@@ -55,28 +57,57 @@ public class Main {
         File configDir = yamlSpecFile.getParentFile();
 
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
+
+        Map<String, String> env = System.getenv();
+
+        String userAuthMapping;
+
+        if (Boolean.valueOf(env.get("TASKCFG_ALL_SECURITY_KERBEROS_ENABLED"))) {
+            HdfsUserAuthMapper authMapper = setupAuthMapper(schedulerConfig);
+            authMapper.addUserAuthMappingFromEnv(env, TASKCFG_ALL_AUTH_TO_LOCAL);
+            authMapper.addDefaultUserAuthMapping(JOURNAL_POD_TYPE, JOURNAL_NODE_COUNT);
+            authMapper.addDefaultUserAuthMapping(NAME_POD_TYPE, NAME_NODE_COUNT);
+            authMapper.addDefaultUserAuthMapping(DATA_POD_TYPE, Integer.parseInt(env.get("DATA_COUNT")));
+            userAuthMapping = authMapper.getUserAuthMappingString();
+        } else {
+            userAuthMapping = "";
+        }
+
+
+
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configDir)
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
-                .setAllPodsEnv(DECODED_AUTH_TO_LOCAL,
-                                getHDFSUserAuthMappings(System.getenv(), TASKCFG_ALL_AUTH_TO_LOCAL))
+                .setAllPodsEnv(DECODED_AUTH_TO_LOCAL, userAuthMapping)
                 .build();
-
 
         return DefaultScheduler.newBuilder(setPlacementRules(serviceSpec), schedulerConfig)
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec)
                 .setEndpointProducer(HDFS_SITE_XML, EndpointProducer.constant(
-                        renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName(), schedulerConfig)))
+                        renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName(), schedulerConfig, userAuthMapping)))
                 .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
-                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName(), schedulerConfig)))
+                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName(), schedulerConfig, userAuthMapping)))
                 .setCustomConfigValidators(Arrays.asList(new HDFSZoneValidator()))
                 .withSingleRegionConstraint();
     }
 
+    private static HdfsUserAuthMapper setupAuthMapper(SchedulerConfig schedulerConfig) {
+        Map<String, String> env = System.getenv();
+        String frameworkHostname = EndpointUtils.toAutoIpDomain(env.get(EnvConstants.FRAMEWORK_HOST_TASKENV), schedulerConfig);
+
+        String realm = env.get("TASKCFG_ALL_SECURITY_KERBEROS_REALM");
+        String primary = env.get("TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY");
+        String frameworkUser = env.get("TASKCFG_ALL_TASK_USER");
+        HdfsUserAuthMapper authMapper = new HdfsUserAuthMapper(primary, frameworkHostname, realm, frameworkUser);
+        return authMapper;
+    }
+
+
     private static String renderTemplate(File configFile,
                                          String serviceName,
-                                         SchedulerConfig schedulerConfig) throws Exception {
+                                         SchedulerConfig schedulerConfig,
+                                         String userAuthMapping) {
         byte[] bytes;
         try {
             bytes = Files.readAllBytes(configFile.toPath());
@@ -96,13 +127,13 @@ public class Main {
         env.put(EnvConstants.SCHEDULER_API_PORT_TASKENV, String.valueOf(schedulerConfig.getApiServerPort()));
         env.put("MESOS_SANDBOX", "sandboxpath");
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
-        env.put(DECODED_AUTH_TO_LOCAL, getHDFSUserAuthMappings(env, AUTH_TO_LOCAL));
+        env.put(DECODED_AUTH_TO_LOCAL, userAuthMapping);
 
         String fileStr = new String(bytes, StandardCharsets.UTF_8);
         return TemplateUtils.renderMustacheThrowIfMissing(configFile.getName(), fileStr, env);
     }
 
-    private static ServiceSpec setPlacementRules(DefaultServiceSpec serviceSpec) throws Exception {
+    private static ServiceSpec setPlacementRules(DefaultServiceSpec serviceSpec) {
         PodSpec journal = getJournalPodSpec(serviceSpec);
         PodSpec name = getNamePodSpec(serviceSpec);
         PodSpec data = getDataPodSpec(serviceSpec);
@@ -121,14 +152,6 @@ public class Main {
                     "Missing required pod named '%s' in service spec", podName));
         }
         return match.get();
-    }
-
-    private static String getHDFSUserAuthMappings(Map<String, String> env, String envVarKeyName) throws Exception {
-        Base64.Decoder decoder = Base64.getDecoder();
-        String base64Mappings = env.get(envVarKeyName);
-        byte[] hdfsUserAuthMappingsBytes = decoder.decode(base64Mappings);
-        String authMappings = new String(hdfsUserAuthMappingsBytes, "UTF-8");
-        return authMappings;
     }
 
     private static PodSpec getJournalPodSpec(ServiceSpec serviceSpec) {
