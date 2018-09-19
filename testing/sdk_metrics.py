@@ -77,9 +77,7 @@ def wait_for_scheduler_counter_value(
 
 def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> typing.Dict:
     @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=timeout_seconds * 1000,
-        retry_on_result=lambda res: not res
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
     def _getter():
         return get_metrics_from_cli(task_name)
@@ -165,7 +163,19 @@ def get_metrics(package_name, service_name, pod_name, task_name):
         ),
         retry=False,
     )
-    app_json = json.loads(app_response.text)
+    app_response.raise_for_status()
+    app_json = app_response.json()
+
+    if "dimensions" not in app_json:
+        log.error("Expected key '%s' not found in app metrics: %s", "dimensions", app_json)
+        raise Exception("Expected key 'dimensions' not found in app metrics: {}")
+
+    if "executor_id" not in app_json["dimensions"]:
+        log.error(
+            "Expected key '%s' not found in app metrics: %s", "dimensions.executor_id", app_json
+        )
+        raise Exception("Expected key 'dimensions' not found in app metrics: {}")
+
     if app_json["dimensions"]["executor_id"] == task_to_check.executor_id:
         return app_json["datapoints"]
 
