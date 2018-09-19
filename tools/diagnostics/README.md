@@ -33,7 +33,7 @@ $ ./create_service_diagnostics_bundle.sh cassandra /prod/cassandra
 
 Will create bundle for:
   Package:         cassandra
-  Package version: 2.3.0-3.0.16-rc3
+  Package version: 2.3.0-3.0.16
   Service name:    /prod/cassandra
   DC/OS version:   1.11.5
   Cluster URL:     https://my-dcos-cluster.com/
