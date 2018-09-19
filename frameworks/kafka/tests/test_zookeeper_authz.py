@@ -127,7 +127,9 @@ def kafka_client(kerberos: sdk_auth.KerberosEnvironment):
 
 
 def _get_service_options(
-    allow_access_if_no_acl: bool, kerberos: sdk_auth.KerberosEnvironment, zookeeper_dns: list
+    allow_access_if_no_acl: bool,
+    kerberos: sdk_auth.KerberosEnvironment,
+    zookeeper_dns: typing.List[str],
 ) -> typing.Dict:
     service_options = {
         "service": {
