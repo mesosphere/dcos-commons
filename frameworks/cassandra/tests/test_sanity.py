@@ -6,6 +6,7 @@ import sdk_metrics
 import sdk_networks
 import sdk_plan
 import sdk_upgrade
+import sdk_utils
 
 from tests import config
 
@@ -74,6 +75,10 @@ def test_repair_cleanup_plans_complete():
 @pytest.mark.sanity
 @pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
+@pytest.mark.skipif(
+    sdk_utils.dcos_version_at_least("1.12"),
+    reason="Metrics are not working on 1.12. Reenable once this is fixed",
+)
 def test_metrics():
     expected_metrics = [
         "org.apache.cassandra.metrics.Table.CoordinatorReadLatency.system.hints.p999",

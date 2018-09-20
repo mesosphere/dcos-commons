@@ -37,7 +37,7 @@ def kerberos(configure_security):
 
 
 @pytest.fixture(scope="module")
-def zookeeper_server(kerberos):
+def zookeeper_service(kerberos):
     service_kerberos_options = {
         "service": {
             "name": config.ZOOKEEPER_SERVICE_NAME,
@@ -69,11 +69,11 @@ def zookeeper_server(kerberos):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def kafka_server(kerberos, zookeeper_server):
+def kafka_server(kerberos, zookeeper_service):
 
     # Get the zookeeper DNS values
     zookeeper_dns = sdk_networks.get_endpoint(
-        zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
+        zookeeper_service["package_name"], zookeeper_service["service"]["name"], "clientport"
     )["dns"]
 
     service_kerberos_options = {
