@@ -181,9 +181,7 @@ def test_pod_status_one():
 @pytest.mark.sanity
 def test_pod_info():
     rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        "pod info world-1",
+        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), "pod info world-1"
     )
     assert rc == 0, "Pod info failed"
     jsonobj = json.loads(stdout)
@@ -234,12 +232,15 @@ def test_config_cli():
     configs = json.loads(stdout)
     assert len(configs) >= 1  # refrain from breaking this test if earlier tests did a config update
 
-    assert 0 == sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        foldered_name,
-        "debug config show {}".format(configs[0]),
-        print_output=False,  # noisy output
-    )[0]
+    assert (
+        0
+        == sdk_cmd.svc_cli(
+            config.PACKAGE_NAME,
+            foldered_name,
+            "debug config show {}".format(configs[0]),
+            print_output=False,  # noisy output
+        )[0]
+    )
     _check_json_output(foldered_name, "debug config target")
     _check_json_output(foldered_name, "debug config target_id")
 
@@ -251,15 +252,33 @@ def test_plan_cli():
     phase_name = "world"
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     _check_json_output(foldered_name, "plan list")
-    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))[0]
+    assert (
+        0
+        == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))[0]
+    )
     _check_json_output(foldered_name, "plan show --json {}".format(plan_name))
     _check_json_output(foldered_name, "plan show {} --json".format(plan_name))
 
     # trigger a restart so that the plan is in a non-complete state.
     # the 'interrupt' command will fail if the plan is already complete:
-    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan force-restart {}".format(plan_name))[0]
-    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name))[0]
-    assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name))[0]
+    assert (
+        0
+        == sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "plan force-restart {}".format(plan_name)
+        )[0]
+    )
+    assert (
+        0
+        == sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name)
+        )[0]
+    )
+    assert (
+        0
+        == sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name)
+        )[0]
+    )
 
     # now wait for plan to finish before continuing to other tests:
     assert sdk_plan.wait_for_completed_plan(foldered_name, plan_name)
@@ -295,9 +314,7 @@ def test_state_refresh_disable_cache():
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def check_cache_refresh_fails_409conflict():
         rc, stdout, stderr = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME,
-            foldered_name,
-            "debug state refresh_cache"
+            config.PACKAGE_NAME, foldered_name, "debug state refresh_cache"
         )
         return rc != 0 and stdout == "" and "failed: 409 Conflict" in stderr
 
@@ -313,7 +330,9 @@ def test_state_refresh_disable_cache():
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
     def check_cache_refresh():
-        rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state refresh_cache")
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            config.PACKAGE_NAME, foldered_name, "debug state refresh_cache"
+        )
         assert rc == 0, "Refresh cache failed"
         return stdout
 
@@ -377,6 +396,40 @@ def test_tmp_directory_created():
         config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar | grep bar"
     )
     assert code > 0
+
+
+@pytest.mark.sanity
+def test_envvar_accross_restarts():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+
+    sleep_duration = 555
+    sdk_upgrade.update_or_upgrade_or_downgrade(
+        config.PACKAGE_NAME,
+        foldered_name,
+        to_package_version=None,
+        additional_options={"service": {"name": foldered_name, "sleep": sleep_duration}},
+        expected_running_tasks=config.DEFAULT_TASK_COUNT,
+        wait_for_deployment=True,
+    )
+
+    for _ in range(3):
+        cmd_list = ["pod", "restart", "hello-0"]
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, " ".join(cmd_list))
+
+        sdk_plan.wait_for_kicked_off_recovery(foldered_name)
+        sdk_plan.wait_for_completed_recovery(foldered_name)
+
+        _, stdout, _ = sdk_cmd.service_task_exec(foldered_name, "node-0", "env")
+
+        envvar = "SLEEP_DURATION="
+        envvar_pos = stdout.find(envvar)
+        if envvar_pos < 0:
+            raise Exception("Required envvar not found")
+
+        if not stdout[envvar_pos + len(envvar) :].startswith("{}".format(sleep_duration)):
+            found_string = stdout[envvar_pos + len(envvar) : envvar_pos + len(envvar) + 15]
+            log.error("Looking for %s%d but found: %s", envvar, sleep_duration, found_string)
+            raise Exception("Envvar not set to required value")
 
 
 def _check_json_output(svc_name, cmd):
