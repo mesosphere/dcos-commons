@@ -302,7 +302,7 @@ def test_plan_cli():
         config.PACKAGE_NAME, foldered_name, "plan interrupt {} {}".format(plan_name, phase_name)
     )
     assert rc == 0
-    rc = sdk_cmd.svc_cli(
+    rc, _, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, foldered_name, "plan continue {} {}".format(plan_name, phase_name)
     )
     assert rc == 0
