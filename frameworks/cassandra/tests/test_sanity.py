@@ -108,7 +108,7 @@ def test_config_update_across_restart():
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         foldered_service_name,
-        to_package_version="stub-universe",
+        to_package_version=None,
         additional_options={
             "cassandra": {
                 "batch_size_warn_threshold_in_kb": 15
