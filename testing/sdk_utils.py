@@ -7,7 +7,6 @@ SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 import collections
 import functools
 import logging
-import operator
 import os
 import os.path
 import pytest
