@@ -7,7 +7,6 @@ SHOULD ALSO BE APPLIED TO sdk_utils IN ANY OTHER PARTNER REPOS
 import collections
 import functools
 import logging
-import operator
 import os
 import os.path
 import pytest
@@ -177,76 +176,6 @@ def pretty_duration(seconds):
 
 def random_string(length=8):
     return "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
-
-
-# Pretty much https://github.com/pytoolz/toolz/blob/a8cd0adb5f12ec5b9541d6c2ef5a23072e1b11a3/toolz/dicttoolz.py#L279
-def get_in(keys, coll, default=None):
-    """ Reaches into nested associative data structures. Returns the value for path ``keys``.
-
-    If the path doesn't exist returns ``default``.
-
-    >>> transaction = {'name': 'Alice',
-    ...                'purchase': {'items': ['Apple', 'Orange'],
-    ...                             'costs': [0.50, 1.25]},
-    ...                'credit card': '5555-1234-1234-1234'}
-    >>> get_in(['purchase', 'items', 0], transaction)
-    'Apple'
-    >>> get_in(['name'], transaction)
-    'Alice'
-    >>> get_in(['purchase', 'total'], transaction)
-    >>> get_in(['purchase', 'items', 'apple'], transaction)
-    >>> get_in(['purchase', 'items', 10], transaction)
-    >>> get_in(['purchase', 'total'], transaction, 0)
-    0
-    """
-    try:
-        return functools.reduce(operator.getitem, keys, coll)
-    except (KeyError, IndexError, TypeError):
-        return default
-
-
-# https://github.com/pytoolz/toolz/blob/2bd9139d0d0e17d3426cb467b5f58b1fb6d8a439/toolz/itertoolz.py#L791
-def getter(index):
-    if isinstance(index, list):
-        if len(index) == 1:
-            index = index[0]
-            return lambda x: (x[index],)
-        elif index:
-            return operator.itemgetter(*index)
-        else:
-            return lambda x: ()
-    else:
-        return operator.itemgetter(index)
-
-
-# https://github.com/pytoolz/toolz/blob/2bd9139d0d0e17d3426cb467b5f58b1fb6d8a439/toolz/itertoolz.py#L66
-def groupby(key, seq):
-    """ Group a collection by a key function
-    >>> names = ['Alice', 'Bob', 'Charlie', 'Dan', 'Edith', 'Frank']
-    >>> groupby(len, names)  # doctest: +SKIP
-    {3: ['Bob', 'Dan'], 5: ['Alice', 'Edith', 'Frank'], 7: ['Charlie']}
-    >>> iseven = lambda x: x % 2 == 0
-    >>> groupby(iseven, [1, 2, 3, 4, 5, 6, 7, 8])  # doctest: +SKIP
-    {False: [1, 3, 5, 7], True: [2, 4, 6, 8]}
-    Non-callable keys imply grouping on a member.
-    >>> groupby('gender', [{'name': 'Alice', 'gender': 'F'},
-    ...                    {'name': 'Bob', 'gender': 'M'},
-    ...                    {'name': 'Charlie', 'gender': 'M'}]) # doctest:+SKIP
-    {'F': [{'gender': 'F', 'name': 'Alice'}],
-     'M': [{'gender': 'M', 'name': 'Bob'},
-           {'gender': 'M', 'name': 'Charlie'}]}
-    See Also:
-        countby
-    """
-    if not callable(key):
-        key = getter(key)
-    d = collections.defaultdict(lambda: [].append)
-    for item in seq:
-        d[key(item)](item)
-    rv = {}
-    for k, v in d.items():
-        rv[k] = v.__self__
-    return rv
 
 
 def merge_dictionaries(dict1, dict2):
