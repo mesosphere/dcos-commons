@@ -3,6 +3,7 @@ package com.mesosphere.sdk.hdfs.scheduler;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -17,7 +18,7 @@ public class HdfsUserAuthMapperTest {
     public void testAddUserAuthMappingFromEnv() {
         Map<String, String> env = new HashMap<>();
         String expected = "value";
-        env.put("key", Base64.getEncoder().encodeToString(expected.getBytes()));
+        env.put("key", Base64.getEncoder().encodeToString(expected.getBytes(StandardCharsets.UTF_8)));
         HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
         mapper.addUserAuthMappingFromEnv(env, "key");
         Assert.assertEquals(expected, mapper.getUserAuthMappingString());
@@ -45,7 +46,7 @@ public class HdfsUserAuthMapperTest {
         mapper.addDefaultUserAuthMapping("data", 1);
         Map<String, String> env = new HashMap<>();
         String expected = "value";
-        env.put("key", Base64.getEncoder().encodeToString(expected.getBytes()));
+        env.put("key", Base64.getEncoder().encodeToString(expected.getBytes(StandardCharsets.UTF_8)));
         mapper.addUserAuthMappingFromEnv(env, "key");
         Assert.assertEquals(2, mapper.getUserAuthMappingString().split("\n").length);
     }

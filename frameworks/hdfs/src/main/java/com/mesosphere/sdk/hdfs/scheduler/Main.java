@@ -85,16 +85,19 @@ public class Main {
                 .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec)
                 .setEndpointProducer(HDFS_SITE_XML, EndpointProducer.constant(
-                        renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName(), schedulerConfig, userAuthMapping)))
+                        renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName(), schedulerConfig,
+                                userAuthMapping)))
                 .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
-                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName(), schedulerConfig, userAuthMapping)))
+                        renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName(), schedulerConfig,
+                                userAuthMapping)))
                 .setCustomConfigValidators(Arrays.asList(new HDFSZoneValidator()))
                 .withSingleRegionConstraint();
     }
 
     private static HdfsUserAuthMapper setupAuthMapper(SchedulerConfig schedulerConfig) {
         Map<String, String> env = System.getenv();
-        String frameworkHostname = EndpointUtils.toAutoIpDomain(env.get(EnvConstants.FRAMEWORK_HOST_TASKENV), schedulerConfig);
+        String frameworkHostname = EndpointUtils.toAutoIpDomain(env.get(EnvConstants.FRAMEWORK_HOST_TASKENV),
+                schedulerConfig);
 
         String realm = env.get("TASKCFG_ALL_SECURITY_KERBEROS_REALM");
         String primary = env.get("TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY");

@@ -5,13 +5,16 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Map;
 
+/**
+ * This class helps to generate user auth mappings for the HDFS setup with kerberos.
+ */
 public class HdfsUserAuthMapper {
 
     private final String primary;
     private final String frameworkHost;
     private final String realm;
     private final String frameworkUser;
-    private final String AUTH_TO_LOCAL_DEFAULT_TEMPLATE = "RULE:[2:$1/$2@$0](%s/%s.%s@%s)s/.*/%s/";
+    private static final String authToLocalDefaultTemplate = "RULE:[2:$1/$2@$0](%s/%s.%s@%s)s/.*/%s/";
     private final ArrayList<String> authMappings = new ArrayList<>();
 
     public HdfsUserAuthMapper(String primary, String frameworkHost, String realm, String frameworkUser) {
@@ -31,7 +34,7 @@ public class HdfsUserAuthMapper {
     public void addDefaultUserAuthMapping(String hostPrefix, int nodeCount) {
         for (int i = 0; i < nodeCount; i++) {
             String taskName = String.format("%s-%s-node", hostPrefix, i);
-            String authMapping = String.format(AUTH_TO_LOCAL_DEFAULT_TEMPLATE, primary, taskName,
+            String authMapping = String.format(authToLocalDefaultTemplate, primary, taskName,
                     frameworkHost, realm, frameworkUser);
             authMappings.add(authMapping);
         }
