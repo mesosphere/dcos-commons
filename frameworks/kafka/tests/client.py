@@ -2,13 +2,13 @@
 A collection of client utilites for Kafka.
 """
 import logging
+from toolz import merge as merge_dictionaries
 import uuid
 
 import sdk_auth
 import sdk_cmd
 import sdk_marathon
 import sdk_networks
-import sdk_utils
 
 from tests import auth
 from tests import test_utils
@@ -98,7 +98,7 @@ class KafkaClient:
 
         if kerberos is not None:
             self._is_kerberos = True
-            options = sdk_utils.merge_dictionaries(options, self._get_kerberos_options(kerberos))
+            options = merge_dictionaries(options, self._get_kerberos_options(kerberos))
 
         sdk_marathon.install_app(options)
 
