@@ -12,7 +12,7 @@ import sdk_utils
 
 from security import transport_encryption
 
-from tests import config
+from tests import config,Aws_credentials
 
 pytestmark = [
     sdk_utils.dcos_ee_only,
@@ -88,16 +88,17 @@ def test_tls_connection(cassandra_service, dcos_ca_bundle):
         sdk_jobs.run_job(config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle))
         sdk_jobs.run_job(config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle))
 
-        key_id = os.getenv("AWS_ACCESS_KEY_ID")
+   #     key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        key_id=Aws_credentials.key_id
         if not key_id:
             assert (
                 False
             ), "AWS credentials are required for this test. " 'Disable test with e.g. TEST_TYPES="sanity and not aws"'
         plan_parameters = {
             "AWS_ACCESS_KEY_ID": key_id,
-            "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
+            "AWS_SECRET_ACCESS_KEY":Aws_credentials.AWS_SECRET_ACCESS_KEY,
             "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
-            "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
+            "S3_BUCKET_NAME":Aws_credentials.S3_BUCKET_NAME,
             "SNAPSHOT_NAME": str(uuid.uuid1()),
             "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
         }
