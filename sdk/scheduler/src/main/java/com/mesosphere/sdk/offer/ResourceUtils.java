@@ -77,24 +77,15 @@ public class ResourceUtils {
     }
 
     public static Optional<String> getPrincipal(Protos.Resource resource) {
-        Optional<Protos.Resource.ReservationInfo> reservationInfo = getReservation(resource);
-        return reservationInfo.isPresent()
-                ? Optional.of(reservationInfo.get().getPrincipal())
-                : Optional.empty();
+        return getReservation(resource).map(Protos.Resource.ReservationInfo::getPrincipal);
     }
 
     public static Optional<String> getNamespace(Protos.Resource resource) {
-        Optional<Protos.Resource.ReservationInfo> reservationInfo = getReservation(resource);
-        return reservationInfo.isPresent()
-                ? AuxLabelAccess.getResourceNamespace(reservationInfo.get())
-                : Optional.empty();
+        return getReservation(resource).flatMap(AuxLabelAccess::getResourceNamespace);
     }
 
     public static Optional<String> getResourceId(Protos.Resource resource) {
-        Optional<Protos.Resource.ReservationInfo> reservationInfo = getReservation(resource);
-        return reservationInfo.isPresent()
-                ? AuxLabelAccess.getResourceId(reservationInfo.get())
-                : Optional.empty();
+        return getReservation(resource).flatMap(AuxLabelAccess::getResourceId);
     }
 
     public static boolean hasResourceId(Protos.Resource resource) {
