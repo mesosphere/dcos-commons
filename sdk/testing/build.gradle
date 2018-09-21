@@ -20,9 +20,9 @@ publishing {
         def pxVersion = getPxVersion()
         maven {
             if (pxVersion.endsWith('-SNAPSHOT')) {
-                url "s3://px-dcos/maven-snapshot/"
+                url "s3://" + System.env['S3_RELEASE_BUCKET'] + "/maven-snapshot/"
             } else {
-                url "s3://px-dcos/maven/"
+                url "s3://" + System.env['S3_RELEASE_BUCKET'] + "/maven/"
             }
             credentials(AwsCredentials) {
                 accessKey System.env['AWS_ACCESS_KEY_ID']

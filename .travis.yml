@@ -14,8 +14,13 @@ before_install:
 script:
   - ./gradlew check
   - if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
-      ./sdk/bootstrap/build.sh;
-      ./gradlew :executor:distZip :publishArtifacts :common:publish :scheduler:publish :testing:publish;
+      if [ -z "${PX_SDK_RELEASE_VERSION}" ]; then
+          ./release.sh -r snapshot;
+      else
+          git remote remove origin;
+          git remote add origin https://${GITHUB_TOKEN}@github.com/portworx/dcos-commons.git > /dev/null 2>&1;
+          ./release.sh -r ${PX_SDK_RELEASE_VERSION};
+      fi;
       frameworks/cassandra/build.sh aws;
       frameworks/elastic/build.sh aws;
       frameworks/hdfs/build.sh aws;
