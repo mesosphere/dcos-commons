@@ -419,7 +419,7 @@ def test_envvar_accross_restarts():
         sdk_plan.wait_for_kicked_off_recovery(foldered_name)
         sdk_plan.wait_for_completed_recovery(foldered_name)
 
-        _, stdout, _ = sdk_cmd.service_task_exec(foldered_name, "node-0", "env")
+        _, stdout, _ = sdk_cmd.service_task_exec(foldered_name, "hello-0-server", "env")
 
         envvar = "SLEEP_DURATION="
         envvar_pos = stdout.find(envvar)

@@ -132,7 +132,7 @@ def test_config_update_across_restart():
             foldered_service_name, timeout_seconds=config.DEFAULT_CASSANDRA_TIMEOUT
         )
 
-        _, stdout, _ = sdk_cmd.service_task_exec(foldered_service_name, "node-0", "env")
+        _, stdout, _ = sdk_cmd.service_task_exec(foldered_service_name, "node-0-server", "env")
 
         envvar = "CASSANDRA_BATCH_SIZE_WARN_THRESHOLD_IN_KB="
         envvar_pos = stdout.find(envvar)
