@@ -3,9 +3,7 @@ import pytest
 import sdk_utils
 import sdk_auth
 import sdk_install
-import sdk_marathon
 
-from security import kerberos as krb5
 from security import transport_encryption
 
 from tests import config, auth
