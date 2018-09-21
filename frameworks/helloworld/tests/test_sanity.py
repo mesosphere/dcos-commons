@@ -412,7 +412,7 @@ def test_envvar_accross_restarts():
         wait_for_deployment=True,
     )
 
-    for _ in range(3):
+    for _ in range(10):
         cmd_list = ["pod", "restart", "hello-0"]
         sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, " ".join(cmd_list))
 
