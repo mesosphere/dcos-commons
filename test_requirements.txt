@@ -9,8 +9,8 @@ git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cb
 dcos-shakedown==1.4.12
 
 # Used by tools/create_testing_volumes.py (and for dcos-launch CLI):
-git+https://github.com/dcos/dcos-test-utils.git@3ebfc18ff9c5a1aa382311474a9192a68c98b0a7
-git+https://github.com/dcos/dcos-launch.git@dc1e116685fba5105f322b007549b7eb104cf441
+git+https://github.com/dcos/dcos-test-utils.git@8f1820f537b0caa4bbb697beaae4d1e4940bfbb6
+git+https://github.com/dcos/dcos-launch.git@2e738850fd6cc02bc1acd69d5ecc4c9dec600f10
 
 # CI:
 teamcity-messages
