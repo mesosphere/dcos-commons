@@ -63,7 +63,8 @@ public class Main {
         String userAuthMapping;
 
         if (Boolean.valueOf(env.get("TASKCFG_ALL_SECURITY_KERBEROS_ENABLED"))) {
-            HdfsUserAuthMapper authMapper = setupAuthMapper(schedulerConfig);
+            String frameworkHostname = EndpointUtils.toAutoIpDomain(rawServiceSpec.getName(), schedulerConfig);
+            HdfsUserAuthMapper authMapper = setupAuthMapper(env, frameworkHostname);
             authMapper.addUserAuthMappingFromEnv(env, TASKCFG_ALL_AUTH_TO_LOCAL);
             authMapper.addDefaultUserAuthMapping(JOURNAL_POD_TYPE, JOURNAL_NODE_COUNT);
             authMapper.addDefaultUserAuthMapping(NAME_POD_TYPE, NAME_NODE_COUNT);
@@ -94,16 +95,11 @@ public class Main {
                 .withSingleRegionConstraint();
     }
 
-    private static HdfsUserAuthMapper setupAuthMapper(SchedulerConfig schedulerConfig) {
-        Map<String, String> env = System.getenv();
-        String frameworkHostname = EndpointUtils.toAutoIpDomain(env.get(EnvConstants.FRAMEWORK_HOST_TASKENV),
-                schedulerConfig);
-
+    private static HdfsUserAuthMapper setupAuthMapper(Map<String, String> env, String frameworkHostname) {
         String realm = env.get("TASKCFG_ALL_SECURITY_KERBEROS_REALM");
         String primary = env.get("TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY");
         String frameworkUser = env.get("TASKCFG_ALL_TASK_USER");
-        HdfsUserAuthMapper authMapper = new HdfsUserAuthMapper(primary, frameworkHostname, realm, frameworkUser);
-        return authMapper;
+        return new HdfsUserAuthMapper(primary, frameworkHostname, realm, frameworkUser);
     }
 
 
