@@ -35,7 +35,7 @@ public class HdfsUserAuthMapperTest {
     @Test
     public void testAddDefaultUserAuthMapping() {
         HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
-        mapper.addDefaultUserAuthMapping("data", 1);
+        mapper.addDefaultUserAuthMapping("data", "node", 1);
         String expected = "RULE:[2:$1/$2@$0](primary/data-0-node.host@realm)s/.*/user/";
         Assert.assertEquals(expected, mapper.getUserAuthMappingString());
     }
@@ -43,7 +43,7 @@ public class HdfsUserAuthMapperTest {
     @Test
     public void testMultipleDefaultUserAuthMappings() {
         HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
-        mapper.addDefaultUserAuthMapping("data", 2);
+        mapper.addDefaultUserAuthMapping("data", "node", 2);
         String expected = "RULE:[2:$1/$2@$0](primary/data-0-node.host@realm)s/.*/user/\nRULE:[2:$1/$2@$0](primary/data-1-node.host@realm)s/.*/user/";
         Assert.assertEquals(expected, mapper.getUserAuthMappingString());
     }
@@ -51,7 +51,7 @@ public class HdfsUserAuthMapperTest {
     @Test
     public void testUserAuthMappingSeparation() {
         HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
-        mapper.addDefaultUserAuthMapping("data", 1);
+        mapper.addDefaultUserAuthMapping("data", "node", 1);
         Map<String, String> env = new HashMap<>();
         String expected = "value";
         env.put("key", Base64.getEncoder().encodeToString(expected.getBytes(StandardCharsets.UTF_8)));
@@ -77,7 +77,7 @@ public class HdfsUserAuthMapperTest {
         taskEnv.put("SCHEDULER_API_HOSTNAME", "schedulerHostname");
 
         HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
-        mapper.addDefaultUserAuthMapping("data", 2);
+        mapper.addDefaultUserAuthMapping("data", "node", 2);
 
         taskEnv.put("DECODED_AUTH_TO_LOCAL", mapper.getUserAuthMappingString());
 

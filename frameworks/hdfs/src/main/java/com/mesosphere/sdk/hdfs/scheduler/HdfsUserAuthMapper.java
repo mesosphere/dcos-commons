@@ -31,9 +31,9 @@ public class HdfsUserAuthMapper {
         authMappings.add(new String(hdfsUserAuthMappingsBytes, StandardCharsets.UTF_8));
     }
 
-    public void addDefaultUserAuthMapping(String hostPrefix, int nodeCount) {
+    public void addDefaultUserAuthMapping(String hostPrefix, String hostPostfix, int nodeCount) {
         for (int i = 0; i < nodeCount; i++) {
-            String taskName = String.format("%s-%s-node", hostPrefix, i);
+            String taskName = String.format("%s-%s-%s", hostPrefix, i, hostPostfix);
             String authMapping = String.format(authToLocalDefaultTemplate, primary, taskName,
                     frameworkHost, realm, frameworkUser);
             authMappings.add(authMapping);

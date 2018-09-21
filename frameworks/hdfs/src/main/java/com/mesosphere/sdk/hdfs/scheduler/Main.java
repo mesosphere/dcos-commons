@@ -66,9 +66,10 @@ public class Main {
             String frameworkHostname = EndpointUtils.toAutoIpDomain(rawServiceSpec.getName(), schedulerConfig);
             HdfsUserAuthMapper authMapper = setupAuthMapper(env, frameworkHostname);
             authMapper.addUserAuthMappingFromEnv(env, TASKCFG_ALL_AUTH_TO_LOCAL);
-            authMapper.addDefaultUserAuthMapping(JOURNAL_POD_TYPE, JOURNAL_NODE_COUNT);
-            authMapper.addDefaultUserAuthMapping(NAME_POD_TYPE, NAME_NODE_COUNT);
-            authMapper.addDefaultUserAuthMapping(DATA_POD_TYPE, Integer.parseInt(env.get("DATA_COUNT")));
+            authMapper.addDefaultUserAuthMapping(JOURNAL_POD_TYPE, "node", JOURNAL_NODE_COUNT);
+            authMapper.addDefaultUserAuthMapping(NAME_POD_TYPE, "zkfc", NAME_NODE_COUNT);
+            authMapper.addDefaultUserAuthMapping(NAME_POD_TYPE, "node", NAME_NODE_COUNT);
+            authMapper.addDefaultUserAuthMapping(DATA_POD_TYPE, "node", Integer.parseInt(env.get("DATA_COUNT")));
             userAuthMapping = authMapper.getUserAuthMappingString();
         } else {
             userAuthMapping = "";
