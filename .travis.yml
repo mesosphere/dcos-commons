@@ -7,7 +7,7 @@ before_install:
   - sudo add-apt-repository -y ppa:deadsnakes/ppa
   - sudo apt-get update -yq
   - sudo apt-get install -y python3.5
-  - sudo apt-get install -y python3-setuptools
+  - sudo apt-get install -y python3-setuptools python3-pip
   - sudo apt-get install -y awscli
   - eval "$(gimme 1.8.3)"
   - sudo ln -sf /usr/bin/python3.5 /usr/bin/python3
@@ -16,11 +16,11 @@ script:
   - ./gradlew check
   - if [ "${TRAVIS_PULL_REQUEST}" == "false" ]; then
       if [ -z "${PX_SDK_RELEASE_VERSION}" ]; then
-          ./release.sh -r snapshot;
+        ./release.sh -r snapshot;
       else
-          git remote remove origin;
-          git remote add origin https://${GITHUB_TOKEN}@github.com/portworx/dcos-commons.git > /dev/null 2>&1;
-          ./release.sh -r ${PX_SDK_RELEASE_VERSION};
+        git remote remove origin;
+        git remote add origin https://${GITHUB_TOKEN}@github.com/portworx/dcos-commons.git > /dev/null 2>&1;
+        ./release.sh -r ${PX_SDK_RELEASE_VERSION};
       fi;
       frameworks/cassandra/build.sh aws;
       frameworks/elastic/build.sh aws;
