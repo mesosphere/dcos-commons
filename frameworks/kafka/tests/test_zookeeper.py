@@ -1,5 +1,6 @@
 import pytest
 import retrying
+from toolz import merge as merge_dictionaries
 
 import sdk_cmd
 import sdk_install
@@ -15,8 +16,8 @@ pytestmark = pytest.mark.skip(reason="INFINITY-3363: Skipping test until it is b
 
 
 @pytest.fixture(scope="module", autouse=True)
-def zookeeper_server(configure_security):
-    service_options = sdk_utils.merge_dictionaries(
+def zookeeper_service(configure_security):
+    service_options = merge_dictionaries(
         sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
         {"service": {"name": config.ZOOKEEPER_SERVICE_NAME}},
     )
@@ -27,7 +28,7 @@ def zookeeper_server(configure_security):
     try:
         sdk_install.uninstall(config.ZOOKEEPER_PACKAGE_NAME, config.ZOOKEEPER_SERVICE_NAME)
         if sdk_utils.is_strict_mode():
-            service_options = sdk_utils.merge_dictionaries(
+            service_options = merge_dictionaries(
                 {"service": {"service_account": zk_account, "service_account_secret": zk_secret}},
                 service_options,
             )
@@ -56,12 +57,12 @@ def zookeeper_server(configure_security):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def kafka_server(zookeeper_server):
+def kafka_server(zookeeper_service):
     try:
 
         # Get the zookeeper DNS values
         zookeeper_dns = sdk_networks.get_endpoint(
-            zookeeper_server["package_name"], zookeeper_server["service"]["name"], "clientport"
+            zookeeper_service["package_name"], zookeeper_service["service"]["name"], "clientport"
         )["dns"]
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
