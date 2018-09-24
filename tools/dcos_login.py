@@ -32,8 +32,9 @@ def login_session(cluster_url: str) -> None:
     - Dockerfile downloads the latest cli that works for 1.10 and above ONLY.
       |- If the cluster is 1.10 and above:
          |- If Open:
-            |- Export DCOS_ACS_TOKEN
-            |- Then do a `dcos cluster setup <url>`, it should magically work!
+            |- Do a `dcos cluster setup <url>`.
+               |- If a previous valid token is provided via DCOS_ACS_TOKEN, use it to do the setup by setting DCOS_CLUSTER_SETUP_ACS_TOKEN
+               |- Else, use the __CLI_LOGIN_OPEN_TOKEN to pass to stdin which is used to fetch a DCOS_ACS_TOKEN
          |- If Enterprise:
             |- A `dcos cluster setup` with username and password should work.
       |- If the cluster is less than 1.10: <DEPRECATED>
@@ -51,10 +52,14 @@ def login_session(cluster_url: str) -> None:
     else:
         # This would try to use `xdg-open` and print a warning that it was not found in the PATH,
         # but reads stdin and cluster will setup successfully.
-        _run_cmd(
-            "dcos cluster setup {} --insecure".format(cluster_url),
-            cmd_input=bytes(os.environ.get(__DCOS_ACS_TOKEN_ENV, __CLI_LOGIN_OPEN_TOKEN), encoding="utf-8")
-        )
+        if __DCOS_ACS_TOKEN_ENV in os.environ:
+            os.environ["DCOS_CLUSTER_SETUP_ACS_TOKEN"] = os.environ.get(__DCOS_ACS_TOKEN_ENV)
+            _run_cmd("dcos cluster setup {} --insecure".format(cluster_url))
+        else:
+            _run_cmd(
+                "dcos cluster setup {} --insecure".format(cluster_url),
+                cmd_input=bytes(__CLI_LOGIN_OPEN_TOKEN, encoding="utf-8")
+            )
     _run_cmd("dcos --help")
     _run_cmd("dcos cluster list")
     _run_cmd("dcos node --json")
