@@ -423,14 +423,20 @@ def check_tasks_updated(
     _check_tasks_updated()
 
 
-def check_tasks_not_updated(service_name, prefix, old_task_ids):
+def check_tasks_not_updated(
+    service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS
+):
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_plan.wait_for_completed_recovery(service_name)
-    task_ids = get_task_ids(service_name, prefix)
-    task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(
-        sorted(old_task_ids), sorted(task_ids)
+
+    @retrying.retry(
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    log.info('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
-    assert set(old_task_ids).issubset(
-        set(task_ids)
-    ), 'Tasks starting with "{}" were updated:{}'.format(prefix, task_sets)
+    def _check_tasks_not_updated():
+        task_ids = get_task_ids(service_name, prefix)
+        task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(
+            sorted(old_task_ids), sorted(task_ids)
+        )
+        log.info('Checking tasks starting with "{}" have not been updated:{}'.format(prefix, task_sets))
+        return set(old_task_ids).issubset(set(task_ids))
+    _check_tasks_not_updated()
