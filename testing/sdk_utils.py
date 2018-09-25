@@ -175,3 +175,17 @@ def pretty_duration(seconds):
 
 def random_string(length=8):
     return "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
+
+
+def merge_dictionaries(dict1, dict2):
+    if not isinstance(dict2, dict):
+        return dict1
+    ret = {}
+    for k, v in dict1.items():
+        ret[k] = v
+    for k, v in dict2.items():
+        if k in dict1 and isinstance(dict1[k], dict) and isinstance(dict2[k], collections.Mapping):
+            ret[k] = merge_dictionaries(dict1[k], dict2[k])
+        else:
+            ret[k] = dict2[k]
+    return ret
