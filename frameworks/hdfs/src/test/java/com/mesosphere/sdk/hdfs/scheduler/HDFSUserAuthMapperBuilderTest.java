@@ -34,6 +34,14 @@ public class HDFSUserAuthMapperBuilderTest {
     }
 
     @Test
+    public void testNoAuthToLocalProvidedByEnv() {
+        String authMappings =  new HDFSUserAuthMapperBuilder(ENV, frameworkHost)
+                .addUserAuthMappingFromEnv()
+                .build();
+        Assert.assertEquals("", authMappings);
+    }
+
+    @Test
     public void testAddUserAuthMappingFromEnv() {
         String expected = "value";
         Map<String, String> env = getEnvWithEncodedAuthToLocal(expected);
