@@ -61,6 +61,17 @@ public class HDFSUserAuthMapperBuilderTest {
     }
 
     @Test
+    public void testEnvAuthToLocalIsNotOverwritten() {
+        String expected = "authToLocal";
+        Map<String, String> env = getEnvWithEncodedAuthToLocal(expected);
+        String authMappings = new HDFSUserAuthMapperBuilder(env, frameworkHost)
+                .addUserAuthMappingFromEnv()
+                .addDefaultUserAuthMapping("data", "node", 1)
+                .build();
+        Assert.assertEquals(expected, authMappings.split("\n")[0]);
+    }
+
+    @Test
     public void testMultipleDefaultUserAuthMappings() {
         String authMappings = new HDFSUserAuthMapperBuilder(ENV, frameworkHost)
                 .addDefaultUserAuthMapping("data", "node", 2)
