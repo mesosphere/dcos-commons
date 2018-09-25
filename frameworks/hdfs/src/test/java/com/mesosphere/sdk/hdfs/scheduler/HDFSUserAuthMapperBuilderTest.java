@@ -68,7 +68,7 @@ public class HDFSUserAuthMapperBuilderTest {
                 .addUserAuthMappingFromEnv()
                 .addDefaultUserAuthMapping("data", "node", 1)
                 .build();
-        Assert.assertEquals(expected, authMappings.split("\n")[0]);
+        Assert.assertTrue(Arrays.asList(authMappings.split("\n")).contains(expected));
     }
 
     @Test
