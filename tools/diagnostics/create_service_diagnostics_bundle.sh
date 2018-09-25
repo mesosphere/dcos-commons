@@ -86,6 +86,6 @@ if [ "${#}" -eq 1 ] && [[ "${1}" =~ ^(--help|-help|help|--h|-h)$ ]]; then
 fi
 
 container_run "rm -rf ${CONTAINER_DCOS_CLI_DIRECTORY}
-                cp -r ${CONTAINER_DCOS_CLI_DIRECTORY_RO} ${CONTAINER_DCOS_CLI_DIRECTORY}
-                PYTHONPATH=${CONTAINER_PYTHONPATH} ${CONTAINER_SCRIPT_PATH} ${*} \
-                  --bundles-directory ${CONTAINER_BUNDLES_DIRECTORY}"
+               cp -r ${CONTAINER_DCOS_CLI_DIRECTORY_RO} ${CONTAINER_DCOS_CLI_DIRECTORY}
+               PYTHONPATH=${CONTAINER_PYTHONPATH} ${CONTAINER_SCRIPT_PATH} ${*} \
+                 --bundles-directory ${CONTAINER_BUNDLES_DIRECTORY}"
