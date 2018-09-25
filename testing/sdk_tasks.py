@@ -446,6 +446,8 @@ def wait_for_active_framework(service_name, timeout_seconds=DEFAULT_TIMEOUT_SECO
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
     def _wait_for_active_framework():
-        frameworks = sdk_cmd.cluster_request("GET", "/mesos/frameworks").json()["frameworks"]
-        return len(list(filter(lambda x: x["name"] == service_name and x["active"], frameworks))) > 0
+        return len(list(filter(
+            lambda fwk: fwk["name"] == service_name and fwk["active"],
+            sdk_cmd.cluster_request("GET", "/mesos/frameworks").json()["frameworks"]
+        ))) > 0
     _wait_for_active_framework()

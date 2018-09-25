@@ -239,8 +239,7 @@ def test_pods_restart_graceful_shutdown():
 
 @pytest.mark.sanity
 def test_kill_scheduler():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    task_ids = sdk_tasks.get_task_ids(foldered_name, "")
+    task_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "")
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(config.SERVICE_NAME)
     scheduler_ids = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix)
     assert len(scheduler_ids) == 1, "Expected to find ONLY one scheduler task but found {}".format(scheduler_ids)
@@ -252,9 +251,9 @@ def test_kill_scheduler():
     )
 
     sdk_tasks.check_tasks_updated("marathon", scheduler_task_prefix, scheduler_ids)
-    sdk_tasks.wait_for_active_framework(foldered_name)
+    sdk_tasks.wait_for_active_framework(config.SERVICE_NAME)
     config.check_running()
-    sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
+    sdk_tasks.check_tasks_not_updated(config.SERVICE_NAME, "", task_ids)
 
 
 @pytest.mark.sanity
