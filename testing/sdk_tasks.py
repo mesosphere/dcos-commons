@@ -434,3 +434,20 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     assert set(old_task_ids).issubset(
         set(task_ids)
     ), 'Tasks starting with "{}" were updated:{}'.format(prefix, task_sets)
+
+
+def wait_for_active_framework(service_name, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+    """
+    Waits until a framework with name `framework_name` is found and is active
+    """
+    log.info("Waiting until [{}] is active".format(service_name))
+
+    @retrying.retry(
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
+    )
+    def _wait_for_active_framework():
+        return len(list(filter(
+            lambda fwk: fwk["name"] == service_name and fwk["active"],
+            sdk_cmd.cluster_request("GET", "/mesos/frameworks").json()["frameworks"]
+        ))) > 0
+    _wait_for_active_framework()
