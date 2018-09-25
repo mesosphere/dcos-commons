@@ -1,10 +1,11 @@
 import json
 import logging
 import os
+from toolz import groupby
 
-from sdk_utils import groupby
 import sdk_cmd
 import sdk_diag
+import sdk_hosts
 
 from bundle import Bundle
 import agent
@@ -140,9 +141,26 @@ class ServiceBundle(Bundle):
                     task_id,
                 )
 
+    @config.retry
+    def create_offers_file(self):
+        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
+        scheduler = self.scheduler_tasks[0]
+
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
+            scheduler["id"], "curl -s {}/v1/debug/offers".format(scheduler_vip), print_output=False
+        )
+
+        if rc != 0 or stderr:
+            log.error(
+                "Could not get scheduler offers\nstdout: '%s'\nstderr: '%s'", stdout[:100], stderr
+            )
+        else:
+            self.write_file("service_v1_debug_offers.html", stdout)
+
     def create(self):
         self.install_cli()
         self.create_configuration_file()
         self.create_pod_status_file()
         self.create_plans_status_files()
+        self.create_offers_file()
         self.download_log_files()
