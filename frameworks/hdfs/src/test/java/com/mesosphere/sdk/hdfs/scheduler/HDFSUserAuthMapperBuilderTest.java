@@ -73,6 +73,16 @@ public class HDFSUserAuthMapperBuilderTest {
     }
 
     @Test
+    public void testFilterEmptyAuthMappingLines() {
+        Map<String, String> env = getEnvWithEncodedAuthToLocal("");
+        String authMappings = new HDFSUserAuthMapperBuilder(env, frameworkHost)
+                .addUserAuthMappingFromEnv()
+                .addUserAuthMappingFromEnv()
+                .build();
+        Assert.assertEquals(1, authMappings.split("\n").length);
+    }
+
+    @Test
     public void testAuthMapperTemplating() throws Exception {
         File template = ServiceTestRunner.getDistFile(Main.CORE_SITE_XML);
         String templateContent = new String(Files.readAllBytes(template.toPath()), StandardCharsets.UTF_8);
@@ -124,8 +134,8 @@ public class HDFSUserAuthMapperBuilderTest {
             mappings.add(line);
         }
         return String.join("\n", mappings);
-
     }
+
     private static Map<String, String> getEnvWithEncodedAuthToLocal(String authToLocal) {
         Map<String, String> env = new HashMap<>();
         env.put(HDFSAuthEnvContainer.TASKCFG_ALL_AUTH_TO_LOCAL, Base64.getEncoder()
@@ -133,4 +143,6 @@ public class HDFSUserAuthMapperBuilderTest {
         env.putAll(ENV);
         return env;
     }
+
+
 }

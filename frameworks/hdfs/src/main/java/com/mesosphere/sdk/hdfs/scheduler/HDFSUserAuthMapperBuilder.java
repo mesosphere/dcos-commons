@@ -33,6 +33,7 @@ public class HDFSUserAuthMapperBuilder {
     }
 
     public String build() {
+        authMappings.removeIf(String::isEmpty);
          return String.join("\n", authMappings);
     }
 
