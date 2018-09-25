@@ -68,9 +68,7 @@ class ServiceBundle(Bundle):
         )
 
         if rc != 0 or stderr:
-            log.error(
-                "Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr
-            )
+            log.error("Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
         else:
             self.write_file("service_pod_status.json", stdout)
 
@@ -84,9 +82,7 @@ class ServiceBundle(Bundle):
         )
 
         if rc != 0 or stderr:
-            log.error(
-                "Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr
-            )
+            log.error("Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
         else:
             self.write_file("service_plan_status_{}.json".format(plan), stdout)
 
@@ -97,9 +93,7 @@ class ServiceBundle(Bundle):
         )
 
         if rc != 0 or stderr:
-            log.error(
-                "Could not get plan list\nstdout: '%s'\nstderr: '%s'", stdout, stderr
-            )
+            log.error("Could not get plan list\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
         else:
             plans = json.loads(stdout)
             for plan in plans:
