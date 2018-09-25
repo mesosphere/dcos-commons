@@ -4,6 +4,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * This class helps to generate user auth mappings for the HDFS setup with kerberos.
@@ -35,8 +36,6 @@ public class HDFSUserAuthMapperBuilder {
     }
 
     public String build() {
-        authMappings.removeIf(StringUtils::isBlank);
-         return String.join("\n", authMappings);
+        return authMappings.stream().filter(StringUtils::isNotBlank).collect(Collectors.joining("\n"));
     }
-
 }

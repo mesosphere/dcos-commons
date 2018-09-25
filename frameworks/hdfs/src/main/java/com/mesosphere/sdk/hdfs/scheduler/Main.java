@@ -60,8 +60,8 @@ public class Main {
         String userAuthMapping;
 
         if (Boolean.valueOf(env.get("TASKCFG_ALL_SECURITY_KERBEROS_ENABLED"))) {
-            String frameworkHostname = EndpointUtils.toAutoIpDomain(rawServiceSpec.getName(), schedulerConfig);
-            userAuthMapping = new HDFSUserAuthMapperBuilder(env, frameworkHostname)
+            String frameworkHost = EndpointUtils.toAutoIpDomain(rawServiceSpec.getName(), schedulerConfig);
+            userAuthMapping = new HDFSUserAuthMapperBuilder(env, frameworkHost)
                     .addUserAuthMappingFromEnv()
                     .addDefaultUserAuthMapping(JOURNAL_POD_TYPE, "node", JOURNAL_NODE_COUNT)
                     .addDefaultUserAuthMapping(NAME_POD_TYPE, "zkfc", NAME_NODE_COUNT)
