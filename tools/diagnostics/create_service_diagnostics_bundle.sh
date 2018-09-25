@@ -37,26 +37,9 @@ function version () {
   echo "${VERSION}"
 }
 
-function usage () {
-  echo 'Usage: ./create_service_diagnostics_bundle.sh <package name> <service name> [<proceed>]'
-  echo
-  echo 'Example: ./create_service_diagnostics_bundle.sh cassandra /prod/cassandra yes'
-}
-
 if [ "${#}" -eq 1 ] && [[ "${1}" =~ ^(--version|-version|version|--v|-v)$ ]]; then
   version
   exit 0
-fi
-
-if [ "${#}" -eq 1 ] && [[ "${1}" =~ ^(--help|-help|help|--h|-h)$ ]]; then
-  usage
-  exit 0
-fi
-
-if [ "${#}" -lt 2 ] || [ "${#}" -gt 3 ]; then
-  echo -e "create_service_diagnostics_bundle.sh takes either 2 or 3 arguments but was given ${#}\\n"
-  usage
-  exit 1
 fi
 
 readonly REQUIREMENTS='docker'
@@ -67,10 +50,6 @@ for requirement in ${REQUIREMENTS}; do
     exit 1
   fi
 done
-
-readonly PACKAGE_NAME="${1:-}"
-readonly SERVICE_NAME="${2:-}"
-readonly PROCEED="${3:-}"
 
 readonly BUNDLES_DIRECTORY="service-diagnostic-bundles"
 readonly DOCKER_IMAGE="mpereira/dcos-commons:diagnostics-${VERSION}"
@@ -85,17 +64,28 @@ readonly CONTAINER_DCOS_CLI_DIRECTORY="/root/.dcos"
 
 mkdir -p "${BUNDLES_DIRECTORY}"
 
-# TODO: handle PROCEED.
+function container_run () {
+  local -r command="${*:-}"
+  docker run \
+         -it \
+         --rm \
+         -v "$(pwd)/${BUNDLES_DIRECTORY}:${CONTAINER_BUNDLES_DIRECTORY}" \
+         -v "${HOME}/.dcos:${CONTAINER_DCOS_CLI_DIRECTORY_RO}":ro \
+         ${CONTAINER_DCOS_COMMONS_VOLUME_MOUNT} \
+         "${DOCKER_IMAGE}" \
+         bash -l -c "${command}"
+}
 
-docker run \
-       -it \
-       -v "$(pwd)/${BUNDLES_DIRECTORY}:${CONTAINER_BUNDLES_DIRECTORY}" \
-       -v "${HOME}/.dcos:${CONTAINER_DCOS_CLI_DIRECTORY_RO}":ro \
-       ${CONTAINER_DCOS_COMMONS_VOLUME_MOUNT} \
-       "${DOCKER_IMAGE}" \
-       bash -c "rm -rf ${CONTAINER_DCOS_CLI_DIRECTORY}
+function usage () {
+  container_run "PYTHONPATH=${CONTAINER_PYTHONPATH} ${CONTAINER_SCRIPT_PATH} --help"
+}
+
+if [ "${#}" -eq 1 ] && [[ "${1}" =~ ^(--help|-help|help|--h|-h)$ ]]; then
+  usage
+  exit 0
+fi
+
+container_run "rm -rf ${CONTAINER_DCOS_CLI_DIRECTORY}
                 cp -r ${CONTAINER_DCOS_CLI_DIRECTORY_RO} ${CONTAINER_DCOS_CLI_DIRECTORY}
-                PYTHONPATH=${CONTAINER_PYTHONPATH} ${CONTAINER_SCRIPT_PATH} \
-                  --package-name ${PACKAGE_NAME} \
-                  --service-name ${SERVICE_NAME} \
+                PYTHONPATH=${CONTAINER_PYTHONPATH} ${CONTAINER_SCRIPT_PATH} ${*} \
                   --bundles-directory ${CONTAINER_BUNDLES_DIRECTORY}"
