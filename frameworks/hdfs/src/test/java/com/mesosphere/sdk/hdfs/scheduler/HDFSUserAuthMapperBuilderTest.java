@@ -16,53 +16,69 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.*;
 
-public class HdfsUserAuthMapperTest {
-    private static final String primary = "primary";
+public class HDFSUserAuthMapperBuilderTest {
     private static final String frameworkHost = "host";
-    private static final String realm = "realm";
-    private static final String frameworkUser = "user";
+    private static final Map<String, String> ENV;
+    static {
+        ENV = new HashMap<>();
+        ENV.put(HDFSAuthEnvContainer.PRIMARY_ENV_KEY, "primary");
+        ENV.put(HDFSAuthEnvContainer.FRAMEWORK_USER_ENV_KEY, "user");
+        ENV.put(HDFSAuthEnvContainer.REALM_ENV_KEY, "realm");
+    }
+
+
+    @Test(expected = RuntimeException.class)
+    public void testThrowExceptionOnEnvWithoutAllRequiredKeys() {
+        Map<String, String> env = new HashMap<>();
+        new HDFSUserAuthMapperBuilder(env, frameworkHost);
+    }
 
     @Test
     public void testAddUserAuthMappingFromEnv() {
-        Map<String, String> env = new HashMap<>();
         String expected = "value";
-        env.put("key", Base64.getEncoder().encodeToString(expected.getBytes(StandardCharsets.UTF_8)));
-        HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
-        mapper.addUserAuthMappingFromEnv(env, "key");
-        Assert.assertEquals(expected, mapper.getUserAuthMappingString());
+        Map<String, String> env = getEnvWithEncodedAuthToLocal(expected);
+        String authMappings = new HDFSUserAuthMapperBuilder(env, frameworkHost)
+                .addUserAuthMappingFromEnv()
+                .build();
+        Assert.assertEquals(expected, authMappings);
     }
 
     @Test
     public void testAddDefaultUserAuthMapping() {
-        HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
-        mapper.addDefaultUserAuthMapping("data", "node", 1);
+        String authMappings = new HDFSUserAuthMapperBuilder(ENV, frameworkHost)
+                .addDefaultUserAuthMapping("data", "node", 1)
+                .build();
         String expected = "RULE:[2:$1/$2@$0](primary/data-0-node.host@realm)s/.*/user/";
-        Assert.assertEquals(expected, mapper.getUserAuthMappingString());
+        Assert.assertEquals(expected, authMappings);
     }
 
     @Test
     public void testMultipleDefaultUserAuthMappings() {
-        HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
-        mapper.addDefaultUserAuthMapping("data", "node", 2);
+        String authMappings = new HDFSUserAuthMapperBuilder(ENV, frameworkHost)
+                .addDefaultUserAuthMapping("data", "node", 2)
+                .build();
         String expected = "RULE:[2:$1/$2@$0](primary/data-0-node.host@realm)s/.*/user/\nRULE:[2:$1/$2@$0](primary/data-1-node.host@realm)s/.*/user/";
-        Assert.assertEquals(expected, mapper.getUserAuthMappingString());
+        Assert.assertEquals(expected, authMappings);
     }
 
     @Test
     public void testUserAuthMappingSeparation() {
-        HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
-        mapper.addDefaultUserAuthMapping("data", "node", 1);
-        Map<String, String> env = new HashMap<>();
         String expected = "value";
-        env.put("key", Base64.getEncoder().encodeToString(expected.getBytes(StandardCharsets.UTF_8)));
-        mapper.addUserAuthMappingFromEnv(env, "key");
-        Assert.assertEquals(2, mapper.getUserAuthMappingString().split("\n").length);
+        Map<String, String> env = getEnvWithEncodedAuthToLocal(expected);
+        String authMappings = new HDFSUserAuthMapperBuilder(env, frameworkHost)
+                .addUserAuthMappingFromEnv()
+                .addDefaultUserAuthMapping("data", "node", 1)
+                .build();
+        Assert.assertEquals(2, authMappings.split("\n").length);
     }
 
     @Test
     public void testAuthMapperTemplating() throws Exception {
         File template = ServiceTestRunner.getDistFile(Main.CORE_SITE_XML);
         String templateContent = new String(Files.readAllBytes(template.toPath()), StandardCharsets.UTF_8);
+
+        String realm = ENV.get(HDFSAuthEnvContainer.REALM_ENV_KEY);
+        String primary = ENV.get(HDFSAuthEnvContainer.PRIMARY_ENV_KEY);
 
         Map<String, String> schedulerEnv =
                 CosmosRenderer.renderSchedulerEnvironment(Collections.emptyMap(), Collections.emptyMap());
@@ -76,13 +92,15 @@ public class HdfsUserAuthMapperTest {
         taskEnv.put("SECURITY_KERBEROS_PRIMARY_HTTP", "primHttp");
         taskEnv.put("SCHEDULER_API_HOSTNAME", "schedulerHostname");
 
-        HdfsUserAuthMapper mapper = new HdfsUserAuthMapper(primary, frameworkHost, realm, frameworkUser);
-        mapper.addDefaultUserAuthMapping("data", "node", 2);
+        String authMappings = new HDFSUserAuthMapperBuilder(ENV, frameworkHost)
+                .addDefaultUserAuthMapping("data", "node", 2)
+                .build();
 
-        taskEnv.put("DECODED_AUTH_TO_LOCAL", mapper.getUserAuthMappingString());
+        taskEnv.put("DECODED_AUTH_TO_LOCAL", authMappings);
+
 
         String filledTemplate = TemplateUtils.renderMustacheThrowIfMissing(template.getName(), templateContent, taskEnv);
-        Assert.assertEquals(findAuthMappings(filledTemplate), mapper.getUserAuthMappingString());
+        Assert.assertEquals(findAuthMappings(filledTemplate), authMappings);
     }
 
     private static String findAuthMappings(String config) throws IOException {
@@ -107,5 +125,12 @@ public class HdfsUserAuthMapperTest {
         }
         return String.join("\n", mappings);
 
+    }
+    private static Map<String, String> getEnvWithEncodedAuthToLocal(String authToLocal) {
+        Map<String, String> env = new HashMap<>();
+        env.put(HDFSAuthEnvContainer.TASKCFG_ALL_AUTH_TO_LOCAL, Base64.getEncoder()
+                .encodeToString(authToLocal.getBytes(StandardCharsets.UTF_8)));
+        env.putAll(ENV);
+        return env;
     }
 }

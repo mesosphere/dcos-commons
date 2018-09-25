@@ -30,9 +30,6 @@ import java.util.*;
  */
 public class Main {
     private static final Logger LOGGER = LoggerFactory.getLogger(Main.class);
-    private static final String AUTH_TO_LOCAL = "AUTH_TO_LOCAL";
-    private static final String DECODED_AUTH_TO_LOCAL = "DECODED_" + AUTH_TO_LOCAL;
-    private static final String TASKCFG_ALL_AUTH_TO_LOCAL = TaskEnvRouter.TASKCFG_GLOBAL_ENV_PREFIX + AUTH_TO_LOCAL;
     private static final String JOURNAL_POD_TYPE = "journal";
     private static final String NAME_POD_TYPE = "name";
     private static final String DATA_POD_TYPE = "data";
@@ -64,13 +61,13 @@ public class Main {
 
         if (Boolean.valueOf(env.get("TASKCFG_ALL_SECURITY_KERBEROS_ENABLED"))) {
             String frameworkHostname = EndpointUtils.toAutoIpDomain(rawServiceSpec.getName(), schedulerConfig);
-            HdfsUserAuthMapper authMapper = setupAuthMapper(env, frameworkHostname);
-            authMapper.addUserAuthMappingFromEnv(env, TASKCFG_ALL_AUTH_TO_LOCAL);
-            authMapper.addDefaultUserAuthMapping(JOURNAL_POD_TYPE, "node", JOURNAL_NODE_COUNT);
-            authMapper.addDefaultUserAuthMapping(NAME_POD_TYPE, "zkfc", NAME_NODE_COUNT);
-            authMapper.addDefaultUserAuthMapping(NAME_POD_TYPE, "node", NAME_NODE_COUNT);
-            authMapper.addDefaultUserAuthMapping(DATA_POD_TYPE, "node", Integer.parseInt(env.get("DATA_COUNT")));
-            userAuthMapping = authMapper.getUserAuthMappingString();
+            userAuthMapping = new HDFSUserAuthMapperBuilder(env, frameworkHostname)
+                    .addUserAuthMappingFromEnv()
+                    .addDefaultUserAuthMapping(JOURNAL_POD_TYPE, "node", JOURNAL_NODE_COUNT)
+                    .addDefaultUserAuthMapping(NAME_POD_TYPE, "zkfc", NAME_NODE_COUNT)
+                    .addDefaultUserAuthMapping(NAME_POD_TYPE, "node", NAME_NODE_COUNT)
+                    .addDefaultUserAuthMapping(DATA_POD_TYPE, "node", Integer.parseInt(env.get("DATA_COUNT")))
+                    .build();
         } else {
             userAuthMapping = "";
         }
@@ -80,7 +77,7 @@ public class Main {
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(rawServiceSpec, schedulerConfig, configDir)
                 // Used by 'zkfc' and 'zkfc-format' tasks within this pod:
                 .setPodEnv("name", SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(rawServiceSpec.getName()))
-                .setAllPodsEnv(DECODED_AUTH_TO_LOCAL, userAuthMapping)
+                .setAllPodsEnv(HDFSAuthEnvContainer.DECODED_AUTH_TO_LOCAL, userAuthMapping)
                 .build();
 
         return DefaultScheduler.newBuilder(setPlacementRules(serviceSpec), schedulerConfig)
@@ -94,13 +91,6 @@ public class Main {
                                 userAuthMapping)))
                 .setCustomConfigValidators(Arrays.asList(new HDFSZoneValidator()))
                 .withSingleRegionConstraint();
-    }
-
-    private static HdfsUserAuthMapper setupAuthMapper(Map<String, String> env, String frameworkHostname) {
-        String realm = env.get("TASKCFG_ALL_SECURITY_KERBEROS_REALM");
-        String primary = env.get("TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY");
-        String frameworkUser = env.get("TASKCFG_ALL_TASK_USER");
-        return new HdfsUserAuthMapper(primary, frameworkHostname, realm, frameworkUser);
     }
 
 
@@ -127,7 +117,7 @@ public class Main {
         env.put(EnvConstants.SCHEDULER_API_PORT_TASKENV, String.valueOf(schedulerConfig.getApiServerPort()));
         env.put("MESOS_SANDBOX", "sandboxpath");
         env.put(SERVICE_ZK_ROOT_TASKENV, CuratorUtils.getServiceRootPath(serviceName));
-        env.put(DECODED_AUTH_TO_LOCAL, userAuthMapping);
+        env.put(HDFSAuthEnvContainer.DECODED_AUTH_TO_LOCAL, userAuthMapping);
 
         String fileStr = new String(bytes, StandardCharsets.UTF_8);
         return TemplateUtils.renderMustacheThrowIfMissing(configFile.getName(), fileStr, env);
