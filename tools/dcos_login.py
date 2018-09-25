@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import logging
 import os
+import subprocess
 
 import dcos.cluster
 import requests
@@ -94,6 +95,46 @@ def login_session() -> None:
     configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
 
 
+def _run_cmd(cmd, check=True):
+    log.info("[CMD] {}".format(cmd))
+    result = subprocess.run(
+        [cmd],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+        check=check,
+    )
+
+    if result.returncode != 0:
+        log.info("Got exit code {} to command: {}".format(result.returncode, cmd))
+
+    if result.stdout:
+        stdout = result.stdout.decode("utf-8").strip()
+        log.info("STDOUT:\n{}".format(stdout))
+    else:
+        stdout = ""
+
+    if result.stderr:
+        stderr = result.stderr.decode("utf-8").strip()
+        log.info("STDERR:\n{}".format(stderr))
+    else:
+        stderr = ""
+
+    return result.returncode, stdout, stderr
+
+
+def install_python_cli():
+    old_cli = "https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.11/dcos"
+    _run_cmd("dcos --version")
+    rc, old_path, _ = _run_cmd("which dcos")
+    log.info("Overwriting [{}] with [{}]".format(old_path, old_cli))
+    _run_cmd("curl -s {} -o {}".format(old_cli, old_path))
+    _run_cmd("chmod +x {}".format(old_path))
+    _run_cmd("dcos --version")
+
+
 if __name__ == '__main__':
     logger.setup(os.getenv('TEST_LOG_LEVEL', 'INFO'))
+    # We can remove this when we have separate docker images for sdk40 and master.
+    install_python_cli()
     login_session()
