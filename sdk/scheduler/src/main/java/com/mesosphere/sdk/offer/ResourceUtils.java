@@ -59,54 +59,33 @@ public class ResourceUtils {
         return new MesosResource(resource).getRole();
     }
 
-    public static Optional<String> getPrincipal(Protos.Resource resource) {
-        Optional<Protos.Resource.ReservationInfo> reservationInfo = getReservation(resource);
-
-        if (reservationInfo.isPresent()) {
-            return Optional.of(reservationInfo.get().getPrincipal());
-        } else {
-            return Optional.empty();
-        }
-    }
-
     public static Optional<Protos.Resource.ReservationInfo> getReservation(Protos.Resource resource) {
-        if (resource.getReservationsCount() > 0) {
-            return getRefinedReservation(resource);
-        } else {
-            return getLegacyReservation(resource);
-        }
-    }
-
-    private static Optional<Protos.Resource.ReservationInfo> getRefinedReservation(Protos.Resource resource) {
-        if (resource.getReservationsCount() == 0) {
-            return Optional.empty();
-        }
-
-        return Optional.of(resource.getReservations(resource.getReservationsCount() - 1));
-    }
-
-    private static Optional<Protos.Resource.ReservationInfo> getLegacyReservation(Protos.Resource resource) {
-        if (resource.hasReservation()) {
+        int count = resource.getReservationsCount();
+        if (count > 0) {
+            // This is a refined reservation against a pre-reserved resource. Reservation entries should in this order:
+            // 1. STATIC reservation for the pre-reserved role (e.g. slave_public)
+            // 2. DYNAMIC reservation for our refined role (e.g. slave_public/svc-role)
+            return Optional.of(resource.getReservations(count - 1));
+        } else if (resource.hasReservation()) {
+            // "Classic" reservation against a resource that isn't statically reserved.
+            // This is the common case when reserving resources that aren't pre-reserved.
             return Optional.of(resource.getReservation());
         } else {
+            // No reservations present.
             return Optional.empty();
         }
+    }
+
+    public static Optional<String> getPrincipal(Protos.Resource resource) {
+        return getReservation(resource).map(Protos.Resource.ReservationInfo::getPrincipal);
     }
 
     public static Optional<String> getNamespace(Protos.Resource resource) {
-        Optional<Protos.Resource.ReservationInfo> reservationInfo = getReservation(resource);
-        if (!reservationInfo.isPresent()) {
-            return Optional.empty();
-        }
-        return AuxLabelAccess.getResourceNamespace(reservationInfo.get());
+        return getReservation(resource).flatMap(AuxLabelAccess::getResourceNamespace);
     }
 
     public static Optional<String> getResourceId(Protos.Resource resource) {
-        Optional<Protos.Resource.ReservationInfo> reservationInfo = getReservation(resource);
-        if (!reservationInfo.isPresent()) {
-            return Optional.empty();
-        }
-        return AuxLabelAccess.getResourceId(reservationInfo.get());
+        return getReservation(resource).flatMap(AuxLabelAccess::getResourceId);
     }
 
     public static boolean hasResourceId(Protos.Resource resource) {
