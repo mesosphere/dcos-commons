@@ -378,40 +378,6 @@ def test_tmp_directory_created():
     assert code > 0
 
 
-@pytest.mark.sanity
-def test_envvar_accross_restarts():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-
-    sleep_duration = 555
-    sdk_upgrade.update_or_upgrade_or_downgrade(
-        config.PACKAGE_NAME,
-        foldered_name,
-        to_package_version=None,
-        additional_options={"service": {"name": foldered_name, "sleep": sleep_duration}},
-        expected_running_tasks=config.DEFAULT_TASK_COUNT,
-        wait_for_deployment=True,
-    )
-
-    for _ in range(10):
-        cmd_list = ["pod", "restart", "hello-0"]
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, " ".join(cmd_list))
-
-        sdk_plan.wait_for_kicked_off_recovery(foldered_name)
-        sdk_plan.wait_for_completed_recovery(foldered_name)
-
-        _, stdout, _ = sdk_cmd.service_task_exec(foldered_name, "hello-0-server", "env")
-
-        envvar = "SLEEP_DURATION="
-        envvar_pos = stdout.find(envvar)
-        if envvar_pos < 0:
-            raise Exception("Required envvar not found")
-
-        if not stdout[envvar_pos + len(envvar) :].startswith("{}".format(sleep_duration)):
-            found_string = stdout[envvar_pos + len(envvar) : envvar_pos + len(envvar) + 15]
-            log.error("Looking for %s%d but found: %s", envvar, sleep_duration, found_string)
-            raise Exception("Envvar not set to required value")
-
-
 def _check_json_output(svc_name, cmd):
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, svc_name, cmd)
     assert rc == 0, "Command failed: {}".format(cmd)
