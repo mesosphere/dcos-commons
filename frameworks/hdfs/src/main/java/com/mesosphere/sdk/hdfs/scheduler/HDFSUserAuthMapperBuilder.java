@@ -1,5 +1,7 @@
 package com.mesosphere.sdk.hdfs.scheduler;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -33,7 +35,7 @@ public class HDFSUserAuthMapperBuilder {
     }
 
     public String build() {
-        authMappings.removeIf(String::isEmpty);
+        authMappings.removeIf(StringUtils::isBlank);
          return String.join("\n", authMappings);
     }
 
