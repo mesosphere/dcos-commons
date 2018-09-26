@@ -166,10 +166,6 @@ public class DefaultResourceSet implements ResourceSet {
             return addScalarResource(memory, "mem");
         }
 
-        public Builder addVolume(String volumeType, Double size, String containerPath) {
-            return addVolume(volumeType, size, containerPath, Collections.emptyList());
-        }
-
         public Builder addVolume(String volumeType, Double size, String containerPath, List<String> profiles) {
             VolumeSpec.Type volumeTypeEnum;
             try {
@@ -179,15 +175,35 @@ public class DefaultResourceSet implements ResourceSet {
                         "Provided volume type '%s' for path '%s' is invalid. Expected type to be one of: %s",
                         volumeType, containerPath, Arrays.asList(VolumeSpec.Type.values())));
             }
-            DefaultVolumeSpec volume = new DefaultVolumeSpec(
-                    size, volumeTypeEnum, containerPath, profiles, role, preReservedRole, principal);
+
             if (volumes.stream()
                     .anyMatch(volumeSpecification ->
                             Objects.equals(volumeSpecification.getContainerPath(), containerPath))) {
                 throw new IllegalStateException("Cannot configure multiple volumes with the same containerPath");
             }
-            volumes.add(volume);
+
+            if (volumeTypeEnum == VolumeSpec.Type.ROOT) {
+                if (!profiles.isEmpty()) {
+                    throw new IllegalArgumentException(String.format(
+                            "Provided volume type '%s' for path '%s' cannot have profiles", volumeType, containerPath));
+                }
+
+                volumes.add(DefaultVolumeSpec.createRootVolume(
+                        size, containerPath, role, preReservedRole, principal));
+            } else {
+                volumes.add(DefaultVolumeSpec.createMountVolume(
+                        size, containerPath, profiles, role, preReservedRole, principal));
+            }
+
             return this;
+        }
+
+        public Builder addRootVolume(Double size, String containerPath) {
+            return addVolume("ROOT", size, containerPath, Collections.emptyList());
+        }
+
+        public Builder addMountVolume(Double size, String containerPath, List<String> profiles) {
+            return addVolume("MOUNT", size, containerPath, profiles);
         }
 
         /**

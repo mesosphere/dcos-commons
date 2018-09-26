@@ -21,27 +21,23 @@ public class TaskVolumesCannotChangeTest {
     private static final ConfigValidator<ServiceSpec> VALIDATOR = new TaskVolumesCannotChange();
 
     // slight differences between volumes:
-    private static final VolumeSpec VOLUME1 = new DefaultVolumeSpec(
+    private static final VolumeSpec VOLUME1 = DefaultVolumeSpec.createMountVolume(
             DISK_SIZE_MB,
-            VolumeSpec.Type.MOUNT,
             "some_path",
             Collections.emptyList(),
             "role",
             "*",
             "principal");
-    private static final VolumeSpec VOLUME2 = new DefaultVolumeSpec(
+    private static final VolumeSpec VOLUME2 = DefaultVolumeSpec.createMountVolume(
             DISK_SIZE_MB + 3,
-            VolumeSpec.Type.MOUNT,
             "some_path",
             Collections.emptyList(),
             "role",
             "*",
             "principal");
-    private static final VolumeSpec VOLUME3 = new DefaultVolumeSpec(
+    private static final VolumeSpec VOLUME3 = DefaultVolumeSpec.createRootVolume(
             DISK_SIZE_MB,
-            VolumeSpec.Type.ROOT,
             "some_path",
-            Collections.emptyList(),
             "role",
             "*",
             "principal");

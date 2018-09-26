@@ -214,11 +214,9 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static void testNewFromRootVolumeSpec(Optional<String> namespace) {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createRootVolume(
                 10,
-                VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
-                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -249,11 +247,9 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static void testExistingFromRootVolumeSpec(Optional<String> namespace) {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createRootVolume(
                 10,
-                VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
-                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -321,9 +317,8 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static void testNewFromMountVolumeSpec(Optional<String> namespace) {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createMountVolume(
                 10,
-                VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 Collections.emptyList(),
                 TestConstants.ROLE,
@@ -360,9 +355,8 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static void testExistingFromMountVolumeSpec(Optional<String> namespace) {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createMountVolume(
                 10,
-                VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 Collections.emptyList(),
                 TestConstants.ROLE,
@@ -432,11 +426,9 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static void testFromExistingRootVolume(Optional<String> namespace) {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createRootVolume(
                 10,
-                VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
-                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);
@@ -470,9 +462,8 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
     }
 
     private static void testFromExistingMountVolume(Optional<String> namespace) {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createMountVolume(
                 10,
-                VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 Collections.emptyList(),
                 TestConstants.ROLE,

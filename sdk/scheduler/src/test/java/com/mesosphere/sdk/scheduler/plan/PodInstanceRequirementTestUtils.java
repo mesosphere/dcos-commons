@@ -86,19 +86,18 @@ public class PodInstanceRequirementTestUtils {
      * @param diskSize The disk size required.
      */
     private static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.ROOT.name(), Collections.emptyList());
-    }
-
-    private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize, List<String> profiles) {
-        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.MOUNT.name(), profiles);
-    }
-
-    private static ResourceSet getVolumeResourceSet(
-            double cpus, double diskSize, String diskType, List<String> profiles) {
         return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(cpus)
-                .addVolume(diskType, diskSize, TestConstants.CONTAINER_PATH, profiles)
+                .addRootVolume(diskSize, TestConstants.CONTAINER_PATH)
+                .build();
+    }
+
+    private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize, List<String> profiles) {
+        return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
+                .id(TestConstants.RESOURCE_SET_ID)
+                .cpus(cpus)
+                .addMountVolume(diskSize, TestConstants.CONTAINER_PATH, profiles)
                 .build();
     }
 

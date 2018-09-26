@@ -39,16 +39,32 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     private final String containerPath;
     private final List<String> profiles;
 
-    public DefaultVolumeSpec(
+    public static DefaultVolumeSpec createRootVolume(
             double diskSize,
-            Type type,
+            String containerPath,
+            String role,
+            String preReservedRole,
+            String principal) {
+        return new DefaultVolumeSpec(
+                Type.ROOT,
+                containerPath,
+                Collections.emptyList(),
+                Constants.DISK_RESOURCE_TYPE,
+                scalarValue(diskSize),
+                role,
+                preReservedRole,
+                principal);
+    }
+
+    public static DefaultVolumeSpec createMountVolume(
+            double diskSize,
             String containerPath,
             List<String> profiles,
             String role,
             String preReservedRole,
             String principal) {
-        this(
-                type,
+        return new DefaultVolumeSpec(
+                Type.MOUNT,
                 containerPath,
                 profiles,
                 Constants.DISK_RESOURCE_TYPE,
@@ -92,6 +108,19 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     @JsonProperty("profiles")
     public List<String> getProfiles() {
         return profiles;
+    }
+
+    @Override
+    public VolumeSpec withDiskSize(double diskSize) {
+        return new DefaultVolumeSpec(
+            type,
+            containerPath,
+            profiles,
+            Constants.DISK_RESOURCE_TYPE,
+            scalarValue(diskSize),
+            getRole(),
+            getPreReservedRole(),
+            getPrincipal());
     }
 
     @Override

@@ -524,14 +524,20 @@ public class YAMLToInternalMappers {
                     rawVolume.getType(), rawVolume.getPath(), Arrays.asList(VolumeSpec.Type.values())));
         }
 
-        return new DefaultVolumeSpec(
-                rawVolume.getSize(),
-                volumeTypeEnum,
-                rawVolume.getPath(),
-                rawVolume.getProfiles(),
-                role,
-                preReservedRole,
-                principal);
+        return volumeTypeEnum == VolumeSpec.Type.ROOT
+                ? DefaultVolumeSpec.createRootVolume(
+                        rawVolume.getSize(),
+                        rawVolume.getPath(),
+                        role,
+                        preReservedRole,
+                        principal)
+                : DefaultVolumeSpec.createMountVolume(
+                        rawVolume.getSize(),
+                        rawVolume.getPath(),
+                        rawVolume.getProfiles(),
+                        role,
+                        preReservedRole,
+                        principal);
     }
 
     private static DefaultNetworkSpec convertNetwork(

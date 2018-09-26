@@ -10,7 +10,6 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
-import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -298,8 +297,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addVolume(VolumeSpec.Type.ROOT.name(), 1.0, TestConstants.CONTAINER_PATH + "-a")
-                .addVolume(VolumeSpec.Type.ROOT.name(), 2.0, TestConstants.CONTAINER_PATH + "-b")
+                .addRootVolume(1.0, TestConstants.CONTAINER_PATH + "-a")
+                .addRootVolume(2.0, TestConstants.CONTAINER_PATH + "-b")
                 .build();
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
 
@@ -346,9 +345,9 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1.0, TestConstants.CONTAINER_PATH + "-a", Arrays.asList("x"))
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1.0, TestConstants.CONTAINER_PATH + "-b", Arrays.asList("x", "y"))
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1.0, TestConstants.CONTAINER_PATH + "-c")
+                .addMountVolume(1.0, TestConstants.CONTAINER_PATH + "-a", Arrays.asList("x"))
+                .addMountVolume(1.0, TestConstants.CONTAINER_PATH + "-b", Arrays.asList("x", "y"))
+                .addMountVolume(1.0, TestConstants.CONTAINER_PATH + "-c", Collections.emptyList())
                 .build();
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
 
@@ -410,8 +409,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-A")
-                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-B")
+                .addMountVolume(1000.0, TestConstants.CONTAINER_PATH + "-A", Collections.emptyList())
+                .addMountVolume(1000.0, TestConstants.CONTAINER_PATH + "-B", Collections.emptyList())
                 .build();
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRequirement(volumeResourceSet, 0);
@@ -453,9 +452,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 Arrays.asList(
-                        new DefaultVolumeSpec(
+                        DefaultVolumeSpec.createMountVolume(
                                 1000,
-                                VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
                                 Collections.emptyList(),
                                 TestConstants.ROLE,
@@ -513,9 +511,8 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 Arrays.asList(
-                        new DefaultVolumeSpec(
+                        DefaultVolumeSpec.createMountVolume(
                                 1000,
-                                VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
                                 Collections.emptyList(),
                                 TestConstants.ROLE,

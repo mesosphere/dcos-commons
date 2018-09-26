@@ -12,7 +12,6 @@ import org.apache.mesos.Protos.Volume;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 
-import java.util.Collections;
 import java.util.Optional;
 
 /**
@@ -56,11 +55,9 @@ public class ResourceTestUtils {
     }
 
     public static Protos.Resource getReservedRootVolume(double diskSize, String resourceId, String persistenceId) {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createRootVolume(
                 diskSize,
-                VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
-                Collections.emptyList(),
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
                 TestConstants.PRINCIPAL);

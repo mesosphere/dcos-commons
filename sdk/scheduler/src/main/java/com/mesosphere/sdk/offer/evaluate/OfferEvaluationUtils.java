@@ -216,15 +216,4 @@ class OfferEvaluationUtils {
 
         return false;
     }
-
-    public static VolumeSpec updateVolumeSpec(VolumeSpec original, double diskSize) {
-        return new DefaultVolumeSpec(
-                diskSize,
-                original.getType(),
-                original.getContainerPath(),
-                original.getProfiles(),
-                original.getRole(),
-                original.getPreReservedRole(),
-                original.getPrincipal());
-    }
 }

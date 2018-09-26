@@ -62,9 +62,8 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testConsumeUnreservedAtomicResource() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.empty());
-        VolumeSpec spec = new DefaultVolumeSpec(
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
                 ValueUtils.getValue(offerResource).getScalar().getValue(),
-                VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 Collections.emptyList(),
                 TestConstants.ROLE,
@@ -82,9 +81,8 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testConsumeUnreservedAtomicResourceMatchedProfile() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.of("bar"));
-        VolumeSpec spec = new DefaultVolumeSpec(
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
                 ValueUtils.getValue(offerResource).getScalar().getValue(),
-                VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 Arrays.asList("foo", "bar"),
                 TestConstants.ROLE,
@@ -102,9 +100,8 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testConsumeUnreservedAtomicResourceUnmatchedProfile1() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.of("bar"));
-        VolumeSpec spec = new DefaultVolumeSpec(
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
                 ValueUtils.getValue(offerResource).getScalar().getValue(),
-                VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 Arrays.asList("foo"),
                 TestConstants.ROLE,
@@ -120,9 +117,8 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testConsumeUnreservedAtomicResourceUnmatchedProfile2() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.empty());
-        VolumeSpec spec = new DefaultVolumeSpec(
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
                 ValueUtils.getValue(offerResource).getScalar().getValue(),
-                VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 Arrays.asList("foo", "bar"),
                 TestConstants.ROLE,
@@ -138,9 +134,8 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testConsumeUnreservedAtomicResourceUnmatchedProfile3() {
         Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.of("bar"));
-        VolumeSpec spec = new DefaultVolumeSpec(
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
                 ValueUtils.getValue(offerResource).getScalar().getValue(),
-                VolumeSpec.Type.MOUNT,
                 TestConstants.CONTAINER_PATH,
                 Collections.emptyList(),
                 TestConstants.ROLE,

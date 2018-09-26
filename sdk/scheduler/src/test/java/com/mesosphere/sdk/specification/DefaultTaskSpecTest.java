@@ -32,11 +32,9 @@ public class DefaultTaskSpecTest {
                                 TestConstants.ROLE,
                                 TestConstants.PRE_RESERVED_ROLE,
                                 TestConstants.PRINCIPAL))
-                        .volumes(Collections.singleton(new DefaultVolumeSpec(
+                        .volumes(Collections.singleton(DefaultVolumeSpec.createRootVolume(
                                 100,
-                                VolumeSpec.Type.ROOT,
                                 TestConstants.CONTAINER_PATH,
-                                Collections.emptyList(),
                                 TestConstants.ROLE,
                                 TestConstants.PRE_RESERVED_ROLE,
                                 TestConstants.PRINCIPAL)))

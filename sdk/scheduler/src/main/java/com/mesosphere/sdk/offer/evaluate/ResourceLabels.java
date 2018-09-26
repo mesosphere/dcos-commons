@@ -3,8 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.specification.ResourceSpec;
 
 import org.apache.commons.lang3.builder.ToStringBuilder;
-import org.apache.mesos.Protos.ResourceProviderID;
-import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos;
 
 import java.util.Optional;
 
@@ -18,8 +17,8 @@ class ResourceLabels {
     private final String resourceId;
     private final Optional<String> resourceNamespace;
     private final Optional<String> persistenceId;
-    private final Optional<ResourceProviderID> providerId;
-    private final Optional<Resource.DiskInfo.Source> diskSource;
+    private final Optional<Protos.ResourceProviderID> providerId;
+    private final Optional<Protos.Resource.DiskInfo.Source> diskSource;
 
     ResourceLabels(ResourceSpec resourceSpec, String resourceId, Optional<String> resourceNamespace) {
         this(
@@ -50,8 +49,8 @@ class ResourceLabels {
             String resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<ResourceProviderID> providerId,
-            Optional<Resource.DiskInfo.Source> diskSource) {
+            Optional<Protos.ResourceProviderID> providerId,
+            Optional<Protos.Resource.DiskInfo.Source> diskSource) {
         this.original = original;
         this.updated = updated;
         this.resourceId = resourceId;
@@ -81,11 +80,11 @@ class ResourceLabels {
         return persistenceId;
     }
 
-    public Optional<ResourceProviderID> getProviderId() {
+    public Optional<Protos.ResourceProviderID> getProviderId() {
         return providerId;
     }
 
-    public Optional<Resource.DiskInfo.Source> getDiskSource() {
+    public Optional<Protos.Resource.DiskInfo.Source> getDiskSource() {
         return diskSource;
     }
 

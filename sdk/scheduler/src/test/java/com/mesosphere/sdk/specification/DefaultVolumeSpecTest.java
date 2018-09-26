@@ -11,9 +11,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testVolumePathEmpty() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "",
                 Collections.emptyList(),
                 "role",
@@ -23,9 +22,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testVolumePathBlank() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 " ",
                 Collections.emptyList(),
                 "role",
@@ -35,9 +33,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testVolumePathSlash() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "/path/to/volume0",
                 Collections.emptyList(),
                 "role",
@@ -47,9 +44,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testVolumePathChar() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "@?test",
                 Collections.emptyList(),
                 "role",
@@ -59,9 +55,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testVolumePathBeg() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "-test",
                 Collections.emptyList(),
                 "role",
@@ -71,11 +66,9 @@ public class DefaultVolumeSpecTest {
 
     @Test
     public void testVolumePathNumber() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createRootVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.ROOT,
                 "path-0_1-path",
-                Collections.emptyList(),
                 "role",
                 "*",
                 "principal");
@@ -83,11 +76,9 @@ public class DefaultVolumeSpecTest {
 
     @Test
     public void testVolumePathCorrect0() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createRootVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.ROOT,
                 "path",
-                Collections.emptyList(),
                 "role",
                 "*",
                 "principal");
@@ -96,11 +87,9 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testVolumePathSlash1() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createRootVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.ROOT,
                 "path/path",
-                Collections.emptyList(),
                 "role",
                 "*",
                 "principal");
@@ -108,47 +97,9 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testVolumePathSlash2() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createRootVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.ROOT,
                 "path-0/1-path",
-                Collections.emptyList(),
-                "role",
-                "*",
-                "principal");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testRootVolumeProfiles() {
-        new DefaultVolumeSpec(
-                DISK_SIZE_MB,
-                VolumeSpec.Type.ROOT,
-                "path",
-                Arrays.asList("test"),
-                "role",
-                "*",
-                "principal");
-    }
-
-    @Test
-    public void testPathVolumeEmptyProfiles() {
-        new DefaultVolumeSpec(
-                DISK_SIZE_MB,
-                VolumeSpec.Type.PATH,
-                "path",
-                Collections.emptyList(),
-                "role",
-                "*",
-                "principal");
-    }
-
-    @Test(expected = IllegalArgumentException.class)
-    public void testPathVolumeProfiles() {
-        new DefaultVolumeSpec(
-                DISK_SIZE_MB,
-                VolumeSpec.Type.PATH,
-                "path",
-                Arrays.asList("test"),
                 "role",
                 "*",
                 "principal");
@@ -156,9 +107,8 @@ public class DefaultVolumeSpecTest {
 
     @Test
     public void testMountVolumeEmptyProfiles() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Collections.emptyList(),
                 "role",
@@ -168,9 +118,8 @@ public class DefaultVolumeSpecTest {
 
     @Test
     public void testMountVolumeProfiles() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test"),
                 "role",
@@ -180,9 +129,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMountVolumeProfilesNull() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test", null),
                 "role",
@@ -192,9 +140,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMountVolumeProfilesEmpty() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test", ""),
                 "role",
@@ -204,9 +151,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMountVolumeProfilesBlank() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test", " "),
                 "role",
@@ -216,9 +162,8 @@ public class DefaultVolumeSpecTest {
 
     @Test
     public void testMountVolumeProfilesNumber() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test", "0"),
                 "role",
@@ -228,9 +173,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMountVolumeProfilesSlash() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test", "a/b"),
                 "role",
@@ -240,9 +184,8 @@ public class DefaultVolumeSpecTest {
 
     @Test
     public void testMountVolumeProfilesValidChars() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test", "_.-"),
                 "role",
@@ -252,9 +195,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMountVolumeProfilesInvalidChars() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test", "@?"),
                 "role",
@@ -264,9 +206,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMountVolumeProfilesLong() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test", new String(new char[129]).replace("\0", "a")),
                 "role",
@@ -276,9 +217,8 @@ public class DefaultVolumeSpecTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testMountVolumeProfilesDuplicate() {
-        new DefaultVolumeSpec(
+        DefaultVolumeSpec.createMountVolume(
                 DISK_SIZE_MB,
-                VolumeSpec.Type.MOUNT,
                 "path",
                 Arrays.asList("test", "test"),
                 "role",

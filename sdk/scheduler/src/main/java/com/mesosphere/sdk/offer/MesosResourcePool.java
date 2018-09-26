@@ -285,17 +285,7 @@ public class MesosResourcePool {
     }
 
     private static boolean matchAnyProfile(List<String> desired, Optional<String> actual) {
-        if (!actual.isPresent()) {
-            return desired.isEmpty();
-        }
-
-        for (String profile : desired) {
-            if (profile.equals(actual.get())) {
-                return true;
-            }
-        }
-
-        return false;
+        return actual.isPresent() ? desired.contains(actual.get()) : desired.isEmpty();
     }
 
     private static Collection<MesosResource> getMesosResources(Offer offer, Optional<String> role) {

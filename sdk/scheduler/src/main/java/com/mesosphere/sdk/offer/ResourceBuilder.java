@@ -12,7 +12,6 @@ import org.apache.mesos.Protos;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -111,21 +110,22 @@ public class ResourceBuilder {
 
     @SuppressWarnings("deprecation")
     private static VolumeSpec getVolumeSpec(Protos.Resource resource) {
-        VolumeSpec.Type type = resource.getDisk().hasSource() ? VolumeSpec.Type.MOUNT : VolumeSpec.Type.ROOT;
-
-        // Profiles are only supported on MOUNT volumes. For ROOT volumes, we make it empty.
-        List<String> profiles = resource.getDisk().getSource().hasProfile()
-                ? Arrays.asList(resource.getDisk().getSource().getProfile())
-                : Collections.emptyList();
-
-        return new DefaultVolumeSpec(
-                resource.getScalar().getValue(),
-                type,
-                resource.getDisk().getVolume().getContainerPath(),
-                profiles,
-                ResourceUtils.getRole(resource),
-                resource.getRole(),
-                resource.getDisk().getPersistence().getPrincipal());
+        return resource.getDisk().hasSource()
+                ? DefaultVolumeSpec.createMountVolume(
+                          resource.getScalar().getValue(),
+                          resource.getDisk().getVolume().getContainerPath(),
+                          resource.getDisk().getSource().hasProfile()
+                                  ? Arrays.asList(resource.getDisk().getSource().getProfile())
+                                  : Collections.emptyList(),
+                          ResourceUtils.getRole(resource),
+                          resource.getRole(),
+                          resource.getDisk().getPersistence().getPrincipal())
+                : DefaultVolumeSpec.createRootVolume(
+                          resource.getScalar().getValue(),
+                          resource.getDisk().getVolume().getContainerPath(),
+                          ResourceUtils.getRole(resource),
+                          resource.getRole(),
+                          resource.getDisk().getPersistence().getPrincipal());
     }
 
     private ResourceBuilder(String resourceName, Protos.Value value, String preReservedRole) {
