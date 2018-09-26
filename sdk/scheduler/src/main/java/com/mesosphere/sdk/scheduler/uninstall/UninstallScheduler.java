@@ -214,8 +214,11 @@ public class UninstallScheduler extends AbstractScheduler {
     public UnexpectedResourcesResponse getUnexpectedResources(Collection<Protos.Offer> unusedOffers) {
         Collection<OfferResources> unexpected = unusedOffers.stream()
                 .map(offer -> new OfferResources(offer).addAll(offer.getResourcesList().stream()
-                        // Omit unreserved resources:
-                        .filter(resource -> ResourceUtils.getReservation(resource).isPresent())
+                        // Omit any unreserved resources, and any unrefined pre-reserved resources.
+                        // In addition, checking for a valid resource_id label is a good sanity check to avoid
+                        // potentially unreserving any resources that weren't originally created by the SDK.
+                        // This is in addition to separate filtering in FrameworkScheduler of reserved Marathon volumes.
+                        .filter(resource -> ResourceUtils.hasResourceId(resource))
                         .collect(Collectors.toList())))
                 .collect(Collectors.toList());
         try {

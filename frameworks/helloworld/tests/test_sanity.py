@@ -15,12 +15,12 @@ from tests import config
 
 
 log = logging.getLogger(__name__)
+foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
 
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
@@ -36,22 +36,14 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_install():
-    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
-
-
-@pytest.mark.sanity
-@pytest.mark.smoke
 def test_bump_hello_cpus():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    config.check_running(foldered_name)
     hello_ids = sdk_tasks.get_task_ids(foldered_name, "hello")
     log.info("hello ids: " + str(hello_ids))
 
     updated_cpus = config.bump_hello_cpus(foldered_name)
 
     sdk_tasks.check_tasks_updated(foldered_name, "hello", hello_ids)
-    config.check_running(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
 
     all_tasks = sdk_tasks.get_service_tasks(foldered_name, task_prefix="hello")
     running_tasks = [t for t in all_tasks if t.state == "TASK_RUNNING"]
@@ -63,16 +55,13 @@ def test_bump_hello_cpus():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_bump_world_cpus():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    config.check_running(foldered_name)
-
     original_world_ids = sdk_tasks.get_task_ids(foldered_name, "world")
     log.info("world ids: " + str(original_world_ids))
 
     updated_cpus = config.bump_world_cpus(foldered_name)
 
     sdk_tasks.check_tasks_updated(foldered_name, "world", original_world_ids)
-    config.check_running(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
 
     all_tasks = sdk_tasks.get_service_tasks(foldered_name, task_prefix="world")
     running_tasks = [t for t in all_tasks if t.state == "TASK_RUNNING"]
@@ -84,9 +73,6 @@ def test_bump_world_cpus():
 @pytest.mark.sanity
 @pytest.mark.smoke
 def test_increase_decrease_world_nodes():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    config.check_running(foldered_name)
-
     original_hello_ids = sdk_tasks.get_task_ids(foldered_name, "hello")
     original_world_ids = sdk_tasks.get_task_ids(foldered_name, "world")
     log.info("world ids: " + str(original_world_ids))
@@ -94,7 +80,10 @@ def test_increase_decrease_world_nodes():
     # add 2 world nodes
     sdk_marathon.bump_task_count_config(foldered_name, "WORLD_COUNT", 2)
 
+    # autodetects the correct number of nodes and waits for them to deploy:
     config.check_running(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+
     sdk_tasks.check_tasks_not_updated(foldered_name, "world", original_world_ids)
 
     # check 2 world tasks added:
@@ -103,9 +92,13 @@ def test_increase_decrease_world_nodes():
     # subtract 2 world nodes
     sdk_marathon.bump_task_count_config(foldered_name, "WORLD_COUNT", -2)
 
+    # autodetects the correct number of nodes and waits for them to deploy:
     config.check_running(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+
     # wait for the decommission plan for this subtraction to be complete
     sdk_plan.wait_for_completed_plan(foldered_name, "decommission")
+
     # check that the total task count is back to original
     sdk_tasks.check_running(
         foldered_name, len(original_hello_ids) + len(original_world_ids), allow_more=False
@@ -120,7 +113,6 @@ def test_increase_decrease_world_nodes():
 
 @pytest.mark.sanity
 def test_pod_list():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod list")
     assert rc == 0, "Pod list failed"
     jsonobj = json.loads(stdout)
@@ -141,7 +133,6 @@ def test_pod_list():
 
 @pytest.mark.sanity
 def test_pod_status_all():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # /test/integration/hello-world => test.integration.hello-world
     sanitized_name = sdk_utils.get_task_id_service_name(foldered_name)
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod status --json")
@@ -163,7 +154,6 @@ def test_pod_status_all():
 
 @pytest.mark.sanity
 def test_pod_status_one():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     # /test/integration/hello-world => test.integration.hello-world
     sanitized_name = sdk_utils.get_task_id_service_name(foldered_name)
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod status --json hello-0")
@@ -180,11 +170,7 @@ def test_pod_status_one():
 
 @pytest.mark.sanity
 def test_pod_info():
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        "pod info world-1",
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod info world-1")
     assert rc == 0, "Pod info failed"
     jsonobj = json.loads(stdout)
     assert len(jsonobj) == 1
@@ -197,8 +183,6 @@ def test_pod_info():
 
 @pytest.mark.sanity
 def test_state_properties_get():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state properties")
     assert rc == 0, "State properties failed"
     jsonobj = json.loads(stdout)
@@ -223,12 +207,11 @@ def test_state_properties_get():
 
 @pytest.mark.sanity
 def test_help_cli():
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), "help")
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "help")
 
 
 @pytest.mark.sanity
 def test_config_cli():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug config list")
     assert rc == 0, "Config list fetch failed"
     configs = json.loads(stdout)
@@ -249,7 +232,6 @@ def test_config_cli():
 def test_plan_cli():
     plan_name = "deploy"
     phase_name = "world"
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     _check_json_output(foldered_name, "plan list")
     assert 0 == sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "plan show {}".format(plan_name))[0]
     _check_json_output(foldered_name, "plan show --json {}".format(plan_name))
@@ -267,7 +249,6 @@ def test_plan_cli():
 
 @pytest.mark.sanity
 def test_state_cli():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     _check_json_output(foldered_name, "debug state framework_id")
     _check_json_output(foldered_name, "debug state properties")
 
@@ -275,7 +256,6 @@ def test_state_cli():
 @pytest.mark.sanity
 def test_state_refresh_disable_cache():
     """Disables caching via a scheduler envvar"""
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
     task_ids = sdk_tasks.get_task_ids(foldered_name, "")
 
@@ -288,8 +268,8 @@ def test_state_refresh_disable_cache():
     marathon_config["env"]["DISABLE_STATE_CACHE"] = "any-text-here"
     sdk_marathon.update_app(marathon_config)
 
+    sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
-    config.check_running(foldered_name)
 
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
@@ -307,8 +287,8 @@ def test_state_refresh_disable_cache():
     del marathon_config["env"]["DISABLE_STATE_CACHE"]
     sdk_marathon.update_app(marathon_config)
 
+    sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
-    config.check_running(foldered_name)
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
@@ -328,8 +308,6 @@ def test_lock():
     would fail during registration, but after writing its config to ZK.
     So in order to verify that the scheduler fails immediately, we ensure
     that the ZK config state is unmodified."""
-
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
     def get_zk_node_data(node_name):
         return sdk_cmd.cluster_request(

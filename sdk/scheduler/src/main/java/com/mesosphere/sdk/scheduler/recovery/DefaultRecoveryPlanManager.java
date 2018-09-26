@@ -96,7 +96,8 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     protected void setPlanInternal(Plan plan) {
         synchronized (planLock) {
             this.plan = plan;
-            if (!plan.getChildren().isEmpty()) {
+            // Avoid logging for non-empty completed plan, as is the case when a previous recovery had occurred:
+            if (!plan.getChildren().isEmpty() && !plan.isComplete()) {
                 try {
                     logger.info("Recovery plan set to: {}",
                             SerializationUtils.toShortJsonString(PlanInfo.forPlan(plan)));

@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static org.junit.Assert.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
@@ -180,7 +181,7 @@ public class PersisterCacheTest {
     public void testSetFailsCacheUnchanged() throws PersisterException {
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
         doThrow(new PersisterException(Reason.STORAGE_ERROR, "hi"))
-                .when(mockPersister).set(Mockito.eq(KEY2), Mockito.anyObject());
+                .when(mockPersister).set(Mockito.eq(KEY2), any());
         cache = new PersisterCache(mockPersister, mockSchedulerConfig);
 
         cache.set(KEY, VAL);
@@ -208,7 +209,7 @@ public class PersisterCacheTest {
 
         when(mockPersister.getChildren(Mockito.anyString())).thenReturn(Collections.emptyList());
         doThrow(new PersisterException(Reason.STORAGE_ERROR, "hi"))
-                .when(mockPersister).setMany(Mockito.anyObject());
+                .when(mockPersister).setMany(any());
         cache = new PersisterCache(mockPersister, mockSchedulerConfig);
 
         try {

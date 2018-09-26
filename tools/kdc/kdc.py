@@ -90,7 +90,7 @@ def parse_principals(principals_file: str) -> list:
 def deploy(args: dict):
     log.info("Deploying KDC")
 
-    kerberos = sdk_auth.KerberosEnvironment()
+    kerberos = sdk_auth.KerberosEnvironment(persist=True)
 
     if args.principals_file:
         create_keytab_secret(args, kerberos)
