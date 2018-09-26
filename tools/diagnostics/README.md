@@ -20,7 +20,7 @@ Provides facilities for gathering SDK-related service diagnostics artifacts.
    `/prod/cassandra`
 
    ```bash
-   ./create_service_diagnostics_bundle.sh cassandra /prod/cassandra
+   ./create_service_diagnostics_bundle.sh --package-name=cassandra --service-name=/prod/cassandra
    ```
 
 On the first run the script might take a few minutes to start because it
@@ -29,7 +29,7 @@ instantly.
 
 When the script runs you should see something like:
 ```
-$ ./create_service_diagnostics_bundle.sh cassandra /prod/cassandra
+$ ./create_service_diagnostics_bundle.sh --package-name=cassandra --service-name=/prod/cassandra
 
 Will create bundle for:
   Package:         cassandra
@@ -68,7 +68,7 @@ repository script:
 
 1. Run repository script
    ```bash
-   ./tools/diagnostics/create_service_diagnostics_bundle.sh cassandra /prod/cassandra
+   ./tools/diagnostics/create_service_diagnostics_bundle.sh --package-name=cassandra --service-name=/prod/cassandra
    ```
 
 ### Publishing a new version
