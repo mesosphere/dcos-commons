@@ -10,11 +10,30 @@ import retrying
 
 import shakedown
 import dcos.errors
+import sdk_agents
 import sdk_cmd
 import sdk_plan
 
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
+
+
+FATAL_TERMINAL_TASK_STATES = set(["TASK_FAILED", "TASK_ERROR", "TASK_DROPPED", "TASK_GONE"])
+
+
+# From dcos-cli:
+COMPLETED_TASK_STATES = set(
+    [
+        "TASK_KILLED",
+        "TASK_FINISHED",
+        "TASK_LOST",
+        "TASK_GONE_BY_OPERATOR",
+        "TASK_UNREACHABLE",
+        "TASK_UNKNOWN",
+        *FATAL_TERMINAL_TASK_STATES,
+    ]
+)
+
 
 log = logging.getLogger(__name__)
 
@@ -57,36 +76,42 @@ def get_task_ids(service_name, task_prefix):
 
 
 class Task(object):
-    '''Entry value returned by get_summary()'''
+    """Entry value returned by get_summary()"""
 
     @staticmethod
-    def parse(cli_task_line):
-        # Example:
-        # node-1-server  10.0.3.247  nobody    R    node-1-server__977511be-c694-4f4e-a079-7d0179b37141  dfc1f8f5-387f-494b-89ae-d4600bfb7505-S4
-        # FYI: the state value is just the first character of the task state (e.g. STAGING => S)
-        cli_task_tokens = cli_task_line.split()
-        if len(cli_task_tokens) < 6:
-            log.warning('Invalid task line from CLI: {}'.format(cli_task_tokens))
-            return None
+    def parse(task_entry, agentid_to_hostname):
+        agent_id = task_entry["slave_id"]
+        matching_hostname = agentid_to_hostname.get(agent_id)
+        if matching_hostname:
+            host = matching_hostname
+        else:
+            host = "UNKNOWN:" + agent_id
         return Task(
-            cli_task_tokens[0],
-            cli_task_tokens[1],
-            cli_task_tokens[2],
-            cli_task_tokens[3],
-            cli_task_tokens[4],
-            cli_task_tokens[5])
+            task_entry["name"],
+            host,
+            task_entry["state"],
+            task_entry["id"],
+            task_entry["executor_id"],
+            task_entry["framework_id"],
+            agent_id,
+            task_entry["resources"],
+        )
 
-    def __init__(self, name, host, user, state_char, id, agent):
+    def __init__(self, name, host, state, task_id, executor_id, framework_id, agent_id, resources):
         self.name = name
         self.host = host
-        self.user = user
-        self.state_char = state_char
-        self.id = id
-        self.agent = agent
+        self.state = state  # 'TASK_RUNNING', 'TASK_KILLED', ...
+        self.is_completed = state in COMPLETED_TASK_STATES
+        self.id = task_id
+        self.executor_id = executor_id
+        self.framework_id = framework_id
+        self.agent_id = agent_id
+        self.resources = resources  # 'cpus', 'disk', 'mem', 'gpus' => int
 
     def __repr__(self):
-        return 'Task[name={} host={} user={} state_char={} id={} agent={}]'.format(
-            self.name, self.host, self.user, self.state_char, self.id, self.agent)
+        return 'Task[name="{}"\tstate={}\tid={}\thost={}\tframework_id={}\tagent_id={}]'.format(
+            self.name, self.state, self.id, self.host, self.framework_id, self.agent_id
+        )
 
 
 def get_status_history(task_name: str) -> list:
@@ -104,24 +129,32 @@ def get_status_history(task_name: str) -> list:
     return history
 
 
-def get_summary(with_completed=False):
-    '''Returns a summary of task information as returned by the DC/OS CLI.
+def get_summary(with_completed=False, task_name=None) -> list:
+    """Returns a summary of all cluster tasks in the cluster, or just a specified task.
     This may be used instead of invoking 'dcos task [--all]' directly.
 
     Returns a list of Task objects.
-    '''
-
-    # Note: We COULD use --json, but there appears to be some fancy handling done in the CLI for the
-    # non-json version, particularly around the running user. Just grab the non-"--json" version of things.
-    task_lines = sdk_cmd.run_cli('task --all' if with_completed else 'task', print_output=False).split('\n')
-    output = []
-    for task_line in task_lines[1:]:  # First line is the header line
-        task = Task.parse(task_line)
-        if task is not None:
-            output.append(task)
-    log.info('Task summary (with_completed={}):\n- {}'.format(
-        with_completed, '\n- '.join([str(e) for e in output])))
+    """
+    cluster_tasks = sdk_cmd.cluster_request("GET", "/mesos/tasks").json()["tasks"]
+    agentid_to_hostname = _get_agentid_to_hostname()
+    all_tasks = [Task.parse(entry, agentid_to_hostname) for entry in cluster_tasks]
+    output = (
+        all_tasks
+        if with_completed
+        else list(filter(lambda t: t.state not in COMPLETED_TASK_STATES, all_tasks))
+    )
+    if task_name:
+        output = list(filter(lambda t: t.name == task_name, output))
+    log.info(
+        "Task summary (with_completed={}, task_name=[{}]):\n- {}".format(
+            with_completed, task_name, "\n- ".join([str(e) for e in output])
+        )
+    )
     return output
+
+
+def _get_agentid_to_hostname() -> dict:
+    return {agent["id"]: agent["hostname"] for agent in sdk_agents.get_agents()}
 
 
 def get_tasks_avoiding_scheduler(service_name, task_name_pattern):

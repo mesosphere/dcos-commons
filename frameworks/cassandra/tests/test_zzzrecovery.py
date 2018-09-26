@@ -105,4 +105,4 @@ def test_shutdown_host():
         if task.name == replace_task.name and task.id != replace_task.id][0]
     log.info('Checking that the original pod has moved to a new agent:\n'
              'old={}\nnew={}'.format(replace_task, new_task))
-    assert replace_task.agent != new_task.agent
+    assert replace_task.agent_id != new_task.agent_id

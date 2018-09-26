@@ -365,4 +365,4 @@ def test_shutdown_host():
             if task.name == replaced_task.name and task.id != replaced_task.id][0]
         log.info('Checking affected task has moved to a new agent:\n'
                  'old={}\nnew={}'.format(replaced_task, new_task))
-        assert replaced_task.agent != new_task.agent
+        assert replaced_task.agent_id != new_task.agent_id
