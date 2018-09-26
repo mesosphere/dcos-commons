@@ -199,7 +199,7 @@ esac
 shift # past argument or value
 done
 
-if [ -z "$framework" -a x"$interactive" != x"true" ]; then
+if [ -z "$framework" -a x"$interactive" != x"true" -a "x$DOCKER_COMMAND" == "x" ]; then
     # If FRAMEWORK_LIST only has one option, use that. Otherwise complain.
     if [ $(echo $FRAMEWORK_LIST | wc -w) == 1 ]; then
         framework=$FRAMEWORK_LIST
