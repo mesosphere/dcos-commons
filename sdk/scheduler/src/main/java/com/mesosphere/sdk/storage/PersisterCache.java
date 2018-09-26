@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.storage;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
@@ -56,8 +57,12 @@ public class PersisterCache implements Persister {
         rwlock.lock();
         try {
             MemPersister cache = getCache();
-            persister.set(path, bytes);
-            cache.set(path, bytes);
+            // Optimization: Only update persister if new value != current cached value
+            byte[] currentValue = cache.get(path);
+            if (!Arrays.equals(currentValue, bytes)) {
+                persister.set(path, bytes);
+                cache.set(path, bytes);
+            }
         } finally {
             rwlock.unlock();
         }

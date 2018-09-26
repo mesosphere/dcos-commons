@@ -148,8 +148,7 @@ public class AbstractSchedulerTest {
 
         @Override
         protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
-            String taskName = StateStoreUtils.getTaskName(stateStore, status);
-            stateStore.storeStatus(taskName, status);
+            stateStore.storeStatus(StateStoreUtils.fetchTaskInfo(stateStore, status).getName(), status);
         }
 
         @Override

@@ -10,6 +10,7 @@ import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
+import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
@@ -18,6 +19,7 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallRecorder;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.GoalState;
+import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.*;
 import com.mesosphere.sdk.storage.Persister;
@@ -398,7 +400,8 @@ public class DefaultScheduler extends AbstractScheduler {
     @Override
     protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
         // Store status, then pass status to PlanManager => Plan => Steps
-        String taskName = StateStoreUtils.getTaskName(stateStore, status);
+        Protos.TaskInfo taskInfo = StateStoreUtils.fetchTaskInfo(stateStore, status);
+        String taskName = taskInfo.getName();
 
         // StateStore updates:
         // - TaskStatus
@@ -408,13 +411,27 @@ public class DefaultScheduler extends AbstractScheduler {
         // Notify plans of status update:
         planCoordinator.getPlanManagers().forEach(planManager -> planManager.update(status));
 
-        // If the TaskStatus contains an IP Address, store it as a property in the StateStore.
+        // We treat the pod as "uncommitted" until at least one of its tasks has entered a STARTING state.
+        // This allows automatic replacement when footprint reservations have failed for any reason.
+        TaskLabelReader taskLabels = new TaskLabelReader(taskInfo);
+        String podInstanceName = PodInstance.getName(taskLabels.getType(), taskLabels.getIndex());
+        if (!StateStoreUtils.fetchPodCommitted(stateStore, podInstanceName)) {
+            if (TaskUtils.isRecoveryNeeded(status)) {
+                // If the parent pod is uncommitted (never successfully started), then the pod can be automatically
+                // replaced. Treat the pod as "not sticky" and try relaunching it elsewhere.
+                FailureUtils.killTasks(configStore, stateStore.fetchTasks(), stateStore, podInstanceName, true);
+            } else {
+                // The pod has successfully started, so mark it as committed.
+                StateStoreUtils.setPodCommitted(stateStore, podInstanceName, true);
+            }
+        }
+
+        // If the TaskStatus contains an IP Address, store the entire status as a property in the StateStore.
         // We expect the TaskStatus to contain an IP address in both Host or CNI networking.
-        // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it on TASK_RUNNINGs
-        if (status.hasContainerStatus() &&
-                status.getContainerStatus().getNetworkInfosCount() > 0 &&
-                status.getContainerStatus().getNetworkInfosList().stream()
-                        .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
+        // Currently, we are always _missing_ the IP Address on TASK_LOST. We always expect it on TASK_RUNNING.
+        // We store the entire TaskStatus to allow potential debugging.
+        if (status.getContainerStatus().getNetworkInfosList().stream()
+                .anyMatch(networkInfo -> networkInfo.getIpAddressesCount() > 0)) {
             // Map the TaskStatus to a TaskInfo. The map will throw a StateStoreException if no such TaskInfo exists.
             try {
                 StateStoreUtils.storeTaskStatusAsProperty(stateStore, taskName, status);

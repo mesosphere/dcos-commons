@@ -136,7 +136,7 @@ public class StateStore {
                 && status.getState().equals(Protos.TaskState.TASK_LOST)
                 && TaskUtils.isTerminal(currentStatusOptional.get())) {
             throw new StateStoreException(Reason.LOGIC_ERROR,
-                    String.format("Ignoring TASK_LOST for Task already in a terminal state %s: %s",
+                    String.format("Ignoring TASK_LOST for task already in a terminal state %s: %s",
                             currentStatusOptional.get().getState(), taskName));
         }
 

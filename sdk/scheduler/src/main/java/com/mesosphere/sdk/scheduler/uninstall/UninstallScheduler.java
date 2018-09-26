@@ -231,7 +231,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     @Override
     protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
-        stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
+        stateStore.storeStatus(StateStoreUtils.fetchTaskInfo(stateStore, status).getName(), status);
     }
 
     public DeregisterStep getDeregisterStep() {

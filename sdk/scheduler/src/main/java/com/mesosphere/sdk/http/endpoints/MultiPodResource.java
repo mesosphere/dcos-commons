@@ -5,7 +5,6 @@ import com.mesosphere.sdk.http.queries.PodQueries;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.state.StateStore;
 
 import java.util.Optional;
@@ -127,7 +126,7 @@ public class MultiPodResource extends PrettyJsonResource {
     @POST
     public Response restart(
             @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("name") String podInstanceName) {
-        return restart(sanitizedServiceName, podInstanceName, RecoveryType.TRANSIENT);
+        return restart(sanitizedServiceName, podInstanceName, false);
     }
 
     /**
@@ -137,16 +136,16 @@ public class MultiPodResource extends PrettyJsonResource {
     @POST
     public Response replace(
             @PathParam("sanitizedServiceName") String sanitizedServiceName, @PathParam("name") String podInstanceName) {
-        return restart(sanitizedServiceName, podInstanceName, RecoveryType.PERMANENT);
+        return restart(sanitizedServiceName, podInstanceName, true);
     }
 
-    private Response restart(String sanitizedServiceName, String podInstanceName, RecoveryType recoveryType) {
+    private Response restart(String sanitizedServiceName, String podInstanceName, boolean replace) {
         Optional<AbstractScheduler> service = multiServiceManager.getService(sanitizedServiceName);
         if (!service.isPresent()) {
             return ResponseUtils.serviceNotFoundResponse(sanitizedServiceName);
         }
         return PodQueries.restart(
-                service.get().getStateStore(), service.get().getConfigStore(), podInstanceName, recoveryType);
+                service.get().getStateStore(), service.get().getConfigStore(), podInstanceName, replace);
     }
 
     private Optional<StateStore> getStateStore(String sanitizedServiceName) {

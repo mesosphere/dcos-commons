@@ -2,7 +2,6 @@ package com.mesosphere.sdk.http.endpoints;
 
 import com.mesosphere.sdk.http.queries.PodQueries;
 import com.mesosphere.sdk.http.types.PrettyJsonResource;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
@@ -94,7 +93,7 @@ public class PodResource extends PrettyJsonResource {
     @Path("/{name}/restart")
     @POST
     public Response restart(@PathParam("name") String podInstanceName) {
-        return PodQueries.restart(stateStore, configStore, podInstanceName, RecoveryType.TRANSIENT);
+        return PodQueries.restart(stateStore, configStore, podInstanceName, false);
     }
 
     /**
@@ -103,6 +102,6 @@ public class PodResource extends PrettyJsonResource {
     @Path("/{name}/replace")
     @POST
     public Response replace(@PathParam("name") String podInstanceName) {
-        return PodQueries.restart(stateStore, configStore, podInstanceName, RecoveryType.PERMANENT);
+        return PodQueries.restart(stateStore, configStore, podInstanceName, true);
     }
 }

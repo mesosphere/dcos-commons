@@ -26,7 +26,6 @@ import java.util.stream.Collectors;
  */
 public class TLSEvaluationStage implements OfferEvaluationStage {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(TLSEvaluationStage.class);
     private final Logger logger;
     private final String serviceName;
     private final String taskName;

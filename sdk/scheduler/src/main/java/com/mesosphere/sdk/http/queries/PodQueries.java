@@ -11,7 +11,6 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
-import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
@@ -226,19 +225,19 @@ public class PodQueries {
         }
 
         // Second pass: Restart the tasks. They will be updated to IN_PROGRESS once we receive a terminal TaskStatus.
-        return killTasks(podInstanceName, podTasks, RecoveryType.TRANSIENT);
+        return killTasks(podInstanceName, podTasks);
     }
 
     /**
-     * Restarts a pod instance in-place.
+     * Restarts a pod instance in-place, or destroys the pod to be replaced elsewhere in the cluster.
      */
-    public static Response restart(StateStore stateStore, ConfigStore<ServiceSpec> configStore, String podInstanceName,
-            RecoveryType recoveryType) {
+    public static Response restart(
+            StateStore stateStore, ConfigStore<ServiceSpec> configStore, String podInstanceName, boolean replace) {
         try {
-            return restartPod(stateStore, configStore, podInstanceName, recoveryType, DEFAULT_FAILURE_SETTER);
+            return restartPod(stateStore, configStore, podInstanceName, replace, DEFAULT_FAILURE_SETTER);
         } catch (Exception e) {
             LOGGER.error(String.format("Failed to %s pod '%s'",
-                    recoveryType == RecoveryType.PERMANENT ? "replace" : "restart", podInstanceName), e);
+                    replace ? "replace" : "restart", podInstanceName), e);
             return Response.serverError().build();
         }
     }
@@ -248,7 +247,7 @@ public class PodQueries {
             StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
             String podInstanceName,
-            RecoveryType recoveryType,
+            boolean replace,
             FailureSetter failureSetter) {
         // look up all tasks in the provided pod name:
         Optional<Collection<TaskInfoAndStatus>> podTasks =
@@ -259,17 +258,17 @@ public class PodQueries {
 
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
         // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
-        LOGGER.info("Performing {} restart of pod {} by killing {} tasks:",
-                recoveryType, podInstanceName, podTasks.get().size());
+        LOGGER.info("Performing {} of pod {} by killing {} tasks:",
+                replace ? "replace" : "restart", podInstanceName, podTasks.get().size());
 
-        if (recoveryType.equals(RecoveryType.PERMANENT)) {
+        if (replace) {
             Collection<Protos.TaskInfo> taskInfos = podTasks.get().stream()
                     .map(taskInfoAndStatus -> taskInfoAndStatus.getInfo())
                     .collect(Collectors.toList());
             failureSetter.setFailure(configStore, stateStore, taskInfos);
         }
 
-        return killTasks(podInstanceName, podTasks.get(), recoveryType);
+        return killTasks(podInstanceName, podTasks.get());
     }
 
     /**
@@ -306,10 +305,7 @@ public class PodQueries {
         return podInstances;
     }
 
-    private static Response killTasks(
-            String podName,
-            Collection<TaskInfoAndStatus> tasksToKill,
-            RecoveryType recoveryType) {
+    private static Response killTasks(String podName, Collection<TaskInfoAndStatus> tasksToKill) {
         for (TaskInfoAndStatus taskToKill : tasksToKill) {
             final Protos.TaskInfo taskInfo = taskToKill.getInfo();
             if (taskToKill.hasStatus()) {
