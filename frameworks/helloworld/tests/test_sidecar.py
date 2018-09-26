@@ -31,15 +31,13 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_envvar_accross_restarts():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-
     sleep_duration = 999
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
-        foldered_name,
+        config.SERVICE_NAME,
         to_package_version=None,
         additional_options={
-            "service": {"name": foldered_name, "sleep": sleep_duration, "yaml": "sidecar"}
+            "service": {"name": config.SERVICE_NAME, "sleep": sleep_duration, "yaml": "sidecar"}
         },
         expected_running_tasks=2,
         wait_for_deployment=True,
@@ -47,12 +45,12 @@ def test_envvar_accross_restarts():
 
     for _ in range(3):
         cmd_list = ["pod", "restart", "hello-0"]
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, " ".join(cmd_list))
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, " ".join(cmd_list))
 
-        sdk_plan.wait_for_kicked_off_recovery(foldered_name)
-        sdk_plan.wait_for_completed_recovery(foldered_name)
+        sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+        sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
-        _, stdout, _ = sdk_cmd.service_task_exec(foldered_name, "hello-0-server", "env")
+        _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "env")
 
         envvar = "SLEEP_DURATION="
         envvar_pos = stdout.find(envvar)
