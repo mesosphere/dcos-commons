@@ -4,6 +4,7 @@ A collection of client utilites for Kafka.
 import logging
 import uuid
 import typing
+import json
 
 import sdk_auth
 import sdk_cmd
@@ -41,8 +42,32 @@ class KafkaService:
             return True
 
         test_utils.wait_for_topic(self._package_name, self._service_name, topic_name)
-
         return True
+
+    def create_topic(self, topic_name: str) -> None:
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            self._package_name, self._service_name, "topic create {}".format(topic_name)
+        )
+        assert rc == 0, "Topic create failed"
+        create_info = json.loads(stdout)
+        assert 'Created topic "%s".\n' % topic_name in create_info["message"]
+        if "." in topic_name or "_" in topic_name:
+            assert (
+                "topics with a period ('.') or underscore ('_') could collide."
+                in create_info["message"]
+            )
+
+    def get_topics(self) -> dict:
+        rc, stdout, _ = sdk_cmd.svc_cli(self._package_name, self._service_name, "topic list")
+        assert rc == 0, "Topic list query failed"
+        return json.loads(stdout)
+
+    def get_topic_information(self, topic_name: str) -> dict:
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            self._package_name, self._service_name, "topic describe {}".format(topic_name)
+        )
+        assert rc == 0, "Topic describe failed"
+        return json.loads(stdout)
 
 
 class KafkaClient:
@@ -211,6 +236,18 @@ class KafkaClient:
         topics.remove_acls(
             user, self.id, topic_name, self.kafka_service.get_zookeeper_endpoint(), environment
         )
+
+    def create_topic(self, topic_name: str) -> None:
+        self.kafka_service.create_topic(topic_name)
+
+    def check_topic_creation(self, topic_name: str) -> None:
+        self.create_topic(topic_name)
+        assert topic_name in self.kafka_service.get_topics()
+
+    def check_topic_partition_count(self, topic_name: str, partition_count: int) -> None:
+        information = self.kafka_service.get_topic_information(topic_name)
+        assert "partitions" in information
+        assert len(information["partitions"]) == partition_count
 
     def check_users_can_read_and_write(self, users: typing.List[str], topic_name: str) -> None:
         for user in users:

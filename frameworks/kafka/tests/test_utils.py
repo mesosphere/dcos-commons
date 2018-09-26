@@ -60,41 +60,6 @@ def wait_for_broker_dns(package_name: str, service_name: str):
     assert sdk_cmd.resolve_hosts(scheduler_task_id, broker_dns)
 
 
-def create_topic(topic_name, service_name=config.SERVICE_NAME):
-    # Get the list of topics that exist before we create a new topic
-    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "topic list")
-    assert rc == 0, "Initial topic list failed"
-    topic_list_before = json.loads(stdout)
-
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name, "topic create {}".format(topic_name)
-    )
-    assert rc == 0, "Topic create failed"
-    create_info = json.loads(stdout)
-    assert 'Created topic "%s".\n' % topic_name in create_info["message"]
-
-    if "." in topic_name or "_" in topic_name:
-        assert (
-            "topics with a period ('.') or underscore ('_') could collide."
-            in create_info["message"]
-        )
-
-    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "topic list")
-    assert rc == 0, "Follow-up topic list failed"
-    topic_list_after = json.loads(stdout)
-
-    new_topics = set(topic_list_after) - set(topic_list_before)
-    assert topic_name in new_topics
-
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name, "topic describe {}".format(topic_name)
-    )
-    assert rc == 0, "Topic describe failed"
-    topic_info = json.loads(stdout)
-    assert len(topic_info) == 1
-    assert len(topic_info["partitions"]) == config.DEFAULT_PARTITION_COUNT
-
-
 def delete_topic(topic_name, service_name=config.SERVICE_NAME):
     rc, stdout, _ = sdk_cmd.svc_cli(
         config.PACKAGE_NAME, service_name, "topic delete {}".format(topic_name)

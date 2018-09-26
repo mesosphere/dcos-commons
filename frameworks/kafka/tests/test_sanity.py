@@ -12,28 +12,41 @@ import sdk_tasks
 import sdk_upgrade
 import sdk_utils
 
-from tests import config, test_utils
+from tests import config, test_utils, client
+
+
+FOLDERED_NAME = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+
+
+@pytest.fixture(scope="module")
+def kafka_client():
+    try:
+        kafka_client = client.KafkaClient("kafka-client", config.PACKAGE_NAME, FOLDERED_NAME)
+        kafka_client.install()
+        yield kafka_client
+    finally:
+        kafka_client.uninstall()
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security, kafka_client: client.KafkaClient):
     try:
-        foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, FOLDERED_NAME)
 
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
-            foldered_name,
+            FOLDERED_NAME,
             config.DEFAULT_BROKER_COUNT,
-            additional_options={"service": {"name": foldered_name}, "brokers": {"cpus": 0.5}},
+            additional_options={"service": {"name": FOLDERED_NAME}, "brokers": {"cpus": 0.5}},
         )
 
         # wait for brokers to finish registering before starting tests
-        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
+        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=FOLDERED_NAME)
+        kafka_client.connect()
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        sdk_install.uninstall(config.PACKAGE_NAME, FOLDERED_NAME)
 
 
 # --------- Endpoints -------------
@@ -59,20 +72,18 @@ def test_endpoints_address():
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    zookeeper = sdk_networks.get_endpoint_string(
-        config.PACKAGE_NAME, foldered_name, "zookeeper"
-    )
+    zookeeper = sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "zookeeper")
     assert zookeeper == "master.mesos:2181/{}".format(sdk_utils.get_zk_path(foldered_name))
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_custom_zookeeper():
+def test_custom_zookeeper(kafka_client: client.KafkaClient):
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     broker_ids = sdk_tasks.get_task_ids(foldered_name, "{}-".format(config.DEFAULT_POD_TYPE))
 
     # create a topic against the default zk:
-    test_utils.create_topic(config.DEFAULT_TOPIC_NAME, service_name=foldered_name)
+    kafka_client.create_topic(config.DEFAULT_TOPIC_NAME)
 
     marathon_config = sdk_marathon.get_config(foldered_name)
     # should be using default path when this envvar is empty/unset:
@@ -89,9 +100,7 @@ def test_custom_zookeeper():
     # wait for brokers to finish registering
     test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
 
-    zookeeper = sdk_networks.get_endpoint_string(
-        config.PACKAGE_NAME, foldered_name, "zookeeper"
-    )
+    zookeeper = sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "zookeeper")
     assert zookeeper == zk_path
 
     # topic created earlier against default zk should no longer be present:
@@ -110,9 +119,7 @@ def test_custom_zookeeper():
 @pytest.mark.sanity
 def test_broker_list():
     rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        "broker list",
+        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), "broker list"
     )
     assert rc == 0, "Broker list command failed"
     assert set(json.loads(stdout)) == set([str(i) for i in range(config.DEFAULT_BROKER_COUNT)])

@@ -10,22 +10,28 @@ import sdk_install
 from tests import config
 from tests import test_utils
 from tests import topics
+from tests import client
 
 
 LOG = logging.getLogger(__name__)
 
 
+@pytest.fixture(scope="module")
+def kafka_client():
+    try:
+        kafka_client = client.KafkaClient("kafka-client", config.PACKAGE_NAME, config.SERVICE_NAME)
+        kafka_client.install()
+        yield kafka_client
+    finally:
+        kafka_client.uninstall()
+
+
 @pytest.fixture(scope="module", autouse=True)
-def kafka_server(configure_security):
+def kafka_server(configure_security, kafka_client: client.KafkaClient):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         config.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
-
-        # wait for brokers to finish registering before starting tests
-        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=config.SERVICE_NAME)
-
-        # Since the tests below interact with the brokers, ensure that the DNS resolves
-        test_utils.wait_for_broker_dns(config.PACKAGE_NAME, config.SERVICE_NAME)
+        kafka_client.connect()
 
         yield {"package_name": config.PACKAGE_NAME, "service": {"name": config.SERVICE_NAME}}
     finally:
@@ -34,8 +40,11 @@ def kafka_server(configure_security):
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_topic_create(kafka_server: dict):
-    test_utils.create_topic(config.EPHEMERAL_TOPIC_NAME, kafka_server["service"]["name"])
+def test_topic_create(kafka_client: client.KafkaClient):
+    kafka_client.check_topic_creation(config.EPHEMERAL_TOPIC_NAME)
+    kafka_client.check_topic_partition_count(
+        config.EPHEMERAL_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
+    )
 
 
 @pytest.mark.smoke
@@ -45,23 +54,7 @@ def test_topic_delete(kafka_server: dict):
 
 
 @pytest.mark.sanity
-def test_topic_partition_count(kafka_server: dict):
-    package_name = kafka_server["package_name"]
-    service_name = kafka_server["service"]["name"]
-
-    rc, _, _ = sdk_cmd.svc_cli(
-        package_name, service_name, "topic create {}".format(config.DEFAULT_TOPIC_NAME)
-    )
-    assert rc == 0, "Topic create failed"
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        package_name, service_name, "topic describe {}".format(config.DEFAULT_TOPIC_NAME)
-    )
-    assert rc == 0, "Topic describe failed"
-    assert len(json.loads(stdout)["partitions"]) == config.DEFAULT_PARTITION_COUNT
-
-
-@pytest.mark.sanity
-def test_topic_offsets_increase_with_writes(kafka_server: dict):
+def test_topic_offsets_increase_with_writes(kafka_server: dict, kafka_client: client.KafkaClient):
     package_name = kafka_server["package_name"]
     service_name = kafka_server["service"]["name"]
 
@@ -97,7 +90,7 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
 
     topic_name = str(uuid.uuid4())
     LOG.info("Creating topic: %s", topic_name)
-    test_utils.create_topic(topic_name, service_name)
+    kafka_client.create_topic(topic_name)
 
     _, offset_info = get_offset_change(topic_name)
 
@@ -109,9 +102,7 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict):
     num_messages = 10
     LOG.info("Sending %s messages", num_messages)
     rc, stdout, _ = sdk_cmd.svc_cli(
-        package_name,
-        service_name,
-        "topic producer_test {} {}".format(topic_name, num_messages),
+        package_name, service_name, "topic producer_test {} {}".format(topic_name, num_messages)
     )
     assert rc == 0, "Producer test failed"
     write_info = json.loads(stdout)
@@ -183,9 +174,7 @@ def test_increasing_topic_partitions_succeeds(kafka_server: dict):
 @pytest.mark.sanity
 def test_no_under_replicated_topics_exist(kafka_server: dict):
     rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        kafka_server["service"]["name"],
-        "topic under_replicated_partitions",
+        config.PACKAGE_NAME, kafka_server["service"]["name"], "topic under_replicated_partitions"
     )
     assert rc == 0, "Under-replicated partitions failed"
     assert json.loads(stdout) == {"message": ""}
@@ -194,9 +183,7 @@ def test_no_under_replicated_topics_exist(kafka_server: dict):
 @pytest.mark.sanity
 def test_no_unavailable_partitions_exist(kafka_server: dict):
     rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        kafka_server["service"]["name"],
-        "topic unavailable_partitions",
+        config.PACKAGE_NAME, kafka_server["service"]["name"], "topic unavailable_partitions"
     )
     assert rc == 0, "Unavailable partitions failed"
     assert json.loads(stdout) == {"message": ""}
