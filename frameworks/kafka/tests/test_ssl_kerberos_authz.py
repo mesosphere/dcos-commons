@@ -2,7 +2,6 @@ import logging
 import pytest
 
 import sdk_auth
-import sdk_cmd
 import sdk_install
 import sdk_utils
 

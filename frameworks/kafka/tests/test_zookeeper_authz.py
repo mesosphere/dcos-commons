@@ -6,7 +6,6 @@ import pytest
 import typing
 
 import sdk_auth
-import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
