@@ -10,12 +10,6 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-@retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
-def broker_count_check(count, service_name=config.SERVICE_NAME):
-    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "broker list")
-    return rc == 0 and len(json.loads(stdout)) == count
-
-
 def restart_broker_pods(service_name=config.SERVICE_NAME):
     for i in range(config.DEFAULT_BROKER_COUNT):
         pod_name = "{}-{}".format(config.DEFAULT_POD_TYPE, i)
@@ -40,7 +34,6 @@ def replace_broker_pod(service_name=config.SERVICE_NAME):
     sdk_tasks.check_tasks_updated(service_name, task_name, broker_0_id)
     sdk_tasks.check_running(service_name, config.DEFAULT_BROKER_COUNT)
     # wait till all brokers register
-    broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=service_name)
 
 
 def wait_for_topic(package_name: str, service_name: str, topic_name: str):

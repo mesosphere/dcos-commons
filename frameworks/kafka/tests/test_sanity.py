@@ -147,8 +147,9 @@ def test_pods_restart():
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_pod_replace():
+def test_pod_replace(kafka_client: client.KafkaClient):
     test_utils.replace_broker_pod(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
 
 # --------- CLI -------------

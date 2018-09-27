@@ -75,8 +75,9 @@ def test_pod_restart_on_overlay():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_pod_replace_on_overlay():
+def test_pod_replace_on_overlay(kafka_client: client.KafkaClient):
     test_utils.replace_broker_pod()
+    kafka_client.connect(config.DEFAULT_BROKER_COUNT)
     test_overlay_network_deployment_and_endpoints()
 
 
