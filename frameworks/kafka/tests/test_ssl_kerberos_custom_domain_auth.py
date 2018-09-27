@@ -55,7 +55,7 @@ def kerberos(configure_security):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def kafka_server(kerberos, service_account):
+def kafka_server(kerberos, service_account, kafka_client: client.KafkaClient):
     """
     A pytest fixture that installs a Kerberized kafka service.
 
@@ -89,6 +89,7 @@ def kafka_server(kerberos, service_account):
             timeout_seconds=30 * 60,
         )
 
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
         yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -113,9 +114,8 @@ def kafka_client(kerberos):
 
 
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_server, kerberos):
+def test_client_can_read_and_write(kafka_client: client.KafkaClient):
     topic_name = "authn.test"
-    kafka_client.connect(config.DEFAULT_BROKER_COUNT)
     kafka_client.create_topic(topic_name)
     user = "client"
     kafka_client.check_users_can_read_and_write([user], topic_name)

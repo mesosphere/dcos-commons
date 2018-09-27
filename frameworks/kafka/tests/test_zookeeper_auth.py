@@ -5,7 +5,6 @@ import logging
 import pytest
 
 import sdk_auth
-import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
@@ -110,7 +109,7 @@ def zookeeper_service(kerberos):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def kafka_server(kerberos, zookeeper_service):
+def kafka_server(kerberos, zookeeper_service, kafka_client: client.KafkaClient):
 
     # Get the zookeeper DNS values
     zookeeper_dns = sdk_networks.get_endpoint(
@@ -143,6 +142,7 @@ def kafka_server(kerberos, zookeeper_service):
             timeout_seconds=30 * 60,
         )
 
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
         yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -167,7 +167,6 @@ def kafka_client(kerberos):
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_server, kerberos):
     topic_name = "authn.test"
-    kafka_client.connect(config.DEFAULT_BROKER_COUNT)
     kafka_client.create_topic(topic_name)
 
     user = "client"
