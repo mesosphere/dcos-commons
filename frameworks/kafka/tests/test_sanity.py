@@ -54,56 +54,53 @@ def configure_package(configure_security, kafka_client: client.KafkaClient):
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_endpoints_address():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    endpoints = sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, "broker")
+    endpoints = sdk_networks.get_endpoint(config.PACKAGE_NAME, FOLDERED_NAME, "broker")
 
     # NOTE: do NOT closed-to-extension assert len(endpoints) == _something_
     assert len(endpoints["address"]) == config.DEFAULT_BROKER_COUNT
     assert len(endpoints["dns"]) == config.DEFAULT_BROKER_COUNT
     for i in range(len(endpoints["dns"])):
         assert (
-            sdk_hosts.autoip_host(foldered_name, "kafka-{}-broker".format(i)) in endpoints["dns"][i]
+            sdk_hosts.autoip_host(FOLDERED_NAME, "kafka-{}-broker".format(i)) in endpoints["dns"][i]
         )
-    assert endpoints["vip"] == sdk_hosts.vip_host(foldered_name, "broker", 9092)
+    assert endpoints["vip"] == sdk_hosts.vip_host(FOLDERED_NAME, "broker", 9092)
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_endpoints_zookeeper_default():
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    zookeeper = sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "zookeeper")
-    assert zookeeper == "master.mesos:2181/{}".format(sdk_utils.get_zk_path(foldered_name))
+    zookeeper = sdk_networks.get_endpoint_string(config.PACKAGE_NAME, FOLDERED_NAME, "zookeeper")
+    assert zookeeper == "master.mesos:2181/{}".format(sdk_utils.get_zk_path(FOLDERED_NAME))
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_custom_zookeeper(kafka_client: client.KafkaClient):
-    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-    broker_ids = sdk_tasks.get_task_ids(foldered_name, "{}-".format(config.DEFAULT_POD_TYPE))
+    broker_ids = sdk_tasks.get_task_ids(FOLDERED_NAME, "{}-".format(config.DEFAULT_POD_TYPE))
 
     # create a topic against the default zk:
     kafka_client.create_topic(config.DEFAULT_TOPIC_NAME)
 
-    marathon_config = sdk_marathon.get_config(foldered_name)
+    marathon_config = sdk_marathon.get_config(FOLDERED_NAME)
     # should be using default path when this envvar is empty/unset:
     assert marathon_config["env"]["KAFKA_ZOOKEEPER_URI"] == ""
 
     # use a custom zk path that's WITHIN the 'dcos-service-' path, so that it's automatically cleaned up in uninstall:
-    zk_path = "master.mesos:2181/{}/CUSTOMPATH".format(sdk_utils.get_zk_path(foldered_name))
+    zk_path = "master.mesos:2181/{}/CUSTOMPATH".format(sdk_utils.get_zk_path(FOLDERED_NAME))
     marathon_config["env"]["KAFKA_ZOOKEEPER_URI"] = zk_path
     sdk_marathon.update_app(marathon_config)
 
-    sdk_tasks.check_tasks_updated(foldered_name, "{}-".format(config.DEFAULT_POD_TYPE), broker_ids)
-    sdk_plan.wait_for_completed_deployment(foldered_name)
+    sdk_tasks.check_tasks_updated(FOLDERED_NAME, "{}-".format(config.DEFAULT_POD_TYPE), broker_ids)
+    sdk_plan.wait_for_completed_deployment(FOLDERED_NAME)
 
     # wait for brokers to finish registering
     kafka_client.check_broker_count(config.DEFAULT_BROKER_COUNT)
 
-    zookeeper = sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "zookeeper")
+    zookeeper = sdk_networks.get_endpoint_string(config.PACKAGE_NAME, FOLDERED_NAME, "zookeeper")
     assert zookeeper == zk_path
 
     # topic created earlier against default zk should no longer be present:
-    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "topic list")
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_NAME, "topic list")
     assert rc == 0, "Topic list command failed"
 
     assert config.DEFAULT_TOPIC_NAME not in json.loads(stdout)
@@ -117,9 +114,7 @@ def test_custom_zookeeper(kafka_client: client.KafkaClient):
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_broker_list():
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, sdk_utils.get_foldered_name(config.SERVICE_NAME), "broker list"
-    )
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, FOLDERED_NAME, "broker list")
     assert rc == 0, "Broker list command failed"
     assert set(json.loads(stdout)) == set([str(i) for i in range(config.DEFAULT_BROKER_COUNT)])
 
@@ -128,9 +123,7 @@ def test_broker_list():
 @pytest.mark.sanity
 def test_broker_invalid():
     rc, stdout, stderr = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME),
-        "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1),
+        config.PACKAGE_NAME, FOLDERED_NAME, "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1)
     )
     assert rc != 0, "Invalid broker id should have failed"
     assert "Got 404" in stderr
@@ -142,13 +135,17 @@ def test_broker_invalid():
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pods_restart():
-    test_utils.restart_broker_pods(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    test_utils.restart_broker_pods(
+        config.PACKAGE_NAME, FOLDERED_NAME, config.DEFAULT_POD_TYPE, config.DEFAULT_BROKER_COUNT
+    )
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_pod_replace(kafka_client: client.KafkaClient):
-    test_utils.replace_broker_pod(sdk_utils.get_foldered_name(config.SERVICE_NAME))
+    test_utils.replace_broker_pod(
+        config.PACKAGE_NAME, FOLDERED_NAME, config.DEFAULT_POD_TYPE, config.DEFAULT_BROKER_COUNT
+    )
     kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
 
@@ -174,7 +171,7 @@ def test_metrics():
 
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
-        sdk_utils.get_foldered_name(config.SERVICE_NAME),
+        FOLDERED_NAME,
         "kafka-0",
         "kafka-0-broker",
         config.DEFAULT_KAFKA_TIMEOUT,

@@ -5,35 +5,36 @@ import retrying
 import sdk_cmd
 import sdk_tasks
 
-from tests import config
-
 log = logging.getLogger(__name__)
 
 
-def restart_broker_pods(service_name=config.SERVICE_NAME):
-    for i in range(config.DEFAULT_BROKER_COUNT):
-        pod_name = "{}-{}".format(config.DEFAULT_POD_TYPE, i)
+def restart_broker_pods(
+    package_name: str, service_name: str, pod_type: str, broker_count: int
+) -> None:
+    for i in range(broker_count):
+        pod_name = "{}-{}".format(pod_type, i)
         task_name = "{}-{}".format(pod_name, "broker")
         broker_id = sdk_tasks.get_task_ids(service_name, task_name)
         rc, stdout, _ = sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, service_name, "pod restart {}".format(pod_name)
+            package_name, service_name, "pod restart {}".format(pod_name)
         )
         assert rc == 0, "Pod restart {} failed".format(pod_name)
         restart_info = json.loads(stdout)
         assert len(restart_info) == 2
         assert restart_info["tasks"][0] == task_name
         sdk_tasks.check_tasks_updated(service_name, task_name, broker_id)
-        sdk_tasks.check_running(service_name, config.DEFAULT_BROKER_COUNT)
+        sdk_tasks.check_running(service_name, broker_count)
 
 
-def replace_broker_pod(service_name=config.SERVICE_NAME):
-    pod_name = "{}-0".format(config.DEFAULT_POD_TYPE)
+def replace_broker_pod(
+    package_name: str, service_name: str, pod_type: str, broker_count: int
+) -> None:
+    pod_name = "{}-0".format(pod_type)
     task_name = "{}-{}".format(pod_name, "broker")
     broker_0_id = sdk_tasks.get_task_ids(service_name, task_name)
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, service_name, "pod replace {}".format(pod_name))
+    sdk_cmd.svc_cli(package_name, service_name, "pod replace {}".format(pod_name))
     sdk_tasks.check_tasks_updated(service_name, task_name, broker_0_id)
-    sdk_tasks.check_running(service_name, config.DEFAULT_BROKER_COUNT)
-    # wait till all brokers register
+    sdk_tasks.check_running(service_name, broker_count)
 
 
 def wait_for_topic(package_name: str, service_name: str, topic_name: str):

@@ -68,7 +68,12 @@ def test_overlay_network_deployment_and_endpoints():
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_pod_restart_on_overlay():
-    test_utils.restart_broker_pods()
+    test_utils.restart_broker_pods(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        config.DEFAULT_POD_TYPE,
+        config.DEFAULT_BROKER_COUNT,
+    )
     test_overlay_network_deployment_and_endpoints()
 
 
@@ -76,7 +81,12 @@ def test_pod_restart_on_overlay():
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
 def test_pod_replace_on_overlay(kafka_client: client.KafkaClient):
-    test_utils.replace_broker_pod()
+    test_utils.replace_broker_pod(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        config.DEFAULT_POD_TYPE,
+        config.DEFAULT_BROKER_COUNT,
+    )
     kafka_client.connect(config.DEFAULT_BROKER_COUNT)
     test_overlay_network_deployment_and_endpoints()
 
