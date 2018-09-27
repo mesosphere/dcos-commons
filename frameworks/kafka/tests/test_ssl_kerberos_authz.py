@@ -117,7 +117,7 @@ def test_authz_acls_required(
             "topic create {}".format(topic_name),
         )
 
-        kafka_client.connect()
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
         # Clear the ACLs
         kafka_client.remove_acls("authorized", topic_name)
@@ -185,7 +185,7 @@ def test_authz_acls_not_required(
             "topic create {}".format(topic_name),
         )
 
-        kafka_client.connect()
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
         # Clear the ACLs
         kafka_client.remove_acls("authorized", topic_name)

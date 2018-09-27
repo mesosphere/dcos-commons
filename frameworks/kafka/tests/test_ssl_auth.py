@@ -90,7 +90,7 @@ def test_authn_client_can_read_and_write(
             "topic create {}".format(topic_name),
         )
 
-        kafka_client.connect()
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
         kafka_client.check_users_can_read_and_write(["kafka-tester"], topic_name)
     finally:
@@ -132,7 +132,7 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, service_account, 
             "topic create {}".format(topic_name),
         )
 
-        kafka_client.connect()
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
         # Since no ACLs are specified, only the super user can read and write
         kafka_client.check_users_can_read_and_write(["super"], topic_name)
@@ -191,7 +191,7 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
             "topic create {}".format(topic_name),
         )
 
-        kafka_client.connect()
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
         # Since no ACLs are specified, all users can read and write.
         kafka_client.check_users_can_read_and_write(

@@ -5,6 +5,7 @@ import logging
 import uuid
 import typing
 import json
+import retrying
 
 import sdk_auth
 import sdk_cmd
@@ -72,6 +73,9 @@ class KafkaService:
         rc, stdout, _ = sdk_cmd.svc_cli(self._package_name, self._service_name, "topic list")
         assert rc == 0, "Topic list query failed"
         return json.loads(stdout)
+
+    def get_brokers(self) -> typing.Tuple[int, str, str]:
+        return sdk_cmd.svc_cli(self._package_name, self._service_name, "broker list")
 
     def get_topic_information(self, topic_name: str) -> dict:
         rc, stdout, _ = sdk_cmd.svc_cli(
@@ -191,8 +195,9 @@ class KafkaClient:
 
         return True
 
-    def connect(self) -> bool:
+    def connect(self, broker_count: int) -> bool:
         self.reset()
+        self.check_broker_count(broker_count)
         return self.wait_for()
 
     def can_write_and_read(self, user: str, topic_name: str) -> tuple:
@@ -284,3 +289,8 @@ class KafkaClient:
             assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(
                 user
             )
+
+    @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000)
+    def check_broker_count(self, count: int) -> None:
+        rc, stdout, _ = self.kafka_service.get_brokers()
+        assert rc == 0 and len(json.loads(stdout)) == count

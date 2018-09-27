@@ -181,7 +181,7 @@ def _configure_kafka_cluster(
         "topic create {}".format(TOPIC_NAME),
     )
 
-    kafka_client.connect()
+    kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
     # Clear the ACLs
     kafka_client.remove_acls("authorized", TOPIC_NAME)

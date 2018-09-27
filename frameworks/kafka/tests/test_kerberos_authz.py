@@ -103,7 +103,7 @@ def test_authz_acls_required(
         "topic create {}".format(topic_name),
     )
 
-    kafka_client.connect()
+    kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
     # Since no ACLs are specified, only the super user can read and write
 

@@ -120,6 +120,6 @@ def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_serve
         "topic create {}".format(topic_name),
     )
 
-    kafka_client.connect()
+    kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
     kafka_client.check_users_can_read_and_write(["client"], topic_name)

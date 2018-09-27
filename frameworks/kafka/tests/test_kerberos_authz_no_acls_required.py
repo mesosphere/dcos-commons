@@ -104,7 +104,7 @@ def test_authz_acls_not_required(
         "topic create {}".format(topic_name),
     )
 
-    kafka_client.connect()
+    kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
     # Since no ACLs are specified, all users can read and write.
     kafka_client.check_users_can_read_and_write(["authorized", "unauthorized", "super"], topic_name)

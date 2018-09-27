@@ -41,8 +41,7 @@ def configure_package(configure_security, kafka_client: client.KafkaClient):
         )
 
         # wait for brokers to finish registering before starting tests
-        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=FOLDERED_NAME)
-        kafka_client.connect()
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
         yield  # let the test session execute
     finally:
@@ -98,7 +97,7 @@ def test_custom_zookeeper(kafka_client: client.KafkaClient):
     sdk_plan.wait_for_completed_deployment(foldered_name)
 
     # wait for brokers to finish registering
-    test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=foldered_name)
+    kafka_client.check_broker_count(config.DEFAULT_BROKER_COUNT)
 
     zookeeper = sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "zookeeper")
     assert zookeeper == zk_path

@@ -27,7 +27,7 @@ def configure_package(configure_security, kafka_client: client.KafkaClient):
             additional_options=sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS,
         )
 
-        kafka_client.connect()
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
         yield  # let the test session execute
     finally:
         install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
