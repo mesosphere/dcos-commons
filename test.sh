@@ -13,15 +13,15 @@ set -e
 timestamp="$(date +%d%m%y%H%M%s)"
 # Create a temp file for docker env.
 # When the script exits (successfully or otherwise), clean up the file automatically.
-credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}.tmp)"
-envfile="$(mktemp /tmp/sdk-test-env-${timestamp}.tmp)"
+credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}.XXXXXX.tmp)"
+envfile="$(mktemp /tmp/sdk-test-env-${timestamp}.XXXXXX.tmp)"
 function cleanup {
     rm -f ${credsfile}
     rm -f ${envfile}
 }
 trap cleanup EXIT
 
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_ROOT_DIR=${REPO_ROOT_DIR:=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )}
 WORK_DIR="/build" # where REPO_ROOT_DIR is mounted within the image
 
 # Find out what framework(s) are available.
@@ -110,6 +110,8 @@ function usage()
     echo "    S3 bucket to use for testing."
     echo "  DOCKER_COMMAND=$docker_command"
     echo "    Command to be run within the docker image (e.g. 'DOCKER_COMMAND=bash' to just get a prompt)"
+    echo "  REPO_ROOT_DIR"
+    echo "    Allows for overriding the location of the repository's root directory. Autodetected by default."
     echo "  PYTEST_ARGS"
     echo "    Additional arguments (other than -m or -k) to pass to pytest."
     echo "  TEST_SH_*"
@@ -199,7 +201,7 @@ esac
 shift # past argument or value
 done
 
-if [ -z "$framework" -a x"$interactive" != x"true" ]; then
+if [ -z "$framework" -a x"$interactive" != x"true" -a "x$DOCKER_COMMAND" == "x" ]; then
     # If FRAMEWORK_LIST only has one option, use that. Otherwise complain.
     if [ $(echo $FRAMEWORK_LIST | wc -w) == 1 ]; then
         framework=$FRAMEWORK_LIST
