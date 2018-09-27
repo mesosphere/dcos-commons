@@ -31,8 +31,7 @@ def kafka_server(configure_security, kafka_client: client.KafkaClient):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         config.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_BROKER_COUNT)
         kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-
-        yield {"package_name": config.PACKAGE_NAME, "service": {"name": config.SERVICE_NAME}}
+        yield
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -58,9 +57,9 @@ def test_topic_partition_count(kafka_client: client.KafkaClient):
 
 
 @pytest.mark.sanity
-def test_topic_offsets_increase_with_writes(kafka_server: dict, kafka_client: client.KafkaClient):
-    package_name = kafka_server["package_name"]
-    service_name = kafka_server["service"]["name"]
+def test_topic_offsets_increase_with_writes(kafka_client: client.KafkaClient):
+    package_name = config.PACKAGE_NAME
+    service_name = config.SERVICE_NAME
 
     def offset_is_valid(result) -> bool:
         initial = result[0]
@@ -148,18 +147,18 @@ def test_increasing_topic_partitions_succeeds(kafka_client: client.KafkaClient):
 
 
 @pytest.mark.sanity
-def test_no_under_replicated_topics_exist(kafka_server: dict):
+def test_no_under_replicated_topics_exist():
     rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, kafka_server["service"]["name"], "topic under_replicated_partitions"
+        config.PACKAGE_NAME, config.SERVICE_NAME, "topic under_replicated_partitions"
     )
     assert rc == 0, "Under-replicated partitions failed"
     assert json.loads(stdout) == {"message": ""}
 
 
 @pytest.mark.sanity
-def test_no_unavailable_partitions_exist(kafka_server: dict):
+def test_no_unavailable_partitions_exist():
     rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, kafka_server["service"]["name"], "topic unavailable_partitions"
+        config.PACKAGE_NAME, config.SERVICE_NAME, "topic unavailable_partitions"
     )
     assert rc == 0, "Unavailable partitions failed"
     assert json.loads(stdout) == {"message": ""}

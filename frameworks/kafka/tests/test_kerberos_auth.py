@@ -61,7 +61,7 @@ def kafka_server(kerberos, kafka_client: client.KafkaClient):
         )
 
         kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
+        yield
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -83,9 +83,7 @@ def kafka_client(kerberos):
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_no_vip(kafka_server):
-    broker_endpoint = sdk_networks.get_endpoint(
-        kafka_server["package_name"], kafka_server["service"]["name"], "broker"
-    )
+    broker_endpoint = sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, "broker")
     assert "vip" not in broker_endpoint
 
 

@@ -55,7 +55,7 @@ def kafka_client():
 
 
 @pytest.fixture(scope="module", autouse=True)
-def kafka_service(service_account, kafka_client: client.KafkaClient):
+def kafka_server(service_account, kafka_client: client.KafkaClient):
     service_options = {
         "service": {
             "name": config.SERVICE_NAME,
@@ -179,16 +179,11 @@ def to_sorted(coll):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_tls_recovery(kafka_service, service_account):
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        kafka_service["package_name"], kafka_service["service"]["name"], "pod list"
-    )
+def test_tls_recovery():
+    rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
     assert rc == 0, "Pod list failed"
 
     for pod in json.loads(stdout):
         sdk_recovery.check_permanent_recovery(
-            kafka_service["package_name"],
-            kafka_service["service"]["name"],
-            pod,
-            recovery_timeout_s=25 * 60,
+            config.PACKAGE_NAME, config.SERVICE_NAME, pod, recovery_timeout_s=25 * 60
         )

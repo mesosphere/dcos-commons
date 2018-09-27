@@ -143,7 +143,7 @@ def kafka_server(kerberos, zookeeper_service, kafka_client: client.KafkaClient):
         )
 
         kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
+        yield
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -165,7 +165,7 @@ def kafka_client(kerberos):
 @sdk_utils.dcos_ee_only
 @pytest.mark.zookeeper
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_server, kerberos):
+def test_client_can_read_and_write(kafka_client: client.KafkaClient):
     topic_name = "authn.test"
     kafka_client.create_topic(topic_name)
 

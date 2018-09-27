@@ -68,10 +68,7 @@ def kafka_server(kerberos, kafka_client: client.KafkaClient):
         )
 
         kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-        yield {
-            **service_options,
-            **{"package_name": config.PACKAGE_NAME, "super_principal": super_principal},
-        }
+        yield
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
