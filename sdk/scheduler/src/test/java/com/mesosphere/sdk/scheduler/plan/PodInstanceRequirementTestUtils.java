@@ -163,7 +163,7 @@ public class PodInstanceRequirementTestUtils {
         PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
                 .type(type)
                 .count(1)
-                .tasks(Arrays.asList(taskSpec))
+                .addTask(taskSpec)
                 .preReservedRole(Constants.ANY_ROLE)
                 .build();
 
@@ -194,7 +194,7 @@ public class PodInstanceRequirementTestUtils {
         PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
                 .type(type)
                 .count(1)
-                .tasks(Arrays.asList(taskSpec))
+                .addTask(taskSpec)
                 .volumes(executorVolumes)
                 .build();
 

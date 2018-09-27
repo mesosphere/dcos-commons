@@ -768,16 +768,21 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
      * which is used to construct the OfferEvaluator should be used.
      */
     @Test
-    public void testGetTargetconfigRecoveryTypeNone() {
+    public void testGetTargetConfigRecoveryTypeNone() {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(
-                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance(),
+                        Collections.singleton(TestConstants.TASK_NAME))
                         .recoveryType(RecoveryType.NONE)
                         .build();
 
         Assert.assertEquals(
                 targetConfig,
-                evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(TestConstants.TASK_INFO)));
+                evaluator.getTargetConfig(
+                        podInstanceRequirement,
+                        Collections.singletonMap(
+                                TestConstants.POD_TYPE + "-0-" + TestConstants.TASK_NAME,
+                                TestConstants.TASK_INFO)));
     }
 
     /**
@@ -785,7 +790,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
      * the target configuration defined in the ConfigStore which is used to construct the OfferEvaluator should be used.
      */
     @Test
-    public void testGetTargetconfigRecoveryEmptyTaskCollection() {
+    public void testGetTargetConfigRecoveryEmptyTaskCollection() {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(
                         PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
@@ -794,32 +799,37 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(
                 targetConfig,
-                evaluator.getTargetConfig(podInstanceRequirement, Collections.emptyList()));
+                evaluator.getTargetConfig(podInstanceRequirement, Collections.emptyMap()));
     }
 
     /**
-     * If recovery is taking place but a Task has somehow failed to have its target config set, the
-     * ConfigStore / OfferEvaluator's target config should be used.
+     * If recovery is taking place and the task(s) to be recovered lack a config id, the ConfigStore target config
+     * should be used.
      */
     @Test
-    public void testGetTargetconfigRecoveryTypeAnyMissingLabel() {
+    public void testGetTargetConfigRecoveryMissingConfigId() {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(
-                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
+                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance(),
+                        Collections.singleton(TestConstants.TASK_NAME))
                         .recoveryType(RecoveryType.TRANSIENT)
                         .build();
 
         Assert.assertEquals(
                 targetConfig,
-                evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(TestConstants.TASK_INFO)));
+                evaluator.getTargetConfig(
+                        podInstanceRequirement,
+                        Collections.singletonMap(
+                                TestConstants.POD_TYPE + "-0-" + TestConstants.TASK_NAME,
+                                TestConstants.TASK_INFO)));
     }
 
     /**
-     * If recovery is taking place and a target config is properly set on the task, its target config should
-     * be used, not the ConfigStore / OfferEvaluator's target config.
+     * If recovery is taking place and the task(s) to be recovered aren't present in the StateStore, the ConfigStore
+     * target config should be used.
      */
     @Test
-    public void testGetTargetconfigRecoveryTypeAny() {
+    public void testGetTargetConfigRecoveryMissingTaskToLaunch() {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(
                         PodInstanceRequirementTestUtils.getCpuRequirement(1.0))
@@ -833,12 +843,125 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .toProto())
                 .build();
 
-        Assert.assertNotEquals(
+        Assert.assertEquals(
                 targetConfig,
-                evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(taskInfo)));
+                evaluator.getTargetConfig(
+                        podInstanceRequirement,
+                        Collections.singletonMap("somethingElse", taskInfo)));
+    }
+
+    /**
+     * If recovery is taking place and a target config is properly set on the task, its target config should
+     * be used, not the ConfigStore / OfferEvaluator's target config.
+     */
+    @Test
+    public void testGetTargetConfigRecoverySingleTask() {
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(
+                        PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance(),
+                        Collections.singleton(TestConstants.TASK_NAME))
+                        .recoveryType(RecoveryType.TRANSIENT)
+                        .build();
+
+        UUID taskConfig = UUID.randomUUID();
+        TaskInfo taskInfo = TestConstants.TASK_INFO.toBuilder().setLabels(
+                new TaskLabelWriter(TestConstants.TASK_INFO)
+                        .setTargetConfiguration(taskConfig)
+                        .toProto())
+                .build();
+
         Assert.assertEquals(
                 taskConfig,
-                evaluator.getTargetConfig(podInstanceRequirement, Arrays.asList(taskInfo)));
+                evaluator.getTargetConfig(
+                        podInstanceRequirement,
+                        Collections.singletonMap(
+                                TestConstants.POD_TYPE + "-0-" + TestConstants.TASK_NAME,
+                                taskInfo)));
+    }
+
+    /**
+     * If a subset of a pod is being recovered, only the config from the tasks to be recovered should be used.
+     */
+    @Test
+    public void testGetTargetConfigRecoveryMixedInclusion() {
+        // Create PodSpec with default and "other" tasks:
+        PodSpec podSpec = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
+        podSpec = DefaultPodSpec.newBuilder(podSpec)
+                .addTask(DefaultTaskSpec.newBuilder(podSpec.getTasks().get(0))
+                        .name("other")
+                        .build())
+                .build();
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(TestConstants.TASK_NAME))
+                        .recoveryType(RecoveryType.TRANSIENT)
+                        .build();
+
+        UUID recoverTaskConfig = UUID.randomUUID();
+        String recoverTaskFullName = TaskSpec.getInstanceName(podInstance, TestConstants.TASK_NAME);
+        TaskInfo recoverTaskInfo = TestConstants.TASK_INFO.toBuilder()
+                .setName(recoverTaskFullName)
+                .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
+                        .setTargetConfiguration(recoverTaskConfig)
+                        .toProto())
+                .build();
+
+        UUID otherTaskConfig = UUID.randomUUID();
+        String otherTaskFullName = TaskSpec.getInstanceName(podInstance, "other");
+        TaskInfo otherTaskInfo = TestConstants.TASK_INFO.toBuilder()
+                .setName(otherTaskFullName)
+                .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
+                        .setTargetConfiguration(otherTaskConfig)
+                        .toProto())
+                .build();
+
+        Map<String, TaskInfo> podTasks = new HashMap<>();
+        podTasks.put(recoverTaskFullName, recoverTaskInfo);
+        podTasks.put(otherTaskFullName, otherTaskInfo);
+        Assert.assertEquals(recoverTaskConfig, evaluator.getTargetConfig(podInstanceRequirement, podTasks));
+    }
+
+    /**
+     * If multiple tasks are being recovered, the config on RUNNING task(s) should get priority over non-RUNNING tasks.
+     */
+    @Test
+    public void testGetTargetConfigRecoveryMixedGoalStates() {
+        // Create PodSpec with default=RUNNING and "other"=ONCE tasks:
+        PodSpec podSpec = PodInstanceRequirementTestUtils.getCpuRequirement(1.0).getPodInstance().getPod();
+        podSpec = DefaultPodSpec.newBuilder(podSpec)
+                .addTask(DefaultTaskSpec.newBuilder(podSpec.getTasks().get(0))
+                        .name("other")
+                        .goalState(GoalState.ONCE)
+                        .build())
+                .build();
+        PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
+        PodInstanceRequirement podInstanceRequirement =
+                PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(TestConstants.TASK_NAME, "other"))
+                        .recoveryType(RecoveryType.TRANSIENT)
+                        .build();
+
+        UUID recoverTaskConfig = UUID.randomUUID();
+        String recoverTaskFullName = TaskSpec.getInstanceName(podInstance, TestConstants.TASK_NAME);
+        TaskInfo recoverTaskInfo = TestConstants.TASK_INFO.toBuilder()
+                .setName(recoverTaskFullName)
+                .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
+                        .setTargetConfiguration(recoverTaskConfig)
+                        .toProto())
+                .build();
+
+        UUID otherTaskConfig = UUID.randomUUID();
+        String otherTaskFullName = TaskSpec.getInstanceName(podInstance, "other");
+        TaskInfo otherTaskInfo = TestConstants.TASK_INFO.toBuilder()
+                .setName(otherTaskFullName)
+                .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
+                        .setTargetConfiguration(otherTaskConfig)
+                        .toProto())
+                .build();
+
+        Map<String, TaskInfo> podTasks = new HashMap<>();
+        podTasks.put(recoverTaskFullName, recoverTaskInfo);
+        podTasks.put(otherTaskFullName, otherTaskInfo);
+        Assert.assertEquals(recoverTaskConfig, evaluator.getTargetConfig(podInstanceRequirement, podTasks));
     }
 
     @Test
