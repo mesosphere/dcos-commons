@@ -60,26 +60,6 @@ def wait_for_broker_dns(package_name: str, service_name: str):
     assert sdk_cmd.resolve_hosts(scheduler_task_id, broker_dns)
 
 
-def delete_topic(topic_name, service_name=config.SERVICE_NAME):
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name, "topic delete {}".format(topic_name)
-    )
-    assert rc == 0, "Topic delete failed"
-    delete_info = json.loads(stdout)
-    assert len(delete_info) == 1
-    assert delete_info["message"].startswith(
-        "Output: Topic {} is marked for deletion".format(topic_name)
-    )
-
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME, service_name, "topic describe {}".format(topic_name)
-    )
-    assert rc == 0, "Topic describe after delete failed"
-    topic_info = json.loads(stdout)
-    assert len(topic_info) == 1
-    assert len(topic_info["partitions"]) == config.DEFAULT_PARTITION_COUNT
-
-
 def wait_for_topic(package_name: str, service_name: str, topic_name: str):
     """
     Execute `dcos kafka topic describe` to wait for topic creation.

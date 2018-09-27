@@ -8,7 +8,6 @@ import sdk_cmd
 import sdk_install
 
 from tests import config
-from tests import test_utils
 from tests import topics
 from tests import client
 
@@ -49,8 +48,11 @@ def test_topic_create(kafka_client: client.KafkaClient):
 
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_topic_delete(kafka_server: dict):
-    test_utils.delete_topic(config.EPHEMERAL_TOPIC_NAME, kafka_server["service"]["name"])
+def test_topic_delete(kafka_client: client.KafkaClient):
+    kafka_client.check_topic_deletion(config.EPHEMERAL_TOPIC_NAME)
+    kafka_client.check_topic_partition_count(
+        config.EPHEMERAL_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
+    )
 
 
 @pytest.mark.sanity

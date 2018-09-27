@@ -93,5 +93,8 @@ def test_topic_create_overlay(kafka_client: client.KafkaClient):
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_topic_delete_overlay():
-    test_utils.delete_topic(config.EPHEMERAL_TOPIC_NAME)
+def test_topic_delete_overlay(kafka_client: client.KafkaClient):
+    kafka_client.check_topic_deletion(config.EPHEMERAL_TOPIC_NAME)
+    kafka_client.check_topic_partition_count(
+        config.EPHEMERAL_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
+    )

@@ -57,6 +57,17 @@ class KafkaService:
                 in create_info["message"]
             )
 
+    def delete_topic(self, topic_name: str) -> None:
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            self._package_name, self._service_name, "topic delete {}".format(topic_name)
+        )
+        assert rc == 0, "Topic delete failed"
+        delete_info = json.loads(stdout)
+        assert len(delete_info) == 1
+        assert delete_info["message"].startswith(
+            "Output: Topic {} is marked for deletion".format(topic_name)
+        )
+
     def get_topics(self) -> dict:
         rc, stdout, _ = sdk_cmd.svc_cli(self._package_name, self._service_name, "topic list")
         assert rc == 0, "Topic list query failed"
@@ -243,6 +254,9 @@ class KafkaClient:
     def check_topic_creation(self, topic_name: str) -> None:
         self.create_topic(topic_name)
         assert topic_name in self.kafka_service.get_topics()
+
+    def check_topic_deletion(self, topic_name: str) -> None:
+        self.kafka_service.delete_topic(topic_name)
 
     def check_topic_partition_count(self, topic_name: str, partition_count: int) -> None:
         information = self.kafka_service.get_topic_information(topic_name)
