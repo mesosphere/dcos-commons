@@ -496,7 +496,8 @@ def get_task_host(task_name):
             "offer_hostname label is not present!: {}".format(task_info))
 
     # Validation: Check that label matches summary returned by CLI
-    for task in sdk_tasks.get_summary():
+    tasks_from_summary = sdk_tasks.get_summary()
+    for task in tasks_from_summary:
         if task.name == task_name:
             if task.host == host:
                 # OK!
@@ -506,5 +507,5 @@ def get_task_host(task_name):
                 raise Exception("offer_hostname label {} doesn't match CLI output!\n"
                                 "Task:\n{}".format(host, task))
 
-    # Unable to find desired task in CLI!
-    raise Exception("Unable to find task named {} in CLI".format(task_name))
+    raise Exception("Unable to match task reported in CLI: {} to tasks from get_summary: {}".format(
+        task_info, tasks_from_summary))
