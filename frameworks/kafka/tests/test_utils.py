@@ -58,10 +58,3 @@ def wait_for_topic(package_name: str, service_name: str, topic_name: str):
         assert rc == 0
 
     describe(topic_name)
-
-
-def assert_topic_lists_are_equal_without_automatic_topics(expected, actual):
-    """Check for equality in topic lists after filtering topics that start with
-    an underscore."""
-    filtered_actual = list(filter(lambda x: not x.startswith("_"), actual))
-    assert expected == filtered_actual

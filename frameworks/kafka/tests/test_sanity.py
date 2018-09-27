@@ -106,7 +106,7 @@ def test_custom_zookeeper(kafka_client: client.KafkaClient):
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "topic list")
     assert rc == 0, "Topic list command failed"
 
-    test_utils.assert_topic_lists_are_equal_without_automatic_topics([], json.loads(stdout))
+    assert config.DEFAULT_TOPIC_NAME not in json.loads(stdout)
 
     # tests from here continue with the custom ZK path...
 
