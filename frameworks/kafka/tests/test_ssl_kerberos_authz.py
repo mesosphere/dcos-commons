@@ -108,16 +108,9 @@ def test_authz_acls_required(
             additional_options=service_options,
         )
 
-        kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
-
         topic_name = "authz.test"
-        sdk_cmd.svc_cli(
-            kafka_server["package_name"],
-            kafka_server["service"]["name"],
-            "topic create {}".format(topic_name),
-        )
-
         kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+        kafka_client.create_topic(topic_name)
 
         # Clear the ACLs
         kafka_client.remove_acls("authorized", topic_name)
@@ -176,16 +169,9 @@ def test_authz_acls_not_required(
             additional_options=service_options,
         )
 
-        kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
-
         topic_name = "authz.test"
-        sdk_cmd.svc_cli(
-            kafka_server["package_name"],
-            kafka_server["service"]["name"],
-            "topic create {}".format(topic_name),
-        )
-
         kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+        kafka_client.create_topic(topic_name)
 
         # Clear the ACLs
         kafka_client.remove_acls("authorized", topic_name)

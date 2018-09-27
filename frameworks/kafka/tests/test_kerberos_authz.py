@@ -97,13 +97,8 @@ def test_authz_acls_required(
 ):
 
     topic_name = "authz.test"
-    sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "topic create {}".format(topic_name),
-    )
-
     kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    kafka_client.create_topic(topic_name)
 
     # Since no ACLs are specified, only the super user can read and write
 

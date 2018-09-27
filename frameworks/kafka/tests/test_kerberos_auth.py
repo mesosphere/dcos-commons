@@ -93,14 +93,7 @@ def test_no_vip(kafka_server):
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
-
     topic_name = "authn.test"
-    sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "topic create {}".format(topic_name),
-    )
-
     kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-
+    kafka_client.create_topic(topic_name)
     kafka_client.check_users_can_read_and_write(["client"], topic_name)

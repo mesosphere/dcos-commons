@@ -2,7 +2,6 @@ import logging
 import pytest
 
 import sdk_auth
-import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_utils
@@ -115,15 +114,8 @@ def kafka_client(kerberos):
 
 @pytest.mark.sanity
 def test_client_can_read_and_write(kafka_client: client.KafkaClient, kafka_server, kerberos):
-
     topic_name = "authn.test"
-    sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "topic create {}".format(topic_name),
-    )
-
     kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-
+    kafka_client.create_topic(topic_name)
     user = "client"
     kafka_client.check_users_can_read_and_write([user], topic_name)

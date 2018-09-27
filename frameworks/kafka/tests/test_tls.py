@@ -11,7 +11,7 @@ import sdk_utils
 
 from security import transport_encryption, cipher_suites
 
-from tests import config
+from tests import config, client
 
 pytestmark = [
     sdk_utils.dcos_ee_only,
@@ -41,7 +41,21 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope="module")
-def kafka_service(service_account):
+def kafka_client():
+    try:
+        kafka_client = client.KafkaClient("kafka-client", config.PACKAGE_NAME, config.SERVICE_NAME)
+        kafka_client.install()
+
+        # TODO: This flag should be set correctly.
+        kafka_client._is_tls = True
+
+        yield kafka_client
+    finally:
+        kafka_client.uninstall()
+
+
+@pytest.fixture(scope="module", autouse=True)
+def kafka_service(service_account, kafka_client: client.KafkaClient):
     service_options = {
         "service": {
             "name": config.SERVICE_NAME,
@@ -60,6 +74,7 @@ def kafka_service(service_account):
             additional_options=service_options,
             timeout_seconds=30 * 60,
         )
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
         yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
@@ -69,7 +84,7 @@ def kafka_service(service_account):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_tls_endpoints(kafka_service):
+def test_tls_endpoints():
     endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
     assert len(endpoint_names) == 2
     assert BROKER_TLS_ENDPOINT in endpoint_names
@@ -84,20 +99,11 @@ def test_tls_endpoints(kafka_service):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_producer_over_tls(kafka_service):
-    sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        "topic create {}".format(config.DEFAULT_TOPIC_NAME),
+def test_producer_over_tls(kafka_client: client.KafkaClient):
+    kafka_client.create_topic(config.DEFAULT_TOPIC_NAME)
+    kafka_client.check_topic_partition_count(
+        config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
     )
-
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        "topic describe {}".format(config.DEFAULT_TOPIC_NAME),
-    )
-    assert rc == 0, "Topic describe failed"
-    assert len(json.loads(stdout)["partitions"]) == config.DEFAULT_PARTITION_COUNT
 
     # Write twice: Warm up TLS connections
     num_messages = 10
@@ -121,7 +127,7 @@ def test_producer_over_tls(kafka_service):
 @pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
-def test_tls_ciphers(kafka_service):
+def test_tls_ciphers():
     task_name = "kafka-0-broker"
     endpoint = sdk_networks.get_endpoint(
         config.PACKAGE_NAME, config.SERVICE_NAME, BROKER_TLS_ENDPOINT
@@ -130,13 +136,7 @@ def test_tls_ciphers(kafka_service):
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "describe")
     assert rc == 0, "Describe command failed"
     expected_ciphers = set(
-        sdk_utils.get_in(
-            ciphers_config_path,
-            json.loads(stdout),
-            "",
-        )
-        .rstrip()
-        .split(",")
+        sdk_utils.get_in(ciphers_config_path, json.loads(stdout), "").rstrip().split(",")
     )
 
     openssl_ciphers = sdk_security.openssl_ciphers()

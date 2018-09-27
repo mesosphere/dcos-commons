@@ -173,15 +173,8 @@ def _configure_kafka_cluster(
         additional_options=service_options,
     )
 
-    kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
-
-    sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "topic create {}".format(TOPIC_NAME),
-    )
-
     kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    kafka_client.create_topic(TOPIC_NAME)
 
     # Clear the ACLs
     kafka_client.remove_acls("authorized", TOPIC_NAME)
