@@ -41,17 +41,19 @@ def kafka_server(configure_security, kafka_client: client.KafkaClient):
 @pytest.mark.sanity
 def test_topic_create(kafka_client: client.KafkaClient):
     kafka_client.check_topic_creation(config.EPHEMERAL_TOPIC_NAME)
-    kafka_client.check_topic_partition_count(
-        config.EPHEMERAL_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
-    )
 
 
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_topic_delete(kafka_client: client.KafkaClient):
     kafka_client.check_topic_deletion(config.EPHEMERAL_TOPIC_NAME)
+
+
+@pytest.mark.sanity
+def test_topic_partition_count(kafka_client: client.KafkaClient):
+    kafka_client.check_topic_creation(config.DEFAULT_TOPIC_NAME)
     kafka_client.check_topic_partition_count(
-        config.EPHEMERAL_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
+        config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
     )
 
 
@@ -122,55 +124,27 @@ def test_topic_offsets_increase_with_writes(kafka_server: dict, kafka_client: cl
 
 
 @pytest.mark.sanity
-def test_decreasing_topic_partitions_fails(kafka_server: dict):
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        kafka_server["service"]["name"],
-        "topic partitions {} {}".format(
-            config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT - 1
-        ),
+def test_decreasing_topic_partitions_fails(kafka_client: client.KafkaClient):
+    partition_info = kafka_client.check_topic_partition_change(
+        config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT - 1
     )
-    assert rc == 0, "Partition info failed"
-
-    partition_info = json.loads(stdout)
-    assert len(partition_info) == 1
-    assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
-    assert "The number of partitions for a topic can only be increased" in partition_info["message"]
+    assert "The number of partitions for a topic can only be increased" in partition_info
 
 
 @pytest.mark.sanity
-def test_setting_topic_partitions_to_same_value_fails(kafka_server: dict):
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        kafka_server["service"]["name"],
-        "topic partitions {} {}".format(config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT),
+def test_setting_topic_partitions_to_same_value_fails(kafka_client: client.KafkaClient):
+    partition_info = kafka_client.check_topic_partition_change(
+        config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
     )
-    assert rc == 0, "Partition info failed"
-
-    partition_info = json.loads(stdout)
-    assert len(partition_info) == 1
-    assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
-    assert "The number of partitions for a topic can only be increased" in partition_info["message"]
+    assert "The number of partitions for a topic can only be increased" in partition_info
 
 
 @pytest.mark.sanity
-def test_increasing_topic_partitions_succeeds(kafka_server: dict):
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        config.PACKAGE_NAME,
-        kafka_server["service"]["name"],
-        "topic partitions {} {}".format(
-            config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT + 1
-        ),
+def test_increasing_topic_partitions_succeeds(kafka_client: client.KafkaClient):
+    partition_info = kafka_client.check_topic_partition_change(
+        config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT + 1
     )
-    assert rc == 0, "Partition info failed"
-
-    partition_info = json.loads(stdout)
-    assert len(partition_info) == 1
-    assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
-    assert (
-        "The number of partitions for a topic can only be increased"
-        not in partition_info["message"]
-    )
+    assert "The number of partitions for a topic can only be increased" not in partition_info
 
 
 @pytest.mark.sanity

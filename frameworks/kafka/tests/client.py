@@ -84,6 +84,15 @@ class KafkaService:
         assert rc == 0, "Topic describe failed"
         return json.loads(stdout)
 
+    def get_topic_partition_information(self, topic_name: str, partition_count: int) -> dict:
+        rc, stdout, _ = sdk_cmd.svc_cli(
+            self._package_name,
+            self._service_name,
+            "topic partitions {} {}".format(topic_name, partition_count),
+        )
+        assert rc == 0, "Partition info failed"
+        return json.loads(stdout)
+
 
 class KafkaClient:
     def __init__(
@@ -294,3 +303,12 @@ class KafkaClient:
     def check_broker_count(self, count: int) -> None:
         rc, stdout, _ = self.kafka_service.get_brokers()
         assert rc == 0 and len(json.loads(stdout)) == count
+
+    def check_topic_partition_change(self, topic_name: str, partition_count: int) -> str:
+        partition_info = self.kafka_service.get_topic_partition_information(
+            topic_name, partition_count
+        )
+        assert len(partition_info) == 1
+        log.info("Partition info for %s: %s", topic_name, partition_info)
+        assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
+        return partition_info["message"]
