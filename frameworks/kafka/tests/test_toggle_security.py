@@ -19,6 +19,7 @@ from tests import client
 log = logging.getLogger(__name__)
 
 TOPIC_NAME = "securetest"
+TLS_USER = "client"
 
 pytestmark = [
     sdk_utils.dcos_ee_only,
@@ -98,6 +99,7 @@ def kafka_client():
     try:
         kafka_client = client.KafkaClient("kafka-client", config.PACKAGE_NAME, config.SERVICE_NAME)
         kafka_client.install()
+        transport_encryption.create_tls_artifacts(TLS_USER, "kafka-client")
 
         yield kafka_client
     finally:
@@ -108,21 +110,25 @@ def kafka_client():
 def kerberized_kafka_client(kerberos: sdk_auth.KerberosEnvironment):
     try:
         kafka_client = client.KafkaClient(
-            "kerberized-kafka-client", config.PACKAGE_NAME, config.SERVICE_NAME, kerberos
+            "kerberized-client", config.PACKAGE_NAME, config.SERVICE_NAME, kerberos
         )
         kafka_client.install()
+        transport_encryption.create_tls_artifacts(TLS_USER, "kerberized-client")
 
         yield kafka_client
     finally:
         kafka_client.uninstall()
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_initial_kerberos_off_tls_off_plaintext_off(kafka_client: client.KafkaClient):
     assert kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    kafka_client.create_topic(TOPIC_NAME)
     kafka_client.check_users_can_read_and_write(["default"], TOPIC_NAME)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_forward_kerberos_on_tls_off_plaintext_off(
     kerberized_kafka_client: client.KafkaClient, kerberos: sdk_auth.KerberosEnvironment
@@ -142,9 +148,10 @@ def test_forward_kerberos_on_tls_off_plaintext_off(
 
     update_service(config.PACKAGE_NAME, config.SERVICE_NAME, update_options)
     assert kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kerberized_kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kerberized_kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_forward_kerberos_on_tls_on_plaintext_on(kerberized_kafka_client: client.KafkaClient):
     update_options = {
@@ -157,13 +164,14 @@ def test_forward_kerberos_on_tls_on_plaintext_on(kerberized_kafka_client: client
 
     kerberized_kafka_client._is_tls = True
     assert kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kerberized_kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kerberized_kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
     kerberized_kafka_client._is_tls = False
     assert kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kerberized_kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kerberized_kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_forward_kerberos_on_tls_on_plaintext_off(kerberized_kafka_client: client.KafkaClient):
     update_options = {
@@ -174,26 +182,30 @@ def test_forward_kerberos_on_tls_on_plaintext_off(kerberized_kafka_client: clien
 
     update_service(config.PACKAGE_NAME, config.SERVICE_NAME, update_options)
 
-    kerberized_kafka_client._is_tls = False
-    assert not kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    with pytest.raises(AssertionError):
+        kerberized_kafka_client._is_tls = False
+        kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
     kerberized_kafka_client._is_tls = True
     assert kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
-    kerberized_kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kerberized_kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_forward_kerberos_off_tls_on_plaintext_off(kafka_client: client.KafkaClient):
     update_options = {"service": {"security": {"kerberos": {"enabled": False}}}}
 
     update_service(config.PACKAGE_NAME, config.SERVICE_NAME, update_options)
-    kafka_client._is_tls = False
-    assert not kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    with pytest.raises(AssertionError):
+        kafka_client._is_tls = False
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
     kafka_client._is_tls = True
     assert kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_forward_kerberos_off_tls_on_plaintext_on(kafka_client: client.KafkaClient):
     update_options = {
@@ -206,12 +218,14 @@ def test_forward_kerberos_off_tls_on_plaintext_on(kafka_client: client.KafkaClie
 
     kafka_client._is_tls = False
     assert kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
+
     kafka_client._is_tls = True
     assert kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_forward_kerberos_off_tls_off_plaintext_off(kafka_client: client.KafkaClient):
     update_options = {
@@ -222,24 +236,28 @@ def test_forward_kerberos_off_tls_off_plaintext_off(kafka_client: client.KafkaCl
 
     update_service(config.PACKAGE_NAME, config.SERVICE_NAME, update_options)
 
-    kafka_client._is_tls = True
-    assert not kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    with pytest.raises(AssertionError):
+        kafka_client._is_tls = True
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
     kafka_client._is_tls = False
     assert kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
 # We now run the tests in the oposite direction
+@pytest.mark.sanity
 @pytest.mark.incremental
-def test_reverse_kerberos_off_tls_on_plaintext_on(kerberized_kafka_client: client.KafkaClient):
-    test_forward_kerberos_on_tls_on_plaintext_on(kerberized_kafka_client)
+def test_reverse_kerberos_off_tls_on_plaintext_on(kafka_client: client.KafkaClient):
+    test_forward_kerberos_on_tls_on_plaintext_on(kafka_client)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
-def test_reverse_kerberos_off_tls_on_plaintext_off(kerberized_kafka_client: client.KafkaClient):
-    test_forward_kerberos_on_tls_on_plaintext_off(kerberized_kafka_client)
+def test_reverse_kerberos_off_tls_on_plaintext_off(kafka_client: client.KafkaClient):
+    test_forward_kerberos_on_tls_on_plaintext_off(kafka_client)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_reverse_kerberos_on_tls_on_plaintext_off(
     kerberized_kafka_client: client.KafkaClient, kerberos: sdk_auth.KerberosEnvironment
@@ -258,12 +276,15 @@ def test_reverse_kerberos_on_tls_on_plaintext_off(
     }
 
     update_service(config.PACKAGE_NAME, config.SERVICE_NAME, update_options)
-    kerberized_kafka_client._is_tls = False
-    assert not kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    with pytest.raises(AssertionError):
+        kerberized_kafka_client._is_tls = False
+        kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    kerberized_kafka_client._is_tls = True
     assert kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kerberized_kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kerberized_kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_reverse_kerberos_on_tls_on_plaintext_on(kerberized_kafka_client: client.KafkaClient):
     update_options = {
@@ -276,12 +297,13 @@ def test_reverse_kerberos_on_tls_on_plaintext_on(kerberized_kafka_client: client
 
     kerberized_kafka_client._is_tls = False
     assert kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kerberized_kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
-    kerberized_kafka_client._is_tls = False
+    kerberized_kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
+    kerberized_kafka_client._is_tls = True
     assert kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kerberized_kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kerberized_kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_reverse_kerberos_on_tls_off_plaintext_off(kerberized_kafka_client: client.KafkaClient):
     update_options = {
@@ -292,25 +314,28 @@ def test_reverse_kerberos_on_tls_off_plaintext_off(kerberized_kafka_client: clie
 
     update_service(config.PACKAGE_NAME, config.SERVICE_NAME, update_options)
 
-    kerberized_kafka_client._is_tls = True
-    assert not kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    with pytest.raises(AssertionError):
+        kerberized_kafka_client._is_tls = True
+        kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
     kerberized_kafka_client._is_tls = False
     assert kerberized_kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kerberized_kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kerberized_kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
+@pytest.mark.sanity
 @pytest.mark.incremental
 def test_reverse_kerberos_off_tls_off_plaintext_off(kafka_client: client.KafkaClient):
     update_options = {"service": {"security": {"kerberos": {"enabled": False}}}}
 
     update_service(config.PACKAGE_NAME, config.SERVICE_NAME, update_options)
 
-    kafka_client._is_tls = True
-    assert not kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+    with pytest.raises(AssertionError):
+        kafka_client._is_tls = True
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
     kafka_client._is_tls = False
     assert kafka_client.connect(config.DEFAULT_BROKER_COUNT)
-    kafka_client.check_users_can_read_and_write(["client"], TOPIC_NAME)
+    kafka_client.check_users_can_read_and_write([TLS_USER], TOPIC_NAME)
 
 
 def update_service(package_name: str, service_name: str, options: dict):
