@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 
 # Name of the broker TLS vip
 BROKER_TLS_ENDPOINT = "broker-tls"
+TLS_USER = "client"
 
 
 @pytest.fixture(scope="module")
@@ -48,6 +49,7 @@ def kafka_client():
 
         # TODO: This flag should be set correctly.
         kafka_client._is_tls = True
+        transport_encryption.create_tls_artifacts(TLS_USER, "kafka-client")
 
         yield kafka_client
     finally:
@@ -75,6 +77,10 @@ def kafka_server(service_account, kafka_client: client.KafkaClient):
             timeout_seconds=30 * 60,
         )
         kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+        kafka_client.create_topic(config.DEFAULT_TOPIC_NAME)
+        kafka_client.check_topic_partition_count(
+            config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
+        )
 
         yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
     finally:
@@ -97,14 +103,15 @@ def test_tls_endpoints():
 
 
 @pytest.mark.tls
+@pytest.mark.sanity
+def test_topic_write_and_read_over_tls(kafka_client: client.KafkaClient):
+    kafka_client.check_users_can_read_and_write([TLS_USER], config.DEFAULT_TOPIC_NAME)
+
+
+@pytest.mark.tls
 @pytest.mark.smoke
 @pytest.mark.sanity
 def test_producer_over_tls(kafka_client: client.KafkaClient):
-    kafka_client.create_topic(config.DEFAULT_TOPIC_NAME)
-    kafka_client.check_topic_partition_count(
-        config.DEFAULT_TOPIC_NAME, config.DEFAULT_PARTITION_COUNT
-    )
-
     # Write twice: Warm up TLS connections
     num_messages = 10
     sdk_cmd.svc_cli(
