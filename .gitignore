@@ -29,6 +29,7 @@ tools/template
 *.log
 *.pem
 .pytest_cache/
+__pycache__
 
 # idea
 *.i??

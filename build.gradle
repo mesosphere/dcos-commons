@@ -61,12 +61,8 @@ allprojects {
     }
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
-    compileJava.options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
-    compileTestJava.options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation'
-
-    task wrapper(type: Wrapper) {
-        gradleVersion = '3.2'
-    }
+    compileJava.options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation' << '-proc:none'
+    compileTestJava.options.compilerArgs << '-Xlint:unchecked' << '-Xlint:deprecation' << '-proc:none'
 
     task sourcesJar(type: Jar, dependsOn: classes) {
         classifier = 'sources'

@@ -1,6 +1,7 @@
 import json
 import logging
 import pytest
+from toolz import get_in
 
 import sdk_cmd
 import sdk_install
@@ -142,9 +143,7 @@ def test_tls_ciphers():
     ciphers_config_path = ["service", "security", "transport_encryption", "ciphers"]
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "describe")
     assert rc == 0, "Describe command failed"
-    expected_ciphers = set(
-        sdk_utils.get_in(ciphers_config_path, json.loads(stdout), "").rstrip().split(",")
-    )
+    expected_ciphers = set(get_in(ciphers_config_path, json.loads(stdout), "").rstrip().split(","))
 
     openssl_ciphers = sdk_security.openssl_ciphers()
     missing_openssl_ciphers = cipher_suites.missing_openssl_ciphers(openssl_ciphers)
