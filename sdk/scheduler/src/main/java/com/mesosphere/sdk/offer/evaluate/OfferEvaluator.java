@@ -531,89 +531,104 @@ public class OfferEvaluator {
 
         // This is a recovery operation. Reuse the pod's current configuration, and specifically avoid out-of-band
         // config updates as part of recovering the pod. Select the correct configuration to use for the recovery:
-        // 1. Filter the pod's tasks to just the ones being recovered in this operation.
-        // 2. If multiple tasks are being recovered, prefer ones that are marked RUNNING, as they are more
-        //    consistently updated to new config ids (workaround for DCOS-42539).
-        // 3. If no tasks are found (shouldn't happen?), fall back to using the target config.
-        Map<String, UUID> runningConfigTargets = new TreeMap<>();
-        Map<String, UUID> otherConfigTargets = new TreeMap<>();
-        sortRecoveryConfigTargets(podInstanceRequirement, thisPodTasksByName, runningConfigTargets, otherConfigTargets);
+        RecoveryConfigIDs recoveryConfigIDs = new RecoveryConfigIDs(podInstanceRequirement, thisPodTasksByName);
 
-        // Select a config id from the goal state groups:
-        if (runningConfigTargets.values().stream().distinct().count() > 1) {
-            logger.warn("Multiple goal-running tasks with different target configs. Selecting random config: {}",
-                    runningConfigTargets);
-        }
-        Optional<UUID> selectedConfig = runningConfigTargets.values().stream().findAny();
+        Optional<UUID> selectedConfig = recoveryConfigIDs.selectRecoveryConfigID();
         if (!selectedConfig.isPresent()) {
-            if (otherConfigTargets.values().stream().distinct().count() > 1) {
-                logger.warn("Multiple goal-other tasks with different target configs. Selecting random config: {}",
-                        otherConfigTargets);
-            }
-            selectedConfig = otherConfigTargets.values().stream().findAny();
+            // Fall back to using the scheduler target config. This shouldn't happen (how are we recovering tasks
+            // that have never been launched before?), but just in case...
+            logger.error("No target configuration could be determined for recovering {}, using scheduler target {}",
+                    podInstanceRequirement.getName(), targetConfigId);
+            selectedConfig = Optional.of(targetConfigId);
         }
-        if (!selectedConfig.isPresent()) {
-            // No TaskInfos for the tasks being recovered? Missing target config ids?
-            logger.error("No target configuration could be determined for recovering {}, using scheduler target {} " +
-                    "(goal-running={}, other={})",
-                    podInstanceRequirement.getName(),
-                    targetConfigId,
-                    runningConfigTargets,
-                    otherConfigTargets);
-            return targetConfigId;
-        }
-        logger.info("Recovering {} with config {} (goal-running={}, other={})",
-                podInstanceRequirement.getName(), selectedConfig.get(), runningConfigTargets, otherConfigTargets);
+        logger.info("Recovering {} with config {} ({})",
+                podInstanceRequirement.getName(), selectedConfig.get(), recoveryConfigIDs);
         return selectedConfig.get();
     }
 
     /**
-     * Produces the tasks to be launched in a recovery operation, then groups their config UUIDs according to their goal
-     * states. Tasks whose goal state is RUNNING get priority over other tasks when determining a reasonable target.
+     * Implementation for selecting the configuration ID to use when recovering task(s) in a pod:
      *
-     * @param podInstanceRequirement the pod requirement describing the pod being recovered and the tasks to be
-     *     relaunched within the pod
-     * @param thisPodTasksByName all TaskInfos for the pod that currently exist (some may be old)
-     * @param runningConfigTargets output where config ids for tasks with a RUNNING GoalState are placed
-     * @param otherConfigTargets output where config ids for tasks with non-RUNNING GoalStates are placed
+     * <ol><li>Filter the pod's tasks to just the ones being recovered in this operation.</li>
+     * <li>If multiple tasks are being recovered, prefer ones that are marked RUNNING, as they are more consistently
+     * updated to new config ids (workaround for DCOS-42539).</li>
+     * <li>If no tasks are found (shouldn't happen?), fall back to using the scheduler's target config.</li></ol>
      */
-    private static void sortRecoveryConfigTargets(
-            PodInstanceRequirement podInstanceRequirement,
-            Map<String, Protos.TaskInfo> thisPodTasksByName,
-            Map<String, UUID> runningConfigTargets,
-            Map<String, UUID> otherConfigTargets) {
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-            if (!podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName())) {
-                // Task isn't included in the recovery operation, skip.
-                logger.info("TODO skipping " + taskSpec.getName() + " vs " + podInstanceRequirement.getTasksToLaunch());
-                continue;
-            }
-            final String taskName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
-            Protos.TaskInfo taskInfo = thisPodTasksByName.get(taskName);
-            if (taskInfo == null) {
-                // Task hasn't been launched yet, but is marked to be recovered...
-                logger.warn("TaskInfo not found for recovering task '{}', available tasks are: {}",
-                        taskName, thisPodTasksByName.keySet());
-                continue;
-            }
+    private static class RecoveryConfigIDs {
+        private final Map<String, UUID> runningConfigIDs = new TreeMap<>();
+        private final Map<String, UUID> otherConfigIDs = new TreeMap<>();
 
-            final UUID taskTarget;
-            try {
-                taskTarget = new TaskLabelReader(taskInfo).getTargetConfiguration();
-            } catch (TaskException e) {
-                logger.warn(
-                        String.format("Failed to determine target configuration for task: %s", taskName),
-                        e);
-                continue;
-            }
+        /**
+         * Selects the tasks to be launched in a recovery operation, then groups their config UUIDs according to their
+         * goal states. Tasks whose goal state is RUNNING get priority over other tasks when determining a reasonable
+         * target.
+         *
+         * @param podInstanceRequirement the pod requirement describing the pod being recovered and the tasks to be
+         *     relaunched within the pod
+         * @param existingPodTasksByName all TaskInfos for the pod that currently exist (some may be defunct)
+         */
+        private RecoveryConfigIDs(
+                PodInstanceRequirement podInstanceRequirement,
+                Map<String, Protos.TaskInfo> existingPodTasksByName) {
+            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+                if (!podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName())) {
+                    // Task isn't included in the recovery operation, skip.
+                    continue;
+                }
+                final String taskName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
+                Protos.TaskInfo taskInfo = existingPodTasksByName.get(taskName);
+                if (taskInfo == null) {
+                    // Task hasn't been launched yet, but is marked to be recovered...
+                    logger.warn("TaskInfo not found for recovering task '{}', available tasks are: {}",
+                            taskName, existingPodTasksByName.keySet());
+                    continue;
+                }
 
-            if (taskSpec.getGoal().equals(GoalState.RUNNING)) {
-                // Running tasks have first priority: Should contain the more recent config ID.
-                runningConfigTargets.put(taskName, taskTarget);
-            } else {
-                // FINISHED/ONCE tasks have second priority: Not consistently updated with config rollouts.
-                otherConfigTargets.put(taskName, taskTarget);
+                final UUID taskTarget;
+                try {
+                    taskTarget = new TaskLabelReader(taskInfo).getTargetConfiguration();
+                } catch (TaskException e) {
+                    logger.warn(
+                            String.format("Failed to determine target configuration for task: %s", taskName),
+                            e);
+                    continue;
+                }
+
+                if (GoalState.RUNNING.equals(taskSpec.getGoal())) {
+                    // Running tasks have first priority: Should contain the more recent config ID.
+                    runningConfigIDs.put(taskName, taskTarget);
+                } else {
+                    // Other tasks like FINISHED/ONCE have second priority: Not as consistently updated in rollouts.
+                    otherConfigIDs.put(taskName, taskTarget);
+                }
             }
+        }
+
+        /**
+         * Returns an existing config ID to use for recovering the task(s), or an empty Optional if no valid config ID
+         * could be found.
+         */
+        private Optional<UUID> selectRecoveryConfigID() {
+            // Running tasks have first priority: Should contain the more recent config ID.
+            Optional<UUID> selectedConfig = selectID(runningConfigIDs, "RUNNING");
+            if (selectedConfig.isPresent()) {
+                return selectedConfig;
+            }
+            // Other tasks like FINISHED/ONCE have second priority: Not consistently updated with config rollouts.
+            return selectID(otherConfigIDs, "non-RUNNING");
+        }
+
+        private static Optional<UUID> selectID(Map<String, UUID> configIDs, String taskTypeToLog) {
+            if (configIDs.values().stream().distinct().count() > 1) {
+                logger.warn("Multiple {} tasks with different target configs. Selecting random config: {}",
+                        taskTypeToLog, configIDs);
+            }
+            return configIDs.values().stream().findAny();
+        }
+
+        @Override
+        public String toString() {
+            return String.format("goal-running=%s, other=%s", runningConfigIDs, otherConfigIDs);
         }
     }
 }
