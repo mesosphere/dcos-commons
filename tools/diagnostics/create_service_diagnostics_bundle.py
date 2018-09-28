@@ -208,7 +208,7 @@ def main(argv) -> int:
 
     if args.get("should_prompt_user"):
         answer = input("\nProceed? [Y/n]: ")
-        if answer.strip().lower() in ["n", "no", "false"]:
+        if answer.strip().lower() not in ["yes", "y", ""]:
             return 0
 
     rc, _ = FullBundle(
