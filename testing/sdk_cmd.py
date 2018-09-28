@@ -562,3 +562,9 @@ def _get_task_info(task_id_prefix: str) -> dict:
         ",".join([t.get("id", "NO-ID") for t in tasks]),
     )
     return {}
+
+
+def get_bash_command(cmd: str, environment: str) -> str:
+    env_str = "{} && ".format(environment) if environment else ""
+
+    return 'bash -c "{}{}"'.format(env_str, cmd)

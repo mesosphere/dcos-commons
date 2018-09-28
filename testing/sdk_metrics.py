@@ -10,6 +10,7 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import retrying
+import typing
 
 import sdk_cmd
 import sdk_tasks
@@ -74,6 +75,32 @@ def wait_for_scheduler_counter_value(
     return check_for_value()
 
 
+def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> typing.Dict:
+    @retrying.retry(
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
+    )
+    def _getter():
+        return get_metrics_from_cli(task_name)
+
+    return _getter()
+
+
+def get_metrics_from_cli(task_name: str) -> typing.Dict:
+    cmd_list = ["task", "metrics", "details", "--json", task_name]
+    rc, stdout, stderr = sdk_cmd.run_cli(" ".join(cmd_list))
+    if rc:
+        log.error("Error fetching metrics for %s:\nSTDOUT=%s\nSTDERR=%s", task_name, stdout, stderr)
+        return dict()
+
+    try:
+        metrics = json.loads(stdout)
+    except json.JSONDecodeError as json_error:
+        log.error("Error decoding JSON from %s: %s", stdout, json_error)
+        raise
+
+    return metrics
+
+
 def get_metrics(package_name, service_name, pod_name, task_name):
     """Return a list of DC/OS metrics datapoints.
 
@@ -136,7 +163,19 @@ def get_metrics(package_name, service_name, pod_name, task_name):
         ),
         retry=False,
     )
-    app_json = json.loads(app_response.text)
+    app_response.raise_for_status()
+    app_json = app_response.json()
+
+    if "dimensions" not in app_json:
+        log.error("Expected key '%s' not found in app metrics: %s", "dimensions", app_json)
+        raise Exception("Expected key 'dimensions' not found in app metrics: {}")
+
+    if "executor_id" not in app_json["dimensions"]:
+        log.error(
+            "Expected key '%s' not found in app metrics: %s", "dimensions.executor_id", app_json
+        )
+        raise Exception("Expected key 'dimensions' not found in app metrics: {}")
+
     if app_json["dimensions"]["executor_id"] == task_to_check.executor_id:
         return app_json["datapoints"]
 
