@@ -14,7 +14,6 @@ import sdk_networks
 import sdk_utils
 
 from tests import auth
-from tests import test_utils
 from tests import topics
 
 
