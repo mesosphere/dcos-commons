@@ -41,6 +41,10 @@ def wait_for_topic(package_name: str, service_name: str, topic_name: str):
     """
     Execute `dcos kafka topic describe` to wait for topic creation.
     """
+    # TODO: Remove this function after refactoring of active directory tests including usage of KafkaClient
+    log.warn(
+        "[DEPRECATED]: Try to avoid test_utils.wait_for_topic and use the KafkaClient for these interactions"
+    )
 
     @retrying.retry(
         stop_max_delay=5 * 60 * 1000,

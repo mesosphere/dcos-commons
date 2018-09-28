@@ -42,7 +42,14 @@ class KafkaService:
         if not topic_name:
             return True
 
-        test_utils.wait_for_topic(self._package_name, self._service_name, topic_name)
+        @retrying.retry(
+            stop_max_delay=5 * 60 * 1000,
+            wait_exponential_multiplier=1000,
+            wait_exponential_max=60 * 1000,
+        )
+        def wait(topic):
+            self.get_topic_information(topic_name)
+
         return True
 
     def create_topic(self, topic_name: str) -> None:
