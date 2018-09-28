@@ -155,6 +155,8 @@ public class SchedulerConfig {
      */
     private static final String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
 
+    public static final String MESOS_API_VERSION_V1 = "V1";
+
     /**
      * Environment variable for manually configuring the command to run when pausing a pod.
      */
@@ -399,7 +401,7 @@ public class SchedulerConfig {
      * Returns the Mesos API version.
      */
     public String getMesosApiVersion() {
-        return envStore.getOptional(MESOS_API_VERSION_ENV, "V1");
+        return envStore.getOptional(MESOS_API_VERSION_ENV, MESOS_API_VERSION_V1);
     }
 
     /**
