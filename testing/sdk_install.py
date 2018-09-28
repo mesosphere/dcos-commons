@@ -10,7 +10,6 @@ import logging
 import time
 import retrying
 import tempfile
-from toolz import merge as merge_dictionaries
 
 import sdk_cmd
 import sdk_marathon
@@ -101,7 +100,7 @@ def install(
     if insert_strict_options and sdk_utils.is_strict_mode():
         # strict mode requires correct principal and secret to perform install.
         # see also: sdk_security.py
-        options = merge_dictionaries(
+        options = sdk_utils.merge_dictionaries(
             {
                 "service": {
                     "service_account": "service-acct",

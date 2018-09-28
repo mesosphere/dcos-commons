@@ -3,7 +3,6 @@ This module tests the interaction of Kafka with Zookeeper with authentication en
 """
 import logging
 import pytest
-from toolz import merge as merge_dictionaries
 
 import sdk_auth
 import sdk_cmd
@@ -81,7 +80,7 @@ def zookeeper_service(kerberos):
     zk_secret = "kakfa-zookeeper-secret"
 
     if sdk_utils.is_strict_mode():
-        service_options = merge_dictionaries(
+        service_options = sdk_utils.merge_dictionaries(
             {"service": {"service_account": zk_account, "service_account_secret": zk_secret}},
             service_options,
         )

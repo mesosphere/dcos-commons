@@ -2,7 +2,6 @@
 A collection of client utilites for Kafka.
 """
 import logging
-from toolz import merge as merge_dictionaries
 import uuid
 import typing
 
@@ -10,6 +9,7 @@ import sdk_auth
 import sdk_cmd
 import sdk_marathon
 import sdk_networks
+import sdk_utils
 
 from tests import auth
 from tests import test_utils
@@ -102,7 +102,7 @@ class KafkaClient:
         }
 
         if self.kerberos:
-            options = merge_dictionaries(
+            options = sdk_utils.merge_dictionaries(
                 options, self._get_kerberos_options(self.kerberos)
             )
 
