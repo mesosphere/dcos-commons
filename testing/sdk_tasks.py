@@ -138,6 +138,11 @@ def get_summary(with_completed=False, task_name=None) -> list:
     cluster_tasks = sdk_cmd.cluster_request("GET", "/mesos/tasks").json()["tasks"]
     agentid_to_hostname = _get_agentid_to_hostname()
     all_tasks = [Task.parse(entry, agentid_to_hostname) for entry in cluster_tasks]
+    log.info(
+        "ALL Task summary (task_name=[{}]):\n- {}".format(
+            task_name, "\n- ".join([str(e) for e in all_tasks])
+        )
+    )
     output = (
         all_tasks
         if with_completed
