@@ -118,7 +118,13 @@ def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> N
             len(deployments),
             log_extra,
         )
-        return staged == 0 and unhealthy == 0 and len(deployments) == 0 and instances_check and extra_check
+        return (
+            staged == 0
+            and unhealthy == 0
+            and len(deployments) == 0
+            and instances_check
+            and extra_check
+        )
 
     if expected_version:
         log.info(
@@ -225,14 +231,14 @@ def update_app(
 
 def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
-    def _destroy():
+    def _destroy() -> dict:
         response = sdk_cmd.cluster_request(
             "DELETE", _api_url("apps/{}".format(app_name)), params={"force": "true"}
         )
-        return _handle_marathon_deployment_response(response)
+        return response.json()
 
     result = _destroy()
-    result.raise_on_error()
+    deployment_id = result["deploymentId"]
 
     # This check is different from the other deployment checks.
     # When it's complete, the app is gone entirely.
@@ -240,7 +246,14 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
         stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
     )
     def _wait_for_app_destroyed():
-        return not app_exists(app_name, timeout)
+        running_deployments = sdk_cmd.cluster_request("GET", _api_url("deployments")).json()
+        log.info(
+            "While waiting to delete %s, currently running marathon deployments: %s",
+            deployment_id,
+            running_deployments,
+        )
+        running_id = next((d for d in running_deployments if d["id"] != deployment_id), None)
+        return running_id is None
 
     log.info("Waiting for {} to be removed...".format(app_name))
     _wait_for_app_destroyed()
