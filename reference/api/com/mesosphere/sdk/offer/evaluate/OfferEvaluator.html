@@ -167,8 +167,10 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>(package private) java.util.UUID</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getTargetConfig-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">getTargetConfig</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-               java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;taskInfos)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getTargetConfig-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Map-">getTargetConfig</a></span>(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
+               java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasksByName)</code>
+<div class="block">Returns a reasonable configuration ID to be used when launching tasks in a pod.</div>
+</td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>(package private) static void</code></td>
@@ -266,14 +268,24 @@ extends java.lang.Object</pre>
                        java.lang.String&nbsp;indent)</pre>
 </li>
 </ul>
-<a name="getTargetConfig-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Collection-">
+<a name="getTargetConfig-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-java.util.Map-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getTargetConfig</h4>
 <pre>java.util.UUID&nbsp;getTargetConfig(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-                               java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;taskInfos)</pre>
+                               java.util.Map&lt;java.lang.String,Protos.TaskInfo&gt;&nbsp;thisPodTasksByName)</pre>
+<div class="block">Returns a reasonable configuration ID to be used when launching tasks in a pod.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>podInstanceRequirement</code> - the pod requirement describing the pod being evaluated and the tasks to be
+     launched within the pod</dd>
+<dd><code>thisPodTasksByName</code> - all TaskInfos for the pod that currently exist (some may be old)</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a config UUID to be used for the pod. In a config update this would be the target config, and in a
+     recovery operation this would be the pod's/tasks's current config</dd>
+</dl>
 </li>
 </ul>
 </li>
