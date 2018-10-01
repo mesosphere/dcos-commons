@@ -64,6 +64,7 @@ def test_upgrade(
             package_name,
             service_name,
             expected_running_tasks,
+            package_version=universe_version,
             additional_options=additional_options,
             timeout_seconds=timeout_seconds,
             wait_for_deployment=wait_for_deployment,
@@ -175,7 +176,9 @@ def update_or_upgrade_or_downgrade(
     if (to_package_version and not is_cli_supports_service_version_upgrade()) or (
         additional_options and not is_cli_supports_service_options_update()
     ):
-        log.info("Using marathon flow to upgrade %s to version [%s]", service_name, to_package_version)
+        log.info(
+            "Using marathon flow to upgrade %s to version [%s]", service_name, to_package_version
+        )
         sdk_marathon.destroy_app(service_name)
         sdk_install.install(
             package_name,
