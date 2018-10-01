@@ -86,7 +86,7 @@ def install(
     service_name,
     expected_running_tasks,
     additional_options={},
-    package_version=None,
+    package_version="stub-universe",
     timeout_seconds=TIMEOUT_SECONDS,
     wait_for_deployment=True,
     insert_strict_options=True,
