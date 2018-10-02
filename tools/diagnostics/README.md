@@ -71,50 +71,68 @@ repository script:
    ./tools/diagnostics/create_service_diagnostics_bundle.sh --package-name=cassandra --service-name=/prod/cassandra
    ```
 
-### Publishing a new version
+### Releasing a new version
 
 Requires AWS S3 credentials.
 
-1. `cd` to your dcos-commons repository directory
+1. Push PR with changes to diagnostics code
 
-   ```bash
-   cd /path/to/dcos-commons
-   ```
+1. Wait for PR to be merged to master
 
-1. Commit `VERSION` bump in `tools/diagnostics/create_service_diagnostics_bundle.sh`
+1. Push a new PR with a `VERSION` bump in `tools/diagnostics/create_service_diagnostics_bundle.sh`
 
    ```bash
    readonly VERSION='vx.y.z'
    ```
 
-1. Build a Docker image tagged with the desired version
+1. Wait for PR to be merged to master
 
-   ```bash
-   docker build -t "mpereira/dcos-commons:diagnostics-${VERSION}" .
-   ```
+1. Build and publish Docker image tagged with the desired version
 
-1. Push Docker image tagged with the desired version
+   - With the [Jenkins job](https://jenkins.mesosphere.com/service/jenkins/view/Infinity/job/infinity-tools/job/release-tools/job/build-docker-image)
 
-   ```bash
-   docker push "mpereira/dcos-commons:diagnostics-${VERSION}"
-   ```
+     Make sure to set `IMAGE_TAG` correctly. For example, if `VERSION` is
+     `v1.0.0`, `IMAGE_TAG` should be `diagnostics-v1.0.0`.
 
-1. Publish script (which will use the Docker image tagged with the same version)
+     | Parameter          | Value                  |
+     | ------------------ | ---------------------- |
+     | `DOCKER_FILE_PATH` | Dockerfile             |
+     | `DOCKER_ORG`       | mesosphere             |
+     | `IMAGE_TAG`        | diagnostics-`$VERSION` |
+     | `IMAGE_NAME`       | dcos-commons           |
+     | `GITHUB_ORG`       | mesosphere             |
+     | `GITHUB_REPO`      | dcos-commons           |
+     | `GIT_REF`          | master                 |
 
-   * Version bucket
-
-     ```bash
-     aws s3 cp \
-       --acl=public-read \
-       tools/diagnostics/create_service_diagnostics_bundle.sh \
-       "s3://infinity-artifacts/dcos-commons/diagnostics/${VERSION}/create_service_diagnostics_bundle.sh"
-     ```
-
-   * Latest bucket
+   - Or manually
 
      ```bash
-     aws s3 cp \
-       --acl=public-read \
-       tools/diagnostics/create_service_diagnostics_bundle.sh \
-       "s3://infinity-artifacts/dcos-commons/diagnostics/latest/create_service_diagnostics_bundle.sh"
+     git fetch upstream
+     git stash
+     git checkout master
+     git reset --hard upstream/master
+     docker build -t "mesosphere/dcos-commons:diagnostics-${VERSION}" .
+     docker push "mesosphere/dcos-commons:diagnostics-${VERSION}"
+     git checkout -
+     git stash pop
      ```
+
+1. Publish shell script (which will use the Docker image tagged with the same version)
+
+   1. Version bucket
+
+      ```bash
+      aws s3 cp \
+        --acl=public-read \
+        tools/diagnostics/create_service_diagnostics_bundle.sh \
+        "s3://infinity-artifacts/dcos-commons/diagnostics/${VERSION}/create_service_diagnostics_bundle.sh"
+      ```
+
+   1. Latest bucket
+
+      ```bash
+      aws s3 cp \
+        --acl=public-read \
+        tools/diagnostics/create_service_diagnostics_bundle.sh \
+        "s3://infinity-artifacts/dcos-commons/diagnostics/latest/create_service_diagnostics_bundle.sh"
+      ```
