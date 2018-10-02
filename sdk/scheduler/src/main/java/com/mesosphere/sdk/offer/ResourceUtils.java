@@ -100,20 +100,12 @@ public class ResourceUtils {
         return Optional.empty();
     }
 
-    public static Optional<Protos.ResourceProviderID> getProviderId(Protos.Resource resource) {
-        if (resource.hasProviderId()) {
-            return Optional.of(resource.getProviderId());
-        }
-
-        return Optional.empty();
-    }
-
-    public static Optional<Protos.Resource.DiskInfo.Source> getDiskSource(Protos.Resource resource) {
+    public static Optional<String> getSourceRoot(Protos.Resource resource) {
         if (!isMountVolume(resource)) {
             return Optional.empty();
         }
 
-        return Optional.of(resource.getDisk().getSource());
+        return Optional.of(resource.getDisk().getSource().getMount().getRoot());
     }
 
     /**

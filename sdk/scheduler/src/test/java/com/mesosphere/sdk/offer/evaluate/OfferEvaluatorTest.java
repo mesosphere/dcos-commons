@@ -13,6 +13,8 @@ import com.mesosphere.sdk.state.PersistentLaunchRecorder;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.*;
+import org.apache.mesos.Protos.Offer.Operation;
 import org.junit.Assert;
 import org.junit.Test;
 import org.mockito.Mock;
@@ -29,7 +31,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveLaunchScalar() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
+        Resource offeredResource = ResourceTestUtils.getUnreservedCpus(2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
@@ -37,11 +39,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(5, recommendations.size());
 
         // Validate RESERVE Operation
-        Protos.Offer.Operation reserveOperation = recommendations.get(0).getOperation();
-        Protos.Resource reserveResource = reserveOperation.getReserve().getResources(0);
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
-        Protos.Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, reserveOperation.getType());
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         validateRole(reserveResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
@@ -50,17 +52,17 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertFalse(reserveResource.hasDisk());
 
         // Validate LAUNCH Operation
-        Protos.Offer.Operation launchOperation = recommendations.get(4).getOperation();
-        Protos.Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
+        Operation launchOperation = recommendations.get(4).getOperation();
+        Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
 
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(getResourceId(reserveResource), getResourceId(launchResource));
 
         Protos.ExecutorID executorId = launchOperation.getLaunchGroup().getExecutor().getExecutorId();
         Assert.assertEquals(TestConstants.POD_TYPE, CommonIdUtils.toExecutorName(executorId));
     }
 
-    private Collection<Protos.Resource> getExpectedExecutorResources(Protos.ExecutorInfo executorInfo) {
+    private Collection<Resource> getExpectedExecutorResources(ExecutorInfo executorInfo) {
         String executorCpuId = executorInfo.getResourcesList().stream()
                 .filter(r -> r.getName().equals("cpus"))
                 .map(ResourceUtils::getResourceId)
@@ -83,9 +85,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 .findFirst()
                 .get();
 
-        Protos.Resource expectedExecutorCpu = ResourceTestUtils.getReservedCpus(0.1, executorCpuId);
-        Protos.Resource expectedExecutorMem = ResourceTestUtils.getReservedMem(32, executorMemId);
-        Protos.Resource expectedExecutorDisk = ResourceTestUtils.getReservedDisk(256, executorDiskId);
+        Resource expectedExecutorCpu = ResourceTestUtils.getReservedCpus(0.1, executorCpuId);
+        Resource expectedExecutorMem = ResourceTestUtils.getReservedMem(32, executorMemId);
+        Resource expectedExecutorDisk = ResourceTestUtils.getReservedDisk(256, executorDiskId);
 
         return new ArrayList<>(Arrays.asList(expectedExecutorCpu, expectedExecutorMem, expectedExecutorDisk));
     }
@@ -111,7 +113,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         ResourceTestUtils.getUnreservedCpus(2.0)));
 
         // Launch again on expected resources.
-        Collection<Protos.Resource> expectedResources = getExpectedExecutorResources(
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
         expectedResources.add(ResourceTestUtils.getReservedCpus(1.0, resourceId));
 
@@ -121,10 +123,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
-        Protos.Offer.Operation launchOperation = recommendations.get(0).getOperation();
-        Protos.Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
+        Operation launchOperation = recommendations.get(0).getOperation();
+        Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
 
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(resourceId, getResourceId(launchResource));
     }
 
@@ -138,10 +140,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         // Launch again with 1.0 cpus reserved, 1.0 cpus unreserved, and 2.0 cpus required.
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
-        Protos.Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
-        Protos.Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
+        Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
+        Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
 
-        Collection<Protos.Resource> expectedResources = getExpectedExecutorResources(
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
         expectedResources.addAll(Arrays.asList(offeredResource, unreservedResource));
 
@@ -151,11 +153,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(2, recommendations.size());
 
         // Validate RESERVE Operation
-        Protos.Offer.Operation reserveOperation = recommendations.get(0).getOperation();
-        Protos.Resource reserveResource = reserveOperation.getReserve().getResources(0);
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
-        Protos.Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, reserveOperation.getType());
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         validateRole(reserveResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
@@ -163,10 +165,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(resourceId, getResourceId(reserveResource));
 
         // Validate LAUNCH Operation
-        Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation();
-        Protos.Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
+        Operation launchOperation = recommendations.get(1).getOperation();
+        Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
 
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(resourceId, getResourceId(launchResource));
         Assert.assertEquals(2.0, launchResource.getScalar().getValue(), 0.0);
     }
@@ -195,10 +197,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         // Launch again with 1.0 cpus reserved, 1.0 cpus unreserved, and 2.0 cpus required.
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getCpuRequirement(2.0, preReservedRole);
-        Protos.Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
-        Protos.Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0, preReservedRole);
+        Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
+        Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0, preReservedRole);
 
-        Collection<Protos.Resource> expectedResources = getExpectedExecutorResources(
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
         expectedResources.addAll(Arrays.asList(offeredResource, unreservedResource));
 
@@ -208,11 +210,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(2, recommendations.size());
 
         // Validate RESERVE Operation
-        Protos.Offer.Operation reserveOperation = recommendations.get(0).getOperation();
-        Protos.Resource reserveResource = reserveOperation.getReserve().getResources(0);
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Resource reserveResource = reserveOperation.getReserve().getResources(0);
 
-        Protos.Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, reserveOperation.getType());
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(1.0, reserveResource.getScalar().getValue(), 0.0);
         validateRole(reserveResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
@@ -220,10 +222,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(resourceId, getResourceId(reserveResource));
 
         // Validate LAUNCH Operation
-        Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation();
-        Protos.Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
+        Operation launchOperation = recommendations.get(1).getOperation();
+        Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
 
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(resourceId, getResourceId(launchResource));
         Assert.assertEquals(2.0, launchResource.getScalar().getValue(), 0.0);
     }
@@ -231,18 +233,18 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testDecreaseReservationScalar() throws Exception {
         // Launch for the first time.
-        Protos.Resource reserveResource = recordLaunchWithCompleteOfferedResources(
+        Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 PodInstanceRequirementTestUtils.getCpuRequirement(2.0),
                 ResourceTestUtils.getUnreservedCpus(2.0))
                 .get(0);
         String resourceId = getResourceId(reserveResource);
-        Collection<Protos.Resource> offeredResources = getExpectedExecutorResources(
+        Collection<Resource> offeredResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
 
         // Launch again with fewer resources.
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-        Protos.Resource offeredResource = ResourceTestUtils.getReservedCpus(2.0, resourceId);
-        Protos.Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
+        Resource offeredResource = ResourceTestUtils.getReservedCpus(2.0, resourceId);
+        Resource unreservedResource = ResourceTestUtils.getUnreservedCpus(1.0);
         offeredResources.addAll(Arrays.asList(offeredResource, unreservedResource));
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -251,11 +253,11 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(2, recommendations.size());
 
         // Validate UNRESERVE Operation
-        Protos.Offer.Operation unreserveOperation = recommendations.get(0).getOperation();
-        Protos.Resource unreserveResource = unreserveOperation.getUnreserve().getResources(0);
+        Operation unreserveOperation = recommendations.get(0).getOperation();
+        Resource unreserveResource = unreserveOperation.getUnreserve().getResources(0);
 
-        Protos.Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
-        Assert.assertEquals(Protos.Offer.Operation.Type.UNRESERVE, unreserveOperation.getType());
+        Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
+        Assert.assertEquals(Operation.Type.UNRESERVE, unreserveOperation.getType());
         Assert.assertEquals(1.0, unreserveResource.getScalar().getValue(), 0.0);
         validateRole(unreserveResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(unreserveResource));
@@ -263,10 +265,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(resourceId, getResourceId(unreserveResource));
 
         // Validate LAUNCH Operation
-        Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation();
-        Protos.Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
+        Operation launchOperation = recommendations.get(1).getOperation();
+        Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
 
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, launchOperation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(resourceId, getResourceId(launchResource));
         Assert.assertEquals(1.0, launchResource.getScalar().getValue(), 0.0);
     }
@@ -284,13 +286,13 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testFailIncreaseReservationScalar() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(2.0);
-        Protos.Resource reserveResource = recordLaunchWithCompleteOfferedResources(
+        Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 podInstanceRequirement,
                 ResourceTestUtils.getUnreservedCpus(2.0))
                 .get(0);
         String resourceId = getResourceId(reserveResource);
 
-        Protos.Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
+        Resource offeredResource = ResourceTestUtils.getReservedCpus(1.0, resourceId);
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(OfferTestUtils.getCompleteOffer(offeredResource)));
@@ -306,15 +308,15 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         podInstanceRequirement,
                         ResourceTestUtils.getUnreservedCpus(2.0)));
 
-        Collection<Protos.Resource> expectedResources = getExpectedExecutorResources(
+        Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
         expectedResources.add(ResourceTestUtils.getReservedCpus(1.0, resourceId));
 
-        Protos.Offer.Builder offerBuilder = OfferTestUtils.getOffer(expectedResources).toBuilder();
-        Protos.Attribute.Builder attrBuilder =
-                offerBuilder.addAttributesBuilder().setName("rack").setType(Protos.Value.Type.TEXT);
+        Offer.Builder offerBuilder = OfferTestUtils.getOffer(expectedResources).toBuilder();
+        Attribute.Builder attrBuilder =
+                offerBuilder.addAttributesBuilder().setName("rack").setType(Value.Type.TEXT);
         attrBuilder.getTextBuilder().setValue("foo");
-        attrBuilder = offerBuilder.addAttributesBuilder().setName("diskspeed").setType(Protos.Value.Type.SCALAR);
+        attrBuilder = offerBuilder.addAttributesBuilder().setName("diskspeed").setType(Value.Type.SCALAR);
         attrBuilder.getScalarBuilder().setValue(1234.5678);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -323,21 +325,21 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(1, recommendations.size());
 
         // Validate LAUNCH Operation
-        Protos.Offer.Operation launchOperation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, launchOperation.getType());
+        Operation launchOperation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
 
         // Validate that TaskInfo has embedded the Attributes from the selected offer:
-        Protos.TaskInfo launchTask = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
+        TaskInfo launchTask = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Assert.assertEquals(
                 Arrays.asList("rack:foo", "diskspeed:1234.568"),
                 new TaskLabelReader(launchTask).getOfferAttributeStrings());
-        Protos.Resource launchResource = launchTask.getResources(0);
+        Resource launchResource = launchTask.getResources(0);
         Assert.assertEquals(resourceId, getResourceId(launchResource));
     }
 
     @Test
     public void testLaunchMultipleTasksPerExecutor() throws Exception {
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedCpus(3.0);
+        Resource offeredResource = ResourceTestUtils.getUnreservedCpus(3.0);
 
         ResourceSet resourceSetA = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .cpus(1.0)
@@ -382,12 +384,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Arrays.asList(OfferTestUtils.getCompleteOffer(offeredResource)));
 
         Assert.assertEquals(7, recommendations.size());
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendations.get(2).getOperation().getType());
-        Protos.Offer.Operation launchOp0 = recommendations.get(4).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, launchOp0.getType());
-        Protos.Offer.Operation launchOp1 = recommendations.get(6).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, launchOp1.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
+        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(2).getOperation().getType());
+        Operation launchOp0 = recommendations.get(4).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOp0.getType());
+        Operation launchOp1 = recommendations.get(6).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOp1.getType());
         Protos.ExecutorID launch0ExecutorId = launchOp0.getLaunchGroup().getTaskGroup()
                 .getTasks(0).getExecutor().getExecutorId();
         Protos.ExecutorID launch1ExecutorId = launchOp1.getLaunchGroup().getTaskGroup()
@@ -398,8 +400,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     @Test
     public void testLaunchNotOnFirstOffer() throws Exception {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getCpuRequirement(1.0);
-        Protos.Resource insufficientOffer = ResourceTestUtils.getUnreservedMem(2.0);
-        Protos.Resource sufficientOffer = ResourceTestUtils.getUnreservedCpus(2.0);
+        Resource insufficientOffer = ResourceTestUtils.getUnreservedMem(2.0);
+        Resource sufficientOffer = ResourceTestUtils.getUnreservedCpus(2.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
@@ -409,12 +411,12 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(5, recommendations.size());
 
         // Validate RESERVE Operation
-        Protos.Offer.Operation reserveOperation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, reserveOperation.getType());
+        Operation reserveOperation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
 
         // Validate LAUNCH Operation
-        Protos.Offer.Operation launchOperation = recommendations.get(4).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, launchOperation.getType());
+        Operation launchOperation = recommendations.get(4).getOperation();
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
     }
 
     @Test
@@ -426,7 +428,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("format")).build();
 
-        Protos.Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
+        Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
                 ResourceTestUtils.getUnreservedCpus(3.0),
                 ResourceTestUtils.getUnreservedDisk(500.0)));
 
@@ -438,24 +440,24 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(recommendations.toString(), 9, recommendations.size());
 
         // Validate node task operations
-        Protos.Offer.Operation operation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Operation operation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) recommendations.get(4);
         operation = launchOfferRecommendation.getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, operation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
         Assert.assertEquals("name-0-backup", operation.getLaunchGroup().getTaskGroup().getTasks(0).getName());
         Assert.assertFalse(launchOfferRecommendation.shouldLaunch());
 
         // Validate format task operations
         operation = recommendations.get(5).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(6).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(7).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, operation.getType());
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
         launchOfferRecommendation = (LaunchOfferRecommendation) recommendations.get(8);
         operation = launchOfferRecommendation.getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, operation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
         Assert.assertEquals("name-0-format", operation.getLaunchGroup().getTaskGroup().getTasks(0).getName());
         Assert.assertTrue(launchOfferRecommendation.shouldLaunch());
 
@@ -467,25 +469,25 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         // Providing sufficient, but unreserved resources should result in no operations.
         Assert.assertEquals(0, recommendations.size());
 
-        Protos.Resource cpuResource = operation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
-        Protos.Resource diskResource = operation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(1);
+        Resource cpuResource = operation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
+        Resource diskResource = operation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(1);
         String cpuResourceId = ResourceTestUtils.getResourceId(cpuResource);
         String diskResourceId = ResourceTestUtils.getResourceId(diskResource);
         String persistenceId = ResourceTestUtils.getPersistenceId(diskResource);
-        Protos.ExecutorInfo executorInfo = stateStore.fetchTasks().iterator().next().getExecutor();
-        Collection<Protos.Resource> expectedResources = getExpectedExecutorResources(executorInfo);
+        ExecutorInfo executorInfo = stateStore.fetchTasks().iterator().next().getExecutor();
+        Collection<Resource> expectedResources = getExpectedExecutorResources(executorInfo);
         expectedResources.addAll(Arrays.asList(
                 ResourceTestUtils.getReservedCpus(1.0, cpuResourceId),
                 ResourceTestUtils.getReservedRootVolume(50.0, diskResourceId, persistenceId)));
 
-        Protos.Offer offer = OfferTestUtils.getOffer(expectedResources).toBuilder()
+        Offer offer = OfferTestUtils.getOffer(expectedResources).toBuilder()
                 .addExecutorIds(executorInfo.getExecutorId())
                 .build();
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
         // Providing the expected reserved resources should result in a LAUNCH operation.
         Assert.assertEquals(1, recommendations.size());
         operation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, operation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
         Assert.assertEquals("name-0-node", operation.getLaunchGroup().getTaskGroup().getTasks(0).getName());
     }
 
@@ -498,7 +500,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("format")).build();
 
-        Protos.Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
+        Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
                 ResourceTestUtils.getUnreservedCpus(3.0),
                 ResourceTestUtils.getUnreservedDisk(500.0)));
 
@@ -510,20 +512,20 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(recommendations.toString(), 9, recommendations.size());
 
         // Validate node task operations
-        Protos.Offer.Operation operation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Operation operation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(4).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, operation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
 
         // Validate format task operations
         operation = recommendations.get(5).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(6).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(7).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, operation.getType());
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
         operation = recommendations.get(8).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, operation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
 
         recordOperations(recommendations);
 
@@ -543,19 +545,19 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         // Validate format task operations
         operation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(1).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(2).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, operation.getType());
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
         operation = recommendations.get(6).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, operation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
 
         // Validate node task operations
         operation = recommendations.get(7).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(8).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, operation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
     }
 
     @Test
@@ -567,7 +569,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirement.newBuilder(podInstance, Arrays.asList("node")).build();
 
-        Protos.Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
+        Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
                 ResourceTestUtils.getUnreservedCpus(3.0),
                 ResourceTestUtils.getUnreservedDisk(500.0)));
 
@@ -580,7 +582,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         recordOperations(recommendations);
 
         // Fail the task due to a lost Agent
-        Protos.TaskInfo taskInfo = stateStore.fetchTask(TaskUtils.getTaskNames(podInstance).get(0)).get();
+        TaskInfo taskInfo = stateStore.fetchTask(TaskUtils.getTaskNames(podInstance).get(0)).get();
         final Protos.TaskStatus failedStatus = TaskTestUtils.generateStatus(
                 taskInfo.getTaskId(),
                 Protos.TaskState.TASK_LOST);
@@ -605,7 +607,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         DeploymentStep deploymentStep =
                 new DeploymentStep("test-step", podInstanceRequirement, stateStore, Optional.empty());
 
-        Protos.Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
+        Offer sufficientOffer = OfferTestUtils.getCompleteOffer(Arrays.asList(
                 ResourceTestUtils.getUnreservedCpus(3.0),
                 ResourceTestUtils.getUnreservedMem(1024),
                 ResourceTestUtils.getUnreservedDisk(500.0)));
@@ -615,8 +617,8 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Arrays.asList(sufficientOffer));
 
         Assert.assertEquals(recommendations.toString(), 8, recommendations.size());
-        Protos.Offer.Operation launchOperation = recommendations.get(7).getOperation();
-        Protos.TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
+        Operation launchOperation = recommendations.get(7).getOperation();
+        TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         recordOperations(recommendations);
 
         deploymentStep.updateOfferStatus(recommendations);
@@ -624,9 +626,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         // Simulate an initial failure to deploy.  Perhaps the CREATE operation failed
         deploymentStep.update(
-                Protos.TaskStatus.newBuilder()
+                TaskStatus.newBuilder()
                         .setTaskId(taskInfo.getTaskId())
-                        .setState(Protos.TaskState.TASK_ERROR)
+                        .setState(TaskState.TASK_ERROR)
                         .build());
 
         Assert.assertEquals(com.mesosphere.sdk.scheduler.plan.Status.PENDING, deploymentStep.getStatus());
@@ -639,16 +641,16 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 Arrays.asList(sufficientOffer));
         Assert.assertEquals(recommendations.toString(), 8, recommendations.size());
 
-        Protos.Offer.Operation operation = recommendations.get(0).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Operation operation = recommendations.get(0).getOperation();
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(1).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(2).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, operation.getType());
+        Assert.assertEquals(Operation.Type.RESERVE, operation.getType());
         operation = recommendations.get(3).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, operation.getType());
+        Assert.assertEquals(Operation.Type.CREATE, operation.getType());
         operation = recommendations.get(7).getOperation();
-        Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, operation.getType());
+        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, operation.getType());
     }
 
     @SuppressWarnings("deprecated")
@@ -659,7 +661,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             ServiceSpec serviceSpec = getServiceSpec("resource-refinement.yml");
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
-            Protos.Offer sufficientOffer = OfferTestUtils.getCompleteOffer(
+            Offer sufficientOffer = OfferTestUtils.getCompleteOffer(
                     Arrays.asList(
                             // Include executor resources.
                             ResourceTestUtils.getUnreservedCpus(0.1),
@@ -669,9 +671,9 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                             .map(r -> r.toBuilder()
                                     .setRole(Constants.ANY_ROLE)
                                     .addReservations(
-                                            Protos.Resource.ReservationInfo.newBuilder()
+                                            Resource.ReservationInfo.newBuilder()
                                                     .setRole(TestConstants.PRE_RESERVED_ROLE)
-                                                    .setType(Protos.Resource.ReservationInfo.Type.STATIC))
+                                                    .setType(Resource.ReservationInfo.Type.STATIC))
                                     .build())
                             .collect(Collectors.toList()));
 
@@ -686,17 +688,17 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                     Arrays.asList(sufficientOffer));
             Assert.assertEquals(5, recommendations.size());
 
-            Protos.Offer.Operation reserveOperation = recommendations.get(0).getOperation();
-            Protos.Resource reserveResource = reserveOperation.getReserve().getResources(0);
+            Operation reserveOperation = recommendations.get(0).getOperation();
+            Resource reserveResource = reserveOperation.getReserve().getResources(0);
             Assert.assertEquals(2, reserveResource.getReservationsCount());
 
-            Protos.Resource.ReservationInfo preReservation = reserveResource.getReservations(0);
-            Assert.assertEquals(Protos.Resource.ReservationInfo.Type.STATIC, preReservation.getType());
+            Resource.ReservationInfo preReservation = reserveResource.getReservations(0);
+            Assert.assertEquals(Resource.ReservationInfo.Type.STATIC, preReservation.getType());
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, preReservation.getRole());
             Assert.assertFalse(preReservation.hasLabels());
 
-            Protos.Resource.ReservationInfo dynamicReservation = reserveResource.getReservations(1);
-            Assert.assertEquals(Protos.Resource.ReservationInfo.Type.DYNAMIC, dynamicReservation.getType());
+            Resource.ReservationInfo dynamicReservation = reserveResource.getReservations(1);
+            Assert.assertEquals(Resource.ReservationInfo.Type.DYNAMIC, dynamicReservation.getType());
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE + "/hello-world-role", dynamicReservation.getRole());
             Assert.assertTrue(dynamicReservation.hasLabels());
         } finally {
@@ -711,7 +713,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             ServiceSpec serviceSpec = getServiceSpec("resource-refinement.yml");
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
-            Protos.Offer badOffer = OfferTestUtils.getOffer(
+            Offer badOffer = OfferTestUtils.getOffer(
                     Arrays.asList(ResourceTestUtils.getUnreservedCpus(3.0)));
 
             PodSpec podSpec = serviceSpec.getPods().get(0);
@@ -738,14 +740,14 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
             ServiceSpec serviceSpec = getServiceSpec("resource-refinement.yml");
             Assert.assertEquals(TestConstants.PRE_RESERVED_ROLE, serviceSpec.getPods().get(0).getPreReservedRole());
 
-            Protos.Offer badOffer = OfferTestUtils.getOffer(
+            Offer badOffer = OfferTestUtils.getOffer(
                     Arrays.asList(
                             ResourceTestUtils.getUnreservedCpus(3.0).toBuilder()
                                     .setRole(Constants.ANY_ROLE)
                                     .addReservations(
-                                            Protos.Resource.ReservationInfo.newBuilder()
+                                            Resource.ReservationInfo.newBuilder()
                                                     .setRole("different-role")
-                                                    .setType(Protos.Resource.ReservationInfo.Type.STATIC))
+                                                    .setType(Resource.ReservationInfo.Type.STATIC))
                                     .build()));
 
             PodSpec podSpec = serviceSpec.getPods().get(0);
@@ -865,7 +867,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .build();
 
         UUID taskConfig = UUID.randomUUID();
-        Protos.TaskInfo taskInfo = TestConstants.TASK_INFO.toBuilder().setLabels(
+        TaskInfo taskInfo = TestConstants.TASK_INFO.toBuilder().setLabels(
                 new TaskLabelWriter(TestConstants.TASK_INFO)
                         .setTargetConfiguration(taskConfig)
                         .toProto())
@@ -1067,7 +1069,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
     }
 
     @SuppressWarnings("deprecated")
-    static void validateRole(Protos.Resource resource) {
+    static void validateRole(Resource resource) {
         if (Capabilities.getInstance().supportsPreReservedResources()) {
             Assert.assertEquals(Constants.ANY_ROLE, resource.getRole());
         } else {

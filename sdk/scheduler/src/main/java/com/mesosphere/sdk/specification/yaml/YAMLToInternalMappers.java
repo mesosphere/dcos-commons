@@ -1,21 +1,22 @@
 package com.mesosphere.sdk.specification.yaml;
 
 import com.google.common.base.Strings;
-import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.config.TaskEnvRouter;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.framework.FrameworkConfig;
-import com.mesosphere.sdk.offer.Constants;
+
 import com.mesosphere.sdk.offer.LoggingUtils;
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.config.TaskEnvRouter;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.*;
-
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
@@ -457,16 +458,14 @@ public class YAMLToInternalMappers {
                 resourceSetBuilder.addVolume(
                         rawVolume.getType(),
                         Double.valueOf(rawVolume.getSize()),
-                        rawVolume.getPath(),
-                        rawVolume.getProfiles());
+                        rawVolume.getPath());
             }
         }
         if (rawSingleVolume != null) {
             resourceSetBuilder.addVolume(
                     rawSingleVolume.getType(),
                     Double.valueOf(rawSingleVolume.getSize()),
-                    rawSingleVolume.getPath(),
-                    rawSingleVolume.getProfiles());
+                    rawSingleVolume.getPath());
         }
 
         if (cpus != null) {
@@ -524,20 +523,8 @@ public class YAMLToInternalMappers {
                     rawVolume.getType(), rawVolume.getPath(), Arrays.asList(VolumeSpec.Type.values())));
         }
 
-        return volumeTypeEnum == VolumeSpec.Type.ROOT
-                ? DefaultVolumeSpec.createRootVolume(
-                        rawVolume.getSize(),
-                        rawVolume.getPath(),
-                        role,
-                        preReservedRole,
-                        principal)
-                : DefaultVolumeSpec.createMountVolume(
-                        rawVolume.getSize(),
-                        rawVolume.getPath(),
-                        rawVolume.getProfiles(),
-                        role,
-                        preReservedRole,
-                        principal);
+        return new DefaultVolumeSpec(
+                rawVolume.getSize(), volumeTypeEnum, rawVolume.getPath(), role, preReservedRole, principal);
     }
 
     private static DefaultNetworkSpec convertNetwork(
