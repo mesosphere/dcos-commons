@@ -549,7 +549,6 @@ public class OfferEvaluator {
             // in any case, so it is doubly proper to choose a single target configuration as
             // representative of the whole pod's target configuration.
 
-            logger.info("DEBUG Recovery: taskInfos {}", taskInfos);
             Protos.TaskInfo taskInfo = taskInfos.stream().findFirst().get();
             try {
                 return new TaskLabelReader(taskInfo).getTargetConfiguration();
