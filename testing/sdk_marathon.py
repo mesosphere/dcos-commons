@@ -238,6 +238,7 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
         return response.json()
 
     result = _destroy()
+    log.info("DELETE marathon app operation responded with: %s", result)
     deployment_id = result["deploymentId"]
 
     # This check is different from the other deployment checks.
