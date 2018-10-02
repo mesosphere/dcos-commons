@@ -2,16 +2,12 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
-
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -166,7 +162,9 @@ public class DefaultResourceSet implements ResourceSet {
             return addScalarResource(memory, "mem");
         }
 
-        public Builder addVolume(String volumeType, Double size, String containerPath, List<String> profiles) {
+        public Builder addVolume(String volumeType,
+                                 Double size,
+                                 String containerPath) {
             VolumeSpec.Type volumeTypeEnum;
             try {
                 volumeTypeEnum = VolumeSpec.Type.valueOf(volumeType);
@@ -175,35 +173,15 @@ public class DefaultResourceSet implements ResourceSet {
                         "Provided volume type '%s' for path '%s' is invalid. Expected type to be one of: %s",
                         volumeType, containerPath, Arrays.asList(VolumeSpec.Type.values())));
             }
-
+            DefaultVolumeSpec volume =
+                    new DefaultVolumeSpec(size, volumeTypeEnum, containerPath, role, preReservedRole, principal);
             if (volumes.stream()
                     .anyMatch(volumeSpecification ->
                             Objects.equals(volumeSpecification.getContainerPath(), containerPath))) {
                 throw new IllegalStateException("Cannot configure multiple volumes with the same containerPath");
             }
-
-            if (volumeTypeEnum == VolumeSpec.Type.ROOT) {
-                if (!profiles.isEmpty()) {
-                    throw new IllegalArgumentException(String.format(
-                            "Provided volume type '%s' for path '%s' cannot have profiles", volumeType, containerPath));
-                }
-
-                volumes.add(DefaultVolumeSpec.createRootVolume(
-                        size, containerPath, role, preReservedRole, principal));
-            } else {
-                volumes.add(DefaultVolumeSpec.createMountVolume(
-                        size, containerPath, profiles, role, preReservedRole, principal));
-            }
-
+            volumes.add(volume);
             return this;
-        }
-
-        public Builder addRootVolume(Double size, String containerPath) {
-            return addVolume("ROOT", size, containerPath, Collections.emptyList());
-        }
-
-        public Builder addMountVolume(Double size, String containerPath, List<String> profiles) {
-            return addVolume("MOUNT", size, containerPath, profiles);
         }
 
         /**

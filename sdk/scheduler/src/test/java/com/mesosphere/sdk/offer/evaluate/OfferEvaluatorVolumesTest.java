@@ -10,6 +10,7 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -21,9 +22,7 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -175,7 +174,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveCreateLaunchMountVolume() throws Exception {
         Resource offeredCpuResource = ResourceTestUtils.getUnreservedCpus(1.0);
-        Resource offeredDiskResource = ResourceTestUtils.getUnreservedMountVolume(2000, Optional.empty());
+        Resource offeredDiskResource = ResourceTestUtils.getUnreservedMountVolume(2000);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1500),
@@ -189,7 +188,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Resource.ReservationInfo reservation = ResourceUtils.getReservation(reserveResource).get();
         Assert.assertEquals(Operation.Type.RESERVE, reserveOperation.getType());
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
-        Assert.assertEquals(TestConstants.MOUNT_DISK_SOURCE, reserveResource.getDisk().getSource());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
         Assert.assertTrue(reserveResource.hasDisk());
@@ -203,7 +202,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(resourceId, getResourceId(createResource));
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
-        Assert.assertEquals(TestConstants.MOUNT_DISK_SOURCE, createResource.getDisk().getSource());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
         Assert.assertTrue(createResource.getDisk().hasVolume());
 
@@ -215,7 +214,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
         Assert.assertEquals(resourceId, getResourceId(launchResource));
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
-        Assert.assertEquals(TestConstants.MOUNT_DISK_SOURCE, launchResource.getDisk().getSource());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
     }
@@ -224,7 +223,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     public void testExpectedMountVolume() throws Exception {
         // Launch for the first time.
         Resource offeredCpuResource = ResourceTestUtils.getUnreservedCpus(1.0);
-        Resource offeredDiskResource = ResourceTestUtils.getUnreservedMountVolume(2000, Optional.empty());
+        Resource offeredDiskResource = ResourceTestUtils.getUnreservedMountVolume(2000);
 
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getMountVolumeRequirement(1.0, 1500);
@@ -255,8 +254,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         // Launch again on expected resources.
         Resource expectedCpu = ResourceTestUtils.getReservedCpus(1.0, cpuResourceId);
-        Resource expectedDisk =
-                ResourceTestUtils.getReservedMountVolume(2000, Optional.empty(), diskResourceId, persistenceId);
+        Resource expectedDisk = ResourceTestUtils.getReservedMountVolume(2000, diskResourceId, persistenceId);
         Resource expectedExecutorCpu = ResourceTestUtils.getReservedCpus(0.1, executorCpuResourceId);
         Resource expectedExecutorMem = ResourceTestUtils.getReservedMem(32, executorMemResourceId);
         Resource expectedExecutorDisk = ResourceTestUtils.getReservedDisk(256, executorDiskResourceId);
@@ -275,7 +273,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(2000, launchResource.getScalar().getValue(), 0.0);
         OfferEvaluatorTest.validateRole(launchResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(launchResource));
-        Assert.assertEquals(TestConstants.MOUNT_DISK_SOURCE, launchResource.getDisk().getSource());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, launchResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(persistenceId, launchResource.getDisk().getPersistence().getId());
         Assert.assertEquals(TestConstants.PRINCIPAL, launchResource.getDisk().getPersistence().getPrincipal());
         validatePrincipal(launchResource);
@@ -297,8 +295,14 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addRootVolume(1.0, TestConstants.CONTAINER_PATH + "-a")
-                .addRootVolume(2.0, TestConstants.CONTAINER_PATH + "-b")
+                .addVolume(
+                        VolumeSpec.Type.ROOT.name(),
+                        1.0,
+                        TestConstants.CONTAINER_PATH + "-a")
+                .addVolume(
+                        VolumeSpec.Type.ROOT.name(),
+                        2.0,
+                        TestConstants.CONTAINER_PATH + "-b")
                 .build();
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
 
@@ -341,76 +345,13 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     }
 
     @Test
-    public void testCreateMultipleProfileMountVolumes() throws Exception {
-        ResourceSet resourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
-                .id(TestConstants.RESOURCE_SET_ID)
-                .cpus(1.0)
-                .addMountVolume(1.0, TestConstants.CONTAINER_PATH + "-a", Arrays.asList("x"))
-                .addMountVolume(1.0, TestConstants.CONTAINER_PATH + "-b", Arrays.asList("x", "y"))
-                .addMountVolume(1.0, TestConstants.CONTAINER_PATH + "-c", Collections.emptyList())
-                .build();
-        PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getRequirement(resourceSet, 0);
-
-        List<Resource> offeredResources = Arrays.asList(
-                ResourceTestUtils.getUnreservedCpus(1.0),
-                ResourceTestUtils.getUnreservedMountVolume(1.0, Optional.empty()),
-                ResourceTestUtils.getUnreservedMountVolume(1.0, Optional.of("x")),
-                ResourceTestUtils.getUnreservedMountVolume(1.0, Optional.of("y")));
-
-        Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResources);
-
-        List<OfferRecommendation> recommendations = evaluator.evaluate(
-                podInstanceRequirement,
-                Arrays.asList(offer));
-        Assert.assertEquals(11, recommendations.size());
-
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(0).getOperation().getType());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
-        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(2).getOperation().getType());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(3).getOperation().getType());
-        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(4).getOperation().getType());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(5).getOperation().getType());
-        Assert.assertEquals(Operation.Type.CREATE, recommendations.get(6).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, recommendations.get(10).getOperation().getType());
-
-        // Validate Create Operation
-        Operation createOperation = recommendations.get(2).getOperation();
-        Assert.assertEquals(
-                TestConstants.CONTAINER_PATH + "-a",
-                createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
-        Assert.assertEquals("x", createOperation.getCreate().getVolumes(0).getDisk().getSource().getProfile());
-
-        // Validate Create Operation
-        createOperation = recommendations.get(4).getOperation();
-        Assert.assertEquals(
-                TestConstants.CONTAINER_PATH + "-b",
-                createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
-        Assert.assertEquals("y", createOperation.getCreate().getVolumes(0).getDisk().getSource().getProfile());
-
-        // Validate Create Operation
-        createOperation = recommendations.get(6).getOperation();
-        Assert.assertEquals(
-                TestConstants.CONTAINER_PATH + "-c",
-                createOperation.getCreate().getVolumes(0).getDisk().getVolume().getContainerPath());
-        Assert.assertFalse(createOperation.getCreate().getVolumes(0).getDisk().getSource().hasProfile());
-
-        // Validate Launch Operation
-        Operation launchOperation = recommendations.get(10).getOperation();
-        for (Protos.TaskInfo taskInfo : launchOperation.getLaunch().getTaskInfosList()) {
-            for (Resource resource : taskInfo.getResourcesList()) {
-                Assert.assertFalse(getResourceId(resource).isEmpty());
-            }
-        }
-    }
-
-    @Test
     public void testConsumeMultipleMountVolumesFailure() throws Exception {
-        Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000, Optional.empty());
+        Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
         ResourceSet volumeResourceSet = DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(1.0)
-                .addMountVolume(1000.0, TestConstants.CONTAINER_PATH + "-A", Collections.emptyList())
-                .addMountVolume(1000.0, TestConstants.CONTAINER_PATH + "-B", Collections.emptyList())
+                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-A")
+                .addVolume(VolumeSpec.Type.MOUNT.name(), 1000.0, TestConstants.CONTAINER_PATH + "-B")
                 .build();
         PodInstanceRequirement podInstanceRequirement =
                 PodInstanceRequirementTestUtils.getRequirement(volumeResourceSet, 0);
@@ -432,7 +373,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
     @Test
     public void testFailToCreateVolumeWithWrongResource() throws Exception {
-        Resource wrongOfferedResource = ResourceTestUtils.getUnreservedMountVolume(2000, Optional.empty());
+        Resource wrongOfferedResource = ResourceTestUtils.getUnreservedMountVolume(2000);
         Resource offeredCpu = ResourceTestUtils.getUnreservedCpus(1.0);
 
         List<OfferRecommendation> recommendations = evaluator.evaluate(
@@ -445,17 +386,17 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     @Test
     public void testReserveCreateExecutorVolume() throws Exception {
         List<Resource> offeredResources = Arrays.asList(
-                ResourceTestUtils.getUnreservedMountVolume(2000, Optional.empty()),
+                ResourceTestUtils.getUnreservedMountVolume(2000),
                 ResourceTestUtils.getUnreservedCpus(1.0));
 
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResources);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 Arrays.asList(
-                        DefaultVolumeSpec.createMountVolume(
+                        new DefaultVolumeSpec(
                                 1000,
+                                VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
-                                Collections.emptyList(),
                                 TestConstants.ROLE,
                                 Constants.ANY_ROLE,
                                 TestConstants.PRINCIPAL)),
@@ -474,7 +415,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(2000, reserveResource.getScalar().getValue(), 0.0);
         OfferEvaluatorTest.validateRole(reserveResource);
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
-        Assert.assertEquals(TestConstants.MOUNT_DISK_SOURCE, reserveResource.getDisk().getSource());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, reserveResource.getDisk().getSource().getMount().getRoot());
         validatePrincipal(reserveResource);
         Assert.assertEquals(36, getResourceId(reserveResource).length());
 
@@ -485,7 +426,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(resourceId, getResourceId(createResource));
         Assert.assertEquals(36, createResource.getDisk().getPersistence().getId().length());
-        Assert.assertEquals(TestConstants.MOUNT_DISK_SOURCE, createResource.getDisk().getSource());
+        Assert.assertEquals(TestConstants.MOUNT_ROOT, createResource.getDisk().getSource().getMount().getRoot());
         Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
         Assert.assertTrue(createResource.getDisk().hasVolume());
     }
@@ -504,17 +445,17 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
     public void testRelaunchExecutorVolumeFailure() throws Exception {
         // Create for the first time.
         List<Resource> offeredResources = Arrays.asList(
-                ResourceTestUtils.getUnreservedMountVolume(2000, Optional.empty()),
+                ResourceTestUtils.getUnreservedMountVolume(2000),
                 ResourceTestUtils.getUnreservedCpus(1.0));
 
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResources);
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getExecutorRequirement(
                 PodInstanceRequirementTestUtils.getCpuResourceSet(1.0),
                 Arrays.asList(
-                        DefaultVolumeSpec.createMountVolume(
+                        new DefaultVolumeSpec(
                                 1000,
+                                VolumeSpec.Type.MOUNT,
                                 TestConstants.CONTAINER_PATH,
-                                Collections.emptyList(),
                                 TestConstants.ROLE,
                                 Constants.ANY_ROLE,
                                 TestConstants.PRINCIPAL)),
@@ -537,7 +478,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
 
         // Evaluation for a second time
         offeredResources = Arrays.asList(
-                ResourceTestUtils.getReservedMountVolume(2000, Optional.empty(), resourceId, persistenceId),
+                ResourceTestUtils.getReservedMountVolume(2000, resourceId, persistenceId),
                 ResourceTestUtils.getReservedCpus(1.0, resourceId));
 
         offer = OfferTestUtils.getCompleteOffer(offeredResources);

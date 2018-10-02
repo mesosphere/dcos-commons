@@ -31,16 +31,12 @@ public class ResourceTestUtils {
         return ResourceUtils.getPersistenceId(diskResource).get();
     }
 
-    public static Protos.Resource getReservedMountVolume(double diskSize, Optional<String> profile) {
-        return getReservedMountVolume(diskSize, profile, TestConstants.RESOURCE_ID, TestConstants.PERSISTENCE_ID);
+    public static Protos.Resource getReservedMountVolume(double diskSize) {
+        return getReservedMountVolume(diskSize, TestConstants.RESOURCE_ID, TestConstants.PERSISTENCE_ID);
     }
 
-    public static Protos.Resource getReservedMountVolume(
-            double diskSize,
-            Optional<String> profile,
-            String resourceId,
-            String persistenceId) {
-        Protos.Resource.Builder builder = getUnreservedMountVolume(diskSize, profile).toBuilder();
+    public static Protos.Resource getReservedMountVolume(double diskSize, String resourceId, String persistenceId) {
+        Protos.Resource.Builder builder = getUnreservedMountVolume(diskSize).toBuilder();
         builder.getDiskBuilder().getPersistenceBuilder()
                 .setId(persistenceId)
                 .setPrincipal(TestConstants.PRINCIPAL);
@@ -55,8 +51,9 @@ public class ResourceTestUtils {
     }
 
     public static Protos.Resource getReservedRootVolume(double diskSize, String resourceId, String persistenceId) {
-        VolumeSpec volumeSpec = DefaultVolumeSpec.createRootVolume(
+        VolumeSpec volumeSpec = new DefaultVolumeSpec(
                 diskSize,
+                VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -66,7 +63,6 @@ public class ResourceTestUtils {
                 Optional.of(resourceId),
                 Optional.empty(),
                 Optional.of(persistenceId),
-                Optional.empty(),
                 Optional.empty())
                 .build();
     }
@@ -118,12 +114,11 @@ public class ResourceTestUtils {
         return getUnreservedResource(name, builder.build(), role);
     }
 
-    public static Protos.Resource getUnreservedMountVolume(double diskSize, Optional<String> profile) {
+    public static Protos.Resource getUnreservedMountVolume(double diskSize) {
         Protos.Resource.Builder builder = getUnreservedDisk(diskSize).toBuilder();
-        builder.getDiskBuilder().setSource(TestConstants.MOUNT_DISK_SOURCE);
-        if (profile.isPresent()) {
-            builder.getDiskBuilder().getSourceBuilder().setProfile(profile.get());
-        }
+        builder.getDiskBuilder().getSourceBuilder()
+                .setType(Protos.Resource.DiskInfo.Source.Type.MOUNT)
+                .getMountBuilder().setRoot(TestConstants.MOUNT_ROOT);
         return builder.build();
     }
 

@@ -16,7 +16,6 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.GoalStateOverride;
-
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -168,13 +167,20 @@ public class PodInfoBuilder {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<Protos.ResourceProviderID> providerId,
-            Optional<Protos.Resource.DiskInfo.Source> diskSource) {
+            Optional<String> sourceRoot) {
 
         Protos.Resource.Builder builder = ResourceBuilder
-                .fromSpec(volumeSpec, resourceId, resourceNamespace, persistenceId, providerId, diskSource)
+                .fromSpec(volumeSpec, resourceId, resourceNamespace, persistenceId, sourceRoot)
                 .build()
                 .toBuilder();
+
+        Protos.Resource.DiskInfo.Builder diskInfoBuilder = builder.getDiskBuilder();
+        diskInfoBuilder.getPersistenceBuilder()
+                .setId(persistenceId.get())
+                .setPrincipal(volumeSpec.getPrincipal());
+        diskInfoBuilder.getVolumeBuilder()
+                .setContainerPath(volumeSpec.getContainerPath())
+                .setMode(Protos.Volume.Mode.RW);
 
         return builder.build();
     }
