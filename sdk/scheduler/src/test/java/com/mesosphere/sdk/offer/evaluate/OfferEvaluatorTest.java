@@ -838,7 +838,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .build();
 
         UUID taskConfig = UUID.randomUUID();
-        TaskInfo taskInfo = TestConstants.TASK_INFO.toBuilder().setLabels(
+        Protos.TaskInfo taskInfo = TestConstants.TASK_INFO.toBuilder().setLabels(
                 new TaskLabelWriter(TestConstants.TASK_INFO)
                         .setTargetConfiguration(taskConfig)
                         .toProto())
@@ -900,7 +900,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         UUID recoverTaskConfig = UUID.randomUUID();
         String recoverTaskFullName = TaskSpec.getInstanceName(podInstance, TestConstants.TASK_NAME);
-        TaskInfo recoverTaskInfo = TestConstants.TASK_INFO.toBuilder()
+        Protos.TaskInfo recoverTaskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setName(recoverTaskFullName)
                 .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
                         .setTargetConfiguration(recoverTaskConfig)
@@ -909,14 +909,14 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         UUID otherTaskConfig = UUID.randomUUID();
         String otherTaskFullName = TaskSpec.getInstanceName(podInstance, "other");
-        TaskInfo otherTaskInfo = TestConstants.TASK_INFO.toBuilder()
+        Protos.TaskInfo otherTaskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setName(otherTaskFullName)
                 .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
                         .setTargetConfiguration(otherTaskConfig)
                         .toProto())
                 .build();
 
-        Map<String, TaskInfo> podTasks = new HashMap<>();
+        Map<String, Protos.TaskInfo> podTasks = new HashMap<>();
         podTasks.put(recoverTaskFullName, recoverTaskInfo);
         podTasks.put(otherTaskFullName, otherTaskInfo);
         Assert.assertEquals(recoverTaskConfig, evaluator.getTargetConfig(podInstanceRequirement, podTasks));
@@ -943,7 +943,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         UUID recoverTaskConfig = UUID.randomUUID();
         String recoverTaskFullName = TaskSpec.getInstanceName(podInstance, TestConstants.TASK_NAME);
-        TaskInfo recoverTaskInfo = TestConstants.TASK_INFO.toBuilder()
+        Protos.TaskInfo recoverTaskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setName(recoverTaskFullName)
                 .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
                         .setTargetConfiguration(recoverTaskConfig)
@@ -952,14 +952,14 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
 
         UUID otherTaskConfig = UUID.randomUUID();
         String otherTaskFullName = TaskSpec.getInstanceName(podInstance, "other");
-        TaskInfo otherTaskInfo = TestConstants.TASK_INFO.toBuilder()
+        Protos.TaskInfo otherTaskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setName(otherTaskFullName)
                 .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
                         .setTargetConfiguration(otherTaskConfig)
                         .toProto())
                 .build();
 
-        Map<String, TaskInfo> podTasks = new HashMap<>();
+        Map<String, Protos.TaskInfo> podTasks = new HashMap<>();
         podTasks.put(recoverTaskFullName, recoverTaskInfo);
         podTasks.put(otherTaskFullName, otherTaskInfo);
         Assert.assertEquals(recoverTaskConfig, evaluator.getTargetConfig(podInstanceRequirement, podTasks));
