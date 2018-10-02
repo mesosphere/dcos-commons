@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.*;
 import com.mesosphere.sdk.specification.VolumeSpec;
-import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
 
 import java.util.*;
@@ -21,12 +21,11 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     private final Logger logger;
     private final VolumeSpec volumeSpec;
+    private final Optional<String> persistenceId;
     private final Optional<String> taskName;
     private final Optional<String> resourceId;
     private final Optional<String> resourceNamespace;
-    private final Optional<String> persistenceId;
-    private final Optional<Protos.ResourceProviderID> providerId;
-    private final Optional<Protos.Resource.DiskInfo.Source> diskSource;
+    private final Optional<String> sourceRoot;
 
     public static VolumeEvaluationStage getNew(
             VolumeSpec volumeSpec,
@@ -38,7 +37,6 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                 Optional.empty(),
                 resourceNamespace,
                 Optional.empty(),
-                Optional.empty(),
                 Optional.empty());
     }
 
@@ -48,16 +46,14 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<Protos.ResourceProviderID> providerId,
-            Optional<Protos.Resource.DiskInfo.Source> diskSource) {
+            Optional<String> sourceRoot) {
         return new VolumeEvaluationStage(
                 volumeSpec,
                 taskName,
                 resourceId,
                 resourceNamespace,
                 persistenceId,
-                providerId,
-                diskSource);
+                sourceRoot);
     }
 
     private VolumeEvaluationStage(
@@ -66,16 +62,14 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<Protos.ResourceProviderID> providerId,
-            Optional<Protos.Resource.DiskInfo.Source> diskSource) {
+            Optional<String> sourceRoot) {
         this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.volumeSpec = volumeSpec;
         this.taskName = taskName;
         this.resourceId = resourceId;
         this.resourceNamespace = resourceNamespace;
         this.persistenceId = persistenceId;
-        this.providerId = providerId;
-        this.diskSource = diskSource;
+        this.sourceRoot = sourceRoot;
     }
 
     private boolean createsVolume() {
@@ -87,7 +81,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         String detailsClause = resourceId.isPresent() ? "previously reserved " : "";
 
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
-        Protos.Resource resource;
+        Resource resource;
         final MesosResource mesosResource;
 
         boolean isRunningExecutor =
@@ -97,13 +91,12 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             // add it to the ExecutorInfo.
             podInfoBuilder.setExecutorVolume(volumeSpec);
 
-            Protos.Resource volume = PodInfoBuilder.getExistingExecutorVolume(
+            Resource volume = PodInfoBuilder.getExistingExecutorVolume(
                     volumeSpec,
                     resourceId,
                     resourceNamespace,
                     persistenceId,
-                    providerId,
-                    diskSource);
+                    sourceRoot);
             podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
             return pass(
@@ -132,7 +125,6 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     reserveEvaluationOutcome.getResourceId(),
                     resourceNamespace,
                     persistenceId,
-                    Optional.empty(),
                     Optional.empty())
                     .setMesosResource(mesosResource)
                     .build();
@@ -140,7 +132,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<MesosResource> mesosResourceOptional;
             if (!resourceId.isPresent()) {
                 mesosResourceOptional =
-                        mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec);
+                        mesosResourcePool.consumeAtomic(Constants.DISK_RESOURCE_TYPE, volumeSpec.getValue());
             } else {
                 mesosResourceOptional =
                         mesosResourcePool.getReservedResourceById(resourceId.get());
@@ -151,14 +143,12 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             }
 
             mesosResource = mesosResourceOptional.get();
-
             resource = ResourceBuilder.fromSpec(
                     volumeSpec,
                     resourceId,
                     resourceNamespace,
                     persistenceId,
-                    ResourceUtils.getProviderId(mesosResource.getResource()),
-                    ResourceUtils.getDiskSource(mesosResource.getResource()))
+                    Optional.of(mesosResource.getResource().getDisk().getSource().getMount().getRoot()))
                     .setValue(mesosResource.getValue())
                     .setMesosResource(mesosResource)
                     .build();
