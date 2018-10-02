@@ -66,7 +66,7 @@ def test_metrics_cli_for_task_metrics(helloworld_service):
         environment=None,
     )
 
-    sdk_cmd.service_task_exec(helloworld_service, "hello-0-server", bash_command)
+    sdk_cmd.service_task_exec(helloworld_service["service"]["name"], "hello-0-server", bash_command)
 
     sdk_metrics.wait_for_service_metrics(
         helloworld_service["package_name"],
