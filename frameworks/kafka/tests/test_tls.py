@@ -1,6 +1,7 @@
 import json
 import logging
 import pytest
+from toolz import get_in
 
 import sdk_cmd
 import sdk_install
@@ -130,7 +131,7 @@ def test_tls_ciphers(kafka_service):
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "describe")
     assert rc == 0, "Describe command failed"
     expected_ciphers = set(
-        sdk_utils.get_in(
+        get_in(
             ciphers_config_path,
             json.loads(stdout),
             "",

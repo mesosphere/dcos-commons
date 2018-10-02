@@ -163,6 +163,7 @@ def test_kill_scheduler():
 
     # scheduler should be restarted, but service tasks should be left as-is:
     sdk_tasks.check_tasks_updated("marathon", scheduler_task_prefix, scheduler_ids)
+    sdk_tasks.wait_for_active_framework(foldered_name)
     sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
     config.check_healthy(service_name=foldered_name)
 

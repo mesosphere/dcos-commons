@@ -16,7 +16,10 @@ import org.apache.mesos.Scheduler;
 import org.apache.mesos.SchedulerDriver;
 import org.apache.mesos.v1.scheduler.Mesos;
 import org.apache.mesos.v1.scheduler.V0Mesos;
+import org.apache.mesos.v1.scheduler.V1Mesos;
 import org.slf4j.Logger;
+
+import javax.annotation.Nullable;
 
 /**
  * Factory class for creating {@link MesosSchedulerDriver}s.
@@ -94,6 +97,34 @@ public class SchedulerDriverFactory {
         return createInternal(scheduler, frameworkInfo, masterUrl, credential, schedulerConfig.getMesosApiVersion());
     }
 
+    Mesos startInternalCustom(
+            MesosToSchedulerDriverAdapter adapter,
+            final Capabilities capabilities,
+            final FrameworkInfo frameworkInfo,
+            final String masterUrl,
+            final Credential credential,
+            final String mesosAPIVersion) {
+            LOGGER.info("Trying to use Mesos {} API, isCredentialNull: {}", mesosAPIVersion, credential == null);
+            if (mesosAPIVersion.equals(SchedulerConfig.MESOS_API_VERSION_V1)) {
+                if (capabilities.supportsV1APIByDefault()) {
+                    LOGGER.info("Using Mesos {} API", SchedulerConfig.MESOS_API_VERSION_V1);
+                    return new V1Mesos(
+                            adapter,
+                            masterUrl,
+                            credential == null ? null : EvolverDevolver.evolve(credential));
+                } else {
+                    LOGGER.info("Current DC/OS cluster doesn't support the Mesos {} API",
+                            SchedulerConfig.MESOS_API_VERSION_V1);
+                }
+            }
+            LOGGER.info("Using Mesos V0 API");
+            return new V0Mesos(
+                    adapter,
+                    EvolverDevolver.evolve(frameworkInfo),
+                    masterUrl,
+                    credential == null ? null : EvolverDevolver.evolve(credential));
+    }
+
     /**
      * Broken out into a separate function to allow testing with custom SchedulerDrivers.
      */
@@ -101,46 +132,39 @@ public class SchedulerDriverFactory {
             final Scheduler scheduler,
             final FrameworkInfo frameworkInfo,
             final String masterUrl,
-            final Credential credential,
+            @Nullable final Credential credential,
             final String mesosAPIVersion) {
         Capabilities capabilities = Capabilities.getInstance();
-        if (credential != null) {
-            return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true, credential) {
-                @Override
-                protected Mesos startInternal() {
-                    if (capabilities.supportsV1APIByDefault()) {
-                        return super.startInternal();
-                    }
-
-                    if (mesosAPIVersion.equals("V1")) {
-                        LOGGER.warn(
-                                "Current DC/OS cluster doesn't support the Mesos V1 API in strict mode. Using V0...");
-                    }
-                    return new V0Mesos(
-                            this,
-                            EvolverDevolver.evolve(frameworkInfo),
-                            masterUrl,
-                            EvolverDevolver.evolve(credential));
-                }
-            };
-        }
-
-        // Love too work around the fact that the MesosToSchedulerDriverAdapter both depends directly on the
+        // TODO(DCOS-29172): This can be removed if/when we switch to using our own Mesos Client
+        // Love to work around the fact that the MesosToSchedulerDriverAdapter both depends directly on the
         // process environment *and* uses two unrelated constructors for the case of credential being null
-        return new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true) {
-            @Override
-            protected Mesos startInternal() {
-                if (capabilities.supportsV1APIByDefault()) {
-                    return super.startInternal();
-                }
-
-                if (mesosAPIVersion.equals("V1")) {
-                    LOGGER.warn(
-                            "Current DC/OS cluster doesn't support the Mesos V1 API in strict mode. Using V0...");
-                }
-                return new V0Mesos(this, EvolverDevolver.evolve(frameworkInfo), masterUrl);
-            }
-        };
+        return credential == null ?
+                new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true) {
+                    @Override
+                    protected Mesos startInternal() {
+                        return startInternalCustom(
+                                this,
+                                capabilities,
+                                frameworkInfo,
+                                masterUrl,
+                                null,
+                                mesosAPIVersion
+                        );
+                    }
+                } :
+                new MesosToSchedulerDriverAdapter(scheduler, frameworkInfo, masterUrl, true, credential) {
+                    @Override
+                    protected Mesos startInternal() {
+                        return startInternalCustom(
+                                this,
+                                capabilities,
+                                frameworkInfo,
+                                masterUrl,
+                                credential,
+                                mesosAPIVersion
+                        );
+                    }
+                };
     }
 
     /**
