@@ -1,11 +1,13 @@
 package com.mesosphere.sdk.offer;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
 
 import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * This {@link OfferRecommendation} encapsulates a Mesos {@code UNRESERVE} Operation.
@@ -38,13 +40,18 @@ public class UnreserveOfferRecommendation implements UninstallRecommendation {
     }
 
     @Override
-    public Operation getOperation() {
-        return operation;
+    public Optional<Protos.Offer.Operation> getOperation() {
+        return Optional.of(operation);
     }
 
     @Override
-    public Offer getOffer() {
-        return offer;
+    public Protos.OfferID getOfferId() {
+        return offer.getId();
+    }
+
+    @Override
+    public Protos.SlaveID getAgentId() {
+        return offer.getSlaveId();
     }
 
     @Override

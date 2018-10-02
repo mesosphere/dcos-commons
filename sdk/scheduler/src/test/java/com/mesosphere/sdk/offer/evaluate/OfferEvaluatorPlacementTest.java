@@ -67,7 +67,7 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
                 podInstanceRequirement,
                 Arrays.asList(OfferTestUtils.getCompleteOffer(offeredCpu)));
 
-        Assert.assertEquals(5, recommendations.size());
+        Assert.assertEquals(6, recommendations.size());
     }
 
     @Test
@@ -112,6 +112,6 @@ public class OfferEvaluatorPlacementTest extends OfferEvaluatorTestBase {
                 podInstanceRequirement,
                 Arrays.asList(OfferTestUtils.getCompleteOffer(offeredCpu)));
 
-        Assert.assertEquals(5, recommendations.size());
+        Assert.assertEquals(6, recommendations.size());
     }
 }

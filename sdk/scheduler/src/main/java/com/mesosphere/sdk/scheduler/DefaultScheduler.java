@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.*;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
@@ -298,14 +297,16 @@ public class DefaultScheduler extends AbstractScheduler {
                     offerRecommendations.size(),
                     offerRecommendations.size() == 1 ? "" : "s",
                     offerRecommendations.stream()
-                            .map(rec -> rec.getOffer().getId().getValue())
+                            .map(rec -> rec.getOfferId().getValue())
                             .collect(Collectors.toSet()));
         }
 
         try {
+            // Store any TaskInfo data in ZK:
             launchRecorder.record(offerRecommendations);
             if (decommissionRecorder.isPresent()) {
-                decommissionRecorder.get().recordRecommendations(offerRecommendations);
+                // Notify decommission plan of dereservations:
+                decommissionRecorder.get().recordDecommission(offerRecommendations);
             }
         } catch (Exception ex) {
             // Note: If a subset of operations were recorded, things could still be left in a bad state. However, in
@@ -315,20 +316,8 @@ public class DefaultScheduler extends AbstractScheduler {
             offerRecommendations = Collections.emptyList();
         }
 
-        // After recording the operations, filter out any launches that shouldn't actually be launched.
-        // In other words, record the reservations for these tasks but do not actually launch them.
-        List<OfferRecommendation> filteredOfferRecommendations = new ArrayList<>();
-        for (OfferRecommendation offerRecommendation : offerRecommendations) {
-            if (offerRecommendation instanceof LaunchOfferRecommendation &&
-                    !((LaunchOfferRecommendation) offerRecommendation).shouldLaunch()) {
-                logger.info("Skipping launch of transient Operation: {}",
-                        TextFormat.shortDebugString(offerRecommendation.getOperation()));
-            } else {
-                filteredOfferRecommendations.add(offerRecommendation);
-            }
-        }
-
-        return OfferResponse.processed(filteredOfferRecommendations);
+        // Return the recommendations upstream so that any Operations can be sent to Mesos:
+        return OfferResponse.processed(offerRecommendations);
     }
 
     /**
@@ -367,11 +356,10 @@ public class DefaultScheduler extends AbstractScheduler {
         for (Protos.Offer offer : unusedOffers) {
             OfferResources unexpectedResourcesForOffer = new OfferResources(offer);
             for (Protos.Resource resource : offer.getResourcesList()) {
-                if (!ResourceUtils.getReservation(resource).isPresent()) {
-                    continue; // Not a reserved resource, disregard
-                }
                 Optional<String> resourceId = ResourceUtils.getResourceId(resource);
-                if (!resourceId.isPresent() || !resourceIdsToKeep.contains(resourceId.get())) {
+                if (resourceId.isPresent() && !resourceIdsToKeep.contains(resourceId.get())) {
+                    // This resource has a resource ID label, indicating that it's a reservation created by the SDK.
+                    // Mark it for automatic garbage collection.
                     unexpectedResourcesForOffer.add(resource);
                 }
             }
@@ -384,7 +372,7 @@ public class DefaultScheduler extends AbstractScheduler {
         // practice this should be handled via the offer evaluation call above, but it can't hurt to also check here.
         if (decommissionRecorder.isPresent()) {
             try {
-                decommissionRecorder.get().recordResources(unexpectedResources);
+                decommissionRecorder.get().recordCleanupOrUninstall(unexpectedResources);
             } catch (Exception e) {
                 // Failed to record the decommission. Refrain from returning these resources as unexpected for now, try
                 // again later.

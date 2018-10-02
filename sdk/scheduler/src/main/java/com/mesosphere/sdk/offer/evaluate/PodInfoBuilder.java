@@ -220,7 +220,6 @@ public class PodInfoBuilder {
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                 .setTargetConfiguration(targetConfigurationId)
-                .setGoalState(taskSpec.getGoal())
                 .setType(podInstance.getPod().getType())
                 .setIndex(podInstance.getIndex())
                 .toProto());

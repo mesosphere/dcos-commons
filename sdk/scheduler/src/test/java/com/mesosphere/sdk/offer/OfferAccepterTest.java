@@ -5,6 +5,8 @@ import org.apache.mesos.SchedulerDriver;
 
 import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
+import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -40,13 +42,22 @@ public class OfferAccepterTest {
             new DestroyOfferRecommendation(OFFER_A, ResourceTestUtils.getUnreservedCpus(1.0));
     private static final DestroyOfferRecommendation DESTROY_B =
             new DestroyOfferRecommendation(OFFER_B, ResourceTestUtils.getUnreservedCpus(2.0));
+    // Should be dropped from accept calls to Mesos:
+    private static final StoreTaskInfoRecommendation STORETASK_A = new StoreTaskInfoRecommendation(
+            OFFER_A,
+            TestConstants.TASK_INFO,
+            Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build());
+    private static final StoreTaskInfoRecommendation STORETASK_B = new StoreTaskInfoRecommendation(
+            OFFER_B,
+            TestConstants.TASK_INFO,
+            Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build());
     private static final UnreserveOfferRecommendation UNRESERVE_A =
             new UnreserveOfferRecommendation(OFFER_A, ResourceTestUtils.getUnreservedCpus(1.1));
     private static final UnreserveOfferRecommendation UNRESERVE_B =
             new UnreserveOfferRecommendation(OFFER_B, ResourceTestUtils.getUnreservedCpus(2.1));
 
     private static final List<OfferRecommendation> ALL_RECOMMENDATIONS =
-            Arrays.asList(DESTROY_A, DESTROY_B, UNRESERVE_A, UNRESERVE_B);
+            Arrays.asList(DESTROY_A, DESTROY_B, STORETASK_A, STORETASK_B, UNRESERVE_A, UNRESERVE_B);
 
     private static final OfferAccepter ACCEPTER = new OfferAccepter();
 
@@ -74,14 +85,10 @@ public class OfferAccepterTest {
         Assert.assertEquals(2, group.size());
 
         List<OfferRecommendation> recs = group.get("agentA");
-        Assert.assertEquals(2, recs.size());
-        Assert.assertEquals(DESTROY_A, recs.get(0));
-        Assert.assertEquals(UNRESERVE_A, recs.get(1));
+        Assert.assertEquals(Arrays.asList(DESTROY_A, STORETASK_A, UNRESERVE_A), recs);
 
         recs = group.get("agentB");
-        Assert.assertEquals(2, recs.size());
-        Assert.assertEquals(DESTROY_B, recs.get(0));
-        Assert.assertEquals(UNRESERVE_B, recs.get(1));
+        Assert.assertEquals(Arrays.asList(DESTROY_B, STORETASK_B, UNRESERVE_B), recs);
     }
 
     @Test
@@ -101,7 +108,7 @@ public class OfferAccepterTest {
 
         List<Collection<Protos.Offer.Operation>> operationCalls = operationCaptor.getAllValues();
         Assert.assertEquals(2, operationCalls.size());
-        Assert.assertEquals(Arrays.asList(DESTROY_A.getOperation(), UNRESERVE_A.getOperation()), operationCalls.get(0));
-        Assert.assertEquals(Arrays.asList(DESTROY_B.getOperation(), UNRESERVE_B.getOperation()), operationCalls.get(1));
+        Assert.assertEquals(Arrays.asList(DESTROY_A.getOperation().get(), UNRESERVE_A.getOperation().get()), operationCalls.get(0));
+        Assert.assertEquals(Arrays.asList(DESTROY_B.getOperation().get(), UNRESERVE_B.getOperation().get()), operationCalls.get(1));
     }
 }

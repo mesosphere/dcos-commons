@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import org.apache.mesos.Protos;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -12,7 +13,7 @@ import java.util.stream.Collectors;
 public class OfferUtils {
 
     /**
-     * Filters out accepted offers and returns back a list of unused offers.
+     * Filters out Offers which have pending Operations against Mesos, and returns a list of any remaining offers.
      *
      * @param offers          An {@link org.apache.mesos.Protos.Offer} collection containing both ACCEPTED and
      *                        UNACCEPTED offers
@@ -21,8 +22,11 @@ public class OfferUtils {
      */
     public static List<Protos.Offer> filterOutAcceptedOffers(
             Collection<Protos.Offer> offers, Collection<? extends OfferRecommendation> recommendations) {
+        // Only filter out offers which specifically have operations to be sent to Mesos. If an offer just led to some
+        // internal bookkeeping updates then don't consider it "used".
         Set<Protos.OfferID> usedOfferIds = recommendations.stream()
-                .map(rec -> rec.getOffer().getId())
+                .filter(rec -> rec.getOperation().isPresent())
+                .map(rec -> rec.getOfferId())
                 .collect(Collectors.toSet());
         return offers.stream()
                 .filter(offer -> !usedOfferIds.contains(offer.getId()))

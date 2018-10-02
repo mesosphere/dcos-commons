@@ -27,12 +27,10 @@ public class PersistentLaunchRecorder {
 
     public void record(Collection<OfferRecommendation> offerRecommendations) throws Exception {
         for (OfferRecommendation offerRecommendation : offerRecommendations) {
-            if (!(offerRecommendation instanceof LaunchOfferRecommendation)) {
+            if (!(offerRecommendation instanceof StoreTaskInfoRecommendation)) {
                 continue;
             }
-
-            LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) offerRecommendation;
-            Protos.TaskInfo taskInfo = launchOfferRecommendation.getStoreableTaskInfo();
+            Protos.TaskInfo taskInfo = ((StoreTaskInfoRecommendation) offerRecommendation).getStateStoreTaskInfo();
 
             Optional<PodInstance> podInstance = getPodInstance(taskInfo);
 

@@ -33,12 +33,22 @@ public class OfferAccepter {
         //    Therefore we must preserve ordering within each per-agent set of operations.
         final Map<String, List<OfferRecommendation>> recsByAgent = groupByAgent(recommendations);
         for (Map.Entry<String, List<OfferRecommendation>> agentRecs : recsByAgent.entrySet()) {
-            List<Protos.Offer.Operation> operations = agentRecs.getValue().stream()
-                    .map(rec -> rec.getOperation())
-                    .collect(Collectors.toList());
-            Collection<Protos.OfferID> offerIds = agentRecs.getValue().stream()
-                    .map(rec -> rec.getOffer().getId())
-                    .collect(Collectors.toSet());
+            Collection<Protos.Offer.Operation> operations = new ArrayList<>();
+            Collection<Protos.OfferID> offerIds = new HashSet<>();
+            for (OfferRecommendation rec : agentRecs.getValue()) {
+                if (!rec.getOperation().isPresent()) {
+
+                    continue;
+                }
+                // Note: We ensure that we only include the offer ids for recommendations with operations to perform:
+                operations.add(rec.getOperation().get());
+                offerIds.add(rec.getOfferId());
+            }
+
+            int skippedOperations = operations.size() - agentRecs.getValue().size();
+            if (skippedOperations != 0) {
+                LOGGER.info("Skipping {} recommendations with no operation", skippedOperations);
+            }
             logOperations(agentRecs.getKey(), offerIds, operations);
             Driver.getInstance().acceptOffers(offerIds, operations, FILTERS);
         }
@@ -52,7 +62,7 @@ public class OfferAccepter {
         // Use TreeMap for consistent ordering. Not required but simplifies testing, and nice to have consistent output.
         final Map<String, List<OfferRecommendation>> recommendationsByAgent = new TreeMap<>();
         for (OfferRecommendation recommendation : recommendations) {
-            final String agentId = recommendation.getOffer().getSlaveId().getValue();
+            final String agentId = recommendation.getAgentId().getValue();
             List<OfferRecommendation> agentRecommendations = recommendationsByAgent.get(agentId);
             if (agentRecommendations == null) {
                 agentRecommendations = new ArrayList<>();
@@ -64,7 +74,7 @@ public class OfferAccepter {
     }
 
     private static void logOperations(
-            String agentId, Collection<Protos.OfferID> offerIds, List<Protos.Offer.Operation> operations) {
+            String agentId, Collection<Protos.OfferID> offerIds, Collection<Protos.Offer.Operation> operations) {
         LOGGER.info("Accepting {} offer{} for agent {} with {} operation{}: {}",
                 offerIds.size(),
                 offerIds.size() == 1 ? "" : "s",

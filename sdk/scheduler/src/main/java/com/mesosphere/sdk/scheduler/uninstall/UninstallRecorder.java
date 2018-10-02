@@ -27,51 +27,47 @@ public class UninstallRecorder {
     /**
      * Used in the case of decommissioning when we are proactively removing offered resources via offer evaluation.
      */
-    public void recordRecommendations(Collection<OfferRecommendation> offerRecommendations) throws Exception {
+    public void recordDecommission(Collection<OfferRecommendation> offerRecommendations) throws Exception {
         // Group the recommendations by offer id:
-        Map<Protos.OfferID, OfferResources> byOfferId = new HashMap<>();
+        Collection<Protos.Resource> unreservingResources = new ArrayList<>();
         for (OfferRecommendation offerRecommendation : offerRecommendations) {
             if (!(offerRecommendation instanceof UninstallRecommendation)) {
                 continue;
             }
-            OfferResources offerResources = byOfferId.get(offerRecommendation.getOffer().getId());
-            if (offerResources == null) {
-                offerResources = new OfferResources(offerRecommendation.getOffer());
-                byOfferId.put(offerRecommendation.getOffer().getId(), offerResources);
-            }
-            offerResources.add(((UninstallRecommendation) offerRecommendation).getResource());
+            unreservingResources.add(((UninstallRecommendation) offerRecommendation).getResource());
         }
-        recordResources(byOfferId.values());
+        Set<String> unreservingResourceIds = new HashSet<>(ResourceUtils.getResourceIds(unreservingResources));
+        if (!unreservingResourceIds.isEmpty()) {
+            recordResources(unreservingResourceIds);
+        }
+    }
+
+    /**
+     * Used in the case of uninstall and cleanup when we are removing any unrecognized resources.
+     */
+    public void recordCleanupOrUninstall(Collection<OfferResources> offerResources) throws Exception {
+        recordResources(offerResources.stream()
+                .flatMap(resources -> ResourceUtils.getResourceIds(resources.getResources()).stream())
+                .collect(Collectors.toSet()));
     }
 
     /**
      * Used by both decommissioning and uninstalling to record resources that are about to be unreserved.
      */
-    public void recordResources(Collection<OfferResources> offerResources) throws Exception {
-        Set<String> allResourceIds = new HashSet<>();
-        for (OfferResources offerResource : offerResources) {
-            allResourceIds.addAll(offerResource.getResources().stream()
-                    .map(ResourceUtils::getResourceId)
-                    .filter(resourceId -> resourceId.isPresent())
-                    .map(resourceId -> resourceId.get())
-                    .collect(Collectors.toSet()));
-        }
-        if (allResourceIds.isEmpty()) {
-            return;
-        }
-
+    private void recordResources(Set<String> unreservingResourceIds) throws Exception {
         // Optimizations:
         // - Only one StateStore read.
         // - Only one StateStore write, which only updates modified tasks.
         // - Rebuild each task object at most once.
         // - Avoid modifying tasks which aren't affected.
 
-        Collection<Protos.TaskInfo> updatedTasks = withRemovedResources(stateStore.fetchTasks(), allResourceIds);
+        Collection<Protos.TaskInfo> updatedTasks =
+                withRemovedResources(stateStore.fetchTasks(), unreservingResourceIds);
 
         logger.info("{} resourceId{}{} to prune were found in {} task{}{}",
-                allResourceIds.size(),
-                allResourceIds.size() == 1 ? "" : "s",
-                allResourceIds,
+                unreservingResourceIds.size(),
+                unreservingResourceIds.size() == 1 ? "" : "s",
+                unreservingResourceIds,
                 updatedTasks.size(),
                 updatedTasks.size() == 1 ? "" : "s",
                 updatedTasks.stream().map(t -> t.getName()).collect(Collectors.toList()));
@@ -82,7 +78,7 @@ public class UninstallRecorder {
         }
 
         // Notify the resource steps in the uninstall plan or decommission plan about these resource ids.
-        resourceSteps.forEach(step -> step.updateResourceStatus(allResourceIds));
+        resourceSteps.forEach(step -> step.updateResourceStatus(unreservingResourceIds));
     }
 
     /**

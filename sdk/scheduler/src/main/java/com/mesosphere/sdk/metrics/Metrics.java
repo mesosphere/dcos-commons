@@ -134,9 +134,12 @@ public class Metrics {
 
     public static void incrementRecommendations(Collection<OfferRecommendation> recommendations) {
         for (OfferRecommendation recommendation : recommendations) {
+            if (!recommendation.getOperation().isPresent()) {
+                continue;
+            }
             // Metric name will be of the form "operation.launch"
             final String metricName =
-                    String.format("operation.%s", recommendation.getOperation().getType().name().toLowerCase());
+                    String.format("operation.%s", recommendation.getOperation().get().getType().name().toLowerCase());
             METRICS.counter(metricName).inc();
         }
     }

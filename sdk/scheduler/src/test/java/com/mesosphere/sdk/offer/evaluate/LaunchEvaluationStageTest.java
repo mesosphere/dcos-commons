@@ -7,7 +7,6 @@ import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
-import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -54,28 +53,26 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         stage.evaluate(new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
+        Assert.assertEquals(5, taskBuilder.getLabels().getLabelsCount());
+
         // labels are sorted alphabetically (see LabelUtils):
         Protos.Label label = taskBuilder.getLabels().getLabels(0);
-        Assert.assertEquals("goal_state", label.getKey());
-        Assert.assertEquals(GoalState.RUNNING.name(), label.getValue());
-
-        label = taskBuilder.getLabels().getLabels(1);
         Assert.assertEquals("index", label.getKey());
         Assert.assertEquals(Integer.toString(TestConstants.TASK_INDEX), label.getValue());
 
-        label = taskBuilder.getLabels().getLabels(2);
+        label = taskBuilder.getLabels().getLabels(1);
         Assert.assertEquals("offer_attributes", label.getKey());
         Assert.assertEquals("", label.getValue());
 
-        label = taskBuilder.getLabels().getLabels(3);
+        label = taskBuilder.getLabels().getLabels(2);
         Assert.assertEquals("offer_hostname", label.getKey());
         Assert.assertEquals(TestConstants.HOSTNAME, label.getValue());
 
-        label = taskBuilder.getLabels().getLabels(4);
+        label = taskBuilder.getLabels().getLabels(3);
         Assert.assertEquals("target_configuration", label.getKey());
         Assert.assertEquals(36, label.getValue().length());
 
-        label = taskBuilder.getLabels().getLabels(5);
+        label = taskBuilder.getLabels().getLabels(4);
         Assert.assertEquals(label.getKey(), "task_type");
         Assert.assertEquals(TestConstants.POD_TYPE, label.getValue());
     }
