@@ -119,7 +119,8 @@ public class ExecutorResourceMapper {
                     resourceId,
                     resourceLabels.getResourceNamespace(),
                     resourceLabels.getPersistenceId(),
-                    resourceLabels.getSourceRoot());
+                    resourceLabels.getProviderId(),
+                    resourceLabels.getDiskSource());
         } else {
             return new ResourceEvaluationStage(
                     resourceSpec,
