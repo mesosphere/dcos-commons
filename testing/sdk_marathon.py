@@ -246,14 +246,15 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
         stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
     )
     def _wait_for_app_destroyed():
+        if app_exists(app_name, timeout):
+            return False
         running_deployments = sdk_cmd.cluster_request("GET", _api_url("deployments")).json()
         log.info(
             "While waiting to delete %s, currently running marathon deployments: %s",
             deployment_id,
             running_deployments,
         )
-        running_id = next((d for d in running_deployments if d["id"] != deployment_id), None)
-        return running_id is None
+        return deployment_id not in [d["id"] for d in running_deployments]
 
     log.info("Waiting for {} to be removed...".format(app_name))
     _wait_for_app_destroyed()
