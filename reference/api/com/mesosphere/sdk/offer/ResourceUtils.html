@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -158,48 +158,44 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i2" class="altColor">
-<td class="colFirst"><code>static java.util.Optional&lt;Protos.Resource.DiskInfo.Source&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getDiskSource-Protos.Resource-">getDiskSource</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
-</tr>
-<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getNamespace-Protos.Resource-">getNamespace</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPersistenceId-Protos.Resource-">getPersistenceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPrincipal-Protos.Resource-">getPrincipal</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
-<td class="colFirst"><code>static java.util.Optional&lt;Protos.ResourceProviderID&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getProviderId-Protos.Resource-">getProviderId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
-</tr>
-<tr id="i7" class="rowColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;Protos.Resource.ReservationInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getReservation-Protos.Resource-">getReservation</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceId-Protos.Resource-">getResourceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceIds-java.util.Collection-">getResourceIds</a></span>(java.util.Collection&lt;Protos.Resource&gt;&nbsp;resources)</code>
 <div class="block">Returns a list of unique resource IDs associated with <code>Resource</code>s.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getRole-Protos.Resource-">getRole</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getSourceRoot-Protos.Resource-">getSourceRoot</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+</tr>
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#hasResourceId-Protos.Resource-">hasResourceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#isProcessable-Protos.Resource-java.util.Collection-">isProcessable</a></span>(Protos.Resource&nbsp;resource,
              java.util.Collection&lt;java.lang.String&gt;&nbsp;ourRoles)</code>
@@ -351,22 +347,13 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getPersistenceId(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="getProviderId-Protos.Resource-">
+<a name="getSourceRoot-Protos.Resource-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getProviderId</h4>
-<pre>public static&nbsp;java.util.Optional&lt;Protos.ResourceProviderID&gt;&nbsp;getProviderId(Protos.Resource&nbsp;resource)</pre>
-</li>
-</ul>
-<a name="getDiskSource-Protos.Resource-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDiskSource</h4>
-<pre>public static&nbsp;java.util.Optional&lt;Protos.Resource.DiskInfo.Source&gt;&nbsp;getDiskSource(Protos.Resource&nbsp;resource)</pre>
+<h4>getSourceRoot</h4>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getSourceRoot(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
 <a name="isProcessable-Protos.Resource-java.util.Collection-">

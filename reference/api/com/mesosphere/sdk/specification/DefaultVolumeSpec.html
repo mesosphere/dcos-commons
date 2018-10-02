@@ -17,8 +17,8 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
-var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
 var tableTab = "tableTab";
@@ -74,13 +74,13 @@ var activeTableTab = "activeTableTab";
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.classes.inherited.from.class.com.mesosphere.sdk.specification.DefaultResourceSpec">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
@@ -148,6 +148,28 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 </ul>
 </li>
 </ul>
+<!-- ======== CONSTRUCTOR SUMMARY ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.summary">
+<!--   -->
+</a>
+<h3>Constructor Summary</h3>
+<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
+<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colOne" scope="col">Constructor and Description</th>
+</tr>
+<tr class="altColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#DefaultVolumeSpec-double-com.mesosphere.sdk.specification.VolumeSpec.Type-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">DefaultVolumeSpec</a></span>(double&nbsp;diskSize,
+                 <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a>&nbsp;type,
+                 java.lang.String&nbsp;containerPath,
+                 java.lang.String&nbsp;role,
+                 java.lang.String&nbsp;preReservedRole,
+                 java.lang.String&nbsp;principal)</code>&nbsp;</td>
+</tr>
+</table>
+</li>
+</ul>
 <!-- ========== METHOD SUMMARY =========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.summary">
@@ -155,57 +177,30 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 </a>
 <h3>Method Summary</h3>
 <table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Method Summary table, listing methods, and an explanation">
-<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t1" class="tableTab"><span><a href="javascript:show(1);">Static Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
+<caption><span id="t0" class="activeTableTab"><span>All Methods</span><span class="tabEnd">&nbsp;</span></span><span id="t2" class="tableTab"><span><a href="javascript:show(2);">Instance Methods</a></span><span class="tabEnd">&nbsp;</span></span><span id="t4" class="tableTab"><span><a href="javascript:show(8);">Concrete Methods</a></span><span class="tabEnd">&nbsp;</span></span></caption>
 <tr>
 <th class="colFirst" scope="col">Modifier and Type</th>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#createMountVolume-double-java.lang.String-java.util.List-java.lang.String-java.lang.String-java.lang.String-">createMountVolume</a></span>(double&nbsp;diskSize,
-                 java.lang.String&nbsp;containerPath,
-                 java.util.List&lt;java.lang.String&gt;&nbsp;profiles,
-                 java.lang.String&nbsp;role,
-                 java.lang.String&nbsp;preReservedRole,
-                 java.lang.String&nbsp;principal)</code>&nbsp;</td>
-</tr>
-<tr id="i1" class="rowColor">
-<td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#createRootVolume-double-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">createRootVolume</a></span>(double&nbsp;diskSize,
-                java.lang.String&nbsp;containerPath,
-                java.lang.String&nbsp;role,
-                java.lang.String&nbsp;preReservedRole,
-                java.lang.String&nbsp;principal)</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code>boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#equals-java.lang.Object-">equals</a></span>(java.lang.Object&nbsp;o)</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#getContainerPath--">getContainerPath</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i4" class="altColor">
-<td class="colFirst"><code>java.util.List&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#getProfiles--">getProfiles</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i5" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#getType--">getType</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i8" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html#withDiskSize-double-">withDiskSize</a></span>(double&nbsp;diskSize)</code>
-<div class="block">Returns a copy of the <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification"><code>VolumeSpec</code></a> which has been updated to have the provided disk size.</div>
-</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -237,39 +232,34 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
+<!-- ========= CONSTRUCTOR DETAIL ======== -->
+<ul class="blockList">
+<li class="blockList"><a name="constructor.detail">
+<!--   -->
+</a>
+<h3>Constructor Detail</h3>
+<a name="DefaultVolumeSpec-double-com.mesosphere.sdk.specification.VolumeSpec.Type-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>DefaultVolumeSpec</h4>
+<pre>public&nbsp;DefaultVolumeSpec(double&nbsp;diskSize,
+                         <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a>&nbsp;type,
+                         java.lang.String&nbsp;containerPath,
+                         java.lang.String&nbsp;role,
+                         java.lang.String&nbsp;preReservedRole,
+                         java.lang.String&nbsp;principal)</pre>
+</li>
+</ul>
+</li>
+</ul>
 <!-- ============ METHOD DETAIL ========== -->
 <ul class="blockList">
 <li class="blockList"><a name="method.detail">
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="createRootVolume-double-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>createRootVolume</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a>&nbsp;createRootVolume(double&nbsp;diskSize,
-                                                 java.lang.String&nbsp;containerPath,
-                                                 java.lang.String&nbsp;role,
-                                                 java.lang.String&nbsp;preReservedRole,
-                                                 java.lang.String&nbsp;principal)</pre>
-</li>
-</ul>
-<a name="createMountVolume-double-java.lang.String-java.util.List-java.lang.String-java.lang.String-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>createMountVolume</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a>&nbsp;createMountVolume(double&nbsp;diskSize,
-                                                  java.lang.String&nbsp;containerPath,
-                                                  java.util.List&lt;java.lang.String&gt;&nbsp;profiles,
-                                                  java.lang.String&nbsp;role,
-                                                  java.lang.String&nbsp;preReservedRole,
-                                                  java.lang.String&nbsp;principal)</pre>
-</li>
-</ul>
 <a name="getType--">
 <!--   -->
 </a>
@@ -293,34 +283,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html#getContainerPath--">getContainerPath</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="getProfiles--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getProfiles</h4>
-<pre>public&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getProfiles()</pre>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html#getProfiles--">getProfiles</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="withDiskSize-double-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>withDiskSize</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;withDiskSize(double&nbsp;diskSize)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html#withDiskSize-double-">VolumeSpec</a></code></span></div>
-<div class="block">Returns a copy of the <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification"><code>VolumeSpec</code></a> which has been updated to have the provided disk size.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html#withDiskSize-double-">withDiskSize</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a></code></dd>
 </dl>
 </li>
 </ul>
@@ -417,13 +379,13 @@ implements <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.classes.inherited.from.class.com.mesosphere.sdk.specification.DefaultResourceSpec">Nested</a>&nbsp;|&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li>Field&nbsp;|&nbsp;</li>
-<li>Constr&nbsp;|&nbsp;</li>
+<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>

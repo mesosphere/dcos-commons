@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -128,13 +128,12 @@ extends java.lang.Object</pre>
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#ResourceLabels-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.specification.ResourceSpec-java.lang.String-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">ResourceLabels</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;original,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#ResourceLabels-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.specification.ResourceSpec-java.lang.String-java.util.Optional-java.util.Optional-java.util.Optional-">ResourceLabels</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;original,
               <a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;updated,
               java.lang.String&nbsp;resourceId,
               java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
               java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,
-              java.util.Optional&lt;Protos.ResourceProviderID&gt;&nbsp;providerId,
-              java.util.Optional&lt;Protos.Resource.DiskInfo.Source&gt;&nbsp;diskSource)</code>
+              java.util.Optional&lt;java.lang.String&gt;&nbsp;sourceRoot)</code>
 <div class="block">ResourceLabels are used to map <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> entities to resources which
  have actually been consumed.</div>
 </td>
@@ -160,34 +159,30 @@ extends java.lang.Object</pre>
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>java.util.Optional&lt;Protos.Resource.DiskInfo.Source&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getDiskSource--">getDiskSource</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getOriginal--">getOriginal</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i2" class="altColor">
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getPersistenceId--">getPersistenceId</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i3" class="rowColor">
-<td class="colFirst"><code>java.util.Optional&lt;Protos.ResourceProviderID&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getProviderId--">getProviderId</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i4" class="altColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getResourceId--">getResourceId</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getResourceNamespace--">getResourceNamespace</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i4" class="altColor">
+<td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getSourceRoot--">getSourceRoot</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getUpdated--">getUpdated</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -224,7 +219,7 @@ extends java.lang.Object</pre>
                java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</pre>
 </li>
 </ul>
-<a name="ResourceLabels-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.specification.ResourceSpec-java.lang.String-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">
+<a name="ResourceLabels-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.specification.ResourceSpec-java.lang.String-java.util.Optional-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -235,8 +230,7 @@ extends java.lang.Object</pre>
                java.lang.String&nbsp;resourceId,
                java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
                java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,
-               java.util.Optional&lt;Protos.ResourceProviderID&gt;&nbsp;providerId,
-               java.util.Optional&lt;Protos.Resource.DiskInfo.Source&gt;&nbsp;diskSource)</pre>
+               java.util.Optional&lt;java.lang.String&gt;&nbsp;sourceRoot)</pre>
 <div class="block">ResourceLabels are used to map <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> entities to resources which
  have actually been consumed.  Generally speaking there should be no difference between the resources from a Mesos
  perspective and the resources from a <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> perspective.
@@ -302,22 +296,13 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getPersistenceId()</pre>
 </li>
 </ul>
-<a name="getProviderId--">
+<a name="getSourceRoot--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getProviderId</h4>
-<pre>public&nbsp;java.util.Optional&lt;Protos.ResourceProviderID&gt;&nbsp;getProviderId()</pre>
-</li>
-</ul>
-<a name="getDiskSource--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDiskSource</h4>
-<pre>public&nbsp;java.util.Optional&lt;Protos.Resource.DiskInfo.Source&gt;&nbsp;getDiskSource()</pre>
+<h4>getSourceRoot</h4>
+<pre>public&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getSourceRoot()</pre>
 </li>
 </ul>
 <a name="toString--">
