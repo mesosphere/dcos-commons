@@ -586,6 +586,11 @@ root: {{ROOT_DIR}}
 </ul></div>
               </li>
               <li>
+                <p><code class="highlighter-rouge">profiles</code></p>
+
+                <p>A list of <a href="https://docs.mesosphere.com/services/beta-storage/0.4.0-beta/terminology-and-concepts/#volume-profile">volume profiles</a> any of which the persistent volume should be provisioned on. This is only supported for <code class="highlighter-rouge">MOUNT</code> volumes in DC/OS 1.12+.</p>
+              </li>
+              <li>
                 <p><code class="highlighter-rouge">size</code></p>
 
                 <p>The required minimum size of the volume. See reservation semantics between <code class="highlighter-rouge">ROOT</code> and <code class="highlighter-rouge">MOUNT</code> volume types above.</p>

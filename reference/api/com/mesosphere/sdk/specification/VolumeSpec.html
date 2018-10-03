@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6};
+var methods = {"i0":6,"i1":6,"i2":6,"i3":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -154,8 +154,18 @@ extends <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html"
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html#getContainerPath--">getContainerPath</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
+<td class="colFirst"><code>java.util.List&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html#getProfiles--">getProfiles</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html#getType--">getType</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html#withDiskSize-double-">withDiskSize</a></span>(double&nbsp;diskSize)</code>
+<div class="block">Returns a copy of the <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification"><code>VolumeSpec</code></a> which has been updated to have the provided disk size.</div>
+</td>
 </tr>
 </table>
 <ul class="blockList">
@@ -191,10 +201,29 @@ extends <a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html"
 <a name="getContainerPath--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getContainerPath</h4>
 <pre>java.lang.String&nbsp;getContainerPath()</pre>
+</li>
+</ul>
+<a name="getProfiles--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getProfiles</h4>
+<pre>java.util.List&lt;java.lang.String&gt;&nbsp;getProfiles()</pre>
+</li>
+</ul>
+<a name="withDiskSize-double-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>withDiskSize</h4>
+<pre><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;withDiskSize(double&nbsp;diskSize)</pre>
+<div class="block">Returns a copy of the <a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification"><code>VolumeSpec</code></a> which has been updated to have the provided disk size.</div>
 </li>
 </ul>
 </li>

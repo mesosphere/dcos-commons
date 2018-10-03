@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -153,48 +153,60 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#addMountVolume-java.lang.Double-java.lang.String-java.util.List-">addMountVolume</a></span>(java.lang.Double&nbsp;size,
+              java.lang.String&nbsp;containerPath,
+              java.util.List&lt;java.lang.String&gt;&nbsp;profiles)</code>&nbsp;</td>
+</tr>
+<tr id="i1" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#addResource-com.mesosphere.sdk.specification.ResourceSpec-">addResource</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resource)</code>
 <div class="block">Adds <code>resource</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#addResources-java.util.Collection-">addResources</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&gt;&nbsp;resourceSpecCollection)</code>
 <div class="block">Adds a collection of <code>resource</code>s and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#addVolume-java.lang.String-java.lang.Double-java.lang.String-">addVolume</a></span>(java.lang.String&nbsp;volumeType,
-         java.lang.Double&nbsp;size,
-         java.lang.String&nbsp;containerPath)</code>&nbsp;</td>
-</tr>
 <tr id="i3" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#addRootVolume-java.lang.Double-java.lang.String-">addRootVolume</a></span>(java.lang.Double&nbsp;size,
+             java.lang.String&nbsp;containerPath)</code>&nbsp;</td>
+</tr>
+<tr id="i4" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#addVolume-java.lang.String-java.lang.Double-java.lang.String-java.util.List-">addVolume</a></span>(java.lang.String&nbsp;volumeType,
+         java.lang.Double&nbsp;size,
+         java.lang.String&nbsp;containerPath,
+         java.util.List&lt;java.lang.String&gt;&nbsp;profiles)</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#build--">build</a></span>()</code>
 <div class="block">Returns a <code>DefaultResourceSet</code> built from the parameters previously set.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#cpus-java.lang.Double-">cpus</a></span>(java.lang.Double&nbsp;cpus)</code>&nbsp;</td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#gpus-java.lang.Double-">gpus</a></span>(java.lang.Double&nbsp;gpus)</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#id-java.lang.String-">id</a></span>(java.lang.String&nbsp;id)</code>
 <div class="block">Sets the <code>id</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#memory-java.lang.Double-">memory</a></span>(java.lang.Double&nbsp;memory)</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#volumes-java.util.Collection-">volumes</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&gt;&nbsp;volumes)</code>
 <div class="block">Sets the <code>volumes</code> and returns a reference to this Builder so that the methods can be chained together.</div>
@@ -282,7 +294,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a>&nbsp;memory(java.lang.Double&nbsp;memory)</pre>
 </li>
 </ul>
-<a name="addVolume-java.lang.String-java.lang.Double-java.lang.String-">
+<a name="addVolume-java.lang.String-java.lang.Double-java.lang.String-java.util.List-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -290,7 +302,29 @@ extends java.lang.Object</pre>
 <h4>addVolume</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a>&nbsp;addVolume(java.lang.String&nbsp;volumeType,
                                             java.lang.Double&nbsp;size,
-                                            java.lang.String&nbsp;containerPath)</pre>
+                                            java.lang.String&nbsp;containerPath,
+                                            java.util.List&lt;java.lang.String&gt;&nbsp;profiles)</pre>
+</li>
+</ul>
+<a name="addRootVolume-java.lang.Double-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>addRootVolume</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a>&nbsp;addRootVolume(java.lang.Double&nbsp;size,
+                                                java.lang.String&nbsp;containerPath)</pre>
+</li>
+</ul>
+<a name="addMountVolume-java.lang.Double-java.lang.String-java.util.List-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>addMountVolume</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a>&nbsp;addMountVolume(java.lang.Double&nbsp;size,
+                                                 java.lang.String&nbsp;containerPath,
+                                                 java.util.List&lt;java.lang.String&gt;&nbsp;profiles)</pre>
 </li>
 </ul>
 <a name="addResource-com.mesosphere.sdk.specification.ResourceSpec-">
