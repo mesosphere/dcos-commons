@@ -28,6 +28,7 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
         boolean supportsCNI = capabilities.supportsCNINetworking();
         boolean supportsEnvBasedSecrets = capabilities.supportsEnvBasedSecretsProtobuf();
         boolean supportsFileBasedSecrets = capabilities.supportsFileBasedSecrets();
+        boolean supportsProfileMountVolumes = capabilities.supportsProfileMountVolumes();
 
         for (PodSpec podSpec : newConfig.getPods()) {
             if (!supportsGpus && podRequestsGpuResources(podSpec)) {
@@ -58,6 +59,11 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
             if (!supportsFileBasedSecrets && podRequestsFileBasedSecrets(podSpec)) {
                 errors.add(ConfigValidationError.valueError("pod:" + podSpec.getType(), "secrets:file",
                         "This DC/OS cluster does not support file-based secrets"));
+            }
+
+            if (!supportsProfileMountVolumes && podRequestsProfileMountVolumes(podSpec)) {
+                errors.add(ConfigValidationError.valueError("pod:" + podSpec.getType(), "volumes",
+                        "This DC/OS cluster does not support profile mount volumes"));
             }
         }
         return errors;
@@ -112,6 +118,15 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
         for (SecretSpec secretSpec : podSpec.getSecrets()) {
             // Default is file-based Secret
             if (secretSpec.getFilePath().isPresent() || !secretSpec.getEnvKey().isPresent()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private static boolean podRequestsProfileMountVolumes(PodSpec podSpec) {
+        for (VolumeSpec volumeSpec : podSpec.getVolumes()) {
+            if (!volumeSpec.getProfiles().isEmpty()) {
                 return true;
             }
         }

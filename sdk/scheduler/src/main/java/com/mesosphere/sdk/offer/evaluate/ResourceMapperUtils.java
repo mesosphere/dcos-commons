@@ -38,13 +38,12 @@ class ResourceMapperUtils {
                 .findFirst()
                 .map(resourceSpec -> new ResourceLabels(
                         resourceSpec,
-                        OfferEvaluationUtils.updateVolumeSpec(
-                                (VolumeSpec) resourceSpec, taskResource.getScalar().getValue()
-                        ),
+                        ((VolumeSpec) resourceSpec).withDiskSize(taskResource.getScalar().getValue()),
                         ResourceUtils.getResourceId(taskResource).get(),
                         getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace),
-                        Optional.of(taskResource.getDisk().getPersistence().getId()),
-                        ResourceUtils.getSourceRoot(taskResource))
+                        ResourceUtils.getPersistenceId(taskResource),
+                        ResourceUtils.getProviderId(taskResource),
+                        ResourceUtils.getDiskSource(taskResource))
                 );
     }
 
