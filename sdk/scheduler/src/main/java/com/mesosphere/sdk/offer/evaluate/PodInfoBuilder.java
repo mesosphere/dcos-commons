@@ -672,6 +672,12 @@ public class PodInfoBuilder {
                 Protos.Parameters.Builder driverOptions = Protos.Parameters.newBuilder();
                 if (dockerVolume.getDriverOptions() != null) {
                     for (Map.Entry<String, String> option : dockerVolume.getDriverOptions().entrySet()) {
+                        // If it is a shared volume, reset the volume name to
+                        // not have the pod index, so that all tasks get the
+                        // same volume
+                        if (option.getKey().equals("shared") && option.getValue().equals("true")) {
+                            volumeName = dockerVolume.getVolumeName();
+                        }
                         paramsList.add(Protos.Parameter.newBuilder()
                                 .setKey(option.getKey())
                                 .setValue(option.getValue())
