@@ -56,10 +56,7 @@ def get_principal_to_user_mapping() -> str:
     we need to create an appropriate mapping to test authorization functionality.
     :return: A base64-encoded string of principal->user mappings
     """
-    rules = [
-        "RULE:[2:$1@$0](^hdfs@.*$)s/.*/hdfs/",
-        "RULE:[1:$1@$0](^nobody@.*$)s/.*/nobody/"
-    ]
+    rules = ["RULE:[2:$1@$0](^hdfs@.*$)s/.*/hdfs/"]
 
     for user in USERS:
         rules.append("RULE:[1:$1@$0](^{user}@.*$)s/.*/{user}/".format(user=user))
