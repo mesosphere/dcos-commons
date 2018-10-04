@@ -41,7 +41,7 @@
     {{/service.service_account_secret}}
     {{#service.security.transport_encryption.enabled}}
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
-    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.17777777/conf/cqlshrc",
+    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.17/conf/cqlshrc",
     {{#service.security.transport_encryption.allow_plaintext}}
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT": "{{service.security.transport_encryption.allow_plaintext}}",
     {{/service.security.transport_encryption.allow_plaintext}}
