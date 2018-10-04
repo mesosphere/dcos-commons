@@ -648,21 +648,13 @@ public class DefaultServiceSpecTest {
     public void testGoalStateDeserializesNewValues() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-finished.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-
-        ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
-        DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
-                ((DefaultServiceSpec.ConfigFactory) DefaultServiceSpec.getConfigurationFactory(serviceSpec))
-                        .getGoalStateDeserializer();
-
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(GoalState.class, goalStateDeserializer);
-        objectMapper.registerModule(module);
-
-        Assert.assertEquals(
-                GoalState.FINISHED, SerializationUtils.fromString("\"ONCE\"", GoalState.class, objectMapper));
-        Assert.assertEquals(
-                GoalState.FINISHED, SerializationUtils.fromString("\"FINISHED\"", GoalState.class, objectMapper));
+        try {
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+            Assert.fail("expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals(
+                    "Unsupported GoalState FINISHED in task meta-data-task, expected one of: [UNKNOWN, RUNNING, FINISH, ONCE]", e.getMessage());
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)

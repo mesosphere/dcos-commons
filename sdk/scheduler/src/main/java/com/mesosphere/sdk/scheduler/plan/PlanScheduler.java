@@ -138,7 +138,7 @@ public class PlanScheduler {
             if (!taskStatusOptional.isPresent()) {
                 // Couldn't find status, which shouldn't happen in practice. Just issue a kill request regardless.
                 TaskKiller.killTask(taskInfo.getTaskId());
-            } else if (TaskUtils.isTerminal(taskStatusOptional.get().getState())) {
+            } else if (TaskUtils.isTerminal(taskStatusOptional.get())) {
                 logger.info("Skipping kill request for {}: already in terminal state {}",
                         taskName, taskStatusOptional.get().getState());
             } else {

@@ -136,17 +136,14 @@ class TaskResourceMapper {
             PortSpec portSpec = (PortSpec) resourceSpec;
             if (portSpec.getPort() == 0) {
                 // For dynamic ports, we need to detect the port value that we had selected.
-                return taskPortFinder
-                        .getPriorPort(portSpec)
+                return taskPortFinder.getPriorPort(portSpec)
                         .filter(priorTaskPort -> RangeUtils.isInAny(ranges.getRangeList(), priorTaskPort))
                         .map(ignored -> new ResourceLabels(
                                 resourceSpec,
                                 resourceId.get(),
                                 ResourceMapperUtils.getNamespaceLabel(
                                         ResourceUtils.getNamespace(taskResource),
-                                        resourceNamespace
-                                )
-                        ));
+                                        resourceNamespace)));
             } else if (RangeUtils.isInAny(ranges.getRangeList(), portSpec.getPort())) {
                 // For fixed ports, we can just check for a resource whose ranges include that port.
                 return Optional.of(new ResourceLabels(
@@ -154,9 +151,7 @@ class TaskResourceMapper {
                         resourceId.get(),
                         ResourceMapperUtils.getNamespaceLabel(
                                 ResourceUtils.getNamespace(taskResource),
-                                resourceNamespace)
-                        )
-                );
+                                resourceNamespace)));
             }
         }
         return Optional.empty();
@@ -184,7 +179,7 @@ class TaskResourceMapper {
                 Optional.empty());
     }
 
-    private OfferEvaluationStage toEvaluationStage(
+    private static OfferEvaluationStage toEvaluationStage(
             String taskSpecName,
             ResourceSpec resourceSpec,
             Optional<String> resourceId,

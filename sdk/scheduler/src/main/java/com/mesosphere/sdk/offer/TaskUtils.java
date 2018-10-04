@@ -484,14 +484,7 @@ public class TaskUtils {
      * Returns whether the provided {@link TaskStatus} has reached a terminal state.
      */
     public static boolean isTerminal(Protos.TaskStatus taskStatus) {
-        return isTerminal(taskStatus.getState());
-    }
-
-    /**
-     * Returns whether the provided {@link TaskState} has reached a terminal state.
-     */
-    public static boolean isTerminal(Protos.TaskState taskState) {
-        switch (taskState) {
+        switch (taskStatus.getState()) {
             case TASK_FINISHED:
             case TASK_FAILED:
             case TASK_KILLED:
@@ -523,7 +516,6 @@ public class TaskUtils {
         switch (taskSpec.getGoal()) {
             case ONCE:
             case FINISH:
-            case FINISHED:
                 return false;
             case RUNNING:
             case UNKNOWN:

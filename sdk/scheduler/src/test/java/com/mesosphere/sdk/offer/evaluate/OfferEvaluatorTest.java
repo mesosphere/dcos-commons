@@ -524,8 +524,10 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Protos.Offer offer = OfferTestUtils.getOffer(expectedResources).toBuilder()
                 .addExecutorIds(executorInfo.getExecutorId())
                 .build();
+        System.out.println("HELLO"); // TODO
         recommendations = evaluator.evaluate(podInstanceRequirement, Arrays.asList(offer));
         // Providing the expected reserved resources should result in a LAUNCH+update operation.
+        System.out.println("HELLO"); // TODO
         Assert.assertEquals(2, recommendations.size());
         operation = recommendations.get(0).getOperation().get();
         Assert.assertEquals(Protos.Offer.Operation.Type.LAUNCH_GROUP, operation.getType());

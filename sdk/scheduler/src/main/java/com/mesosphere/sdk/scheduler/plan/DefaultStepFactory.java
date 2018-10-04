@@ -124,62 +124,44 @@ public class DefaultStepFactory implements StepFactory {
     private Status getStatus(PodInstance podInstance, Protos.TaskInfo taskInfo, UUID targetConfigId)
             throws TaskException {
         GoalState goalState = TaskUtils.getGoalState(podInstance, taskInfo.getName());
-        boolean hasReachedGoal = hasReachedGoalState(taskInfo, goalState);
 
-        boolean isOnTarget;
-        if (hasReachedGoal && (goalState.equals(GoalState.FINISHED) || goalState.equals(GoalState.ONCE))) {
-            LOGGER.info("Automatically on target configuration due to having reached {} goal.", goalState);
-            isOnTarget = true;
-        } else {
-            isOnTarget = isOnTarget(taskInfo, targetConfigId);
-        }
-
+        boolean hasReachedGoal = hasReachedGoalState(taskInfo, goalState, targetConfigId);
         boolean hasPermanentlyFailed = FailureUtils.isPermanentlyFailed(taskInfo);
+        // If the task is permanently failed ("pod replace"), its deployment is owned by the recovery plan, not the
+        // deploy plan. The deploy plan can consider it complete until it is no longer marked as failed, at which point
+        // the deploy plan will resume showing it as PENDING deployment.
+        Status status = hasReachedGoal || hasPermanentlyFailed ? Status.COMPLETE : Status.PENDING;
 
-        String bitsLog = String.format("onTarget=%s reachedGoal=%s permanentlyFailed=%s",
-                isOnTarget, hasReachedGoal, hasPermanentlyFailed);
-        if ((isOnTarget && hasReachedGoal) || hasPermanentlyFailed) {
-            LOGGER.info("Deployment of task '{}' is COMPLETE: {}", taskInfo.getName(), bitsLog);
-            return Status.COMPLETE;
-        } else {
-            LOGGER.info("Deployment of task '{}' is PENDING: {}", taskInfo.getName(), bitsLog);
-            return Status.PENDING;
-        }
-
-    }
-
-    private static boolean isOnTarget(Protos.TaskInfo taskInfo, UUID targetConfigId) throws TaskException {
-        UUID taskConfigId = new TaskLabelReader(taskInfo).getTargetConfiguration();
-        return targetConfigId.equals(taskConfigId);
+        LOGGER.info("Deployment of {} task '{}' is {}: hasReachedGoal={} permanentlyFailed={}",
+                goalState, taskInfo.getName(), status, hasReachedGoal, hasPermanentlyFailed);
+        return status;
     }
 
     @VisibleForTesting
-    protected boolean hasReachedGoalState(Protos.TaskInfo taskInfo, GoalState goalState) throws TaskException {
+    protected boolean hasReachedGoalState(Protos.TaskInfo taskInfo, GoalState goalState, UUID targetConfigId)
+            throws TaskException {
         Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInfo.getName());
         if (!status.isPresent()) {
+            // Task has never been run and therefore doesn't have any status information yet.
             return false;
         }
 
-        if (goalState.equals(GoalState.RUNNING)) {
-            switch (status.get().getState()) {
-                case TASK_RUNNING:
-
-                    return new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status.get());
-
-                default:
-                    return false;
-            }
-        } else if (goalState.equals(GoalState.ONCE) ||
-                goalState.equals(GoalState.FINISH) ||
-                goalState.equals(GoalState.FINISHED)) {
-            switch (status.get().getState()) {
-                case TASK_FINISHED:
-                    return true;
-                default:
-                    return false;
-            }
-        } else {
-            throw new TaskException("Unexpected goal state encountered: " + goalState);
+        switch (goalState) {
+        case RUNNING:
+            // Task needs to be running, and any readiness checks need to have passed.
+            return Protos.TaskState.TASK_RUNNING.equals(status.get().getState())
+                    && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status.get());
+        case FINISH:
+            // Task needs to have finished running successfully and the config ID needs to match the target config.
+            return Protos.TaskState.TASK_FINISHED.equals(status.get().getState())
+                    && new TaskLabelReader(taskInfo).getTargetConfiguration().equals(targetConfigId);
+        case ONCE:
+            // Task needs to have finished running successfully but the config ID can be anything.
+            return Protos.TaskState.TASK_FINISHED.equals(status.get().getState());
+        case UNKNOWN:
+        default:
+            throw new IllegalArgumentException(String.format(
+                    "Unsupported goal state for task %s: %s", taskInfo.getName(), goalState));
         }
     }
 }

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 public class OfferEvaluator {
 
-    private final Logger logger;
+    final Logger logger;
     private final FrameworkStore frameworkStore;
     private final StateStore stateStore;
     private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
@@ -353,13 +353,11 @@ public class OfferEvaluator {
             }
         }
 
-        String preReservedRole = null;
-        String role = null;
-        String principal = null;
+        ResourceSpec resourceSpecForRoles = null;
         boolean shouldAddExecutorResources = true;
-        for (Map.Entry<String, ResourceSet> entry : getNewResourceSets(podInstanceRequirement).entrySet()) {
-            String taskName = entry.getKey();
-            List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getValue());
+        for (Map.Entry<String, ResourceSet> taskEntry : getNewResourceSets(podInstanceRequirement).entrySet()) {
+            String taskName = taskEntry.getKey();
+            List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(taskEntry.getValue());
 
             for (ResourceSpec resourceSpec : resourceSpecs) {
                 if (resourceSpec instanceof NamedVIPSpec) {
@@ -373,25 +371,25 @@ public class OfferEvaluator {
                             resourceSpec, Optional.of(taskName), Optional.empty(), resourceNamespace));
                 }
 
-                if (preReservedRole == null && role == null && principal == null) {
-                    preReservedRole = resourceSpec.getPreReservedRole();
-                    role = resourceSpec.getRole();
-                    principal = resourceSpec.getPrincipal();
+                if (resourceSpecForRoles == null) {
+                    resourceSpecForRoles = resourceSpec;
                 }
             }
 
-            for (VolumeSpec volumeSpec : entry.getValue().getVolumes()) {
+            for (VolumeSpec volumeSpec : taskEntry.getValue().getVolumes()) {
                 evaluationStages.add(VolumeEvaluationStage.getNew(
                         volumeSpec, Optional.of(taskName), resourceNamespace));
             }
 
-
             if (shouldAddExecutorResources) {
                 // The default executor needs a constant amount of resources, account for them here.
-                for (ResourceSpec resourceSpec : getExecutorResources(preReservedRole, role, principal)) {
-                    evaluationStages.add(new ResourceEvaluationStage(
-                            resourceSpec, Optional.empty(), Optional.empty(), resourceNamespace));
-                }
+                getExecutorResourceSpecs(schedulerConfig, resourceSpecForRoles).stream()
+                        .map(spec -> new ResourceEvaluationStage(
+                                spec,
+                                Optional.empty(),
+                                Optional.empty(),
+                                resourceNamespace))
+                        .forEach(evaluationStages::add);
                 shouldAddExecutorResources = false;
             }
 
@@ -404,41 +402,17 @@ public class OfferEvaluator {
         return evaluationStages;
     }
 
-    private static List<ResourceSpec> getExecutorResources(String preReservedRole, String role, String principal) {
-        List<ResourceSpec> resources = new ArrayList<>();
-
-        resources.add(DefaultResourceSpec.newBuilder()
-                .name(Constants.CPUS_RESOURCE_TYPE)
-                .preReservedRole(preReservedRole)
-                .role(role)
-                .principal(principal)
-                .value(scalar(Constants.DEFAULT_EXECUTOR_CPUS))
-                .build());
-
-        resources.add(DefaultResourceSpec.newBuilder()
-                .name(Constants.MEMORY_RESOURCE_TYPE)
-                .preReservedRole(preReservedRole)
-                .role(role)
-                .principal(principal)
-                .value(scalar(Constants.DEFAULT_EXECUTOR_MEMORY))
-                .build());
-
-        resources.add(DefaultResourceSpec.newBuilder()
-                .name(Constants.DISK_RESOURCE_TYPE)
-                .preReservedRole(preReservedRole)
-                .role(role)
-                .principal(principal)
-                .value(scalar(Constants.DEFAULT_EXECUTOR_DISK))
-                .build());
-
-        return resources;
-    }
-
-    private static Protos.Value scalar(double val) {
-        Protos.Value.Builder builder = Protos.Value.newBuilder()
-                .setType(Protos.Value.Type.SCALAR);
-        builder.getScalarBuilder().setValue(val);
-        return builder.build();
+    private static Collection<ResourceSpec> getExecutorResourceSpecs(
+            SchedulerConfig schedulerConfig, ResourceSpec resourceSpecForRoles) {
+        return schedulerConfig.getExecutorResources().entrySet().stream()
+                .map(executorResourceEntry -> DefaultResourceSpec.newBuilder()
+                        .name(executorResourceEntry.getKey())
+                        .preReservedRole(resourceSpecForRoles.getPreReservedRole())
+                        .role(resourceSpecForRoles.getRole())
+                        .principal(resourceSpecForRoles.getPrincipal())
+                        .value(executorResourceEntry.getValue())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     private List<OfferEvaluationStage> getExistingEvaluationPipeline(
@@ -447,10 +421,6 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks,
             Protos.ExecutorInfo executorInfo,
             Optional<TLSEvaluationStage.Builder> tlsStageBuilder) {
-        List<TaskSpec> taskSpecs = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-                .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
-                .collect(Collectors.toList());
-
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
 
         // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
@@ -465,18 +435,18 @@ public class OfferEvaluator {
 
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent() &&
                 podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT)) {
+            // If a "pod replace" was issued, ensure that the pod's new location follows any placement rules.
             evaluationStages.add(new PlacementRuleEvaluationStage(
                     allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
         }
 
-        ResourceSpec firstResource = taskSpecs.get(0).getResourceSet().getResources().iterator().next();
-        String preReservedRole = firstResource.getPreReservedRole();
-        String role = firstResource.getRole();
-        String principal = firstResource.getPrincipal();
+        ExistingTaskEvaluationPipeline existingTasks =
+                new ExistingTaskEvaluationPipeline(stateStore, podInstanceRequirement);
 
+        // Add evaluation for the executor's own resources:
         ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(
                 podInstanceRequirement.getPodInstance().getPod(),
-                getExecutorResources(preReservedRole, role, principal),
+                getExecutorResourceSpecs(schedulerConfig, existingTasks.getRandomLaunchableResourceSpec()),
                 executorInfo.getResourcesList(),
                 resourceNamespace);
         executorResourceMapper.getOrphanedResources()
@@ -485,55 +455,10 @@ public class OfferEvaluator {
                 .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
         evaluationStages.addAll(executorResourceMapper.getEvaluationStages());
 
-        for (TaskSpec taskSpec : taskSpecs) {
-            String taskInstanceName =
-                    TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName());
-            Protos.TaskInfo taskInfo =
-                    getTaskInfoSharingResourceSet(podInstanceRequirement.getPodInstance(), taskSpec, podTasks);
-            if (taskInfo == null) {
-                logger.error("Failed to fetch task {}.  Cannot generate resource map.", taskInstanceName);
-                return Collections.emptyList();
-            }
-
-            TaskResourceMapper taskResourceMapper =
-                    new TaskResourceMapper(taskSpec, taskInfo, resourceNamespace);
-            taskResourceMapper.getOrphanedResources()
-                    .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
-            evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
-
-            boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
-            evaluationStages.add(
-                    new LaunchEvaluationStage(serviceName, taskSpec.getName(), shouldLaunch));
-        }
+        // Evaluate any changes to the task(s):
+        evaluationStages.addAll(existingTasks.getTaskStages(serviceName, resourceNamespace, podTasks));
 
         return evaluationStages;
-    }
-
-    private static Protos.TaskInfo getTaskInfoSharingResourceSet(
-            PodInstance podInstance,
-            TaskSpec taskSpec,
-            Map<String, Protos.TaskInfo> podTasks) {
-
-        String taskInfoName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
-        Protos.TaskInfo taskInfo = podTasks.get(taskInfoName);
-        if (taskInfo != null) {
-            return taskInfo;
-        }
-
-        String resourceSetId = taskSpec.getResourceSet().getId();
-        List<String> sharedTaskNames = podInstance.getPod().getTasks().stream()
-                .filter(ts -> ts.getResourceSet().getId().equals(resourceSetId))
-                .map(ts -> TaskSpec.getInstanceName(podInstance, ts.getName()))
-                .collect(Collectors.toList());
-
-        for (String taskName : sharedTaskNames) {
-            taskInfo = podTasks.get(taskName);
-            if (taskInfo != null) {
-                return taskInfo;
-            }
-        }
-
-        return null;
     }
 
     /**

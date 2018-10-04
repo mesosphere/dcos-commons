@@ -32,22 +32,6 @@ public class Constants {
     /** The name used for GPU resources. */
     public static final String GPUS_RESOURCE_TYPE = "gpus";
 
-    /**
-     * The amount of additional CPU to require for the default executor.
-     * Not applicable for the old custom executor.
-     */
-    public static final double DEFAULT_EXECUTOR_CPUS = 0.1;
-    /**
-     * The amount of additional memory (in MB) to require for the default executor.
-     * Not applicable for the old custom executor.
-     */
-    public static final double DEFAULT_EXECUTOR_MEMORY = 32;
-    /**
-     * The amount of additional disk (in MB) to require for the default executor.
-     * Not applicable for the old custom executor.
-     */
-    public static final double DEFAULT_EXECUTOR_DISK = 256;
-
 
     /** The "any role" wildcard resource role. */
     public static final String ANY_ROLE = "*";

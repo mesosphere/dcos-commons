@@ -394,11 +394,17 @@ public class YAMLToInternalMappers {
                         .build())
                 .collect(Collectors.toCollection(ArrayList::new));
 
+        String goalString = StringUtils.upperCase(rawTask.getGoal());
+        if (goalString.equals("FINISHED")) {
+            throw new IllegalArgumentException(String.format(
+                    "Unsupported GoalState %s in task %s, expected one of: %s",
+                    goalString, taskName, Arrays.asList(GoalState.values())));
+        }
         DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
                 .commandSpec(commandSpecBuilder.build())
                 .configFiles(configFiles)
                 .discoverySpec(discoverySpec)
-                .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
+                .goalState(GoalState.valueOf(goalString))
                 .essential(rawTask.isEssential())
                 .healthCheckSpec(healthCheckSpec)
                 .readinessCheckSpec(readinessCheckSpec)

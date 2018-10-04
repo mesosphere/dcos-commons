@@ -174,13 +174,21 @@ public class DeploymentStep extends AbstractStep {
             }
             case TASK_FINISHED: {
                 GoalState goalState = getGoalState(status.getTaskId());
-                if (
-                        goalState.equals(GoalState.ONCE) ||
-                        goalState.equals(GoalState.FINISH) ||
-                        goalState.equals(GoalState.FINISHED)){
+                switch (goalState) {
+                case FINISH:
+                    // fall through
+                case ONCE:
+                    // The task is FINISHED, which is what the GoalState prescribed. All done!
                     setTaskStatus(status.getTaskId(), Status.COMPLETE);
-                } else {
+                    break;
+                case RUNNING:
+                    // This task isn't supposed to be finished! Mark the Step as PENDING so that we relaunch it.
                     setTaskStatus(status.getTaskId(), Status.PENDING);
+                    break;
+                case UNKNOWN:
+                default:
+                    throw new IllegalArgumentException(String.format("Unsupported goal state %s for task %s",
+                            goalState, status.getTaskId().getValue()));
                 }
                 break;
             }

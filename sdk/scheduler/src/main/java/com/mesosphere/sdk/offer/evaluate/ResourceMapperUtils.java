@@ -21,16 +21,14 @@ class ResourceMapperUtils {
     static Optional<ResourceLabels> findMatchingDiskSpec(
             Protos.Resource taskResource,
             Collection<ResourceSpec> resourceSpecs,
-            Optional<String> resourceNamespace
-    ) {
+            Optional<String> resourceNamespace) {
         if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
             LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
             return Optional.empty();
         }
-        return resourceSpecs
-                .stream()
-                .filter(resourceSpec -> resourceSpec instanceof VolumeSpec &&
-                        taskResource
+        return resourceSpecs.stream()
+                .filter(resourceSpec -> resourceSpec instanceof VolumeSpec
+                        && taskResource
                                 .getDisk()
                                 .getVolume()
                                 .getContainerPath()
@@ -43,28 +41,24 @@ class ResourceMapperUtils {
                         getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace),
                         ResourceUtils.getPersistenceId(taskResource),
                         ResourceUtils.getProviderId(taskResource),
-                        ResourceUtils.getDiskSource(taskResource))
-                );
+                        ResourceUtils.getDiskSource(taskResource)));
     }
 
     static Optional<ResourceLabels> findMatchingResourceSpec(
             Protos.Resource taskResource,
             Collection<ResourceSpec> resourceSpecs,
-            Optional<String> resourceNamespace
-    ) {
+            Optional<String> resourceNamespace) {
         if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
             LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
             return Optional.empty();
         }
-        return resourceSpecs
-                .stream()
+        return resourceSpecs.stream()
                 .filter(resourceSpec -> resourceSpec.getName().equals(taskResource.getName()))
                 .findFirst()
                 .map(resourceSpec -> new ResourceLabels(
                         resourceSpec,
                         ResourceUtils.getResourceId(taskResource).get(),
-                        getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace))
-                );
+                        getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace)));
     }
 
     /**
@@ -75,8 +69,7 @@ class ResourceMapperUtils {
      */
     static Optional<String> getNamespaceLabel(
             Optional<String> taskResourceNamespace,
-            Optional<String> resourceNamespace
-    ) {
+            Optional<String> resourceNamespace) {
         return taskResourceNamespace.flatMap(x -> {
             if (!resourceNamespace.isPresent() || !resourceNamespace.get().equals(x)) {
                 LOGGER.error("Resource has [{}] namespace label but scheduler is in [{}] namespace",

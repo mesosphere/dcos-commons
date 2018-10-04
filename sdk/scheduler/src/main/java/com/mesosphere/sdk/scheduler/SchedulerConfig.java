@@ -8,9 +8,11 @@ import com.mesosphere.sdk.dcos.auth.TokenProvider;
 import com.mesosphere.sdk.dcos.clients.ServiceAccountIAMTokenClient;
 import com.mesosphere.sdk.framework.EnvStore;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Credential;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.json.JSONObject;
@@ -27,7 +29,9 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -106,6 +110,17 @@ public class SchedulerConfig {
      * default). If this envvar is set (to anything at all), then offer suppression is disabled.
      */
     private static final String DISABLE_SUPPRESS_ENV = "DISABLE_SUPPRESS";
+
+    /**
+     * These define how many resources to reserve for the default executor in every pod. This effectively appears as
+     * resource overhead on top of any the resources declared for the tasks in the pod.
+     */
+    private static final String EXECUTOR_CPUS_ENV = "EXECUTOR_CPUS";
+    private static final double DEFAULT_EXECUTOR_CPUS = 0.1;
+    private static final String EXECUTOR_MEM_MB_ENV = "EXECUTOR_MEM_MB";
+    private static final double DEFAULT_EXECUTOR_MEM_MB = 32;
+    private static final String EXECUTOR_DISK_MB_ENV = "EXECUTOR_DISK_MB";
+    private static final double DEFAULT_EXECUTOR_DISK_MB = 256;
 
     /**
      * When a port named {@code api} is added to the Marathon app definition for the scheduler, marathon should create
@@ -248,6 +263,30 @@ public class SchedulerConfig {
      */
     public int getMultiServiceReserveDiscipline() {
         return envStore.getOptionalInt(RESERVE_DISCIPLINE_ENV, DEFAULT_RESERVE_DISCIPLINE);
+    }
+
+    /**
+     * Returns the default resources to be require for a pod's executor, in addition to any resources for the tasks
+     * composing the pod. This is effectively the configured executor overhead.
+     *
+     * @return a mapping of resource name to value for the resources to be reserved for a pod's executor
+     */
+    public Map<String, Protos.Value> getExecutorResources() {
+        Map<String, Protos.Value> map = new TreeMap<>();
+        map.put(Constants.CPUS_RESOURCE_TYPE,
+                scalar(envStore.getOptionalDouble(EXECUTOR_CPUS_ENV, DEFAULT_EXECUTOR_CPUS)));
+        map.put(Constants.MEMORY_RESOURCE_TYPE,
+                scalar(envStore.getOptionalDouble(EXECUTOR_MEM_MB_ENV, DEFAULT_EXECUTOR_MEM_MB)));
+        map.put(Constants.DISK_RESOURCE_TYPE,
+                scalar(envStore.getOptionalDouble(EXECUTOR_DISK_MB_ENV, DEFAULT_EXECUTOR_DISK_MB)));
+        return map;
+    }
+
+    private static Protos.Value scalar(double val) {
+        Protos.Value.Builder builder = Protos.Value.newBuilder()
+                .setType(Protos.Value.Type.SCALAR);
+        builder.getScalarBuilder().setValue(val);
+        return builder.build();
     }
 
     /**

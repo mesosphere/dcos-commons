@@ -32,6 +32,9 @@ import java.util.stream.Collectors;
  * optionally, a {@link org.apache.mesos.Protos.ExecutorInfo.Builder}. This supports the modification of task infos
  * during the evaluation process, allowing e.g. dynamic ports to be represented as environment variables in the task
  * to which they are attached.
+ *
+ * As a part of evaluating offers, the {@link org.apache.mesos.Protos.TaskInfo.Builder}s constructed here are copied
+ * into {@link OfferRecommendation}s. The ones which are not launched do not get used.
  */
 public class PodInfoBuilder {
     private static final Logger LOGGER = LoggingUtils.getLogger(PodInfoBuilder.class);
@@ -57,7 +60,8 @@ public class PodInfoBuilder {
         PodInstance podInstance = podInstanceRequirement.getPodInstance();
 
         // Generate new TaskInfos based on the task spec. To keep things consistent, we always generate new TaskInfos
-        // from scratch, with the only carry-over being the prior task environment.
+        // from scratch, with the only carry-over being any dynamic ports that were previously reserved, which is to
+        // avoid having dynamic ports bounce around across relaunches.
         for (TaskSpec taskSpec : podInstance.getPod().getTasks()) {
             Protos.TaskInfo.Builder taskInfoBuilder = createTaskInfo(
                     podInstance,
@@ -88,10 +92,9 @@ public class PodInfoBuilder {
         for (Protos.TaskInfo currentTask : currentPodTasks) {
             // Just store against the full TaskInfo name ala 'broker-0-node'. The task spec name will be mapped to the
             // TaskInfo name in the getter function below. This is easier than extracting the task spec name from the
-            // TaskInfo name.
+            // TaskInfo name, e.g. what if the pod type has dashes in it?
 
-            // If the pod was replaced, discard any previously used ports. We want dynamic ports
-            // to re-roll.
+            // If the pod was replaced, discard any previously used ports. We want dynamic ports to re-roll.
             if (!FailureUtils.isPermanentlyFailed(currentTask)) {
                 portsByTask.put(currentTask.getName(), new TaskPortLookup(currentTask));
             }

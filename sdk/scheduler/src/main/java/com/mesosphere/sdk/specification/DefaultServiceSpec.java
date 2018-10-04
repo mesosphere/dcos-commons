@@ -34,7 +34,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
-import java.util.stream.Collectors;
 
 
 /**
@@ -72,9 +71,6 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.principal = principal;
         this.user = getUser(user, pods);
         this.goalState = goalState == null ? GoalState.RUNNING : goalState;
-        if (goalState == GoalState.FINISHED) {
-            throw new IllegalArgumentException("Service goal state is deprecated FINISHED. Did you mean FINISH?");
-        }
         this.region = region;
         this.webUrl = webUrl;
         // If no zookeeperConnection string is configured, fallback to the default value.
@@ -295,9 +291,7 @@ public class DefaultServiceSpec implements ServiceSpec {
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
             ServiceSpec serviceSpec,
             Collection<Class<?>> additionalSubtypesToRegister) {
-        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(
-                additionalSubtypesToRegister,
-                ConfigFactory.getReferenceTerminalGoalState(serviceSpec));
+        ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(additionalSubtypesToRegister);
 
         final byte[] serviceSpecBytes;
         try {
@@ -390,12 +384,11 @@ public class DefaultServiceSpec implements ServiceSpec {
                 DefaultHostVolumeSpec.class);
 
         private final ObjectMapper objectMapper;
-        private final GoalState referenceTerminalGoalState;
 
         /**
          * @see DefaultServiceSpec#getConfigurationFactory(ServiceSpec, Collection)
          */
-        private ConfigFactory(Collection<Class<?>> additionalSubtypes, GoalState goalState) {
+        private ConfigFactory(Collection<Class<?>> additionalSubtypes) {
             objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
             objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             for (Class<?> subtype : defaultRegisteredSubtypes) {
@@ -408,12 +401,6 @@ public class DefaultServiceSpec implements ServiceSpec {
             SimpleModule module = new SimpleModule();
             module.addDeserializer(GoalState.class, new GoalStateDeserializer());
             objectMapper.registerModule(module);
-
-            referenceTerminalGoalState = goalState;
-        }
-
-        private ConfigFactory(Collection<Class<?>> additionalSubtypes) {
-            this(additionalSubtypes, GoalState.ONCE);
         }
 
         @VisibleForTesting
@@ -430,18 +417,6 @@ public class DefaultServiceSpec implements ServiceSpec {
                 throw new ConfigStoreException(Reason.SERIALIZATION_ERROR,
                         "Failed to deserialize DefaultServiceSpecification from JSON: " + e.getMessage(), e);
             }
-        }
-
-        private static GoalState getReferenceTerminalGoalState(ServiceSpec serviceSpec) {
-            Collection<TaskSpec> serviceTasks =
-                    serviceSpec.getPods().stream().flatMap(p -> p.getTasks().stream()).collect(Collectors.toList());
-            for (TaskSpec taskSpec : serviceTasks) {
-                if (taskSpec.getGoal().equals(GoalState.FINISHED)) {
-                    return GoalState.FINISHED;
-                }
-            }
-
-            return GoalState.ONCE;
         }
 
         @VisibleForTesting
@@ -468,7 +443,8 @@ public class DefaultServiceSpec implements ServiceSpec {
                 String value = ((TextNode) p.getCodec().readTree(p)).textValue();
 
                 if (value.equals("FINISHED") || value.equals("ONCE")) {
-                    return referenceTerminalGoalState;
+                    // If an old service had a "FINISHED" value, convert it to ONCE automatically:
+                    return GoalState.ONCE;
                 } else if (value.equals("FINISH")) {
                     return GoalState.FINISH;
                 } else if (value.equals("RUNNING")) {
