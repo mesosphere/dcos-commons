@@ -82,7 +82,7 @@ def test_node_replace_replaces_node():
 # @@@@@@@
 # WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
 # @@@@@@@
-'''
+
 @pytest.mark.sanity
 def test_shutdown_host():
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
@@ -97,9 +97,6 @@ def test_shutdown_host():
     replace_task = candidate_tasks[0]
 
     replace_pod_name = replace_task.name[: -len("-server")]
-
-    # Instead of partitioning or reconnecting, we shut down the host permanently
-    sdk_agents.shutdown_agent(replace_task.host)
 
     sdk_cmd.svc_cli(
         config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace {}".format(replace_pod_name)
@@ -123,5 +120,4 @@ def test_shutdown_host():
         "Checking that the original pod has moved to a new agent:\n"
         "old={}\nnew={}".format(replace_task, new_task)
     )
-    assert replace_task.agent_id != new_task.agent_id
-'''
+    assert replace_task.agent_id != new_task.agent_id'
