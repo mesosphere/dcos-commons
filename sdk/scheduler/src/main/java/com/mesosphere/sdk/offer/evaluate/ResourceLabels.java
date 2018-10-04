@@ -1,7 +1,9 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.specification.ResourceSpec;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.mesos.Protos;
 
 import java.util.Optional;
 
@@ -15,10 +17,18 @@ class ResourceLabels {
     private final String resourceId;
     private final Optional<String> resourceNamespace;
     private final Optional<String> persistenceId;
-    private final Optional<String> sourceRoot;
+    private final Optional<Protos.ResourceProviderID> providerId;
+    private final Optional<Protos.Resource.DiskInfo.Source> diskSource;
 
     ResourceLabels(ResourceSpec resourceSpec, String resourceId, Optional<String> resourceNamespace) {
-        this(resourceSpec, resourceSpec, resourceId, resourceNamespace, Optional.empty(), Optional.empty());
+        this(
+                resourceSpec,
+                resourceSpec,
+                resourceId,
+                resourceNamespace,
+                Optional.empty(),
+                Optional.empty(),
+                Optional.empty());
     }
 
     /**
@@ -39,13 +49,15 @@ class ResourceLabels {
             String resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<String> sourceRoot) {
+            Optional<Protos.ResourceProviderID> providerId,
+            Optional<Protos.Resource.DiskInfo.Source> diskSource) {
         this.original = original;
         this.updated = updated;
         this.resourceId = resourceId;
         this.resourceNamespace = resourceNamespace;
         this.persistenceId = persistenceId;
-        this.sourceRoot = sourceRoot;
+        this.providerId = providerId;
+        this.diskSource = diskSource;
     }
 
     public ResourceSpec getOriginal() {
@@ -68,8 +80,12 @@ class ResourceLabels {
         return persistenceId;
     }
 
-    public Optional<String> getSourceRoot() {
-        return sourceRoot;
+    public Optional<Protos.ResourceProviderID> getProviderId() {
+        return providerId;
+    }
+
+    public Optional<Protos.Resource.DiskInfo.Source> getDiskSource() {
+        return diskSource;
     }
 
     @Override

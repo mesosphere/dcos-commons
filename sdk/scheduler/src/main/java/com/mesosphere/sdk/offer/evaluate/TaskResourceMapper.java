@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.RangeUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.*;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
@@ -168,7 +169,8 @@ class TaskResourceMapper {
                 Optional.of(resourceLabels.getResourceId()),
                 resourceLabels.getResourceNamespace(),
                 resourceLabels.getPersistenceId(),
-                resourceLabels.getSourceRoot());
+                resourceLabels.getProviderId(),
+                resourceLabels.getDiskSource());
     }
 
     private OfferEvaluationStage newCreateEvaluationStage(String taskSpecName, ResourceSpec resourceSpec) {
@@ -177,6 +179,7 @@ class TaskResourceMapper {
                 resourceSpec,
                 Optional.empty(),
                 resourceNamespace,
+                Optional.empty(),
                 Optional.empty(),
                 Optional.empty());
     }
@@ -187,7 +190,8 @@ class TaskResourceMapper {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<String> sourceRoot) {
+            Optional<Protos.ResourceProviderID> providerId,
+            Optional<Protos.Resource.DiskInfo.Source> diskSource) {
         if (resourceSpec instanceof NamedVIPSpec) {
             return new NamedVIPEvaluationStage(
                     (NamedVIPSpec) resourceSpec, taskSpecName, resourceId, resourceNamespace);
@@ -200,7 +204,8 @@ class TaskResourceMapper {
                     resourceId,
                     resourceNamespace,
                     persistenceId,
-                    sourceRoot);
+                    providerId,
+                    diskSource);
         } else {
             return new ResourceEvaluationStage(resourceSpec, Optional.of(taskSpecName), resourceId, resourceNamespace);
         }

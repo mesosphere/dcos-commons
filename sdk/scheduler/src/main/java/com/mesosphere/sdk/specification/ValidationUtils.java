@@ -38,6 +38,16 @@ public class ValidationUtils {
     }
 
     /**
+     * Throws an exception if {@code field} is not empty.
+     */
+    public static void isEmpty(Object parent, String fieldName, Collection<?> field) {
+        nonNull(parent, fieldName, field);
+        if (!field.isEmpty()) {
+            throw new IllegalArgumentException(String.format("%s must be empty: %s", fieldName, parent));
+        }
+    }
+
+    /**
      * Throws an exception if there are any duplicate entries in the provided list.
      */
     public static <T> void isUnique(Object parent, String fieldName, Stream<T> field) {
