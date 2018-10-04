@@ -75,17 +75,27 @@ eval $(sed -E "s/^([A-Z_]+)=(.*)$/\\1='\\2'/" /opt/mesosphere/etc/mesos-slave-co
 eval $(sed -E "s/^([A-Z_]+)=(.*)$/\\1='\\2'/" /opt/mesosphere/etc/mesos-slave)         # Set up `MESOS_RESOURCES`.
 /opt/mesosphere/bin/make_disk_resources.py /var/lib/dcos/mesos-resources
 source /var/lib/dcos/mesos-resources
-echo MESOS_RESOURCES=\\'$(echo $MESOS_RESOURCES | docker run --rm -i mesosphere/dcos-commons jq -c '[.[] | {profile_filter} // .]')\\' > /var/lib/dcos/mesos-resources
+python -c "
+import json;
+import os;
+
+profiles = {profiles}
+resources = json.loads(os.environ['MESOS_RESOURCES'])
+
+for r in resources:
+    try:
+        disk_source = r['disk']['source']
+        disk_source['profile'] = profiles[disk_source['mount']['root']]
+    except KeyError:
+        pass
+
+print('MESOS_RESOURCES=\\'' + json.dumps(resources) + '\\'')
+" > /var/lib/dcos/mesos-resources
 
 echo 'Restarting agent...'
 
 systemctl restart dcos-mesos-slave.service
-""".format(
-        profile_filter=" // ".join([
-            '(select(.disk.source.mount.root == "/dcos/volume{}") | .disk.source.profile = "{}")'.format(i, p)
-            for i, p in enumerate(MOUNT_VOLUME_PROFILES) if p
-        ])
-    )
+""".format(profiles={"/dcos/volume{}".format(i): p for i, p in enumerate(MOUNT_VOLUME_PROFILES) if p})
 
     cluster_info_path = os.getenv("CLUSTER_INFO_PATH", "cluster_info.json")
     if not os.path.exists(cluster_info_path):
