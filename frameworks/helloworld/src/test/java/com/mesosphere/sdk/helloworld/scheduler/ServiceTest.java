@@ -998,6 +998,8 @@ public class ServiceTest {
         schedulerEnvForExamples.put("custom_steps.yml", toMap(
                 "DEPLOY_STRATEGY", "serial",
                 "DEPLOY_STEPS", "[[first, second, third]]"));
+        schedulerEnvForExamples.put("pod-profile-mount-volume.yml", toMap(
+                "HELLO_VOLUME_PROFILE", "xfs"));
 
         // Iterate over yml files in dist/examples/, run sanity check for each:
         File[] exampleFiles = ServiceTestRunner.getDistDir().listFiles();
