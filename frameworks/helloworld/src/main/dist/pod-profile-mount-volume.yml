@@ -14,26 +14,27 @@ pods:
       profile:
         goal: RUNNING
         essential: false
-        cmd: touch pod-container-path/profile task-container-path/profile && df -t $VOLUME_PROFILE task-container-path && sleep $SLEEP_DURATION
+        cmd: df -t $VOLUME_PROFILE pod-container-path >> pod-container-path/output && df -t $VOLUME_PROFILE profile-container-path >> profile-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
           VOLUME_PROFILE: {{HELLO_VOLUME_PROFILE}}
         volume:
-          path: task-container-path
+          path: profile-container-path
           profiles: [{{HELLO_VOLUME_PROFILE}}]
           type: MOUNT
           size: {{HELLO_DISK}}
       noprofile:
         goal: RUNNING
         essential: false
-        cmd: touch pod-container-path/noprofile task-container-path/noprofile && df -t ext4 task-container-path && sleep $SLEEP_DURATION
+        cmd: df -t $VOLUME_PROFILE pod-container-path >> pod-container-path/output && df -t ext4 noprofile-container-path >> noprofile-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
+          VOLUME_PROFILE: {{HELLO_VOLUME_PROFILE}}
         volume:
-          path: task-container-path
+          path: noprofile-container-path
           type: MOUNT
           size: {{HELLO_DISK}}

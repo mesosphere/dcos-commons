@@ -65,7 +65,7 @@ fi
         )
 
     # To create profile mount volumes, we manually run `make_disk_resources.py`
-    # to generate disk resources, then use `jq` to parse the result and set the
+    # to generate disk resources, then parse the result and set the
     # `disk.source.profile` field for each profile mount volume.
     volume_script += """
 echo 'Updating disk resources...'
@@ -75,7 +75,7 @@ eval $(sed -E "s/^([A-Z_]+)=(.*)$/\\1='\\2'/" /opt/mesosphere/etc/mesos-slave-co
 eval $(sed -E "s/^([A-Z_]+)=(.*)$/\\1='\\2'/" /opt/mesosphere/etc/mesos-slave)         # Set up `MESOS_RESOURCES`.
 /opt/mesosphere/bin/make_disk_resources.py /var/lib/dcos/mesos-resources
 source /var/lib/dcos/mesos-resources
-python -c "
+/opt/mesosphere/bin/python -c "
 import json;
 import os;
 
