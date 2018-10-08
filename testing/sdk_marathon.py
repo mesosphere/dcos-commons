@@ -6,7 +6,6 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 import logging
-import re
 import retrying
 import requests
 
@@ -14,7 +13,6 @@ import sdk_cmd
 import sdk_tasks
 
 TIMEOUT_SECONDS = 15 * 60
-APP_EXISTS_ERROR_PATTERN = re.compile(r".*An app with id \[.*\] already exists.*")
 
 log = logging.getLogger(__name__)
 
@@ -65,7 +63,7 @@ class MarathonDeploymentResponse:
 
         self._version = response_json["version"]
         if response.status_code == 201:
-            self.deployment_id = self._parse_deployment_id_on_app_creation(response_json)
+            self._deployment_id = self._parse_deployment_id_on_app_creation(response_json)
         else:
             self._deployment_id = response_json["deploymentId"]
 
