@@ -166,7 +166,6 @@ def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
         try:
             deployment_response = MarathonDeploymentResponse(response)
         except requests.HTTPError as e:
-            log.error("HTTP error response code while installing: %s", response.json()["message"])
             if e.response.status_code == 409:
                 # App exists already, left over from previous run? Delete and try again.
                 destroy_app(app_name, timeout=timeout)
