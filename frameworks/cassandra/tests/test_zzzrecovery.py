@@ -27,7 +27,6 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9", reason="dcos task exec not supported < 1.9")
 def test_node_replace_replaces_seed_node():
@@ -120,4 +119,4 @@ def test_shutdown_host():
         "Checking that the original pod has moved to a new agent:\n"
         "old={}\nnew={}".format(replace_task, new_task)
     )
-    assert replace_task.agent_id != new_task.agent_id'
+    assert replace_task.agent_id != new_task.agent_id

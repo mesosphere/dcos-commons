@@ -7,7 +7,6 @@ import sdk_networks
 import sdk_plan
 import sdk_upgrade
 
-
 from tests import config
 
 

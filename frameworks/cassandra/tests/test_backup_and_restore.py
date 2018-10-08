@@ -4,7 +4,7 @@ import uuid
 import pytest
 import sdk_install
 import sdk_jobs
-from tests import config,Aws_credentials
+from tests import config,
 
 
 no_strict_for_azure = pytest.mark.skipif(
@@ -84,20 +84,16 @@ def test_backup_and_restore_to_azure():
 @pytest.mark.aws
 @pytest.mark.sanity
 def test_backup_and_restore_to_s3():
-#    key_id = os.getenv("AWS_ACCESS_KEY_ID")
-    key_id=Aws_credentials.key_id
-    print('\x1b[6;30;42m' + str(key_id) + '\x1b[0m')
+    key_id = os.getenv("AWS_ACCESS_KEY_ID")
     if not key_id:
         assert (
             False
         ), 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
     plan_parameters = {
         "AWS_ACCESS_KEY_ID": key_id,
-#       "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
-        "AWS_SECRET_ACCESS_KEY": Aws_credentials.AWS_SECRET_ACCESS_KEY,
+        "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
         "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
-#       "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
-        "S3_BUCKET_NAME":Aws_credentials.S3_BUCKET_NAME,
+        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
         "SNAPSHOT_NAME": str(uuid.uuid1()),
         "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
     }
