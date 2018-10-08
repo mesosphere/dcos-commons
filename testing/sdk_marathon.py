@@ -8,6 +8,7 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 import logging
 import re
 import retrying
+import requests
 
 import sdk_cmd
 import sdk_tasks
@@ -52,19 +53,29 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     return config
 
 
-class _deployment_result(object):
-    def __init__(self, version, errmsg):
-        self._version = version
-        self._errmsg = errmsg
+class MarathonDeploymentResponse:
+    def __init__(self, response: requests.Response) -> None:
+        try:
+            response_json = response.json()
+        except ValueError:
+            log.error("Failed to parse marathon response as JSON: %s".format(response.text))
+            raise
+        log.info("Marathon deployment response JSON: %s", response_json)
+        response.raise_for_status()
 
-    def raise_on_error(self) -> None:
-        if self._errmsg is not None:
-            raise Exception("Operation failed with error message: {}".format(self._errmsg))
+        self._version = response_json["version"]
+        if response.status_code == 201:
+            self.deployment_id = self._parse_deployment_id_on_app_creation(response_json)
+        else:
+            self._deployment_id = response_json["deploymentId"]
 
-    def error_message(self) -> str:
-        return self._errmsg
+    def _parse_deployment_id_on_app_creation(self, response_json: dict) -> str:
+        return response_json["deployments"][0]["id"]
 
-    def version(self) -> str:
+    def get_deployment_id(self) -> str:
+        return self._deployment_id
+
+    def get_version(self) -> str:
         return self._version
 
 
@@ -135,36 +146,6 @@ def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> N
     _wait_for_deployment()
 
 
-def _handle_marathon_deployment_response(response) -> _deployment_result:
-    # Three possible outcomes:
-    # 1. Response has 'deploymentId' and 'version' fields: Success!
-    # 2. Response has 'message' field: Fatal error produced by marathon
-    # 3. Else: Probably a flake
-    try:
-        response_json = response.json()
-    except Exception:
-        # Not json? Retry
-        log.error("Failed to parse marathon response as JSON: {}".format(response.text))
-        raise
-
-    version = response_json.get("version")
-    message = response_json.get("message")
-    if version is not None:
-        # Success
-        return _deployment_result(version, None)
-    elif message is not None:
-        # Fatal error
-        return _deployment_result(None, message)
-    else:
-        # Temporary error? Retry
-        response.raise_for_status()
-        raise Exception(
-            "Bad JSON response to Marathon request. Expected 'version' or 'message': {}".format(
-                response_json
-            )
-        )
-
-
 def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
     """
     Installs a marathon app using the given `app_definition`.
@@ -180,21 +161,22 @@ def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
     log.info("Installing app: {}".format(app_name))
 
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
-    def _install():
+    def _install() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
             "POST", _api_url("apps"), json=app_definition, log_args=False, raise_on_error=False
         )
-        return _handle_marathon_deployment_response(response)
+        try:
+            deployment_response = MarathonDeploymentResponse(response)
+        except requests.HTTPError as e:
+            log.error("HTTP error response code while installing: %s", response.json()["message"])
+            if e.response.status_code == 409:
+                # App exists already, left over from previous run? Delete and try again.
+                destroy_app(app_name, timeout=timeout)
+            raise e
+        return deployment_response
 
     result = _install()
-    if result.error_message() and APP_EXISTS_ERROR_PATTERN.match(result.error_message()):
-        # App exists already, left over from previous run? Delete and try again.
-        destroy_app(app_name, timeout=timeout)
-        result = _install()
-
-    result.raise_on_error()
-
-    wait_for_deployment(app_name, timeout, result.version())
+    wait_for_deployment(app_name, timeout, result.get_version())
 
 
 def update_app(
@@ -209,7 +191,7 @@ def update_app(
             log.info("  {}={}".format(k, config["env"][k]))
 
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
-    def _update():
+    def _update() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
             "PUT",
             _api_url("apps/{}".format(app_name)),
@@ -218,28 +200,26 @@ def update_app(
             log_args=False,
             raise_on_error=False,
         )
-        return _handle_marathon_deployment_response(response)
+        return MarathonDeploymentResponse(response)
 
     result = _update()
-    result.raise_on_error()
 
     # Sometimes the caller expects the update to fail.
     # Allow those cases to skip waiting for successful deployment:
     if wait_for_completed_deployment:
-        wait_for_deployment(app_name, timeout, result.version())
+        wait_for_deployment(app_name, timeout, result.get_version())
 
 
 def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
-    def _destroy() -> dict:
+    def _destroy() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
             "DELETE", _api_url("apps/{}".format(app_name)), params={"force": "true"}
         )
-        return response.json()
+        return MarathonDeploymentResponse(response)
 
     result = _destroy()
-    log.info("DELETE marathon app operation responded with: %s", result)
-    deployment_id = result["deploymentId"]
+    deployment_id = result.get_deployment_id()
 
     # This check is different from the other deployment checks.
     # When it's complete, the app is gone entirely.
@@ -263,16 +243,15 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
 
 def restart_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
-    def _restart():
+    def _restart() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
             "POST", _api_url("apps/{}/restart".format(app_name)), raise_on_error=False
         )
-        return _handle_marathon_deployment_response(response)
+        return MarathonDeploymentResponse(response)
 
     result = _restart()
-    result.raise_on_error()
 
-    wait_for_deployment(app_name, timeout, result.version())
+    wait_for_deployment(app_name, timeout, result.get_version())
 
 
 def _get_config(app_name):
