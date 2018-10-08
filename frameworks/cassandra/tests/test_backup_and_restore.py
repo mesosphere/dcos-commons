@@ -4,7 +4,7 @@ import uuid
 import pytest
 import sdk_install
 import sdk_jobs
-from tests import config,
+from tests import config
 
 
 no_strict_for_azure = pytest.mark.skipif(

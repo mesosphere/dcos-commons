@@ -81,7 +81,6 @@ def test_node_replace_replaces_node():
 # @@@@@@@
 # WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
 # @@@@@@@
-
 @pytest.mark.sanity
 def test_shutdown_host():
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(

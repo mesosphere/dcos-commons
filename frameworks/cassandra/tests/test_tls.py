@@ -13,7 +13,7 @@ import sdk_utils
 
 from security import transport_encryption
 
-from tests import config,Aws_credentials
+from tests import config
 
 pytestmark = [
     sdk_utils.dcos_ee_only,
@@ -89,8 +89,7 @@ def test_tls_connection(cassandra_service, dcos_ca_bundle):
         sdk_jobs.run_job(config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle))
         sdk_jobs.run_job(config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle))
 
-   #     key_id = os.getenv("AWS_ACCESS_KEY_ID")
-        key_id=Aws_credentials.key_id
+        key_id = os.getenv("AWS_ACCESS_KEY_ID")
         if not key_id:
             assert (
                 False
