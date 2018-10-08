@@ -58,7 +58,7 @@ class MarathonDeploymentResponse:
         try:
             response_json = response.json()
         except ValueError:
-            log.error("Failed to parse marathon response as JSON: %s".format(response.text))
+            log.error("Failed to parse marathon response as JSON: %s", response.text)
             raise
         log.info("Marathon deployment response JSON: %s", response_json)
         response.raise_for_status()
