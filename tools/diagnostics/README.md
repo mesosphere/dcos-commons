@@ -1,20 +1,27 @@
 # Service Diagnostics Bundle
 
-Provides facilities for gathering SDK-related service diagnostics artifacts.
+Script that gathers SDK-related service diagnostics artifacts.
 
-## Artifacts
+## Artifacts Gathered
 
 - `dcos service --completed --inactive --json` output
 - `dcos $service describe` output
 - `dcos $service pod status --json` output
 - `dcos $service plan status $plan --json` output for all `$plan`s
 - stdout and stderr log files for all pod tasks and their executors (even killed
-  or finished ones)
+  or finished ones) and scheduler tasks
 - `https://$cluster/$service/v1/debug/offers` output
 - Output of base-tech specific diagnostics commands (e.g.: Cassandra's `nodetool
   status`, Elasticsearch's node stats, etc.)
 
+## Known Limitations
+
+- Doesn't currently work with Spark services since Spark is not an SDK service
+- Doesn't currently work with crash-looping schedulers
+- Doesn't currently create a compressed archive from the bundle directory
+
 ## Requirements
+
 - Docker
 - Network access to DC/OS cluster
 - DC/OS 1.10+
@@ -60,6 +67,12 @@ When the script finishes running it will create a directory under your current
 name at the end of the script output. E.g.:
 ```
 Created /service-diagnostic-bundles/my-dcos-cluster_prod__cassandra_20180912T142246Z
+```
+
+Optionally, zip the bundle directory so that it can be uploaded somewhere:
+```
+$ cd service-diagnostic-bundles
+$ zip -r my-dcos-cluster_prod__cassandra_20180912T142246Z.zip my-dcos-cluster_prod__cassandra_20180912T142246Z
 ```
 
 ## Development
