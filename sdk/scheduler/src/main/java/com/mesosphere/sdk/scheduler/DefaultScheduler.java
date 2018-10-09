@@ -182,7 +182,12 @@ public class DefaultScheduler extends AbstractScheduler {
             activeTasks.addAll(decommissionedTasks);
         }
 
-        killUnneededTasks(stateStore, activeTasks);
+        if(schedulerConfig.useLegacyUnneededTaskKills()) {
+            //This case is turned off by default.
+            legacyKillUnneededTasks(stateStore, activeTasks);
+        } else {
+            killUnneededTasks(stateStore, activeTasks);
+        }
     }
 
     @Override
@@ -269,14 +274,34 @@ public class DefaultScheduler extends AbstractScheduler {
                 .map(taskInfo -> taskInfo.getTaskId())
                 .collect(Collectors.toSet());
 
+        taskIdsToKill.forEach(taskID -> TaskKiller.killTask(taskID));
+    }
+
+    private static void legacyKillUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames) {
+
+        //This method is retained to understand why we're cleaning out TaskInfo's and why
+        //a global kill was issued to pending tasks. This method can be invoked in frameworks
+        //that do not have require extensive cleanup via decommissioning. The environment
+        //variable USE_LEGACY_KILL_UNEEDED_TASKS should be set to invoke this method at runtime.
+
+        Set<Protos.TaskInfo> unneededTaskInfos = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .collect(Collectors.toSet());
+
+        Set<Protos.TaskID> taskIdsToKill = unneededTaskInfos.stream()
+                .map(taskInfo -> taskInfo.getTaskId())
+                .collect(Collectors.toSet());
+
         // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
+        //TODO: Investigate why this is needed anymore.
         Set<Protos.TaskInfo> cleanedTaskInfos = unneededTaskInfos.stream()
                 .map(taskInfo -> taskInfo.toBuilder())
                 .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
                 .collect(Collectors.toSet());
 
         // Remove both TaskInfo and TaskStatus, then store the cleaned TaskInfo one at a time to limit damage in the
-        // event of an untimely scheduler crash
+        // event of an untimely scheduler crash.
+        //TODO: Investigate why this is needed anymore.
         for (Protos.TaskInfo taskInfo : cleanedTaskInfos) {
             stateStore.clearTask(taskInfo.getName());
             stateStore.storeTasks(Arrays.asList(taskInfo));
@@ -284,9 +309,15 @@ public class DefaultScheduler extends AbstractScheduler {
 
         taskIdsToKill.forEach(taskID -> TaskKiller.killTask(taskID));
 
+        //WARNING: This is a global kill of pending tasks. This can interfere with
+        //decommission steps which may have started up in pending state.
+        //Some frameworks like k8s need decommission steps to execute correctly for cleanup.
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
             if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
+                logger.warn("Enqueued kill of taskName: {} taskId: {} due to GoalStateOverride PENDING!",
+                        taskInfo.getName(),
+                        taskInfo.getTaskId());
                 // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
                 // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
                 // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
