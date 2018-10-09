@@ -4,10 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.Constants;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 
 /**
@@ -25,33 +28,57 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
      */
     private static final Pattern VALID_CONTAINER_PATH_PATTERN = Pattern.compile("[a-zA-Z0-9]+([a-zA-Z0-9_-]*)*");
 
+    /**
+     * Limit the length and characters in a profile name. A profile name should consist of alphanumeric
+     * characters ([a-zA-Z0-9]), dashes (-), underscores (_) or dots(.), and should be non-empty and at most 128
+     * characters. See: https://jira.mesosphere.com/browse/DCOS-40365
+     */
+    private static final Pattern VALID_PROFILE_PATTERN = Pattern.compile("[a-zA-Z0-9_.-]{1,128}");
+
     private final Type type;
     private final String containerPath;
+    private final List<String> profiles;
 
-    public DefaultVolumeSpec(
+    public static DefaultVolumeSpec createRootVolume(
             double diskSize,
-            Type type,
             String containerPath,
             String role,
             String preReservedRole,
             String principal) {
-        this(
-                type,
+        return new DefaultVolumeSpec(
+                Type.ROOT,
                 containerPath,
+                Collections.emptyList(),
                 Constants.DISK_RESOURCE_TYPE,
                 scalarValue(diskSize),
                 role,
                 preReservedRole,
                 principal);
+    }
 
-        validateResource();
-        ValidationUtils.matchesRegex(this, "containerPath", containerPath, VALID_CONTAINER_PATH_PATTERN);
+    public static DefaultVolumeSpec createMountVolume(
+            double diskSize,
+            String containerPath,
+            List<String> profiles,
+            String role,
+            String preReservedRole,
+            String principal) {
+        return new DefaultVolumeSpec(
+                Type.MOUNT,
+                containerPath,
+                profiles,
+                Constants.DISK_RESOURCE_TYPE,
+                scalarValue(diskSize),
+                role,
+                preReservedRole,
+                principal);
     }
 
     @JsonCreator
     private DefaultVolumeSpec(
             @JsonProperty("type") Type type,
             @JsonProperty("container-path") String containerPath,
+            @JsonProperty("profiles") List<String> profiles,
             @JsonProperty("name") String name,
             @JsonProperty("value") Protos.Value value,
             @JsonProperty("role") String role,
@@ -60,6 +87,9 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
         super(name, value, role, preReservedRole, principal);
         this.type = type;
         this.containerPath = containerPath;
+        this.profiles = profiles == null ? Collections.emptyList() : profiles;
+
+        validateVolume();
     }
 
     @Override
@@ -75,6 +105,25 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
     }
 
     @Override
+    @JsonProperty("profiles")
+    public List<String> getProfiles() {
+        return profiles;
+    }
+
+    @Override
+    public VolumeSpec withDiskSize(double diskSize) {
+        return new DefaultVolumeSpec(
+            type,
+            containerPath,
+            profiles,
+            Constants.DISK_RESOURCE_TYPE,
+            scalarValue(diskSize),
+            getRole(),
+            getPreReservedRole(),
+            getPrincipal());
+    }
+
+    @Override
     public boolean equals(Object o) {
         return EqualsBuilder.reflectionEquals(this, o);
     }
@@ -86,15 +135,30 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
 
     @Override
     public String toString() {
-        return String.format("%s, type: '%s', container-path: '%s'",
-                super.toString(),
-                getType(),
-                getContainerPath());
+        return ToStringBuilder.reflectionToString(this);
     }
 
     private static Protos.Value scalarValue(double value) {
         Protos.Value.Builder builder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
         builder.getScalarBuilder().setValue(value);
         return builder.build();
+    }
+
+    private void validateVolume() {
+        validateResource();
+        ValidationUtils.matchesRegex(this, "containerPath", containerPath, VALID_CONTAINER_PATH_PATTERN);
+
+        ValidationUtils.nonNull(this, "profiles", profiles);
+        if (type != Type.MOUNT) {
+            ValidationUtils.isEmpty(this, "profiles", profiles);
+        }
+
+        int index = 0;
+        for (String profile : profiles) {
+            ValidationUtils.matchesRegex(this, "profiles[" + index + "]", profile, VALID_PROFILE_PATTERN);
+            index++;
+        }
+
+        ValidationUtils.isUnique(this, "profiles", profiles.stream());
     }
 }

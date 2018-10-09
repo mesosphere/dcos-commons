@@ -110,6 +110,11 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validProfileMountVolume() throws Exception {
+        validateServiceSpec("valid-profile-mount-volume.yml", DcosConstants.DEFAULT_GPU_POLICY);
+    }
+
+    @Test
     public void validPortResourceEnvKey() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-envkey-ports.yml").getFile());
