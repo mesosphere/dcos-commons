@@ -43,7 +43,7 @@ def test_envvar_accross_restarts():
         wait_for_deployment=True,
     )
 
-    for _ in range(3):
+    for attempt in range(3):
         cmd_list = ["pod", "restart", "hello-0"]
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, " ".join(cmd_list))
 
@@ -59,7 +59,9 @@ def test_envvar_accross_restarts():
 
         if not stdout[envvar_pos + len(envvar) :].startswith("{}".format(sleep_duration)):
             found_string = stdout[envvar_pos + len(envvar) : envvar_pos + len(envvar) + 15]
-            log.error("Looking for %s%d but found: %s", envvar, sleep_duration, found_string)
+            log.error(
+                "(%d) Looking for %s%d but found: %s", attempt, envvar, sleep_duration, found_string
+            )
             raise Exception("Envvar not set to required value")
 
 
