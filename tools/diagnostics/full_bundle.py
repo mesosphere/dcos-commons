@@ -22,7 +22,10 @@ def get_dcos_services() -> (bool, str):
     )
 
     if rc != 0 or stderr:
-        return (False, "Could not get services state\nstdout: '{}'\nstderr: '{}'".format(stdout, stderr))
+        return (
+            False,
+            "Could not get services state\nstdout: '{}'\nstderr: '{}'".format(stdout, stderr),
+        )
     else:
         return (True, stdout)
 
@@ -175,6 +178,7 @@ class FullBundle(Bundle):
                 "Supported packages:\n%s",
                 "\n".join(["- {}".format(k) for k in base_tech.SUPPORTED_PACKAGES]),
             )
+            log.info("This is ok, we were still able to get DC/OS and service-level diagnostics")
 
         log.info("\nCreated %s", os.path.abspath(self.output_directory))
 
