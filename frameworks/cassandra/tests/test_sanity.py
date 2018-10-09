@@ -7,7 +7,7 @@ import sdk_networks
 import sdk_plan
 import sdk_upgrade
 
-from tests import config
+from tests import config,
 
 
 @pytest.fixture(scope="module", autouse=True)
