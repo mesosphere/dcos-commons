@@ -52,7 +52,7 @@ def test_envvar_accross_restarts():
 
         _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "env")
 
-        envvar = "SLEEP_DURATION="
+        envvar = "CONFIG_SLEEP_DURATION="
         envvar_pos = stdout.find(envvar)
         if envvar_pos < 0:
             raise Exception("Required envvar not found")
