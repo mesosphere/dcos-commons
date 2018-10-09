@@ -59,18 +59,34 @@ def is_authenticated_to_dcos_cluster() -> (bool, str):
 
 
 def attached_dcos_cluster() -> (int, Any):
-    rc, stdout, stderr = sdk_cmd.run_cli("cluster list --attached", print_output=False)
+    rc, stdout, stderr = sdk_cmd.run_cli("cluster list --attached --json", print_output=False)
 
-    if rc != 0:
+    try:
+        attached_clusters = json.loads(stdout)
+    except json.JSONDecodeError as e:
+        return (1, "Error decoding JSON while getting attached DC/OS cluster: {}".format(e))
+
+    if rc == 0:
+        if len(attached_clusters) == 0:
+            return (1, "No cluster is attached")
+        if len(attached_clusters) > 1:
+            return (
+                1,
+                "More than one attached clusters. This is an invalid DC/OS CLI state\n{}".format(
+                    stdout
+                ),
+            )
+    else:
         if "No cluster is attached" in stderr:
             return (rc, stderr)
         else:
             return (False, "Unexpected error\nstdout: '{}'\nstderr: '{}'".format(stdout, stderr))
 
-    (cluster_name, _cluster_id, _cluster_status, dcos_version, cluster_url) = stdout.split("\n")[
-        -1
-    ].split()
-    return (rc, (cluster_name, dcos_version, cluster_url))
+    # Having more than one attached cluster is an invalid DC/OS CLI state that is handled above.
+    # In normal conditions `attached_clusters` is an unary array.
+    attached_cluster = attached_clusters[0]
+
+    return (rc, attached_cluster)
 
 
 def get_marathon_app(service_name: str) -> (int, Any):
@@ -144,12 +160,11 @@ def preflight_check() -> (int, dict):
     (rc, cluster_or_error) = attached_dcos_cluster()
     if rc != 0:
         log.error(
-            "We were unable to verify the cluster you're attached to.\nError: %s",
-            cluster_or_error,
+            "We were unable to verify the cluster you're attached to.\nError: %s", cluster_or_error
         )
         return (rc, {})
 
-    (cluster_name, dcos_version, cluster_url) = cluster_or_error
+    cluster = cluster_or_error
 
     (rc, marathon_app_or_error) = get_marathon_app(service_name)
     if rc == 0:
@@ -185,10 +200,10 @@ def preflight_check() -> (int, dict):
             "package_name": package_name,
             "service_name": service_name,
             "package_version": package_version,
-            "cluster_name": cluster_name,
+            "cluster_name": cluster["name"],
             "bundles_directory": bundles_directory,
-            "dcos_version": dcos_version,
-            "cluster_url": cluster_url,
+            "dcos_version": cluster["version"],
+            "cluster_url": cluster["url"],
             "should_prompt_user": should_prompt_user,
         },
     )
