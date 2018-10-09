@@ -31,7 +31,7 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_envvar_accross_restarts():
-    sleep_duration = 999
+    sleep_duration = 9999
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
