@@ -36,13 +36,11 @@ public class OfferAccepter {
             Collection<Protos.Offer.Operation> operations = new ArrayList<>();
             Collection<Protos.OfferID> offerIds = new HashSet<>();
             for (OfferRecommendation rec : agentRecs.getValue()) {
-                if (!rec.getOperation().isPresent()) {
-
-                    continue;
-                }
-                // Note: We ensure that we only include the offer ids for recommendations with operations to perform:
-                operations.add(rec.getOperation().get());
-                offerIds.add(rec.getOfferId());
+                rec.getOperation().ifPresent(operation -> {
+                    // Note: We ensure that we only include the offerids for recommendations with operations to perform:
+                    operations.add(rec.getOperation().get());
+                    offerIds.add(rec.getOfferId());
+                });
             }
 
             int skippedOperations = operations.size() - agentRecs.getValue().size();
