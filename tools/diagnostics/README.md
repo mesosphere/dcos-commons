@@ -2,6 +2,18 @@
 
 Provides facilities for gathering SDK-related service diagnostics artifacts.
 
+## Artifacts
+
+- `dcos service --completed --inactive --json` output
+- `dcos $service describe` output
+- `dcos $service pod status --json` output
+- `dcos $service plan status $plan --json` output for all `$plan`s
+- stdout and stderr log files for all pod tasks and their executors (even killed
+  or finished ones)
+- `https://$cluster/$service/v1/debug/offers` output
+- Output of base-tech specific diagnostics commands (e.g.: Cassandra's `nodetool
+  status`, Elasticsearch's node stats, etc.)
+
 ## Requirements
 - Docker
 - Network access to DC/OS cluster
