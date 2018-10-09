@@ -138,7 +138,7 @@ public class Metrics {
                 // Metric name will be of the form "operation.launch"
                 final String metricName = String.format("operation.%s", operation.getType().name().toLowerCase());
                 METRICS.counter(metricName).inc();
-            }
+            });
         }
     }
 
