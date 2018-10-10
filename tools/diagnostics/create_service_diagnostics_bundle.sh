@@ -55,6 +55,8 @@ readonly BUNDLES_DIRECTORY="service-diagnostic-bundles"
 readonly DOCKER_IMAGE="mesosphere/dcos-commons:diagnostics-${VERSION}"
 readonly SCRIPT_NAME="create_service_diagnostics_bundle.py"
 
+readonly HOST_DCOS_CLI_DIRECTORY="${HOME}/.dcos"
+
 readonly CONTAINER_BUNDLES_DIRECTORY="/${BUNDLES_DIRECTORY}"
 readonly CONTAINER_SCRIPT_DIRECTORY="${CONTAINER_DCOS_COMMONS_DIRECTORY}/${DCOS_COMMONS_SCRIPT_PATH}"
 readonly CONTAINER_SCRIPT_PATH="${CONTAINER_SCRIPT_DIRECTORY}/${SCRIPT_NAME}"
@@ -87,5 +89,8 @@ fi
 
 container_run "rm -rf ${CONTAINER_DCOS_CLI_DIRECTORY}
                cp -r ${CONTAINER_DCOS_CLI_DIRECTORY_RO} ${CONTAINER_DCOS_CLI_DIRECTORY}
+               find ${CONTAINER_DCOS_CLI_DIRECTORY} \
+                 -type f \
+                 -exec sed -i -e 's|${HOST_DCOS_CLI_DIRECTORY}|${CONTAINER_DCOS_CLI_DIRECTORY}|g' {} +
                PYTHONPATH=${CONTAINER_PYTHONPATH} ${CONTAINER_SCRIPT_PATH} ${*} \
                  --bundles-directory ${CONTAINER_BUNDLES_DIRECTORY}"
