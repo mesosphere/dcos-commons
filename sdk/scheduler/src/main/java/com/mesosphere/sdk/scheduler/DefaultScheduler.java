@@ -183,6 +183,7 @@ public class DefaultScheduler extends AbstractScheduler {
         }
 
         if (schedulerConfig.useLegacyUnneededTaskKills()) {
+            //TODO(kjoshi): Remove this function on or after Dec 2018.
             //This case is turned off by default.
             legacyKillUnneededTasks(stateStore, activeTasks, logger);
         } else {
@@ -283,6 +284,7 @@ public class DefaultScheduler extends AbstractScheduler {
         //a global kill was issued to pending tasks. This method can be invoked in frameworks
         //that do not have require extensive cleanup via decommissioning. The environment
         //variable USE_LEGACY_KILL_UNNEEDED_TASKS should be set to invoke this method at runtime.
+        //TODO(kjoshi): Remove this function on or after Dec 2018.
 
         Set<Protos.TaskInfo> unneededTaskInfos = stateStore.fetchTasks().stream()
                 .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
@@ -293,7 +295,7 @@ public class DefaultScheduler extends AbstractScheduler {
                 .collect(Collectors.toSet());
 
         // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
-        //TODO: Investigate why this is needed anymore.
+        //TODO(kjoshi): Investigate why this is needed anymore.
         Set<Protos.TaskInfo> cleanedTaskInfos = unneededTaskInfos.stream()
                 .map(taskInfo -> taskInfo.toBuilder())
                 .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
@@ -301,7 +303,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
         // Remove both TaskInfo and TaskStatus, then store the cleaned TaskInfo one at a time to limit damage in the
         // event of an untimely scheduler crash.
-        //TODO: Investigate why this is needed anymore.
+        //TODO(kjoshi): Investigate why this is needed anymore.
         for (Protos.TaskInfo taskInfo : cleanedTaskInfos) {
             stateStore.clearTask(taskInfo.getName());
             stateStore.storeTasks(Arrays.asList(taskInfo));
