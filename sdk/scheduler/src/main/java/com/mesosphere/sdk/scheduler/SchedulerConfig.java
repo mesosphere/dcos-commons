@@ -199,7 +199,7 @@ public class SchedulerConfig {
     /**
      * Environment variable to control use of legacy killUnneededTasks sematics. By default this is disabled.
      */
-    private static final String USE_LEGACY_UNNEEDED_TASK_KILLS= "USE_LEGACY_KILL_UNEEDED_TASKS"
+    private static final String USE_LEGACY_UNNEEDED_TASK_KILLS= "USE_LEGACY_KILL_UNEEDED_TASKS";
 
     /**
      * We print the build info here because this is likely to be a very early point in the service's execution. In a
