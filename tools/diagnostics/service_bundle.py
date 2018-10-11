@@ -1,7 +1,9 @@
+import functools
 import json
 import logging
 import os
 from toolz import groupby
+from typing import List
 
 import sdk_cmd
 import sdk_diag
@@ -151,10 +153,70 @@ class ServiceBundle(Bundle):
         else:
             self.write_file("service_v1_debug_offers.html", stdout)
 
+    @functools.lru_cache()
+    @config.retry
+    def configuration_ids(self) -> List[str]:
+        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
+        scheduler = self.scheduler_tasks[0]
+
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
+            scheduler["id"],
+            "curl -s {}/v1/configurations".format(scheduler_vip),
+            print_output=False,
+        )
+
+        if rc != 0 or stderr:
+            raise Exception(
+                "Could not get scheduler configuration IDs\nstdout: '%s'\nstderr: '%s'",
+                stdout,
+                stderr,
+            )
+        else:
+            return json.loads(stdout)
+
+    @functools.lru_cache()
+    @config.retry
+    def configuration(self, configuration_id) -> dict:
+        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
+        scheduler = self.scheduler_tasks[0]
+
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
+            scheduler["id"],
+            "curl -s {}/v1/configurations/{}".format(scheduler_vip, configuration_id),
+            print_output=False,
+        )
+
+        if rc != 0 or stderr:
+            raise Exception(
+                "Could not get scheduler configuration with ID '{}'\nstdout: '%s'\nstderr: '%s'",
+                configuration_id,
+                stdout,
+                stderr,
+            )
+        else:
+            return json.loads(stdout)
+
+    @config.retry
+    def create_configuration_ids_file(self):
+        self.write_file(
+            "service_v1_configuration_ids.json", self.configuration_ids(), serialize_to_json=True
+        )
+
+    @config.retry
+    def create_configuration_files(self):
+        for configuration_id in self.configuration_ids():
+            self.write_file(
+                "service_v1_configuration_{}.json".format(configuration_id),
+                self.configuration(configuration_id),
+                serialize_to_json=True,
+            )
+
     def create(self):
         self.install_cli()
         self.create_configuration_file()
         self.create_pod_status_file()
         self.create_plans_status_files()
         self.create_offers_file()
+        self.create_configuration_ids_file()
+        self.create_configuration_files()
         self.download_log_files()
