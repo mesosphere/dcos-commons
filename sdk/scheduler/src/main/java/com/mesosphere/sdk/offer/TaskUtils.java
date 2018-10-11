@@ -5,10 +5,10 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
-import com.mesosphere.sdk.state.StateStore;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.mesos.Protos;
@@ -88,14 +88,14 @@ public class TaskUtils {
      * Returns the TaskInfos associated with a PodInstance if its ever been launched.  The list will be empty if the
      * PodInstance has never been launched.
      *
-     * @param podInstance A PodInstance
-     * @param stateStore  A StateStore to search for the appropriate TaskInfos.
-     * @return The list of TaskInfos associated with a PodInstance.
+     * @param podInstance A PodInstance to match against in the provided tasks
+     * @param tasks All tasks in the StateStore
+     * @return TaskInfos associated with the PodInstance.
      */
-    public static List<Protos.TaskInfo> getPodTasks(PodInstance podInstance, StateStore stateStore) {
-        return stateStore.fetchTasks().stream()
-                .filter(taskInfo -> areEquivalent(taskInfo, podInstance))
-                .collect(Collectors.toList());
+    public static Collection<Protos.TaskInfo> getPodTasks(PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
+        return tasks.stream()
+               .filter(taskInfo -> areEquivalent(taskInfo, podInstance))
+               .collect(Collectors.toList());
     }
 
     /**
@@ -342,8 +342,9 @@ public class TaskUtils {
      * @return list of pods, each with contained named tasks to be relaunched
      */
     public static List<PodInstanceRequirement> getPodRequirements(
-            StateStore stateStore,
             ConfigStore<ServiceSpec> configStore,
+            Collection<Protos.TaskInfo> allTaskInfos,
+            Collection<Protos.TaskStatus> allTaskStatuses,
             Collection<Protos.TaskInfo> failedTasks) {
 
         // Mapping of pods, to failed tasks within those pods.
@@ -381,8 +382,13 @@ public class TaskUtils {
             LOGGER.info("Failed pod: {} with tasks: {}", entry.getKey().getName(), taskNames);
         }
 
-        Set<String> allLaunchedTaskNames = stateStore.fetchTasks().stream()
-                .filter(taskInfo -> stateStore.fetchStatus(taskInfo.getName()).isPresent())
+        // We treat a task as having "launched" if there exists a TaskStatus for it.
+        Set<Protos.TaskID> allLaunchedTaskIds = allTaskStatuses.stream()
+                .map(status -> status.getTaskId())
+                .collect(Collectors.toSet());
+
+        Set<String> allLaunchedTaskNames = allTaskInfos.stream()
+                .filter(taskInfo -> allLaunchedTaskIds.contains(taskInfo.getTaskId()))
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toSet());
 
@@ -460,24 +466,63 @@ public class TaskUtils {
     }
 
     /**
-     * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
+     * Filters and returns all {@link Protos.TaskInfo}s for tasks needing recovery.
+     *
+     * @return terminated TaskInfos
      */
-    public static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
-        switch (taskStatus.getState()) {
-            case TASK_FINISHED:
-            case TASK_FAILED:
-            case TASK_KILLED:
-            case TASK_ERROR:
-            case TASK_LOST:
-                return true;
-            case TASK_KILLING:
-            case TASK_RUNNING:
-            case TASK_STAGING:
-            case TASK_STARTING:
-                break;
+    public static Collection<Protos.TaskInfo> getTasksNeedingRecovery(
+            ConfigStore<ServiceSpec> configStore,
+            Collection<Protos.TaskInfo> allTaskInfos,
+            Collection<Protos.TaskStatus> allTaskStatuses) throws TaskException {
+
+        Map<Protos.TaskID, Protos.TaskStatus> statusMap = new HashMap<>();
+        for (Protos.TaskStatus status : allTaskStatuses) {
+            statusMap.put(status.getTaskId(), status);
         }
 
-        return false;
+        List<Protos.TaskInfo> results = new ArrayList<>();
+        for (Protos.TaskInfo info : allTaskInfos) {
+            Protos.TaskStatus status = statusMap.get(info.getTaskId());
+            if (status == null) {
+                continue;
+            }
+
+            Optional<TaskSpec> taskSpec = getTaskSpec(configStore, info);
+            if (!taskSpec.isPresent()) {
+                throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
+            }
+
+            boolean markedFailed = FailureUtils.isPermanentlyFailed(info);
+            boolean isPermanentlyFailed = markedFailed && taskSpec.get().getGoal() == GoalState.RUNNING;
+
+            if (needsRecovery(taskSpec.get(), status) || isPermanentlyFailed) {
+                LOGGER.info("{} needs recovery with state: {}, goal state: {}, marked permanently failed: {}",
+                        info.getName(), status.getState(), taskSpec.get().getGoal().name(), isPermanentlyFailed);
+                results.add(info);
+            }
+        }
+        return results;
+    }
+
+    /**
+     * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
+     *
+     * This assumes that the task is not supposed to be {@code FINISHED}.
+     */
+    public static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
+        // Note that we include FINISHED as "needs recovery".
+        if (isTerminal(taskStatus)) {
+            return true;
+        }
+        // Non-terminal cases which need recovery:
+        switch (taskStatus.getState()) {
+            case TASK_GONE_BY_OPERATOR:
+            case TASK_LOST:
+            case TASK_UNREACHABLE:
+                return true;
+            default:
+                return false;
+        }
     }
 
     /**
@@ -485,16 +530,21 @@ public class TaskUtils {
      */
     public static boolean isTerminal(Protos.TaskStatus taskStatus) {
         switch (taskStatus.getState()) {
-            case TASK_FINISHED:
-            case TASK_FAILED:
-            case TASK_KILLED:
+            case TASK_DROPPED:
             case TASK_ERROR:
+            case TASK_FAILED:
+            case TASK_FINISHED:
+            case TASK_GONE:
+            case TASK_KILLED:
                 return true;
-            case TASK_LOST:
+            case TASK_GONE_BY_OPERATOR: // mesos.proto: "might return to RUNNING in the future"
             case TASK_KILLING:
+            case TASK_LOST:
             case TASK_RUNNING:
             case TASK_STAGING:
             case TASK_STARTING:
+            case TASK_UNKNOWN:
+            case TASK_UNREACHABLE:
                 break;
         }
 

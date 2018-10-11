@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.common.collect.ImmutableList;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.specification.*;
@@ -7,12 +8,15 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import com.mesosphere.sdk.testutils.TestPodFactory;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
@@ -22,6 +26,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import static org.hamcrest.Matchers.empty;
+import static org.hamcrest.Matchers.is;
+import static org.junit.Assert.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -359,8 +366,8 @@ public class TaskUtilsTest {
         // layout: 3 'server' pod instances, each with 2 essential + 2 nonessential tasks
         // failed: server-0-essential0, server-0-essential1, server-1-essential1
         List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
-                buildStateStoreWithTasks(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
                 TWO_ESSENTIAL_TWO_NONESSENTIAL,
+                TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                 filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                         "server-0-essential0", "server-0-essential1", "server-1-essential1"));
 
@@ -378,8 +385,8 @@ public class TaskUtilsTest {
         // layout: 3 'server' pod instances, each with 2 essential + 2 nonessential tasks
         // failed: server-0-nonessential0, server-0-nonessential1, server-1-nonessential1
         List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
-                buildStateStoreWithTasks(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
                 TWO_ESSENTIAL_TWO_NONESSENTIAL,
+                TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                 filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                         "server-0-nonessential0", "server-0-nonessential1", "server-1-nonessential1"));
 
@@ -397,8 +404,8 @@ public class TaskUtilsTest {
         // layout: 3 'server' pod instances, each with 2 essential + 2 nonessential tasks
         // failed: server-0-essential0, server-0-nonessential0, server-1-nonessential1
         List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
-                buildStateStoreWithTasks(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
                 TWO_ESSENTIAL_TWO_NONESSENTIAL,
+                TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                 filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                         "server-0-essential0", "server-0-nonessential0", "server-1-nonessential1"));
 
@@ -416,8 +423,8 @@ public class TaskUtilsTest {
         // layout: 3 'server' pod instances, each with 2 essential tasks (only)
         // failed: server-0-essential0, server-0-essential1, server-1-essential1
         List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
-                buildStateStoreWithTasks(TWO_ESSENTIAL_TASKS),
                 TWO_ESSENTIAL,
+                TWO_ESSENTIAL_TASKS,
                 filterTasksByName(TWO_ESSENTIAL_TASKS,
                         "server-0-essential0", "server-0-essential1", "server-1-essential1"));
 
@@ -455,6 +462,201 @@ public class TaskUtilsTest {
                 .setState(Protos.TaskState.TASK_LOST);
         taskStatusBuilder.getTaskIdBuilder().setValue(UUID.randomUUID().toString());
         Assert.assertTrue(TaskUtils.isRecoveryNeeded(taskStatusBuilder.build()));
+    }
+
+    @Test
+    public void testEmptyStateStoreHasNoTasksNeedingRecovery() throws TaskException {
+        assertThat(TaskUtils.fetchTasksNeedingRecovery(stateStore, null), is(empty()));
+    }
+
+    @Test
+    public void testTaskWithNoStatusDoesNotNeedRecovery() throws TaskException {
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo();
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        assertThat(TaskUtils.fetchTasksNeedingRecovery(stateStore, null), is(empty()));
+    }
+
+    @Test
+    public void testRunningTaskDoesNotNeedRecoveryIfRunning() throws Exception {
+        ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
+
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-node", configStore);
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        Protos.TaskStatus taskStatus = newTaskStatus(taskInfo, Protos.TaskState.TASK_RUNNING);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
+
+        assertThat(TaskUtils.fetchTasksNeedingRecovery(stateStore, configStore), is(empty()));
+    }
+
+    @Test
+    public void testRunningTaskNeedsRecoveryIfFailed() throws Exception {
+        ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
+
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-node", configStore);
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        Protos.TaskStatus taskStatus = newTaskStatus(taskInfo, Protos.TaskState.TASK_FAILED);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
+
+        assertThat(TaskUtils.fetchTasksNeedingRecovery(stateStore, configStore),
+                is(ImmutableList.of(taskInfo)));
+    }
+
+    @Test(expected = TaskException.class)
+    public void testNonPresentTaskRaisesError() throws Exception {
+        ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
+
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-not-present", configStore);
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        Protos.TaskStatus taskStatus = newTaskStatus(taskInfo, Protos.TaskState.TASK_RUNNING);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
+
+        TaskUtils.fetchTasksNeedingRecovery(stateStore, configStore);
+    }
+
+    @Test
+    public void testTaskInfoWithNoStatusRequiresNoRecovery() throws Exception {
+        ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
+
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-not-present", configStore);
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        assertThat(TaskUtils.fetchTasksNeedingRecovery(stateStore, configStore), is(empty()));
+    }
+
+    @Test
+    public void testFinishedTaskDoesNotNeedRecoveryIfFailed() throws Exception {
+        ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
+
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-format", configStore);
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        Protos.TaskStatus taskStatus = newTaskStatus(taskInfo, Protos.TaskState.TASK_FAILED);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
+
+        assertThat(TaskUtils.fetchTasksNeedingRecovery(stateStore, configStore),
+                is(empty()));
+    }
+
+    @Test
+    public void testFinishedTaskDoesNotNeedRecoveryIfFinished() throws Exception {
+        ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
+
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-format", configStore);
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        Protos.TaskStatus taskStatus = newTaskStatus(taskInfo, Protos.TaskState.TASK_FINISHED);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
+
+        assertThat(TaskUtils.fetchTasksNeedingRecovery(stateStore, configStore),
+                is(empty()));
+    }
+
+    @Test
+    public void testFinishedTaskDoesNotNeedRecoveryIfRunning() throws Exception {
+        ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
+
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-format", configStore);
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        Protos.TaskStatus taskStatus = newTaskStatus(taskInfo, Protos.TaskState.TASK_RUNNING);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
+
+        assertThat(TaskUtils.fetchTasksNeedingRecovery(stateStore, configStore),
+                is(empty()));
+    }
+
+    @Test
+    public void testPermanentlyFailedTaskNeedsRecovery() throws Exception {
+        ConfigStore<ServiceSpec> configStore = newConfigStore(persister);
+
+        // Create task info
+        Protos.TaskInfo taskInfo = newTaskInfo("name-0-node", configStore);
+
+        // Add a task to the state store
+        stateStore.storeTasks(ImmutableList.of(taskInfo));
+
+        // Set status as RUNNING
+        Protos.TaskStatus taskStatus = newTaskStatus(taskInfo, Protos.TaskState.TASK_RUNNING);
+        stateStore.storeStatus(taskInfo.getName(), taskStatus);
+
+        // Mark task as permanently failed
+        taskInfo = taskInfo.toBuilder()
+                .setLabels(new TaskLabelWriter(taskInfo).setPermanentlyFailed().toProto())
+                .build();
+        stateStore.storeTasks(Arrays.asList(taskInfo));
+
+        // Even though the TaskStatus is RUNNING, it can now be recovered since it has been marked as
+        // permanently failed.
+        assertThat(TaskUtils.fetchTasksNeedingRecovery(stateStore, configStore),
+                is(ImmutableList.of(taskInfo)));
+    }
+
+    private static Protos.TaskInfo newTaskInfo(
+            final String taskName, final ConfigStore<ServiceSpec> configStore) throws ConfigStoreException {
+        Protos.TaskInfo.Builder taskInfoBuilder = newTaskInfo(taskName).toBuilder();
+
+        // POD type
+        final UUID targetConfig = configStore.getTargetConfig();
+        final int podIndex = 0;
+        final String podType = configStore.fetch(targetConfig).getPods().get(podIndex).getType();
+
+        // create default labels:
+        taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
+                .setTargetConfiguration(targetConfig)
+                .setType(podType)
+                .setIndex(podIndex)
+                .toProto());
+
+        return taskInfoBuilder.build();
+    }
+
+    private static Protos.TaskInfo newTaskInfo(final String taskName) {
+        Protos.TaskInfo.Builder taskBuilder = Protos.TaskInfo.newBuilder()
+                .setName(taskName)
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName));
+        taskBuilder.getSlaveIdBuilder().setValue("proto-field-required");
+        return taskBuilder.build();
+    }
+
+    private ConfigStore<ServiceSpec> newConfigStore(final Persister persister) throws Exception {
+        ServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(
+                new File(TaskUtilsTest.class.getClassLoader().getResource("resource-set-seq.yml").getFile()),
+                SchedulerConfigTestUtils.getTestSchedulerConfig())
+                .build();
+
+        ConfigStore<ServiceSpec> configStore = new ConfigStore<>(
+                DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+        // At startup, the the service spec must be stored, and the target config must be set to the stored spec.
+        configStore.setTargetConfig(configStore.store(serviceSpec));
+        return configStore;
     }
 
     private static StateStore buildStateStoreWithTasks(Collection<Protos.TaskInfo> taskInfos) {

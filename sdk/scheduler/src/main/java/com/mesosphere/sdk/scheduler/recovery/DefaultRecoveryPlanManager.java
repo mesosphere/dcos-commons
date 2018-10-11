@@ -15,7 +15,6 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
@@ -267,13 +266,18 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     private List<PodInstanceRequirement> getNewFailedPods(Collection<PodInstanceRequirement> dirtyAssets)
             throws TaskException {
+        Collection<Protos.TaskInfo> allTaskInfos = stateStore.fetchTasks();
+        Collection<Protos.TaskStatus> allTaskStatuses = stateStore.fetchStatuses();
         Collection<Protos.TaskInfo> failedTasks =
-                StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore, recoverableTaskNames);
+                TaskUtils.getTasksNeedingRecovery(configStore, allTaskInfos, allTaskStatuses).stream()
+                        .filter(taskInfo -> recoverableTaskNames.contains(taskInfo.getName()))
+                        .collect(Collectors.toList());
         if (!failedTasks.isEmpty()) {
             logger.info("Tasks needing recovery: {}", getTaskNames(failedTasks));
         }
 
-        List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(stateStore, configStore, failedTasks);
+        List<PodInstanceRequirement> failedPods =
+                TaskUtils.getPodRequirements(configStore, allTaskInfos, allTaskStatuses, failedTasks);
         if (!failedPods.isEmpty()) {
             logger.info("All failed pods: {}", getPodNames(failedPods));
         }
@@ -310,7 +314,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         for (Map.Entry<PodInstance, List<PodInstanceRequirement>> entry : recoveryMap.entrySet()) {
             // If a pod's failure state has escalated (transient --> permanent) it should NOT be counted as
             // in progress, so that it can be re-evaluated the for the appropriate recovery approach.
-            if (!failureStateHasEscalated(entry.getKey(), entry.getValue())) {
+            if (!failureStateHasEscalated(allTaskInfos, entry.getKey(), entry.getValue())) {
                 inProgressRecoveries.addAll(entry.getValue());
             }
         }
@@ -349,14 +353,12 @@ public class DefaultRecoveryPlanManager implements PlanManager {
      * A pod instance failure has escalated if it has transitioned from TRANSIENT to PERMANENT ({@link RecoveryType}.
      */
     private boolean failureStateHasEscalated(
+            Collection<Protos.TaskInfo> allTaskInfos,
             PodInstance podInstance,
             Collection<PodInstanceRequirement> podInstanceRequirements) {
 
-        Collection<Protos.TaskInfo> taskInfos =
-                StateStoreUtils.fetchPodTasks(stateStore, podInstance).stream().collect(Collectors.toList());
-
         RecoveryType original = getPodRecoveryType(podInstanceRequirements);
-        RecoveryType current = getTaskRecoveryType(taskInfos);
+        RecoveryType current = getTaskRecoveryType(TaskUtils.getPodTasks(podInstance, allTaskInfos));
 
         boolean failureStateHasEscalated = false;
         if (original.equals(RecoveryType.TRANSIENT) && current.equals(RecoveryType.PERMANENT)) {
@@ -371,7 +373,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         return failureStateHasEscalated;
     }
 
-    private RecoveryType getPodRecoveryType(Collection<PodInstanceRequirement> podInstanceRequirements) {
+    private static RecoveryType getPodRecoveryType(Collection<PodInstanceRequirement> podInstanceRequirements) {
         if (podInstanceRequirements.stream()
                 .anyMatch(req -> req.getRecoveryType().equals(RecoveryType.PERMANENT))) {
             return RecoveryType.PERMANENT;
@@ -395,7 +397,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         }
     }
 
-    Step createStep(PodInstanceRequirement podInstanceRequirement) {
+    private Step createStep(PodInstanceRequirement podInstanceRequirement) {
         logger.info("Creating step: {}", podInstanceRequirement);
         return new RecoveryStep(
                 podInstanceRequirement.getName(),

@@ -209,13 +209,36 @@ public class DefaultScheduler extends AbstractScheduler {
                 || isReplacing(recoveryPlanManager)) { // TODO(nickbp): footprint plan should have replacing tasks?
             // Service is acquiring footprint, either via initial deployment or via replacing a task
             return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
-        } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> !pm.getPlan().isComplete())) {
-            // One or more plans (including e.g. sidecar plans) is incomplete: Not idle
+        } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> isWorking(pm.getPlan()))) {
+            // One or more plans (including e.g. sidecar plans) is doing work: Not idle
             return ClientStatusResponse.launching(workSetTracker.hasNewWork());
         } else {
-            // All plans are complete: Idle
+            // All plans are complete, or are not doing work: Idle
             return ClientStatusResponse.idle();
         }
+    }
+
+    /**
+     * Returns whether the plan appears to currently be doing work, or is wanting to perform work. If {@code false} then
+     * the plan is not currently performing work.
+     */
+    private static boolean isWorking(Plan plan) {
+        switch (plan.getStatus()) {
+        case PENDING:
+        case IN_PROGRESS:
+        case PREPARED:
+        case STARTED:
+        case STARTING:
+            // The plan has work left to do, or is currently actively doing work.
+            return true;
+        case COMPLETE:
+        case ERROR:
+        case WAITING:
+            // The plan currently has no work to do: finished, or in a stopped state.
+            return false;
+        }
+        throw new IllegalStateException(
+                String.format("Unsupported status in %s plan: %s", plan.getName(), plan.getStatus()));
     }
 
     private static boolean isReplacing(PlanManager recoveryPlanManager) {
@@ -386,7 +409,7 @@ public class DefaultScheduler extends AbstractScheduler {
     @Override
     protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
         // Store status, then pass status to PlanManager => Plan => Steps
-        String taskName = StateStoreUtils.getTaskName(stateStore, status);
+        String taskName = StateStoreUtils.fetchTaskInfo(stateStore, status).getName();
 
         // StateStore updates:
         // - TaskStatus

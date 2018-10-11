@@ -177,8 +177,8 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             offerRecommendations.add(new CreateOfferRecommendation(mesosResourcePool.getOffer(), resource));
         }
 
-        logger.info("Generated '{}' resource for task: [{}]",
-                volumeSpec.getName(), TextFormat.shortDebugString(resource));
+        logger.info("Generated '{}' resource for task {}: [{}]",
+                volumeSpec.getName(), taskName, TextFormat.shortDebugString(resource));
         OfferEvaluationUtils.setProtos(podInfoBuilder, resource, taskName);
 
         if (!taskName.isPresent()) {

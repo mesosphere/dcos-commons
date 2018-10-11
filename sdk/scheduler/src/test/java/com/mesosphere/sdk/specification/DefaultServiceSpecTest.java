@@ -631,8 +631,7 @@ public class DefaultServiceSpecTest {
 
         ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
         DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
-                ((DefaultServiceSpec.ConfigFactory) DefaultServiceSpec.getConfigurationFactory(serviceSpec))
-                        .getGoalStateDeserializer();
+                new DefaultServiceSpec.ConfigFactory.GoalStateDeserializer();
 
         SimpleModule module = new SimpleModule();
         module.addDeserializer(GoalState.class, goalStateDeserializer);

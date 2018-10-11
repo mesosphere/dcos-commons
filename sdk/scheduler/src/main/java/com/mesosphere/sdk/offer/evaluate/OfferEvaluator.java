@@ -72,10 +72,10 @@ public class OfferEvaluator {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
 
-        for (int i = 0; i < offers.size(); ++i) {
-            List<OfferEvaluationStage> evaluationStages =
-                    getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks);
+        List<OfferEvaluationStage> evaluationStages =
+                getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks);
 
+        for (int i = 0; i < offers.size(); ++i) {
             Protos.Offer offer = offers.get(i);
 
             MesosResourcePool resourcePool = new MesosResourcePool(
@@ -121,11 +121,12 @@ public class OfferEvaluator {
             }
 
             if (failedOutcomeCount != 0) {
-                logger.info("Offer {}, {}: failed {} of {} evaluation stages:\n{}",
+                logger.info("Offer {}, {}: failed {} of {} evaluation stages for {}:\n{}",
                         i + 1,
                         offer.getId().getValue(),
                         failedOutcomeCount,
                         evaluationStages.size(),
+                        podInstanceRequirement.getName(),
                         outcomeDetails.toString());
 
                 if (offerOutcomeTracker.isPresent()) {
@@ -140,8 +141,12 @@ public class OfferEvaluator {
                         .map(outcome -> outcome.getOfferRecommendations())
                         .flatMap(xs -> xs.stream())
                         .collect(Collectors.toList());
-                logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations:\n{}",
-                        i + 1, evaluationStages.size(), recommendations.size(), outcomeDetails.toString());
+                logger.info("Offer {}: passed all {} evaluation stages, returning {} recommendations for {}:\n{}",
+                        i + 1,
+                        evaluationStages.size(),
+                        recommendations.size(),
+                        podInstanceRequirement.getName(),
+                        outcomeDetails.toString());
 
                 if (offerOutcomeTracker.isPresent()) {
                     offerOutcomeTracker.get().track(new OfferOutcome(
@@ -151,6 +156,10 @@ public class OfferEvaluator {
                         outcomeDetails.toString()));
                 }
 
+                logger.info("TODO recommendations are: {}", recommendations.stream()
+                        .filter(r -> r.getOperation().isPresent())
+                        .map(r -> r.getOperation().get())
+                        .collect(Collectors.toList()));
                 return recommendations;
             }
         }
@@ -163,21 +172,19 @@ public class OfferEvaluator {
             Collection<Protos.TaskInfo> allTasks,
             Map<String, Protos.TaskInfo> thisPodTasks) throws IOException {
 
-        boolean noLaunchedTasksExist = thisPodTasks
-                .values()
-                .stream()
+        boolean noLaunchedTasksExist = thisPodTasks.values().stream()
                 .flatMap(taskInfo -> taskInfo.getResourcesList().stream())
                 .map(ResourceUtils::getResourceId)
                 .filter(Optional::isPresent)
                 .map(Optional::get)
                 .allMatch(String::isEmpty);
 
-        boolean allTasksFailed = thisPodTasks.size() > 0 &&
+        boolean allTasksPermanentlyFailed = thisPodTasks.size() > 0 &&
                 thisPodTasks.values().stream().allMatch(FailureUtils::isPermanentlyFailed);
 
         final String description;
         final boolean shouldGetNewRequirement;
-        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT) || allTasksFailed) {
+        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.PERMANENT) || allTasksPermanentlyFailed) {
             description = "failed";
             shouldGetNewRequirement = true;
         } else if (noLaunchedTasksExist) {
@@ -202,7 +209,6 @@ public class OfferEvaluator {
 
         List<OfferEvaluationStage> evaluationPipeline = new ArrayList<>();
         if (shouldGetNewRequirement) {
-            evaluationPipeline.add(new ExecutorEvaluationStage(serviceName, Optional.empty()));
             evaluationPipeline.addAll(getNewEvaluationPipeline(podInstanceRequirement, allTasks, tlsStageBuilder));
         } else {
             Protos.ExecutorInfo executorInfo = getExecutorInfo(podInstanceRequirement, thisPodTasks.values());
@@ -328,11 +334,19 @@ public class OfferEvaluator {
         return resourceSpecs;
     }
 
+    /**
+     * Returns an evaluation pipeline for launching a new task or replacing a permanently failed task.
+     *
+     * For relaunching a task at a previous location, or for launching against an existing executor,
+     * {@code getExistingEvaluationPipeline} should be used instead.
+     */
     private List<OfferEvaluationStage> getNewEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
             Collection<Protos.TaskInfo> allTasks,
             Optional<TLSEvaluationStage.Builder> tlsStageBuilder) {
         List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
+        evaluationStages.add(new ExecutorEvaluationStage(serviceName, Optional.empty()));
+
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
             evaluationStages.add(new PlacementRuleEvaluationStage(
                     allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
@@ -353,11 +367,24 @@ public class OfferEvaluator {
             }
         }
 
-        ResourceSpec resourceSpecForRoles = null;
         boolean shouldAddExecutorResources = true;
         for (Map.Entry<String, ResourceSet> taskEntry : getNewResourceSets(podInstanceRequirement).entrySet()) {
             String taskName = taskEntry.getKey();
             List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(taskEntry.getValue());
+
+            if (shouldAddExecutorResources) {
+                // The default executor needs a constant amount of resources, account for them here.
+                // For consistency, let's put this before the per-task RESERVE calls.
+                // Also, use an arbitrary ResourceSpec to figure out what roles/principal to use.
+                getExecutorResourceSpecs(schedulerConfig, resourceSpecs.get(0)).stream()
+                        .map(spec -> new ResourceEvaluationStage(
+                                spec,
+                                Optional.empty(),
+                                Optional.empty(),
+                                resourceNamespace))
+                        .forEach(evaluationStages::add);
+                shouldAddExecutorResources = false;
+            }
 
             for (ResourceSpec resourceSpec : resourceSpecs) {
                 if (resourceSpec instanceof NamedVIPSpec) {
@@ -370,29 +397,12 @@ public class OfferEvaluator {
                     evaluationStages.add(new ResourceEvaluationStage(
                             resourceSpec, Optional.of(taskName), Optional.empty(), resourceNamespace));
                 }
-
-                if (resourceSpecForRoles == null) {
-                    resourceSpecForRoles = resourceSpec;
-                }
             }
 
             for (VolumeSpec volumeSpec : taskEntry.getValue().getVolumes()) {
                 evaluationStages.add(VolumeEvaluationStage.getNew(
                         volumeSpec, Optional.of(taskName), resourceNamespace));
             }
-
-            if (shouldAddExecutorResources) {
-                // The default executor needs a constant amount of resources, account for them here.
-                getExecutorResourceSpecs(schedulerConfig, resourceSpecForRoles).stream()
-                        .map(spec -> new ResourceEvaluationStage(
-                                spec,
-                                Optional.empty(),
-                                Optional.empty(),
-                                resourceNamespace))
-                        .forEach(evaluationStages::add);
-                shouldAddExecutorResources = false;
-            }
-
 
             boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
             evaluationStages.add(

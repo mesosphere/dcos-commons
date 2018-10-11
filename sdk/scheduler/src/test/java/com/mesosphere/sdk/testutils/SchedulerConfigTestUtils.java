@@ -39,8 +39,8 @@ public class SchedulerConfigTestUtils {
         when(schedulerConfig.getBuildInfo()).thenReturn(new JSONObject());
         Map<String, Protos.Value> map = new TreeMap<>();
         map.put(Constants.CPUS_RESOURCE_TYPE, scalar(0.1));
-        map.put(Constants.MEMORY_RESOURCE_TYPE, scalar(32));
         map.put(Constants.DISK_RESOURCE_TYPE, scalar(256));
+        map.put(Constants.MEMORY_RESOURCE_TYPE, scalar(32));
         when(schedulerConfig.getExecutorResources()).thenReturn(map);
         return schedulerConfig;
     }

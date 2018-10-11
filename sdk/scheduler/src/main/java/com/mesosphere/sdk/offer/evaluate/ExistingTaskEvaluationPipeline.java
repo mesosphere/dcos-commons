@@ -3,9 +3,11 @@ package com.mesosphere.sdk.offer.evaluate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
@@ -21,6 +23,7 @@ import com.mesosphere.sdk.state.StateStore;
 class ExistingTaskEvaluationPipeline {
 
     private static final Logger logger = LoggingUtils.getLogger(ExistingTaskEvaluationPipeline.class);
+
     private final PodInstanceRequirement podInstanceRequirement;
     private final List<TaskSpec> taskSpecsToReserveAndLaunch = new ArrayList<>();
     private final List<TaskSpec> taskSpecsToReserve = new ArrayList<>();
@@ -50,7 +53,6 @@ class ExistingTaskEvaluationPipeline {
 
             switch (taskSpec.getGoal()) {
             case FINISH:
-                // fall through
             case ONCE: {
                 Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(
                         TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName()));
@@ -71,13 +73,16 @@ class ExistingTaskEvaluationPipeline {
                 // via getTasksToLaunch() above.
                 break;
             case UNKNOWN:
-                // fall through
             default:
                 throw new IllegalStateException(String.format("Unsupported goal state for task %s: %s",
                         TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName()),
                         taskSpec.getGoal()));
             }
         }
+        // TODO remove:
+        logger.info("Reserve+launch {}: {}", taskSpecsToReserveAndLaunch.size(), taskSpecsToReserveAndLaunch);
+        logger.info("reserve {}: {}", taskSpecsToReserve.size(), taskSpecsToReserve);
+        logger.info("update info {}: {}", taskSpecsToUpdateInfo.size(), taskSpecsToUpdateInfo);
     }
 
     /**
@@ -102,12 +107,19 @@ class ExistingTaskEvaluationPipeline {
             String serviceName,
             Optional<String> resourceNamespace,
             Map<String, Protos.TaskInfo> podTasks) {
+        // For each distinct Resource Set, ensure that we only evaluate their resources once. Multiple tasks may share
+        // the same resource set, so we should avoid double-evaluating when two tasks effectively share resources.
+        Set<String> evaluatedResourceSetIds = new HashSet<>();
         Collection<OfferEvaluationStage> evaluationStages = new ArrayList<>();
         for (TaskSpec taskSpec : taskSpecsToReserveAndLaunch) {
-            evaluationStages.addAll(getTaskStages(serviceName, resourceNamespace, podTasks, taskSpec, true));
+            boolean shouldReserve = evaluatedResourceSetIds.add(taskSpec.getResourceSet().getId());
+            evaluationStages.addAll(
+                    getTaskStages(serviceName, resourceNamespace, podTasks, taskSpec, shouldReserve, true));
         }
         for (TaskSpec taskSpec : taskSpecsToReserve) {
-            evaluationStages.addAll(getTaskStages(serviceName, resourceNamespace, podTasks, taskSpec, false));
+            boolean shouldReserve = evaluatedResourceSetIds.add(taskSpec.getResourceSet().getId());
+            evaluationStages.addAll(
+                    getTaskStages(serviceName, resourceNamespace, podTasks, taskSpec, shouldReserve, false));
         }
         for (TaskSpec taskSpec : taskSpecsToUpdateInfo) {
             evaluationStages.add(new LaunchEvaluationStage(serviceName, taskSpec.getName(), false));
@@ -120,29 +132,35 @@ class ExistingTaskEvaluationPipeline {
             Optional<String> resourceNamespace,
             Map<String, Protos.TaskInfo> podTasks,
             TaskSpec taskSpec,
+            boolean shouldReserve,
             boolean shouldLaunch) {
-        Optional<Protos.TaskInfo> taskInfo =
-                getTaskInfoSharingResourceSet(podInstanceRequirement.getPodInstance(), taskSpec, podTasks);
-        if (!taskInfo.isPresent()) {
-            // Given that we're reevaluating an existing pod, there should be a TaskInfo for it...
-            logger.error("Failed to fetch existing task {}, unable to generate evaluation pipeline",
-                    TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName()));
-            return Collections.emptyList();
-        }
+        // TODO remove:
+        logger.info("LOOKING AT {} (reserve={}, launch={})", taskSpec.getName(), shouldReserve, shouldLaunch);
 
         Collection<OfferEvaluationStage> evaluationStages = new ArrayList<>();
-        TaskResourceMapper taskResourceMapper =
-                new TaskResourceMapper(taskSpec, taskInfo.get(), resourceNamespace);
-        taskResourceMapper.getOrphanedResources()
-                .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
+        if (shouldReserve) {
+            Optional<Protos.TaskInfo> taskInfo =
+                    getTaskInfoSharingResourceSet(podInstanceRequirement.getPodInstance(), taskSpec, podTasks);
+            if (!taskInfo.isPresent()) {
+                // Given that we're reevaluating an existing pod, there should be a TaskInfo for it...
+                logger.error("Failed to fetch existing task {}, unable to generate evaluation pipeline",
+                        TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec.getName()));
+                return Collections.emptyList();
+            }
 
-        evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
+            TaskResourceMapper taskResourceMapper =
+                    new TaskResourceMapper(taskSpec, taskInfo.get(), resourceNamespace);
+            taskResourceMapper.getOrphanedResources()
+                    .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
+
+            evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
+        }
         evaluationStages.add(
                 new LaunchEvaluationStage(serviceName, taskSpec.getName(), shouldLaunch));
         return evaluationStages;
     }
 
-    static Optional<Protos.TaskInfo> getTaskInfoSharingResourceSet(
+    private static Optional<Protos.TaskInfo> getTaskInfoSharingResourceSet(
             PodInstance podInstance,
             TaskSpec taskSpec,
             Map<String, Protos.TaskInfo> podTasks) {

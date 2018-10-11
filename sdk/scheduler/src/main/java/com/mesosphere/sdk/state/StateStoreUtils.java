@@ -1,13 +1,10 @@
 package com.mesosphere.sdk.state;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
-import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
-import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.mesos.Protos;
@@ -46,63 +43,6 @@ public class StateStoreUtils {
     }
 
     /**
-     * Fetches and returns all {@link Protos.TaskInfo}s for tasks needing recovery and in the list of
-     * launchable Tasks.
-     *
-     * @return Terminated TaskInfos
-     */
-    public static Collection<Protos.TaskInfo> fetchTasksNeedingRecovery(
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore,
-            Set<String> launchableTaskNames) throws TaskException {
-
-        return StateStoreUtils.fetchTasksNeedingRecovery(stateStore, configStore).stream()
-                .filter(taskInfo -> launchableTaskNames.contains(taskInfo.getName()))
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * Fetches and returns all {@link Protos.TaskInfo}s for tasks needing recovery.
-     *
-     * @return Terminated TaskInfos
-     */
-    public static Collection<Protos.TaskInfo> fetchTasksNeedingRecovery(
-            StateStore stateStore,
-            ConfigStore<ServiceSpec> configStore) throws TaskException {
-
-        Collection<Protos.TaskInfo> allInfos = stateStore.fetchTasks();
-        Collection<Protos.TaskStatus> allStatuses = stateStore.fetchStatuses();
-
-        Map<Protos.TaskID, Protos.TaskStatus> statusMap = new HashMap<>();
-        for (Protos.TaskStatus status : allStatuses) {
-            statusMap.put(status.getTaskId(), status);
-        }
-
-        List<Protos.TaskInfo> results = new ArrayList<>();
-        for (Protos.TaskInfo info : allInfos) {
-            Protos.TaskStatus status = statusMap.get(info.getTaskId());
-            if (status == null) {
-                continue;
-            }
-
-            Optional<TaskSpec> taskSpec = TaskUtils.getTaskSpec(configStore, info);
-            if (!taskSpec.isPresent()) {
-                throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
-            }
-
-            boolean markedFailed = FailureUtils.isPermanentlyFailed(info);
-            boolean isPermanentlyFailed = markedFailed && taskSpec.get().getGoal() == GoalState.RUNNING;
-
-            if (TaskUtils.needsRecovery(taskSpec.get(), status) || isPermanentlyFailed) {
-                LOGGER.info("{} needs recovery with state: {}, goal state: {}, marked permanently failed: {}",
-                        info.getName(), status.getState(), taskSpec.get().getGoal().name(), isPermanentlyFailed);
-                results.add(info);
-            }
-        }
-        return results;
-    }
-
-    /**
      * Returns all {@link Protos.TaskInfo}s associated with the provided {@link PodInstance}, or an empty list if none
      * were found.
      *
@@ -122,35 +62,26 @@ public class StateStoreUtils {
     }
 
     /**
-     * Verifies that the supplied TaskStatus corresponds to a single TaskInfo in the provided StateStore and returns the
-     * TaskInfo.
+     * Returns the {@link Protos.TaskInfo} corresponding to the provided {@link Protos.TaskStatus}.
      *
-     * @return The singular {@link Protos.TaskInfo} if it is present
-     * @throws StateStoreException if zero or multiple corresponding {@link Protos.TaskInfo}s are found
+     * @return the {@link Protos.TaskInfo} if it is present
+     * @throws StateStoreException if no matching {@link Protos.TaskInfo} was found
      */
-    public static String getTaskName(StateStore stateStore, Protos.TaskStatus taskStatus)
+    public static Protos.TaskInfo fetchTaskInfo(StateStore stateStore, Protos.TaskStatus taskStatus)
             throws StateStoreException {
-        Optional<Protos.TaskInfo> taskInfoOptional = Optional.empty();
-
-        for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
-            if (taskInfo.getTaskId().getValue().equals(taskStatus.getTaskId().getValue())) {
-                if (taskInfoOptional.isPresent()) {
-                    LOGGER.error("Found duplicate TaskIDs in Task{} and Task {}",
-                            taskInfoOptional.get(), taskInfo.getName());
-                    throw new StateStoreException(Reason.LOGIC_ERROR, String.format(
-                            "There are more than one tasks with TaskID: %s", taskStatus));
-                } else {
-                    taskInfoOptional = Optional.of(taskInfo);
-                }
-            }
+        final String taskName;
+        try {
+            taskName = CommonIdUtils.toTaskName(taskStatus.getTaskId());
+        } catch (TaskException e) {
+            throw new StateStoreException(Reason.SERIALIZATION_ERROR, e);
         }
 
+        Optional<Protos.TaskInfo> taskInfoOptional = stateStore.fetchTask(taskName);
         if (!taskInfoOptional.isPresent()) {
             throw new StateStoreException(Reason.NOT_FOUND, String.format(
                     "Failed to find a task with TaskID: %s", taskStatus));
         }
-
-        return taskInfoOptional.get().getName();
+        return taskInfoOptional.get();
     }
 
     /**

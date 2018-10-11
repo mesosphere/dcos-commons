@@ -6,6 +6,7 @@ import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.framework.FrameworkScheduler;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.framework.TokenBucket;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.PodInfoBuilder;
 import com.mesosphere.sdk.scheduler.AbstractScheduler;
@@ -20,6 +21,8 @@ import com.mesosphere.sdk.specification.yaml.TemplateUtils;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
+
+import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
@@ -36,6 +39,13 @@ public class ServiceTestRunner {
 
     private static final Logger LOGGER = LoggingUtils.getLogger(ServiceTestRunner.class);
     private static final Random RANDOM = new Random();
+
+    static final Protos.Value EXECUTOR_CPUS;
+    static {
+        Protos.Value.Builder scalarBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
+        scalarBuilder.getScalarBuilder().setValue(5);
+        EXECUTOR_CPUS = scalarBuilder.build();
+    }
 
     /**
      * Common environment variables that are injected into tasks automatically by the cluster.
@@ -293,6 +303,8 @@ public class ServiceTestRunner {
         Mockito.when(mockSchedulerConfig.getMarathonName()).thenReturn("test-marathon");
         Mockito.when(mockSchedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-scheduler-region"));
         Mockito.when(mockSchedulerConfig.isSuppressEnabled()).thenReturn(true);
+        Mockito.when(mockSchedulerConfig.getExecutorResources())
+                .thenReturn(Collections.singletonMap(Constants.CPUS_RESOURCE_TYPE, EXECUTOR_CPUS));
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -304,6 +316,7 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsProtobuf()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsDomains()).thenReturn(true);
+        Mockito.when(mockCapabilities.supportsProfileMountVolumes()).thenReturn(true);
         Capabilities.overrideCapabilities(mockCapabilities);
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations

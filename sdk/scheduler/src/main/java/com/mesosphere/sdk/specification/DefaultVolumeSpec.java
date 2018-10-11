@@ -10,7 +10,6 @@ import java.util.regex.Pattern;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 
 /**
@@ -135,7 +134,11 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
 
     @Override
     public String toString() {
-        return ToStringBuilder.reflectionToString(this);
+        return String.format("%s, type: %s, container-path: %s, profiles: %s",
+                super.toString(),
+                getType(),
+                getContainerPath(),
+                getProfiles());
     }
 
     private static Protos.Value scalarValue(double value) {

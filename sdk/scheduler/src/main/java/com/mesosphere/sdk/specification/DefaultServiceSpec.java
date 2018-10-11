@@ -403,11 +403,6 @@ public class DefaultServiceSpec implements ServiceSpec {
             objectMapper.registerModule(module);
         }
 
-        @VisibleForTesting
-        public GoalStateDeserializer getGoalStateDeserializer() {
-            return new GoalStateDeserializer();
-        }
-
         @Override
         public ServiceSpec parse(byte[] bytes) throws ConfigStoreException {
             try {
@@ -427,7 +422,7 @@ public class DefaultServiceSpec implements ServiceSpec {
         /**
          * Custom deserializer for goal states to accomodate transition from FINISHED to ONCE/FINISH.
          */
-        public class GoalStateDeserializer extends StdDeserializer<GoalState> {
+        public static class GoalStateDeserializer extends StdDeserializer<GoalState> {
 
             public GoalStateDeserializer() {
                 this(null);
@@ -443,7 +438,7 @@ public class DefaultServiceSpec implements ServiceSpec {
                 String value = ((TextNode) p.getCodec().readTree(p)).textValue();
 
                 if (value.equals("FINISHED") || value.equals("ONCE")) {
-                    // If an old service had a "FINISHED" value, convert it to ONCE automatically:
+                    // If an old service had the deprecated "FINISHED" value, convert it to ONCE automatically:
                     return GoalState.ONCE;
                 } else if (value.equals("FINISH")) {
                     return GoalState.FINISH;

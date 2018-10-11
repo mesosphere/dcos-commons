@@ -62,7 +62,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             return pass(
                     this,
                     Collections.emptyList(),
-                    "Setting info for already running Executor with existing resource with resourceId: '%s'",
+                    "Updating info for already running Executor using existing resource with resourceId: '%s'",
                     requiredResourceId)
                     .build();
         }

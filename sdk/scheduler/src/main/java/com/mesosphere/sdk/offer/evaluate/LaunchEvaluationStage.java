@@ -22,6 +22,15 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
     private final String taskName;
     private final boolean shouldLaunch;
 
+    /**
+     * Creates a new evaluation stage for launching a task.
+     *
+     * @param serviceName The name of the service that's being launched into
+     * @param taskName The name of the task (as from the TaskSpec)
+     * @param shouldLaunch Whether a Launch recommendation should actually be emitted. If false, then the StateStore
+     *      will be updated with the resulting TaskInfo, but no launch will actually occur. This is used for updating
+     *      local information about tasks
+     */
     public LaunchEvaluationStage(String serviceName, String taskName, boolean shouldLaunch) {
         this.serviceName = serviceName;
         this.taskName = taskName;
@@ -70,7 +79,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
                     this,
                     // Only update in StateStore. No launch in Mesos.
                     Arrays.asList(new StoreTaskInfoRecommendation(offer, taskBuilder.build(), executorBuilder.build())),
-                    String.format("Added storage update for %s", taskName))
+                    String.format("Added metadata update for %s", taskName))
                     .build();
         }
     }

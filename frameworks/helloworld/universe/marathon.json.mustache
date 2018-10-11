@@ -36,6 +36,9 @@
     "HELLO_GPUS": "{{hello.gpus}}",
     "HELLO_MEM": "{{hello.mem}}",
     "HELLO_DISK": "{{hello.disk}}",
+    {{#hello.volume_profile}}
+    "HELLO_VOLUME_PROFILE": "{{hello.volume_profile}}",
+    {{/hello.volume_profile}}
     "HELLO_PLACEMENT": "{{{hello.placement}}}",
     {{#hello.kill_grace_period}}
     "HELLO_KILL_GRACE_PERIOD": "{{hello.kill_grace_period}}",

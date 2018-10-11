@@ -147,10 +147,15 @@ public class DefaultStepFactory implements StepFactory {
         }
 
         switch (goalState) {
-        case RUNNING:
-            // Task needs to be running, and any readiness checks need to have passed.
-            return Protos.TaskState.TASK_RUNNING.equals(status.get().getState())
-                    && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status.get());
+        case RUNNING: {
+            // Task needs to be running, on the right config ID, and readiness checks (if any) need to have passed.
+            if (!Protos.TaskState.TASK_RUNNING.equals(status.get().getState())) {
+                return false;
+            }
+            TaskLabelReader taskLabelReader = new TaskLabelReader(taskInfo);
+            return taskLabelReader.getTargetConfiguration().equals(targetConfigId)
+                    && taskLabelReader.isReadinessCheckSucceeded(status.get());
+        }
         case FINISH:
             // Task needs to have finished running successfully and the config ID needs to match the target config.
             return Protos.TaskState.TASK_FINISHED.equals(status.get().getState())

@@ -226,7 +226,7 @@ public class PodQueries {
         }
 
         // Second pass: Restart the tasks. They will be updated to IN_PROGRESS once we receive a terminal TaskStatus.
-        return killTasks(podInstanceName, podTasks, RecoveryType.TRANSIENT);
+        return killTasks(podInstanceName, podTasks);
     }
 
     /**
@@ -259,8 +259,8 @@ public class PodQueries {
 
         // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
         // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
-        LOGGER.info("Performing {} restart of pod {} by killing {} tasks:",
-                recoveryType, podInstanceName, podTasks.get().size());
+        LOGGER.info("Performing {} of pod {} by killing {} tasks:",
+                recoveryType == RecoveryType.PERMANENT ? "replace" : "restart", podInstanceName, podTasks.get().size());
 
         if (recoveryType.equals(RecoveryType.PERMANENT)) {
             Collection<Protos.TaskInfo> taskInfos = podTasks.get().stream()
@@ -269,7 +269,7 @@ public class PodQueries {
             failureSetter.setFailure(configStore, stateStore, taskInfos);
         }
 
-        return killTasks(podInstanceName, podTasks.get(), recoveryType);
+        return killTasks(podInstanceName, podTasks.get());
     }
 
     /**
@@ -306,10 +306,7 @@ public class PodQueries {
         return podInstances;
     }
 
-    private static Response killTasks(
-            String podName,
-            Collection<TaskInfoAndStatus> tasksToKill,
-            RecoveryType recoveryType) {
+    private static Response killTasks(String podName, Collection<TaskInfoAndStatus> tasksToKill) {
         for (TaskInfoAndStatus taskToKill : tasksToKill) {
             final Protos.TaskInfo taskInfo = taskToKill.getInfo();
             if (taskToKill.hasStatus()) {
