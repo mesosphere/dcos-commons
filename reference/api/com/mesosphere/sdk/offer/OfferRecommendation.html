@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6};
+var methods = {"i0":6,"i1":6,"i2":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -103,7 +103,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <dl>
 <dt>All Known Implementing Classes:</dt>
-<dd><a href="../../../../com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a>, <a href="../../../../com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a>, <a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a>, <a href="../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a>, <a href="../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">UnreserveOfferRecommendation</a></dd>
+<dd><a href="../../../../com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a>, <a href="../../../../com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a>, <a href="../../../../com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a>, <a href="../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a>, <a href="../../../../com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html" title="class in com.mesosphere.sdk.offer">StoreTaskInfoRecommendation</a>, <a href="../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">UnreserveOfferRecommendation</a></dd>
 </dl>
 <hr>
 <br>
@@ -129,17 +129,22 @@ var activeTableTab = "activeTableTab";
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
-<td class="colFirst"><code>Offer</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getOffer--">getOffer</a></span>()</code>
-<div class="block">Returns the Offer upon which the <code>Operation</code> returned by <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getOperation--"><code>getOperation()</code></a>
- should be performed.</div>
+<td class="colFirst"><code>Protos.SlaveID</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getAgentId--">getAgentId</a></span>()</code>
+<div class="block">Returns the ID of the agent machine that the original Offer belonged to.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>Operation</code></td>
+<td class="colFirst"><code>Protos.OfferID</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getOfferId--">getOfferId</a></span>()</code>
+<div class="block">Returns the ID of the original Offer that had been evaluated when generating the recommendation.</div>
+</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>java.util.Optional&lt;Protos.Offer.Operation&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getOperation--">getOperation</a></span>()</code>
-<div class="block">Returns the operation which should be performed in regards to the specified <code>Offer</code>
- returned by <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getOffer--"><code>getOffer()</code></a>.</div>
+<div class="block">Returns an operation which should be sent to Mesos in response to the offer (as returned by <code>#getOffer()</code>),
+ or an empty <code>Optional</code> if nothing should be sent to Mesos.</div>
 </td>
 </tr>
 </table>
@@ -163,20 +168,30 @@ var activeTableTab = "activeTableTab";
 <ul class="blockList">
 <li class="blockList">
 <h4>getOperation</h4>
-<pre>Operation&nbsp;getOperation()</pre>
-<div class="block">Returns the operation which should be performed in regards to the specified <code>Offer</code>
- returned by <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getOffer--"><code>getOffer()</code></a>.</div>
+<pre>java.util.Optional&lt;Protos.Offer.Operation&gt;&nbsp;getOperation()</pre>
+<div class="block">Returns an operation which should be sent to Mesos in response to the offer (as returned by <code>#getOffer()</code>),
+ or an empty <code>Optional</code> if nothing should be sent to Mesos. The latter case can be useful for any additional
+ bookkeeping work to be performed following a successful evaluation.</div>
 </li>
 </ul>
-<a name="getOffer--">
+<a name="getOfferId--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getOfferId</h4>
+<pre>Protos.OfferID&nbsp;getOfferId()</pre>
+<div class="block">Returns the ID of the original Offer that had been evaluated when generating the recommendation.</div>
+</li>
+</ul>
+<a name="getAgentId--">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>getOffer</h4>
-<pre>Offer&nbsp;getOffer()</pre>
-<div class="block">Returns the Offer upon which the <code>Operation</code> returned by <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html#getOperation--"><code>getOperation()</code></a>
- should be performed.</div>
+<h4>getAgentId</h4>
+<pre>Protos.SlaveID&nbsp;getAgentId()</pre>
+<div class="block">Returns the ID of the agent machine that the original Offer belonged to.</div>
 </li>
 </ul>
 </li>

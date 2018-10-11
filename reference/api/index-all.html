@@ -917,7 +917,7 @@
 <dd>
 <div class="block">This <a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a> encapsulates a Mesos <code>CREATE</code> Operation.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html#CreateOfferRecommendation-Offer-Resource-">CreateOfferRecommendation(Offer, Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html#CreateOfferRecommendation-Protos.Offer-Protos.Resource-">CreateOfferRecommendation(Protos.Offer, Protos.Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#createPhases-java.util.Collection-">createPhases(Collection&lt;PodInstanceRequirement&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
@@ -1409,7 +1409,7 @@
 <dd>
 <div class="block">This <a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a> encapsulates a Mesos <code>DESTROY</code> Operation.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html#DestroyOfferRecommendation-Offer-Resource-">DestroyOfferRecommendation(Offer, Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html#DestroyOfferRecommendation-Protos.Offer-Protos.Resource-">DestroyOfferRecommendation(Protos.Offer, Protos.Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html#disableLock--">disableLock()</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></dt>
 <dd>
@@ -1967,7 +1967,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferUtils.html#filterOutAcceptedOffers-java.util.Collection-java.util.Collection-">filterOutAcceptedOffers(Collection&lt;Protos.Offer&gt;, Collection&lt;? extends OfferRecommendation&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferUtils.html" title="class in com.mesosphere.sdk.offer">OfferUtils</a></dt>
 <dd>
-<div class="block">Filters out accepted offers and returns back a list of unused offers.</div>
+<div class="block">Filters out Offers which have pending Operations against Mesos, and returns a list of any remaining offers.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/RequestUtils.html#filterPodTasks-java.lang.String-java.util.Collection-java.util.Set-">filterPodTasks(String, Collection&lt;TaskInfoAndStatus&gt;, Set&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/RequestUtils.html" title="class in com.mesosphere.sdk.http">RequestUtils</a></dt>
 <dd>
@@ -2188,6 +2188,22 @@
 <dd>
 <div class="block">Returns all launch operations where the specified pod was launched, in chronological order.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html#getAgentId--">getAgentId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html#getAgentId--">getAgentId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getAgentId--">getAgentId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferRecommendation.html#getAgentId--">getAgentId()</a></span> - Method in interface com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a></dt>
+<dd>
+<div class="block">Returns the ID of the agent machine that the original Offer belonged to.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html#getAgentId--">getAgentId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html#getAgentId--">getAgentId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html" title="class in com.mesosphere.sdk.offer">StoreTaskInfoRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html#getAgentId--">getAgentId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">UnreserveOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getAgentPlacementRule-java.util.List-java.util.List-">getAgentPlacementRule(List&lt;String&gt;, List&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
 <dd>
 <div class="block">Returns the appropriate placement rule, given a set of agents to avoid or colocate with.</div>
@@ -3132,33 +3148,34 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getNew-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-">getNew(VolumeSpec, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/MesosResourcePool.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a></dt>
 <dd>
 <div class="block">Returns the underlying offer which this resource pool represents.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferRecommendation.html#getOffer--">getOffer()</a></span> - Method in interface com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a></dt>
-<dd>
-<div class="block">Returns the Offer upon which the <code>Operation</code> returned by <a href="com/mesosphere/sdk/offer/OfferRecommendation.html#getOperation--"><code>OfferRecommendation.getOperation()</code></a>
- should be performed.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">UnreserveOfferRecommendation</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/OfferResources.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler">OfferResources</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html#getOfferAttributeStrings--">getOfferAttributeStrings()</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelReader.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelReader</a></dt>
 <dd>
 <div class="block">Returns the string representations of any <code>Offer</code> <code>Attribute</code>s which were embedded in the task.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html#getOfferId--">getOfferId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html#getOfferId--">getOfferId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/DestroyOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">DestroyOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getOfferId--">getOfferId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferRecommendation.html#getOfferId--">getOfferId()</a></span> - Method in interface com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a></dt>
+<dd>
+<div class="block">Returns the ID of the original Offer that had been evaluated when generating the recommendation.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html#getOfferId--">getOfferId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html#getOfferId--">getOfferId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html" title="class in com.mesosphere.sdk.offer">StoreTaskInfoRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html#getOfferId--">getOfferId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">UnreserveOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/DebugResource.html#getOfferOutcomes-boolean-">getOfferOutcomes(boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/DebugResource.html" title="class in com.mesosphere.sdk.http.endpoints">DebugResource</a></dt>
 <dd>
 <div class="block">Renders the current set of offer outcomes as an HTML table.</div>
@@ -3173,10 +3190,12 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/OfferRecommendation.html#getOperation--">getOperation()</a></span> - Method in interface com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a></dt>
 <dd>
-<div class="block">Returns the operation which should be performed in regards to the specified <code>Offer</code>
- returned by <a href="com/mesosphere/sdk/offer/OfferRecommendation.html#getOffer--"><code>OfferRecommendation.getOffer()</code></a>.</div>
+<div class="block">Returns an operation which should be sent to Mesos in response to the offer (as returned by <code>#getOffer()</code>),
+ or an empty <code>Optional</code> if nothing should be sent to Mesos.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html#getOperation--">getOperation()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html#getOperation--">getOperation()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html" title="class in com.mesosphere.sdk.offer">StoreTaskInfoRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html#getOperation--">getOperation()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">UnreserveOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
@@ -3833,6 +3852,10 @@
 <dd>
 <div class="block">Returns the <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html#getStateStoreTaskInfo--">getStateStoreTaskInfo()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html" title="class in com.mesosphere.sdk.offer">StoreTaskInfoRecommendation</a></dt>
+<dd>
+<div class="block">Returns the <code>Protos.TaskInfo</code> to be passed to a StateStore upon launch.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#getStatsdHost--">getStatsdHost()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
 <dd>
 <div class="block">Returns the StatsD host.</div>
@@ -3901,10 +3924,6 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPhase.html#getSteps--">getSteps()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPhase.html" title="class in com.mesosphere.sdk.specification.yaml">RawPhase</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getStoreableTaskInfo--">getStoreableTaskInfo()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
-<dd>
-<div class="block">Returns the <code>TaskInfo</code> to be passed to a StateStore upon launch.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPhase.html#getStrategy--">getStrategy()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPhase.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPhase</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DefaultPlan.html#getStrategy--">getStrategy()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DefaultPlan.html" title="class in com.mesosphere.sdk.scheduler.plan">DefaultPlan</a></dt>
@@ -3987,6 +4006,8 @@
 <dd>
 <div class="block">Returns the last task id for a task of the specified name.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#getTaskInfo--">getTaskInfo()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html#getTaskInfo--">getTaskInfo()</a></span> - Method in class com.mesosphere.sdk.scheduler.plan.<a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.TaskStatusPair.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep.TaskStatusPair</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#getTaskInfoPath-java.lang.String-java.lang.String-">getTaskInfoPath(String, String)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
@@ -4340,10 +4361,6 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/FrameworkConfig.html#getZookeeperHostPort--">getZookeeperHostPort()</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a></dt>
 <dd>
 <div class="block">Returns the zookeeper endpoint to use for state storage, of the form "hostname:port".</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#GOAL_STATE_LABEL">GOAL_STATE_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
-<dd>
-<div class="block">Identifies the goal state of this task, e.g.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html#goalState-com.mesosphere.sdk.specification.GoalState-">goalState(GoalState)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></dt>
 <dd>
@@ -5068,9 +5085,9 @@
 </dd>
 <dt><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">LaunchOfferRecommendation</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
 <dd>
-<div class="block">This <a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a> encapsulates a Mesos <code>LAUNCH</code> Operation.</div>
+<div class="block">This <a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a> encapsulates a Mesos <code>LAUNCH_GROUP</code> Operation.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#LaunchOfferRecommendation-Offer-TaskInfo-Protos.ExecutorInfo-boolean-">LaunchOfferRecommendation(Offer, TaskInfo, Protos.ExecutorInfo, boolean)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#LaunchOfferRecommendation-Protos.Offer-Protos.TaskInfo-Protos.ExecutorInfo-">LaunchOfferRecommendation(Protos.Offer, Protos.TaskInfo, Protos.ExecutorInfo)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingValue.html#line">line</a></span> - Variable in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/TemplateUtils.MissingValue.html" title="class in com.mesosphere.sdk.specification.yaml">TemplateUtils.MissingValue</a></dt>
 <dd>
@@ -6531,13 +6548,13 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html#record-java.util.Collection-">record(Collection&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state">PersistentLaunchRecorder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordRecommendations-java.util.Collection-">recordRecommendations(Collection&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallRecorder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordCleanupOrUninstall-java.util.Collection-">recordCleanupOrUninstall(Collection&lt;OfferResources&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallRecorder</a></dt>
+<dd>
+<div class="block">Used in the case of uninstall and cleanup when we are removing any unrecognized resources.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordDecommission-java.util.Collection-">recordDecommission(Collection&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallRecorder</a></dt>
 <dd>
 <div class="block">Used in the case of decommissioning when we are proactively removing offered resources via offer evaluation.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordResources-java.util.Collection-">recordResources(Collection&lt;OfferResources&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallRecorder</a></dt>
-<dd>
-<div class="block">Used by both decommissioning and uninstalling to record resources that are about to be unreserved.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/ServiceStore.html#recover--">recover()</a></span> - Method in class com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/ServiceStore.html" title="class in com.mesosphere.sdk.scheduler.multi">ServiceStore</a></dt>
 <dd>
@@ -6829,7 +6846,7 @@
 <dd>
 <div class="block">This <a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a> encapsulates a Mesos <code>RESERVE</code> Operation.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html#ReserveOfferRecommendation-Offer-Resource-">ReserveOfferRecommendation(Offer, Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html#ReserveOfferRecommendation-Protos.Offer-Protos.Resource-">ReserveOfferRecommendation(Protos.Offer, Protos.Resource)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">ReserveOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/TaskKiller.html#reset-boolean-">reset(boolean)</a></span> - Static method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework">TaskKiller</a></dt>
 <dd>
@@ -7397,10 +7414,6 @@
 <dd>
 <div class="block">Default behavior: Set permanently failed bit in state store tasks.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setGoalState-com.mesosphere.sdk.specification.GoalState-">setGoalState(GoalState)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
-<dd>
-<div class="block">Sets a label on a TaskInfo indicating the Task's <a href="com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification"><code>GoalState</code></a>, e.g.</div>
-</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#setGracePeriodSecs-int-">setGracePeriodSecs(int)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setHostname-Offer-">setHostname(Offer)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
@@ -7648,8 +7661,6 @@
 <dd>
 <div class="block">The duration in seconds to decline offers the scheduler does not need for a short time.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html#shouldLaunch--">shouldLaunch()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/LaunchOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">LaunchOfferRecommendation</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html#sign-byte:A-">sign(byte[])</a></span> - Method in class com.mesosphere.sdk.dcos.clients.<a href="com/mesosphere/sdk/dcos/clients/CertificateAuthorityClient.html" title="class in com.mesosphere.sdk.dcos.clients">CertificateAuthorityClient</a></dt>
 <dd>
 <div class="block">Create a new certificate from CSR by contacting certificate authority.</div>
@@ -7861,6 +7872,13 @@
 <dd>
 <div class="block">Stores the TaskStatus of a particular Task.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html" title="class in com.mesosphere.sdk.offer"><span class="typeNameLink">StoreTaskInfoRecommendation</span></a> - Class in <a href="com/mesosphere/sdk/offer/package-summary.html">com.mesosphere.sdk.offer</a></dt>
+<dd>
+<div class="block">A recommendation to update a <code>TaskInfo</code> in the <code>StateStore</code> alongside any operations to be performed
+ against Mesos.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html#StoreTaskInfoRecommendation-Protos.Offer-Protos.TaskInfo-Protos.ExecutorInfo-">StoreTaskInfoRecommendation(Protos.Offer, Protos.TaskInfo, Protos.ExecutorInfo)</a></span> - Constructor for class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html" title="class in com.mesosphere.sdk.offer">StoreTaskInfoRecommendation</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-">storeTasks(Collection&lt;Protos.TaskInfo&gt;)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a></dt>
 <dd>
 <div class="block">Stores TaskInfo objects representing tasks which are desired by the framework.</div>
@@ -8469,6 +8487,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html#toString--">toString()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/StoreTaskInfoRecommendation.html" title="class in com.mesosphere.sdk.offer">StoreTaskInfoRecommendation</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html#toString-java.util.List-">toString(List&lt;Protos.Attribute&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AttributeStringUtils.html" title="class in com.mesosphere.sdk.offer.taskdata">AttributeStringUtils</a></dt>
 <dd>
 <div class="block">Converts the provided list of zero or more attributes into a string suitable for comparison.</div>
@@ -8873,6 +8893,8 @@
 <dd>
 <div class="block">Sets the <code>uris</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html#useLegacyUnneededTaskKills--">useLegacyUnneededTaskKills()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#user-java.lang.String-">user(String)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets the <code>user</code> and returns a reference to this Builder so that the methods can be chained together.</div>

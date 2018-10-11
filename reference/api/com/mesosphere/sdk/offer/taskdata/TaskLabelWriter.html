@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -156,72 +156,66 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setGoalState-com.mesosphere.sdk.specification.GoalState-">setGoalState</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;goalState)</code>
-<div class="block">Sets a label on a TaskInfo indicating the Task's <a href="../../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification"><code>GoalState</code></a>, e.g.</div>
-</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setHostname-Offer-">setHostname</a></span>(Offer&nbsp;launchOffer)</code>
 <div class="block">Stores the agent hostname from the provided <code>Offer</code>.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setIndex-int-">setIndex</a></span>(int&nbsp;index)</code>
 <div class="block">Assigns the pod instance index to the provided task.</div>
 </td>
 </tr>
-<tr id="i4" class="altColor">
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setOfferAttributes-Offer-">setOfferAttributes</a></span>(Offer&nbsp;launchOffer)</code>
 <div class="block">Stores the <code>Attribute</code>s from the provided <code>Offer</code>.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setPermanentlyFailed--">setPermanentlyFailed</a></span>()</code>
 <div class="block">Ensures that the task is identified as permanently failed.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setReadinessCheck-HealthCheck-">setReadinessCheck</a></span>(HealthCheck&nbsp;readinessCheck)</code>
 <div class="block">Stores an encoded version of the <code>HealthCheck</code> as a readiness check.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setReadinessCheckEnvvar-java.lang.String-java.lang.String-">setReadinessCheckEnvvar</a></span>(java.lang.String&nbsp;key,
                        java.lang.String&nbsp;value)</code>
 <div class="block">Updates the stored readiness check, if any, to have the provided environment variable.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setRegion-Protos.DomainInfo.FaultDomain.RegionInfo-">setRegion</a></span>(Protos.DomainInfo.FaultDomain.RegionInfo&nbsp;region)</code>
 <div class="block">Stores the <code>org.apache.mesos.Protos.DomainInfo.FaultDomain.RegionInfo</code>.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setTargetConfiguration-java.util.UUID-">setTargetConfiguration</a></span>(java.util.UUID&nbsp;targetConfigurationId)</code>
 <div class="block">Sets a <code>Label</code> indicating the target configuration.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setType-java.lang.String-">setType</a></span>(java.lang.String&nbsp;taskType)</code>
 <div class="block">Stores the provided task type string.</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setZone-Protos.DomainInfo.FaultDomain.ZoneInfo-">setZone</a></span>(Protos.DomainInfo.FaultDomain.ZoneInfo&nbsp;zone)</code>
 <div class="block">Stores the <code>org.apache.mesos.Protos.DomainInfo.FaultDomain.ZoneInfo</code>.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>Labels</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#toProto--">toProto</a></span>()</code>
 <div class="block">Returns a protobuf representation of all contained label entries.</div>
@@ -357,16 +351,6 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a>&nbsp;setHostname(Offer&nbsp;launchOffer)</pre>
 <div class="block">Stores the agent hostname from the provided <code>Offer</code>.
  Any existing stored hostname is overwritten.</div>
-</li>
-</ul>
-<a name="setGoalState-com.mesosphere.sdk.specification.GoalState-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setGoalState</h4>
-<pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a>&nbsp;setGoalState(<a href="../../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;goalState)</pre>
-<div class="block">Sets a label on a TaskInfo indicating the Task's <a href="../../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification"><code>GoalState</code></a>, e.g. RUNNING, FINISH or ONCE.</div>
 </li>
 </ul>
 <a name="setTargetConfiguration-java.util.UUID-">

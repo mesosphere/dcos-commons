@@ -149,7 +149,7 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>static java.util.List&lt;Protos.Offer&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/OfferUtils.html#filterOutAcceptedOffers-java.util.Collection-java.util.Collection-">filterOutAcceptedOffers</a></span>(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,
                        java.util.Collection&lt;? extends <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
-<div class="block">Filters out accepted offers and returns back a list of unused offers.</div>
+<div class="block">Filters out Offers which have pending Operations against Mesos, and returns a list of any remaining offers.</div>
 </td>
 </tr>
 </table>
@@ -199,7 +199,7 @@ extends java.lang.Object</pre>
 <h4>filterOutAcceptedOffers</h4>
 <pre>public static&nbsp;java.util.List&lt;Protos.Offer&gt;&nbsp;filterOutAcceptedOffers(java.util.Collection&lt;Protos.Offer&gt;&nbsp;offers,
                                                                    java.util.Collection&lt;? extends <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</pre>
-<div class="block">Filters out accepted offers and returns back a list of unused offers.</div>
+<div class="block">Filters out Offers which have pending Operations against Mesos, and returns a list of any remaining offers.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>offers</code> - An <code>org.apache.mesos.Protos.Offer</code> collection containing both ACCEPTED and

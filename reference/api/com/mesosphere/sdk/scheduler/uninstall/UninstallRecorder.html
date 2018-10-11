@@ -149,14 +149,14 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordRecommendations-java.util.Collection-">recordRecommendations</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations)</code>
-<div class="block">Used in the case of decommissioning when we are proactively removing offered resources via offer evaluation.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordCleanupOrUninstall-java.util.Collection-">recordCleanupOrUninstall</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler">OfferResources</a>&gt;&nbsp;offerResources)</code>
+<div class="block">Used in the case of uninstall and cleanup when we are removing any unrecognized resources.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordResources-java.util.Collection-">recordResources</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler">OfferResources</a>&gt;&nbsp;offerResources)</code>
-<div class="block">Used by both decommissioning and uninstalling to record resources that are about to be unreserved.</div>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/UninstallRecorder.html#recordDecommission-java.util.Collection-">recordDecommission</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations)</code>
+<div class="block">Used in the case of decommissioning when we are proactively removing offered resources via offer evaluation.</div>
 </td>
 </tr>
 </table>
@@ -199,14 +199,14 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="recordRecommendations-java.util.Collection-">
+<a name="recordDecommission-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>recordRecommendations</h4>
-<pre>public&nbsp;void&nbsp;recordRecommendations(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations)
-                           throws java.lang.Exception</pre>
+<h4>recordDecommission</h4>
+<pre>public&nbsp;void&nbsp;recordDecommission(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;offerRecommendations)
+                        throws java.lang.Exception</pre>
 <div class="block">Used in the case of decommissioning when we are proactively removing offered resources via offer evaluation.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -214,15 +214,15 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="recordResources-java.util.Collection-">
+<a name="recordCleanupOrUninstall-java.util.Collection-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>recordResources</h4>
-<pre>public&nbsp;void&nbsp;recordResources(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler">OfferResources</a>&gt;&nbsp;offerResources)
-                     throws java.lang.Exception</pre>
-<div class="block">Used by both decommissioning and uninstalling to record resources that are about to be unreserved.</div>
+<h4>recordCleanupOrUninstall</h4>
+<pre>public&nbsp;void&nbsp;recordCleanupOrUninstall(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/OfferResources.html" title="class in com.mesosphere.sdk.scheduler">OfferResources</a>&gt;&nbsp;offerResources)
+                              throws java.lang.Exception</pre>
+<div class="block">Used in the case of uninstall and cleanup when we are removing any unrecognized resources.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.Exception</code></dd>
