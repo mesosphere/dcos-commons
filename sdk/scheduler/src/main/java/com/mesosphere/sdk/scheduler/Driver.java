@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.scheduler.instrumentation.LogAndDelegateSchedulerDriver;
 import org.apache.mesos.SchedulerDriver;
 
 import java.util.Optional;
@@ -23,7 +24,8 @@ public final class Driver {
 
     public static void setDriver(SchedulerDriver driver) {
         synchronized (lock) {
-            Driver.driver = driver;
+            // TODO(mowsiany): make the log wrapping optional
+            Driver.driver = new LogAndDelegateSchedulerDriver(driver);
         }
     }
 }

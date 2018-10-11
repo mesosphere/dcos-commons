@@ -18,6 +18,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.RegionRuleFactory;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
+import com.mesosphere.sdk.scheduler.instrumentation.LogAndDelegatePersister;
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
@@ -76,9 +77,14 @@ public class SchedulerBuilder {
         this(
                 serviceSpec,
                 schedulerConfig,
-                schedulerConfig.isStateCacheEnabled() ?
-                        new PersisterCache(CuratorPersister.newBuilder(serviceSpec).build()) :
-                        CuratorPersister.newBuilder(serviceSpec).build());
+                maybeWrapPersister(schedulerConfig, CuratorPersister.newBuilder(serviceSpec).build()));
+    }
+
+    private static Persister maybeWrapPersister(
+            SchedulerConfig schedulerConfig, final CuratorPersister curatorPersister) throws PersisterException {
+        // TODO(mowsiany): make the log wrapping optional
+        Persister wrappedPersister = new LogAndDelegatePersister(curatorPersister);
+        return schedulerConfig.isStateCacheEnabled() ? new PersisterCache(wrappedPersister) : wrappedPersister;
     }
 
     SchedulerBuilder(

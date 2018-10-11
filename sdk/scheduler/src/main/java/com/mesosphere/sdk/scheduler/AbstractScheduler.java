@@ -273,7 +273,7 @@ public abstract class AbstractScheduler {
                 SchedulerUtils.hardExit(SchedulerErrorCode.REGISTRATION_FAILURE);
             }
 
-            postRegister(driver, masterInfo);
+            postRegister(Driver.getDriver().get(), masterInfo);
 
             isInitialized.set(true);
         }
@@ -282,7 +282,7 @@ public abstract class AbstractScheduler {
         public void reregistered(SchedulerDriver driver, Protos.MasterInfo masterInfo) {
             LOGGER.info("Re-registered with master: {}", TextFormat.shortDebugString(masterInfo));
             Driver.setDriver(driver);
-            postRegister(driver, masterInfo);
+            postRegister(Driver.getDriver().get(), masterInfo);
         }
 
         private void postRegister(SchedulerDriver driver, Protos.MasterInfo masterInfo) {

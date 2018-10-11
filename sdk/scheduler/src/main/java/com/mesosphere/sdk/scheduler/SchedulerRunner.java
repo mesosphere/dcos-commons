@@ -6,6 +6,7 @@ import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.http.HealthResource;
 import com.mesosphere.sdk.http.PlansResource;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.instrumentation.LogAndDelegateScheduler;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -122,7 +123,8 @@ public class SchedulerRunner implements Runnable {
 
             runScheduler(
                     scheduler.frameworkInfo,
-                    mesosScheduler.get(),
+                    // TODO(mowsiany): make the log wrapping optional
+                    new LogAndDelegateScheduler(mesosScheduler.get()),
                     schedulerBuilder.getServiceSpec(),
                     schedulerBuilder.getSchedulerConfig(),
                     schedulerBuilder.getStateStore());
