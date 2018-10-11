@@ -307,7 +307,7 @@ public class ServiceTest {
 
         // Running, no readiness check is applicable:
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
-        String taskId = UUID.randomUUID().toString();
+        String taskId = CommonIdUtils.toTaskId("bogus", "taskid").getValue();
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING)
                 .setTaskId(taskId)
                 .build());
@@ -398,8 +398,9 @@ public class ServiceTest {
         // - a recovery plan that's COMPLETE
         // - a decommission plan that's PENDING with phases for world-1 and world-0 (in that order)
 
-        // When default executor is being used, three additional resources need to be unreserved.
-        int stepCount = 9;
+        // When default executor is being used, one additional resource needs to be unreserved (as sconfigured within
+        // ServiceTestRunner).
+        int stepCount = 7;
 
         // Check initial plan state
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(

@@ -102,22 +102,9 @@ public class StateStoreUtilsTest {
 
     @Test(expected = StateStoreException.class)
     public void testEmptyStateStoreRaisesErrorOnTaskName() {
-        StateStoreUtils.fetchTaskInfo(stateStore, null);
-    }
-
-    @Test(expected = StateStoreException.class)
-    public void testStateStoreWithDuplicateIdsRaisesErrorOnStatus() {
-        // Create task info
-        Protos.TaskInfo taskInfo = newTaskInfo("task_1");
-        Protos.TaskInfo secondTask = newTaskInfo("task_2", taskInfo.getTaskId());
-
-        // Add a task to the state store
-        stateStore.storeTasks(ImmutableList.of(taskInfo, secondTask));
-
-        Protos.TaskStatus taskStatus = newTaskStatus(taskInfo, Protos.TaskState.TASK_UNKNOWN);
-
-        assertThat(stateStore.fetchTasks().size(), is(2));
-        StateStoreUtils.fetchTaskInfo(stateStore, taskStatus);
+        StateStoreUtils.fetchTaskInfo(stateStore, newTaskStatus(
+                CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TestConstants.TASK_NAME),
+                Protos.TaskState.TASK_UNKNOWN));
     }
 
     @Test(expected = StateStoreException.class)

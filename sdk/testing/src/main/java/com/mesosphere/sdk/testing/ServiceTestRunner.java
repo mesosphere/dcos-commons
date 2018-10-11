@@ -43,7 +43,8 @@ public class ServiceTestRunner {
     static final Protos.Value EXECUTOR_CPUS;
     static {
         Protos.Value.Builder scalarBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
-        scalarBuilder.getScalarBuilder().setValue(5);
+        // Arbitrary value:
+        scalarBuilder.getScalarBuilder().setValue(0.1);
         EXECUTOR_CPUS = scalarBuilder.build();
     }
 
