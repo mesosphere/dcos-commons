@@ -8,6 +8,7 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 import logging
 import retrying
 import requests
+import typing
 
 import sdk_cmd
 import sdk_tasks
@@ -52,29 +53,54 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
 
 
 class MarathonDeploymentResponse:
+    class App:
+        def __init__(self, version: str, deployment_id: str) -> None:
+            self._version = version
+            self._deployment_id = deployment_id
+
+        def get_deployment_id(self) -> str:
+            return self._deployment_id
+
+        def get_version(self) -> str:
+            return self._version
+
     def __init__(self, response: requests.Response) -> None:
         try:
-            response_json = response.json()
+            self._response = response
+            response_json = self._response.json()
         except ValueError:
-            log.error("Failed to parse marathon response as JSON: %s", response.text)
+            log.error("Failed to parse marathon response as JSON: %s", self._response.text)
             raise
-        log.info("Marathon deployment response JSON: %s", response_json)
-        response.raise_for_status()
+        log.info(
+            "Requested %s and received Marathon deployment response JSON: %s",
+            self._response.url,
+            response_json,
+        )
+        self._response.raise_for_status()
 
-        self._version = response_json["version"]
-        if response.status_code == 201:
-            self._deployment_id = self._parse_deployment_id_on_app_creation(response_json)
+        self._parse_app_information(response_json)
+
+    def _parse_app_information(self, response_json: dict) -> None:
+        version = response_json["version"]
+        if self._response.status_code == 201:
+            deployment_id = response_json["deployments"][0]["id"]
         else:
-            self._deployment_id = response_json["deploymentId"]
+            deployment_id = response_json["deploymentId"]
+        self._apps = [MarathonDeploymentResponse.App(version, deployment_id)]
 
-    def _parse_deployment_id_on_app_creation(self, response_json: dict) -> str:
-        return response_json["deployments"][0]["id"]
+    def get_apps(self) -> typing.List[App]:
+        return self._apps
 
-    def get_deployment_id(self) -> str:
-        return self._deployment_id
 
-    def get_version(self) -> str:
-        return self._version
+class MarathonDeploymentsResponse(MarathonDeploymentResponse):
+    def _parse_app_information(self, response_json: dict) -> None:
+        def _parse(deployments) -> typing.Iterable[MarathonDeploymentResponse.App]:
+            for deployment in deployments:
+                version = deployment["version"]
+                deployment_id = deployment["id"]
+                yield MarathonDeploymentResponse.App(version, deployment_id)
+
+        self._apps = list(_parse(response_json))
 
 
 def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> None:
@@ -172,7 +198,7 @@ def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
             raise e
         return deployment_response
 
-    result = _install()
+    result = _install().get_apps()[0]
     wait_for_deployment(app_name, timeout, result.get_version())
 
 
@@ -199,7 +225,7 @@ def update_app(
         )
         return MarathonDeploymentResponse(response)
 
-    result = _update()
+    result = _update().get_apps()[0]
 
     # Sometimes the caller expects the update to fail.
     # Allow those cases to skip waiting for successful deployment:
@@ -215,7 +241,7 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
         )
         return MarathonDeploymentResponse(response)
 
-    result = _destroy()
+    result = _destroy().get_apps()[0]
     deployment_id = result.get_deployment_id()
 
     # This check is different from the other deployment checks.
@@ -226,13 +252,11 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     def _wait_for_app_destroyed():
         if app_exists(app_name, timeout):
             return False
-        running_deployments = sdk_cmd.cluster_request("GET", _api_url("deployments")).json()
-        log.info(
-            "While waiting to delete %s, currently running marathon deployments: %s",
-            deployment_id,
-            running_deployments,
+        deployments_response = MarathonDeploymentsResponse(
+            sdk_cmd.cluster_request("GET", _api_url("deployments"))
         )
-        return deployment_id not in [d["id"] for d in running_deployments]
+        apps = deployments_response.get_apps()
+        return deployment_id not in [a.get_deployment_id() for a in apps]
 
     log.info("Waiting for {} to be removed...".format(app_name))
     _wait_for_app_destroyed()
@@ -246,7 +270,7 @@ def restart_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
         )
         return MarathonDeploymentResponse(response)
 
-    result = _restart()
+    result = _restart().get_apps()[0]
 
     wait_for_deployment(app_name, timeout, result.get_version())
 
