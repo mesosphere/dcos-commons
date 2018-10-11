@@ -88,7 +88,7 @@ class MarathonDeploymentResponse:
             deployment_id = response_json["deploymentId"]
         self._apps = [MarathonDeploymentResponse.App(version, deployment_id)]
 
-    def get_apps(self) -> typing.List[App]:
+    def get_apps(self) -> typing.List["App"]:
         return self._apps
 
 
