@@ -13,7 +13,7 @@ set -e
 timestamp="$(date +%d%m%y%H%M%s)"
 # Create a temp file for docker env.
 # When the script exits (successfully or otherwise), clean up the file automatically.
-credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}=XXXXXXXX.tmp)"
+credsfile="$(mktemp /tmp/sdk-test-creds-${timestamp}-XXXXXXXX.tmp)"
 envfile="$(mktemp /tmp/sdk-test-env-${timestamp}-XXXXXXXX.tmp)"
 function cleanup {
     rm -f ${credsfile}
