@@ -222,14 +222,14 @@ public class UninstallScheduler extends AbstractScheduler {
                         .collect(Collectors.toList())))
                 .collect(Collectors.toList());
         try {
-            recorder.recordResources(unexpected);
-            return UnexpectedResourcesResponse.processed(unexpected);
+            recorder.recordCleanupOrUninstall(unexpected);
         } catch (Exception e) {
             // Failed to record the upcoming dereservation. Don't return the resources as unexpected until we can record
             // the dereservation.
             logger.error("Failed to record unexpected resources", e);
             return UnexpectedResourcesResponse.failed(Collections.emptyList());
         }
+        return UnexpectedResourcesResponse.processed(unexpected);
     }
 
     @Override

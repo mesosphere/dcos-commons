@@ -197,6 +197,11 @@ public class SchedulerConfig {
     private static final String LIBPROCESS_IP_ENV = "LIBPROCESS_IP";
 
     /**
+     * Environment variable to control use of legacy killUnneededTasks sematics. By default this is disabled.
+     */
+    private static final String USE_LEGACY_UNNEEDED_TASK_KILLS = "USE_LEGACY_KILL_UNNEEDED_TASKS";
+
+    /**
      * We print the build info here because this is likely to be a very early point in the service's execution. In a
      * multi-service situation, however, this code may be getting invoked multiple times, so only print if we haven't
      * printed before.
@@ -310,6 +315,10 @@ public class SchedulerConfig {
 
     public boolean isUninstallEnabled() {
         return envStore.isPresent(SDK_UNINSTALL);
+    }
+
+    public boolean useLegacyUnneededTaskKills() {
+        return envStore.isPresent(USE_LEGACY_UNNEEDED_TASK_KILLS);
     }
 
     /**

@@ -102,7 +102,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
             OfferRecommendation recommendation = outcome.getEvaluationOutcome().getOfferRecommendations().get(0);
             Assert.assertTrue(recommendation instanceof ReserveOfferRecommendation);
             Assert.assertTrue(outcome.getResourceId().isPresent());
-            Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
+            Protos.Resource resource = recommendation.getOperation().get().getReserve().getResources(0);
             Assert.assertEquals(desired.getScalar(), resource.getScalar());
             if (namespace.isPresent()) {
                 Assert.assertEquals(namespace.get(), ResourceUtils.getNamespace(resource).get());
@@ -137,7 +137,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         OfferRecommendation recommendation = outcome.getEvaluationOutcome().getOfferRecommendations().get(0);
         Assert.assertTrue(recommendation instanceof ReserveOfferRecommendation);
         Assert.assertTrue(outcome.getResourceId().isPresent());
-        Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
+        Protos.Resource resource = recommendation.getOperation().get().getReserve().getResources(0);
         Assert.assertEquals(toAdd.getScalar(), resource.getScalar());
         if (namespace.isPresent()) {
             Assert.assertEquals(namespace.get(), ResourceUtils.getNamespace(resource).get());
@@ -197,7 +197,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         OfferRecommendation recommendation = outcome.getEvaluationOutcome().getOfferRecommendations().get(0);
         Assert.assertTrue(recommendation instanceof UnreserveOfferRecommendation);
         Assert.assertTrue(outcome.getResourceId().isPresent());
-        Protos.Resource resource = recommendation.getOperation().getUnreserve().getResources(0);
+        Protos.Resource resource = recommendation.getOperation().get().getUnreserve().getResources(0);
         Assert.assertEquals(toSubtract.getScalar(), resource.getScalar());
         if (namespace.isPresent()) {
             Assert.assertEquals(namespace.get(), ResourceUtils.getNamespace(resource).get());

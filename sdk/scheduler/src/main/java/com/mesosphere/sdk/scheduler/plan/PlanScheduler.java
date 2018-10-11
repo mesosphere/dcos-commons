@@ -45,7 +45,7 @@ public class PlanScheduler {
 
             // Remove the consumed offers from the list of available offers
             Set<Protos.OfferID> usedOfferIds = stepRecommendations.stream()
-                    .map(rec -> rec.getOffer().getId())
+                    .map(rec -> rec.getOfferId())
                     .collect(Collectors.toSet());
             availableOffers = availableOffers.stream()
                     .filter(offer -> !usedOfferIds.contains(offer.getId()))
@@ -98,7 +98,10 @@ public class PlanScheduler {
         // Notify step of offer outcome:
         // If no Operations occurred it may still be of interest to the Step.  For example it may want to set its state
         // to Pending to ensure it will be reattempted on the next Offer cycle.
-        step.updateOfferStatus(getNonTransientRecommendations(recommendations));
+        step.updateOfferStatus(recommendations.stream()
+                // Only include recommendations for operations that are actually sent to Mesos.
+                .filter(rec -> rec.getOperation().isPresent())
+                .collect(Collectors.toList()));
 
         return recommendations;
     }
@@ -143,27 +146,5 @@ public class PlanScheduler {
                 TaskKiller.killTask(taskInfo.getTaskId());
             }
         }
-    }
-
-    /**
-     * Returns all non-transient recommendations which will actually be executed by Mesos.
-     */
-    private static Collection<OfferRecommendation> getNonTransientRecommendations(
-            Collection<OfferRecommendation> recommendations) {
-
-        List<OfferRecommendation> filteredRecommendations = new ArrayList<>();
-
-        for (OfferRecommendation recommendation : recommendations) {
-            if (recommendation instanceof LaunchOfferRecommendation)  {
-                LaunchOfferRecommendation launchOfferRecommendation = (LaunchOfferRecommendation) recommendation;
-                if (!launchOfferRecommendation.shouldLaunch()) {
-                    continue;
-                }
-            }
-
-            filteredRecommendations.add(recommendation);
-        }
-
-        return filteredRecommendations;
     }
 }

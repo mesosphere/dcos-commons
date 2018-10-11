@@ -85,11 +85,11 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         List<Resource> reservedResources = new ArrayList<>();
         for (OfferRecommendation recommendation : recommendations) {
             if (recommendation instanceof ReserveOfferRecommendation) {
-                reservedResources.addAll(recommendation.getOperation().getReserve().getResourcesList());
-            } else if (recommendation instanceof LaunchOfferRecommendation) {
+                reservedResources.addAll(recommendation.getOperation().get().getReserve().getResourcesList());
+            } else if (recommendation instanceof StoreTaskInfoRecommendation) {
                 // DO NOT extract the TaskInfo from the Launch Operation. That version has a packed CommandInfo.
                 stateStore.storeTasks(Arrays.asList(
-                        ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo()));
+                        ((StoreTaskInfoRecommendation) recommendation).getStateStoreTaskInfo()));
             }
         }
 

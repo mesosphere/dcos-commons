@@ -284,8 +284,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Assert.assertTrue(outcome.isPassing());
         Assert.assertEquals(1, outcome.getOfferRecommendations().size());
         OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
-        Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
+        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().get().getType());
+        Protos.Resource resource = recommendation.getOperation().get().getReserve().getResources(0);
         Assert.assertEquals(
                 10000, resource.getRanges().getRange(0).getBegin(), resource.getRanges().getRange(0).getEnd());
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilders().stream().findFirst().get();
@@ -379,8 +379,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Assert.assertTrue(outcome.isPassing());
         Assert.assertEquals(1, outcome.getOfferRecommendations().size());
         OfferRecommendation recommendation = outcome.getOfferRecommendations().iterator().next();
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().getType());
-        Protos.Resource resource = recommendation.getOperation().getReserve().getResources(0);
+        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, recommendation.getOperation().get().getType());
+        Protos.Resource resource = recommendation.getOperation().get().getReserve().getResources(0);
         Assert.assertEquals(
                 10000, resource.getRanges().getRange(0).getBegin(), resource.getRanges().getRange(0).getEnd());
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilders().stream().findFirst().get();

@@ -1,36 +1,38 @@
 package com.mesosphere.sdk.offer;
 
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.Protos.Resource;
+import org.apache.mesos.Protos;
 
-import java.util.Arrays;
+import java.util.Optional;
 
 /**
  * This {@link OfferRecommendation} encapsulates a Mesos {@code CREATE} Operation.
  */
 public class CreateOfferRecommendation implements OfferRecommendation {
-    private final Offer offer;
-    private final Operation operation;
+    private final Protos.Offer offer;
+    private final Protos.Offer.Operation operation;
 
-    public CreateOfferRecommendation(Offer offer, Resource resource) {
+    public CreateOfferRecommendation(Protos.Offer offer, Protos.Resource resource) {
         this.offer = offer;
-        this.operation = Operation.newBuilder()
-                .setType(Operation.Type.CREATE)
-                .setCreate(Operation.Create.newBuilder()
-                        .addAllVolumes(Arrays.asList(resource)))
+        this.operation = Protos.Offer.Operation.newBuilder()
+                .setType(Protos.Offer.Operation.Type.CREATE)
+                .setCreate(Protos.Offer.Operation.Create.newBuilder().addVolumes(resource))
                 .build();
     }
 
     @Override
-    public Operation getOperation() {
-        return operation;
+    public Optional<Protos.Offer.Operation> getOperation() {
+        return Optional.of(operation);
     }
 
     @Override
-    public Offer getOffer() {
-        return offer;
+    public Protos.OfferID getOfferId() {
+        return offer.getId();
+    }
+
+    @Override
+    public Protos.SlaveID getAgentId() {
+        return offer.getSlaveId();
     }
 
     @Override

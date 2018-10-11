@@ -1,0 +1,40 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    volume:
+      path: pod-container-path
+      profiles: [{{HELLO_VOLUME_PROFILE}}]
+      type: MOUNT
+      size: {{HELLO_DISK}}
+    tasks:
+      profile:
+        goal: RUNNING
+        essential: false
+        cmd: df -t $VOLUME_PROFILE pod-container-path >> pod-container-path/output && df -t $VOLUME_PROFILE profile-container-path >> profile-container-path/output && sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+          VOLUME_PROFILE: {{HELLO_VOLUME_PROFILE}}
+        volume:
+          path: profile-container-path
+          profiles: [{{HELLO_VOLUME_PROFILE}}]
+          type: MOUNT
+          size: {{HELLO_DISK}}
+      noprofile:
+        goal: RUNNING
+        essential: false
+        cmd: df -t $VOLUME_PROFILE pod-container-path >> pod-container-path/output && df -t ext4 noprofile-container-path >> noprofile-container-path/output && sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+          VOLUME_PROFILE: {{HELLO_VOLUME_PROFILE}}
+        volume:
+          path: noprofile-container-path
+          type: MOUNT
+          size: {{HELLO_DISK}}
