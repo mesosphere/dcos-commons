@@ -75,6 +75,13 @@ public class Main {
 
         DefaultResourceSet.Builder resourceSetBuilder =
                 DefaultResourceSet.newBuilder((DefaultResourceSet) installTask.getResourceSet());
+        String role;
+        String preReservedRole = portworxPod.getPreReservedRole();
+        if (preReservedRole != null && !preReservedRole.isEmpty()) {
+            role = portworxPod.getPreReservedRole() + "/" + serviceSpec.getRole();
+        } else {
+            role = serviceSpec.getRole();
+        }
         for (Long portNumber : getPortList()) {
             resourceSetBuilder.addResource(new PortSpec(
                     Protos.Value.newBuilder()
@@ -84,7 +91,7 @@ public class Main {
                                             .setEnd(portNumber)))
                             .setType(Protos.Value.Type.RANGES)
                             .build(),
-                    serviceSpec.getRole(), null, serviceSpec.getPrincipal(), null,
+                    role, preReservedRole, serviceSpec.getPrincipal(), null,
                     "px_" + String.valueOf(portNumber),
                     Protos.DiscoveryInfo.Visibility.CLUSTER, Collections.emptyList()));
         }
