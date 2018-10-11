@@ -48,7 +48,7 @@ def install_package_registry(service_secret_path: str) -> Dict:
         PACKAGE_REGISTRY_NAME,
         PACKAGE_REGISTRY_SERVICE_NAME,
         expected_running_tasks=0,
-        package_version=None,
+        package_version=sdk_install.PackageVersion.LATEST_UNIVERSE.value,
         additional_options={"registry": {"service-account-secret-path": service_secret_path}},
         wait_for_deployment=False,
         insert_strict_options=False,
