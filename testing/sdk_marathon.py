@@ -83,6 +83,8 @@ class MarathonDeploymentResponse:
     def _parse_app_information(self, response_json: dict) -> None:
         version = response_json["version"]
         if self._response.status_code == 201:
+            # Marathon just returns 201 after app creation POST requests including the full
+            # configuration. Therefore we have to parse this case differently.
             deployment_id = response_json["deployments"][0]["id"]
         else:
             deployment_id = response_json["deploymentId"]
