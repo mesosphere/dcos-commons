@@ -1,35 +1,39 @@
 package com.mesosphere.sdk.offer;
 
+import java.util.Optional;
+
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import org.apache.mesos.Protos.Offer;
-import org.apache.mesos.Protos.Offer.Operation;
-import org.apache.mesos.Protos.Resource;
-import org.apache.mesos.Protos.Resource.DiskInfo;
+import org.apache.mesos.Protos;
 
 /**
  * This {@link OfferRecommendation} encapsulates a Mesos {@code RESERVE} Operation.
  */
 public class ReserveOfferRecommendation implements OfferRecommendation {
-    private final Offer offer;
-    private final Operation operation;
+    private final Protos.Offer offer;
+    private final Protos.Offer.Operation operation;
 
-    public ReserveOfferRecommendation(Offer offer, Resource resource) {
+    public ReserveOfferRecommendation(Protos.Offer offer, Protos.Resource resource) {
         resource = getReservedResource(resource);
         this.offer = offer;
-        this.operation = Operation.newBuilder()
-                .setType(Operation.Type.RESERVE)
-                .setReserve(Operation.Reserve.newBuilder().addResources(resource))
+        this.operation = Protos.Offer.Operation.newBuilder()
+                .setType(Protos.Offer.Operation.Type.RESERVE)
+                .setReserve(Protos.Offer.Operation.Reserve.newBuilder().addResources(resource))
                 .build();
     }
 
     @Override
-    public Operation getOperation() {
-        return operation;
+    public Optional<Protos.Offer.Operation> getOperation() {
+        return Optional.of(operation);
     }
 
     @Override
-    public Offer getOffer() {
-        return offer;
+    public Protos.OfferID getOfferId() {
+        return offer.getId();
+    }
+
+    @Override
+    public Protos.SlaveID getAgentId() {
+        return offer.getSlaveId();
     }
 
     @Override
@@ -41,13 +45,13 @@ public class ReserveOfferRecommendation implements OfferRecommendation {
      * The resource passed in is the fully completed Resource which will be launched.  This may include volume/disk
      * information which is not appropriate for the RESERVE operation.  It is filtered out here.
      */
-    private static Resource getReservedResource(Resource resource) {
+    private static Protos.Resource getReservedResource(Protos.Resource resource) {
         // The resource passed in is the fully completed Resource which will be launched.  This may include volume/disk
         // information which is not appropriate for the RESERVE operation.  It is filtered out here.
-        Resource.Builder resBuilder = Resource.newBuilder(resource);
+        Protos.Resource.Builder resBuilder = Protos.Resource.newBuilder(resource);
         if (resBuilder.hasDisk() && resBuilder.getDisk().hasSource()) {
             // Mount volume: Copy disk, but without 'persistence' nor 'volume' fields
-            resBuilder.setDisk(DiskInfo.newBuilder(resBuilder.getDisk())
+            resBuilder.setDisk(Protos.Resource.DiskInfo.newBuilder(resBuilder.getDisk())
                     .clearPersistence()
                     .clearVolume());
         } else {

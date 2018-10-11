@@ -21,7 +21,7 @@ public class UnreserveOfferRecommendationTest extends DefaultCapabilitiesTestSui
         Protos.Offer offer = OfferTestUtils.getOffer(resource);
 
         UnreserveOfferRecommendation unreserveOfferRecommendation = new UnreserveOfferRecommendation(offer, resource);
-        Protos.Offer.Operation operation = unreserveOfferRecommendation.getOperation();
+        Protos.Offer.Operation operation = unreserveOfferRecommendation.getOperation().get();
         Assert.assertEquals(1, operation.getUnreserve().getResourcesCount());
 
         Protos.Resource opResource = operation.getUnreserve().getResources(0);
@@ -39,7 +39,7 @@ public class UnreserveOfferRecommendationTest extends DefaultCapabilitiesTestSui
         Protos.Offer offer = OfferTestUtils.getOffer(resource);
 
         UnreserveOfferRecommendation unreserveOfferRecommendation = new UnreserveOfferRecommendation(offer, resource);
-        Protos.Offer.Operation operation = unreserveOfferRecommendation.getOperation();
+        Protos.Offer.Operation operation = unreserveOfferRecommendation.getOperation().get();
         Assert.assertEquals(1, operation.getUnreserve().getResourcesCount());
 
         Protos.Resource opResource = operation.getUnreserve().getResources(0);

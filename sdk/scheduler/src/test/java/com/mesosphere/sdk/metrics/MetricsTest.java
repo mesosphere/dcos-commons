@@ -6,6 +6,7 @@ import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.StoreTaskInfoRecommendation;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
@@ -14,7 +15,9 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * This class tests the {@link Metrics} class.
@@ -107,9 +110,7 @@ public class MetricsTest {
                         .setSlaveId(TestConstants.AGENT_ID)
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
-                        Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true);
-        Assert.assertTrue(((LaunchOfferRecommendation)realRecommendation).shouldLaunch());
+                        Protos.ExecutorID.newBuilder().setValue("executor")).build());
 
         Counter launchCounter = Metrics.getRegistry().counter("operation.launch_group");
         long val = launchCounter.getCount();
@@ -117,6 +118,29 @@ public class MetricsTest {
         Metrics.incrementRecommendations(Arrays.asList(realRecommendation, realRecommendation, realRecommendation));
 
         Assert.assertEquals(3, launchCounter.getCount() - val);
+    }
+
+    @Test
+    public void taskUpdateNotRecorded() throws Exception {
+        OfferRecommendation realRecommendation = new StoreTaskInfoRecommendation(
+                OfferTestUtils.getEmptyOfferBuilder().build(),
+                Protos.TaskInfo.newBuilder()
+                        .setTaskId(TestConstants.TASK_ID)
+                        .setName(TestConstants.TASK_NAME)
+                        .setSlaveId(TestConstants.AGENT_ID)
+                        .build(),
+                Protos.ExecutorInfo.newBuilder().setExecutorId(
+                        Protos.ExecutorID.newBuilder().setValue("executor")).build());
+
+        // No counters should change:
+        Map<String, Long> allCounts = Metrics.getRegistry().getCounters().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getCount()));
+
+        Metrics.incrementRecommendations(Arrays.asList(realRecommendation, realRecommendation, realRecommendation));
+
+        Map<String, Long> allCounts2 = Metrics.getRegistry().getCounters().entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getCount()));
+        Assert.assertEquals(allCounts, allCounts2);
     }
 
     @Test

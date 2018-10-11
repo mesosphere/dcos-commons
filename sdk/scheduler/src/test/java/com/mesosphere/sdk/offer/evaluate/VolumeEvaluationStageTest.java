@@ -48,9 +48,9 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(2, outcome.getOfferRecommendations().size());
 
         OfferRecommendation reserveRecommendation = recommendations.get(0);
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, reserveRecommendation.getOperation().getType());
+        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, reserveRecommendation.getOperation().get().getType());
 
-        Protos.Resource resource = reserveRecommendation.getOperation().getReserve().getResources(0);
+        Protos.Resource resource = reserveRecommendation.getOperation().get().getReserve().getResources(0);
         Assert.assertEquals("disk", resource.getName());
         Assert.assertEquals(resource.getScalar(), offeredResource.getScalar());
         Protos.Resource.ReservationInfo reservationInfo = ResourceUtils.getReservation(resource).get();
@@ -59,8 +59,8 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Assert.assertNotEquals(reservationLabel.getValue(), "");
 
         OfferRecommendation createRecommendation = recommendations.get(1);
-        resource = createRecommendation.getOperation().getCreate().getVolumes(0);
-        Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, createRecommendation.getOperation().getType());
+        resource = createRecommendation.getOperation().get().getCreate().getVolumes(0);
+        Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, createRecommendation.getOperation().get().getType());
         Assert.assertEquals("disk", resource.getName());
         Assert.assertEquals(resource.getScalar(), offeredResource.getScalar());
         reservationInfo = ResourceUtils.getReservation(resource).get();

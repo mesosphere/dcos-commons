@@ -91,33 +91,21 @@ public class DeploymentStep extends AbstractStep {
                         .build());
     }
 
-    private static Set<Protos.TaskID> getTaskIds(Collection<OfferRecommendation> recommendations) {
-        return getTaskInfos(recommendations).stream()
-                .map(Protos.TaskInfo::getTaskId)
-                .collect(Collectors.toSet());
-    }
-
-    private static Set<Protos.TaskInfo> getTaskInfos(Collection<OfferRecommendation> recommendations) {
-        return recommendations.stream()
-                .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
-                .map(recommendation -> ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo())
-                .filter(taskInfo -> !taskInfo.getTaskId().getValue().equals(""))
-                .collect(Collectors.toSet());
-    }
-
     /**
      * Synchronized to ensure consistency between this and {@link #update(Protos.TaskStatus)}.
      */
     @Override
     public synchronized void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
         tasks.clear();
-        getTaskInfos(recommendations)
+        recommendations.stream()
+                .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
+                .map(recommendation -> ((LaunchOfferRecommendation) recommendation).getTaskInfo())
                 .forEach(taskInfo -> tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED)));
 
         if (recommendations.isEmpty()) {
             tasks.keySet().forEach(id -> setTaskStatus(id, Status.PREPARED));
         } else {
-            getTaskIds(recommendations).forEach(id -> setTaskStatus(id, Status.STARTING));
+            tasks.keySet().forEach(id -> setTaskStatus(id, Status.STARTING));
         }
 
         prepared.set(true);

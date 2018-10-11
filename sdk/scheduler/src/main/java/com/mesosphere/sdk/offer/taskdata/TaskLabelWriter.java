@@ -13,8 +13,6 @@ import org.apache.mesos.Protos.Labels;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
-import com.mesosphere.sdk.specification.GoalState;
-
 /**
  * Provides write access to task labels which are (only) written by the Scheduler.
  */
@@ -97,14 +95,6 @@ public class TaskLabelWriter {
      */
     public TaskLabelWriter setHostname(Offer launchOffer) {
         writer.put(LabelConstants.OFFER_HOSTNAME_LABEL, launchOffer.getHostname());
-        return this;
-    }
-
-    /**
-     * Sets a label on a TaskInfo indicating the Task's {@link GoalState}, e.g. RUNNING, FINISH or ONCE.
-     */
-    public TaskLabelWriter setGoalState(GoalState goalState) {
-        writer.put(LabelConstants.GOAL_STATE_LABEL, goalState.name());
         return this;
     }
 
