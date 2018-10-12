@@ -389,10 +389,6 @@ public class ServiceTest {
         ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
         ticks.add(Send.taskStatus("world-1-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
 
-        // An initial kill is sent early on for the decommissioned tasks:
-        ticks.add(Expect.taskNameKilled("world-0-server", 1));
-        ticks.add(Expect.taskNameKilled("world-1-server", 1));
-
         // Now, we expect there to be the following plan state:
         // - a deploy plan that's COMPLETE, with only hello-0 (empty world phase)
         // - a recovery plan that's COMPLETE
@@ -414,7 +410,7 @@ public class ServiceTest {
         // Check plan state after an offer came through: world-1-server killed
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", stepCount - 1, 0, 1), new StepCount("world-0", stepCount, 0, 0))));
-        ticks.add(Expect.taskNameKilled("world-1-server", 2));
+        ticks.add(Expect.taskNameKilled("world-1-server", 1));
 
         // Offer world-0 resources and check that nothing happens (haven't gotten there yet):
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
@@ -441,7 +437,7 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 0, 0, stepCount), new StepCount("world-0", 1, 0, stepCount - 1))));
-        ticks.add(Expect.taskNameKilled("world-0-server", 2));
+        ticks.add(Expect.taskNameKilled("world-0-server", 1));
         ticks.add(new ExpectEmptyResources(result.getPersister(), "world-0-server"));
 
         // Turn the crank once again to erase the world-0 stub:
