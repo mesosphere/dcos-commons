@@ -2,6 +2,7 @@ package com.mesosphere.sdk.helloworld.scheduler;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 
 import org.apache.mesos.Protos;
 import org.junit.Test;
@@ -125,12 +126,11 @@ public class CustomStepsTest {
 
     @Test(expected = IllegalStateException.class)
     public void testInvalidStep() throws Exception {
-        Collection<SimulationTick> ticks = new ArrayList<>();
         new ServiceTestRunner("custom_steps.yml")
                 .setSchedulerEnv(
                         "DEPLOY_STRATEGY", "serial",
                         "DEPLOY_STEPS", "[[foo, bar]]")
-                .run(ticks);
+                .run(Collections.emptyList());
     }
 
     @Test
