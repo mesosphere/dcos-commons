@@ -103,6 +103,11 @@ public class PlanGenerator {
             List<String> allTaskNames = podSpec.getTasks().stream()
                     .map(taskSpec -> taskSpec.getName())
                     .collect(Collectors.toList());
+            if(!isValidStep(podSpec, allTaskNames)) {
+                throw new IllegalStateException(String.format(
+                        "Malformed steps in phase '%s': refers to non-existant tasks",
+                        phaseName));
+            }
             steps.add(generateStep(new DefaultPodInstance(podSpec, i), allTaskNames));
         }
         return new DefaultPhase(
@@ -130,6 +135,7 @@ public class PlanGenerator {
             // Add steps to the sequence, where each step may launch one or more tasks. Because the phase strategy
             // is serial, this is all we need to do. For example, [[a, b], c] => step[a, b], step[c]
             for (List<String> taskNames : taskLists) {
+
                 steps.add(generateStep(new DefaultPodInstance(podSpec, i), taskNames));
             }
         }
@@ -159,8 +165,14 @@ public class PlanGenerator {
                             phaseName, i));
                 }
             }
+
             for (List<String> taskNames : taskLists) {
                 Step step = generateStep(new DefaultPodInstance(podSpec, i), taskNames);
+                if(!isValidStep(podSpec, taskNames)) {
+                    throw new IllegalStateException(String.format(
+                            "Malformed steps in phase '%s': refers to non-existant tasks",
+                            phaseName));
+                }
                 if (podSteps.isEmpty()) {
                     // If there are no parent steps, we should at least ensure that this step is listed in the strategy.
                     dependencies.addElement(step);
@@ -249,5 +261,22 @@ public class PlanGenerator {
                     strategyType, PHASE_STRATEGY_GENERATORS.keySet()));
         }
         return generator;
+    }
+
+    /**
+     * validate that steps within a plan refer to existing tasks within the specified pod
+     */
+    private boolean isValidStep(PodSpec podSpec, List<String> tasksToLauch) {
+
+        List<String> allTaskNames = podSpec.getTasks().stream()
+                .map(taskSpec -> taskSpec.getName())
+                .collect(Collectors.toList());
+
+        for (int i = 0; i < tasksToLauch.size(); i++) {
+            if (!allTaskNames.contains(tasksToLauch.get(i)))
+                LOGGER.error(String.format("step refers to non-existing task %s", tasksToLauch.get(i)));
+                return false;
+        }
+        return true;
     }
 }
