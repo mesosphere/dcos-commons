@@ -183,7 +183,7 @@ public class PlanGenerator {
     }
 
     private Step generateStep(PodInstance podInstance, List<String> tasksToLaunch) {
-        if(!isValidStep(podInstance.getPod(), tasksToLaunch)) {
+        if (!isValidStep(podInstance.getPod(), tasksToLaunch)) {
             throw new IllegalStateException(String.format(
                     "Malformed step: step refers to a task that does not exist"));
         }
