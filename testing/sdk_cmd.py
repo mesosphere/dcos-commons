@@ -110,9 +110,14 @@ def cluster_request(
 
     def _cluster_request():
         start = time.time()
-        response = requests.request(
-            method, url, auth=auth, verify=False, timeout=timeout_seconds, **kwargs
-        )
+
+        # check if we have verify key already exists.
+        if kwargs is not None and kwargs['verify'] is not None:
+            kwargs['verify'] = False
+            response = requests.request(method, url, auth=auth, timeout=timeout_seconds, **kwargs)
+        else:
+            response = requests.request(method, url, auth=auth, verify=False, timeout=timeout_seconds, **kwargs)
+
         end = time.time()
 
         log_msg = "(HTTP {}) {}".format(method.upper(), cluster_path)
