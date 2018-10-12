@@ -57,7 +57,7 @@ class KafkaService:
         )
         assert rc == 0, "Topic create failed: {}".format(stderr)
         create_info = json.loads(stdout)
-        assert 'Created topic "%s".\n' % topic_name in create_info["message"]
+        assert 'Created topic "{}".\n'.format(topic_name) in create_info["message"]
         if "." in topic_name or "_" in topic_name:
             assert (
                 "topics with a period ('.') or underscore ('_') could collide."
