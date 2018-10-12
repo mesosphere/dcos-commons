@@ -398,7 +398,7 @@ public class ServiceTest {
         // - a recovery plan that's COMPLETE
         // - a decommission plan that's PENDING with phases for world-1 and world-0 (in that order)
 
-        // When default executor is being used, one additional resource needs to be unreserved (as sconfigured within
+        // When default executor is being used, one additional resource needs to be unreserved (as configured within
         // ServiceTestRunner).
         int stepCount = 7;
 
@@ -858,7 +858,9 @@ public class ServiceTest {
                         .collect(Collectors.toMap(
                                 Step::getName,
                                 Step::getStatus,
-                                (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
+                                (u, v) -> {
+                                    throw new IllegalStateException(String.format("Duplicate key %s", u));
+                                },
                                 TreeMap::new));
                 Assert.assertEquals(
                         String.format("Number of steps doesn't match expectation in %s: %s", stepCount, stepStatuses),

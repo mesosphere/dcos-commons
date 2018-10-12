@@ -625,10 +625,6 @@ public class DefaultServiceSpecTest {
 
     @Test
     public void testGoalStateDeserializesOldValues() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-
         ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
         DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
                 new DefaultServiceSpec.ConfigFactory.GoalStateDeserializer();

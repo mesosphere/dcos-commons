@@ -27,19 +27,19 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
     private final Logger logger;
     private final PortSpec portSpec;
-    private final String taskName;
+    private final Collection<String> taskNames;
     private final Optional<String> resourceId;
     private final Optional<String> resourceNamespace;
     private final boolean useHostPorts;
 
     public PortEvaluationStage(
             PortSpec portSpec,
-            String taskName,
+            Collection<String> taskNames,
             Optional<String> resourceId,
             Optional<String> resourceNamespace) {
         this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.portSpec = portSpec;
-        this.taskName = taskName;
+        this.taskNames = taskNames;
         this.resourceId = resourceId;
         this.resourceNamespace = resourceNamespace;
         this.useHostPorts = requireHostPorts(portSpec.getNetworkNames());
@@ -51,7 +51,11 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         long assignedPort = requestedPort;
         if (requestedPort == 0) {
             // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
-            Optional<Long> priorTaskPort = podInfoBuilder.getPriorPortForTask(getTaskName().get(), portSpec);
+            Optional<Long> priorTaskPort = getTaskNames().stream()
+                    .map(taskName -> podInfoBuilder.getPriorPortForTask(taskName, portSpec))
+                    .filter(priorPortForTask -> priorPortForTask.isPresent())
+                    .map(priorPortForTask -> priorPortForTask.get())
+                    .findAny();
             if (priorTaskPort.isPresent()) {
                 // Reuse the prior port value.
                 assignedPort = priorTaskPort.get();
@@ -67,7 +71,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
                             "No ports were available for dynamic claim in offer," +
                                     " and no matching port %s was present in prior %s: %s %s",
                             portSpec.getPortName(),
-                            getTaskName().isPresent() ? "task " + getTaskName().get() : "executor",
+                            getTaskNames().isEmpty() ? "executor" : "tasks: " + getTaskNames(),
                             TextFormat.shortDebugString(mesosResourcePool.getOffer()),
                             podInfoBuilder.toString())
                             .build();
@@ -125,8 +129,9 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
         final String portEnvKey = portSpec.getEnvKey();
         final String portEnvVal = Long.toString(port);
-        if (getTaskName().isPresent()) {
-            String taskName = getTaskName().get();
+
+        // Add info to each task:
+        for (String taskName : taskNames) {
             Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
 
             if (!taskBuilder.hasDiscovery()) {
@@ -180,7 +185,10 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             if (useHostPorts) { // we only use the resource if we're using the host ports
                 taskBuilder.addResources(resource);
             }
-        } else {
+        }
+
+        // No tasks specified, maybe it's for the executor? In practice this probably doesn't happen:
+        if (getTaskNames().isEmpty()) {
             Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
             if (portEnvKey != null) {
                 Protos.CommandInfo.Builder executorCmdBuilder = executorBuilder.getCommandBuilder();
@@ -265,7 +273,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         }
     }
 
-    protected Optional<String> getTaskName() {
-        return Optional.ofNullable(taskName);
+    protected Collection<String> getTaskNames() {
+        return taskNames;
     }
 }

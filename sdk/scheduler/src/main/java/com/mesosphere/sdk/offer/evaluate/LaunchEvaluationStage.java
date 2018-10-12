@@ -19,21 +19,21 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 public class LaunchEvaluationStage implements OfferEvaluationStage {
 
     private final String serviceName;
-    private final String taskName;
+    private final String taskSpecName;
     private final boolean shouldLaunch;
 
     /**
      * Creates a new evaluation stage for launching a task.
      *
      * @param serviceName The name of the service that's being launched into
-     * @param taskName The name of the task (as from the TaskSpec)
+     * @param taskSpecName The name of the task (as from the TaskSpec)
      * @param shouldLaunch Whether a Launch recommendation should actually be emitted. If false, then the StateStore
      *      will be updated with the resulting TaskInfo, but no launch will actually occur. This is used for updating
      *      local information about tasks
      */
-    public LaunchEvaluationStage(String serviceName, String taskName, boolean shouldLaunch) {
+    public LaunchEvaluationStage(String serviceName, String taskSpecName, boolean shouldLaunch) {
         this.serviceName = serviceName;
-        this.taskName = taskName;
+        this.taskSpecName = taskSpecName;
         this.shouldLaunch = shouldLaunch;
     }
 
@@ -41,7 +41,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
         Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
         Protos.Offer offer = mesosResourcePool.getOffer();
-        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
+        Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskSpecName);
 
         if (shouldLaunch) {
             taskBuilder.setTaskId(CommonIdUtils.toTaskId(serviceName, taskBuilder.getName()));
@@ -72,14 +72,14 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
                     Arrays.asList(
                             new LaunchOfferRecommendation(offer, taskBuilder.build(), executorBuilder.build()),
                             new StoreTaskInfoRecommendation(offer, taskBuilder.build(), executorBuilder.build())),
-                    String.format("Added launch operation for %s", taskName))
+                    String.format("Added launch operation for %s", taskSpecName))
                     .build();
         } else {
             return pass(
                     this,
                     // Only update in StateStore. No launch in Mesos.
                     Arrays.asList(new StoreTaskInfoRecommendation(offer, taskBuilder.build(), executorBuilder.build())),
-                    String.format("Added metadata update for %s", taskName))
+                    String.format("Added metadata update for %s", taskSpecName))
                     .build();
         }
     }

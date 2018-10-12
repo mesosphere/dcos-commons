@@ -115,7 +115,7 @@ public class ExecutorResourceMapper {
         if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getExisting(
                     (VolumeSpec) resourceSpec,
-                    Optional.empty(),
+                    Collections.emptyList(),
                     resourceId,
                     resourceLabels.getResourceNamespace(),
                     resourceLabels.getPersistenceId(),
@@ -124,7 +124,7 @@ public class ExecutorResourceMapper {
         } else {
             return new ResourceEvaluationStage(
                     resourceSpec,
-                    Optional.empty(),
+                    Collections.emptyList(),
                     resourceId,
                     resourceLabels.getResourceNamespace()
             );
@@ -134,9 +134,10 @@ public class ExecutorResourceMapper {
     private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
         if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getNew(
-                    (VolumeSpec) resourceSpec, Optional.empty(), resourceNamespace);
+                    (VolumeSpec) resourceSpec, Collections.emptyList(), resourceNamespace);
         } else {
-            return new ResourceEvaluationStage(resourceSpec, Optional.empty(), Optional.empty(), resourceNamespace);
+            return new ResourceEvaluationStage(
+                    resourceSpec, Collections.emptyList(), Optional.empty(), resourceNamespace);
         }
     }
 }

@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
  */
 public class OfferEvaluator {
 
-    final Logger logger;
+    private final Logger logger;
     private final FrameworkStore frameworkStore;
     private final StateStore stateStore;
     private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
@@ -72,6 +72,7 @@ public class OfferEvaluator {
                 .filter(Objects::nonNull)
                 .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
 
+        // Evaluation stages are stateless, so we can reuse them when evaluating multiple offers.
         List<OfferEvaluationStage> evaluationStages =
                 getEvaluationPipeline(podInstanceRequirement, allTasks.values(), thisPodTasks);
 
@@ -156,10 +157,6 @@ public class OfferEvaluator {
                         outcomeDetails.toString()));
                 }
 
-                logger.info("TODO recommendations are: {}", recommendations.stream()
-                        .filter(r -> r.getOperation().isPresent())
-                        .map(r -> r.getOperation().get())
-                        .collect(Collectors.toList()));
                 return recommendations;
             }
         }
@@ -286,29 +283,6 @@ public class OfferEvaluator {
         }
     }
 
-    private static Map<String, ResourceSet> getNewResourceSets(PodInstanceRequirement podInstanceRequirement) {
-        Map<String, ResourceSet> resourceSets =
-                podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-                        .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
-                        .collect(Collectors.toMap(TaskSpec::getName, TaskSpec::getResourceSet));
-
-        for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-            if (resourceSets.keySet().contains(taskSpec.getName())) {
-                continue;
-            }
-
-            Set<String> resourceSetNames = resourceSets.values().stream()
-                    .map(resourceSet -> resourceSet.getId())
-                    .collect(Collectors.toSet());
-
-            if (!resourceSetNames.contains(taskSpec.getResourceSet().getId())) {
-                resourceSets.put(taskSpec.getName(), taskSpec.getResourceSet());
-            }
-        }
-
-        return resourceSets;
-    }
-
     private static List<ResourceSpec> getOrderedResourceSpecs(ResourceSet resourceSet) {
         // Statically defined ports, then dynamic ports, then everything else
         List<ResourceSpec> staticPorts = new ArrayList<>();
@@ -354,7 +328,7 @@ public class OfferEvaluator {
 
         for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
             evaluationStages.add(VolumeEvaluationStage.getNew(
-                    volumeSpec, Optional.empty(), resourceNamespace));
+                    volumeSpec, Collections.emptyList(), resourceNamespace));
         }
 
         // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
@@ -367,59 +341,97 @@ public class OfferEvaluator {
             }
         }
 
-        boolean shouldAddExecutorResources = true;
-        for (Map.Entry<String, ResourceSet> taskEntry : getNewResourceSets(podInstanceRequirement).entrySet()) {
-            String taskName = taskEntry.getKey();
-            List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(taskEntry.getValue());
+        Map<String, ResourceSet> resourceSetsByTaskSpecName =
+                podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                // Create a TreeMap: Doesn't hurt to have consistent ordering when evaluating tasks
+                .collect(Collectors.toMap(
+                        TaskSpec::getName,
+                        TaskSpec::getResourceSet,
+                        (u, v) -> {
+                            throw new IllegalStateException(String.format("Duplicate key %s", u));
+                        },
+                        TreeMap::new));
 
-            if (shouldAddExecutorResources) {
-                // The default executor needs a constant amount of resources, account for them here.
-                // For consistency, let's put this before the per-task RESERVE calls.
-                // Also, use an arbitrary ResourceSpec to figure out what roles/principal to use.
-                getExecutorResourceSpecs(schedulerConfig, resourceSpecs.get(0)).stream()
+        // Only reserve the executor's resources once:
+        boolean addedExecutorResources = false;
+        // For any given ResourceSet, only reserve its configured resources once (but store TaskInfos for all tasks):
+        Set<String> addedResourceSets = new HashSet<>();
+
+        for (Map.Entry<String, ResourceSet> taskEntry : resourceSetsByTaskSpecName.entrySet()) {
+            String taskSpecName = taskEntry.getKey();
+            ResourceSet resourceSet = taskEntry.getValue();
+            List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(resourceSet);
+
+            if (!addedExecutorResources) {
+                // The default executor needs a fixed amount of "overhead" resources, to be added once per pod.
+                // For consistency, let's put this before the per-task/resourceset RESERVE calls below.
+                addedExecutorResources = true;
+
+                getExecutorResourceSpecs(
+                        schedulerConfig,
+                        // All ResourceSpecs in a pod share the same role/principal, see YAMLToInternalMappers:
+                        resourceSpecs.get(0).getRole(),
+                        resourceSpecs.get(0).getPrincipal(),
+                        resourceSpecs.get(0).getPreReservedRole()).stream()
                         .map(spec -> new ResourceEvaluationStage(
                                 spec,
-                                Optional.empty(),
+                                Collections.emptyList(),
                                 Optional.empty(),
                                 resourceNamespace))
                         .forEach(evaluationStages::add);
-                shouldAddExecutorResources = false;
             }
 
-            for (ResourceSpec resourceSpec : resourceSpecs) {
-                if (resourceSpec instanceof NamedVIPSpec) {
-                    evaluationStages.add(new NamedVIPEvaluationStage(
-                            (NamedVIPSpec) resourceSpec, taskName, Optional.empty(), resourceNamespace));
-                } else if (resourceSpec instanceof PortSpec) {
-                    evaluationStages.add(new PortEvaluationStage(
-                            (PortSpec) resourceSpec, taskName, Optional.empty(), resourceNamespace));
-                } else {
-                    evaluationStages.add(new ResourceEvaluationStage(
-                            resourceSpec, Optional.of(taskName), Optional.empty(), resourceNamespace));
+            if (!addedResourceSets.contains(resourceSet.getId())) {
+                // Add evaluation stages for the resources in the task's resource set.
+                // If multiple tasks share the same resource set, we only want to evaluate those shared resources once.
+
+                // At the same time, we must also ensure that we update all of the relevant TaskInfos with the resource.
+                Collection<String> taskNamesToUpdateProtos = resourceSetsByTaskSpecName.entrySet().stream()
+                        .filter(checkEntry -> resourceSet.getId().equals(checkEntry.getValue().getId()))
+                        .map(checkEntry -> checkEntry.getKey())
+                        .collect(Collectors.toSet());
+
+                addedResourceSets.add(resourceSet.getId());
+
+                for (ResourceSpec resourceSpec : resourceSpecs) {
+                    if (resourceSpec instanceof NamedVIPSpec) {
+                        evaluationStages.add(new NamedVIPEvaluationStage(
+                                (NamedVIPSpec) resourceSpec,
+                                taskNamesToUpdateProtos,
+                                Optional.empty(),
+                                resourceNamespace));
+                    } else if (resourceSpec instanceof PortSpec) {
+                        evaluationStages.add(new PortEvaluationStage(
+                                (PortSpec) resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace));
+                    } else {
+                        evaluationStages.add(new ResourceEvaluationStage(
+                                resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace));
+                    }
+                }
+
+                for (VolumeSpec volumeSpec : resourceSet.getVolumes()) {
+                    evaluationStages.add(VolumeEvaluationStage.getNew(
+                            volumeSpec, taskNamesToUpdateProtos, resourceNamespace));
                 }
             }
 
-            for (VolumeSpec volumeSpec : taskEntry.getValue().getVolumes()) {
-                evaluationStages.add(VolumeEvaluationStage.getNew(
-                        volumeSpec, Optional.of(taskName), resourceNamespace));
-            }
-
-            boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
+            // Finally, either launch the task, or just update the StateStore with information about the task.
+            boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskSpecName);
             evaluationStages.add(
-                    new LaunchEvaluationStage(serviceName, taskName, shouldBeLaunched));
+                    new LaunchEvaluationStage(serviceName, taskSpecName, shouldBeLaunched));
         }
 
         return evaluationStages;
     }
 
     private static Collection<ResourceSpec> getExecutorResourceSpecs(
-            SchedulerConfig schedulerConfig, ResourceSpec resourceSpecForRoles) {
+            SchedulerConfig schedulerConfig, String role, String principal, String preReservedRole) {
         return schedulerConfig.getExecutorResources().entrySet().stream()
                 .map(executorResourceEntry -> DefaultResourceSpec.newBuilder()
                         .name(executorResourceEntry.getKey())
-                        .preReservedRole(resourceSpecForRoles.getPreReservedRole())
-                        .role(resourceSpecForRoles.getRole())
-                        .principal(resourceSpecForRoles.getPrincipal())
+                        .preReservedRole(preReservedRole)
+                        .role(role)
+                        .principal(principal)
                         .value(executorResourceEntry.getValue())
                         .build())
                 .collect(Collectors.toList());
@@ -450,13 +462,23 @@ public class OfferEvaluator {
                     allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
         }
 
-        ExistingTaskEvaluationPipeline existingTasks =
-                new ExistingTaskEvaluationPipeline(stateStore, podInstanceRequirement);
-
+        // Select an arbitrary ResourceSpec from the pod definition to get the role and principal.
+        // All ResourceSpecs in a pod share the same role/principal, see YAMLToInternalMappers.
+        ResourceSpec resourceSpecForRoleAndPrincipal =
+                podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                        .map(taskSpec -> taskSpec.getResourceSet().getResources())
+                        .filter(resourceSpecs -> !resourceSpecs.isEmpty())
+                        .findAny()
+                        .get()
+                        .iterator().next();
         // Add evaluation for the executor's own resources:
         ExecutorResourceMapper executorResourceMapper = new ExecutorResourceMapper(
                 podInstanceRequirement.getPodInstance().getPod(),
-                getExecutorResourceSpecs(schedulerConfig, existingTasks.getRandomLaunchableResourceSpec()),
+                getExecutorResourceSpecs(
+                        schedulerConfig,
+                        resourceSpecForRoleAndPrincipal.getRole(),
+                        resourceSpecForRoleAndPrincipal.getPrincipal(),
+                        resourceSpecForRoleAndPrincipal.getPreReservedRole()),
                 executorInfo.getResourcesList(),
                 resourceNamespace);
         executorResourceMapper.getOrphanedResources()
@@ -466,8 +488,138 @@ public class OfferEvaluator {
         evaluationStages.addAll(executorResourceMapper.getEvaluationStages());
 
         // Evaluate any changes to the task(s):
-        evaluationStages.addAll(existingTasks.getTaskStages(serviceName, resourceNamespace, podTasks));
+        evaluationStages.addAll(getExistingTaskEvaluationPipeline(
+                podInstanceRequirement, serviceName, resourceNamespace, podTasks));
 
+        return evaluationStages;
+    }
+
+    /**
+     * Returns the evaluation stages needed to relaunch a task. This may optionally include any autodetected changes
+     * to the task's reserved resources.
+     */
+    private Collection<OfferEvaluationStage> getExistingTaskEvaluationPipeline(
+            PodInstanceRequirement podInstanceRequirement,
+            String serviceName,
+            Optional<String> resourceNamespace,
+            Map<String, Protos.TaskInfo> allTasksInPod) {
+        Map<String, ResourceSet> allTaskSpecNamesToResourceSets =
+                podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+                // Create a TreeMap: Doesn't hurt to have consistent ordering when evaluating tasks
+                .collect(Collectors.toMap(
+                        TaskSpec::getName,
+                        TaskSpec::getResourceSet,
+                        (u, v) -> {
+                            throw new IllegalStateException(String.format("Duplicate key %s", u));
+                        },
+                        TreeMap::new));
+
+        // For each distinct Resource Set, ensure that we only evaluate their resources once. Multiple tasks may share
+        // the same resource set, so we should avoid double-evaluating their common resources. However, we should update
+        // the metadata for all tasks using a given resource set if or when its reservations are updated.
+
+        // Note: It is possible that we're looking to reconfigure a ResourceSet that's still "attached" to a running
+        // task. In practice, this isn't a problem because those resources will not be offered to us while they are
+        // still occupied. We therefore do not need to worry about some kind of "collision" where we're trying modify
+        // the reservations of a ResourceSet while they're still being occupied, which is an illegal operation.
+
+        // For evaluation purposes, there are three categories of tasks to think about:
+        // A. Tasks that are being launched: The ResourceSet for each of these tasks should be evaluated, and a launch
+        //    operation should be produced.
+        // B. Tasks that are not being launched, but share a ResourceSet with a task that is being launched: The
+        //    metadata for these tasks should be updated to reflect any changes.
+        // C. Tasks that are not being relaunched, and do not share a ResourceSet with any tasks that are being
+        //    launched: Make no changes to these tasks, leave them as-is until a launch is requested in the future.
+
+        // For any given ResourceSet, only evaluate its resources once (but update all affected TaskInfos):
+        Set<String> updatedResourceSetIds = new HashSet<>();
+
+        Collection<OfferEvaluationStage> evaluationStages = new ArrayList<>();
+        for (String taskSpecNameToLaunch : podInstanceRequirement.getTasksToLaunch()) {
+            ResourceSet resourceSet = allTaskSpecNamesToResourceSets.get(taskSpecNameToLaunch);
+            if (resourceSet == null) {
+                throw new IllegalStateException(String.format(
+                        "Unable to find task to launch %s among defined tasks %s in pod %s. Malformed ServiceSpec?",
+                        taskSpecNameToLaunch,
+                        allTaskSpecNamesToResourceSets.keySet(),
+                        podInstanceRequirement.getName()));
+            }
+            if (updatedResourceSetIds.contains(resourceSet.getId())) {
+                // Already updated. Maybe there are two tasks being launched into the same ResourceSet at the same time?
+                // As a rule that shouldn't happen, but just in case...
+                logger.warn("Multiple tasks to launch in pod instance requirement {} share the same resource set {}",
+                        podInstanceRequirement.getName(), resourceSet.getId());
+                continue;
+            }
+
+            // If multiple tasks share the same resource set, we only want to evaluate those shared resources once.
+            updatedResourceSetIds.add(resourceSet.getId());
+
+            // Get the names of all tasks in this resource set.
+            // We will update their TaskInfos and/or invoke launch operations for them.
+            Collection<String> taskSpecNamesInResourceSet = allTaskSpecNamesToResourceSets.entrySet().stream()
+                    .filter(checkEntry -> resourceSet.getId().equals(checkEntry.getValue().getId()))
+                    .map(checkEntry -> checkEntry.getKey())
+                    // Go with alphabetical order by task spec name for consistency:
+                    .collect(Collectors.toCollection(TreeSet::new));
+
+            // Add resource evaluations for the ResourceSet:
+            evaluationStages.addAll(getExistingResourceSetStages(
+                    podInstanceRequirement,
+                    serviceName,
+                    resourceNamespace,
+                    allTasksInPod,
+                    resourceSet,
+                    taskSpecNamesInResourceSet));
+            // Add TaskInfo updates and/or launch operations for the task(s) paired with the resource set:
+            for (String taskSpecName : taskSpecNamesInResourceSet) {
+                evaluationStages.add(new LaunchEvaluationStage(
+                        serviceName,
+                        taskSpecName,
+                        podInstanceRequirement.getTasksToLaunch().contains(taskSpecName)));
+            }
+        }
+
+        return evaluationStages;
+    }
+
+    /**
+     * Returns the evaluation stages needed to update the reservations associated with a resource set. In the default
+     * case, a resource set is 1:1 with a task, but services may also have multiple tasks that share a single resource
+     * set.
+     */
+    private Collection<OfferEvaluationStage> getExistingResourceSetStages(
+            PodInstanceRequirement podInstanceRequirement,
+            String serviceName,
+            Optional<String> resourceNamespace,
+            Map<String, Protos.TaskInfo> allTasksInPod,
+            ResourceSet resourceSet,
+            Collection<String> taskSpecNamesInResourceSet) {
+        // Search for any existing TaskInfo for one of the tasks in this resource set. The TaskInfo should have a copy
+        // of the resources assigned to the resource set.
+        Collection<String> taskInfoNames = taskSpecNamesInResourceSet.stream()
+                .map(taskSpecName ->
+                        TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpecName))
+                .collect(Collectors.toList());
+        Optional<Protos.TaskInfo> taskInfo = taskInfoNames.stream()
+                .map(taskInfoName -> allTasksInPod.get(taskInfoName))
+                .filter(mapTaskInfo -> mapTaskInfo != null)
+                .findAny();
+        if (!taskInfo.isPresent()) {
+            // This shouldn't happen, because this codepath is for reevaluating pods that had been launched
+            // before. There should always be at least one TaskInfo for the resource set...
+            logger.error("Failed to find existing TaskInfo among {}, cannot evaluate existing resource set {}",
+                    taskInfoNames, resourceSet.getId());
+            return Collections.emptyList();
+        }
+
+        TaskResourceMapper taskResourceMapper =
+                new TaskResourceMapper(taskSpecNamesInResourceSet, resourceSet, taskInfo.get(), resourceNamespace);
+
+        Collection<OfferEvaluationStage> evaluationStages = new ArrayList<>();
+        taskResourceMapper.getOrphanedResources()
+                .forEach(resource -> evaluationStages.add(new UnreserveEvaluationStage(resource)));
+        evaluationStages.addAll(taskResourceMapper.getEvaluationStages());
         return evaluationStages;
     }
 

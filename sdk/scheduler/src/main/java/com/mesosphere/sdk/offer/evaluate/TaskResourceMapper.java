@@ -21,7 +21,7 @@ class TaskResourceMapper {
 
     private final Logger logger;
     private final Optional<String> resourceNamespace;
-    private final String taskSpecName;
+    private final Collection<String> taskSpecNames;
     private final List<Protos.Resource> orphanedResources = new ArrayList<>();
     private final Collection<ResourceSpec> resourceSpecs;
     private final TaskPortLookup taskPortFinder;
@@ -30,15 +30,18 @@ class TaskResourceMapper {
     private final List<OfferEvaluationStage> evaluationStages;
 
     TaskResourceMapper(
-            TaskSpec taskSpec,
+            Collection<String> taskSpecNames,
+            ResourceSet resourceSet,
             Protos.TaskInfo taskInfo,
             Optional<String> resourceNamespace) {
         logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.resourceNamespace = resourceNamespace;
-        this.taskSpecName = taskSpec.getName();
+        // Multiple tasks may share a resource set. When a resource set is updated, we want to ensure that all tasks
+        // attached to the resource set receive the update.
+        this.taskSpecNames = taskSpecNames;
         this.resourceSpecs = new ArrayList<>();
-        this.resourceSpecs.addAll(taskSpec.getResourceSet().getResources());
-        this.resourceSpecs.addAll(taskSpec.getResourceSet().getVolumes());
+        this.resourceSpecs.addAll(resourceSet.getResources());
+        this.resourceSpecs.addAll(resourceSet.getVolumes());
         this.taskPortFinder = new TaskPortLookup(taskInfo);
         this.resources = taskInfo.getResourcesList();
 
@@ -100,14 +103,14 @@ class TaskResourceMapper {
         if (!matchingResources.isEmpty()) {
             logger.info("Matching task/TaskSpec resources: {}", matchingResources);
             for (ResourceLabels resourceLabels : matchingResources) {
-                stages.add(newUpdateEvaluationStage(taskSpecName, resourceLabels));
+                stages.add(newUpdateEvaluationStage(taskSpecNames, resourceLabels));
             }
         }
 
         if (!remainingResourceSpecs.isEmpty()) {
             logger.info("Missing TaskSpec resources not found in task: {}", remainingResourceSpecs);
             for (ResourceSpec missingResource : remainingResourceSpecs) {
-                stages.add(newCreateEvaluationStage(taskSpecName, missingResource));
+                stages.add(newCreateEvaluationStage(taskSpecNames, missingResource));
             }
         }
         return stages;
@@ -157,9 +160,10 @@ class TaskResourceMapper {
         return Optional.empty();
     }
 
-    private OfferEvaluationStage newUpdateEvaluationStage(String taskSpecName, ResourceLabels resourceLabels) {
+    private OfferEvaluationStage newUpdateEvaluationStage(
+            Collection<String> taskSpecNames, ResourceLabels resourceLabels) {
         return toEvaluationStage(
-                taskSpecName,
+                taskSpecNames,
                 resourceLabels.getUpdated(),
                 Optional.of(resourceLabels.getResourceId()),
                 resourceLabels.getResourceNamespace(),
@@ -168,9 +172,10 @@ class TaskResourceMapper {
                 resourceLabels.getDiskSource());
     }
 
-    private OfferEvaluationStage newCreateEvaluationStage(String taskSpecName, ResourceSpec resourceSpec) {
+    private OfferEvaluationStage newCreateEvaluationStage(
+            Collection<String> taskSpecNames, ResourceSpec resourceSpec) {
         return toEvaluationStage(
-                taskSpecName,
+                taskSpecNames,
                 resourceSpec,
                 Optional.empty(),
                 resourceNamespace,
@@ -180,7 +185,7 @@ class TaskResourceMapper {
     }
 
     private static OfferEvaluationStage toEvaluationStage(
-            String taskSpecName,
+            Collection<String> taskSpecNames,
             ResourceSpec resourceSpec,
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
@@ -189,20 +194,20 @@ class TaskResourceMapper {
             Optional<Protos.Resource.DiskInfo.Source> diskSource) {
         if (resourceSpec instanceof NamedVIPSpec) {
             return new NamedVIPEvaluationStage(
-                    (NamedVIPSpec) resourceSpec, taskSpecName, resourceId, resourceNamespace);
+                    (NamedVIPSpec) resourceSpec, taskSpecNames, resourceId, resourceNamespace);
         } else if (resourceSpec instanceof PortSpec) {
-            return new PortEvaluationStage((PortSpec) resourceSpec, taskSpecName, resourceId, resourceNamespace);
+            return new PortEvaluationStage((PortSpec) resourceSpec, taskSpecNames, resourceId, resourceNamespace);
         } else if (resourceSpec instanceof VolumeSpec) {
             return VolumeEvaluationStage.getExisting(
                     (VolumeSpec) resourceSpec,
-                    Optional.of(taskSpecName),
+                    taskSpecNames,
                     resourceId,
                     resourceNamespace,
                     persistenceId,
                     providerId,
                     diskSource);
         } else {
-            return new ResourceEvaluationStage(resourceSpec, Optional.of(taskSpecName), resourceId, resourceNamespace);
+            return new ResourceEvaluationStage(resourceSpec, taskSpecNames, resourceId, resourceNamespace);
         }
     }
 }

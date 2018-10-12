@@ -21,7 +21,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     private final Logger logger;
     private final VolumeSpec volumeSpec;
-    private final Optional<String> taskName;
+    private final Collection<String> taskNames;
     private final Optional<String> resourceId;
     private final Optional<String> resourceNamespace;
     private final Optional<String> persistenceId;
@@ -30,11 +30,11 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     public static VolumeEvaluationStage getNew(
             VolumeSpec volumeSpec,
-            Optional<String> taskName,
+            Collection<String> taskNames,
             Optional<String> resourceNamespace) {
         return new VolumeEvaluationStage(
                 volumeSpec,
-                taskName,
+                taskNames,
                 Optional.empty(),
                 resourceNamespace,
                 Optional.empty(),
@@ -44,7 +44,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     public static VolumeEvaluationStage getExisting(
             VolumeSpec volumeSpec,
-            Optional<String> taskName,
+            Collection<String> taskNames,
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
@@ -52,7 +52,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<Protos.Resource.DiskInfo.Source> diskSource) {
         return new VolumeEvaluationStage(
                 volumeSpec,
-                taskName,
+                taskNames,
                 resourceId,
                 resourceNamespace,
                 persistenceId,
@@ -62,7 +62,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     private VolumeEvaluationStage(
             VolumeSpec volumeSpec,
-            Optional<String> taskName,
+            Collection<String> taskNames,
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
@@ -70,7 +70,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             Optional<Protos.Resource.DiskInfo.Source> diskSource) {
         this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
         this.volumeSpec = volumeSpec;
-        this.taskName = taskName;
+        this.taskNames = taskNames;
         this.resourceId = resourceId;
         this.resourceNamespace = resourceNamespace;
         this.persistenceId = persistenceId;
@@ -84,15 +84,13 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
-        String detailsClause = resourceId.isPresent() ? "previously reserved " : "";
-
         List<OfferRecommendation> offerRecommendations = new ArrayList<>();
         Protos.Resource resource;
         final MesosResource mesosResource;
 
         boolean isRunningExecutor =
                 OfferEvaluationUtils.isRunningExecutor(podInfoBuilder, mesosResourcePool.getOffer());
-        if (!taskName.isPresent() && isRunningExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
+        if (taskNames.isEmpty() && isRunningExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
             // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
             // add it to the ExecutorInfo.
             podInfoBuilder.setExecutorVolume(volumeSpec);
@@ -177,23 +175,39 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
             offerRecommendations.add(new CreateOfferRecommendation(mesosResourcePool.getOffer(), resource));
         }
 
-        logger.info("Generated '{}' resource for task {}: [{}]",
-                volumeSpec.getName(), taskName, TextFormat.shortDebugString(resource));
-        OfferEvaluationUtils.setProtos(podInfoBuilder, resource, taskName);
-
-        if (!taskName.isPresent()) {
+        logger.info("Generated '{}' resource for tasks {}: [{}]",
+                volumeSpec.getName(), taskNames, TextFormat.shortDebugString(resource));
+        // If it's a task-level volume, add it to all tasks in the resource set:
+        for (String taskName : taskNames) {
+            OfferEvaluationUtils.setProtos(podInfoBuilder, resource, Optional.of(taskName));
+        }
+        // If it's an executor-level volume, add it to the executor:
+        if (taskNames.isEmpty()) {
+            OfferEvaluationUtils.setProtos(podInfoBuilder, resource, Optional.empty());
             podInfoBuilder.setExecutorVolume(volumeSpec);
         }
 
-        return pass(
-                this,
-                offerRecommendations,
-                "Offer contains sufficient %s'disk': for resource: '%s' with resourceId: '%s' and persistenceId: '%s'",
-                detailsClause,
-                volumeSpec,
-                resourceId,
-                persistenceId)
-                .mesosResource(mesosResource)
-                .build();
+        if (resourceId.isPresent()) {
+            return pass(
+                    this,
+                    offerRecommendations,
+                    "Offer contains previously reserved 'disk' with resourceId: '%s' and persistenceId: '%s' " +
+                            "for resource: '%s'",
+                    resourceId.get(),
+                    persistenceId, // in case persistenceId is unset, even if resourceId is set
+                    volumeSpec)
+                    .mesosResource(mesosResource)
+                    .build();
+        } else {
+            return pass(
+                    this,
+                    offerRecommendations,
+                    "Offer contains sufficient unreserved 'disk', generated new resourceId: '%s' " +
+                            "for new reservation: '%s'",
+                    ResourceUtils.getResourceId(resource).get(),
+                    volumeSpec)
+                    .mesosResource(mesosResource)
+                    .build();
+        }
     }
 }

@@ -383,12 +383,12 @@ public class TaskUtils {
         }
 
         // We treat a task as having "launched" if there exists a TaskStatus for it.
-        Set<Protos.TaskID> allLaunchedTaskIds = allTaskStatuses.stream()
-                .map(status -> status.getTaskId())
+        Set<String> allLaunchedTaskIds = allTaskStatuses.stream()
+                .map(status -> status.getTaskId().getValue())
                 .collect(Collectors.toSet());
 
         Set<String> allLaunchedTaskNames = allTaskInfos.stream()
-                .filter(taskInfo -> allLaunchedTaskIds.contains(taskInfo.getTaskId()))
+                .filter(taskInfo -> allLaunchedTaskIds.contains(taskInfo.getTaskId().getValue()))
                 .map(taskInfo -> taskInfo.getName())
                 .collect(Collectors.toSet());
 
@@ -510,7 +510,7 @@ public class TaskUtils {
      * This assumes that the task is not supposed to be {@code FINISHED}.
      */
     public static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
-        // Note that we include FINISHED as "needs recovery".
+        // Note that we include FINISHED as "needs recovery", because we assume the task is supposed to be RUNNING.
         if (isTerminal(taskStatus)) {
             return true;
         }
@@ -543,7 +543,7 @@ public class TaskUtils {
             case TASK_RUNNING:
             case TASK_STAGING:
             case TASK_STARTING:
-            case TASK_UNKNOWN:
+            case TASK_UNKNOWN: // mesos.proto: "may or may not still be running"
             case TASK_UNREACHABLE:
                 break;
         }

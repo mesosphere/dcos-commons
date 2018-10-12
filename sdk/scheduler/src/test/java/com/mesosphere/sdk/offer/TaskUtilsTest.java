@@ -27,11 +27,9 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.hamcrest.Matchers.empty;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 /**
  * This class tests the TaskUtils class.
@@ -627,7 +625,7 @@ public class TaskUtilsTest {
     private static Collection<Protos.TaskStatus> getTaskStatuses(Collection<Protos.TaskInfo> taskInfos) {
         return taskInfos.stream().map(task -> Protos.TaskStatus.newBuilder()
                     .setState(Protos.TaskState.TASK_STAGING)
-                    .setTaskId(Protos.TaskID.newBuilder().setValue(UUID.randomUUID().toString()))
+                    .setTaskId(task.getTaskId())
                     .build())
                 .collect(Collectors.toList());
     }
