@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.mesos.Protos;
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.mesosphere.sdk.testing.Expect;
@@ -120,6 +121,16 @@ public class CustomStepsTest {
                 .setSchedulerEnv(
                         "DEPLOY_STRATEGY", "serial",
                         "DEPLOY_STEPS", "[[first, second]]")
+                .run(ticks);
+    }
+
+    @Test(expected = IllegalStateException.class)
+    public void testInvalidStep() throws Exception {
+        Collection<SimulationTick> ticks = new ArrayList<>();
+        new ServiceTestRunner("custom_steps.yml")
+                .setSchedulerEnv(
+                        "DEPLOY_STRATEGY", "serial",
+                        "DEPLOY_STEPS", "[[foo, bar]]")
                 .run(ticks);
     }
 
