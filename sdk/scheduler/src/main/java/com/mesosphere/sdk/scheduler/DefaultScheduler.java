@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.*;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
@@ -182,7 +181,13 @@ public class DefaultScheduler extends AbstractScheduler {
             activeTasks.addAll(decommissionedTasks);
         }
 
-        killUnneededTasks(stateStore, activeTasks);
+        if (schedulerConfig.useLegacyUnneededTaskKills()) {
+            //TODO(kjoshi): Remove this function on or after Dec 2018.
+            //This case is turned off by default.
+            legacyKillUnneededTasks(stateStore, activeTasks, logger);
+        } else {
+            killUnneededTasks(stateStore, activeTasks);
+        }
     }
 
     @Override
@@ -210,13 +215,36 @@ public class DefaultScheduler extends AbstractScheduler {
                 || isReplacing(recoveryPlanManager)) { // TODO(nickbp): footprint plan should have replacing tasks?
             // Service is acquiring footprint, either via initial deployment or via replacing a task
             return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
-        } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> !pm.getPlan().isComplete())) {
-            // One or more plans (including e.g. sidecar plans) is incomplete: Not idle
+        } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> isWorking(pm.getPlan()))) {
+            // One or more plans (including e.g. sidecar plans) is doing work: Not idle
             return ClientStatusResponse.launching(workSetTracker.hasNewWork());
         } else {
-            // All plans are complete: Idle
+            // All plans are complete, or are not doing work: Idle
             return ClientStatusResponse.idle();
         }
+    }
+
+    /**
+     * Returns whether the plan appears to currently be doing work, or is wanting to perform work. If {@code false} then
+     * the plan is not currently performing work.
+     */
+    private static boolean isWorking(Plan plan) {
+        switch (plan.getStatus()) {
+        case PENDING:
+        case IN_PROGRESS:
+        case PREPARED:
+        case STARTED:
+        case STARTING:
+            // The plan has work left to do, or is currently actively doing work.
+            return true;
+        case COMPLETE:
+        case ERROR:
+        case WAITING:
+            // The plan currently has no work to do: finished, or in a stopped state.
+            return false;
+        }
+        throw new IllegalStateException(
+                String.format("Unsupported status in %s plan: %s", plan.getName(), plan.getStatus()));
     }
 
     private static boolean isReplacing(PlanManager recoveryPlanManager) {
@@ -246,24 +274,56 @@ public class DefaultScheduler extends AbstractScheduler {
                 .map(taskInfo -> taskInfo.getTaskId())
                 .collect(Collectors.toSet());
 
+        taskIdsToKill.forEach(taskID -> TaskKiller.killTask(taskID));
+    }
+
+    private static void legacyKillUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames, Logger logger) {
+
+        //This method is retained to understand why we're cleaning out TaskInfo's and why
+        //a global kill was issued to pending tasks. This method can be invoked in frameworks
+        //that do not have require extensive cleanup via decommissioning. The environment
+        //variable USE_LEGACY_KILL_UNNEEDED_TASKS should be set to invoke this method at runtime.
+        //TODO(kjoshi): Remove this function on or after Dec 2018.
+
+        Set<Protos.TaskInfo> unneededTaskInfos = stateStore.fetchTasks().stream()
+                .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
+                .collect(Collectors.toSet());
+
+        Set<Protos.TaskID> taskIdsToKill = unneededTaskInfos.stream()
+                .map(taskInfo -> taskInfo.getTaskId())
+                .collect(Collectors.toSet());
+
         // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
+        //TODO(kjoshi): Investigate why this is needed anymore.
         Set<Protos.TaskInfo> cleanedTaskInfos = unneededTaskInfos.stream()
                 .map(taskInfo -> taskInfo.toBuilder())
                 .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
                 .collect(Collectors.toSet());
 
         // Remove both TaskInfo and TaskStatus, then store the cleaned TaskInfo one at a time to limit damage in the
-        // event of an untimely scheduler crash
+        // event of an untimely scheduler crash.
+        //TODO(kjoshi): Investigate why this is needed anymore.
         for (Protos.TaskInfo taskInfo : cleanedTaskInfos) {
             stateStore.clearTask(taskInfo.getName());
             stateStore.storeTasks(Arrays.asList(taskInfo));
         }
 
+        unneededTaskInfos.stream().forEach(taskInfo ->
+                logger.info("Enqueued kill of taskName: {} taskId: {} due to unneeded taskinfos!",
+                        taskInfo.getName(),
+                        taskInfo.getTaskId()));
+
         taskIdsToKill.forEach(taskID -> TaskKiller.killTask(taskID));
 
+        //WARNING: This is a global kill of pending tasks. This can interfere with
+        //decommission steps which may have started up in pending state.
+        //Some frameworks like k8s need decommission steps to execute correctly for cleanup.
         for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
             GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
             if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
+                logger.warn("Enqueued kill of taskName: {} taskId: {} due to GoalStateOverride PENDING!",
+                        taskInfo.getName(),
+                        taskInfo.getTaskId());
                 // Enabling or disabling an override was triggered, but the task kill wasn't processed so that the
                 // change in override could take effect. Kill the task so that it can enter (or exit) the override. The
                 // override status will then be marked IN_PROGRESS once we have received the terminal TaskStatus.
@@ -298,14 +358,16 @@ public class DefaultScheduler extends AbstractScheduler {
                     offerRecommendations.size(),
                     offerRecommendations.size() == 1 ? "" : "s",
                     offerRecommendations.stream()
-                            .map(rec -> rec.getOffer().getId().getValue())
+                            .map(rec -> rec.getOfferId().getValue())
                             .collect(Collectors.toSet()));
         }
 
         try {
+            // Store any TaskInfo data in ZK:
             launchRecorder.record(offerRecommendations);
             if (decommissionRecorder.isPresent()) {
-                decommissionRecorder.get().recordRecommendations(offerRecommendations);
+                // Notify decommission plan of dereservations:
+                decommissionRecorder.get().recordDecommission(offerRecommendations);
             }
         } catch (Exception ex) {
             // Note: If a subset of operations were recorded, things could still be left in a bad state. However, in
@@ -315,20 +377,8 @@ public class DefaultScheduler extends AbstractScheduler {
             offerRecommendations = Collections.emptyList();
         }
 
-        // After recording the operations, filter out any launches that shouldn't actually be launched.
-        // In other words, record the reservations for these tasks but do not actually launch them.
-        List<OfferRecommendation> filteredOfferRecommendations = new ArrayList<>();
-        for (OfferRecommendation offerRecommendation : offerRecommendations) {
-            if (offerRecommendation instanceof LaunchOfferRecommendation &&
-                    !((LaunchOfferRecommendation) offerRecommendation).shouldLaunch()) {
-                logger.info("Skipping launch of transient Operation: {}",
-                        TextFormat.shortDebugString(offerRecommendation.getOperation()));
-            } else {
-                filteredOfferRecommendations.add(offerRecommendation);
-            }
-        }
-
-        return OfferResponse.processed(filteredOfferRecommendations);
+        // Return the recommendations upstream so that any Operations can be sent to Mesos:
+        return OfferResponse.processed(offerRecommendations);
     }
 
     /**
@@ -367,11 +417,10 @@ public class DefaultScheduler extends AbstractScheduler {
         for (Protos.Offer offer : unusedOffers) {
             OfferResources unexpectedResourcesForOffer = new OfferResources(offer);
             for (Protos.Resource resource : offer.getResourcesList()) {
-                if (!ResourceUtils.getReservation(resource).isPresent()) {
-                    continue; // Not a reserved resource, disregard
-                }
                 Optional<String> resourceId = ResourceUtils.getResourceId(resource);
-                if (!resourceId.isPresent() || !resourceIdsToKeep.contains(resourceId.get())) {
+                if (resourceId.isPresent() && !resourceIdsToKeep.contains(resourceId.get())) {
+                    // This resource has a resource ID label, indicating that it's a reservation created by the SDK.
+                    // Mark it for automatic garbage collection.
                     unexpectedResourcesForOffer.add(resource);
                 }
             }
@@ -384,7 +433,7 @@ public class DefaultScheduler extends AbstractScheduler {
         // practice this should be handled via the offer evaluation call above, but it can't hurt to also check here.
         if (decommissionRecorder.isPresent()) {
             try {
-                decommissionRecorder.get().recordResources(unexpectedResources);
+                decommissionRecorder.get().recordCleanupOrUninstall(unexpectedResources);
             } catch (Exception e) {
                 // Failed to record the decommission. Refrain from returning these resources as unexpected for now, try
                 // again later.

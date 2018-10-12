@@ -48,7 +48,9 @@ def test_install():
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics_cli_for_scheduler_metrics(helloworld_service):
-    scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(helloworld_service["service"]["name"])
+    scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(
+        helloworld_service["service"]["name"]
+    )
     scheduler_task_id = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix).pop()
     scheduler_metrics = sdk_metrics.wait_for_metrics_from_cli(scheduler_task_id, timeout_seconds=60)
 

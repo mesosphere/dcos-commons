@@ -251,8 +251,7 @@ public class DeploymentStepTest {
                         .setSlaveId(TestConstants.AGENT_ID)
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
-                        Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true);
+                        Protos.ExecutorID.newBuilder().setValue("executor")).build());
 
         LaunchOfferRecommendation launchRec1 = new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
@@ -262,8 +261,7 @@ public class DeploymentStepTest {
                         .setSlaveId(TestConstants.AGENT_ID)
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
-                        Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true);
+                        Protos.ExecutorID.newBuilder().setValue("executor")).build());
 
         step.updateOfferStatus(Arrays.asList(launchRec0, launchRec1));
         Assert.assertEquals(Status.STARTING, step.getStatus());
@@ -312,8 +310,7 @@ public class DeploymentStepTest {
                         .setSlaveId(TestConstants.AGENT_ID)
                         .build(),
                 Protos.ExecutorInfo.newBuilder().setExecutorId(
-                        Protos.ExecutorID.newBuilder().setValue("executor")).build(),
-                true);
+                        Protos.ExecutorID.newBuilder().setValue("executor")).build());
         step.updateOfferStatus(Arrays.asList(launchRec));
         return step;
     }

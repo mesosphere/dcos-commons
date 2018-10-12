@@ -170,13 +170,13 @@ def get_metrics(package_name, service_name, pod_name, task_name):
         log.error("Expected key '%s' not found in app metrics: %s", "dimensions", app_json)
         raise Exception("Expected key 'dimensions' not found in app metrics: {}")
 
-    if "executor_id" not in app_json["dimensions"]:
+    if "task_name" not in app_json["dimensions"]:
         log.error(
-            "Expected key '%s' not found in app metrics: %s", "dimensions.executor_id", app_json
+            "Expected key '%s' not found in app metrics: %s", "dimensions.task_name", app_json
         )
         raise Exception("Expected key 'dimensions' not found in app metrics: {}")
 
-    if app_json["dimensions"]["executor_id"] == task_to_check.executor_id:
+    if app_json["dimensions"]["task_name"] == task_name:
         return app_json["datapoints"]
 
     raise Exception("No metrics found for task {} in service {}".format(task_name, service_name))

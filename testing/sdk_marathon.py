@@ -6,14 +6,14 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 import logging
-import re
 import retrying
+import requests
+import typing
 
 import sdk_cmd
 import sdk_tasks
 
 TIMEOUT_SECONDS = 15 * 60
-APP_EXISTS_ERROR_PATTERN = re.compile(r".*An app with id \[.*\] already exists.*")
 
 log = logging.getLogger(__name__)
 
@@ -52,20 +52,57 @@ def get_config(app_name, timeout=TIMEOUT_SECONDS):
     return config
 
 
-class _deployment_result(object):
-    def __init__(self, version, errmsg):
-        self._version = version
-        self._errmsg = errmsg
+class MarathonDeploymentResponse:
+    class App:
+        def __init__(self, version: str, deployment_id: str) -> None:
+            self._version = version
+            self._deployment_id = deployment_id
 
-    def raise_on_error(self) -> None:
-        if self._errmsg is not None:
-            raise Exception("Operation failed with error message: {}".format(self._errmsg))
+        def get_deployment_id(self) -> str:
+            return self._deployment_id
 
-    def error_message(self) -> str:
-        return self._errmsg
+        def get_version(self) -> str:
+            return self._version
 
-    def version(self) -> str:
-        return self._version
+    def __init__(self, response: requests.Response) -> None:
+        try:
+            self._response = response
+            response_json = self._response.json()
+        except ValueError:
+            log.error("Failed to parse marathon response as JSON: %s", self._response.text)
+            raise
+        log.info(
+            "Requested %s and received Marathon deployment response JSON: %s",
+            self._response.url,
+            response_json,
+        )
+        self._response.raise_for_status()
+
+        self._parse_app_information(response_json)
+
+    def _parse_app_information(self, response_json: dict) -> None:
+        version = response_json["version"]
+        if self._response.status_code == 201:
+            # Marathon just returns 201 after app creation POST requests including the full
+            # configuration. Therefore we have to parse this case differently.
+            deployment_id = response_json["deployments"][0]["id"]
+        else:
+            deployment_id = response_json["deploymentId"]
+        self._apps = [MarathonDeploymentResponse.App(version, deployment_id)]
+
+    def get_apps(self) -> typing.List["App"]:
+        return self._apps
+
+
+class MarathonDeploymentsResponse(MarathonDeploymentResponse):
+    def _parse_app_information(self, response_json: dict) -> None:
+        def _parse(deployments) -> typing.Iterable[MarathonDeploymentResponse.App]:
+            for deployment in deployments:
+                version = deployment["version"]
+                deployment_id = deployment["id"]
+                yield MarathonDeploymentResponse.App(version, deployment_id)
+
+        self._apps = list(_parse(response_json))
 
 
 def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> None:
@@ -118,7 +155,13 @@ def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> N
             len(deployments),
             log_extra,
         )
-        return staged == 0 and unhealthy == 0 and len(deployments) == 0 and instances_check and extra_check
+        return (
+            staged == 0
+            and unhealthy == 0
+            and len(deployments) == 0
+            and instances_check
+            and extra_check
+        )
 
     if expected_version:
         log.info(
@@ -127,36 +170,6 @@ def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> N
     else:
         log.info("Waiting for {} to be deployed with any version...".format(app_name))
     _wait_for_deployment()
-
-
-def _handle_marathon_deployment_response(response) -> _deployment_result:
-    # Three possible outcomes:
-    # 1. Response has 'deploymentId' and 'version' fields: Success!
-    # 2. Response has 'message' field: Fatal error produced by marathon
-    # 3. Else: Probably a flake
-    try:
-        response_json = response.json()
-    except Exception:
-        # Not json? Retry
-        log.error("Failed to parse marathon response as JSON: {}".format(response.text))
-        raise
-
-    version = response_json.get("version")
-    message = response_json.get("message")
-    if version is not None:
-        # Success
-        return _deployment_result(version, None)
-    elif message is not None:
-        # Fatal error
-        return _deployment_result(None, message)
-    else:
-        # Temporary error? Retry
-        response.raise_for_status()
-        raise Exception(
-            "Bad JSON response to Marathon request. Expected 'version' or 'message': {}".format(
-                response_json
-            )
-        )
 
 
 def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
@@ -174,21 +187,21 @@ def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
     log.info("Installing app: {}".format(app_name))
 
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
-    def _install():
+    def _install() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
             "POST", _api_url("apps"), json=app_definition, log_args=False, raise_on_error=False
         )
-        return _handle_marathon_deployment_response(response)
+        try:
+            deployment_response = MarathonDeploymentResponse(response)
+        except requests.HTTPError as e:
+            if e.response.status_code == 409:
+                # App exists already, left over from previous run? Delete and try again.
+                destroy_app(app_name, timeout=timeout)
+            raise e
+        return deployment_response
 
-    result = _install()
-    if result.error_message() and APP_EXISTS_ERROR_PATTERN.match(result.error_message()):
-        # App exists already, left over from previous run? Delete and try again.
-        destroy_app(app_name, timeout=timeout)
-        result = _install()
-
-    result.raise_on_error()
-
-    wait_for_deployment(app_name, timeout, result.version())
+    result = _install().get_apps()[0]
+    wait_for_deployment(app_name, timeout, result.get_version())
 
 
 def update_app(
@@ -203,7 +216,7 @@ def update_app(
             log.info("  {}={}".format(k, config["env"][k]))
 
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
-    def _update():
+    def _update() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
             "PUT",
             _api_url("apps/{}".format(app_name)),
@@ -212,27 +225,26 @@ def update_app(
             log_args=False,
             raise_on_error=False,
         )
-        return _handle_marathon_deployment_response(response)
+        return MarathonDeploymentResponse(response)
 
-    result = _update()
-    result.raise_on_error()
+    result = _update().get_apps()[0]
 
     # Sometimes the caller expects the update to fail.
     # Allow those cases to skip waiting for successful deployment:
     if wait_for_completed_deployment:
-        wait_for_deployment(app_name, timeout, result.version())
+        wait_for_deployment(app_name, timeout, result.get_version())
 
 
 def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
-    def _destroy():
+    def _destroy() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
             "DELETE", _api_url("apps/{}".format(app_name)), params={"force": "true"}
         )
-        return _handle_marathon_deployment_response(response)
+        return MarathonDeploymentResponse(response)
 
-    result = _destroy()
-    result.raise_on_error()
+    result = _destroy().get_apps()[0]
+    deployment_id = result.get_deployment_id()
 
     # This check is different from the other deployment checks.
     # When it's complete, the app is gone entirely.
@@ -240,7 +252,13 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
         stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
     )
     def _wait_for_app_destroyed():
-        return not app_exists(app_name, timeout)
+        if app_exists(app_name, timeout):
+            return False
+        deployments_response = MarathonDeploymentsResponse(
+            sdk_cmd.cluster_request("GET", _api_url("deployments"))
+        )
+        apps = deployments_response.get_apps()
+        return deployment_id not in [a.get_deployment_id() for a in apps]
 
     log.info("Waiting for {} to be removed...".format(app_name))
     _wait_for_app_destroyed()
@@ -248,16 +266,15 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
 
 def restart_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
-    def _restart():
+    def _restart() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
             "POST", _api_url("apps/{}/restart".format(app_name)), raise_on_error=False
         )
-        return _handle_marathon_deployment_response(response)
+        return MarathonDeploymentResponse(response)
 
-    result = _restart()
-    result.raise_on_error()
+    result = _restart().get_apps()[0]
 
-    wait_for_deployment(app_name, timeout, result.version())
+    wait_for_deployment(app_name, timeout, result.get_version())
 
 
 def _get_config(app_name):
