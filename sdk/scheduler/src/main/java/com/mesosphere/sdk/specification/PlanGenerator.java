@@ -103,11 +103,6 @@ public class PlanGenerator {
             List<String> allTaskNames = podSpec.getTasks().stream()
                     .map(taskSpec -> taskSpec.getName())
                     .collect(Collectors.toList());
-            if(!isValidStep(podSpec, allTaskNames)) {
-                throw new IllegalStateException(String.format(
-                        "Malformed steps in phase '%s': refers to non-existant tasks",
-                        phaseName));
-            }
             steps.add(generateStep(new DefaultPodInstance(podSpec, i), allTaskNames));
         }
         return new DefaultPhase(
@@ -166,11 +161,6 @@ public class PlanGenerator {
             }
             for (List<String> taskNames : taskLists) {
                 Step step = generateStep(new DefaultPodInstance(podSpec, i), taskNames);
-                if(!isValidStep(podSpec, taskNames)) {
-                    throw new IllegalStateException(String.format(
-                            "Malformed steps in phase '%s': refers to non-existant tasks",
-                            phaseName));
-                }
                 if (podSteps.isEmpty()) {
                     // If there are no parent steps, we should at least ensure that this step is listed in the strategy.
                     dependencies.addElement(step);
