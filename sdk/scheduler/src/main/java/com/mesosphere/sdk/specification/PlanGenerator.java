@@ -184,8 +184,8 @@ public class PlanGenerator {
 
     private Step generateStep(PodInstance podInstance, List<String> tasksToLaunch) {
         if (!isValidStep(podInstance.getPod(), tasksToLaunch)) {
-            throw new IllegalStateException(String.format(
-                    "Malformed step: step refers to a task that does not exist"));
+            throw new IllegalStateException(
+                    "Malformed step: step refers to a task that does not exist");
         }
         try {
             return stepFactory.getStep(podInstance, tasksToLaunch);
@@ -198,10 +198,10 @@ public class PlanGenerator {
     /**
      * Validates that all tasks in a step are defined in the pod.
      */
-    private boolean isValidStep(PodSpec podSpec, List<String> tasksToLaunch) {
-        List<String> allTaskNames = podSpec.getTasks().stream()
+    private static boolean isValidStep(PodSpec podSpec, List<String> tasksToLaunch) {
+        Set<String> allTaskNames = podSpec.getTasks().stream()
                 .map(taskSpec -> taskSpec.getName())
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
         return allTaskNames.containsAll(tasksToLaunch);
     }
 
