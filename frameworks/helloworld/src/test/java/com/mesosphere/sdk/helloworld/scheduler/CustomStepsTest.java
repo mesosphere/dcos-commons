@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import org.apache.mesos.Protos;
-import org.junit.Assert;
 import org.junit.Test;
 
 import com.mesosphere.sdk.testing.Expect;

@@ -34,7 +34,6 @@ import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
-import com.mesosphere.sdk.specification.yaml.RawPod;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -160,7 +159,6 @@ public class SchedulerBuilder {
         }
         return this;
     }
-
 
     /**
      * Assigns a {@link RecoveryPlanOverriderFactory} to be used for generating the recovery plan manager.

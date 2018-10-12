@@ -135,7 +135,6 @@ public class PlanGenerator {
             // Add steps to the sequence, where each step may launch one or more tasks. Because the phase strategy
             // is serial, this is all we need to do. For example, [[a, b], c] => step[a, b], step[c]
             for (List<String> taskNames : taskLists) {
-
                 steps.add(generateStep(new DefaultPodInstance(podSpec, i), taskNames));
             }
         }
@@ -165,7 +164,6 @@ public class PlanGenerator {
                             phaseName, i));
                 }
             }
-
             for (List<String> taskNames : taskLists) {
                 Step step = generateStep(new DefaultPodInstance(podSpec, i), taskNames);
                 if(!isValidStep(podSpec, taskNames)) {
@@ -208,7 +206,7 @@ public class PlanGenerator {
     }
 
     /**
-     * Validates that a step refers to a valid tasks.
+     * Validates that all tasks in a step are defined in the pod.
      */
     private boolean isValidStep(PodSpec podSpec, List<String> tasksToLaunch) {
         List<String> allTaskNames = podSpec.getTasks().stream()
@@ -261,22 +259,5 @@ public class PlanGenerator {
                     strategyType, PHASE_STRATEGY_GENERATORS.keySet()));
         }
         return generator;
-    }
-
-    /**
-     * validate that steps within a plan refer to existing tasks within the specified pod
-     */
-    private boolean isValidStep(PodSpec podSpec, List<String> tasksToLauch) {
-
-        List<String> allTaskNames = podSpec.getTasks().stream()
-                .map(taskSpec -> taskSpec.getName())
-                .collect(Collectors.toList());
-
-        for (int i = 0; i < tasksToLauch.size(); i++) {
-            if (!allTaskNames.contains(tasksToLauch.get(i)))
-                LOGGER.error(String.format("step refers to non-existing task %s", tasksToLauch.get(i)));
-                return false;
-        }
-        return true;
     }
 }
