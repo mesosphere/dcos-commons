@@ -438,7 +438,9 @@ public class DefaultServiceSpec implements ServiceSpec {
                 String value = ((TextNode) p.getCodec().readTree(p)).textValue();
 
                 if (value.equals("FINISHED") || value.equals("ONCE")) {
-                    // If an old service had the deprecated "FINISHED" value, convert it to ONCE automatically:
+                    // If an old service spec (e.g. from ZK) had the deprecated "FINISHED" value, convert it to ONCE
+                    // automatically. Note that we block new instances of FINISHED coming in from YAML definitions as of
+                    // Oct 2018. TODO(nickbp): Remove support for "FINISHED" on or after Mar 2019
                     return GoalState.ONCE;
                 } else if (value.equals("FINISH")) {
                     return GoalState.FINISH;

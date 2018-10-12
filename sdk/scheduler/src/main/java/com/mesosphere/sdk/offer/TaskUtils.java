@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
@@ -407,10 +408,10 @@ public class TaskUtils {
             }
 
             // Additional filtering:
-            // - Only relaunch tasks that have a RUNNING goal state. Don't worry about FINISHED tasks.
+            // - Only relaunch tasks that aren't eligible for recovery. Those are instead handled by the deploy plan.
             // - Don't relaunch tasks that haven't been launched yet (as indicated by presence in allLaunchedTasks)
             taskSpecsToLaunch = taskSpecsToLaunch.stream()
-                    .filter(taskSpec -> taskSpec.getGoal() == GoalState.RUNNING &&
+                    .filter(taskSpec -> isEligibleForRecovery(taskSpec) &&
                             allLaunchedTaskNames.contains(TaskSpec.getInstanceName(entry.getKey(), taskSpec.getName())))
                     .collect(Collectors.toList());
 
@@ -492,12 +493,10 @@ public class TaskUtils {
                 throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
             }
 
-            boolean markedFailed = FailureUtils.isPermanentlyFailed(info);
-            boolean isPermanentlyFailed = markedFailed && taskSpec.get().getGoal() == GoalState.RUNNING;
-
-            if (needsRecovery(taskSpec.get(), status) || isPermanentlyFailed) {
+            boolean markedPermanentlyFailed = FailureUtils.isPermanentlyFailed(info);
+            if (isEligibleForRecovery(taskSpec.get()) && (isRecoveryNeeded(status) || markedPermanentlyFailed)) {
                 LOGGER.info("{} needs recovery with state: {}, goal state: {}, marked permanently failed: {}",
-                        info.getName(), status.getState(), taskSpec.get().getGoal().name(), isPermanentlyFailed);
+                        info.getName(), status.getState(), taskSpec.get().getGoal().name(), markedPermanentlyFailed);
                 results.add(info);
             }
         }
@@ -505,11 +504,35 @@ public class TaskUtils {
     }
 
     /**
+     * Returns whether the provided {@link TaskSpec} should be managed by the recovery plan if the task has failed.
+     *
+     * Tasks with a {@code ONCE} or {@code FINISH} goal state are effectively only managed by the deploy plan, and are
+     * not the responsibility of the recovery plan. Recovery only applies to tasks that had reached their goal state of
+     * {@code RUNNING} and then later failed.
+     */
+    private static boolean isEligibleForRecovery(TaskSpec taskSpec) {
+        switch (taskSpec.getGoal()) {
+            case RUNNING:
+                return true;
+            case ONCE:
+            case FINISH:
+                // Tasks with a ONCE or FINISH goal state are effectively managed by the deploy plan, and are not the
+                // responsibility of the recovery plan. Recovery only applies to tasks that had reached their goal state
+                // of RUNNING and then later failed.
+                return false;
+            case UNKNOWN:
+            default:
+                throw new IllegalArgumentException(String.format("Unsupported goal state: %s", taskSpec.getGoal()));
+        }
+    }
+
+    /**
      * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
      *
      * This assumes that the task is not supposed to be {@code FINISHED}.
      */
-    public static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
+    @VisibleForTesting
+    static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
         // Note that we include FINISHED as "needs recovery", because we assume the task is supposed to be RUNNING.
         if (isTerminal(taskStatus)) {
             return true;
@@ -549,31 +572,6 @@ public class TaskUtils {
         }
 
         return false;
-    }
-
-    /**
-     * Determines whether a Task needs to be recovered based on its current definition (TaskSpec) and status
-     * (TaskStatus).
-     *
-     * @param taskSpec   The definition of a task
-     * @param taskStatus The status of the task.
-     * @return true if recovery is needed, false otherwise.
-     */
-    public static boolean needsRecovery(TaskSpec taskSpec, Protos.TaskStatus taskStatus) {
-        // Tasks with a goal state of finished should never leave the purview of their original
-        // plan, so they are not the responsibility of recovery.  Recovery only applies to Tasks
-        // which reached their goal state of RUNNING and then later failed.
-        switch (taskSpec.getGoal()) {
-            case ONCE:
-            case FINISH:
-                return false;
-            case RUNNING:
-            case UNKNOWN:
-                return isRecoveryNeeded(taskStatus);
-        }
-
-        throw new IllegalStateException(
-                String.format("Unable to determine whether recovery is needed for TaskSpec: %s", taskSpec));
     }
 
     /**
