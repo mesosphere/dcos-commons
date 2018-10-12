@@ -52,10 +52,10 @@ class KafkaService:
         return True
 
     def create_topic(self, topic_name: str) -> None:
-        rc, stdout, _ = sdk_cmd.svc_cli(
+        rc, stdout, stderr = sdk_cmd.svc_cli(
             self._package_name, self._service_name, "topic create {}".format(topic_name)
         )
-        assert rc == 0, "Topic create failed"
+        assert rc == 0, "Topic create failed: {}".format(stderr)
         create_info = json.loads(stdout)
         assert 'Created topic "%s".\n' % topic_name in create_info["message"]
         if "." in topic_name or "_" in topic_name:
@@ -65,10 +65,10 @@ class KafkaService:
             )
 
     def delete_topic(self, topic_name: str) -> None:
-        rc, stdout, _ = sdk_cmd.svc_cli(
+        rc, stdout, stderr = sdk_cmd.svc_cli(
             self._package_name, self._service_name, "topic delete {}".format(topic_name)
         )
-        assert rc == 0, "Topic delete failed"
+        assert rc == 0, "Topic delete failed: {}".format(stderr)
         delete_info = json.loads(stdout)
         assert len(delete_info) == 1
         assert delete_info["message"].startswith(
@@ -76,27 +76,27 @@ class KafkaService:
         )
 
     def get_topics(self) -> dict:
-        rc, stdout, _ = sdk_cmd.svc_cli(self._package_name, self._service_name, "topic list")
-        assert rc == 0, "Topic list query failed"
+        rc, stdout, stderr = sdk_cmd.svc_cli(self._package_name, self._service_name, "topic list")
+        assert rc == 0, "Topic list query failed: {}".format(stderr)
         return json.loads(stdout)
 
     def get_brokers(self) -> typing.Tuple[int, str, str]:
         return sdk_cmd.svc_cli(self._package_name, self._service_name, "broker list")
 
     def get_topic_information(self, topic_name: str) -> dict:
-        rc, stdout, _ = sdk_cmd.svc_cli(
+        rc, stdout, stderr = sdk_cmd.svc_cli(
             self._package_name, self._service_name, "topic describe {}".format(topic_name)
         )
-        assert rc == 0, "Topic describe failed"
+        assert rc == 0, "Topic describe failed: {}".format(stderr)
         return json.loads(stdout)
 
     def get_topic_partition_information(self, topic_name: str, partition_count: int) -> dict:
-        rc, stdout, _ = sdk_cmd.svc_cli(
+        rc, stdout, stderr = sdk_cmd.svc_cli(
             self._package_name,
             self._service_name,
             "topic partitions {} {}".format(topic_name, partition_count),
         )
-        assert rc == 0, "Partition info failed"
+        assert rc == 0, "Partition info failed: {}".format(stderr)
         return json.loads(stdout)
 
 
