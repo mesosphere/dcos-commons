@@ -61,7 +61,7 @@ def test_metrics_cli_for_scheduler_metrics(helloworld_service):
 @pytest.mark.metrics
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_cli_for_task_metrics(helloworld_service):
+def test_metrics_for_task_metrics(helloworld_service):
 
     bash_command = sdk_cmd.get_bash_command(
         'echo \\"test.metrics.name:1|c\\" | ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT',
