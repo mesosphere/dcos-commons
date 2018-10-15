@@ -21,6 +21,7 @@ import sdk_cmd
 import sdk_marathon
 import sdk_plan
 import sdk_utils
+from dcos import (marathon, mesos)
 
 log = logging.getLogger(__name__)
 
@@ -149,6 +150,17 @@ def uninstall(
         service_account,
         zk)
 
+#Portworx specific cleanups are done here. 
+def _portworx_cleanup():
+    client = mesos.DCOSClient()
+    agents = client.get_state_summary()['slaves']
+    #The cassandra tests only unmount and detach the portworx volumes created during tests
+    #Find the cassandra tests specific portworx volumes and delete those.
+    log.info("PORTWORX: cleanup cassandra volumes")
+    exit_status, _ = shakedown.run_command_on_agent(agents[0]['hostname'],
+        'for vol in `pxctl v l | grep Cassandra | cut -f 2`; do pxctl v d -f $vol; done', 'vagrant','/ssh/key')
+    if exit_status:
+        log.info("PORTWORX: Failed to cleanup cassandra volumes")
 
 def _uninstall(
         package_name,
@@ -235,7 +247,8 @@ def _uninstall(
                 raise
         finally:
             sdk_utils.list_reserved_resources()
-
+    #Call portworks specific cleanup routine at the end.
+    _portworx_cleanup()
 
 def merge_dictionaries(dict1, dict2):
     if (not isinstance(dict2, dict)):
