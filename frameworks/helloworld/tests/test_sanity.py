@@ -21,7 +21,7 @@ foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def helloworld_service(configure_security):
+def configure_package(configure_security):
     try:
         service_options = {"service": {"name": foldered_name}}
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
@@ -47,9 +47,9 @@ def test_install():
 @pytest.mark.metrics
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_cli_for_scheduler_metrics(helloworld_service):
+def test_metrics_cli_for_scheduler_metrics(configure_package):
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(
-        helloworld_service["service"]["name"]
+        configure_package["service"]["name"]
     )
     scheduler_task_id = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix).pop()
     scheduler_metrics = sdk_metrics.wait_for_metrics_from_cli(scheduler_task_id, timeout_seconds=60)
@@ -61,18 +61,18 @@ def test_metrics_cli_for_scheduler_metrics(helloworld_service):
 @pytest.mark.metrics
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_for_task_metrics(helloworld_service):
+def test_metrics_for_task_metrics(configure_package):
 
     bash_command = sdk_cmd.get_bash_command(
         'echo \\"test.metrics.name:1|c\\" | ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT',
         environment=None,
     )
 
-    sdk_cmd.service_task_exec(helloworld_service["service"]["name"], "hello-0-server", bash_command)
+    sdk_cmd.service_task_exec(configure_package["service"]["name"], "hello-0-server", bash_command)
 
     sdk_metrics.wait_for_service_metrics(
-        helloworld_service["package_name"],
-        helloworld_service["service"]["name"],
+        configure_package["package_name"],
+        configure_package["service"]["name"],
         "hello-0",
         "hello-0-server",
         timeout=5 * 60,

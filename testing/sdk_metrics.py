@@ -168,13 +168,13 @@ def get_metrics(package_name, service_name, pod_name, task_name):
 
     if "dimensions" not in app_json:
         log.error("Expected key '%s' not found in app metrics: %s", "dimensions", app_json)
-        raise Exception("Expected key 'dimensions' not found in app metrics: {}")
+        raise Exception("Expected key 'dimensions' not found in app metrics")
 
     if "task_name" not in app_json["dimensions"]:
         log.error(
             "Expected key '%s' not found in app metrics: %s", "dimensions.task_name", app_json
         )
-        raise Exception("Expected key 'dimensions' not found in app metrics: {}")
+        raise Exception("Expected key 'dimensions.task_name' not found in app metrics")
 
     if app_json["dimensions"]["task_name"] == task_name:
         return app_json["datapoints"]
