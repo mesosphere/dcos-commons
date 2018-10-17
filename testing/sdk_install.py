@@ -22,6 +22,7 @@ import sdk_marathon
 import sdk_plan
 import sdk_utils
 from dcos import (marathon, mesos)
+from time import sleep
 
 log = logging.getLogger(__name__)
 
@@ -154,13 +155,17 @@ def uninstall(
 def _portworx_cleanup():
     client = mesos.DCOSClient()
     agents = client.get_state_summary()['slaves']
-    # The cassandra tests only unmount and detach the portworx volumes created during tests
-    # Find the cassandra tests specific portworx volumes and delete those.
-    log.info("PORTWORX: cleanup cassandra volumes")
-    exit_status, _ = shakedown.run_command_on_agent(agents[0]['hostname'],
-        'for vol in `pxctl v l | grep Cassandra | cut -f 2`; do pxctl v d -f $vol; done', 'vagrant','/ssh/key')
-    if exit_status:
-        log.info("PORTWORX: Failed to cleanup cassandra volumes")
+    # The framework tests only unmount and detach the portworx volumes created during tests
+    # Find the portworx volumes and delete those.
+    log.info("PORTWORX: cleanup portworx volumes")
+    exit_status, output_agent = shakedown.run_command_on_agent(agents[0]['hostname'],
+        'pxctl -j v l', 'vagrant','/ssh/key')
+    pxvols = json.loads(output_agent)
+
+    for vol in pxvols:
+        log.info("Deleting Portworx Volume: {}".format(vol['locator']['name']))
+        cmd = 'pxctl v d -f ' + vol['locator']['name'] 
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[0]['hostname'], cmd, 'vagrant','/ssh/key')	
 
 def _uninstall(
         package_name,
