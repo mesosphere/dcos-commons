@@ -63,6 +63,10 @@
     "BROKER_DISK_SIZE": "{{brokers.disk}}",
     "BROKER_DISK_TYPE": "{{brokers.disk_type}}",
     "BROKER_DISK_PATH": "{{brokers.disk_path}}",
+    {{#brokers.disk_profile}}
+    "BROKER_DISK_PROFILE_ENABLED": "true",
+    "BROKER_DISK_PROFILE": "{{brokers.disk_profile}}",
+    {{/brokers.disk_profile}}
     "BROKER_JAVA_HEAP": "{{brokers.heap.size}}",
     "BROKER_PORT": "{{brokers.port}}",
 

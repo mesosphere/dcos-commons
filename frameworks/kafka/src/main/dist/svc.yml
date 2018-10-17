@@ -69,6 +69,10 @@ pods:
           path: {{BROKER_DISK_PATH}}
           type: {{BROKER_DISK_TYPE}}
           size: {{BROKER_DISK_SIZE}}
+          {{#BROKER_DISK_PROFILE_ENABLED}}
+          profiles:
+            - {{BROKER_DISK_PROFILE}}
+          {{/BROKER_DISK_PROFILE_ENABLED}}
         env:
           KAFKA_DISK_PATH: "{{BROKER_DISK_PATH}}"
           KAFKA_HEAP_OPTS: "-Xms{{BROKER_JAVA_HEAP}}M -Xmx{{BROKER_JAVA_HEAP}}M"

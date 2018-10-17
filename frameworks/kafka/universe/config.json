@@ -263,6 +263,10 @@
           "description": "Disk type to be used for storing broker data. See documentation. [ROOT, MOUNT]",
           "default": "ROOT"
         },
+        "disk_profile": {
+          "type": "string",
+          "description": "Disk profile name for storing broker data"
+        },
         "disk_path": {
           "type": "string",
           "description": "Relative path of consistent disk",
