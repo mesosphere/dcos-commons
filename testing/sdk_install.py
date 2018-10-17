@@ -23,6 +23,7 @@ import sdk_plan
 import sdk_utils
 from dcos import (marathon, mesos)
 from time import sleep
+import json
 
 log = logging.getLogger(__name__)
 
@@ -161,7 +162,7 @@ def _portworx_cleanup():
     exit_status, output_agent = shakedown.run_command_on_agent(agents[0]['hostname'],
         'pxctl -j v l', 'vagrant','/ssh/key')
     pxvols = json.loads(output_agent)
-
+    sleep(5) # Extra time after detach volumes before deleting. 
     for vol in pxvols:
         log.info("Deleting Portworx Volume: {}".format(vol['locator']['name']))
         cmd = 'pxctl v d -f ' + vol['locator']['name'] 
