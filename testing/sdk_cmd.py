@@ -112,7 +112,7 @@ def cluster_request(
         start = time.time()
 
         # check if we have verify key already exists.
-        if kwargs is not None and kwargs['verify'] is not None:
+        if kwargs is not None and kwargs.get('verify') is not None:
             kwargs['verify'] = False
             response = requests.request(method, url, auth=auth, timeout=timeout_seconds, **kwargs)
         else:
