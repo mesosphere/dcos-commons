@@ -13,7 +13,7 @@ import sdk_utils
 
 from security import transport_encryption
 
-from tests import config,
+from tests import config
 
 pytestmark = [
     sdk_utils.dcos_ee_only,

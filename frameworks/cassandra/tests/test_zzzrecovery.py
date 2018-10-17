@@ -3,8 +3,6 @@
 import logging
 import pytest
 import re
-
-import sdk_agents
 import sdk_cmd
 import sdk_install
 import sdk_marathon
