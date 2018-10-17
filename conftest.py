@@ -52,7 +52,6 @@ log = logging.getLogger(__name__)
 
 start_time = 0
 
-
 def is_env_var_set(key: str, default: str) -> bool:
     return str(os.environ.get(key, default)).lower() in ["true", "1"]
 
