@@ -6,7 +6,7 @@ scheduler:
 pods:
   hello:
     count: {{HELLO_COUNT}}
-   # placement: '{{{HELLO_PLACEMENT}}}'
+    placement: '{{{HELLO_PLACEMENT}}}'
     tasks:
       server:
         goal: RUNNING
