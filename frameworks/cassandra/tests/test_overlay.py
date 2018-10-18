@@ -69,4 +69,4 @@ def test_endpoints():
     endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
     assert set(endpoint_names) == set(["native-client"])
 
-    sdk_networks.check_endpoint_on_overlay(config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", config.DEFAULT_TASK_COUNT)
+sdk_networks.check_endpoint_on_overlay(config.PACKAGE_NAME, config.SERVICE_NAME, "native-client", config.DEFAULT_TASK_COUNT)

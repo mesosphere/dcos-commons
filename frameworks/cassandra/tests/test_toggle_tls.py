@@ -181,4 +181,4 @@ def update_service(service: dict, options: dict):
 
         # An update plan is a deploy plan
         sdk_plan.wait_for_kicked_off_deployment(service["service"]["name"])
-        sdk_plan.wait_for_completed_deployment(service["service"]["name"])
+sdk_plan.wait_for_completed_deployment(service["service"]["name"])

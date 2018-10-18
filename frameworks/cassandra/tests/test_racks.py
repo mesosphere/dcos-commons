@@ -3,7 +3,6 @@ import pytest
 import sdk_install
 import sdk_upgrade
 import sdk_utils
-import subprocess
 
 from tests import config
 from tests import nodetool
@@ -42,15 +41,9 @@ def test_rack():
 
     node = nodetool.parse_status(stdout)[0]
     log.info("node: {}".format(node))
-    pkg_task_cmd = 'dcos task'
-    pkg_task_value = subprocess.check_output(pkg_task_cmd, shell=True)
-    pkg_task_value = str(pkg_task_value, 'utf-8')
-    mod_serv_name = node.get_rack()
-    task_id_start = pkg_task_value.find(mod_serv_name)
-    task_id_end = pkg_task_value.find(' ',task_id_start)
-    task_id = pkg_task_value[task_id_start:task_id_end]
+
     assert node.get_rack() != "rack1"
-    assert task_id in node.get_rack()
+    assert "us-west" in node.get_rack()
 
 
 @pytest.mark.sanity
@@ -62,5 +55,4 @@ def test_custom_rack_upgrade():
         foldered_service_name,
         config.DEFAULT_TASK_COUNT,
         additional_options=service_options,
-    )
-
+)

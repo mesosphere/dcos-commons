@@ -3,6 +3,8 @@
 import logging
 import pytest
 import re
+
+import sdk_agents
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -24,6 +26,7 @@ def configure_package(configure_security):
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9", reason="dcos task exec not supported < 1.9")
@@ -94,6 +97,9 @@ def test_shutdown_host():
 
     replace_pod_name = replace_task.name[: -len("-server")]
 
+    # Instead of partitioning or reconnecting, we shut down the host permanently
+    sdk_agents.shutdown_agent(replace_task.host)
+
     sdk_cmd.svc_cli(
         config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace {}".format(replace_pod_name)
     )
@@ -116,4 +122,4 @@ def test_shutdown_host():
         "Checking that the original pod has moved to a new agent:\n"
         "old={}\nnew={}".format(replace_task, new_task)
     )
-    assert replace_task.agent_id != new_task.agent_id
+assert replace_task.agent_id != new_task.agent_id

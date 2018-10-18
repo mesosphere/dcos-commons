@@ -1,9 +1,11 @@
 import os
 import uuid
+
 import pytest
 import sdk_install
 import sdk_jobs
 from tests import config
+
 
 no_strict_for_azure = pytest.mark.skipif(
     os.environ.get("SECURITY") == "strict",
@@ -77,8 +79,8 @@ def test_backup_and_restore_to_azure():
         plan_parameters,
         config.get_foldered_node_address(),
     )
-
 '''
+
 @pytest.mark.aws
 @pytest.mark.sanity
 def test_backup_and_restore_to_s3():
@@ -102,4 +104,4 @@ def test_backup_and_restore_to_s3():
         "restore-s3",
         plan_parameters,
         config.get_foldered_node_address(),
-    )
+)
