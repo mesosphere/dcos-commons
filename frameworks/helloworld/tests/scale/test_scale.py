@@ -36,10 +36,9 @@ def _install_service(service_name, scenario, security=None):
     # supports rapid deployments in scale test scenario
     options = {"service": {"name": service_name, "yaml": scenario}}
     if security == sdk_dcos.DCOS_SECURITY.strict:
-        options = {"service": {"name": service_name,
-                               "yaml": scenario,
-                               "service_account": ACCOUNTS[service_name]["sa_name"],
-                               "service_account_secret": ACCOUNTS[service_name]["sa_secret"]}}
+        options["service"]["service_account"] = ACCOUNTS[service_name]["sa_name"]
+        options["service"]["service_account_secret"] = ACCOUNTS[service_name]["sa_secret"]
+
     sdk_install.install(
         config.PACKAGE_NAME,
         service_name,
