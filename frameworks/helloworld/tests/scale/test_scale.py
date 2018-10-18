@@ -9,6 +9,7 @@ log = logging.getLogger(__name__)
 
 ACCOUNTS = {}
 
+
 @pytest.mark.scale
 def test_scaling_load(service_count,
                       scenario) -> None:

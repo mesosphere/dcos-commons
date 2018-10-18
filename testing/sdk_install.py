@@ -82,6 +82,7 @@ def _retried_install_impl(
     if wait_for_all_conditions:
         sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
 
+
 def install(
     package_name,
     service_name,
