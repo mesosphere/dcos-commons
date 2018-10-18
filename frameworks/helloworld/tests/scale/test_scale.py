@@ -21,7 +21,7 @@ def test_scaling_load(service_count,
         scenario: yaml scenario to run helloworld with (normal, crashloop) are added for this case
     """
     security_mode = sdk_dcos.get_security_mode()
-    #TODO: kvish parallelize account creation and installation if time is an issue in scale tests
+    # TODO: parallelize account creation and installation if time is an issue in scale tests
     for index in range(service_count):
         service_name = "{}-{}-{}".format(config.PACKAGE_NAME, scenario, index)
         _create_service_account(service_name,
