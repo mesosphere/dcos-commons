@@ -77,7 +77,7 @@ public class Main {
                 DefaultResourceSet.newBuilder((DefaultResourceSet) installTask.getResourceSet());
         String role;
         String preReservedRole = portworxPod.getPreReservedRole();
-        if (preReservedRole != null && !preReservedRole.isEmpty()) {
+        if (preReservedRole != null && !preReservedRole.isEmpty() && !preReservedRole.equals("*")) {
             role = portworxPod.getPreReservedRole() + "/" + serviceSpec.getRole();
         } else {
             role = serviceSpec.getRole();
