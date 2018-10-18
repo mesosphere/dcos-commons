@@ -39,7 +39,6 @@ def _install_service(service_name, scenario, security=None):
                                "yaml": scenario,
                                "service_account": ACCOUNTS[service_name]["sa_name"],
                                "service_account_secret": ACCOUNTS[service_name]["sa_secret"]}}
-
     sdk_install.install(
         config.PACKAGE_NAME,
         service_name,
@@ -48,6 +47,7 @@ def _install_service(service_name, scenario, security=None):
         wait_for_deployment=False,
         wait_for_all_conditions=False
     )
+
 
 def _create_service_account(service_name, security=None):
     if security == sdk_dcos.DCOS_SECURITY.strict:
