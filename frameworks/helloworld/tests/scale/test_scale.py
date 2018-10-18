@@ -22,11 +22,10 @@ def test_scaling_load(service_count,
     security_mode = sdk_dcos.get_security_mode()
     # separate service accounts from service installation
     for index in range(service_count):
-        _create_service_account("%s-%s-%s" % (config.PACKAGE_NAME, scenario, index),
-                                 security_mode)
-    for index in range(service_count):
-        print(index)
-        _install_service("%s-%s-%s" % (config.PACKAGE_NAME, scenario, index),
+        service_name = "{}-{}-{}".format(config.PACKAGE_NAME, scenario, index)
+        _create_service_account(service_name,
+                                security_mode)
+        _install_service(service_name,
                          scenario,
                          security_mode)
 
