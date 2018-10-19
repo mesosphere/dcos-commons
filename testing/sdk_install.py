@@ -92,7 +92,7 @@ def install(
     service_name: str,
     expected_running_tasks: int,
     additional_options: dict = {},
-    package_version: str = PackageVersion.STUB_UNIVERSE.value,
+    package_version: PackageVersion = PackageVersion.STUB_UNIVERSE,
     timeout_seconds: int = TIMEOUT_SECONDS,
     wait_for_deployment: bool = True,
     insert_strict_options: bool = True,
@@ -125,7 +125,7 @@ def install(
         package_name,
         service_name,
         expected_running_tasks,
-        package_version,
+        package_version.value if isinstance(package_version, PackageVersion) else package_version,
         options,
         timeout_seconds,
     )
