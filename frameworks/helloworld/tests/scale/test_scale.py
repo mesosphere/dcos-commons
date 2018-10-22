@@ -24,6 +24,12 @@ def test_scaling_load(service_count,
     # TODO: parallelize account creation and installation if time is an issue in scale tests
     for index in range(service_count):
         service_name = "{}-{}-{}".format(config.PACKAGE_NAME, scenario, index)
+        security_info = _create_service_account(service_name,
+                                                security_mode)
+        _install_service(service_name,
+                         scenario,
+                         security_info)
+        service_name = "{}-{}-{}".format(config.PACKAGE_NAME, scenario, index)
         _create_service_account(service_name,
                                 security_mode)
         _install_service(service_name,
