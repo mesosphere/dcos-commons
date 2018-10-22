@@ -27,12 +27,6 @@ def test_scaling_load(service_count,
         _install_service(service_name,
                          scenario,
                          security_info)
-        service_name = "{}-{}-{}".format(config.PACKAGE_NAME, scenario, index)
-        _create_service_account(service_name,
-                                security_mode)
-        _install_service(service_name,
-                         scenario,
-                         security_mode)
 
 
 def _install_service(service_name, scenario, security_info):
@@ -42,21 +36,6 @@ def _install_service(service_name, scenario, security_info):
     if security_info:
         options["service"]["service_account"] = security_info["name"]
         options["service"]["service_account_secret"] = security_info["secret"]
-
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        service_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options=options,
-        wait_for_deployment=False,
-        wait_for_all_conditions=False
-    )
-    # do not wait for deploy plan to complete, all tasks to launch or marathon app deployment
-    # supports rapid deployments in scale test scenario
-    options = {"service": {"name": service_name, "yaml": scenario}}
-    if security == sdk_dcos.DCOS_SECURITY.strict:
-        options["service"]["service_account"] = ACCOUNTS[service_name]["sa_name"]
-        options["service"]["service_account_secret"] = ACCOUNTS[service_name]["sa_secret"]
 
     sdk_install.install(
         config.PACKAGE_NAME,
@@ -88,23 +67,3 @@ def _create_service_account(service_name, security=None):
             raise e
 
     return None
-    if security == sdk_dcos.DCOS_SECURITY.strict:
-        try:
-            log.info("Creating service accounts for '{}'"
-                     .format(service_name))
-            sa_name = "{}-principal".format(service_name)
-            sa_secret = "helloworld-{}-secret".format(service_name)
-            sdk_security.create_service_account(
-                sa_name, sa_secret)
-
-            sdk_security.grant_permissions(
-                'nobody', '*', sa_name, None)
-
-            sdk_security.grant_permissions(
-                'nobody', "{}-role".format(service_name), sa_name, None)
-            ACCOUNTS[service_name] = {}
-            ACCOUNTS[service_name]["sa_name"] = sa_name
-            ACCOUNTS[service_name]["sa_secret"] = sa_secret
-        except Exception as e:
-            log.warning("Error encountered while creating service account: {}".format(e))
-            raise e
