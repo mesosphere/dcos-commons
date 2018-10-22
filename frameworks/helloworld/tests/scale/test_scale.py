@@ -54,6 +54,25 @@ def _create_service_account(service_name, security=None):
         try:
             log.info("Creating service accounts for '{}'"
                      .format(service_name))
+
+            sa_name = "{}-principal".format(service_name)
+            sa_secret = "{}-secret".format(service_name)
+            return sdk_security.setup_security(
+                service_name,
+                linux_user="nobody",
+                service_account=sa_name,
+                service_account_secret=sa_secret,
+            )
+
+        except Exception as e:
+            log.warning("Error encountered while creating service account: {}".format(e))
+            raise e
+
+    return None
+    if security == sdk_dcos.DCOS_SECURITY.strict:
+        try:
+            log.info("Creating service accounts for '{}'"
+                     .format(service_name))
             sa_name = "{}-principal".format(service_name)
             sa_secret = "helloworld-{}-secret".format(service_name)
             sdk_security.create_service_account(
