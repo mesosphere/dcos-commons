@@ -37,7 +37,22 @@ def test_scaling_load(service_count,
                          security_mode)
 
 
-def _install_service(service_name, scenario, security=None):
+def _install_service(service_name, scenario, security_info):
+    # do not wait for deploy plan to complete, all tasks to launch or marathon app deployment
+    # supports rapid deployments in scale test scenario
+    options = {"service": {"name": service_name, "yaml": scenario}}
+    if security_info:
+        options["service"]["service_account"] = security_info["name"]
+        options["service"]["service_account_secret"] = security_info["secret"]
+
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        service_name,
+        config.DEFAULT_TASK_COUNT,
+        additional_options=options,
+        wait_for_deployment=False,
+        wait_for_all_conditions=False
+    )
     # do not wait for deploy plan to complete, all tasks to launch or marathon app deployment
     # supports rapid deployments in scale test scenario
     options = {"service": {"name": service_name, "yaml": scenario}}
