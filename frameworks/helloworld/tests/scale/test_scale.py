@@ -41,7 +41,7 @@ def _install_service(service_name, scenario, security_info):
         config.DEFAULT_TASK_COUNT,
         additional_options=options,
         wait_for_deployment=False,
-        wait_for_all_conditions=False
+        wait_for_running_tasks=False
     )
 
 
