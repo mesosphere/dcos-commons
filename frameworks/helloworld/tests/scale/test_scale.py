@@ -19,7 +19,6 @@ def test_scaling_load(service_count,
         scenario: yaml scenario to run helloworld with (normal, crashloop) are added for this case
     """
     # TODO: parallelize account creation and installation if time is an issue in scale tests
-    log.info("IS STRICT MODE: " + str(sdk_utils.is_strict_mode()))
     for index in range(service_count):
         service_name = "{}-{}-{}".format(config.PACKAGE_NAME, scenario, index)
         security_info = _create_service_account(service_name)
