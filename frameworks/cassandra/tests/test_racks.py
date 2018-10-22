@@ -22,8 +22,6 @@ def configure_package(configure_security):
 
 
 @pytest.mark.dcos_min_version("1.11")
-@sdk_utils.dcos_ee_only
-@pytest.mark.sanity
 def test_rack():
     sdk_install.install(
         config.PACKAGE_NAME,
@@ -50,11 +48,7 @@ def test_rack():
     task_id_end = pkg_task_value.find(' ',task_id_start)
     task_id = pkg_task_value[task_id_start:task_id_end]
     assert node.get_rack() != "rack1"
-    assert node.get_rack() != "rack1"
     assert task_id in node.get_rack()
-    assert "us-west" in node.get_rack()
-
-
 #    assert node.get_rack() != "rack1"
 #    assert "us-west" in node.get_rack()
 

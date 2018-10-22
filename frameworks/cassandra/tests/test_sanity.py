@@ -14,7 +14,7 @@ import sdk_utils
 from tests import config
 
 
-log = logging.getLogger(__name__)
+ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)

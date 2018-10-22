@@ -12,7 +12,6 @@ import sdk_recovery
 import sdk_utils
 
 from security import transport_encryption
-
 from tests import config
 
 pytestmark = [
