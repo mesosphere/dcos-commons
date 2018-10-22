@@ -15,7 +15,7 @@ def test_scaling_load(service_count,
     of the test, but does ensure the instances and jobs were created.
 
     Args:
-        count: number of helloworld services to install
+        service_count: number of helloworld services to install
         scenario: yaml scenario to run helloworld with (normal, crashloop) are added for this case
     """
     # TODO: parallelize account creation and installation if time is an issue in scale tests
