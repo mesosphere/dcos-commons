@@ -1,0 +1,13 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  hello:
+    count: 1
+    tasks:
+      server:
+        goal: FINISH
+        cmd: "exit 1"
+        cpus: 0.1
+        memory: 256

@@ -85,6 +85,7 @@
             "pause",
             "plan",
             "pod-mount-volume",
+            "pod-profile-mount-volume",
             "pre-reserved",
             "pre-reserved-sidecar",
             "secrets",
@@ -96,6 +97,7 @@
             "tls",
             "uri",
             "web-url",
+            "non_recoverable_state",
             ""
           ],
           "default": "svc"
@@ -153,6 +155,11 @@
           "description": "Hello pod persistent disk requirements (in MB)",
           "type": "integer",
           "default": 25
+        },
+        "volume_profile": {
+          "description": "Hello pod persistent volume profile requirements",
+          "type": "string",
+          "default": ""
         },
         "count": {
           "description": "Number of Hello pods to run",

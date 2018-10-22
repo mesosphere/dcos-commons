@@ -13,9 +13,7 @@ import sdk_utils
 
 from tests import config
 
-
  log = logging.getLogger(__name__)
-
 
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
@@ -103,3 +101,50 @@ def test_metrics():
         config.DEFAULT_CASSANDRA_TIMEOUT,
         expected_metrics_exist,
     )
+
+
+@pytest.mark.sanity
+def test_config_update_across_restart():
+    foldered_service_name = config.get_foldered_service_name()
+
+    batch_size_warn_threshold_in_kb = 15
+    sdk_upgrade.update_or_upgrade_or_downgrade(
+        config.PACKAGE_NAME,
+        foldered_service_name,
+        to_package_version=None,
+        additional_options={
+            "service": {"name": foldered_service_name},
+            "cassandra": {"batch_size_warn_threshold_in_kb": batch_size_warn_threshold_in_kb},
+        },
+        expected_running_tasks=config.DEFAULT_TASK_COUNT,
+        wait_for_deployment=True,
+        timeout_seconds=config.DEFAULT_CASSANDRA_TIMEOUT,
+    )
+
+    for _ in range(3):
+        cmd_list = ["pod", "restart", "node-0"]
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_service_name, " ".join(cmd_list))
+
+        sdk_plan.wait_for_kicked_off_recovery(foldered_service_name)
+        sdk_plan.wait_for_completed_recovery(
+            foldered_service_name, timeout_seconds=config.DEFAULT_CASSANDRA_TIMEOUT
+        )
+
+        _, stdout, _ = sdk_cmd.service_task_exec(foldered_service_name, "node-0-server", "env")
+
+        envvar = "CASSANDRA_BATCH_SIZE_WARN_THRESHOLD_IN_KB="
+        envvar_pos = stdout.find(envvar)
+        if envvar_pos < 0:
+            raise Exception("Required envvar not found")
+
+        if not stdout[envvar_pos + len(envvar) :].startswith(
+            "{}".format(batch_size_warn_threshold_in_kb)
+        ):
+            found_string = stdout[envvar_pos + len(envvar) : envvar_pos + len(envvar) + 15]
+            log.error(
+                "Looking for %s%d but found: %s",
+                envvar,
+                batch_size_warn_threshold_in_kb,
+                found_string,
+            )
+            raise Exception("Envvar not set to required value")

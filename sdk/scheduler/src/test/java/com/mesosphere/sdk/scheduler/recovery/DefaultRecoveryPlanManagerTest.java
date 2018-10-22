@@ -406,6 +406,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     }
 
     private static Collection<Protos.OfferID> distinctOffers(Collection<OfferRecommendation> recs) {
-        return recs.stream().map(rec -> rec.getOffer().getId()).distinct().collect(Collectors.toList());
+        return recs.stream().map(rec -> rec.getOfferId()).distinct().collect(Collectors.toList());
     }
 }

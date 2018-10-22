@@ -41,7 +41,11 @@ public class TestConstants {
     public static final Integer PORT_API_VALUE = 8080;
     public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
     public static final String HAS_VIP_LABEL = "hasvip";
-    public static final String MOUNT_SOURCE_ROOT = "/mnt/source";
+    public static final Protos.Resource.DiskInfo.Source MOUNT_DISK_SOURCE =
+            Protos.Resource.DiskInfo.Source.newBuilder()
+                    .setType(Protos.Resource.DiskInfo.Source.Type.MOUNT)
+                    .setMount(Protos.Resource.DiskInfo.Source.Mount.newBuilder().setRoot("/mnt/source"))
+                    .build();
     public static final String IP_ADDRESS = "localhost";
 
     // CNI port mapping constants

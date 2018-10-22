@@ -1,6 +1,6 @@
 ---
 title: Building Multi-Service Schedulers
-menuWeight: 1
+menuWeight: 3
 toc: true
 ---
 

@@ -6,9 +6,12 @@ import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
+
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,7 +28,8 @@ public class ResourceBuilder {
     private Optional<String> resourceNamespace;
     private Optional<String> diskContainerPath;
     private Optional<String> diskPersistenceId;
-    private Optional<Protos.Resource.DiskInfo.Source> diskMountInfo;
+    private Optional<Protos.ResourceProviderID> providerId;
+    private Optional<Protos.Resource.DiskInfo.Source> diskSource;
     private Optional<MesosResource> mesosResource;
 
     public static ResourceBuilder fromSpec(
@@ -43,16 +47,25 @@ public class ResourceBuilder {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<String> sourceRoot) {
+            Optional<Protos.ResourceProviderID> providerId,
+            Optional<Protos.Resource.DiskInfo.Source> diskSource) {
         ResourceBuilder resourceBuilder = fromSpec(spec, resourceId, resourceNamespace);
+
+        if (providerId.isPresent()) {
+            resourceBuilder.setProviderId(providerId.get());
+        }
+
         switch (spec.getType()) {
             case ROOT:
+                if (diskSource.isPresent()) {
+                    throw new IllegalStateException("Source must not be set on a ROOT volume");
+                }
                 return resourceBuilder.setRootVolume(spec.getContainerPath(), persistenceId);
             case MOUNT:
-                if (!sourceRoot.isPresent()) {
-                    throw new IllegalStateException("Source path must be set on MOUNT volumes.");
+                if (!diskSource.isPresent()) {
+                    throw new IllegalStateException("Source must be set on a MOUNT volume");
                 }
-                return resourceBuilder.setMountVolume(spec.getContainerPath(), persistenceId, sourceRoot);
+                return resourceBuilder.setMountVolume(spec.getContainerPath(), persistenceId, diskSource.get());
             default:
                 throw new IllegalStateException(String.format("Unexpected disk type: %s", spec.getType()));
         }
@@ -70,7 +83,8 @@ public class ResourceBuilder {
                     ResourceUtils.getResourceId(resource),
                     ResourceUtils.getNamespace(resource),
                     ResourceUtils.getPersistenceId(resource),
-                    ResourceUtils.getSourceRoot(resource));
+                    ResourceUtils.getProviderId(resource),
+                    ResourceUtils.getDiskSource(resource));
         }
     }
 
@@ -96,14 +110,22 @@ public class ResourceBuilder {
 
     @SuppressWarnings("deprecation")
     private static VolumeSpec getVolumeSpec(Protos.Resource resource) {
-        VolumeSpec.Type type = resource.getDisk().hasSource() ? VolumeSpec.Type.MOUNT : VolumeSpec.Type.ROOT;
-        return new DefaultVolumeSpec(
-                resource.getScalar().getValue(),
-                type,
-                resource.getDisk().getVolume().getContainerPath(),
-                ResourceUtils.getRole(resource),
-                resource.getRole(),
-                resource.getDisk().getPersistence().getPrincipal());
+        return resource.getDisk().hasSource()
+                ? DefaultVolumeSpec.createMountVolume(
+                          resource.getScalar().getValue(),
+                          resource.getDisk().getVolume().getContainerPath(),
+                          resource.getDisk().getSource().hasProfile()
+                                  ? Arrays.asList(resource.getDisk().getSource().getProfile())
+                                  : Collections.emptyList(),
+                          ResourceUtils.getRole(resource),
+                          resource.getRole(),
+                          resource.getDisk().getPersistence().getPrincipal())
+                : DefaultVolumeSpec.createRootVolume(
+                          resource.getScalar().getValue(),
+                          resource.getDisk().getVolume().getContainerPath(),
+                          ResourceUtils.getRole(resource),
+                          resource.getRole(),
+                          resource.getDisk().getPersistence().getPrincipal());
     }
 
     private ResourceBuilder(String resourceName, Protos.Value value, String preReservedRole) {
@@ -116,7 +138,8 @@ public class ResourceBuilder {
         this.resourceNamespace = Optional.empty();
         this.diskContainerPath = Optional.empty();
         this.diskPersistenceId = Optional.empty();
-        this.diskMountInfo = Optional.empty();
+        this.providerId = Optional.empty();
+        this.diskSource = Optional.empty();
         this.mesosResource = Optional.empty();
     }
 
@@ -145,6 +168,14 @@ public class ResourceBuilder {
     }
 
     /**
+     * Assigns the resource provider id to the provided value.
+     */
+    private ResourceBuilder setProviderId(Protos.ResourceProviderID providerId) {
+        this.providerId = Optional.of(providerId);
+        return this;
+    }
+
+    /**
      * Assigns information relating to {@code ROOT} disk volumes for this resource.
      *
      * @param existingPersistenceId the persistence ID of a previously reserved disk resource to be associated with
@@ -167,16 +198,16 @@ public class ResourceBuilder {
      * @throws IllegalStateException if the resource does not have type {@code disk}
      */
     public ResourceBuilder setMountVolume(
-            String containerPath, Optional<String> existingPersistenceId, Optional<String> existingMountRoot) {
+            String containerPath,
+            Optional<String> existingPersistenceId,
+            Protos.Resource.DiskInfo.Source diskSource) {
         // common information across ROOT + MOUNT volumes:
         setRootVolume(containerPath, existingPersistenceId);
         // additional information specific to MOUNT volumes:
-        Protos.Resource.DiskInfo.Source.Builder sourceBuilder = Protos.Resource.DiskInfo.Source.newBuilder()
-                .setType(Protos.Resource.DiskInfo.Source.Type.MOUNT);
-        if (existingMountRoot.isPresent()) {
-            sourceBuilder.getMountBuilder().setRoot(existingMountRoot.get());
+        if (diskSource.getType() != Protos.Resource.DiskInfo.Source.Type.MOUNT) {
+            throw new IllegalStateException(String.format("Expecting disk source to be of type MOUNT: %s", diskSource));
         }
-        this.diskMountInfo = Optional.of(sourceBuilder.build());
+        this.diskSource = Optional.of(diskSource);
         return this;
     }
 
@@ -226,6 +257,10 @@ public class ResourceBuilder {
             builder.clearRole();
         }
 
+        if (providerId.isPresent()) {
+            builder.setProviderId(providerId.get());
+        }
+
         if (diskContainerPath.isPresent()) {
             Protos.Resource.DiskInfo.Builder diskBuilder = builder.getDiskBuilder();
             diskBuilder.getVolumeBuilder()
@@ -234,8 +269,8 @@ public class ResourceBuilder {
             diskBuilder.getPersistenceBuilder()
                     .setPrincipal(principal.get())
                     .setId(diskPersistenceId.isPresent() ? diskPersistenceId.get() : UUID.randomUUID().toString());
-            if (diskMountInfo.isPresent()) {
-                diskBuilder.setSource(diskMountInfo.get());
+            if (diskSource.isPresent()) {
+                diskBuilder.setSource(diskSource.get());
             }
         }
 

@@ -5,6 +5,7 @@ import retrying
 import sdk_install
 import sdk_marathon
 import sdk_tasks
+import sdk_plan
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -30,18 +31,20 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_deploy():
-    wait_time = 30
+    wait_time_in_seconds = 600
+    sdk_plan.wait_for_kicked_off_deployment(config.SERVICE_NAME)
     # taskcfg.yml will initially fail to deploy because several options are missing in the default
     # sdk_marathon.json.mustache. verify that the tasks are failing before continuing.
-    task_name = "hello-0-server"
-    log.info("Checking that {} is failing to launch within {}s".format(task_name, wait_time))
+    task_name = 'hello-0-server'
+    log.info('Checking that {} is failing to launch within {}s'.format(task_name, wait_time_in_seconds))
 
     original_state_history = _get_state_history(task_name)
 
     # wait for new TASK_FAILEDs to appear:
     @retrying.retry(
-        wait_fixed=1000, stop_max_delay=1000 * wait_time, retry_on_result=lambda res: not res
-    )
+        wait_fixed=1000,
+        stop_max_delay=1000 * wait_time_in_seconds,
+        retry_on_result=lambda res: not res)
     def wait_for_new_failures():
         new_state_history = _get_state_history(task_name)
         assert len(new_state_history) >= len(original_state_history)
