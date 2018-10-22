@@ -34,11 +34,9 @@ RUN apt-get update && \
 ENV PATH=$PATH:/usr/local/go/bin
 RUN go version
 
-# AWS CLI for uploading build artifacts
-RUN pip3 install awscli
-# Install the lint+testing dependencies
-COPY test_requirements.txt test_requirements.txt
-RUN pip3 install --upgrade -r test_requirements.txt
+# Install the lint+testing dependencies and AWS CLI for uploading build artifacts
+COPY frozen_requirements.txt frozen_requirements.txt
+RUN pip3 install --upgrade -r frozen_requirements.txt
 
 # Get DC/OS CLI
 RUN curl -O https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.12/dcos && \
