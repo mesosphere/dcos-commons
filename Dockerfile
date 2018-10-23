@@ -39,10 +39,7 @@ COPY frozen_requirements.txt frozen_requirements.txt
 RUN pip3 install --upgrade -r frozen_requirements.txt
 
 # Get DC/OS CLI
-RUN curl -O https://downloads.dcos.io/binaries/cli/linux/x86-64/dcos-1.12/dcos && \
-    chmod +x dcos && \
-    mv dcos /usr/local/bin && \
-    dcos --version
+COPY dep-snapshots/dcos /usr/local/bin
 
 # dcos-cli and lint tooling require this to output cleanly
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
