@@ -164,6 +164,10 @@
           "type": "string",
           "default": "ROOT"
         },
+        "disk_profile": {
+          "description": "Journal node disk profile",
+          "type": "string"
+        },
         "enable_readiness_check": {
           "description": "Determines whether to enable readiness checks for Journal Nodes.",
           "type": "boolean",
@@ -266,6 +270,10 @@
           "description": "Name node disk type",
           "type": "string",
           "default": "ROOT"
+        },
+        "disk_profile": {
+          "description": "Name node disk profile",
+          "type": "string"
         },
         "hadoop_namenode_opts": {
           "type": "string",
@@ -752,6 +760,10 @@
           "description": "Data node disk type",
           "type": "string",
           "default": "ROOT"
+        },
+        "disk_profile": {
+          "description": "Data node disk profile",
+          "type": "string"
         },
         "handler_count": {
           "description": "The number of server threads for the datanode.",
