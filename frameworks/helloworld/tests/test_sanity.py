@@ -64,7 +64,7 @@ def test_metrics_cli_for_scheduler_metrics(configure_package):
 def test_metrics_for_task_metrics(configure_package):
 
     bash_command = sdk_cmd.get_bash_command(
-        'echo \\"test.metrics.name:1|c\\" | ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT',
+        'echo \\"test.metrics.CamelCase:1|c\\" | ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT',
         environment=None,
     )
 
@@ -76,7 +76,7 @@ def test_metrics_for_task_metrics(configure_package):
         "hello-0",
         "hello-0-server",
         timeout=5 * 60,
-        expected_metrics_callback=lambda x: "test.metrics.name" in x,
+        expected_metrics_callback=lambda x: "test.metrics.CamelCase" in x,
     )
 
 
