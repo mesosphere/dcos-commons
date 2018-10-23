@@ -4,6 +4,8 @@ A collection of client utilites for Kafka.
 import logging
 import uuid
 import typing
+import json
+import retrying
 
 import sdk_auth
 import sdk_cmd
@@ -12,7 +14,6 @@ import sdk_networks
 import sdk_utils
 
 from tests import auth
-from tests import test_utils
 from tests import topics
 
 
@@ -40,9 +41,63 @@ class KafkaService:
         if not topic_name:
             return True
 
-        test_utils.wait_for_topic(self._package_name, self._service_name, topic_name)
+        @retrying.retry(
+            stop_max_delay=5 * 60 * 1000,
+            wait_exponential_multiplier=1000,
+            wait_exponential_max=60 * 1000,
+        )
+        def wait(topic):
+            self.get_topic_information(topic_name)
 
         return True
+
+    def create_topic(self, topic_name: str) -> None:
+        rc, stdout, stderr = sdk_cmd.svc_cli(
+            self._package_name, self._service_name, "topic create {}".format(topic_name)
+        )
+        assert rc == 0, "Topic create failed: {}".format(stderr)
+        create_info = json.loads(stdout)
+        assert 'Created topic "{}".\n'.format(topic_name) in create_info["message"]
+        if "." in topic_name or "_" in topic_name:
+            assert (
+                "topics with a period ('.') or underscore ('_') could collide."
+                in create_info["message"]
+            )
+
+    def delete_topic(self, topic_name: str) -> None:
+        rc, stdout, stderr = sdk_cmd.svc_cli(
+            self._package_name, self._service_name, "topic delete {}".format(topic_name)
+        )
+        assert rc == 0, "Topic delete failed: {}".format(stderr)
+        delete_info = json.loads(stdout)
+        assert len(delete_info) == 1
+        assert delete_info["message"].startswith(
+            "Output: Topic {} is marked for deletion".format(topic_name)
+        )
+
+    def get_topics(self) -> dict:
+        rc, stdout, stderr = sdk_cmd.svc_cli(self._package_name, self._service_name, "topic list")
+        assert rc == 0, "Topic list query failed: {}".format(stderr)
+        return json.loads(stdout)
+
+    def get_brokers(self) -> typing.Tuple[int, str, str]:
+        return sdk_cmd.svc_cli(self._package_name, self._service_name, "broker list")
+
+    def get_topic_information(self, topic_name: str) -> dict:
+        rc, stdout, stderr = sdk_cmd.svc_cli(
+            self._package_name, self._service_name, "topic describe {}".format(topic_name)
+        )
+        assert rc == 0, "Topic describe failed: {}".format(stderr)
+        return json.loads(stdout)
+
+    def get_topic_partition_information(self, topic_name: str, partition_count: int) -> dict:
+        rc, stdout, stderr = sdk_cmd.svc_cli(
+            self._package_name,
+            self._service_name,
+            "topic partitions {} {}".format(topic_name, partition_count),
+        )
+        assert rc == 0, "Partition info failed: {}".format(stderr)
+        return json.loads(stdout)
 
 
 class KafkaClient:
@@ -155,8 +210,9 @@ class KafkaClient:
 
         return True
 
-    def connect(self) -> bool:
+    def connect(self, broker_count: int) -> bool:
         self.reset()
+        self.check_broker_count(broker_count)
         return self.wait_for()
 
     def can_write_and_read(self, user: str, topic_name: str) -> tuple:
@@ -212,6 +268,21 @@ class KafkaClient:
             user, self.id, topic_name, self.kafka_service.get_zookeeper_endpoint(), environment
         )
 
+    def create_topic(self, topic_name: str) -> None:
+        self.kafka_service.create_topic(topic_name)
+
+    def check_topic_creation(self, topic_name: str) -> None:
+        self.create_topic(topic_name)
+        assert topic_name in self.kafka_service.get_topics()
+
+    def check_topic_deletion(self, topic_name: str) -> None:
+        self.kafka_service.delete_topic(topic_name)
+
+    def check_topic_partition_count(self, topic_name: str, partition_count: int) -> None:
+        information = self.kafka_service.get_topic_information(topic_name)
+        assert "partitions" in information
+        assert len(information["partitions"]) == partition_count
+
     def check_users_can_read_and_write(self, users: typing.List[str], topic_name: str) -> None:
         for user in users:
             log.info("Checking ability of write / read for user=%s", user)
@@ -233,3 +304,17 @@ class KafkaClient:
             assert auth.is_not_authorized(read_messages), "Unauthorized expected (user={}".format(
                 user
             )
+
+    @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000)
+    def check_broker_count(self, count: int) -> None:
+        rc, stdout, _ = self.kafka_service.get_brokers()
+        assert rc == 0 and len(json.loads(stdout)) == count
+
+    def check_topic_partition_change(self, topic_name: str, partition_count: int) -> str:
+        partition_info = self.kafka_service.get_topic_partition_information(
+            topic_name, partition_count
+        )
+        assert len(partition_info) == 1
+        log.info("Partition info for %s: %s", topic_name, partition_info)
+        assert partition_info["message"].startswith("Output: WARNING: If partitions are increased")
+        return partition_info["message"]
