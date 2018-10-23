@@ -68,6 +68,10 @@
     "CASSANDRA_MEMORY_MB": "{{nodes.mem}}",
     "CASSANDRA_DISK_MB": "{{nodes.disk}}",
     "CASSANDRA_DISK_TYPE": "{{nodes.disk_type}}",
+    {{#nodes.disk_profile}}
+    "CASSANDRA_DISK_PROFILE_ENABLED": "true",
+    "CASSANDRA_DISK_PROFILE": "{{nodes.disk_profile}}",
+    {{/nodes.disk_profile}}
     "TASKCFG_ALL_CASSANDRA_HEAP_SIZE_MB": "{{nodes.heap.size}}",
     "TASKCFG_ALL_CASSANDRA_HEAP_NEW_MB": "{{nodes.heap.new}}",
     "CASSANDRA_JAVA_URI": "{{resource.assets.uris.cassandra-jre-tar-gz}}",

@@ -15,6 +15,10 @@ pods:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
       size: {{CASSANDRA_DISK_MB}}
+      {{#CASSANDRA_DISK_PROFILE_ENABLED}}
+      profiles:
+        - {{CASSANDRA_DISK_PROFILE}}
+      {{/CASSANDRA_DISK_PROFILE_ENABLED}}
     uris:
       - {{CASSANDRA_JAVA_URI}}
       - {{CASSANDRA_PYTHON_URI}}

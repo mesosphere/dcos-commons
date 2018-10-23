@@ -193,6 +193,10 @@
           "description": "Disk type to be used for storing Cassandra data. See documentation. [ROOT, MOUNT]",
           "default": "ROOT"
         },
+        "disk_profile": {
+          "type": "string",
+          "description": "Disk profile to be used for storing Cassandra data."
+        },
         "placement_constraint": {
           "type": "string",
           "description": "Placement constraints for nodes (e.g., [[\"hostname\", \"MAX_PER\", \"1\"]]).",
