@@ -126,33 +126,18 @@ def test_tls_connection(cassandra_service, dcos_ca_bundle):
 @pytest.mark.tls
 @pytest.mark.sanity
 def test_tls_recovery(cassandra_service, service_account):
-   candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
     _, stdout, _ = sdk_cmd.svc_cli(
-        config.SERVICE_NAME, re.compile("^node-[0-9]+-server$")
         cassandra_service["package_name"],
-     )
         cassandra_service["service"]["name"],
-     replace_task = candidate_tasks[0]
         "pod list",
-     podlist = []
     )
-     podlist = sdk_cmd.svc_cli(config.PACKAGE_NAME,config.SERVICE_NAME, 'pod list')
-     pod_list_len_bfr = len(podlist)
-    pod_list = json.loads(stdout)
-     replace_pod_name = replace_task.name[: -len("-server")]
-    for pod in pod_list:
-     sdk_cmd.svc_cli(
-        sdk_recovery.check_permanent_recovery(
-        config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace {}".format(replace_pod_name)
-            cassandra_service["package_name"],
-     )
-            cassandra_service["service"]["name"],
-     sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
-            pod,
-     sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
-            recovery_timeout_s=25 * 60,
-     podlist = sdk_cmd.svc_cli(config.PACKAGE_NAME,config.SERVICE_NAME, 'pod list')
-            pods_with_updated_tasks=pod_list,
-     pod_list_len_afr = len(podlist)
-)
 
+    pod_list = json.loads(stdout)
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(
+            cassandra_service["package_name"],
+            cassandra_service["service"]["name"],
+            pod,
+            recovery_timeout_s=25 * 60,
+            pods_with_updated_tasks=pod_list,
+)
