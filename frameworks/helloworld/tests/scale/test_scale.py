@@ -12,7 +12,7 @@ log = logging.getLogger(__name__)
 def test_scaling_load(service_count,
                       scenario) -> None:
     """Launch a load test scenario. This does not verify the results
-    of the test, but does ensure the instances and jobs were created.
+    of the test, but does ensure the instances were created.
 
     Args:
         service_count: number of helloworld services to install
