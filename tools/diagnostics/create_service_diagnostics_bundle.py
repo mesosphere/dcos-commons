@@ -5,7 +5,7 @@
 
 # Notes:
 # - When run in the dcos-commons Docker image the DC/OS CLI version is specified either in
-# - the image's test_requirements.txt or Dockerfile.
+# - the image's test_requirements.txt, frozen_requirements.txt or Dockerfile.
 
 from typing import Any
 import argparse

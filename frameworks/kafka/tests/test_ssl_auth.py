@@ -1,7 +1,6 @@
 import logging
 import pytest
 
-import sdk_cmd
 import sdk_install
 import sdk_utils
 
@@ -81,17 +80,9 @@ def test_authn_client_can_read_and_write(
             additional_options=service_options,
         )
 
-        kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
-
         topic_name = "tls.topic"
-        sdk_cmd.svc_cli(
-            kafka_server["package_name"],
-            kafka_server["service"]["name"],
-            "topic create {}".format(topic_name),
-        )
-
-        kafka_client.connect()
-
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+        kafka_client.create_topic(topic_name)
         kafka_client.check_users_can_read_and_write(["kafka-tester"], topic_name)
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -123,17 +114,9 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, service_account, 
             additional_options=service_options,
         )
 
-        kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
-
         topic_name = "authz.test"
-        sdk_cmd.svc_cli(
-            kafka_server["package_name"],
-            kafka_server["service"]["name"],
-            "topic create {}".format(topic_name),
-        )
-
-        kafka_client.connect()
-
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+        kafka_client.create_topic(topic_name)
         # Since no ACLs are specified, only the super user can read and write
         kafka_client.check_users_can_read_and_write(["super"], topic_name)
         kafka_client.check_users_are_not_authorized_to_read_and_write(
@@ -182,16 +165,9 @@ def test_authz_acls_not_required(kafka_client, service_account, setup_principals
             additional_options=service_options,
         )
 
-        kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
-
         topic_name = "authz.test"
-        sdk_cmd.svc_cli(
-            kafka_server["package_name"],
-            kafka_server["service"]["name"],
-            "topic create {}".format(topic_name),
-        )
-
-        kafka_client.connect()
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+        kafka_client.create_topic(topic_name)
 
         # Since no ACLs are specified, all users can read and write.
         kafka_client.check_users_can_read_and_write(
