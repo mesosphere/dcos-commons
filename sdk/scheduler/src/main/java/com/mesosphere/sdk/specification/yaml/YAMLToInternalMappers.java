@@ -1,22 +1,21 @@
 package com.mesosphere.sdk.specification.yaml;
 
 import com.google.common.base.Strings;
-import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.framework.FrameworkConfig;
-
-import com.mesosphere.sdk.offer.LoggingUtils;
-import org.apache.commons.collections.MapUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
-
 import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.TaskEnvRouter;
+import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.framework.FrameworkConfig;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.*;
+
+import org.apache.commons.collections.MapUtils;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
@@ -286,6 +285,15 @@ public class YAMLToInternalMappers {
             builder.secrets(secretSpecs);
         }
 
+        if (!rawPod.getHostVolumes().isEmpty()) {
+            Collection<HostVolumeSpec> hostVolumeSpecs = new ArrayList<>();
+            hostVolumeSpecs.addAll(rawPod.getHostVolumes().values().stream()
+                    .map(v -> convertHostVolume(v))
+                    .collect(Collectors.toList()));
+
+            builder.hostVolumes(hostVolumeSpecs);
+        }
+
         if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
             Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
                     Collections.emptyList() :
@@ -449,14 +457,16 @@ public class YAMLToInternalMappers {
                 resourceSetBuilder.addVolume(
                         rawVolume.getType(),
                         Double.valueOf(rawVolume.getSize()),
-                        rawVolume.getPath());
+                        rawVolume.getPath(),
+                        rawVolume.getProfiles());
             }
         }
         if (rawSingleVolume != null) {
             resourceSetBuilder.addVolume(
                     rawSingleVolume.getType(),
                     Double.valueOf(rawSingleVolume.getSize()),
-                    rawSingleVolume.getPath());
+                    rawSingleVolume.getPath(),
+                    rawSingleVolume.getProfiles());
         }
 
         if (cpus != null) {
@@ -494,6 +504,15 @@ public class YAMLToInternalMappers {
                 .build();
     }
 
+    private static DefaultHostVolumeSpec convertHostVolume(
+            RawHostVolume rawHostVolume) {
+
+        return DefaultHostVolumeSpec.newBuilder()
+                .hostPath(rawHostVolume.getHostPath())
+                .containerPath(rawHostVolume.getContainerPath())
+                .build();
+    }
+
     private static DefaultVolumeSpec convertVolume(
             RawVolume rawVolume, String role, String preReservedRole, String principal) {
         VolumeSpec.Type volumeTypeEnum;
@@ -505,8 +524,20 @@ public class YAMLToInternalMappers {
                     rawVolume.getType(), rawVolume.getPath(), Arrays.asList(VolumeSpec.Type.values())));
         }
 
-        return new DefaultVolumeSpec(
-                rawVolume.getSize(), volumeTypeEnum, rawVolume.getPath(), role, preReservedRole, principal);
+        return volumeTypeEnum == VolumeSpec.Type.ROOT
+                ? DefaultVolumeSpec.createRootVolume(
+                        rawVolume.getSize(),
+                        rawVolume.getPath(),
+                        role,
+                        preReservedRole,
+                        principal)
+                : DefaultVolumeSpec.createMountVolume(
+                        rawVolume.getSize(),
+                        rawVolume.getPath(),
+                        rawVolume.getProfiles(),
+                        role,
+                        preReservedRole,
+                        principal);
     }
 
     private static DefaultNetworkSpec convertNetwork(

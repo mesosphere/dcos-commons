@@ -25,6 +25,7 @@ pods:
           # Note, this is very high so that the test test_sidecar.test_toxic_sidecar_doesnt_trigger_recovery
           # will always have an empty recovery plan.
           SLEEP_DURATION: 10000
+          CONFIG_SLEEP_DURATION: {{SLEEP_DURATION}}
       once:
         goal: ONCE
         cmd: "echo 'I run only once' >> hello-container-path/output"

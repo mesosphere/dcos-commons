@@ -3,7 +3,9 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.mesos.Protos;
+
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,15 +35,21 @@ public class PodInstanceRequirementTestUtils {
     }
 
     public static PodInstanceRequirement getMountVolumeRequirement(double cpus, double diskSize) {
-        return getMountVolumeRequirement(cpus, diskSize, 0);
+        return getMountVolumeRequirement(cpus, diskSize, Collections.emptyList(), 0);
+    }
+
+    public static PodInstanceRequirement getMountVolumeRequirement(
+            double cpus, double diskSize, List<String> profiles) {
+        return getMountVolumeRequirement(cpus, diskSize, profiles, 0);
     }
 
     public static PodInstanceRequirement getRootVolumeRequirement(double cpus, double diskSize, int index) {
         return getRequirement(getRootVolumeResourceSet(cpus, diskSize), index);
     }
 
-    public static PodInstanceRequirement getMountVolumeRequirement(double cpus, double diskSize, int index) {
-        return getRequirement(getMountVolumeResourceSet(cpus, diskSize), index);
+    public static PodInstanceRequirement getMountVolumeRequirement(
+            double cpus, double diskSize, List<String> profiles, int index) {
+        return getRequirement(getMountVolumeResourceSet(cpus, diskSize, profiles), index);
     }
 
     public static PodInstanceRequirement getPortRequirement(int... ports) {
@@ -78,18 +86,18 @@ public class PodInstanceRequirementTestUtils {
      * @param diskSize The disk size required.
      */
     private static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.ROOT.name());
-    }
-
-    private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.MOUNT.name());
-    }
-
-    private static ResourceSet getVolumeResourceSet(double cpus, double diskSize, String diskType) {
         return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(cpus)
-                .addVolume(diskType, diskSize, TestConstants.CONTAINER_PATH)
+                .addRootVolume(diskSize, TestConstants.CONTAINER_PATH)
+                .build();
+    }
+
+    private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize, List<String> profiles) {
+        return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
+                .id(TestConstants.RESOURCE_SET_ID)
+                .cpus(cpus)
+                .addMountVolume(diskSize, TestConstants.CONTAINER_PATH, profiles)
                 .build();
     }
 

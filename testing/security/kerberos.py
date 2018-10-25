@@ -37,13 +37,15 @@ def write_krb5_config_file(task: str, filename: str, krb5: object) -> str:
     output_file = filename
 
     log.info("Generating %s", output_file)
-    krb5_file_contents = ['[libdefaults]',
-                          'default_realm = {}'.format(krb5.get_realm()),
-                          '',
-                          '[realms]',
-                          '  {realm} = {{'.format(realm=krb5.get_realm()),
-                          '    kdc = {}'.format(krb5.get_kdc_address()),
-                          '  }', ]
+    krb5_file_contents = [
+        "[libdefaults]",
+        "default_realm = {}".format(krb5.get_realm()),
+        "",
+        "[realms]",
+        "  {realm} = {{".format(realm=krb5.get_realm()),
+        "    kdc = {}".format(krb5.get_kdc_address()),
+        "  }",
+    ]
     log.info("%s", krb5_file_contents)
 
     output = sdk_cmd.create_task_text_file(task, output_file, krb5_file_contents)

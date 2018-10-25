@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.evaluate;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.MesosResourcePool;
+import com.mesosphere.sdk.offer.StoreTaskInfoRecommendation;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import org.apache.mesos.Protos;
@@ -33,7 +34,14 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
         Protos.Offer offer = mesosResourcePool.getOffer();
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName);
-        taskBuilder.setTaskId(CommonIdUtils.toTaskId(serviceName, taskBuilder.getName()));
+
+        if (shouldLaunch) {
+            taskBuilder.setTaskId(CommonIdUtils.toTaskId(serviceName, taskBuilder.getName()));
+        } else {
+            // This task is just being stored in ZK, not launched with Mesos (yet).
+            taskBuilder.getTaskIdBuilder().setValue("");
+        }
+        taskBuilder.setSlaveId(offer.getSlaveId());
 
         // Store metadata in the TaskInfo for later access by placement constraints:
         TaskLabelWriter writer = new TaskLabelWriter(taskBuilder);
@@ -41,21 +49,31 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
                 .setType(podInfoBuilder.getType())
                 .setIndex(podInfoBuilder.getIndex())
                 .setHostname(offer);
-
         if (offer.hasDomain() && offer.getDomain().hasFaultDomain()) {
-            writer.setRegion(offer.getDomain().getFaultDomain().getRegion());
-            writer.setZone(offer.getDomain().getFaultDomain().getZone());
+            writer.setRegion(offer.getDomain().getFaultDomain().getRegion())
+                    .setZone(offer.getDomain().getFaultDomain().getZone());
         }
 
         taskBuilder.setLabels(writer.toProto());
         updateFaultDomainEnv(taskBuilder, offer);
 
-        return pass(
-                this,
-                Arrays.asList(new LaunchOfferRecommendation(
-                        offer, taskBuilder.build(), executorBuilder.build(), shouldLaunch)),
-                "Added launch information to offer requirement")
-                .build();
+        if (shouldLaunch) {
+            return pass(
+                    this,
+                    // Launch (in Mesos) + Update (in our StateStore)
+                    Arrays.asList(
+                            new LaunchOfferRecommendation(offer, taskBuilder.build(), executorBuilder.build()),
+                            new StoreTaskInfoRecommendation(offer, taskBuilder.build(), executorBuilder.build())),
+                    String.format("Added launch operation for %s", taskName))
+                    .build();
+        } else {
+            return pass(
+                    this,
+                    // Only update in StateStore. No launch in Mesos.
+                    Arrays.asList(new StoreTaskInfoRecommendation(offer, taskBuilder.build(), executorBuilder.build())),
+                    String.format("Added storage update for %s", taskName))
+                    .build();
+        }
     }
 
     private static void updateFaultDomainEnv(Protos.TaskInfo.Builder builder, Protos.Offer offer) {

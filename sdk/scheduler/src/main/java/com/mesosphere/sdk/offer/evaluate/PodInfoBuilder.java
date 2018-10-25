@@ -16,6 +16,7 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.GoalStateOverride;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -167,20 +168,13 @@ public class PodInfoBuilder {
             Optional<String> resourceId,
             Optional<String> resourceNamespace,
             Optional<String> persistenceId,
-            Optional<String> sourceRoot) {
+            Optional<Protos.ResourceProviderID> providerId,
+            Optional<Protos.Resource.DiskInfo.Source> diskSource) {
 
         Protos.Resource.Builder builder = ResourceBuilder
-                .fromSpec(volumeSpec, resourceId, resourceNamespace, persistenceId, sourceRoot)
+                .fromSpec(volumeSpec, resourceId, resourceNamespace, persistenceId, providerId, diskSource)
                 .build()
                 .toBuilder();
-
-        Protos.Resource.DiskInfo.Builder diskInfoBuilder = builder.getDiskBuilder();
-        diskInfoBuilder.getPersistenceBuilder()
-                .setId(persistenceId.get())
-                .setPrincipal(volumeSpec.getPrincipal());
-        diskInfoBuilder.getVolumeBuilder()
-                .setContainerPath(volumeSpec.getContainerPath())
-                .setMode(Protos.Volume.Mode.RW);
 
         return builder.build();
     }
@@ -220,7 +214,6 @@ public class PodInfoBuilder {
         // create default labels:
         taskInfoBuilder.setLabels(new TaskLabelWriter(taskInfoBuilder)
                 .setTargetConfiguration(targetConfigurationId)
-                .setGoalState(taskSpec.getGoal())
                 .setType(podInstance.getPod().getType())
                 .setIndex(podInstance.getIndex())
                 .toProto());
@@ -524,6 +517,7 @@ public class PodInfoBuilder {
     private Protos.ContainerInfo getContainerInfo(
             PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer) {
         Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
+        Collection<Protos.Volume> hostVolumes = getExecutorInfoHostVolumes(podSpec.getHostVolumes());
         Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
                 .setType(Protos.ContainerInfo.Type.MESOS);
 
@@ -537,6 +531,10 @@ public class PodInfoBuilder {
                 .setContainerPath("/tmp")
                 .setHostPath("tmp")
                 .setMode(Protos.Volume.Mode.RW));
+
+        for (Protos.Volume hostVolume: hostVolumes) {
+            containerInfo.addVolumes(hostVolume);
+        }
 
         if (!podSpec.getImage().isPresent()
                 && podSpec.getNetworks().isEmpty()
@@ -690,6 +688,20 @@ public class PodInfoBuilder {
                 .setType(Protos.Secret.Type.REFERENCE)
                 .setReference(Protos.Secret.Reference.newBuilder().setName(secretPath))
                 .build();
+    }
+
+    private static Collection<Protos.Volume> getExecutorInfoHostVolumes(Collection<HostVolumeSpec> hostVolumeSpecs) {
+        Collection<Protos.Volume> volumes = new ArrayList<>();
+
+        for (HostVolumeSpec hostVolumeSpec: hostVolumeSpecs) {
+            volumes.add(Protos.Volume.newBuilder()
+                    .setHostPath(hostVolumeSpec.getHostPath())
+                    .setContainerPath(hostVolumeSpec.getContainerPath())
+                    .setMode(Protos.Volume.Mode.RW)
+                    .build());
+        }
+
+        return volumes;
     }
 
     private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {

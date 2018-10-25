@@ -57,6 +57,9 @@ public interface PodSpec {
     @JsonProperty("share-pid-namespace")
     Boolean getSharePidNamespace();
 
+    @JsonProperty("host-volumes")
+    Collection<HostVolumeSpec> getHostVolumes();
+
     @JsonIgnore
     static String getName(PodSpec podSpec, int index) {
         return podSpec.getType() + "-" + index;

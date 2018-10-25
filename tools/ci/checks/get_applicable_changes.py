@@ -9,7 +9,7 @@ from typing import List
 
 
 BUILD_FOLDERS = ["cli/", "clivendor/", "govendor/", "sdk/", "testing/", "tools/"]
-BUILD_FILES = ["conftest.py", "test_requirements.txt", "Dockerfile"]
+BUILD_FILES = ["conftest.py", "test_requirements.txt", "frozen_requirements.txt", "Dockerfile"]
 
 
 def get_changed_files(git_reference: str) -> List[str]:
@@ -74,13 +74,9 @@ def parse_args():
         help="A git reference to use as a base for determining the list of changed files to process",
     )
 
+    parser.add_argument("--extensions", type=str, help="A comma-separated list of extensions")
     parser.add_argument(
-        "--extensions", type=str, help="A comma-separated list of extensions"
-    )
-    parser.add_argument(
-        "--ignore-extensions",
-        type=str,
-        help="A comma-separated list of extensions to ignore",
+        "--ignore-extensions", type=str, help="A comma-separated list of extensions to ignore"
     )
     parser.add_argument("--only-build-files", action="store_true")
     parser.add_argument("--include-deleted-files", action="store_true")

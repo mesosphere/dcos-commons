@@ -11,6 +11,7 @@ import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.Label;
+import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Port;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.TaskInfo;
@@ -24,6 +25,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Offer evaluation tests concerning ports.
@@ -37,18 +39,25 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations =
                 evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getCompleteOffers(offeredPorts));
 
-        Assert.assertEquals(5, recommendations.size());
+        Assert.assertEquals(Arrays.asList(
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Offer.Operation.Type.LAUNCH_GROUP,
+                null),
+                recommendations.stream()
+                        .map(rec -> rec.getOperation().isPresent() ? rec.getOperation().get().getType() : null)
+                        .collect(Collectors.toList()));
 
-        Protos.Offer.Operation launchOperation = recommendations.get(4).getOperation();
+        Protos.Offer.Operation launchOperation = recommendations.get(4).getOperation().get();
         Protos.TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertFalse(getResourceId(fulfilledPortResource).isEmpty());
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(String.valueOf(555), envvars.get(TestConstants.PORT_ENV_NAME + "_555"));
+        Map<String, Protos.Environment.Variable> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals(String.valueOf(555), envvars.get(TestConstants.PORT_ENV_NAME + "_555").getValue());
     }
-
-
 
     @Test
     public void testReserveStaticPortFailure() throws Exception {
@@ -76,14 +85,16 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
-        Assert.assertEquals(1, recommendations.size());
+        Assert.assertEquals(2, recommendations.size());
 
         // Validate LAUNCH Operation
-        Protos.Offer.Operation launchOperation = recommendations.get(0).getOperation();
+        Protos.Offer.Operation launchOperation = recommendations.get(0).getOperation().get();
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
 
         Protos.Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
         Assert.assertEquals(resourceId, getResourceId(launchResource));
+
+        Assert.assertFalse(recommendations.get(1).getOperation().isPresent());
     }
 
 
@@ -103,14 +114,16 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 podInstanceRequirement,
                 Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
-        Assert.assertEquals(1, recommendations.size());
+        Assert.assertEquals(2, recommendations.size());
 
         // Validate LAUNCH Operation
-        Operation launchOperation = recommendations.get(0).getOperation();
+        Operation launchOperation = recommendations.get(0).getOperation().get();
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
 
         Resource launchResource = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResources(0);
         Assert.assertEquals(resourceId, getResourceId(launchResource));
+
+        Assert.assertFalse(recommendations.get(1).getOperation().isPresent());
     }
 
     @Test
@@ -121,16 +134,18 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations =
                 evaluator.evaluate(podInstanceRequirement, OfferTestUtils.getCompleteOffers(offeredPorts));
 
-        Assert.assertEquals(5, recommendations.size());
+        Assert.assertEquals(6, recommendations.size());
 
-        Protos.Offer.Operation launchOperation = recommendations.get(4).getOperation();
+        Protos.Offer.Operation launchOperation = recommendations.get(4).getOperation().get();
+        Assert.assertFalse(recommendations.get(5).getOperation().isPresent());
+
         Protos.TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Protos.Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertFalse(getResourceId(fulfilledPortResource).isEmpty());
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Map<String, Protos.Environment.Variable> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
         Assert.assertEquals(envvars.toString(),
-                String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_0"));
+                String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_0").getValue());
     }
 
 
@@ -153,16 +168,20 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
 
         // UNRESERVE, RESERVE, LAUNCH
-        Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
-        Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, recommendations.get(2).getOperation().getType());
+        Assert.assertEquals(Arrays.asList(
+                Protos.Offer.Operation.Type.UNRESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Offer.Operation.Type.LAUNCH_GROUP,
+                null),
+                recommendations.stream()
+                        .map(rec -> rec.getOperation().isPresent() ? rec.getOperation().get().getType() : null)
+                        .collect(Collectors.toList()));
 
-        Operation launchOperation = recommendations.get(2).getOperation();
+        Operation launchOperation = recommendations.get(2).getOperation().get();
         TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME + "_666"));
+        Map<String, Protos.Environment.Variable> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME + "_666").getValue());
     }
 
 
@@ -185,17 +204,21 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getPortRequirement(666),
                 Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
 
-        // RESERVE, UNRESERVE, LAUNCH
-        Assert.assertEquals(recommendations.toString(), 3, recommendations.size());
-        Assert.assertEquals(Operation.Type.UNRESERVE, recommendations.get(0).getOperation().getType());
-        Assert.assertEquals(Operation.Type.RESERVE, recommendations.get(1).getOperation().getType());
-        Assert.assertEquals(Operation.Type.LAUNCH_GROUP, recommendations.get(2).getOperation().getType());
+        // UNRESERVE, RESERVE, LAUNCH
+        Assert.assertEquals(Arrays.asList(
+                Protos.Offer.Operation.Type.UNRESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Offer.Operation.Type.LAUNCH_GROUP,
+                null),
+                recommendations.stream()
+                        .map(rec -> rec.getOperation().isPresent() ? rec.getOperation().get().getType() : null)
+                        .collect(Collectors.toList()));
 
-        Operation launchOperation = recommendations.get(2).getOperation();
+        Operation launchOperation = recommendations.get(2).getOperation().get();
         TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME + "_666"));
+        Map<String, Protos.Environment.Variable> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals(String.valueOf(666), envvars.get(TestConstants.PORT_ENV_NAME + "_666").getValue());
     }
 
     @Test
@@ -217,10 +240,10 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         List<OfferRecommendation> recommendations = evaluator.evaluate(
                 PodInstanceRequirementTestUtils.getPortRequirement(10000, 10001),
                 Arrays.asList(OfferTestUtils.getOffer(expectedResources)));
-        Assert.assertEquals(1, recommendations.size());
+        Assert.assertEquals(2, recommendations.size());
 
         // Validate LAUNCH Operation
-        Operation launchOperation = recommendations.get(0).getOperation();
+        Operation launchOperation = recommendations.get(0).getOperation().get();
         Assert.assertEquals(Operation.Type.LAUNCH_GROUP, launchOperation.getType());
 
         List<Resource> launchResources = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0).getResourcesList();
@@ -228,6 +251,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
 
         Assert.assertEquals(resourceId0, getResourceId(launchResources.get(0)));
         Assert.assertEquals(resourceId1, getResourceId(launchResources.get(1)));
+
+        Assert.assertFalse(recommendations.get(1).getOperation().isPresent());
     }
 
 
@@ -243,26 +268,36 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getPortRequirement(ports),
                 OfferTestUtils.getCompleteOffers(ResourceTestUtils.getUnreservedPorts(10000, 10001)));
 
-        Assert.assertEquals(recommendations.toString(), 6, recommendations.size());
+        Assert.assertEquals(Arrays.asList(
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Offer.Operation.Type.LAUNCH_GROUP,
+                null),
+                recommendations.stream()
+                        .map(rec -> rec.getOperation().isPresent() ? rec.getOperation().get().getType() : null)
+                        .collect(Collectors.toList()));
 
-        Operation reserveOperation = recommendations.get(0).getOperation();
+        Operation reserveOperation = recommendations.get(0).getOperation().get();
         Resource fulfilledPortResource1 = reserveOperation.getReserve().getResources(0);
         Assert.assertEquals(10000, fulfilledPortResource1.getRanges().getRange(0).getBegin());
         Assert.assertEquals(10000, fulfilledPortResource1.getRanges().getRange(0).getEnd());
 
-        reserveOperation = recommendations.get(1).getOperation();
+        reserveOperation = recommendations.get(1).getOperation().get();
         Resource fulfilledPortResource2 = reserveOperation.getReserve().getResources(0);
         Assert.assertEquals(10001, fulfilledPortResource2.getRanges().getRange(0).getBegin());
         Assert.assertEquals(10001, fulfilledPortResource2.getRanges().getRange(0).getEnd());
 
-        Operation launchOperation = recommendations.get(5).getOperation();
+        Operation launchOperation = recommendations.get(5).getOperation().get();
         TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Assert.assertEquals(getResourceId(taskInfo.getResources(0)), getResourceId(fulfilledPortResource1));
         Assert.assertEquals(getResourceId(taskInfo.getResources(1)), getResourceId(fulfilledPortResource2));
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(String.valueOf(10000), envvars.get(portenv0));
-        Assert.assertEquals(String.valueOf(10001), envvars.get(portenv1));
+        Map<String, Protos.Environment.Variable> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals(String.valueOf(10000), envvars.get(portenv0).getValue());
+        Assert.assertEquals(String.valueOf(10001), envvars.get(portenv1).getValue());
 
         Assert.assertEquals(10000, taskInfo.getResources(0).getRanges().getRange(0).getBegin());
         Assert.assertEquals(10000, taskInfo.getResources(0).getRanges().getRange(0).getEnd());
@@ -277,9 +312,11 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getVIPRequirement(80, 10000),
                 OfferTestUtils.getCompleteOffers(ResourceTestUtils.getUnreservedPorts(10000, 10000)));
 
-        Assert.assertEquals(5, recommendations.size());
+        Assert.assertEquals(6, recommendations.size());
 
-        Operation launchOperation = recommendations.get(4).getOperation();
+        Operation launchOperation = recommendations.get(4).getOperation().get();
+        Assert.assertFalse(recommendations.get(5).getOperation().isPresent());
+
         TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
@@ -297,8 +334,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
         Assert.assertEquals(vipLabel.getValue(), TestConstants.VIP_NAME + "-10000:80");
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_VIP_10000"));
+        Map<String, Protos.Environment.Variable> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_VIP_10000").getValue());
     }
 
     @SuppressWarnings("PMD.AvoidUsingHardCodedIP")
@@ -308,9 +345,11 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                 PodInstanceRequirementTestUtils.getVIPRequirement(80, 0),
                 OfferTestUtils.getCompleteOffers(ResourceTestUtils.getUnreservedPorts(10000, 10000)));
 
-        Assert.assertEquals(5, recommendations.size());
+        Assert.assertEquals(6, recommendations.size());
 
-        Operation launchOperation = recommendations.get(4).getOperation();
+        Operation launchOperation = recommendations.get(4).getOperation().get();
+        Assert.assertFalse(recommendations.get(5).getOperation().isPresent());
+
         TaskInfo taskInfo = launchOperation.getLaunchGroup().getTaskGroup().getTasks(0);
         Resource fulfilledPortResource = taskInfo.getResources(0);
         Assert.assertEquals(10000, fulfilledPortResource.getRanges().getRange(0).getBegin());
@@ -328,8 +367,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         Assert.assertTrue(vipLabel.getKey().startsWith("VIP_"));
         Assert.assertEquals(vipLabel.getValue(), TestConstants.VIP_NAME + "-0:80");
 
-        Map<String, String> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
-        Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_VIP_0"));
+        Map<String, Protos.Environment.Variable> envvars = EnvUtils.toMap(taskInfo.getCommand().getEnvironment());
+        Assert.assertEquals(String.valueOf(10000), envvars.get(TestConstants.PORT_ENV_NAME + "_VIP_0").getValue());
     }
 
     private Collection<Resource> getExpectedExecutorResources(Protos.ExecutorInfo executorInfo) {

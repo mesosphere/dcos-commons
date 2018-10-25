@@ -1,0 +1,43 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  hello:
+    image: ubuntu:14.04
+    count: {{HELLO_COUNT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
+    host-volumes:
+      opt-mesosphere:
+        host-path: /etc
+        container-path: host-volume-etc
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "mount >> hello-container-path/output && sleep 1000000"
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        volume:
+          path: hello-container-path
+          type: ROOT
+          size: {{HELLO_DISK}}
+  world:
+      count: {{HELLO_COUNT}}
+      placement: '{{{HELLO_PLACEMENT}}}'
+      host-volumes:
+        opt-mesosphere:
+          host-path: /etc
+          container-path: host-volume-etc
+        var-test:
+          host-path: /var
+          container-path: host-volume-var
+      tasks:
+        server:
+          goal: RUNNING
+          cmd: "mount >> world-container-path/output && sleep 1000000"
+          cpus: {{HELLO_CPUS}}
+          memory: {{HELLO_MEM}}
+          volume:
+            path: world-container-path
+            type: ROOT
+            size: {{HELLO_DISK}}

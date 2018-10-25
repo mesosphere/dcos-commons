@@ -155,6 +155,8 @@ public class SchedulerConfig {
      */
     private static final String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
 
+    public static final String MESOS_API_VERSION_V1 = "V1";
+
     /**
      * Environment variable for manually configuring the command to run when pausing a pod.
      */
@@ -193,6 +195,11 @@ public class SchedulerConfig {
      * the command executor.
      */
     private static final String LIBPROCESS_IP_ENV = "LIBPROCESS_IP";
+
+    /**
+     * Environment variable to control use of legacy killUnneededTasks sematics. By default this is disabled.
+     */
+    private static final String USE_LEGACY_UNNEEDED_TASK_KILLS = "USE_LEGACY_KILL_UNNEEDED_TASKS";
 
     /**
      * We print the build info here because this is likely to be a very early point in the service's execution. In a
@@ -310,6 +317,10 @@ public class SchedulerConfig {
         return envStore.isPresent(SDK_UNINSTALL);
     }
 
+    public boolean useLegacyUnneededTaskKills() {
+        return envStore.isPresent(USE_LEGACY_UNNEEDED_TASK_KILLS);
+    }
+
     /**
      * Returns whether it appears that side channel auth should be used when creating the SchedulerDriver. Side channel
      * auth may take the form of Bouncer-based framework authentication or potentially other methods in the future (e.g.
@@ -399,7 +410,7 @@ public class SchedulerConfig {
      * Returns the Mesos API version.
      */
     public String getMesosApiVersion() {
-        return envStore.getOptional(MESOS_API_VERSION_ENV, "V1");
+        return envStore.getOptional(MESOS_API_VERSION_ENV, MESOS_API_VERSION_V1);
     }
 
     /**

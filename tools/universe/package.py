@@ -7,8 +7,7 @@ class Package:
     @staticmethod
     def from_json(json):
         """Construct a Package object from a json definition"""
-        return Package(json['name'],
-                       Version(json['releaseVersion'], json['version']))
+        return Package(json["name"], Version(json["releaseVersion"], json["version"]))
 
     def __init__(self, name, version, raw_data={}):
         self._name = name
@@ -28,14 +27,16 @@ class Package:
         return self.get_version() < other.get_version()
 
     def __str__(self):
-        return json.dumps({
-            'name': self.get_name(),
-            'version': self._version.package_version,
-            'releaseVersion': self._version.release_version,
-        })
+        return json.dumps(
+            {
+                "name": self.get_name(),
+                "version": self._version.package_version,
+                "releaseVersion": self._version.release_version,
+            }
+        )
 
     def is_beta(self):
-        return self._name.startswith('beta-')
+        return self._name.startswith("beta-")
 
     def get_name(self):
         return self._name
@@ -68,7 +69,4 @@ class Version:
         return str(self.package_version)
 
     def to_json(self):
-        return {
-            'release_version': self.release_version,
-            'package_version': self.package_version,
-        }
+        return {"release_version": self.release_version, "package_version": self.package_version}

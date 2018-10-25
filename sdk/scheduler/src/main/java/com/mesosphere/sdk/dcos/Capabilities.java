@@ -104,6 +104,11 @@ public class Capabilities {
         return hasOrExceedsVersion(1, 11);
     }
 
+    public boolean supportsProfileMountVolumes() {
+        // MOUNT volumes with profiles are supportedby DC/OS 1.12 upwards.
+        return hasOrExceedsVersion(1, 12);
+    }
+
     private boolean hasOrExceedsVersion(int major, int minor) {
         DcosVersion.Elements versionElements = dcosVersion.getElements();
         try {

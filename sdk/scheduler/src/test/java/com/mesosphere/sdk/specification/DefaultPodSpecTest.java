@@ -54,9 +54,8 @@ public class DefaultPodSpecTest {
                 .rlimits(Collections.singleton(new RLimitSpec("RLIMIT_CPU", 20L, 50L)))
                 .uris(Collections.singleton(URI.create("http://example.com/artifact.tgz")))
                 .placementRule(new HostnameRule(RegexMatcher.create(".*")))
-                .volumes(Collections.singleton(new DefaultVolumeSpec(
+                .volumes(Collections.singleton(DefaultVolumeSpec.createRootVolume(
                         100,
-                        VolumeSpec.Type.ROOT,
                         TestConstants.CONTAINER_PATH,
                         TestConstants.ROLE,
                         TestConstants.PRE_RESERVED_ROLE,

@@ -34,17 +34,30 @@ RUN apt-get update && \
 ENV PATH=$PATH:/usr/local/go/bin
 RUN go version
 
-# AWS CLI for uploading build artifacts
-RUN pip3 install awscli
-# Install the testing dependencies
-COPY test_requirements.txt test_requirements.txt
-RUN pip3 install --upgrade -r test_requirements.txt
-# shakedown and dcos-cli require this to output cleanly
+# Install the lint+testing dependencies and AWS CLI for uploading build artifacts
+COPY frozen_requirements.txt frozen_requirements.txt
+RUN pip3 install --upgrade -r frozen_requirements.txt
+
+# Get DC/OS CLI
+COPY dep-snapshots/dcos /usr/local/bin
+
+# dcos-cli and lint tooling require this to output cleanly
 ENV LC_ALL=C.UTF-8 LANG=C.UTF-8
 # use an arbitrary path for temporary build artifacts
 ENV GOPATH=/go-tmp
 # make a dir for holding the SSH key in tests
 RUN mkdir /root/.ssh
+
+# Copy all of the repo into the image, then run some build/lint commands against the copy to heat up caches. Then delete the copy.
+RUN mkdir /tmp/repo/
+COPY / /tmp/repo/
+# gradlew: Heat up jar cache. pre-commit: Heat up lint tooling cache.
+RUN cd /tmp/repo/ && \
+    ./gradlew testClasses && \
+    git init && \
+    pre-commit install-hooks && \
+    cd / && \
+    rm -rf /tmp/repo/
 
 # Create a build-tool directory:
 RUN mkdir /build-tools
@@ -56,7 +69,6 @@ COPY tools/ci/launch_cluster.sh /build-tools/
 
 # Create a folder to store the distributed artefacts
 RUN mkdir /dcos-commons-dist
-
 ENV DCOS_COMMONS_DIST_ROOT /dcos-commons-dist
 
 COPY tools/distribution/* ${DCOS_COMMONS_DIST_ROOT}/
@@ -68,6 +80,7 @@ COPY conftest.py ${DCOS_COMMONS_DIST_ROOT}/
 
 COPY testing ${DCOS_COMMONS_DIST_ROOT}/testing
 COPY tools ${DCOS_COMMONS_DIST_ROOT}/tools
+COPY .pre-commit-config.yaml ${DCOS_COMMONS_DIST_ROOT}/
 
 COPY build.gradle ${DCOS_COMMONS_DIST_ROOT}/build.gradle
 RUN grep -oE "version = '.*?'" ${DCOS_COMMONS_DIST_ROOT}/build.gradle | sed 's/version = //' > ${DCOS_COMMONS_DIST_ROOT}/.version
