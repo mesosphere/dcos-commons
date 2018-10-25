@@ -31,7 +31,6 @@
     "STATSD_URI": "{{resource.assets.uris.statsd-plugin-zip}}",
     "ELASTICSEARCH_URI" : "{{resource.assets.uris.elasticsearch-tar-gz}}",
     "ELASTICSEARCH_JAVA_URI" : "{{resource.assets.uris.elasticsearch-jre-tar-gz}}",
-    "XPACK_URI" : "{{resource.assets.uris.xpack-zip}}",
     "DIAGNOSTICS_URI" : "{{resource.assets.uris.diagnostics-zip}}",
     "SCHEDULER_URI": "{{resource.assets.uris.scheduler-zip}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
@@ -96,7 +95,6 @@
     {{#service.region}}
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}
-    "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
     "ELASTICSEARCH_HEALTH_USER": "{{elasticsearch.health_user}}",
     "ELASTICSEARCH_HEALTH_USER_PASSWORD": "{{elasticsearch.health_user_password}}",
     "TASKCFG_ALL_ELASTICSEARCH_PLUGINS": "{{elasticsearch.plugins}}",
@@ -353,3 +351,4 @@
     }
   ]
 }
+

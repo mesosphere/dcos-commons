@@ -6,7 +6,7 @@
   "name": "elastic",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
-  "description": "Elasticsearch 5, and optionally X-Pack",
+  "description": "Elasticsearch 6, and X-Pack",
   "selected": true,
   "framework": true,
   "tags": ["elastic", "elasticsearch", "kibana", "x-pack"],
@@ -14,3 +14,4 @@
   "postInstallNotes": "The DC/OS Elastic service is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
   "postUninstallNotes": "The DC/OS Elastic service is being uninstalled.\n\nFor DC/OS versions from 1.10 no further action is required. For older DC/OS versions follow the instructions at {{documentation-path}}uninstall to remove any persistent state if required."
 }
+

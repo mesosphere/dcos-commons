@@ -8,7 +8,6 @@
       "statsd-plugin-zip": "https://github.com/mesosphere/elasticsearch-statsd-plugin/releases/download/{{elastic-statsd-version}}/elasticsearch-statsd-{{elastic-statsd-version}}.zip",
       "elasticsearch-jre-tar-gz": "{{jre-url}}",
       "elasticsearch-tar-gz": "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{elastic-version}}.tar.gz",
-      "xpack-zip": "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{elastic-version}}.zip",
       "diagnostics-zip": "https://github.com/elastic/elasticsearch-support-diagnostics/releases/download/{{support-diagnostics-version}}/support-diagnostics-{{support-diagnostics-version}}-dist.zip"
     }
   },
@@ -43,3 +42,4 @@
     }
   }
 }
+

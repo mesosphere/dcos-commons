@@ -1,8 +1,7 @@
 {
   "assets": {
     "uris": {
-      "kibana-tar-gz": "https://artifacts.elastic.co/downloads/kibana/kibana-{{elastic-version}}-linux-x86_64.tar.gz",
-      "xpack-zip": "https://artifacts.elastic.co/downloads/packs/x-pack/x-pack-{{elastic-version}}.zip"
+            "kibana-tar-gz": "https://artifacts.elastic.co/downloads/kibana/kibana-{{elastic-version}}-linux-x86_64.tar.gz"
     }
   },
   "images": {
@@ -11,3 +10,4 @@
     "icon-large": "https://static-www.elastic.co/assets/blt282ae2420e32fc38/icon-kibana-bb.svg"
   }
 }
+
