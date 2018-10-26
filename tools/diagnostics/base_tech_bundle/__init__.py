@@ -24,6 +24,7 @@ BASE_TECH_BUNDLE = {
     "elastic": ElasticBundle,
     "hdfs": HdfsBundle,
     "kafka": KafkaBundle,
+    "datastax-dse": CassandraBundle,
 }
 
 
