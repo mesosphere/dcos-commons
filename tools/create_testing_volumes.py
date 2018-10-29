@@ -6,7 +6,10 @@ import time
 import dcos_launch
 from dcos_test_utils import logger, helpers, ssh_client
 
-MOUNT_VOLUME_COUNT = 2
+# Here we create 4 MOUNT volumes on every agent, where the first two have no
+# profile and their filesystem default to ext4, and the last two have the "xfs"
+# profile and filesystem.
+MOUNT_VOLUME_PROFILES = [None, None, "xfs", "xfs"]
 MOUNT_VOLUME_SIZE_MB = 200
 
 
@@ -32,17 +35,17 @@ rm -f /var/lib/mesos/slave/meta/slaves/latest
 
 losetup -a
 """.format(
-        dcos_mounts=" -a ".join(["-e /dcos/volume{}".format(i) for i in range(MOUNT_VOLUME_COUNT)])
+        dcos_mounts=" -a ".join(["-e /dcos/volume{}".format(i) for i, _ in enumerate(MOUNT_VOLUME_PROFILES)])
     )
 
-    for i in range(MOUNT_VOLUME_COUNT):
+    for i, p in enumerate(MOUNT_VOLUME_PROFILES):
         volume_script += """
 if [ ! -e {loop_file} ]; then
     echo 'Creating loopback device {loop_dev}...'
 
     dd if=/dev/zero of={loop_file} bs=1M count={size_mb}
     losetup {loop_dev} {loop_file}
-    mkfs -t ext4 {loop_dev}
+    mkfs -t {fs_type} {loop_dev}
     losetup -d {loop_dev}
 fi
 
@@ -58,11 +61,41 @@ fi
             dcos_mount="/dcos/volume{}".format(i),
             loop_dev="/dev/loop{}".format(i),
             loop_file="/root/volume{}.img".format(i),
+            fs_type=p or "ext4"
         )
 
+    # To create profile mount volumes, we manually run `make_disk_resources.py`
+    # to generate disk resources, then parse the result and set the
+    # `disk.source.profile` field for each profile mount volume.
     volume_script += """
+echo 'Updating disk resources...'
+
+export MESOS_WORK_DIR MESOS_RESOURCES
+eval $(sed -E "s/^([A-Z_]+)=(.*)$/\\1='\\2'/" /opt/mesosphere/etc/mesos-slave-common)  # Set up `MESOS_WORK_DIR`.
+eval $(sed -E "s/^([A-Z_]+)=(.*)$/\\1='\\2'/" /opt/mesosphere/etc/mesos-slave)         # Set up `MESOS_RESOURCES`.
+/opt/mesosphere/bin/make_disk_resources.py /var/lib/dcos/mesos-resources
+source /var/lib/dcos/mesos-resources
+/opt/mesosphere/bin/python -c "
+import json;
+import os;
+
+profiles = {profiles}
+resources = json.loads(os.environ['MESOS_RESOURCES'])
+
+for r in resources:
+    try:
+        disk_source = r['disk']['source']
+        disk_source['profile'] = profiles[disk_source['mount']['root']]
+    except KeyError:
+        pass
+
+print('MESOS_RESOURCES=\\'' + json.dumps(resources) + '\\'')
+" > /var/lib/dcos/mesos-resources
+
 echo 'Restarting agent...'
-systemctl restart dcos-mesos-slave.service"""
+
+systemctl restart dcos-mesos-slave.service
+""".format(profiles={"/dcos/volume{}".format(i): p for i, p in enumerate(MOUNT_VOLUME_PROFILES) if p})
 
     cluster_info_path = os.getenv("CLUSTER_INFO_PATH", "cluster_info.json")
     if not os.path.exists(cluster_info_path):

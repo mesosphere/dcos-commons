@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import com.mesosphere.sdk.offer.OfferRecommendation;
+
 import org.apache.mesos.Protos;
 
 import java.util.*;
