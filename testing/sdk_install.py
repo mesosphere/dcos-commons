@@ -43,6 +43,7 @@ def _retried_install_impl(
     options={},
     package_version=None,
     timeout_seconds=TIMEOUT_SECONDS,
+    wait_for_all_conditions=True,
 ):
     log.info(
         "Installing package={} service={} with options={} version={}".format(
@@ -74,11 +75,12 @@ def _retried_install_impl(
     sdk_cmd.run_cli(" ".join(install_cmd), check=True)
 
     # Wait for expected tasks to come up
-    if expected_running_tasks > 0:
+    if expected_running_tasks > 0 and wait_for_all_conditions:
         sdk_tasks.check_running(service_name, expected_running_tasks, timeout_seconds)
 
     # Wait for completed marathon deployment
-    sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
+    if wait_for_all_conditions:
+        sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
 
 
 def install(
@@ -90,6 +92,7 @@ def install(
     timeout_seconds=TIMEOUT_SECONDS,
     wait_for_deployment=True,
     insert_strict_options=True,
+    wait_for_all_conditions=True
 ):
     start = time.time()
 
@@ -122,6 +125,7 @@ def install(
         options,
         package_version,
         timeout_seconds,
+        wait_for_all_conditions
     )
 
     # 2. Wait for the scheduler to be idle (as implied by deploy plan completion and suppressed bit)

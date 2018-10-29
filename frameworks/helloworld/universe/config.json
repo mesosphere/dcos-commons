@@ -98,6 +98,7 @@
             "uri",
             "web-url",
             "non_recoverable_state",
+            "crash-loop",
             ""
           ],
           "default": "svc"
