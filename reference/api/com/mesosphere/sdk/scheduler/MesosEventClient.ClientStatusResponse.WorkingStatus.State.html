@@ -218,7 +218,7 @@ the order they are declared.</div>
 <div class="block">The client is acquiring new footprint for the underlying service. This includes initial deployment,
  reconfiguration, and replacement of tasks. It does NOT include restarting tasks or launching sidecar
  tasks, as those operations are performed within the existing footprint.
-
+ <p>
  This hint allows upstream to ensure that only N services are growing their footprint in the cluster
  at a time. Multi-service schedulers can use this information to reduce the likelihood of deadlocks
  between two services attempting to deploy into the same resources at the same time.</div>

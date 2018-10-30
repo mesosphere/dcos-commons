@@ -161,8 +161,8 @@ extends java.lang.Object</pre>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#enableMultiService-java.lang.String-">enableMultiService</a></span>(java.lang.String&nbsp;frameworkName)</code>
-<div class="block">Marks this service as being part of a Multi-Service scheduler, where a single framework is running and managing
- multiple underlying services.</div>
+<div class="block">Marks this service as being part of a Multi-Service scheduler, where a single framework is
+ running and managing multiple underlying services.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -397,14 +397,9 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>setPlansFrom</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;setPlansFrom(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec)
-                              throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;setPlansFrom(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec)</pre>
 <div class="block">Sets the <a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>s from the provided <a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> to this instance, using a
  <a href="../../../../com/mesosphere/sdk/specification/PlanGenerator.html" title="class in com.mesosphere.sdk.specification"><code>PlanGenerator</code></a> to handle conversion.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code></dd>
-</dl>
 </li>
 </ul>
 <a name="setRecoveryManagerFactory-com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory-">
@@ -452,8 +447,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>enableMultiService</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html" title="class in com.mesosphere.sdk.scheduler">SchedulerBuilder</a>&nbsp;enableMultiService(java.lang.String&nbsp;frameworkName)</pre>
-<div class="block">Marks this service as being part of a Multi-Service scheduler, where a single framework is running and managing
- multiple underlying services.</div>
+<div class="block">Marks this service as being part of a Multi-Service scheduler, where a single framework is
+ running and managing multiple underlying services.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>frameworkName</code> - the name of the Mesos Framework which will be running the service</dd>

@@ -285,6 +285,34 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getExistingExecutorVolume</h4>
+<pre>public static&nbsp;Protos.Resource&nbsp;getExistingExecutorVolume(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
+                                                        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
+                                                        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
+                                                        java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,
+                                                        java.util.Optional&lt;Protos.ResourceProviderID&gt;&nbsp;providerId,
+                                                        java.util.Optional&lt;Protos.Resource.DiskInfo.Source&gt;&nbsp;diskSource)</pre>
+</li>
+</ul>
+<a name="getTaskEnvironment-java.lang.String-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskEnvironment</h4>
+<pre>public static&nbsp;java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;getTaskEnvironment(java.lang.String&nbsp;serviceName,
+                                                                                  <a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
+                                                                                  <a href="../../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;taskSpec,
+                                                                                  <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
+<div class="block">Generates a Task environment containing the configured environment values from the <a href="../../../../../com/mesosphere/sdk/specification/CommandSpec.html" title="interface in com.mesosphere.sdk.specification"><code>CommandSpec</code></a>, along
+ with a set of default environment variables that all SDK tasks get for free.</div>
+</li>
+</ul>
 <a name="getTaskBuilders--">
 <!--   -->
 </a>
@@ -376,34 +404,6 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setExecutorVolume</h4>
 <pre>public&nbsp;void&nbsp;setExecutorVolume(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec)</pre>
-</li>
-</ul>
-<a name="getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getExistingExecutorVolume</h4>
-<pre>public static&nbsp;Protos.Resource&nbsp;getExistingExecutorVolume(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
-                                                        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
-                                                        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
-                                                        java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,
-                                                        java.util.Optional&lt;Protos.ResourceProviderID&gt;&nbsp;providerId,
-                                                        java.util.Optional&lt;Protos.Resource.DiskInfo.Source&gt;&nbsp;diskSource)</pre>
-</li>
-</ul>
-<a name="getTaskEnvironment-java.lang.String-com.mesosphere.sdk.specification.PodInstance-com.mesosphere.sdk.specification.TaskSpec-com.mesosphere.sdk.scheduler.SchedulerConfig-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getTaskEnvironment</h4>
-<pre>public static&nbsp;java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;getTaskEnvironment(java.lang.String&nbsp;serviceName,
-                                                                                  <a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance,
-                                                                                  <a href="../../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;taskSpec,
-                                                                                  <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
-<div class="block">Generates a Task environment containing the configured environment values from the <a href="../../../../../com/mesosphere/sdk/specification/CommandSpec.html" title="interface in com.mesosphere.sdk.specification"><code>CommandSpec</code></a>, along
- with a set of default environment variables that all SDK tasks get for free.</div>
 </li>
 </ul>
 <a name="getType--">

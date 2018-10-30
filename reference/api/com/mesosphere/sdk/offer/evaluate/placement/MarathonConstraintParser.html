@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">MarathonConstraintParser</span>
+<pre>public final class <span class="typeNameLabel">MarathonConstraintParser</span>
 extends java.lang.Object</pre>
 <div class="block">Implements support for generating <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a>s from Marathon-style constraint strings.</div>
 <dl>
@@ -182,8 +182,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>parse</h4>
 <pre>public static&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;parse(java.lang.String&nbsp;podName,
-                                  java.lang.String&nbsp;marathonConstraints)
-                           throws java.io.IOException</pre>
+                                  java.lang.String&nbsp;marathonConstraints)</pre>
 <div class="block">Creates and returns a new <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a> against the provided marathon-style
  constraint string. Returns a <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PassthroughRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>PassthroughRule</code></a> if the provided constraint string is
  <code>null</code> or empty.</div>
@@ -196,9 +195,6 @@ extends java.lang.Object</pre>
                             <code>[["multi","list","value"],["hello","hi"]]</code>,
                             or one or more colon-separated entries of the form <code>multi:list:value,hello:hi</code>,
                             or a <code>null</code> or empty value if no constraint is defined</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code> - if <code>marathonConstraints</code> couldn't be parsed, or if the parsed
-                     content isn't valid or supported</dd>
 </dl>
 </li>
 </ul>
@@ -208,14 +204,9 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>splitConstraints</h4>
-<pre>static&nbsp;java.util.List&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;splitConstraints(java.lang.String&nbsp;marathonConstraints)
-                                                                  throws java.io.IOException</pre>
+<pre>static&nbsp;java.util.List&lt;java.util.List&lt;java.lang.String&gt;&gt;&nbsp;splitConstraints(java.lang.String&nbsp;marathonConstraints)</pre>
 <div class="block">Splits the provided marathon constraint statement into elements. Doesn't do any validation
  on the element contents.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
-</dl>
 </li>
 </ul>
 <a name="escapedSplit-java.lang.String-char-">

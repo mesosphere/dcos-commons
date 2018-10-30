@@ -280,7 +280,7 @@ extends java.lang.Object</pre>
 <h4>getServiceSanitized</h4>
 <pre>public&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a>&gt;&nbsp;getServiceSanitized(java.lang.String&nbsp;sanitizedServiceName)</pre>
 <div class="block">Returns the specified service by its sanitized name, or an empty <code>Optional</code> if it's not found.
-
+ <p>
  A sanitized service name has had its slashes removed. For example,
  "<code>/path/to/service</code>" => "<code>path.to.service</code>". Sanitized names may be used in e.g. URLs that contain
  the service name.</div>
@@ -345,14 +345,14 @@ extends java.lang.Object</pre>
  2. UninstallScheduler internally flags its StateStore with an uninstall bit if one is not already present.
  3. The UninstallScheduler proceeds to clean up the service.
  4. In the event of a scheduler process restart during cleanup:
-   a. Upstream builds a new foo using SchedulerBuilder, which internally finds the uninstall bit and returns a
-      new UninstallScheduler
-   b. putService(foo) is called with the UninstallScheduler
-   c. The UninstallScheduler resumes cleanup from where it left off...
+ a. Upstream builds a new foo using SchedulerBuilder, which internally finds the uninstall bit and returns a
+ new UninstallScheduler
+ b. putService(foo) is called with the UninstallScheduler
+ c. The UninstallScheduler resumes cleanup from where it left off...
  5. Sometime after the UninstallScheduler finishes cleanup, it returns FINISHED in response to offers.
  6. We remove the service and invoke uninstallCallback.uninstalled(), telling upstream that it's gone. If upstream
-    invokes putService(foo) again at this point, the service will be relaunched from scratch because the uninstall
-    bit in ZK will have been cleared.</div>
+ invokes putService(foo) again at this point, the service will be relaunched from scratch because the uninstall
+ bit in ZK will have been cleared.</div>
 </li>
 </ul>
 <a name="removeServices-java.util.Collection-">

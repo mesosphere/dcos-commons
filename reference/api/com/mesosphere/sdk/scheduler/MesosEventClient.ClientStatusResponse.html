@@ -315,7 +315,7 @@ extends java.lang.Object</pre>
  deployment or a re-deployment following a configuration change, either of which may involve changing the
  service footprint. This does NOT include in-place restarts of failed tasks, nor launches of sidecar tasks
  which were already allocated.
-
+ <p>
  This code has two purposes:
  <ul><li>Allow upstream to detect a stalled deployment (cluster too small, or other misconfiguration)</li>
  <li>Allow a multi-service scheduler to only have one service deploying at a time, to prevent deadlocks if the
@@ -366,7 +366,7 @@ extends java.lang.Object</pre>
 <div class="block">Tells the caller that this client has finished uninstalling and can be torn down. After this is returned, the
  caller may then notify the client of framework deregistration by calling <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#unregistered--"><code>MesosEventClient.unregistered()</code></a>, but this is
  not required.
-
+ <p>
  This status is only relevant to multi-service schedulers.</div>
 </li>
 </ul>

@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">RawServiceSpec</span>
+<pre>public final class <span class="typeNameLabel">RawServiceSpec</span>
 extends java.lang.Object</pre>
 <div class="block">Root of the parsed YAML object model.</div>
 </li>
@@ -208,15 +208,11 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>fromBytes</h4>
 <pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;fromBytes(byte[]&nbsp;yamlContent)
-                                throws JsonParseException,
-                                       JsonMappingException,
-                                       java.io.IOException</pre>
+                                throws java.io.IOException</pre>
 <div class="block">Generates a <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a> object representation from the provided plain YAML content.
  Mustache handling is not done here. For that you need <a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html#newBuilder-java.io.File-"><code>newBuilder(File)</code></a>.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>JsonParseException</code></dd>
-<dd><code>JsonMappingException</code></dd>
 <dd><code>java.io.IOException</code></dd>
 </dl>
 </li>
@@ -227,12 +223,7 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>newBuilder</h4>
-<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec.Builder</a>&nbsp;newBuilder(java.io.File&nbsp;pathToYamlTemplate)
-                                         throws java.io.IOException</pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.io.IOException</code></dd>
-</dl>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec.Builder</a>&nbsp;newBuilder(java.io.File&nbsp;pathToYamlTemplate)</pre>
 </li>
 </ul>
 <a name="getName--">

@@ -109,8 +109,9 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public final class <span class="typeNameLabel">TaskKiller</span>
 extends java.lang.Object</pre>
-<div class="block">This class implements reliable task killing.  Mesos does not provide reliable task killing.  This class repeatedly
- attempts to kill a task until Mesos declares it has been killed or until Mesos doesn't know anything about this task.</div>
+<div class="block">This class implements reliable task killing.  Mesos does not provide reliable task killing.
+ This class repeatedly attempts to kill a task until Mesos declares it has been killed or until
+ Mesos doesn't know anything about this task.</div>
 </li>
 </ul>
 </div>
@@ -141,7 +142,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html#reset-boolean-">reset</a></span>(boolean&nbsp;executorEnabled)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html#reset-boolean-">reset</a></span>(boolean&nbsp;executorEnabledInternal)</code>
 <div class="block">Resets the <a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework"><code>TaskKiller</code></a>'s internal state for tests.</div>
 </td>
 </tr>
@@ -179,12 +180,13 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>reset</h4>
-<pre>public static&nbsp;void&nbsp;reset(boolean&nbsp;executorEnabled)
+<pre>public static&nbsp;void&nbsp;reset(boolean&nbsp;executorEnabledInternal)
                   throws java.lang.InterruptedException</pre>
 <div class="block">Resets the <a href="../../../../com/mesosphere/sdk/framework/TaskKiller.html" title="class in com.mesosphere.sdk.framework"><code>TaskKiller</code></a>'s internal state for tests.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>executorEnabled</code> - whether the background kill executor should be enabled, should only be disabled in tests</dd>
+<dd><code>executorEnabledInternal</code> - whether the background kill executor should be enabled,
+                               should only be disabled in tests</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.InterruptedException</code></dd>
 </dl>
@@ -200,7 +202,7 @@ extends java.lang.Object</pre>
 <div class="block">Calling this method will cause the referenced TaskID to be reliably killed.  An attempt to kill the task will be
  immediately made.  Continued periodic attempts will be made to kill the task until Mesos indicates that it has
  killed the Task or doesn't recongize the task.
-
+ <p>
  <p>This is still not a guarantee that a task has been killed.  Mesos may not know about a particular TaskID at
  any given time.</div>
 <dl>
@@ -217,20 +219,20 @@ extends java.lang.Object</pre>
 <h4>update</h4>
 <pre>public static&nbsp;boolean&nbsp;update(Protos.TaskStatus&nbsp;taskStatus)</pre>
 <div class="block">Updates the list of tasks scheduled to be killed to reflect an incoming task status.
-
+ <p>
  Returns whether the task should be eligible for another kill operation. This is intended to break a
  Kill->Status->Kill->Status->... loop where Mesos returns TASK_LOST+REASON_RECONCILIATION when we attempt to kill
  an unknown task. Example loop:
-
+ <p>
  <code>TaskKiller:killTask: Enqueued kill of task: foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
  TaskKiller:killTaskInternal: Killing task: foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
  FrameworkScheduler:statusUpdate: Received status update for
-     taskId=foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
-     state=TASK_LOST
-     message=Reconciliation: Task is unknown
+ taskId=foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
+ state=TASK_LOST
+ message=Reconciliation: Task is unknown
  TaskKiller:update: Completed killing: foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
  FrameworkScheduler:statusUpdate: Got unknown task in response to status update, marking task to be killed:
-     foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
+ foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
  TaskKiller:killTask: Enqueued kill of task: foo__node-0-node__d9e95ff5-caff-48a0-b26d-d6d2aabfd28e
  </code></div>
 <dl>

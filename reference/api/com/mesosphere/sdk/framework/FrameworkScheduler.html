@@ -109,8 +109,9 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">FrameworkScheduler</span>
 extends java.lang.Object</pre>
-<div class="block">Implementation of Mesos' <code>Scheduler</code> interface. There should only be one of these per Scheduler process.
- Received messages are forwarded to the provided <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><code>MesosEventClient</code></a> instance.</div>
+<div class="block">Implementation of Mesos' <code>Scheduler</code> interface. There should only be one of these per
+ Scheduler process. Received messages are forwarded to the provided <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><code>MesosEventClient</code></a>
+ instance.</div>
 </li>
 </ul>
 </div>
@@ -292,7 +293,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setApiServerStarted</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html" title="class in com.mesosphere.sdk.framework">FrameworkScheduler</a>&nbsp;setApiServerStarted()</pre>
-<div class="block">Notifies this instance that the API server has been initialized. All offers are declined until this is called.</div>
+<div class="block">Notifies this instance that the API server has been initialized. All offers are declined until
+ this is called.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><code>this</code></dd>
@@ -306,8 +308,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>disableThreading</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/framework/FrameworkScheduler.html" title="class in com.mesosphere.sdk.framework">FrameworkScheduler</a>&nbsp;disableThreading()</pre>
-<div class="block">Disables multithreading for tests. For this to take effect, it must be invoked before the framework has
- registered.</div>
+<div class="block">Disables multithreading for tests. For this to take effect, it must be invoked before the
+ framework has registered.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><code>this</code></dd>

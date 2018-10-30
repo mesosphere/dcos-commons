@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">CommonIdUtils</span>
+<pre>public final class <span class="typeNameLabel">CommonIdUtils</span>
 extends java.lang.Object</pre>
 <div class="block">Various utility methods for manipulating data in <code>Protos.TaskInfo</code>s.</div>
 </li>
@@ -222,6 +222,28 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
+<a name="toSanitizedServiceName-Protos.ExecutorID-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toSanitizedServiceName</h4>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;toSanitizedServiceName(Protos.ExecutorID&nbsp;executorId)
+                                                                   throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
+<div class="block">Returns the embedded de-slashed service name, or an empty Optional if no service name was found. The returned
+ value will omit any slashes which may have been present in the original service name. Service names are only
+ embedded in executor IDs as of SDK 0.50.
+ <p>
+ For example: "path.to.service__instance-0__aoeu5678" => "path.to.service" (NOT "/path/to/service"),
+ or "instance-0__aoeu5678" => Empty</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><code>#toExecutorId(String)</code></dd>
+</dl>
+</li>
+</ul>
 <a name="toTaskName-Protos.TaskID-">
 <!--   -->
 </a>
@@ -259,28 +281,6 @@ extends java.lang.Object</pre>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><code>#toTaskName(org.apache.mesos.Protos.TaskID)</code>, 
 <code>#toSanitizedServiceName(org.apache.mesos.Protos.TaskID)</code></dd>
-</dl>
-</li>
-</ul>
-<a name="toSanitizedServiceName-Protos.ExecutorID-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>toSanitizedServiceName</h4>
-<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;toSanitizedServiceName(Protos.ExecutorID&nbsp;executorId)
-                                                                   throws <a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></pre>
-<div class="block">Returns the embedded de-slashed service name, or an empty Optional if no service name was found. The returned
- value will omit any slashes which may have been present in the original service name. Service names are only
- embedded in executor IDs as of SDK 0.50.
- <p>
- For example: "path.to.service__instance-0__aoeu5678" => "path.to.service" (NOT "/path/to/service"),
- or "instance-0__aoeu5678" => Empty</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/offer/TaskException.html" title="class in com.mesosphere.sdk.offer">TaskException</a></code></dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>#toExecutorId(String)</code></dd>
 </dl>
 </li>
 </ul>

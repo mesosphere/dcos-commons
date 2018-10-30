@@ -47,7 +47,7 @@ var activeTableTab = "activeTableTab";
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/config/validate/RegionValidator.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/config/validate/RegionCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../com/mesosphere/sdk/config/validate/ServiceNameCannotContainDoubleUnderscores.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
@@ -114,10 +114,10 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">ServiceNameCannotBreakDNS</span>
 extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</pre>
-<div class="block">This validator enforces that the specified service name (e.g. /foo/bar/service) does not exceed 63 characters with
- slashes removed. This is to ensure the DNS subdomain of the service does not exceed the character limit specified
- in https://www.ietf.org/rfc/rfc1035.txt.
-
+<div class="block">This validator enforces that the specified service name (e.g. /foo/bar/service) does not exceed
+ 63 characters with slashes removed. This is to ensure the DNS subdomain of the service does
+ not exceed the character limit specified in https://www.ietf.org/rfc/rfc1035.txt.
+ <p>
  The validator is only enforced on _new_ deployments and not on service upgrades.</div>
 </li>
 </ul>
@@ -212,17 +212,20 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">ConfigValidator</a></code></span></div>
 <div class="block">Returns <code>List</code> of <code>ConfigurationValidationError</code>s for the newly supplied
  <code>Configuration</code> object.
-
+ <p>
  A validation can validate a newConfig in following ways:
- 1. Validate newConfig parameters against the oldConfig paramater.
- Ex: If DiskType was ROOT in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig.
- 2. Validate just newConfig parameter(s). Ex: CPU value > 0</div>
+ <ol>
+ <li> Validate newConfig parameters against the oldConfig parameter. Ex: If DiskType was ROOT
+ in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig. </li>
+ <li> Validate just newConfig parameter(s). Ex: CPU value > 0 </li>
+ </ol>
+ </p></div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">validate</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is available
-     (first launch of service)</dd>
+<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is
+                  available (first launch of service)</dd>
 <dd><code>newConfig</code> - Proposed new Configuration</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>List of errors, or an empty list if validation passed</dd>
@@ -256,7 +259,7 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 </div>
 <div class="subNav">
 <ul class="navList">
-<li><a href="../../../../../com/mesosphere/sdk/config/validate/RegionValidator.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/config/validate/RegionCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
 <li><a href="../../../../../com/mesosphere/sdk/config/validate/ServiceNameCannotContainDoubleUnderscores.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">

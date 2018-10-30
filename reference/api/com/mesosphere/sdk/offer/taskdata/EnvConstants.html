@@ -101,7 +101,7 @@
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">EnvConstants</span>
+<pre>public final class <span class="typeNameLabel">EnvConstants</span>
 extends java.lang.Object</pre>
 <div class="block">Environment variables to be set inside launched tasks themselves
  These are accessible to the tasks themselves via the container environment.</div>
@@ -267,7 +267,7 @@ extends java.lang.Object</pre>
 <h4>FRAMEWORK_HOST_TASKENV</h4>
 <pre>public static final&nbsp;java.lang.String FRAMEWORK_HOST_TASKENV</pre>
 <div class="block">Provides the host domain for pods within the service. Pods within the service would be accessed as subdomains
-  under this domain. For example, <TASK_NAME>.<FRAMEWORK_HOST> => pod hostname.</div>
+ under this domain. For example, <code>&lt;TASK_NAME&gt;.&lt;FRAMEWORK_HOST&gt; =&gt; pod hostname</code>.</div>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.offer.taskdata.EnvConstants.FRAMEWORK_HOST_TASKENV">Constant Field Values</a></dd>
@@ -282,7 +282,7 @@ extends java.lang.Object</pre>
 <h4>FRAMEWORK_VIP_HOST_TASKENV</h4>
 <pre>public static final&nbsp;java.lang.String FRAMEWORK_VIP_HOST_TASKENV</pre>
 <div class="block">Provides the host domain for VIPs within the service. VIPs within the service would be accessed as subdomains
-  under this domain. For example, <VIP_NAME>.<FRAMEWORK_VIP_HOST> => vip hostname.</div>
+ under this domain. For example, <code>&lt;VIP_NAME&gt;.&lt;FRAMEWORK_VIP_HOST&gt; =&gt; vip hostname</code>.</div>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.offer.taskdata.EnvConstants.FRAMEWORK_VIP_HOST_TASKENV">Constant Field Values</a></dd>
@@ -297,7 +297,7 @@ extends java.lang.Object</pre>
 <h4>SCHEDULER_API_HOSTNAME_TASKENV</h4>
 <pre>public static final&nbsp;java.lang.String SCHEDULER_API_HOSTNAME_TASKENV</pre>
 <div class="block">Provides the hostname/port of the Scheduler's own API. Pods within the service may access scheduler-hosted APIs
-  under this hostname. For example, &lt;hostname>:&lt;port>/v1/state/files/notavirus.exe.txt</div>
+ under this hostname. For example, &lt;hostname>:&lt;port>/v1/state/files/notavirus.exe.txt</div>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../../constant-values.html#com.mesosphere.sdk.offer.taskdata.EnvConstants.SCHEDULER_API_HOSTNAME_TASKENV">Constant Field Values</a></dd>

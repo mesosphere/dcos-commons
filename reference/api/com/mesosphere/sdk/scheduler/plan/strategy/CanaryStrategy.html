@@ -73,13 +73,13 @@ var activeTableTab = "activeTableTab";
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
@@ -117,13 +117,13 @@ implements <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy
 <div class="block">A CanaryStrategy is a gatekeeper around another underlying strategy. It requires that the user manually invoke
  <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#proceed--"><code>proceed()</code></a> calls in order to move along a deployment. This allows the user to manually check that the
  deployment looks good before a full rollout is attempted.
-
+ <p>
  The default is to do nothing until a first <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#proceed--"><code>proceed()</code></a> call is received, at which point the first <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>
  is deployed. The user may then examine whether the deployment of that first <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a> was successful before
  invoking a <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#proceed--"><code>proceed()</code></a> call. By default this second <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#proceed--"><code>proceed()</code></a> will result in deploying all the other
  <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s according to the rules of the underlying strategy. The number of <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#proceed--"><code>proceed()</code></a> calls required to
  enter this state may be customized via the CanaryStrategy constructor.
-
+ <p>
  Unlike other strategies, CanaryStrategy may only be applied to <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Phase.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Phase</code></a>s to
  manage the progress of child <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s. This requirement avoids user or developer error resulting from ambiguity
  in what should happen when e.g. a CanaryStrategy is applied to a <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>
@@ -153,25 +153,6 @@ implements <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.Generator.html" title="class in com.mesosphere.sdk.scheduler.plan.strategy">CanaryStrategy.Generator</a></span></code>
 <div class="block">This class generates Strategy objects of the appropriate type.</div>
 </td>
-</tr>
-</table>
-</li>
-</ul>
-<!-- =========== FIELD SUMMARY =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.summary">
-<!--   -->
-</a>
-<h3>Field Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Field Summary table, listing fields, and an explanation">
-<caption><span>Fields</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colFirst" scope="col">Modifier and Type</th>
-<th class="colLast" scope="col">Field and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#canarySteps">canarySteps</a></span></code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -264,23 +245,6 @@ implements <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy
 <div class="details">
 <ul class="blockList">
 <li class="blockList">
-<!-- ============ FIELD DETAIL =========== -->
-<ul class="blockList">
-<li class="blockList"><a name="field.detail">
-<!--   -->
-</a>
-<h3>Field Detail</h3>
-<a name="canarySteps">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>canarySteps</h4>
-<pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt; canarySteps</pre>
-</li>
-</ul>
-</li>
-</ul>
 <!-- ========= CONSTRUCTOR DETAIL ======== -->
 <ul class="blockList">
 <li class="blockList"><a name="constructor.detail">
@@ -318,7 +282,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>postCanaryStrategy</code> - the strategy to use after the canary stage has completed</dd>
 <dd><code>requiredProceeds</code> - the number of <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/CanaryStrategy.html#proceed--"><code>proceed()</code></a> calls to require before the provided strategy is
-     executed</dd>
+                           executed</dd>
 </dl>
 </li>
 </ul>
@@ -346,7 +310,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>steps</code> - the elements to be examined for candidacy</dd>
 <dd><code>dirtyAssets</code> - any asset names which already have work in progress elsewhere, which should not be returned by
-     this call</dd>
+                    this call</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>zero or more candidates for work to be performed</dd>
 </dl>
@@ -467,13 +431,13 @@ implements <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy
 <ul class="subNavList">
 <li>Summary:&nbsp;</li>
 <li><a href="#nested.class.summary">Nested</a>&nbsp;|&nbsp;</li>
-<li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
-<li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
+<li>Field&nbsp;|&nbsp;</li>
 <li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>

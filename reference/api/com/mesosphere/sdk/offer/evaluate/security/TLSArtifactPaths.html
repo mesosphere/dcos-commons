@@ -245,6 +245,17 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getKnownTLSArtifacts-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getKnownTLSArtifacts</h4>
+<pre>public static&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;getKnownTLSArtifacts(java.util.Collection&lt;java.lang.String&gt;&nbsp;secretStorePaths)</pre>
+<div class="block">Filters the provided list of secret paths to just the ones which have a matching <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifact</code></a>
+ implementation.</div>
+</li>
+</ul>
 <a name="getTaskSecretsNamespace--">
 <!--   -->
 </a>
@@ -288,23 +299,12 @@ extends java.lang.Object</pre>
 <a name="getSecretStorePath-com.mesosphere.sdk.offer.evaluate.security.TLSArtifact-java.lang.String-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>getSecretStorePath</h4>
 <pre>public&nbsp;java.lang.String&nbsp;getSecretStorePath(<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security">TLSArtifact</a>&nbsp;tlsArtifact,
                                            java.lang.String&nbsp;encryptionSpecName)</pre>
 <div class="block">Returns the appropriate namespaced secret store path for the provided <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifact</code></a>.</div>
-</li>
-</ul>
-<a name="getKnownTLSArtifacts-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>getKnownTLSArtifacts</h4>
-<pre>public static&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;getKnownTLSArtifacts(java.util.Collection&lt;java.lang.String&gt;&nbsp;secretStorePaths)</pre>
-<div class="block">Filters the provided list of secret paths to just the ones which have a matching <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/security/TLSArtifact.html" title="enum in com.mesosphere.sdk.offer.evaluate.security"><code>TLSArtifact</code></a>
- implementation.</div>
 </li>
 </ul>
 </li>

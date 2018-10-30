@@ -105,10 +105,10 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public interface <span class="typeNameLabel">Persister</span></pre>
 <div class="block">A low-level interface for key/value storage in a tree structure.
-
+ <p>
  <p>Individual nodes may be the parent of other nodes. Some of these parent nodes may lack any data of their own. The
  root-level node (with path "", or "/") is considered to always be present.
-
+ <p>
  <p>This interface should be implemented in order to store and fetch data, with paths delimited by
  <a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#PATH_DELIM"><code>PersisterUtils.PATH_DELIM</code></a>.</div>
 </li>
@@ -228,10 +228,10 @@ var activeTableTab = "activeTableTab";
                                             throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block">Returns the names of child nodes at the provided path. Some returned nodes may have <code>null</code> data when
  retrieved via <a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>get(String)</code></a>, indicating that these are stub parent entries to other nodes.
-
+ <p>
  <p>To translate the returned values to full absolute paths, they may be joined with the provided <code>path</code>
  input using <code>PersisterUtils#join(String, String)</code>.
-
+ <p>
  <p>To get the list of nodes at the root, use "" or "/" as the input path.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
@@ -301,8 +301,8 @@ var activeTableTab = "activeTableTab";
                    java.lang.String&nbsp;destPath)
             throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block">Recursively copies the node and its contents. This operation has two steps:
-  1. Walk all the nodes gathering data.
-  2. Commit the transaction to write new nodes.
+ 1. Walk all the nodes gathering data.
+ 2. Commit the transaction to write new nodes.
  After (1) is done and before the completion of (2) there may be updates to nodes.
  Currently, this is used only for migrating the data which occurs during bootstrap and there should not be any
  conflicts. Be careful when using this method for other runtime operations.</div>
@@ -342,7 +342,7 @@ var activeTableTab = "activeTableTab";
 <pre>void&nbsp;recursiveDelete(java.lang.String&nbsp;path)
               throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
-
+ <p>
  <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>

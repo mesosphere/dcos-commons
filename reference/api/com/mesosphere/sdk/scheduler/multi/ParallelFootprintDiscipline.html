@@ -117,7 +117,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDisci
 <div class="block">Offer discipline implementation which only allows N services to be reserving footprint at the same time. This avoids
  a potential deadlock where two deploying services in the same scheduler both want to consume the same resource. If
  the limit is set to 1, then only one service may acquire footprint at a time.
-
+ <p>
  The limit value itself is a tradeoff between safety, deployment speed, cluster topology, and any quotas configured by
  the operator. The "safest" value is 1, but it may be perfectly safe for operators to configure a larger value.</div>
 </li>
@@ -250,7 +250,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/multi/OfferDisci
                                    <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;statusResponse)</pre>
 <div class="block">Updates internal state to reflect the provided service's status, and returns whether offers should be allowed
  for the service.
-
+ <p>
  Among services with a <code>RESERVING</code> status, only <code>reservingMax</code> may receive offers at a time.
  Meanwhile, services with any status other than <code>RESERVING</code> do not have any limitation.</div>
 <dl>

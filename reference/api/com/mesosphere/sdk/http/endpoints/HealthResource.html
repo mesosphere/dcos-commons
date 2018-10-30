@@ -220,10 +220,20 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getHealth--">
+<a name="getDeploymentAndRecoveryManagers-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">
 <!--   -->
 </a>
 <ul class="blockList">
+<li class="blockList">
+<h4>getDeploymentAndRecoveryManagers</h4>
+<pre>public static&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;getDeploymentAndRecoveryManagers(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator)</pre>
+<div class="block">Returns the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>(s) which are marked as being for deployment or for recovery.</div>
+</li>
+</ul>
+<a name="getHealth--">
+<!--   -->
+</a>
+<ul class="blockListLast">
 <li class="blockList">
 <h4>getHealth</h4>
 <pre>public&nbsp;Response&nbsp;getHealth()</pre>
@@ -231,16 +241,6 @@ extends java.lang.Object</pre>
  <ul><li>417 Expectation failed: Errors in plan(s)</li>
  <li>202 Accepted: Incomplete plan(s)</li>
  <li>200 OK: All plans complete/no errors</li></ul></div>
-</li>
-</ul>
-<a name="getDeploymentAndRecoveryManagers-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>getDeploymentAndRecoveryManagers</h4>
-<pre>public static&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanManager</a>&gt;&nbsp;getDeploymentAndRecoveryManagers(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanCoordinator.html" title="interface in com.mesosphere.sdk.scheduler.plan">PlanCoordinator</a>&nbsp;planCoordinator)</pre>
-<div class="block">Returns the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>(s) which are marked as being for deployment or for recovery.</div>
 </li>
 </ul>
 </li>

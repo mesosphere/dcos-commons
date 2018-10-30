@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/config/validate/PreReservationCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/config/validate/RegionValidator.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/config/validate/ServiceNameCannotBreakDNS.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/config/validate/RegionCannotChange.html" target="_top">Frames</a></li>
@@ -114,12 +114,12 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">RegionCannotChange</span>
 extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</pre>
-<div class="block">Configuration validator which validates that a <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>'s region
- cannot change between deployments.
-
- This is to prevent a pod deployed in one region from being deployed in another region if it is replaced, since we
- do not support multi-region deployments. Since region awareness is implemented with placement constraints,
- a pod replace would otherwise break this assumption.</div>
+<div class="block">Configuration validator which validates that a
+ <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>'s region cannot change between deployments.
+ <p>
+ This is to prevent a pod deployed in one region from being deployed in another region if it is
+ replaced, since we do not support multi-region deployments. Since region awareness is
+ implemented with placement constraints, a pod replace would otherwise break this assumption.</div>
 </li>
 </ul>
 </div>
@@ -213,17 +213,20 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">ConfigValidator</a></code></span></div>
 <div class="block">Returns <code>List</code> of <code>ConfigurationValidationError</code>s for the newly supplied
  <code>Configuration</code> object.
-
+ <p>
  A validation can validate a newConfig in following ways:
- 1. Validate newConfig parameters against the oldConfig paramater.
- Ex: If DiskType was ROOT in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig.
- 2. Validate just newConfig parameter(s). Ex: CPU value > 0</div>
+ <ol>
+ <li> Validate newConfig parameters against the oldConfig parameter. Ex: If DiskType was ROOT
+ in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig. </li>
+ <li> Validate just newConfig parameter(s). Ex: CPU value > 0 </li>
+ </ol>
+ </p></div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">validate</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is available
-     (first launch of service)</dd>
+<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is
+                  available (first launch of service)</dd>
 <dd><code>newConfig</code> - Proposed new Configuration</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>List of errors, or an empty list if validation passed</dd>
@@ -258,7 +261,7 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../../com/mesosphere/sdk/config/validate/PreReservationCannotChange.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../../com/mesosphere/sdk/config/validate/RegionValidator.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../../com/mesosphere/sdk/config/validate/ServiceNameCannotBreakDNS.html" title="class in com.mesosphere.sdk.config.validate"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../../index.html?com/mesosphere/sdk/config/validate/RegionCannotChange.html" target="_top">Frames</a></li>

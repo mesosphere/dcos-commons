@@ -112,9 +112,9 @@ extends java.lang.Object</pre>
 <div class="block">A <a href="../../../../../com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi"><code>DisciplineSelectionStore</code></a> stores the list of services selected to receive reservations. This is used in
  combination with a reservation discipline to determine which services should be receiving reservations at any given
  time. This storage ensures that the selection remains consistent across scheduler restarts.
-
+ <p>
  Includes an internal write-through cache which avoids persister writes if the selected services haven't changed.
-
+ <p>
  <p>The structure used in the underlying persister is as follows:
  <br>rootPath/
  <br>&nbsp;-> SelectedServices</div>

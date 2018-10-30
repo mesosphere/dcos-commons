@@ -74,13 +74,13 @@ var activeTableTab = "activeTableTab";
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>
@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">DcosConstants</span>
+<pre>public final class <span class="typeNameLabel">DcosConstants</span>
 extends java.lang.Object</pre>
 <div class="block">This class encapsulates constants common to DC/OS and its services.</div>
 </li>
@@ -158,36 +158,23 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html#MESOS_MASTER_URI">MESOS_MASTER_URI</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html#MESOS_MASTER">MESOS_MASTER</a></span></code>&nbsp;</td>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html#MESOS_MASTER_ZK_CONNECTION_STRING">MESOS_MASTER_ZK_CONNECTION_STRING</a></span></code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html#MESOS_MASTER_URI">MESOS_MASTER_URI</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>static java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html#MESOS_MASTER_ZK_CONNECTION_STRING">MESOS_MASTER_ZK_CONNECTION_STRING</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>static java.lang.Integer</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html#OVERLAY_DYNAMIC_PORT_RANGE_END">OVERLAY_DYNAMIC_PORT_RANGE_END</a></span></code>&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><code>static java.lang.Integer</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html#OVERLAY_DYNAMIC_PORT_RANGE_START">OVERLAY_DYNAMIC_PORT_RANGE_START</a></span></code>&nbsp;</td>
-</tr>
-</table>
-</li>
-</ul>
-<!-- ======== CONSTRUCTOR SUMMARY ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.summary">
-<!--   -->
-</a>
-<h3>Constructor Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
-<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colOne" scope="col">Constructor and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/dcos/DcosConstants.html#DcosConstants--">DcosConstants</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -234,29 +221,16 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Field Detail</h3>
-<a name="MESOS_MASTER_ZK_CONNECTION_STRING">
+<a name="MESOS_MASTER">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>MESOS_MASTER_ZK_CONNECTION_STRING</h4>
-<pre>public static final&nbsp;java.lang.String MESOS_MASTER_ZK_CONNECTION_STRING</pre>
+<h4>MESOS_MASTER</h4>
+<pre>public static final&nbsp;java.lang.String MESOS_MASTER</pre>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.dcos.DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING">Constant Field Values</a></dd>
-</dl>
-</li>
-</ul>
-<a name="MESOS_LEADER_URI">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>MESOS_LEADER_URI</h4>
-<pre>public static final&nbsp;java.lang.String MESOS_LEADER_URI</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.dcos.DcosConstants.MESOS_LEADER_URI">Constant Field Values</a></dd>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.dcos.DcosConstants.MESOS_MASTER">Constant Field Values</a></dd>
 </dl>
 </li>
 </ul>
@@ -267,10 +241,6 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>MESOS_MASTER_URI</h4>
 <pre>public static final&nbsp;java.lang.String MESOS_MASTER_URI</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.dcos.DcosConstants.MESOS_MASTER_URI">Constant Field Values</a></dd>
-</dl>
 </li>
 </ul>
 <a name="DEFAULT_SECRET_STORE_URI">
@@ -280,10 +250,6 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>DEFAULT_SECRET_STORE_URI</h4>
 <pre>public static final&nbsp;java.lang.String DEFAULT_SECRET_STORE_URI</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_SECRET_STORE_URI">Constant Field Values</a></dd>
-</dl>
 </li>
 </ul>
 <a name="CA_BASE_URI">
@@ -293,10 +259,6 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>CA_BASE_URI</h4>
 <pre>public static final&nbsp;java.lang.String CA_BASE_URI</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.dcos.DcosConstants.CA_BASE_URI">Constant Field Values</a></dd>
-</dl>
 </li>
 </ul>
 <a name="IAM_AUTH_URL">
@@ -306,10 +268,6 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>IAM_AUTH_URL</h4>
 <pre>public static final&nbsp;java.lang.String IAM_AUTH_URL</pre>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.dcos.DcosConstants.IAM_AUTH_URL">Constant Field Values</a></dd>
-</dl>
 </li>
 </ul>
 <a name="DEFAULT_GPU_POLICY">
@@ -359,7 +317,7 @@ extends java.lang.Object</pre>
 <a name="DEFAULT_SERVICE_USER">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>DEFAULT_SERVICE_USER</h4>
 <pre>public static final&nbsp;java.lang.String DEFAULT_SERVICE_USER</pre>
@@ -369,21 +327,26 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-</li>
-</ul>
-<!-- ========= CONSTRUCTOR DETAIL ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.detail">
+<a name="MESOS_MASTER_ZK_CONNECTION_STRING">
 <!--   -->
 </a>
-<h3>Constructor Detail</h3>
-<a name="DcosConstants--">
+<ul class="blockList">
+<li class="blockList">
+<h4>MESOS_MASTER_ZK_CONNECTION_STRING</h4>
+<pre>public static final&nbsp;java.lang.String MESOS_MASTER_ZK_CONNECTION_STRING</pre>
+<dl>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../constant-values.html#com.mesosphere.sdk.dcos.DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING">Constant Field Values</a></dd>
+</dl>
+</li>
+</ul>
+<a name="MESOS_LEADER_URI">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>DcosConstants</h4>
-<pre>public&nbsp;DcosConstants()</pre>
+<h4>MESOS_LEADER_URI</h4>
+<pre>public static final&nbsp;java.lang.String MESOS_LEADER_URI</pre>
 </li>
 </ul>
 </li>
@@ -466,13 +429,13 @@ extends java.lang.Object</pre>
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.summary">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#method.detail">Method</a></li>
 </ul>
 </div>

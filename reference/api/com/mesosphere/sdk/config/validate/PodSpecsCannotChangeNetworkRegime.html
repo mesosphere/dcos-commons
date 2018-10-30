@@ -114,8 +114,9 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">PodSpecsCannotChangeNetworkRegime</span>
 extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</pre>
-<div class="block">Validates that pods do not move from a virtual network that does not use port mapping (and thus ignores the ports
-  as Mesos resources) to a network (virtual or Host) that does use the ports on the host machine.</div>
+<div class="block">Validates that pods do not move from a virtual network that does not use port mapping (and thus
+ ignores the ports as Mesos resources) to a network (virtual or Host) that does use the ports
+ on the host machine.</div>
 </li>
 </ul>
 </div>
@@ -209,17 +210,20 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">ConfigValidator</a></code></span></div>
 <div class="block">Returns <code>List</code> of <code>ConfigurationValidationError</code>s for the newly supplied
  <code>Configuration</code> object.
-
+ <p>
  A validation can validate a newConfig in following ways:
- 1. Validate newConfig parameters against the oldConfig paramater.
- Ex: If DiskType was ROOT in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig.
- 2. Validate just newConfig parameter(s). Ex: CPU value > 0</div>
+ <ol>
+ <li> Validate newConfig parameters against the oldConfig parameter. Ex: If DiskType was ROOT
+ in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig. </li>
+ <li> Validate just newConfig parameter(s). Ex: CPU value > 0 </li>
+ </ol>
+ </p></div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">validate</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is available
-     (first launch of service)</dd>
+<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is
+                  available (first launch of service)</dd>
 <dd><code>newConfig</code> - Proposed new Configuration</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>List of errors, or an empty list if validation passed</dd>

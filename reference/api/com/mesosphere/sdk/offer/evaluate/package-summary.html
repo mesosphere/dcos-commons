@@ -163,8 +163,9 @@
 <tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PlacementRuleEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PlacementRuleEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
- ensuring that its resources meet the constraints imposed by the supplied
+<div class="block">This class evaluates an offer against a given
+ <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>, ensuring that its resources
+ meet the constraints imposed by the supplied
  <a href="../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>PlacementRule</code></a>.</div>
 </td>
 </tr>
@@ -179,17 +180,18 @@
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></td>
 <td class="colLast">
 <div class="block">This class evaluates an offer for a single port against a
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>, finding a port dynamically in the offer where
- specified by the framework and modifying <code>org.apache.mesos.Protos.TaskInfo</code> and
- <code>org.apache.mesos.Protos.ExecutorInfo</code> where appropriate so that the port is available in their respective
- environments.</div>
+ <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>, finding a port dynamically
+ in the offer where specified by the framework and modifying
+ <code>org.apache.mesos.Protos.TaskInfo</code> and <code>org.apache.mesos.Protos.ExecutorInfo</code>
+ where appropriate so that the port is available in their respective environments.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
- ensuring that it contains a sufficient amount or value of the supplied <code>Resource</code>, and creating a
+<div class="block">This class evaluates an offer against a given
+ <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>, ensuring that it contains a
+ sufficient amount or value of the supplied <code>Resource</code>, and creating a
  <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> or <a href="../../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>UnreserveOfferRecommendation</code></a> where necessary.</div>
 </td>
 </tr>
@@ -239,7 +241,8 @@
 <tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></td>
 <td class="colLast">
-<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
+<div class="block">This class evaluates an offer against a given
+ <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
  ensuring that it contains an appropriately-sized volume, and creating any necessary instances of
  <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> and
  <a href="../../../../../com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>CreateOfferRecommendation</code></a> as necessary.</div>

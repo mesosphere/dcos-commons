@@ -106,7 +106,7 @@ var activeTableTab = "activeTableTab";
 <pre>public interface <span class="typeNameLabel">ConfigTargetStore</span></pre>
 <div class="block">This interface defines the subset of <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> operations which are applicable to
  setting and retrieving the <code>UUID</code> of the current target configuration.
-
+ <p>
  This interface is broken out from <a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state"><code>ConfigStore</code></a> to allow users to ignore the the generic
  typing of the config objects themselves when they don't need to access those objects.</div>
 </li>
@@ -155,27 +155,10 @@ var activeTableTab = "activeTableTab";
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="setTargetConfig-java.util.UUID-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setTargetConfig</h4>
-<pre>void&nbsp;setTargetConfig(java.util.UUID&nbsp;id)
-              throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
-<div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if writing the ID fails</dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#getTargetConfig--"><code>getTargetConfig()</code></a></dd>
-</dl>
-</li>
-</ul>
 <a name="getTargetConfig--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getTargetConfig</h4>
 <pre>java.util.UUID&nbsp;getTargetConfig()
@@ -187,6 +170,23 @@ var activeTableTab = "activeTableTab";
 <dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if reading or deserializing the ID fails, or no value is set</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-"><code>setTargetConfig(UUID)</code></a></dd>
+</dl>
+</li>
+</ul>
+<a name="setTargetConfig-java.util.UUID-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>setTargetConfig</h4>
+<pre>void&nbsp;setTargetConfig(java.util.UUID&nbsp;id)
+              throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
+<div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if writing the ID fails</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#getTargetConfig--"><code>getTargetConfig()</code></a></dd>
 </dl>
 </li>
 </ul>

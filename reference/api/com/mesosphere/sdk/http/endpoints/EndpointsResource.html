@@ -217,11 +217,11 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/http/endpoints/EndpointsResource.html" title="class in com.mesosphere.sdk.http.endpoints">EndpointsResource</a>&nbsp;setCustomEndpoint(java.lang.String&nbsp;name,
                                            <a href="../../../../../com/mesosphere/sdk/http/types/EndpointProducer.html" title="interface in com.mesosphere.sdk.http.types">EndpointProducer</a>&nbsp;endpointProducer)</pre>
 <div class="block">Adds the provided custom endpoint key/value entry to this instance.
-
+ <p>
  This may be used to expose additional endpoint types independently of what's listed in
  <code>DiscoveryInfo</code>, such as a Kafka service exposing a Zookeeper path that's separate from
  the default broker host/port listing.
-
+ <p>
  This only supports simple string values in order to ensure that the 'endpoints' endpoint
  remains relatively consistent across services. For a per-task listing of endpoints, you
  should provide that information via <code>DiscoveryInfo</code> in your <code>TaskInfo</code> and they
@@ -229,9 +229,9 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>name</code> - the name of the custom endpoint. custom endpoints take precedence over default
-     endpoints of the same name</dd>
+                         endpoints of the same name</dd>
 <dd><code>endpointProducer</code> - the endpoint producer, which will be invoked whenever a user queries the
-     list of endpoints</dd>
+                         list of endpoints</dd>
 </dl>
 </li>
 </ul>

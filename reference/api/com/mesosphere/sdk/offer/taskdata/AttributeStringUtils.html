@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">AttributeStringUtils</span>
+<pre>public final class <span class="typeNameLabel">AttributeStringUtils</span>
 extends java.lang.Object</pre>
 <div class="block">Tools for converting <code>Attribute</code>s into strings. Spec is defined by Mesos documentation at:
  http://mesos.apache.org/documentation/latest/attributes-resources/</div>
@@ -230,22 +230,6 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;toStringList(java.lang.String&nbsp;joinedAttributes)</pre>
 </li>
 </ul>
-<a name="toString-java.util.List-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>toString</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;toString(java.util.List&lt;Protos.Attribute&gt;&nbsp;attributes)
-                                 throws java.lang.IllegalArgumentException</pre>
-<div class="block">Converts the provided list of zero or more attributes into a string suitable for comparison.</div>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.IllegalArgumentException</code> - if some part of the provided attributes couldn't be
- serialized</dd>
-</dl>
-</li>
-</ul>
 <a name="join-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
@@ -275,6 +259,22 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
+<a name="toString-java.util.List-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>toString</h4>
+<pre>public static&nbsp;java.lang.String&nbsp;toString(java.util.List&lt;Protos.Attribute&gt;&nbsp;attributes)
+                                 throws java.lang.IllegalArgumentException</pre>
+<div class="block">Converts the provided list of zero or more attributes into a string suitable for comparison.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.IllegalArgumentException</code> - if some part of the provided attributes couldn't be
+                                  serialized</dd>
+</dl>
+</li>
+</ul>
 <a name="toString-Protos.Attribute-">
 <!--   -->
 </a>
@@ -293,20 +293,10 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
-<a name="toValue-Protos.Attribute-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>toValue</h4>
-<pre>public static&nbsp;Protos.Value&nbsp;toValue(Protos.Attribute&nbsp;attribute)</pre>
-<div class="block">Copies the value data in the provided Attribute the form of a Value object.</div>
-</li>
-</ul>
 <a name="toString-Protos.Value-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;toString(Protos.Value&nbsp;value)
@@ -324,7 +314,7 @@ extends java.lang.Object</pre>
  rangeValue : scalar "-" scalar
  set : "{" text ( "," text )* "}"
  </code>
-
+ <p>
  NOTE that it is difficult if not impossible to consistently perform the inverse of this
  operation. For example, how can you tell if something is supposed to be a SCALAR value or a
  TEXT value? [0-9.]+ is valid in both cases! Your best hope is to consistently convert to
@@ -332,8 +322,18 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - if some part of the provided attributes couldn't be
- serialized</dd>
+                                  serialized</dd>
 </dl>
+</li>
+</ul>
+<a name="toValue-Protos.Attribute-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>toValue</h4>
+<pre>public static&nbsp;Protos.Value&nbsp;toValue(Protos.Attribute&nbsp;attribute)</pre>
+<div class="block">Copies the value data in the provided Attribute the form of a Value object.</div>
 </li>
 </ul>
 </li>

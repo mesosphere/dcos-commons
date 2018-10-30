@@ -312,15 +312,6 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <pre>protected final&nbsp;<a href="../../../../../com/mesosphere/sdk/state/ConfigStore.html" title="class in com.mesosphere.sdk.state">ConfigStore</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt; configStore</pre>
 </li>
 </ul>
-<a name="plan">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>plan</h4>
-<pre>protected volatile&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a> plan</pre>
-</li>
-</ul>
 <a name="stateStore">
 <!--   -->
 </a>
@@ -351,10 +342,19 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <a name="planLock">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>planLock</h4>
 <pre>protected final&nbsp;java.lang.Object planLock</pre>
+</li>
+</ul>
+<a name="plan">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>plan</h4>
+<pre>protected volatile&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan">Plan</a> plan</pre>
 </li>
 </ul>
 </li>
@@ -459,8 +459,8 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager
 <dd><code>dirtyAssets</code> - Other <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s/assets that are already claimed for scheduling elsewhere</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>One or more <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s that can be scheduled or an empty Collection when there is no <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a> to
-         schedule, which may happen if for example all incomplete <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s are already being worked on by
-         other <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>s</dd>
+ schedule, which may happen if for example all incomplete <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Step</code></a>s are already being worked on by
+ other <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>s</dd>
 </dl>
 </li>
 </ul>

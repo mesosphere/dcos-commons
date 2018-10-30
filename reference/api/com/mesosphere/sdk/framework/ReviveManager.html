@@ -110,17 +110,19 @@ var activeTableTab = "activeTableTab";
 <pre>class <span class="typeNameLabel">ReviveManager</span>
 extends java.lang.Object</pre>
 <div class="block">Handles scheduling of Mesos suppress and revive calls.
-
- NOTE: Does not protect against multithreaded access. All calls should only be made on a single thread, separate from
- the thread that receives offers. Otherwise there is a risk of a deadlock because SchedulerDriver.reviveOffers() can
- block on sending us new offers.
-
+ <p>
+ NOTE: Does not protect against multithreaded access. All calls should only be made on a single
+ thread, separate from the thread that receives offers. Otherwise there is a risk of a deadlock
+ because SchedulerDriver.reviveOffers() can block on sending us new offers.
+ <p>
  <ul>
- <li>Suppress is performed whenever the underlying services are all idle and no further offers are needed. This allows
- Mesos to scale to more frameworks. When the framework is suppressed, it will not receive any offers for any reason.
+ <li>Suppress is performed whenever the underlying services are all idle and no further offers are
+ needed. This allows Mesos to scale to more frameworks. When the framework is suppressed, it
+ will not receive any offers for any reason.
  </li>
- <li>From our perspective, a Revive call will reset any prior Suppress call, and/or reset any offers which were
- previously declined, resulting in all offers being sent again. It should be invoked when any new work has appeared,
+ <li>From our perspective, a Revive call will reset any prior Suppress call, and/or reset any
+ offers which were previously declined, resulting in all offers being sent again. It should be
+ invoked when any new work has appeared,
  but Revive calls should be rate limited to avoid taxing Mesos.</li>
  </ul></div>
 </li>
@@ -236,23 +238,25 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>notifyOffersReceived</h4>
 <pre>void&nbsp;notifyOffersReceived()</pre>
-<div class="block">Notifies the manager that we are no longer suppressed. This should be called whenever offers are received from
- Mesos. This confirmation is done separately from the revive call to avoid the possibility of the following
+<div class="block">Notifies the manager that we are no longer suppressed. This should be called whenever offers
+ are received from Mesos. This confirmation is done separately from the revive call to avoid
+ the possibility of the following
  scenario:
-
+ <p>
  <ol>
  <li>Offers are suppressed</li>
  <li>A revive call is issued</li>
  <li>The revive call fails or is lost for any reason</li>
  <li>We continue to be suppressed, even though we think we issued a revive...</li>
  </ol>
-
- In practice, there isn't a confirmed case of this ever happening, but it doesn't hurt to be conservative here,
- because we cannot deterministically tell if we are actually suppressed or not. This logic could be revisited if
- Mesos someday offers a call which tells us whether or not we're suppressed.
-
- Note that this also ensures that by flipping the <code>isSuppressed</code> flag if we receive an offer when we
- SHOULD BE suppressed, we are ensuring that the future calls to <code>suppressIfActive</code> would reissue SUPPRESS.</div>
+ <p>
+ In practice, there isn't a confirmed case of this ever happening, but it doesn't hurt to be
+ conservative here, because we cannot deterministically tell if we are actually suppressed or
+ not. This logic could be revisited if Mesos someday offers a call which tells us whether or
+ not we're suppressed.
+ <p>
+ Note that this also ensures that by flipping the <code>isSuppressed</code> flag if we receive an
+ offer when we SHOULD BE suppressed, we are ensuring that the future calls to <code>suppressIfActive</code> would reissue SUPPRESS.</div>
 </li>
 </ul>
 <a name="suppressIfActive--">

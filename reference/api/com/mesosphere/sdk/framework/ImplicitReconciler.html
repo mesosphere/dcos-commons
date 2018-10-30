@@ -111,15 +111,21 @@ var activeTableTab = "activeTableTab";
 extends java.lang.Object</pre>
 <div class="block">Periodically triggers implicit reconciliation of all tasks being managed by the scheduler.
  Mesos recommends that schedulers trigger an implicit reconciliation occasionally.
-
+ <p>
  This differs from Explicit Reconciliation in two ways:
- <ul><li>Explicit Reconciliation is tied to a specific set of tasks, and is therefore service-specific rather than
- framework-wide.</li>
- <li>While Implicit Reconciliation is run periodically on a timer, Explicit Reconciliation is only performed once on
- service startup.</li></ul></div>
+ <ul>
+ <li>
+ Explicit Reconciliation is tied to a specific set of tasks, and is therefore service-specific
+ rather than framework-wide.
+ </li>
+ <li>
+ While Implicit Reconciliation is run periodically on a timer, Explicit Reconciliation is only
+ performed once on service startup.
+ </li>
+ </ul></div>
 <dl>
 <dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>http://mesos.apache.org/documentation/latest/reconciliation/</code></dd>
+<dd><a href="http://mesos.apache.org/documentation/latest/reconciliation/">Reconciliation</a></dd>
 </dl>
 </li>
 </ul>
@@ -165,14 +171,14 @@ extends java.lang.Object</pre>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html#start--">start</a></span>()</code>
-<div class="block">Starts the implicit reconciliation timer on a separate thread, or runs a single implicit reconciliation on this
- thread if <a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html#disableThreading--"><code>disableThreading()</code></a> was called.</div>
+<div class="block">Starts the implicit reconciliation timer on a separate thread, or runs a single implicit
+ reconciliation on this thread if <a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html#disableThreading--"><code>disableThreading()</code></a> was called.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>(package private) void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html#stop--">stop</a></span>()</code>
-<div class="block">Stops the implicit reconcilitation timer.</div>
+<div class="block">Stops the implicit reconciliation timer.</div>
 </td>
 </tr>
 </table>
@@ -221,8 +227,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>disableThreading</h4>
 <pre><a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html" title="class in com.mesosphere.sdk.framework">ImplicitReconciler</a>&nbsp;disableThreading()</pre>
-<div class="block">Forces the instance to run in a synchronous/single-threaded mode for tests. To have any effect, this must be
- called before calling <a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html#start--"><code>start()</code></a>.</div>
+<div class="block">Forces the instance to run in a synchronous/single-threaded mode for tests. To have any effect,
+ this must be called before calling <a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html#start--"><code>start()</code></a>.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>this</dd>
@@ -236,8 +242,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>start</h4>
 <pre>public&nbsp;void&nbsp;start()</pre>
-<div class="block">Starts the implicit reconciliation timer on a separate thread, or runs a single implicit reconciliation on this
- thread if <a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html#disableThreading--"><code>disableThreading()</code></a> was called.</div>
+<div class="block">Starts the implicit reconciliation timer on a separate thread, or runs a single implicit
+ reconciliation on this thread if <a href="../../../../com/mesosphere/sdk/framework/ImplicitReconciler.html#disableThreading--"><code>disableThreading()</code></a> was called.</div>
 </li>
 </ul>
 <a name="stop--">
@@ -248,7 +254,7 @@ extends java.lang.Object</pre>
 <h4>stop</h4>
 <pre>void&nbsp;stop()
    throws java.lang.InterruptedException</pre>
-<div class="block">Stops the implicit reconcilitation timer. For testing.</div>
+<div class="block">Stops the implicit reconciliation timer. For testing.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.InterruptedException</code></dd>

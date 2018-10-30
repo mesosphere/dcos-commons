@@ -111,12 +111,12 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public static class <span class="typeNameLabel">GoalStateOverride.Status</span>
+<pre>public static final class <span class="typeNameLabel">GoalStateOverride.Status</span>
 extends java.lang.Object</pre>
 <div class="block">Describes the current state of an override.
-
+ <p>
  The state of the override itself. Sample flow for enabling and disabling an override:
-
+ <p>
  <table><tr><td>Operation</td><td>Resulting status (override + progress)</td></tr>
  <tr><td>(Initial state)</td><td>NONE + COMPLETE (==INACTIVE)</td></tr>
  <tr><td>"Pause" triggered, kill command issued</td><td>PAUSED + PENDING</td></tr>

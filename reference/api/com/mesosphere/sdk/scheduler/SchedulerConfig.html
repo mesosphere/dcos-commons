@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">SchedulerConfig</span>
+<pre>public final class <span class="typeNameLabel">SchedulerConfig</span>
 extends java.lang.Object</pre>
 <div class="block">This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
  to simplify scheduler tests, and to make it painfully obvious when global settings are being used in awkward places.</div>
@@ -649,7 +649,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;java.lang.String&nbsp;getAutoipTLD()</pre>
 <div class="block">Returns the TLD to be used in advertised autoip endpoints. This may be overridden in cases where autoip support
  isn't available, or if some other TLD should be used instead.
-
+ <p>
  Resolves to the IP of the host iff the container if on the host network and the IP of the container iff the
  container is on the overlay network. If the container is on multiple virtual networks or experimenting with
  different DNS providers this TLD may have unexpected behavior.</div>
@@ -675,7 +675,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;java.lang.String&nbsp;getMarathonName()</pre>
 <div class="block">Returns the name of the Marathon instance managing the service. This may be overridden in cases where a
  non-default Marathon instance (e.g. MoM) is running the scheduler.
-
+ <p>
  This is used for constructing an endpoint for reaching the Scheduler from tasks, specifically for config template
  distribution.</div>
 </li>

@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">PlansQueries</span>
+<pre>public final class <span class="typeNameLabel">PlansQueries</span>
 extends java.lang.Object</pre>
 <div class="block">API for management of Plan(s).</div>
 </li>
@@ -279,15 +279,15 @@ extends java.lang.Object</pre>
 <div class="block">Interrupts (Pauses) a plan or if specified a phase within a plan.  If a plan/phase is in progress, it
  is interrupted and the plan/phase is reset such that it is pending.  If the plan/phase is already in
  a non-interruptable state (interrupted or complete), the response will indicate as such.
-
+ <p>
  An interrupted Phase is not immediately halted, but sets the interrupted bit to ensure that subsequent
  requests to process will not proceed. @see Interruptible .
-
+ <p>
  Interrupt differs from stop in the following ways:
  A) Interrupt can be issued for a specific phase or for all phases within a plan.  Stop can only be
-    issued for a plan.
+ issued for a plan.
  B) Interrupt updates the underlying Phase/Step state. Stop not only updates the underlying state, but
-    also restarts the Plan.</div>
+ also restarts the Plan.</div>
 </li>
 </ul>
 <a name="forceComplete-java.util.Collection-java.lang.String-java.lang.String-java.lang.String-">

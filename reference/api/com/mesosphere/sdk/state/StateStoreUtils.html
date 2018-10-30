@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">StateStoreUtils</span>
+<pre>public final class <span class="typeNameLabel">StateStoreUtils</span>
 extends java.lang.Object</pre>
 <div class="block">Utilities for implementations and users of <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</div>
 </li>
@@ -182,8 +182,8 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>static java.util.Optional&lt;Protos.TaskStatus&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStoreUtils.html#getTaskStatusFromProperty-com.mesosphere.sdk.state.StateStore-java.lang.String-">getTaskStatusFromProperty</a></span>(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                          java.lang.String&nbsp;taskName)</code>
-<div class="block">Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
- task name.</div>
+<div class="block">Returns an <code>Optional&lt;TaskStatus&gt;</code> from the properties in the provided state store for
+ the specified task name.</div>
 </td>
 </tr>
 <tr id="i8" class="altColor">
@@ -335,7 +335,7 @@ extends java.lang.Object</pre>
 <div class="block">TaskInfo and TaskStatus objects referring to the same Task name are not written atomically.
  It is therefore possible for the states across these elements to become out of sync.  While the scheduler process
  is up they remain in sync.  This method produces an initial synchronized state.
-
+ <p>
  For example:
  <ol>
  <li>TaskInfo(name=foo, id=1) is written</li>
@@ -411,8 +411,8 @@ extends java.lang.Object</pre>
 <h4>getTaskStatusFromProperty</h4>
 <pre>public static&nbsp;java.util.Optional&lt;Protos.TaskStatus&gt;&nbsp;getTaskStatusFromProperty(<a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                                                                               java.lang.String&nbsp;taskName)</pre>
-<div class="block">Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
- task name.</div>
+<div class="block">Returns an <code>Optional&lt;TaskStatus&gt;</code> from the properties in the provided state store for
+ the specified task name.</div>
 </li>
 </ul>
 <a name="setDeploymentWasCompleted-com.mesosphere.sdk.state.StateStore-">

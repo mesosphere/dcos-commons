@@ -178,7 +178,7 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getOptional-java.lang.String-java.lang.String-">getOptional</a></span>(java.lang.String&nbsp;envKey,
            java.lang.String&nbsp;defaultValue)</code>
-<div class="block">Returns the requested value if set, or <code>defaultValue</code> if it's missing from the map entirely.</div>
+<div class="block">Returns the requested value if set, or <code>defaultValue</code> if it's missing from the map.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
@@ -205,8 +205,8 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getOptionalNonEmpty-java.lang.String-java.lang.String-">getOptionalNonEmpty</a></span>(java.lang.String&nbsp;envKey,
                    java.lang.String&nbsp;defaultValue)</code>
-<div class="block">Returns the requested value if set and non-empty, or <code>defaultValue</code> if it's missing from the map or is
- empty or whitespace.</div>
+<div class="block">Returns the requested value if set and non-empty, or <code>defaultValue</code> if it's missing from
+ the map or is empty or whitespace.</div>
 </td>
 </tr>
 <tr id="i8" class="altColor">
@@ -219,7 +219,7 @@ extends java.lang.Object</pre>
 <tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/EnvStore.html#getRequired-java.lang.String-">getRequired</a></span>(java.lang.String&nbsp;envKey)</code>
-<div class="block">Returns the requested value if set, or throws an exception if it's missing from the map entirely.</div>
+<div class="block">Returns the requested value if set, or throws an exception if it's missing from the map.</div>
 </td>
 </tr>
 <tr id="i10" class="altColor">
@@ -381,7 +381,7 @@ extends java.lang.Object</pre>
 <h4>getOptional</h4>
 <pre>public&nbsp;java.lang.String&nbsp;getOptional(java.lang.String&nbsp;envKey,
                                     java.lang.String&nbsp;defaultValue)</pre>
-<div class="block">Returns the requested value if set, or <code>defaultValue</code> if it's missing from the map entirely.</div>
+<div class="block">Returns the requested value if set, or <code>defaultValue</code> if it's missing from the map.</div>
 </li>
 </ul>
 <a name="getOptionalNonEmpty-java.lang.String-java.lang.String-">
@@ -392,8 +392,8 @@ extends java.lang.Object</pre>
 <h4>getOptionalNonEmpty</h4>
 <pre>public&nbsp;java.lang.String&nbsp;getOptionalNonEmpty(java.lang.String&nbsp;envKey,
                                             java.lang.String&nbsp;defaultValue)</pre>
-<div class="block">Returns the requested value if set and non-empty, or <code>defaultValue</code> if it's missing from the map or is
- empty or whitespace.</div>
+<div class="block">Returns the requested value if set and non-empty, or <code>defaultValue</code> if it's missing from
+ the map or is empty or whitespace.</div>
 </li>
 </ul>
 <a name="getRequired-java.lang.String-">
@@ -403,7 +403,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>getRequired</h4>
 <pre>public&nbsp;java.lang.String&nbsp;getRequired(java.lang.String&nbsp;envKey)</pre>
-<div class="block">Returns the requested value if set, or throws an exception if it's missing from the map entirely.</div>
+<div class="block">Returns the requested value if set, or throws an exception if it's missing from the map.</div>
 </li>
 </ul>
 <a name="isPresent-java.lang.String-">

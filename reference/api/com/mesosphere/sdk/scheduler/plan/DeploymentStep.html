@@ -276,7 +276,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 </tr>
 <tr id="i10" class="altColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateParameters-java.util.Map-">updateParameters</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;parameters)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateParameters-java.util.Map-">updateParameters</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;updateParameters)</code>
 <div class="block">Provides the Element with a set of named string parameters that it can either use on start or provide to
  children, if it has any.</div>
 </td>
@@ -372,6 +372,28 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getDisplayStatus-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getDisplayStatus</h4>
+<pre>static&nbsp;java.lang.String&nbsp;getDisplayStatus(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                         <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;stepStatus,
+                                         java.util.Collection&lt;java.lang.String&gt;&nbsp;tasksToLaunch)</pre>
+</li>
+</ul>
+<a name="getStatus-java.util.Set-boolean-boolean-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getStatus</h4>
+<pre>static&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;getStatus(java.util.Set&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;statuses,
+                                            boolean&nbsp;hasErrors,
+                                            boolean&nbsp;isPrepared)</pre>
+</li>
+</ul>
 <a name="addError-java.lang.String-">
 <!--   -->
 </a>
@@ -407,7 +429,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <ul class="blockList">
 <li class="blockList">
 <h4>updateParameters</h4>
-<pre>public&nbsp;void&nbsp;updateParameters(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;parameters)</pre>
+<pre>public&nbsp;void&nbsp;updateParameters(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;updateParameters)</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#updateParameters-java.util.Map-">Element</a></code></span></div>
 <div class="block">Provides the Element with a set of named string parameters that it can either use on start or provide to
  children, if it has any.</div>
@@ -422,12 +444,11 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <pre>public&nbsp;void&nbsp;start()</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--">Step</a></code></span></div>
 <div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>. This will continue to be called for as
- long as <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--"><code>Element.isPending()</code></a> returns <code>true</code>.</div>
-<dl>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><code>#updateOfferStatus(Collection<org.apache.mesos.Protos.Offer.Operation>)} which returns the outcome of
-      the {@link PodInstanceRequirement}</code></dd>
-</dl>
+ long as <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--"><code>Element.isPending()</code></a> returns <code>true</code>.
+
+ See <code>#updateOfferStatus(Collection&lt;org.apache.mesos.Protos.Offer.Operation&gt;)</code> which
+ returns the outcome of
+ the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a></div>
 </li>
 </ul>
 <a name="getPodInstanceRequirement--">
@@ -481,33 +502,11 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/AbstractStep.h
 <a name="update-Protos.TaskStatus-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>update</h4>
 <pre>public&nbsp;void&nbsp;update(Protos.TaskStatus&nbsp;status)</pre>
 <div class="block">Synchronized to ensure consistency between this and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-"><code>updateOfferStatus(Collection)</code></a>.</div>
-</li>
-</ul>
-<a name="getDisplayStatus-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.scheduler.plan.Status-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDisplayStatus</h4>
-<pre>static&nbsp;java.lang.String&nbsp;getDisplayStatus(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
-                                         <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;stepStatus,
-                                         java.util.Collection&lt;java.lang.String&gt;&nbsp;tasksToLaunch)</pre>
-</li>
-</ul>
-<a name="getStatus-java.util.Set-boolean-boolean-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>getStatus</h4>
-<pre>static&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;getStatus(java.util.Set&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;statuses,
-                                            boolean&nbsp;hasErrors,
-                                            boolean&nbsp;isPrepared)</pre>
 </li>
 </ul>
 </li>

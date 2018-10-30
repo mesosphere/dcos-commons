@@ -110,7 +110,7 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">ExplicitReconciler</span>
 extends java.lang.Object</pre>
 <div class="block">Synchronizes the service's task state with what Mesos reports, with Mesos as source of truth.
-
+ <p>
  This differs from Implicit Reconciliation in two ways:
  <ul><li>Explicit Reconciliation is tied to a specific set of tasks, and is therefore service-specific rather than
  framework-wide.</li>
@@ -256,10 +256,10 @@ extends java.lang.Object</pre>
  <code>
  unreconciledList = tasksKnownByScheduler; // provided by the StateStore
  while (!unreconciledList.isEmpty()) {
-   // explicit reconciliation (PHASE 1)
-   if (timerSinceLastCallExpired) {
-     driver.reconcile(unreconciledList);
-   }
+ // explicit reconciliation (PHASE 1)
+ if (timerSinceLastCallExpired) {
+ driver.reconcile(unreconciledList);
+ }
  }
  </code></div>
 </li>

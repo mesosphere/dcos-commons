@@ -109,15 +109,17 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">TaskEnvRouter</span>
 extends java.lang.Object</pre>
-<div class="block">Default implementation of a <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config"><code>TaskEnvRouter</code></a> which handles forwarding environment variables from two sources:
+<div class="block">Default implementation of a <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config"><code>TaskEnvRouter</code></a> which handles forwarding environment variables
+ from two sources:
  <ul>
  <li>
- Scheduler's system environment: searches for environment variables that start with <code>"TASKCFG_&lt;TASKTYPE&gt;_"</code>
- and/or <code>"TASKCFG_ALL_"</code>, and returns appropriate Maps for task types based on that environment.
+ Scheduler's system environment: searches for environment variables that start with
+ <code>"TASKCFG_&lt;TASKTYPE&gt;_"</code> and/or <code>"TASKCFG_ALL_"</code>, and returns appropriate Maps for
+ task types based on that environment.
  </li>
  <li>
- Manually-provided values: The service developer may provide custom values which will then be forwarded to tasks as
- needed.
+ Manually-provided values: The service developer may provide custom values which will then be
+ forwarded to tasks as needed.
  </li>
  </ul></div>
 </li>
@@ -163,8 +165,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="rowColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#TaskEnvRouter-java.util.Map-">TaskEnvRouter</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;envConfig)</code>
-<div class="block">Creates a new config router which uses the provided environment variables, which should have <code>TASKCFG_*</code>
- prefixes.</div>
+<div class="block">Creates a new config router which uses the provided environment variables, which should have
+ <code>TASKCFG_*</code> prefixes.</div>
 </td>
 </tr>
 </table>
@@ -271,8 +273,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>TaskEnvRouter</h4>
 <pre>public&nbsp;TaskEnvRouter(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;envConfig)</pre>
-<div class="block">Creates a new config router which uses the provided environment variables, which should have <code>TASKCFG_*</code>
- prefixes.</div>
+<div class="block">Creates a new config router which uses the provided environment variables, which should have
+ <code>TASKCFG_*</code> prefixes.</div>
 </li>
 </ul>
 </li>
@@ -291,9 +293,9 @@ extends java.lang.Object</pre>
 <h4>setAllPodsEnv</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a>&nbsp;setAllPodsEnv(java.lang.String&nbsp;key,
                                    java.lang.String&nbsp;value)</pre>
-<div class="block">Adds a custom environment value to be included in all pods. This may be overridden by the Scheduler environment
- via <code>TASKCFG_ALL_*</code> or <code>TASKCFG_&lt;POD_TYPE&gt;_*</code> envvars, and by any per-pod types added via
- <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setPodEnv-java.lang.String-java.lang.String-java.lang.String-"><code>setPodEnv(String, String, String)</code></a>.</div>
+<div class="block">Adds a custom environment value to be included in all pods. This may be overridden by the
+ Scheduler environment via <code>TASKCFG_ALL_*</code> or <code>TASKCFG_&lt;POD_TYPE&gt;_*</code> envvars, and
+ by any per-pod types added via <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setPodEnv-java.lang.String-java.lang.String-java.lang.String-"><code>setPodEnv(String, String, String)</code></a>.</div>
 </li>
 </ul>
 <a name="setPodEnv-java.lang.String-java.lang.String-java.lang.String-">
@@ -305,9 +307,10 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html" title="class in com.mesosphere.sdk.config">TaskEnvRouter</a>&nbsp;setPodEnv(java.lang.String&nbsp;podType,
                                java.lang.String&nbsp;key,
                                java.lang.String&nbsp;value)</pre>
-<div class="block">Adds a custom environment variable to be only included in the specified pod type. This may be overridden by the
- Scheduler environment via <code>TASKCFG_ALL_*</code> or <code>TASKCFG_&lt;POD_TYPE&gt;_*</code> envvars. This takes precedence
- over values specified via <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setAllPodsEnv-java.lang.String-java.lang.String-"><code>setAllPodsEnv(String, String)</code></a> for pods with this type.</div>
+<div class="block">Adds a custom environment variable to be only included in the specified pod type. This may be
+ overridden by the Scheduler environment via <code>TASKCFG_ALL_*</code> or
+ <code>TASKCFG_&lt;POD_TYPE&gt;_*</code> envvars. This takes precedence over values specified via
+ <a href="../../../../com/mesosphere/sdk/config/TaskEnvRouter.html#setAllPodsEnv-java.lang.String-java.lang.String-"><code>setAllPodsEnv(String, String)</code></a> for pods with this type.</div>
 </li>
 </ul>
 <a name="getConfig-java.lang.String-">
@@ -318,15 +321,17 @@ extends java.lang.Object</pre>
 <h4>getConfig</h4>
 <pre>public&nbsp;java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;getConfig(java.lang.String&nbsp;podType)</pre>
 <div class="block">Returns the config to be injected into tasks with the provided <code>podType</code>.
-
- For example, given a task with type "index", this would match scheduler environment variables starting with
- "TASKCFG_ALL_" and "TASKCFG_INDEX_" (with those prefixes removed), as well as any appropriate envvars which were
- passed in via the Java API (with no modification). The prior takes priority over the latter.</div>
+ <p>
+ For example, given a task with type "index", this would match scheduler environment variables
+ starting with "TASKCFG_ALL_" and "TASKCFG_INDEX_" (with those prefixes removed), as well as
+ any appropriate envvars which were passed in via the Java API (with no modification). The
+ prior takes priority over the latter.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>podType</code> - the pod type to be matched against</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
-<dd>any environment variables to include in tasks of type <code>podType</code>, or an empty map otherwise</dd>
+<dd>any environment variables to include in tasks of type <code>podType</code>, or an empty map
+ otherwise</dd>
 </dl>
 </li>
 </ul>

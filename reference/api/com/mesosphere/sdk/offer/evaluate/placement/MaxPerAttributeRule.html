@@ -120,34 +120,34 @@ var activeTableTab = "activeTableTab";
 extends <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">MaxPerRule</a></pre>
 <div class="block">Ensures that the given Offer's attributes each have no more than N instances of tasks of a given task type
  running on them.
-
+ <p>
  For example, this can ensure that no more than N tasks are running against the 'rack:foo'
  attribute (exact match), or it can ensure that no distinct 'rack:.*' value has more than N tasks
  running against it (wildcarded grouping).
-
+ <p>
  To illustrate, let's look at a deployment scenario of 5 agents with 3 distinct 'rack' values:
-
-  agent |  attr  | # tasks
+ <p>
+ agent |  attr  | # tasks
  -------+--------+---------
-    1   | rack:a |   3
-    2   | rack:b |   2
-    3   | rack:c |   1
-    4   | rack:a |   2
-    5   | rack:b |   2
-
+ 1   | rack:a |   3
+ 2   | rack:b |   2
+ 3   | rack:c |   1
+ 4   | rack:a |   2
+ 5   | rack:b |   2
+ <p>
  In this example, let's assume a <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/MaxPerAttributeRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>MaxPerAttributeRule</code></a> with a limit of 5 and a regex of
  'rack:.*':
-
+ <p>
  The regex of 'rack:.*' will result in internally grouping the task counts as follows:
  - rack:a: 5 tasks
  - rack:b: 4 tasks
  - rack:c: 1 task
-
+ <p>
  After grouping the task counts according to the distinct values produced by the regex, we can now
  enforce the limit value of 5. In this case, we see that rack:a is full but that rack:b and rack:c
  still have room. Therefore the PlacementRule will allow deployments given an attribute of
  'rack:b' or 'rack:c', and will block deployments onto 'rack:a'.
-
+ <p>
  This enforcement is applied by task name. By default the rule will only count e.g. tasks named
  'index-.*'. This allows us to only enforce the rule against certain task types or task instances
  within the service.</div>

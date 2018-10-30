@@ -245,12 +245,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <li class="blockList">
 <h4>PersisterCache</h4>
 <pre>public&nbsp;PersisterCache(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
-                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)
-               throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code></dd>
-</dl>
+                      <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig)</pre>
 </li>
 </ul>
 </li>
@@ -291,10 +286,10 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getChildren-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Returns the names of child nodes at the provided path. Some returned nodes may have <code>null</code> data when
  retrieved via <a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>Persister.get(String)</code></a>, indicating that these are stub parent entries to other nodes.
-
+ <p>
  <p>To translate the returned values to full absolute paths, they may be joined with the provided <code>path</code>
  input using <code>PersisterUtils#join(String, String)</code>.
-
+ <p>
  <p>To get the list of nodes at the root, use "" or "/" as the input path.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
@@ -376,8 +371,8 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
                    throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveCopy-java.lang.String-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Recursively copies the node and its contents. This operation has two steps:
-  1. Walk all the nodes gathering data.
-  2. Commit the transaction to write new nodes.
+ 1. Walk all the nodes gathering data.
+ 2. Commit the transaction to write new nodes.
  After (1) is done and before the completion of (2) there may be updates to nodes.
  Currently, this is used only for migrating the data which occurs during bootstrap and there should not be any
  conflicts. Be careful when using this method for other runtime operations.</div>
@@ -423,7 +418,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
                      throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
-
+ <p>
  <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>

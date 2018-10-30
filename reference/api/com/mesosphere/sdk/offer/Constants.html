@@ -68,13 +68,13 @@
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#methods.inherited.from.class.java.lang.Object">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li>Method</li>
 </ul>
 </div>
@@ -101,7 +101,7 @@
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">Constants</span>
+<pre>public final class <span class="typeNameLabel">Constants</span>
 extends java.lang.Object</pre>
 <div class="block">This class encapsulates constants of relevance to SDK Scheduler internals.</div>
 <dl>
@@ -234,23 +234,6 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#UPDATE_PLAN_NAME">UPDATE_PLAN_NAME</a></span></code>
 <div class="block">The name used in specifications for the update plan.</div>
 </td>
-</tr>
-</table>
-</li>
-</ul>
-<!-- ======== CONSTRUCTOR SUMMARY ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.summary">
-<!--   -->
-</a>
-<h3>Constructor Summary</h3>
-<table class="memberSummary" border="0" cellpadding="3" cellspacing="0" summary="Constructor Summary table, listing constructors, and an explanation">
-<caption><span>Constructors</span><span class="tabEnd">&nbsp;</span></caption>
-<tr>
-<th class="colOne" scope="col">Constructor and Description</th>
-</tr>
-<tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/Constants.html#Constants--">Constants</a></span>()</code>&nbsp;</td>
 </tr>
 </table>
 </li>
@@ -476,10 +459,10 @@ extends java.lang.Object</pre>
 <pre>public static final&nbsp;DiscoveryInfo.Visibility DISPLAYED_PORT_VISIBILITY</pre>
 <div class="block">The visibility setting to use by default in Mesos Ports, for VIP ports. Non-VIP ports are currently hidden by
  default.
-
+ <p>
  This may be overridden by manually constructing the <a href="../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification"><code>NamedVIPSpec</code></a> or
  <a href="../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification"><code>PortSpec</code></a>.
-
+ <p>
  As of this writing, this setting is only used by <a href="../../../../com/mesosphere/sdk/http/endpoints/EndpointsResource.html" title="class in com.mesosphere.sdk.http.endpoints"><code>EndpointsResource</code></a> for
  determining what ports to advertise, where <code>EXTERNAL</code> means advertise and non-<code>EXTERNAL</code> means don't
  advertise. According to the networking team this isn't currently used by DC/OS itself (as of 1.10).</div>
@@ -504,7 +487,7 @@ extends java.lang.Object</pre>
 <h4>DEFAULT_TASK_DISCOVERY_VISIBILITY</h4>
 <pre>public static final&nbsp;DiscoveryInfo.Visibility DEFAULT_TASK_DISCOVERY_VISIBILITY</pre>
 <div class="block">The visibility setting to use by default in a Task's DiscoveryInfo, for both VIP and non-VIP ports.
-
+ <p>
  According to the networking team this isn't currently used by DC/OS itself (as of 1.10). It likewise isn't used
  by the SDK.</div>
 </li>
@@ -531,23 +514,6 @@ extends java.lang.Object</pre>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../constant-values.html#com.mesosphere.sdk.offer.Constants.SHORT_DECLINE_SECONDS">Constant Field Values</a></dd>
 </dl>
-</li>
-</ul>
-</li>
-</ul>
-<!-- ========= CONSTRUCTOR DETAIL ======== -->
-<ul class="blockList">
-<li class="blockList"><a name="constructor.detail">
-<!--   -->
-</a>
-<h3>Constructor Detail</h3>
-<a name="Constants--">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>Constants</h4>
-<pre>public&nbsp;Constants()</pre>
 </li>
 </ul>
 </li>
@@ -604,13 +570,13 @@ extends java.lang.Object</pre>
 <li>Summary:&nbsp;</li>
 <li>Nested&nbsp;|&nbsp;</li>
 <li><a href="#field.summary">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.summary">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li><a href="#methods.inherited.from.class.java.lang.Object">Method</a></li>
 </ul>
 <ul class="subNavList">
 <li>Detail:&nbsp;</li>
 <li><a href="#field.detail">Field</a>&nbsp;|&nbsp;</li>
-<li><a href="#constructor.detail">Constr</a>&nbsp;|&nbsp;</li>
+<li>Constr&nbsp;|&nbsp;</li>
 <li>Method</li>
 </ul>
 </div>

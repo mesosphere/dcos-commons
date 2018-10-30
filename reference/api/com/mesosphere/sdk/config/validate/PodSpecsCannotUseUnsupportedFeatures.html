@@ -114,8 +114,8 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">PodSpecsCannotUseUnsupportedFeatures</span>
 extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</pre>
-<div class="block">This class contains logic for validating that a <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> only requires features supported by the DC/OS
- cluster being run on.</div>
+<div class="block">This class contains logic for validating that a <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> only requires features
+ supported by the DC/OS cluster being run on.</div>
 </li>
 </ul>
 </div>
@@ -202,10 +202,19 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">
+<a name="serviceRequestsGpuResources-com.mesosphere.sdk.specification.ServiceSpec-">
 <!--   -->
 </a>
 <ul class="blockList">
+<li class="blockList">
+<h4>serviceRequestsGpuResources</h4>
+<pre>public static&nbsp;boolean&nbsp;serviceRequestsGpuResources(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</pre>
+</li>
+</ul>
+<a name="validate-java.util.Optional-com.mesosphere.sdk.specification.ServiceSpec-">
+<!--   -->
+</a>
+<ul class="blockListLast">
 <li class="blockList">
 <h4>validate</h4>
 <pre>public&nbsp;java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&gt;&nbsp;validate(java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;oldConfig,
@@ -213,30 +222,24 @@ implements <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigVali
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">ConfigValidator</a></code></span></div>
 <div class="block">Returns <code>List</code> of <code>ConfigurationValidationError</code>s for the newly supplied
  <code>Configuration</code> object.
-
+ <p>
  A validation can validate a newConfig in following ways:
- 1. Validate newConfig parameters against the oldConfig paramater.
- Ex: If DiskType was ROOT in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig.
- 2. Validate just newConfig parameter(s). Ex: CPU value > 0</div>
+ <ol>
+ <li> Validate newConfig parameters against the oldConfig parameter. Ex: If DiskType was ROOT
+ in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig. </li>
+ <li> Validate just newConfig parameter(s). Ex: CPU value > 0 </li>
+ </ol>
+ </p></div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html#validate-java.util.Optional-C-">validate</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidator.html" title="interface in com.mesosphere.sdk.config.validate">ConfigValidator</a>&lt;<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</code></dd>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is available
-     (first launch of service)</dd>
+<dd><code>oldConfig</code> - Currently persisted Configuration, or an empty <code>Optional</code> if none is
+                  available (first launch of service)</dd>
 <dd><code>newConfig</code> - Proposed new Configuration</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>List of errors, or an empty list if validation passed</dd>
 </dl>
-</li>
-</ul>
-<a name="serviceRequestsGpuResources-com.mesosphere.sdk.specification.ServiceSpec-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>serviceRequestsGpuResources</h4>
-<pre>public static&nbsp;boolean&nbsp;serviceRequestsGpuResources(<a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</pre>
 </li>
 </ul>
 </li>

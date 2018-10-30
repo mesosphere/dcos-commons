@@ -109,8 +109,8 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>class <span class="typeNameLabel">OfferProcessor</span>
 extends java.lang.Object</pre>
-<div class="block">Handles offer processing for the framework, passing offers to an underlying <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><code>MesosEventClient</code></a>, which itself
- represents one or more underlying services.</div>
+<div class="block">Handles offer processing for the framework, passing offers to an underlying
+ <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html" title="interface in com.mesosphere.sdk.scheduler"><code>MesosEventClient</code></a>, which itself represents one or more underlying services.</div>
 </li>
 </ul>
 </div>
@@ -231,6 +231,18 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="declineShort-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>declineShort</h4>
+<pre>static&nbsp;void&nbsp;declineShort(java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</pre>
+<div class="block">Declines the provided offers for a short time. This is used for special cases when the
+ scheduler hasn't fully initialized and otherwise wasn't able to actually look at the offers
+ in question. At least not yet.</div>
+</li>
+</ul>
 <a name="disableThreading--">
 <!--   -->
 </a>
@@ -238,8 +250,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>disableThreading</h4>
 <pre><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework">OfferProcessor</a>&nbsp;disableThreading()</pre>
-<div class="block">Forces the instance to run in a synchronous/single-threaded mode for tests. To have any effect, this must be
- called before calling <a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#start--"><code>start()</code></a>.</div>
+<div class="block">Forces the instance to run in a synchronous/single-threaded mode for tests. To have any effect,
+ this must be called before calling <a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#start--"><code>start()</code></a>.</div>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd><code>this</code></dd>
@@ -253,7 +265,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setOfferQueueSize</h4>
 <pre><a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework">OfferProcessor</a>&nbsp;setOfferQueueSize(int&nbsp;queueSize)</pre>
-<div class="block">Overrides the offer queue size. Must only be called before the scheduler has <a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#start--"><code>start()</code></a>ed.</div>
+<div class="block">Overrides the offer queue size. Must only be called before the scheduler has <a href="../../../../com/mesosphere/sdk/framework/OfferProcessor.html#start--"><code>start()</code></a>ed</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>queueSize</code> - the queue size to use, zero for infinite</dd>
@@ -308,29 +320,18 @@ extends java.lang.Object</pre>
 <a name="awaitOffersProcessed--">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>awaitOffersProcessed</h4>
 <pre>public&nbsp;void&nbsp;awaitOffersProcessed()
                           throws java.lang.InterruptedException</pre>
-<div class="block">All offers must have been presented to resourceOffers() before calling this.  This call will block until all
- offers have been processed.</div>
+<div class="block">All offers must have been presented to resourceOffers() before calling this.
+ This call will block until all offers have been processed.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.InterruptedException</code> - if waiting for offers to be processed is interrupted</dd>
 <dd><code>java.lang.IllegalStateException</code> - if offers were not processed in a reasonable amount of time</dd>
 </dl>
-</li>
-</ul>
-<a name="declineShort-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>declineShort</h4>
-<pre>static&nbsp;void&nbsp;declineShort(java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</pre>
-<div class="block">Declines the provided offers for a short time. This is used for special cases when the scheduler hasn't fully
- initialized and otherwise wasn't able to actually look at the offers in question. At least not yet.</div>
 </li>
 </ul>
 </li>

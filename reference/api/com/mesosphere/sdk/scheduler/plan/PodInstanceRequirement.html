@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">PodInstanceRequirement</span>
+<pre>public final class <span class="typeNameLabel">PodInstanceRequirement</span>
 extends java.lang.Object</pre>
 <div class="block">A PodInstanceRequirement encapsulates a <a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification"><code>PodInstance</code></a> and the names of tasks that should be launched in it.</div>
 </li>
@@ -317,7 +317,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;boolean&nbsp;conflictsWith(<a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement)</pre>
 <div class="block">A PodInstanceRequirement conflictsWith with another it if applies to the same pod instance and some
  tasks in that pod.
-
+ <p>
  pod-0:[task0, task1]          conflictsWith with pod-0:[task1]
  pod-0:[task1]        does NOT conflict  with pod-0:[task0]
  pod-0:[task0]        does NOT conflict  with pod-1:[task0]</div>

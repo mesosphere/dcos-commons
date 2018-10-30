@@ -110,19 +110,19 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">DecommissionPlanFactory</span>
 extends java.lang.Object</pre>
 <div class="block">Handles creation of the decommission plan, used for removing nodes from a service.
-
+ <p>
  The plan is structured as a series of phases, one per pod to be decommissioned. Each pod will be decommissioned as
  follows:
-
+ <p>
  <ol><li>Tasks in the pod are set to a DECOMMISSIONED+IN_PROGRESS state, from DECOMMISSIONED+PENDING which was set
  when the Plan was initialized.</li>
  <li>Kill is issued for all tasks in the pod.</li>
  <li>As resources for tasks within the pod are offered, the DECOMMISSIONED+IN_PROGRESS state results in those
  resources being unreserved and removed from the <code>TaskInfo</code>.</li>
  <li>Once the resources are all cleared, the task is deleted from the <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>.</li></ol>
-
+ <p>
  Note that this is different from uninstall behavior in a couple ways, resulting in different handling from uninstall:
-
+ <p>
  <ul><li>The decommission operation can be cancelled by incrementing pod count, whereas uninstall cannot be cancelled
  once it's started. We remove resources from the <code>TaskInfo</code>s instead of marking them with tombstones to reduce
  the likelihood of a partial decommission causing problems.</li>
@@ -295,6 +295,19 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
+<a name="getPodsToDecommission-Logger-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPodsToDecommission</h4>
+<pre>static&nbsp;java.util.SortedMap&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory.PodKey</a>,java.util.Collection&lt;Protos.TaskInfo&gt;&gt;&nbsp;getPodsToDecommission(Logger&nbsp;logger,
+                                                                                                                       <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+                                                                                                                       java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)</pre>
+<div class="block">Returns a mapping of pods to be decommissioned with affected tasks within those pods. The returned mapping will
+ be in the order that the pods should be decommissioned.</div>
+</li>
+</ul>
 <a name="getPlan--">
 <!--   -->
 </a>
@@ -320,23 +333,10 @@ extends java.lang.Object</pre>
 <a name="getTasksToDecommission--">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>getTasksToDecommission</h4>
 <pre>public&nbsp;java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;getTasksToDecommission()</pre>
-</li>
-</ul>
-<a name="getPodsToDecommission-Logger-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>getPodsToDecommission</h4>
-<pre>static&nbsp;java.util.SortedMap&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/decommission/DecommissionPlanFactory.PodKey.html" title="class in com.mesosphere.sdk.scheduler.decommission">DecommissionPlanFactory.PodKey</a>,java.util.Collection&lt;Protos.TaskInfo&gt;&gt;&nbsp;getPodsToDecommission(Logger&nbsp;logger,
-                                                                                                                       <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
-                                                                                                                       java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)</pre>
-<div class="block">Returns a mapping of pods to be decommissioned with affected tasks within those pods. The returned mapping will
- be in the order that the pods should be decommissioned.</div>
 </li>
 </ul>
 </li>

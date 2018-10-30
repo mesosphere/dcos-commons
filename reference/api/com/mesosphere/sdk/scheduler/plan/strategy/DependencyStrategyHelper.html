@@ -218,7 +218,7 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;void&nbsp;addDependency(<a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;child,
                           <a href="../../../../../../com/mesosphere/sdk/scheduler/plan/strategy/DependencyStrategyHelper.html" title="type parameter in DependencyStrategyHelper">C</a>&nbsp;parent)</pre>
 <div class="block">Marks a direct dependency between two nodes, where <code>child</code> depends on <code>parent</code>.
-
+ <p>
  <p>NOTE: This helper does NOT handle any inferred/chained dependencies. It is the responsibility of the caller to
  explicitly add each dependency directly. For example, given c->b->a, the caller MUST explicitly specify c->b,
  b->a, AND c->a as dependencies.</div>

@@ -338,7 +338,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <h4>getClientStatus</h4>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a>&nbsp;getClientStatus()</pre>
 <div class="block">Returns our status to the upstream <code>OfferProcessor</code>. The logic is as follows:
-
+ <p>
  <ol>
  <li>If no services are present: uninstall mode: <code>IDLE/REMOVE_CLIENT</code>, otherwise: <code>IDLE/NONE</code></li>
  <li>If all services are idle: <code>IDLE/NONE</code></li>
@@ -370,7 +370,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <dd><code>offers</code> - A list of offers which may be used in offer evaluation</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>The response containing a list of operations to be performed against the offers, as well as a list of
-         offers which were left unused. See <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler"><code>MesosEventClient.OfferResponse</code></a></dd>
+ offers which were left unused. See <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.OfferResponse.html" title="class in com.mesosphere.sdk.scheduler"><code>MesosEventClient.OfferResponse</code></a></dd>
 </dl>
 </li>
 </ul>
@@ -383,7 +383,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.UnexpectedResourcesResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.UnexpectedResourcesResponse</a>&nbsp;getUnexpectedResources(java.util.Collection&lt;Protos.Offer&gt;&nbsp;unusedOffers)</pre>
 <div class="block">Maps the reserved resources in the provided unused offers according to the services that own them, then queries
  those services directly to see what resources they consider unexpected.
-
+ <p>
  <p>This is an optimization which avoids querying services about unexpected resources that don't relate to them.
  <p>In addition to reducing unnecessary queries, this also improves isolation between services. They only see
  resources which relate to them.</div>
@@ -394,7 +394,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <dd><code>unusedOffers</code> - The list of offers which were unclaimed in a prior call to <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.html#offers-java.util.Collection-"><code>MesosEventClient.offers(Collection)</code></a></dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>A subset of the provided offers paired with their resources to be unreserved/destroyed. May be paired
-         with an error state if remaining unused offers should be declined-short rather than declined-long.</dd>
+ with an error state if remaining unused offers should be declined-short rather than declined-long.</dd>
 </dl>
 </li>
 </ul>
@@ -406,7 +406,7 @@ implements <a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient
 <h4>taskStatus</h4>
 <pre>public&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/MesosEventClient.TaskStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.TaskStatusResponse</a>&nbsp;taskStatus(Protos.TaskStatus&nbsp;status)</pre>
 <div class="block">Maps the provided status to the service that owns its task, then queries that service with the status.
-
+ <p>
  <p>This is an optimization which avoids querying services about task statuses that don't relate to them.
  <p>In addition to reducing unnecessary queries, this also improves isolation between services. They only see
  task statuses which relate to them.</div>

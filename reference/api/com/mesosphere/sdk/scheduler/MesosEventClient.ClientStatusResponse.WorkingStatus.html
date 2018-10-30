@@ -111,7 +111,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public static class <span class="typeNameLabel">MesosEventClient.ClientStatusResponse.WorkingStatus</span>
+<pre>public static final class <span class="typeNameLabel">MesosEventClient.ClientStatusResponse.WorkingStatus</span>
 extends java.lang.Object</pre>
 <div class="block">Provides additional information about a <code>WORKING</code> service, which may be used to determine which
  services should be receiving offers at any given time.</div>
@@ -235,7 +235,7 @@ extends java.lang.Object</pre>
 <pre>public final&nbsp;boolean hasNewWork</pre>
 <div class="block">Whether the service has a new or different workload since the previous status call. This is an indicator
  that previously declined offers should be revived.
-
+ <p>
  In practice, this is always <code>false</code> when the <a href="../../../../com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.WorkingStatus.State.html" title="enum in com.mesosphere.sdk.scheduler"><code>MesosEventClient.ClientStatusResponse.WorkingStatus.State</code></a> is <code>IDLE</code>.</div>
 </li>
 </ul>

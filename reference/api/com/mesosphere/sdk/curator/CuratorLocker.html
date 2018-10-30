@@ -109,8 +109,8 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">CuratorLocker</span>
 extends java.lang.Object</pre>
-<div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
- same service.</div>
+<div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running
+ simultaneously for the same service.</div>
 </li>
 </ul>
 </div>
@@ -188,14 +188,15 @@ extends java.lang.Object</pre>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>(package private) void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html#lockInternal--">lockInternal</a></span>()</code>
-<div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
- same service.</div>
+<div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running
+ simultaneously for the same service.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html#setEnabledForTests-boolean-">setEnabledForTests</a></span>(boolean&nbsp;enabled)</code>
-<div class="block">Allows disabling locking for unit tests of things that internally try to acquire a curator lock.</div>
+<div class="block">Allows disabling locking for unit tests of things that internally try to acquire a curator
+ lock.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
@@ -205,7 +206,8 @@ extends java.lang.Object</pre>
 <tr id="i6" class="altColor">
 <td class="colFirst"><code>(package private) void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html#unlockInternal--">unlockInternal</a></span>()</code>
-<div class="block">Releases the lock previously obtained via <code>#lock()</code>.</div>
+<div class="block">Releases the lock previously obtained via
+ <a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html#lock-java.lang.String-CuratorFrameworkFactory.Builder-"><code>lock(String, CuratorFrameworkFactory.Builder)</code></a>.</div>
 </td>
 </tr>
 </table>
@@ -259,11 +261,6 @@ extends java.lang.Object</pre>
 <h4>CuratorLocker</h4>
 <pre>CuratorLocker(java.lang.String&nbsp;serviceName,
               CuratorFrameworkFactory.Builder&nbsp;clientBuilder)</pre>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>serviceName</code> - the name of the service to be locked</dd>
-<dd><code>zookeeperHostPort</code> - the connection string for the ZK instance, e.g. <code>master.mesos:2181</code></dd>
-</dl>
 </li>
 </ul>
 </li>
@@ -297,7 +294,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>setEnabledForTests</h4>
 <pre>public static&nbsp;void&nbsp;setEnabledForTests(boolean&nbsp;enabled)</pre>
-<div class="block">Allows disabling locking for unit tests of things that internally try to acquire a curator lock.</div>
+<div class="block">Allows disabling locking for unit tests of things that internally try to acquire a curator
+ lock.</div>
 </li>
 </ul>
 <a name="unlock--">
@@ -316,8 +314,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>lockInternal</h4>
 <pre>void&nbsp;lockInternal()</pre>
-<div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running simultaneously for the
- same service.</div>
+<div class="block">Gets an exclusive lock on service-specific ZK node to ensure two schedulers aren't running
+ simultaneously for the same service.</div>
 </li>
 </ul>
 <a name="unlockInternal--">
@@ -327,7 +325,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>unlockInternal</h4>
 <pre>void&nbsp;unlockInternal()</pre>
-<div class="block">Releases the lock previously obtained via <code>#lock()</code>.</div>
+<div class="block">Releases the lock previously obtained via
+ <a href="../../../../com/mesosphere/sdk/curator/CuratorLocker.html#lock-java.lang.String-CuratorFrameworkFactory.Builder-"><code>lock(String, CuratorFrameworkFactory.Builder)</code></a>.</div>
 </li>
 </ul>
 <a name="getWaitTimeUnit--">

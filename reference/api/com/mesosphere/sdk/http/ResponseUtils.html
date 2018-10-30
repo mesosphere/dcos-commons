@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">ResponseUtils</span>
+<pre>public final class <span class="typeNameLabel">ResponseUtils</span>
 extends java.lang.Object</pre>
 <div class="block">Utilities for building RPC responses.</div>
 </li>
@@ -259,17 +259,6 @@ extends java.lang.Object</pre>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONArray</code>.</div>
 </li>
 </ul>
-<a name="jsonResponse-JSONArray-Response.Status-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>jsonResponse</h4>
-<pre>public static&nbsp;Response&nbsp;jsonResponse(JSONArray&nbsp;jsonArray,
-                                    Response.Status&nbsp;status)</pre>
-<div class="block">Returns a response containing the provided <code>JSONArray</code>.</div>
-</li>
-</ul>
 <a name="jsonOkResponse-JSONObject-">
 <!--   -->
 </a>
@@ -277,17 +266,6 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>jsonOkResponse</h4>
 <pre>public static&nbsp;Response&nbsp;jsonOkResponse(JSONObject&nbsp;jsonObject)</pre>
-<div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
-</li>
-</ul>
-<a name="jsonResponse-JSONObject-Response.Status-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>jsonResponse</h4>
-<pre>public static&nbsp;Response&nbsp;jsonResponse(JSONObject&nbsp;jsonObject,
-                                    Response.Status&nbsp;status)</pre>
 <div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
 </li>
 </ul>
@@ -299,6 +277,28 @@ extends java.lang.Object</pre>
 <h4>jsonOkResponse</h4>
 <pre>public static&nbsp;Response&nbsp;jsonOkResponse(Message&nbsp;protoMessage)</pre>
 <div class="block">Returns a 200 OK response containing a JSON representation of the provided protobuf <code>Message</code>.</div>
+</li>
+</ul>
+<a name="jsonResponse-JSONArray-Response.Status-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>jsonResponse</h4>
+<pre>public static&nbsp;Response&nbsp;jsonResponse(JSONArray&nbsp;jsonArray,
+                                    Response.Status&nbsp;status)</pre>
+<div class="block">Returns a response containing the provided <code>JSONArray</code>.</div>
+</li>
+</ul>
+<a name="jsonResponse-JSONObject-Response.Status-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>jsonResponse</h4>
+<pre>public static&nbsp;Response&nbsp;jsonResponse(JSONObject&nbsp;jsonObject,
+                                    Response.Status&nbsp;status)</pre>
+<div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
 </li>
 </ul>
 <a name="jsonResponse-Message-Response.Status-">
@@ -321,7 +321,7 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;Response&nbsp;jsonResponseBean(java.lang.Object&nbsp;entity,
                                         Response.Status&nbsp;status)</pre>
 <div class="block">Returns a 200 OK response containing the provided JSON <code>String</code>.
-
+ <p>
  Resources which call this directly should extend <a href="../../../../com/mesosphere/sdk/http/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.http.types"><code>PrettyJsonResource</code></a>.</div>
 </li>
 </ul>

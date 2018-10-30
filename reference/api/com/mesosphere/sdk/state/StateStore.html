@@ -109,15 +109,17 @@ var activeTableTab = "activeTableTab";
 <br>
 <pre>public class <span class="typeNameLabel">StateStore</span>
 extends java.lang.Object</pre>
-<div class="block">A <code>StateStore</code> stores the state of a service, including tasks' TaskInfo and TaskStatus objects. Each
- distinct Task is expected to have a unique Task Name, determined by the service developer.
+<div class="block">A <code>StateStore</code> stores the state of a service, including tasks' TaskInfo and TaskStatus
+ objects. Each distinct Task is expected to have a unique Task Name, determined by the service
+ developer.
  <p>
- TaskInfo objects should be persisted when a Task is launched or when reserved resources associated with a potential
- future Task launch should be recorded.
+ TaskInfo objects should be persisted when a Task is launched or when reserved resources
+ associated with a potential future Task launch should be recorded.
  <p>
- TaskStatus is reported by Mesos to Frameworks at various points including at Task Reconciliation and when Tasks
- change state.  The TaskStatus of a Task should be recorded so that the state of a Framework's Tasks can be queried.
-
+ TaskStatus is reported by Mesos to Frameworks at various points including at Task Reconciliation
+ and when Tasks change state.  The TaskStatus of a Task should be recorded so that the state of
+ a Framework's Tasks can be queried.
+ <p>
  <p>The structure used in the underlying persister is as follows:
  <br>namespacedPath/ ("Services/NAMESPACE/" or "/")
  <br>&nbsp; Tasks/
@@ -177,13 +179,15 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#StateStore-com.mesosphere.sdk.storage.Persister-">StateStore</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access state data.</div>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access
+ state data.</div>
 </td>
 </tr>
 <tr class="rowColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/StateStore.html#StateStore-com.mesosphere.sdk.storage.Persister-java.util.Optional-">StateStore</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
           java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> where data is placed within a namespace under the provided name.</div>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> where data is placed within a namespace under the
+ provided name.</div>
 </td>
 </tr>
 </table>
@@ -399,7 +403,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>StateStore</h4>
 <pre>public&nbsp;StateStore(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access state data.</div>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> which uses the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> to access
+ state data.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>persister</code> - The persister which holds the state data</dd>
@@ -414,11 +419,13 @@ extends java.lang.Object</pre>
 <h4>StateStore</h4>
 <pre>public&nbsp;StateStore(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
                   java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
-<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> where data is placed within a namespace under the provided name.</div>
+<div class="block">Creates a new <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> where data is placed within a namespace under the
+ provided name.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>persister</code> - The persister which holds the state data</dd>
-<dd><code>namespace</code> - The namespace for data to be stored within, or an empty Optional for no namespacing</dd>
+<dd><code>namespace</code> - The namespace for data to be stored within, or an empty Optional for
+                 no namespacing</dd>
 </dl>
 </li>
 </ul>
@@ -448,6 +455,92 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.lang.String&nbsp;getTasksRootName()</pre>
 </li>
 </ul>
+<a name="getTaskInfoPath-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskInfoPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getTaskInfoPath(java.lang.String&nbsp;namespace,
+                                                  java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName]/TaskInfo, or Tasks/[taskName]/TaskInfo</dd>
+</dl>
+</li>
+</ul>
+<a name="getTaskStatusPath-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskStatusPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getTaskStatusPath(java.lang.String&nbsp;namespace,
+                                                    java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName]/TaskStatus, or Tasks/[taskName]/TaskStatus</dd>
+</dl>
+</li>
+</ul>
+<a name="getGoalOverridePath-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getGoalOverridePath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getGoalOverridePath(java.lang.String&nbsp;namespace,
+                                                      java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName]/Metadata/goal-state-override, or
+ Tasks/[taskName]/Metadata/goal-state-override</dd>
+</dl>
+</li>
+</ul>
+<a name="getGoalOverrideStatusPath-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getGoalOverrideStatusPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getGoalOverrideStatusPath(java.lang.String&nbsp;namespace,
+                                                            java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName]/Metadata/override-status, or
+ Tasks/[taskName]/Metadata/override-status</dd>
+</dl>
+</li>
+</ul>
+<a name="getTaskPath-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getTaskPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getTaskPath(java.lang.String&nbsp;namespace,
+                                              java.lang.String&nbsp;taskName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Tasks/[taskName], or Tasks/[taskName]</dd>
+</dl>
+</li>
+</ul>
+<a name="getPropertyPath-java.lang.String-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getPropertyPath</h4>
+<pre>protected static&nbsp;java.lang.String&nbsp;getPropertyPath(java.lang.String&nbsp;namespace,
+                                                  java.lang.String&nbsp;propertyName)</pre>
+<dl>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>Services/[namespace]/Properties/[propertyName], or Properties/[propertyName]</dd>
+</dl>
+</li>
+</ul>
 <a name="getPersister--">
 <!--   -->
 </a>
@@ -466,13 +559,16 @@ extends java.lang.Object</pre>
 <h4>storeTasks</h4>
 <pre>public&nbsp;void&nbsp;storeTasks(java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;tasks)
                 throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Stores TaskInfo objects representing tasks which are desired by the framework. This must be called before <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-java.lang.String-Protos.TaskStatus-"><code>storeStatus(String, Protos.TaskStatus)</code></a> for any given task id, and it must behave as an atomic transaction: On
- success, everything is written, while on failure nothing is written.</div>
+<div class="block">Stores TaskInfo objects representing tasks which are desired by the framework. This must be
+ called before <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-java.lang.String-Protos.TaskStatus-"><code>storeStatus(String, Protos.TaskStatus)</code></a> for any given task id, and it
+ must behave as an atomic transaction: On success, everything is written, while on failure
+ nothing is written.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>tasks</code> - Tasks to be stored, which each meet the above requirements</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when persisting TaskInfo information fails, or if its TaskId is malformed</dd>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when persisting TaskInfo information fails, or if its TaskId is
+ malformed</dd>
 </dl>
 </li>
 </ul>
@@ -711,8 +807,8 @@ extends java.lang.Object</pre>
 <pre>public&nbsp;void&nbsp;storeGoalOverrideStatus(java.lang.String&nbsp;taskName,
                                     <a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state">GoalStateOverride.Status</a>&nbsp;status)
                              throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Stores the goal state override status of a particular Task. The <code>Protos.TaskInfo</code> for this exact task MUST
- have already been written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand.</div>
+<div class="block">Stores the goal state override status of a particular Task. The <code>Protos.TaskInfo</code> for
+ this exact task MUST have already been written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - in the event of a storage error</dd>
@@ -727,8 +823,8 @@ extends java.lang.Object</pre>
 <h4>fetchGoalOverrideStatus</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state">GoalStateOverride.Status</a>&nbsp;fetchGoalOverrideStatus(java.lang.String&nbsp;taskName)
                                                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
-<div class="block">Retrieves the goal state override status of a particular task. A lack of override will result in a
- <a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state"><code>GoalStateOverride.Status</code></a> with <code>override=NONE</code> and <code>state=NONE</code>.</div>
+<div class="block">Retrieves the goal state override status of a particular task. A lack of override will result
+ in a <a href="../../../../com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state"><code>GoalStateOverride.Status</code></a> with <code>override=NONE</code> and <code>state=NONE</code>.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - in the event of a storage error</dd>
@@ -738,98 +834,12 @@ extends java.lang.Object</pre>
 <a name="deleteAllDataIfNamespaced--">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>deleteAllDataIfNamespaced</h4>
 <pre>public&nbsp;void&nbsp;deleteAllDataIfNamespaced()</pre>
 <div class="block">Deletes all data in the state store, but only if it's under a namespace. This is used to clear a namespaced
  service's data when it's being removed from a multi-service system.</div>
-</li>
-</ul>
-<a name="getTaskInfoPath-java.lang.String-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getTaskInfoPath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getTaskInfoPath(java.lang.String&nbsp;namespace,
-                                                  java.lang.String&nbsp;taskName)</pre>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Services/[namespace]/Tasks/[taskName]/TaskInfo, or Tasks/[taskName]/TaskInfo</dd>
-</dl>
-</li>
-</ul>
-<a name="getTaskStatusPath-java.lang.String-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getTaskStatusPath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getTaskStatusPath(java.lang.String&nbsp;namespace,
-                                                    java.lang.String&nbsp;taskName)</pre>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Services/[namespace]/Tasks/[taskName]/TaskStatus, or Tasks/[taskName]/TaskStatus</dd>
-</dl>
-</li>
-</ul>
-<a name="getGoalOverridePath-java.lang.String-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getGoalOverridePath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getGoalOverridePath(java.lang.String&nbsp;namespace,
-                                                      java.lang.String&nbsp;taskName)</pre>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Services/[namespace]/Tasks/[taskName]/Metadata/goal-state-override, or
-         Tasks/[taskName]/Metadata/goal-state-override</dd>
-</dl>
-</li>
-</ul>
-<a name="getGoalOverrideStatusPath-java.lang.String-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getGoalOverrideStatusPath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getGoalOverrideStatusPath(java.lang.String&nbsp;namespace,
-                                                            java.lang.String&nbsp;taskName)</pre>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Services/[namespace]/Tasks/[taskName]/Metadata/override-status, or
-         Tasks/[taskName]/Metadata/override-status</dd>
-</dl>
-</li>
-</ul>
-<a name="getTaskPath-java.lang.String-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getTaskPath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getTaskPath(java.lang.String&nbsp;namespace,
-                                              java.lang.String&nbsp;taskName)</pre>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Services/[namespace]/Tasks/[taskName], or Tasks/[taskName]</dd>
-</dl>
-</li>
-</ul>
-<a name="getPropertyPath-java.lang.String-java.lang.String-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>getPropertyPath</h4>
-<pre>protected static&nbsp;java.lang.String&nbsp;getPropertyPath(java.lang.String&nbsp;namespace,
-                                                  java.lang.String&nbsp;propertyName)</pre>
-<dl>
-<dt><span class="returnLabel">Returns:</span></dt>
-<dd>Services/[namespace]/Properties/[propertyName], or Properties/[propertyName]</dd>
-</dl>
 </li>
 </ul>
 </li>

@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9};
+var methods = {"i0":9,"i1":9,"i2":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">CuratorUtils</span>
+<pre>public final class <span class="typeNameLabel">CuratorUtils</span>
 extends java.lang.Object</pre>
 <div class="block">A set of common utilites for managing Curator/Zookeeper paths and data.</div>
 </li>
@@ -136,20 +136,16 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorUtils.html#getServiceName-com.mesosphere.sdk.storage.Persister-">getServiceName</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
-<td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorUtils.html#getServiceRootPath-java.lang.String-">getServiceRootPath</a></span>(java.lang.String&nbsp;frameworkName)</code>
 <div class="block">Returns the root node to store all scheduler ZK data inside.</div>
 </td>
 </tr>
-<tr id="i3" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>(package private) static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorUtils.html#initServiceName-com.mesosphere.sdk.storage.Persister-java.lang.String-">initServiceName</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
                java.lang.String&nbsp;serviceName)</code>
-<div class="block">Compares the service name to the previously stored name in zookeeper, or creates a new node containing this data
- if it isn't already present.</div>
+<div class="block">Compares the service name to the previously stored name in zookeeper, or creates a new node
+ containing this data if it isn't already present.</div>
 </td>
 </tr>
 </table>
@@ -182,7 +178,7 @@ extends java.lang.Object</pre>
 <h4>getServiceRootPath</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;getServiceRootPath(java.lang.String&nbsp;frameworkName)</pre>
 <div class="block">Returns the root node to store all scheduler ZK data inside. For example:
-
+ <p>
  <ul>
  <li>"your-name-here" => /dcos-service-your-name-here</li>
  <li>"/path/to/your-name-here" => /dcos-service-path__to__your-name-here</li>
@@ -202,44 +198,36 @@ extends java.lang.Object</pre>
 <a name="initServiceName-com.mesosphere.sdk.storage.Persister-java.lang.String-">
 <!--   -->
 </a>
-<ul class="blockList">
+<ul class="blockListLast">
 <li class="blockList">
 <h4>initServiceName</h4>
 <pre>static&nbsp;void&nbsp;initServiceName(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister,
                             java.lang.String&nbsp;serviceName)</pre>
-<div class="block">Compares the service name to the previously stored name in zookeeper, or creates a new node containing this data
- if it isn't already present. This is useful for two situations where foldered service names may be confused with
- literal double-underscore delimited names:
-
+<div class="block">Compares the service name to the previously stored name in zookeeper, or creates a new node
+ containing this data if it isn't already present. This is useful for two situations where
+ foldered service names may be confused with literal double-underscore delimited names:
+ <p>
  <ul>
- <li>Protecting against collisions if someone uses periods in their service names. For example, a foldered service
- named "/myteam/kafka" could collide with a non-foldered service named "myteam.kafka" as the prior is converted
- to the latter where ZK is concerned.</li>
- <li>Allowing deterministic mapping of a given ZK node back to the originating service. For example, the data in
- "dcos-service-myteam.kafka" could be for a service named "myteam.kafka", or for a foldered service named
- "/myteam/kafka". Storing the name explicitly allows potential tooling to tell which one it is. This isn't
- currently needed but could be useful someday.</li>
+ <li>
+   Protecting against collisions if someone uses periods in their service names. For example,
+   a foldered service named "/myteam/kafka" could collide with a non-foldered service named
+   "myteam.kafka" as the prior is converted to the latter where ZK is concerned.
+ </li>
+ <li>
+   Allowing deterministic mapping of a given ZK node back to the originating service.
+   For example, the data in "dcos-service-myteam.kafka" could be for a service named "myteam
+   .kafka", or for a foldered service named "/myteam/kafka". Storing the name explicitly
+   allows potential tooling to tell which one it is. This isn't currently needed but could be
+   useful someday.
+ </li>
  </ul></div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>persister</code> - the persister where the service name should be written</dd>
-<dd><code>serviceName</code> - the service name to check for equality, or to write if no service name node exists</dd>
+<dd><code>serviceName</code> - the service name to check for equality, or to write if no service name
+                   node exists</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../com/mesosphere/sdk/curator/CuratorUtils.html#getServiceRootPath-java.lang.String-"><code>getServiceRootPath(String)</code></a></dd>
-</dl>
-</li>
-</ul>
-<a name="getServiceName-com.mesosphere.sdk.storage.Persister-">
-<!--   -->
-</a>
-<ul class="blockListLast">
-<li class="blockList">
-<h4>getServiceName</h4>
-<pre>public static&nbsp;java.lang.String&nbsp;getServiceName(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)
-                                       throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
-<dl>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code></dd>
 </dl>
 </li>
 </ul>

@@ -107,7 +107,7 @@ var activeTableTab = "activeTableTab";
 <li class="blockList">
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">PersisterUtils</span>
+<pre>public final class <span class="typeNameLabel">PersisterUtils</span>
 extends java.lang.Object</pre>
 <div class="block">Utilities relating to usage of <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>s.</div>
 </li>
@@ -159,9 +159,7 @@ extends java.lang.Object</pre>
 <td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#checkAndMigrate-com.mesosphere.sdk.framework.FrameworkConfig-com.mesosphere.sdk.storage.Persister-">checkAndMigrate</a></span>(<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
-<div class="block">Notes:
-
- 1.</div>
+<div class="block">Notes:</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -173,22 +171,22 @@ extends java.lang.Object</pre>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#fetchServiceNamespaces-com.mesosphere.sdk.storage.Persister-">fetchServiceNamespaces</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
-<div class="block">Returns all <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> namespaces listed in the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>, or an empty collection if
- none could be found.</div>
+<div class="block">Returns all <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> namespaces listed in the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>, or
+ an empty collection if none could be found.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.util.Map&lt;java.lang.String,byte[]&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#getAllData-com.mesosphere.sdk.storage.Persister-">getAllData</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
-<div class="block">Returns all data present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat map, omitting any stub parent entries
- with <code>null</code> data.</div>
+<div class="block">Returns all data present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat map, omitting any
+ stub parent entries with <code>null</code> data.</div>
 </td>
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code>static java.util.Collection&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#getAllKeys-com.mesosphere.sdk.storage.Persister-">getAllKeys</a></span>(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</code>
-<div class="block">Returns a complete list of all keys present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat list, including stub
- parent entries which may lack data.</div>
+<div class="block">Returns a complete list of all keys present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat
+ list, including stub parent entries which may lack data.</div>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
@@ -213,7 +211,8 @@ extends java.lang.Object</pre>
 <tr id="i8" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/PersisterUtils.html#joinPaths-java.lang.String...-">joinPaths</a></span>(java.lang.String...&nbsp;paths)</code>
-<div class="block">Combines the provided path elements into a unified path, autocorrecting for any delimiters within the elements.</div>
+<div class="block">Combines the provided path elements into a unified path, autocorrecting for any delimiters
+ within the elements.</div>
 </td>
 </tr>
 </table>
@@ -278,8 +277,8 @@ extends java.lang.Object</pre>
 <h4>fetchServiceNamespaces</h4>
 <pre>public static&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;fetchServiceNamespaces(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)
                                                                      throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
-<div class="block">Returns all <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> namespaces listed in the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>, or an empty collection if
- none could be found.</div>
+<div class="block">Returns all <a href="../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a> namespaces listed in the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>, or
+ an empty collection if none could be found.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>persister</code> - the persister to be scanned</dd>
@@ -331,7 +330,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>joinPaths</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;joinPaths(java.lang.String...&nbsp;paths)</pre>
-<div class="block">Combines the provided path elements into a unified path, autocorrecting for any delimiters within the elements.</div>
+<div class="block">Combines the provided path elements into a unified path, autocorrecting for any delimiters
+ within the elements.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>paths</code> - Arbitrary number of paths to be combined</dd>
@@ -348,7 +348,7 @@ extends java.lang.Object</pre>
 <h4>getParentPaths</h4>
 <pre>public static&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getParentPaths(java.lang.String&nbsp;path)</pre>
 <div class="block">Returns a recursive list of all paths which are the parent of the provided path.
-
+ <p>
  <p>/path/to/thing => ["/path", "/path/to"] (skip "/" and "/path/to/thing")</div>
 </li>
 </ul>
@@ -360,8 +360,8 @@ extends java.lang.Object</pre>
 <h4>getAllData</h4>
 <pre>public static&nbsp;java.util.Map&lt;java.lang.String,byte[]&gt;&nbsp;getAllData(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)
                                                          throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
-<div class="block">Returns all data present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat map, omitting any stub parent entries
- with <code>null</code> data.</div>
+<div class="block">Returns all data present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat map, omitting any
+ stub parent entries with <code>null</code> data.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the underlying <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> couldn't be accessed</dd>
@@ -376,8 +376,8 @@ extends java.lang.Object</pre>
 <h4>getAllKeys</h4>
 <pre>public static&nbsp;java.util.Collection&lt;java.lang.String&gt;&nbsp;getAllKeys(<a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)
                                                          throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
-<div class="block">Returns a complete list of all keys present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat list, including stub
- parent entries which may lack data.</div>
+<div class="block">Returns a complete list of all keys present within the provided <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> in a flat
+ list, including stub parent entries which may lack data.</div>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></code> - if the underlying <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a> couldn't be accessed</dd>
@@ -408,17 +408,17 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;void&nbsp;checkAndMigrate(<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;frameworkConfig,
                                    <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage">Persister</a>&nbsp;persister)</pre>
 <div class="block">Notes:
-
- 1. We do not migrate in Dynamic Service Mode because if we do so, there is a "gap" between the scheduler
- registering with mesos and it receiving inbound requests with ymls. During this "gap" if it receives any
- offers, it does not know what to do with them if we support migration. Hence we support migration only in
- static service mode.
- 2. Note that if the {{user}} field in the yml is not specified in the mono mode, we used to default to `root`
- In the multi mode however, the framework config takes precedence if a user is not mentioned. Caution must
- be taken to ensure the service user is same (mention it explicitly in both mono and multi for the sake of
- consistency) during the migration.
- 3. The migration MUST happen before the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#build--"><code>SchedulerBuilder.build()</code></a> is called (i.e., before the
- scheduler talks to <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>.</div>
+ <p>
+ 1. We do not migrate in Dynamic Service Mode because if we do so, there is a "gap" between
+ the scheduler registering with mesos and it receiving inbound requests with ymls. During
+ this "gap" if it receives any offers, it does not know what to do with them if we support
+ migration. Hence we support migration only in static service mode.
+ 2. Note that if the {{user}} field in the yml is not specified in the mono mode, we used to
+ default to `root`. In the multi mode however, the framework config takes precedence if a user
+ is not mentioned. Caution must be taken to ensure the service user is same (mention it
+ explicitly in both mono and multi for the sake of consistency) during the migration.
+ 3. The migration MUST happen before the <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerBuilder.html#build--"><code>SchedulerBuilder.build()</code></a> is called
+ (i.e., before the scheduler talks to <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title="interface in com.mesosphere.sdk.storage"><code>Persister</code></a>.</div>
 </li>
 </ul>
 </li>

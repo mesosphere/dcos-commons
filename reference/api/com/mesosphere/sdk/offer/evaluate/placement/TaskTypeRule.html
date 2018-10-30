@@ -111,13 +111,13 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">TaskTypeRule</span>
+<pre>public final class <span class="typeNameLabel">TaskTypeRule</span>
 extends java.lang.Object
 implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></pre>
 <div class="block">This rule ensures that the given Offer is colocated with (or never colocated with) the specified
  task 'type', whose retrieval from the TaskInfo is defined by the developer's implementation of a
  <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeConverter.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement"><code>TaskTypeConverter</code></a>.
-
+ <p>
  For example, this can be used to colocate 'data' nodes with 'index' nodes, or to ensure that the
  two are never colocated.</div>
 </li>
@@ -141,7 +141,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#avoid-java.lang.String-">avoid</a></span>(java.lang.String&nbsp;typeToAvoid)</code>
-<div class="block">Calls #avoid(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.</div>
+<div class="block">Calls <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#avoid-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.TaskTypeConverter-"><code>avoid(String, TaskTypeConverter)</code></a> with a <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>TaskTypeLabelConverter</code></a>.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -155,7 +155,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#colocateWith-java.lang.String-">colocateWith</a></span>(java.lang.String&nbsp;typeToColocateWith)</code>
-<div class="block">Calls #colocateWith(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.</div>
+<div class="block">Calls <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#colocateWith-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.TaskTypeConverter-"><code>colocateWith(String, TaskTypeConverter)</code></a> with a <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>TaskTypeLabelConverter</code></a>.</div>
 </td>
 </tr>
 <tr id="i3" class="rowColor">
@@ -230,7 +230,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
  'index' nodes, or that 'data' nodes are never colocated with other 'data' nodes
  (self-avoidance). Note that this rule is unidirectional; mutual avoidance requires
  creating separate colocate rules for each direction.
-
+ <p>
  Note that if the avoided task does not already exist in the cluster, this will just pick a
  random node, as there will be nothing to avoid.</div>
 </li>
@@ -242,7 +242,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <li class="blockList">
 <h4>avoid</h4>
 <pre>public static&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;avoid(java.lang.String&nbsp;typeToAvoid)</pre>
-<div class="block">Calls #avoid(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.</div>
+<div class="block">Calls <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#avoid-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.TaskTypeConverter-"><code>avoid(String, TaskTypeConverter)</code></a> with a <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>TaskTypeLabelConverter</code></a>.</div>
 </li>
 </ul>
 <a name="colocateWith-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.TaskTypeConverter-">
@@ -257,7 +257,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
  type. For example, this could be used to ensure that 'data' nodes are always colocated with
  'index' nodes. Note that this rule is unidirectional; mutual colocation requires
  creating separate colocate rules for each direction.
-
+ <p>
  Note that if the colocated task does not already exist in the cluster, this will just pick a
  random node. This behavior is to support defining mutual colocation: A colocates with B, and
  B colocates with A. In this case one of the two directions won't see anything to colocate
@@ -271,7 +271,7 @@ implements <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placemen
 <li class="blockList">
 <h4>colocateWith</h4>
 <pre>public static&nbsp;<a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/PlacementRule.html" title="interface in com.mesosphere.sdk.offer.evaluate.placement">PlacementRule</a>&nbsp;colocateWith(java.lang.String&nbsp;typeToColocateWith)</pre>
-<div class="block">Calls #colocateWith(String, TaskTypeConverter) with a {@link TaskTypeLabelConverter}.</div>
+<div class="block">Calls <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeRule.html#colocateWith-java.lang.String-com.mesosphere.sdk.offer.evaluate.placement.TaskTypeConverter-"><code>colocateWith(String, TaskTypeConverter)</code></a> with a <a href="../../../../../../com/mesosphere/sdk/offer/evaluate/placement/TaskTypeLabelConverter.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><code>TaskTypeLabelConverter</code></a>.</div>
 </li>
 </ul>
 <a name="filter-Offer-com.mesosphere.sdk.specification.PodInstance-java.util.Collection-">

@@ -212,26 +212,26 @@ extends java.lang.Object</pre>
 <div class="block">Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
  (a.k.a. forever) whenever we decline any offer.  When we see *new* work (<a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>s) we
  assume that the offers we've declined forever may be useful to that work, and so we revive offers.
-
+ <p>
  Pseudo-code algorithm:
-
-     // We always start out revived
-     List<Requirement> oldWorkSet = getWorkSet();
-
-     while (true) {
-         List<Requirement> currWorkSet = getWorkSet()
-         List<Requirement> newWorkSet = oldWorkSet - currWorkSet;
-         if (newWorkSet.isEmpty()) {
-             print "No new work";
-         } else {
-             oldWorkSet = currWorkSet;
-             newWork = true;
-         }
-     }
-
+ <p>
+ // We always start out revived
+ List<Requirement> oldWorkSet = getWorkSet();
+ <p>
+ while (true) {
+ List<Requirement> currWorkSet = getWorkSet()
+ List<Requirement> newWorkSet = oldWorkSet - currWorkSet;
+ if (newWorkSet.isEmpty()) {
+ print "No new work";
+ } else {
+ oldWorkSet = currWorkSet;
+ newWork = true;
+ }
+ }
+ <p>
  The invariant maintained is that <code>oldWorkSet</code> always had revive called for it at least once, giving it
  access to offers.
-
+ <p>
  This case must work:
  <ul>
  <li>kafka-0-broker fails    @ 10:30, it's new work!</li>

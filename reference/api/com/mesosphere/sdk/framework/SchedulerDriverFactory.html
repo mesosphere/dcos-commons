@@ -236,15 +236,15 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>scheduler</code> - The Framework <code>Scheduler</code> implementation which should receive callbacks
-     from the <code>SchedulerDriver</code></dd>
+                      from the <code>SchedulerDriver</code></dd>
 <dd><code>frameworkInfo</code> - The <code>FrameworkInfo</code> which describes the framework implementation.
-     The 'principal' field MUST be populated and non-empty</dd>
+                      The 'principal' field MUST be populated and non-empty</dd>
 <dd><code>masterUrl</code> - The URL of the currently active Mesos Master, of the form "zk://host/mesos"</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>A <code>SchedulerDriver</code> configured with the provided info</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - if <code>FrameworkInfo</code>.principal is unset or empty when
-     authentication is needed</dd>
+                                  authentication is needed</dd>
 </dl>
 </li>
 </ul>
@@ -263,17 +263,17 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>scheduler</code> - The Framework <code>Scheduler</code> implementation which should receive callbacks
-     from the <code>SchedulerDriver</code></dd>
+                         from the <code>SchedulerDriver</code></dd>
 <dd><code>frameworkInfo</code> - The <code>FrameworkInfo</code> which describes the framework implementation.
-     The 'principal' field MUST be populated and non-empty</dd>
+                         The 'principal' field MUST be populated and non-empty</dd>
 <dd><code>masterUrl</code> - The URL of the currently active Mesos Master, of the form "zk://host/mesos"</dd>
 <dd><code>credentialSecret</code> - The secret to be included in the framework
-     <code>org.apache.mesos.Protos.Credential</code>, ignored if <code>null</code>/empty</dd>
+                         <code>org.apache.mesos.Protos.Credential</code>, ignored if <code>null</code>/empty</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>A <code>SchedulerDriver</code> configured with the provided info</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.lang.IllegalArgumentException</code> - if <code>FrameworkInfo</code>.principal is unset or empty when
-     authentication is needed</dd>
+                                  authentication is needed</dd>
 </dl>
 </li>
 </ul>

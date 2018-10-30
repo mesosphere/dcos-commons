@@ -217,7 +217,7 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 </tr>
 <tr id="i7" class="rowColor">
 <td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#setConfigurationFactory-com.mesosphere.sdk.config.ConfigurationFactory-">setConfigurationFactory</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/state/ConfigStore.html#setConfigurationFactory-com.mesosphere.sdk.config.ConfigurationFactory-">setConfigurationFactory</a></span>(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factoryInternal)</code>
 <div class="block">Overrides the configuration factory which was provided in the constructor.</div>
 </td>
 </tr>
@@ -332,7 +332,7 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <ul class="blockList">
 <li class="blockList">
 <h4>setConfigurationFactory</h4>
-<pre>public&nbsp;void&nbsp;setConfigurationFactory(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factory)</pre>
+<pre>public&nbsp;void&nbsp;setConfigurationFactory(<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/state/ConfigStore.html" title="type parameter in ConfigStore">T</a>&gt;&nbsp;factoryInternal)</pre>
 <div class="block">Overrides the configuration factory which was provided in the constructor.</div>
 </li>
 </ul>
@@ -442,30 +442,10 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 </dl>
 </li>
 </ul>
-<a name="setTargetConfig-java.util.UUID-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>setTargetConfig</h4>
-<pre>public&nbsp;void&nbsp;setTargetConfig(java.util.UUID&nbsp;id)
-                     throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-">ConfigTargetStore</a></code></span></div>
-<div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-">setTargetConfig</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a></code></dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if writing the ID fails</dd>
-<dt><span class="seeLabel">See Also:</span></dt>
-<dd><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#getTargetConfig--"><code>ConfigTargetStore.getTargetConfig()</code></a></dd>
-</dl>
-</li>
-</ul>
 <a name="getTargetConfig--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getTargetConfig</h4>
 <pre>public&nbsp;java.util.UUID&nbsp;getTargetConfig()
@@ -480,6 +460,26 @@ implements <a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html"
 <dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if reading or deserializing the ID fails, or no value is set</dd>
 <dt><span class="seeLabel">See Also:</span></dt>
 <dd><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-"><code>ConfigTargetStore.setTargetConfig(UUID)</code></a></dd>
+</dl>
+</li>
+</ul>
+<a name="setTargetConfig-java.util.UUID-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>setTargetConfig</h4>
+<pre>public&nbsp;void&nbsp;setTargetConfig(java.util.UUID&nbsp;id)
+                     throws <a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></pre>
+<div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-">ConfigTargetStore</a></code></span></div>
+<div class="block">Stores the ID of the active target configuration, replacing any current value.</div>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#setTargetConfig-java.util.UUID-">setTargetConfig</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html" title="interface in com.mesosphere.sdk.state">ConfigTargetStore</a></code></dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if writing the ID fails</dd>
+<dt><span class="seeLabel">See Also:</span></dt>
+<dd><a href="../../../../com/mesosphere/sdk/state/ConfigTargetStore.html#getTargetConfig--"><code>ConfigTargetStore.getTargetConfig()</code></a></dd>
 </dl>
 </li>
 </ul>

@@ -111,7 +111,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public static class <span class="typeNameLabel">CuratorPersister.Builder</span>
+<pre>public static final class <span class="typeNameLabel">CuratorPersister.Builder</span>
 extends java.lang.Object</pre>
 <div class="block">Builder for constructing <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a> instances.</div>
 </li>
@@ -135,8 +135,8 @@ extends java.lang.Object</pre>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html#build--">build</a></span>()</code>
-<div class="block">Returns a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a> instance using the provided settings, using reasonable defaults where
- custom values were not specified.</div>
+<div class="block">Returns a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a> instance using the provided settings,
+ using reasonable defaults where custom values were not specified.</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
@@ -147,8 +147,8 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html#setCredentials-java.lang.String-java.lang.String-">setCredentials</a></span>(java.lang.String&nbsp;username,
-              java.lang.String&nbsp;password)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html#setCredentials-java.lang.String-java.lang.String-">setCredentials</a></span>(java.lang.String&nbsp;zkUsername,
+              java.lang.String&nbsp;zkPassword)</code>
 <div class="block">Assigns credentials to be used when contacting ZK.</div>
 </td>
 </tr>
@@ -200,13 +200,13 @@ extends java.lang.Object</pre>
 <ul class="blockList">
 <li class="blockList">
 <h4>setCredentials</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a>&nbsp;setCredentials(java.lang.String&nbsp;username,
-                                               java.lang.String&nbsp;password)</pre>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a>&nbsp;setCredentials(java.lang.String&nbsp;zkUsername,
+                                               java.lang.String&nbsp;zkPassword)</pre>
 <div class="block">Assigns credentials to be used when contacting ZK.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>username</code> - The ZK username</dd>
-<dd><code>password</code> - The ZK password</dd>
+<dd><code>zkUsername</code> - The ZK username</dd>
+<dd><code>zkPassword</code> - The ZK password</dd>
 </dl>
 </li>
 </ul>
@@ -218,7 +218,7 @@ extends java.lang.Object</pre>
 <h4>disableLock</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a>&nbsp;disableLock()</pre>
 <div class="block">Disables getting a curator lock before returning a <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a>.
-
+ <p>
  This should only be invoked in tests.</div>
 </li>
 </ul>
@@ -229,8 +229,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>build</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator">CuratorPersister</a>&nbsp;build()</pre>
-<div class="block">Returns a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a> instance using the provided settings, using reasonable defaults where
- custom values were not specified.</div>
+<div class="block">Returns a new <a href="../../../../com/mesosphere/sdk/curator/CuratorPersister.html" title="class in com.mesosphere.sdk.curator"><code>CuratorPersister</code></a> instance using the provided settings,
+ using reasonable defaults where custom values were not specified.</div>
 </li>
 </ul>
 </li>
