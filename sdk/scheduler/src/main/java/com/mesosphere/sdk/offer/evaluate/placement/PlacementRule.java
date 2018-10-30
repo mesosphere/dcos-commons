@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 
@@ -23,32 +24,32 @@ import java.util.Collection;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public interface PlacementRule {
 
-    /**
-     * Returns whether the provided {@link Offer}, combined with the accompanying
-     * {@link TaskInfo}s, passes or fails this placement constraint.
-     *
-     * @param offer the offer to be examined
-     * @param tasks the currently deployed tasks in the system, possibly including a duplicate
-     *              of the task being launched as represented in the offerRequirement. Use
-     *              {@link PlacementUtils#areEquivalent(TaskInfo, PodInstance)} to detect
-     *              duplicates
-     * @return an {@link EvaluationOutcome} object describing whether the placement succeeded or failed and why
-     */
-    EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks);
+  /**
+   * Returns whether the provided {@link Offer}, combined with the accompanying
+   * {@link TaskInfo}s, passes or fails this placement constraint.
+   *
+   * @param offer the offer to be examined
+   * @param tasks the currently deployed tasks in the system, possibly including a duplicate
+   *              of the task being launched as represented in the offerRequirement. Use
+   *              {@link PlacementUtils#areEquivalent(TaskInfo, PodInstance)} to detect
+   *              duplicates
+   * @return an {@link EvaluationOutcome} object describing whether the placement succeeded or failed and why
+   */
+  EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks);
 
-    /**
-     * Returns the {@link PlacementField}s to which this rule applies.
-     */
-    @JsonIgnore
-    Collection<PlacementField> getPlacementFields();
+  /**
+   * Returns the {@link PlacementField}s to which this rule applies.
+   */
+  @JsonIgnore
+  Collection<PlacementField> getPlacementFields();
 
-    /**
-     * Must be explicitly implemented by all PlacementRules.
-     *
-     * @see com.mesosphere.sdk.offer.TaskUtils#areDifferent(
-     *com.mesosphere.sdk.specification.TaskSpec,
-     * com.mesosphere.sdk.specification.TaskSpec)
-     */
-    boolean equals(Object o);
+  /**
+   * Must be explicitly implemented by all PlacementRules.
+   *
+   * @see com.mesosphere.sdk.offer.TaskUtils#areDifferent(
+   *com.mesosphere.sdk.specification.TaskSpec,
+   * com.mesosphere.sdk.specification.TaskSpec)
+   */
+  boolean equals(Object o);
 
 }

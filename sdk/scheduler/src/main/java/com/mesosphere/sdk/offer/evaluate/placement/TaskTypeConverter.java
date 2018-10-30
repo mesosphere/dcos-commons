@@ -1,8 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import org.apache.mesos.Protos.TaskInfo;
-
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import org.apache.mesos.Protos.TaskInfo;
 
 /**
  * Given a {@link TaskInfo}, returns a type string for that task. This must be implemented by the
@@ -11,5 +10,5 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
  */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public interface TaskTypeConverter {
-    public String getTaskType(TaskInfo taskInfo);
+  String getTaskType(TaskInfo taskInfo);
 }

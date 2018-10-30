@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  */
 @JsonDeserialize(as = DefaultHealthCheckSpec.class)
 public interface HealthCheckSpec extends ReadinessCheckSpec {
-    Integer getGracePeriod();
+  Integer getGracePeriod();
 
-    Integer getMaxConsecutiveFailures();
+  Integer getMaxConsecutiveFailures();
 }
