@@ -1,14 +1,28 @@
-# This is the base image for mesosphere/dcos-commons, to be built and pushed manually in order to overcome issues
-# such as DCOS-44265 which come about because neither the 18.04 tag is immutable, nor the apt-get install command
-# is repeatable.
+# This is the base image for mesosphere/dcos-commons, created in order to
+# overcome issues such as DCOS-44265 which come about because neither the 18.04
+# tag is immutable, nor the apt-get install command is repeatable.
 #
-# Build with:
-# $ TAG=$(date +%Y%m%da)  # change the letter a, if building more than one image in a day
+# If you need a new version of this image (either because you require more
+# recent versions of the base OS or one of the packages installed here, or
+# because you modified this file), there are two ways to use it:
+#
+# 1) Slower but semi-automatic and public:
+# - once the desired version of this file is merged to master, the auto-builder
+#   on dockerhub will build a new version of this image
+# - just go to https://hub.docker.com/r/mesosphere/dcos-commons-base/tags/
+#   to copy the tag name
+# - put the tag into the FROM line in Dockerfile (of the main image).
+#
+# 2) Faster, for local testing:
+# - make the required changes to this file, and/or run the following build
+#   command with --no-cache 
+# $ TAG=$(date +%Y%m%d)-local
 # $ docker build -f Dockerfile.base -t mesosphere/dcos-commons-base:$TAG .
-# $ docker push mesosphere/dcos-commons-base:$TAG
-# and adjust the FROM line in the Dockerfile.
-# TODO(DCOS-42576): set up periodic build/push of this base image, and then a periodic job to update the FROM line
-# in Dockerfile, so that we pick up updates regularly but in a controlled manner.
+# - put the tag into the FROM line in Dockerfile (of the main image)
+#   temporarily, rebuild that one, test, etc.
+#
+# TODO(DCOS-42576): set a periodic job to update the FROM line in Dockerfile,
+# so that we pick up updates regularly but in a controlled manner.
 #
 FROM ubuntu:18.04
 
