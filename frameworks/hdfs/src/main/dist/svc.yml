@@ -496,55 +496,6 @@ pods:
           - name: node
             type: KEYSTORE
         {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
-  yarn:
-    count: {{DATA_COUNT}}
-    uris:
-      - {{HDFS_URI}}
-      - {{BOOTSTRAP_URI}}
-      {{#KEYTABS_URI}}- {{KEYTABS_URI}}{{/KEYTABS_URI}}
-    {{#ENABLE_VIRTUAL_NETWORK}}
-    networks:
-      {{VIRTUAL_NETWORK_NAME_NAME}}:
-        labels: {{CNI_PLUGIN_LABELS_NAME}}
-    {{/ENABLE_VIRTUAL_NETWORK}}
-    tasks:
-      node:
-        goal: RUNNING
-        cmd: >
-              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
-               ./bootstrap &&
-               mkdir -p /var/lib/hadoop-hdfs &&
-               chown root /var/lib/hadoop-hdfs &&
-               if [ $POD_INSTANCE_INDEX -eq "0" ]; then (./{{TASKCFG_ALL_HDFS_VERSION}}/bin/yarn resourcemanager &) ; fi &&
-               ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/yarn nodemanager
-        cpus: {{YARN_CPUS}}
-        memory: {{YARN_MEM}}
-        configs:
-          {{#KRB5_CONF_URI}}
-          krb5-conf:
-            template: krb5.conf
-            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          {{/KRB5_CONF_URI}}
-          core-site:
-            template: core-site.xml
-            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/core-site.xml
-          hdfs-site:
-            template: hdfs-site.xml
-            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
-          yarn-site:
-            template: yarn-site.xml
-            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/yarn-site.xml
-          hadoop-metrics2:
-            template: data-hadoop-metrics2.properties
-            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
-          {{#TLS_ENABLED}}
-          ssl-server:
-            template: ssl-server.xml
-            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/ssl-server.xml
-          {{/TLS_ENABLED}}
-        env:
-          YARNNODE: true
-
 plans:
   deploy:
     strategy: serial
@@ -576,11 +527,6 @@ plans:
       data:
         strategy: {{DEPLOY_STRATEGY}}
         pod: data
-      {{#YARN_ENABLED}}
-      yarn-deploy:
-        strategy: {{DEPLOY_STRATEGY}}
-        pod: yarn
-      {{/YARN_ENABLED}}
   update:
     strategy: serial
     phases:

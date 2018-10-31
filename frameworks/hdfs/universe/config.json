@@ -8,7 +8,7 @@
         "name": {
           "description": "The name of the service instance",
           "type": "string",
-          "default": "portworx-hadoop"
+          "default": "portworx-hdfs"
         },
         "user": {
           "description": "The linux user used to run the scheduler and all executors.",
@@ -2218,68 +2218,6 @@
         "fs_client_resolve_remote_symlinks",
         "nfs_exports_allowed_hosts",
         "rpc_metrics_quantile_enable"
-      ]
-    },
-    "yarn_node":{
-      "description":"Yarn configuration properties.",
-      "type":"object",
-      "properties":{
-        "enabled":{
-          "title": "Start yarn",
-          "description":"Start yarn nodes",
-          "type":"boolean",
-          "default": true
-        },
-        "cpus":{
-          "description":"Yarn node CPU requirement",
-          "type":"number",
-          "default": 2
-        },
-        "mem":{
-          "description":"Yarn node memory requirement",
-          "type":"number",
-          "default": 2048
-        },
-        "scheduler_min_allocation_mb":{
-          "description":"Minimum limit of memory to allocate to each container request at the Resource Manager.",
-          "type":"number",
-          "default": 128
-        },
-        "scheduler_max_allocation_mb":{
-          "description":"Maximum limit of memory to allocate to each container request at the Resource Manager.",
-          "type":"number",
-          "default": 2048
-        },
-        "scheduler_min_allocation_vcores":{
-          "description":"The minimum allocation for every container request at the RM, in terms of virtual CPU cores.",
-          "type":"number",
-          "default": 1
-        },
-        "scheduler_max_allocation_vcores":{
-          "description":"The maximum allocation for every container request at the RM, in terms of virtual CPU cores",
-          "type":"number",
-          "default": 2
-        },
-        "nodemanager_memory_mb":{
-          "description":"Physical memory, in MB, to be made available to running containers.",
-          "type":"number",
-          "default": 4096
-        },
-        "nodemanager_cpu_vcores":{
-          "description":"Number of CPU cores that can be allocated for containers.",
-          "type":"number",
-          "default": 4
-        }
-      },
-      "required":[
-        "cpus",
-        "mem",
-        "scheduler_min_allocation_mb",
-        "scheduler_max_allocation_mb",
-        "scheduler_min_allocation_vcores",
-        "scheduler_max_allocation_vcores",
-        "nodemanager_memory_mb",
-        "nodemanager_cpu_vcores"
       ]
     }
   }

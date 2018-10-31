@@ -34,7 +34,6 @@ public class ServiceTest {
                 .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("data", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
-                .setPodEnv("yarn", "SERVICE_ZK_ROOT", "")
                 .setOptions(
                         "service.security.transport_encryption.enabled", "true",
                         "hdfs.name_node_https_port", "2000",
@@ -136,7 +135,6 @@ public class ServiceTest {
         return new ServiceTestRunner()
                 .setPodEnv("journal", "SERVICE_ZK_ROOT", "")
                 .setPodEnv("data", "SERVICE_ZK_ROOT", "")
-                .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk")
-                .setPodEnv("yarn", "SERVICE_ZK_ROOT", "");
+                .setPodEnv("name", "SERVICE_ZK_ROOT", "/path/to/zk");
     }
 }

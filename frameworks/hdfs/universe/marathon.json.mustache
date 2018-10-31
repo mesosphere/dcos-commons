@@ -51,9 +51,6 @@
     "DATA_DISK": "{{data_node.disk}}",
     "DATA_DISK_DOCKER_VOLUME_NAME": "{{{data_node.portworx_volume_name}}}",
     "DATA_DISK_DOCKER_DRIVER_OPTIONS": "{{{data_node.portworx_volume_options}}}",
-    "YARN_ENABLED": "{{yarn_node.enabled}}",
-    "YARN_CPUS": "{{yarn_node.cpus}}",
-    "YARN_MEM": "{{yarn_node.mem}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "MESOS_API_VERSION": "{{service.mesos_api_version}}",
@@ -433,13 +430,7 @@
     "TASKCFG_ALL_NFS_EXPORTS_ALLOWED_HOSTS": "{{hdfs.nfs_exports_allowed_hosts}}",
     "TASKCFG_ALL_HADOOP_USER_GROUP_STATIC_MAPPING_OVERRIDES": "{{hdfs.hadoop_user_group_static_mapping_overrides}}",
     "TASKCFG_ALL_RPC_METRICS_QUANTILE_ENABLE": "{{hdfs.rpc_metrics_quantile_enable}}",
-    "TASKCFG_ALL_RPC_METRICS_PERCENTILES_INTERVALS": "{{hdfs.rpc_metrics_percentiles_intervals}}",
-    "TASKCFG_ALL_YARN_NODE_SCHED_MIN_ALLOC_MB": "{{yarn_node.scheduler_min_allocation_mb}}",
-    "TASKCFG_ALL_YARN_NODE_SCHED_MAX_ALLOC_MB": "{{yarn_node.scheduler_max_allocation_mb}}",
-    "TASKCFG_ALL_YARN_NODE_SCHED_MIN_ALLOC_VCORES": "{{yarn_node.scheduler_min_allocation_vcores}}",
-    "TASKCFG_ALL_YARN_NODE_SCHED_MAX_ALLOC_VCORES": "{{yarn_node.scheduler_max_allocation_vcores}}",
-    "TASKCFG_ALL_YARN_NODE_MANAGER_MEM_MB": "{{yarn_node.nodemanager_memory_mb}}",
-    "TASKCFG_ALL_YARN_NODE_MANAGER_CPU_VCORES": "{{yarn_node.nodemanager_cpu_vcores}}"
+    "TASKCFG_ALL_RPC_METRICS_PERCENTILES_INTERVALS": "{{hdfs.rpc_metrics_percentiles_intervals}}"
   },
   "uris": [
     "{{resource.assets.uris.bootstrap-zip}}",
