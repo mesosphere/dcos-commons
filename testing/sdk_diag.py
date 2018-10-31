@@ -119,8 +119,9 @@ def _task_whitelist_callback(item: pytest.Item):
     to be able to hierarchically configure the whitelist.
     """
     def _callback(task):
+        # get_closest_marker is only available in latest pytest versions
         if item.get_closest_marker(name='diag_task_whitelist') is None:
-            return True
+            return False
 
         for mark in item.iter_markers(name='diag_task_whitelist'):
             if mark.args[0](task):
