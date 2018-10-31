@@ -12,6 +12,7 @@ import os.path
 import re
 import shutil
 import time
+import inspect
 
 import pytest
 import retrying
@@ -63,6 +64,11 @@ def get_test_suite_name(item: pytest.Item):
     """Returns the test suite name to use for a given test."""
     # frameworks/template/tests/test_sanity.py => test_sanity_py
     # tests/test_sanity.py => test_sanity_py
+
+    # use the class name as the suite name if item is a method
+    if inspect.ismethod(item.obj):
+        return os.path.basename(item.getparent(pytest.Class).name).replace(".", "_")
+
     return os.path.basename(item.parent.name).replace(".", "_")
 
 
