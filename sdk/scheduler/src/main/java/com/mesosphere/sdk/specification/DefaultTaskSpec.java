@@ -11,8 +11,8 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Default implementation of a {@link TaskSpec}.

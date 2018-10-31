@@ -139,8 +139,8 @@ public final class RawTask {
 
   public List<String[]> getValidatedLabels() throws IllegalArgumentException {
     List<String[]> kvs = Arrays.stream(labelsCsv.split(","))
-      .map(s -> s.split(":", 2))
-      .collect(Collectors.toList());
+        .map(s -> s.split(":", 2))
+        .collect(Collectors.toList());
     kvs.forEach(kv -> {
       if (kv.length != 2) {
         throw new IllegalArgumentException(String.format(

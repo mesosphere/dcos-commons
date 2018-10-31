@@ -4,8 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Collection;
-import java.util.Optional;
 import java.util.Map;
+import java.util.Optional;
 
 /**
  * Specification for a Task.
