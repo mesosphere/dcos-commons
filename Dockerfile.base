@@ -20,7 +20,7 @@
 # - put the tag into the FROM line in Dockerfile (of the main image)
 #   temporarily, rebuild that one, test, etc.
 #
-FROM ubuntu:18.04@29934af957c53004d7fb6340139880d23fb1952505a15d69a03af0d1418878cb
+FROM ubuntu:18.04@sha256:29934af957c53004d7fb6340139880d23fb1952505a15d69a03af0d1418878cb
 
 # Install JDK via PPA: https://github.com/franzwong/til/blob/master/java/silent-install-oracle-jdk8-ubuntu.md
 RUN apt-get update && \
