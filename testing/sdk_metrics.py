@@ -185,7 +185,7 @@ def get_metrics(package_name, service_name, pod_name, task_name):
 def check_metrics_presence(emitted_metrics: typing.List[str], expected_metrics: typing.List[str]) -> bool:
     """Check whether a given list contains all
     """
-    lower_case_emitted_metrics = set(map(lambda m: m.lower()))
+    lower_case_emitted_metrics = set(map(lambda m: m.lower(), emitted_metrics))
 
     missing_metrics = []
     for metric in expected_metrics:
