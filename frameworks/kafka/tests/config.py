@@ -25,7 +25,6 @@ def install(
     service_name,
     expected_running_tasks,
     additional_options={},
-    package_version=None,
     timeout_seconds=25 * 60,
     wait_for_deployment=True,
 ):
@@ -37,7 +36,6 @@ def install(
         expected_running_tasks=expected_running_tasks,
         service_name=service_name,
         additional_options=sdk_utils.merge_dictionaries(test_options, additional_options),
-        package_version=package_version,
         timeout_seconds=timeout_seconds,
         wait_for_deployment=wait_for_deployment,
     )
