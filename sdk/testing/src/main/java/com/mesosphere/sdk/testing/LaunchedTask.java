@@ -1,32 +1,32 @@
 package com.mesosphere.sdk.testing;
 
-import org.apache.mesos.Protos;
-
 import com.google.protobuf.TextFormat;
+import org.apache.mesos.Protos;
 
 /**
  * Grouping of a launched task along with its associated executor.
  */
 public class LaunchedTask {
-    private final Protos.ExecutorInfo executorInfo;
-    private final Protos.TaskInfo taskInfo;
+  private final Protos.ExecutorInfo executorInfo;
 
-    public LaunchedTask(Protos.ExecutorInfo executorInfo, Protos.TaskInfo taskInfo) {
-        this.executorInfo = executorInfo;
-        this.taskInfo = taskInfo;
-    }
+  private final Protos.TaskInfo taskInfo;
 
-    public Protos.ExecutorInfo getExecutor() {
-        return executorInfo;
-    }
+  public LaunchedTask(Protos.ExecutorInfo executorInfo, Protos.TaskInfo taskInfo) {
+    this.executorInfo = executorInfo;
+    this.taskInfo = taskInfo;
+  }
 
-    public Protos.TaskInfo getTask() {
-        return taskInfo;
-    }
+  public Protos.ExecutorInfo getExecutor() {
+    return executorInfo;
+  }
 
-    @Override
-    public String toString() {
-        return String.format("Executor: %s%nTask: %s",
-                TextFormat.shortDebugString(executorInfo), TextFormat.shortDebugString(taskInfo));
-    }
+  public Protos.TaskInfo getTask() {
+    return taskInfo;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("Executor: %s%nTask: %s",
+        TextFormat.shortDebugString(executorInfo), TextFormat.shortDebugString(taskInfo));
+  }
 }

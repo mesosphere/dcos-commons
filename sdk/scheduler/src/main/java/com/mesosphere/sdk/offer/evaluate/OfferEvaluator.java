@@ -1,9 +1,14 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.InvalidRequirementException;
+import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.offer.MesosResourcePool;
+import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.ResourceUtils;
+import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.history.OfferOutcome;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
@@ -11,15 +16,36 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.DefaultResourceSpec;
+import com.mesosphere.sdk.specification.GoalState;
+import com.mesosphere.sdk.specification.NamedVIPSpec;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.ResourceSet;
+import com.mesosphere.sdk.specification.ResourceSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,35 +56,7 @@ import java.util.stream.Collectors;
  */
 public class OfferEvaluator {
 
-    private final Logger logger;
-    private final FrameworkStore frameworkStore;
-    private final StateStore stateStore;
-    private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
-    private final String serviceName;
-    private final UUID targetConfigId;
-    private final ArtifactQueries.TemplateUrlFactory templateUrlFactory;
-    private final SchedulerConfig schedulerConfig;
-    private final Optional<String> resourceNamespace;
-
-    public OfferEvaluator(
-            FrameworkStore frameworkStore,
-            StateStore stateStore,
-            Optional<OfferOutcomeTracker> offerOutcomeTracker,
-            String serviceName,
-            UUID targetConfigId,
-            ArtifactQueries.TemplateUrlFactory templateUrlFactory,
-            SchedulerConfig schedulerConfig,
-            Optional<String> resourceNamespace) {
-        this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
-        this.frameworkStore = frameworkStore;
-        this.stateStore = stateStore;
-        this.offerOutcomeTracker = offerOutcomeTracker;
-        this.serviceName = serviceName;
-        this.targetConfigId = targetConfigId;
-        this.templateUrlFactory = templateUrlFactory;
-        this.schedulerConfig = schedulerConfig;
-        this.resourceNamespace = resourceNamespace;
-    }
+  private final Logger logger;
 
     public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
             throws InvalidRequirementException, IOException {
@@ -161,8 +159,7 @@ public class OfferEvaluator {
             }
         }
 
-        return Collections.emptyList();
-    }
+  private final StateStore stateStore;
 
     public List<OfferEvaluationStage> getEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
@@ -222,65 +219,151 @@ public class OfferEvaluator {
                     podInstanceRequirement, thisPodTasks, allTasks, executorInfo, tlsStageBuilder));
         }
 
-        return evaluationPipeline;
+  private final String serviceName;
+
+  private final UUID targetConfigId;
+
+  private final ArtifactQueries.TemplateUrlFactory templateUrlFactory;
+
+  private final SchedulerConfig schedulerConfig;
+
+  private final Optional<String> resourceNamespace;
+
+  public OfferEvaluator(
+      FrameworkStore frameworkStore,
+      StateStore stateStore,
+      Optional<OfferOutcomeTracker> offerOutcomeTracker,
+      String serviceName,
+      UUID targetConfigId,
+      ArtifactQueries.TemplateUrlFactory templateUrlFactory,
+      SchedulerConfig schedulerConfig,
+      Optional<String> resourceNamespace)
+  {
+    this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
+    this.frameworkStore = frameworkStore;
+    this.stateStore = stateStore;
+    this.offerOutcomeTracker = offerOutcomeTracker;
+    this.serviceName = serviceName;
+    this.targetConfigId = targetConfigId;
+    this.templateUrlFactory = templateUrlFactory;
+    this.schedulerConfig = schedulerConfig;
+    this.resourceNamespace = resourceNamespace;
+  }
+
+  static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {
+    stringBuilder.append(String.format("  %s%s%n", indent, outcome.toString()));
+    for (EvaluationOutcome child : outcome.getChildren()) {
+      logOutcome(stringBuilder, child, indent + "  ");
+    }
+  }
+
+  private static Map<String, ResourceSet> getNewResourceSets(
+      PodInstanceRequirement podInstanceRequirement)
+  {
+    Map<String, ResourceSet> resourceSets =
+        podInstanceRequirement
+            .getPodInstance()
+            .getPod()
+            .getTasks()
+            .stream()
+            .filter(taskSpec ->
+                podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName())
+            )
+            .collect(Collectors.toMap(TaskSpec::getName, TaskSpec::getResourceSet));
+
+    for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+      if (resourceSets.keySet().contains(taskSpec.getName())) {
+        continue;
+      }
+
+      Set<String> resourceSetNames = resourceSets.values().stream()
+          .map(ResourceSet::getId)
+          .collect(Collectors.toSet());
+
+      if (!resourceSetNames.contains(taskSpec.getResourceSet().getId())) {
+        resourceSets.put(taskSpec.getName(), taskSpec.getResourceSet());
+      }
     }
 
-    private Protos.ExecutorInfo getExecutorInfo(
-            PodInstanceRequirement podInstanceRequirement,
-            Collection<Protos.TaskInfo> taskInfos) {
-        // Filter which tasks are candidates for executor reuse.  Don't try to reuse your own executor as it may
-        // not be the latest one alive. Look for active executors that belong to the same Pod.
-        List<String> taskNames = TaskUtils.getTaskNames(
-                podInstanceRequirement.getPodInstance(),
-                podInstanceRequirement.getTasksToLaunch());
-        Collection<Protos.TaskInfo> executorReuseCandidates = taskInfos.stream()
-                .filter(taskInfo -> !taskNames.contains(taskInfo.getName()))
-                .collect(Collectors.toList());
+    return resourceSets;
+  }
 
-        for (Protos.TaskInfo taskInfo : executorReuseCandidates) {
-            if (taskHasReusableExecutor(taskInfo)) {
-                logger.info("Using existing executor: {}", TextFormat.shortDebugString(taskInfo.getExecutor()));
-                return taskInfo.getExecutor();
-            }
+  private static List<ResourceSpec> getOrderedResourceSpecs(ResourceSet resourceSet) {
+    // Statically defined ports, then dynamic ports, then everything else
+    List<ResourceSpec> staticPorts = new ArrayList<>();
+    List<ResourceSpec> dynamicPorts = new ArrayList<>();
+    List<ResourceSpec> simpleResources = new ArrayList<>();
+
+    for (ResourceSpec resourceSpec : resourceSet.getResources()) {
+      if (resourceSpec instanceof PortSpec) {
+        if (((PortSpec) resourceSpec).getPort() == 0) {
+          dynamicPorts.add(resourceSpec);
+        } else {
+          staticPorts.add(resourceSpec);
         }
-
-        // We set an empty ExecutorID to indicate that we are launching a new Executor, NOT reusing a currently running
-        // one.
-        Protos.TaskInfo taskInfo = taskInfos.stream().findFirst().get();
-        Protos.ExecutorInfo executorInfo = taskInfo
-                .getExecutor()
-                .toBuilder()
-                .setExecutorId(Protos.ExecutorID.newBuilder().setValue(""))
-                .build();
-        logger.info("Using new executor derived from task {}: {}",
-                taskInfo.getName(),
-                TextFormat.shortDebugString(executorInfo));
-
-        return executorInfo;
+      } else {
+        simpleResources.add(resourceSpec);
+      }
     }
 
-    private boolean taskHasReusableExecutor(Protos.TaskInfo taskInfo) {
-        Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskInfo.getName());
-        if (!taskStatus.isPresent() || FailureUtils.isPermanentlyFailed(taskInfo)) {
-            return false;
-        }
+    List<ResourceSpec> resourceSpecs = new ArrayList<>();
+    resourceSpecs.addAll(staticPorts);
+    resourceSpecs.addAll(dynamicPorts);
+    resourceSpecs.addAll(simpleResources);
+    return resourceSpecs;
+  }
 
-        Protos.TaskState state = taskStatus.get().getState();
-        switch (state) {
-            case TASK_STAGING:
-            case TASK_STARTING:
-            case TASK_RUNNING:
-                return true;
-            default:
-                return false;
-        }
-    }
+  private static List<ResourceSpec> getExecutorResources(
+      String preReservedRole,
+      String role,
+      String principal)
+  {
+    List<ResourceSpec> resources = new ArrayList<>();
 
-    static void logOutcome(StringBuilder stringBuilder, EvaluationOutcome outcome, String indent) {
-        stringBuilder.append(String.format("  %s%s%n", indent, outcome.toString()));
-        for (EvaluationOutcome child : outcome.getChildren()) {
-            logOutcome(stringBuilder, child, indent + "  ");
-        }
+    resources.add(DefaultResourceSpec.newBuilder()
+        .name(Constants.CPUS_RESOURCE_TYPE)
+        .preReservedRole(preReservedRole)
+        .role(role)
+        .principal(principal)
+        .value(scalar(Constants.DEFAULT_EXECUTOR_CPUS))
+        .build());
+
+    resources.add(DefaultResourceSpec.newBuilder()
+        .name(Constants.MEMORY_RESOURCE_TYPE)
+        .preReservedRole(preReservedRole)
+        .role(role)
+        .principal(principal)
+        .value(scalar(Constants.DEFAULT_EXECUTOR_MEMORY))
+        .build());
+
+    resources.add(DefaultResourceSpec.newBuilder()
+        .name(Constants.DISK_RESOURCE_TYPE)
+        .preReservedRole(preReservedRole)
+        .role(role)
+        .principal(principal)
+        .value(scalar(Constants.DEFAULT_EXECUTOR_DISK))
+        .build());
+
+    return resources;
+  }
+
+  private static Protos.Value scalar(double val) {
+    Protos.Value.Builder builder = Protos.Value.newBuilder()
+        .setType(Protos.Value.Type.SCALAR);
+    builder.getScalarBuilder().setValue(val);
+    return builder.build();
+  }
+
+  private static Protos.TaskInfo getTaskInfoSharingResourceSet(
+      PodInstance podInstance,
+      TaskSpec taskSpec,
+      Map<String, Protos.TaskInfo> podTasks)
+  {
+
+    String taskInfoName = TaskSpec.getInstanceName(podInstance, taskSpec.getName());
+    Protos.TaskInfo taskInfo = podTasks.get(taskInfoName);
+    if (taskInfo != null) {
+      return taskInfo;
     }
 
     private static List<ResourceSpec> getOrderedResourceSpecs(ResourceSet resourceSet) {
@@ -301,11 +384,26 @@ public class OfferEvaluator {
             }
         }
 
-        List<ResourceSpec> resourceSpecs = new ArrayList<>();
-        resourceSpecs.addAll(staticPorts);
-        resourceSpecs.addAll(dynamicPorts);
-        resourceSpecs.addAll(simpleResources);
-        return resourceSpecs;
+    Protos.TaskState state = taskStatus.get().getState();
+    switch (state) {
+      case TASK_STAGING:
+      case TASK_STARTING:
+      case TASK_RUNNING:
+        return true;
+      default:
+        return false;
+    }
+  }
+
+  private List<OfferEvaluationStage> getNewEvaluationPipeline(
+      PodInstanceRequirement podInstanceRequirement,
+      Collection<Protos.TaskInfo> allTasks,
+      Optional<TLSEvaluationStage.Builder> tlsStageBuilder)
+  {
+    List<OfferEvaluationStage> evaluationStages = new ArrayList<>();
+    if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
+      evaluationStages.add(new PlacementRuleEvaluationStage(
+          allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
     }
 
     /**
@@ -330,15 +428,29 @@ public class OfferEvaluator {
             evaluationStages.add(VolumeEvaluationStage.getNew(
                     volumeSpec, Collections.emptyList(), resourceNamespace));
         }
+      }
+    }
 
-        // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
-        // ExecutorInfo equality when launching new tasks
-        if (tlsStageBuilder.isPresent()) {
-            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-                if (!taskSpec.getTransportEncryption().isEmpty()) {
-                    evaluationStages.add(tlsStageBuilder.get().build(taskSpec.getName()));
-                }
-            }
+    String preReservedRole = null;
+    String role = null;
+    String principal = null;
+    boolean shouldAddExecutorResources = true;
+    for (Map.Entry<String, ResourceSet> entry :
+        getNewResourceSets(podInstanceRequirement).entrySet())
+    {
+      String taskName = entry.getKey();
+      List<ResourceSpec> resourceSpecs = getOrderedResourceSpecs(entry.getValue());
+
+      for (ResourceSpec resourceSpec : resourceSpecs) {
+        if (resourceSpec instanceof NamedVIPSpec) {
+          evaluationStages.add(new NamedVIPEvaluationStage(
+              (NamedVIPSpec) resourceSpec, taskName, Optional.empty(), resourceNamespace));
+        } else if (resourceSpec instanceof PortSpec) {
+          evaluationStages.add(new PortEvaluationStage(
+              (PortSpec) resourceSpec, taskName, Optional.empty(), resourceNamespace));
+        } else {
+          evaluationStages.add(new ResourceEvaluationStage(
+              resourceSpec, Optional.of(taskName), Optional.empty(), resourceNamespace));
         }
 
         Map<String, ResourceSet> resourceSetsByTaskSpecName =
@@ -420,8 +532,12 @@ public class OfferEvaluator {
             evaluationStages.add(
                     new LaunchEvaluationStage(serviceName, taskSpecName, shouldBeLaunched));
         }
+        shouldAddExecutorResources = false;
+      }
 
-        return evaluationStages;
+      boolean shouldBeLaunched = podInstanceRequirement.getTasksToLaunch().contains(taskName);
+      evaluationStages.add(
+          new LaunchEvaluationStage(serviceName, taskName, shouldBeLaunched));
     }
 
     private static Collection<ResourceSpec> getExecutorResourceSpecs(
@@ -580,7 +696,9 @@ public class OfferEvaluator {
             }
         }
 
-        return evaluationStages;
+      boolean shouldLaunch = podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName());
+      evaluationStages.add(
+          new LaunchEvaluationStage(serviceName, taskSpec.getName(), shouldLaunch));
     }
 
     /**
@@ -624,126 +742,80 @@ public class OfferEvaluator {
     }
 
     /**
-     * Returns a reasonable configuration ID to be used when launching tasks in a pod.
+     * Selects the tasks to be launched in a recovery operation, then groups their config UUIDs according to their
+     * goal states. Tasks whose goal state is RUNNING get priority over other tasks when determining a reasonable
+     * target.
      *
-     * @param podInstanceRequirement the pod requirement describing the pod being evaluated and the tasks to be
-     *     launched within the pod
-     * @param thisPodTasksByName all TaskInfos for the pod that currently exist (some may be old)
-     * @return a config UUID to be used for the pod. In a config update this would be the target config, and in a
-     *     recovery operation this would be the pod's/tasks's current config
+     * @param podInstanceRequirement the pod requirement describing the pod being recovered and the tasks to be
+     *                               relaunched within the pod
+     * @param existingPodTasksByName all TaskInfos for the pod that currently exist (some may be defunct)
      */
-    @VisibleForTesting
-    UUID getTargetConfig(
-            PodInstanceRequirement podInstanceRequirement,
-            Map<String, Protos.TaskInfo> thisPodTasksByName) {
-        if (podInstanceRequirement.getRecoveryType().equals(RecoveryType.NONE)) {
-            // This is a config update, the pod should use the new/current target config.
-            return targetConfigId;
+    private RecoveryConfigIDs(
+        Logger logger,
+        PodInstanceRequirement podInstanceRequirement,
+        Map<String, Protos.TaskInfo> existingPodTasksByName)
+    {
+      this.logger = logger;
+      for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
+        if (!podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName())) {
+          // Task isn't included in the recovery operation, skip.
+          continue;
+        }
+        final String taskName =
+            TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
+        Protos.TaskInfo taskInfo = existingPodTasksByName.get(taskName);
+        if (taskInfo == null) {
+          // Task hasn't been launched yet, but is marked to be recovered...
+          logger.warn("TaskInfo not found for recovering task '{}', available tasks are: {}",
+              taskName, existingPodTasksByName.keySet());
+          continue;
         }
 
-        // This is a recovery operation. Reuse the pod's current configuration, and specifically avoid out-of-band
-        // config updates as part of recovering the pod. Select the correct configuration to use for the recovery:
-        RecoveryConfigIDs recoveryConfigIDs = new RecoveryConfigIDs(logger, podInstanceRequirement, thisPodTasksByName);
-
-        Optional<UUID> selectedConfig = recoveryConfigIDs.selectRecoveryConfigID();
-        if (!selectedConfig.isPresent()) {
-            // Fall back to using the scheduler target config. This shouldn't happen (how are we recovering tasks
-            // that have never been launched before?), but just in case...
-            logger.error("No target configuration could be determined for recovering {}, using scheduler target {}",
-                    podInstanceRequirement.getName(), targetConfigId);
-            selectedConfig = Optional.of(targetConfigId);
+        final UUID taskTarget;
+        try {
+          taskTarget = new TaskLabelReader(taskInfo).getTargetConfiguration();
+        } catch (TaskException e) {
+          logger.warn(
+              String.format("Failed to determine target configuration for task: %s", taskName),
+              e);
+          continue;
         }
-        logger.info("Recovering {} with config {} ({})",
-                podInstanceRequirement.getName(), selectedConfig.get(), recoveryConfigIDs);
-        return selectedConfig.get();
+
+        if (GoalState.RUNNING.equals(taskSpec.getGoal())) {
+          // Running tasks have first priority: Should contain the more recent config ID.
+          runningConfigIDs.put(taskName, taskTarget);
+        } else {
+          // Other tasks like FINISHED/ONCE have second priority: Not as consistently updated in rollouts.
+          otherConfigIDs.put(taskName, taskTarget);
+        }
+      }
     }
 
     /**
-     * Implementation for selecting the configuration ID to use when recovering task(s) in a pod:
-     *
-     * <ol><li>Filter the pod's tasks to just the ones being recovered in this operation.</li>
-     * <li>If multiple tasks are being recovered, prefer ones that are marked RUNNING, as they are more consistently
-     * updated to new config ids (workaround for DCOS-42539).</li>
-     * <li>If no tasks are found (shouldn't happen?), fall back to using the scheduler's target config.</li></ol>
+     * Returns an existing config ID to use for recovering the task(s), or an empty Optional if no valid config ID
+     * could be found.
      */
-    private static class RecoveryConfigIDs {
-        private final Logger logger;
-        private final Map<String, UUID> runningConfigIDs = new TreeMap<>();
-        private final Map<String, UUID> otherConfigIDs = new TreeMap<>();
-
-        /**
-         * Selects the tasks to be launched in a recovery operation, then groups their config UUIDs according to their
-         * goal states. Tasks whose goal state is RUNNING get priority over other tasks when determining a reasonable
-         * target.
-         *
-         * @param podInstanceRequirement the pod requirement describing the pod being recovered and the tasks to be
-         *     relaunched within the pod
-         * @param existingPodTasksByName all TaskInfos for the pod that currently exist (some may be defunct)
-         */
-        private RecoveryConfigIDs(
-                Logger logger,
-                PodInstanceRequirement podInstanceRequirement,
-                Map<String, Protos.TaskInfo> existingPodTasksByName) {
-            this.logger = logger;
-            for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-                if (!podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName())) {
-                    // Task isn't included in the recovery operation, skip.
-                    continue;
-                }
-                final String taskName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
-                Protos.TaskInfo taskInfo = existingPodTasksByName.get(taskName);
-                if (taskInfo == null) {
-                    // Task hasn't been launched yet, but is marked to be recovered...
-                    logger.warn("TaskInfo not found for recovering task '{}', available tasks are: {}",
-                            taskName, existingPodTasksByName.keySet());
-                    continue;
-                }
-
-                final UUID taskTarget;
-                try {
-                    taskTarget = new TaskLabelReader(taskInfo).getTargetConfiguration();
-                } catch (TaskException e) {
-                    logger.warn(
-                            String.format("Failed to determine target configuration for task: %s", taskName),
-                            e);
-                    continue;
-                }
-
-                if (GoalState.RUNNING.equals(taskSpec.getGoal())) {
-                    // Running tasks have first priority: Should contain the more recent config ID.
-                    runningConfigIDs.put(taskName, taskTarget);
-                } else {
-                    // Other tasks like FINISHED/ONCE have second priority: Not as consistently updated in rollouts.
-                    otherConfigIDs.put(taskName, taskTarget);
-                }
-            }
-        }
-
-        /**
-         * Returns an existing config ID to use for recovering the task(s), or an empty Optional if no valid config ID
-         * could be found.
-         */
-        private Optional<UUID> selectRecoveryConfigID() {
-            // Running tasks have first priority: Should contain the more recent config ID.
-            Optional<UUID> selectedConfig = selectID(runningConfigIDs, "RUNNING");
-            if (selectedConfig.isPresent()) {
-                return selectedConfig;
-            }
-            // Other tasks like FINISHED/ONCE have second priority: Not consistently updated with config rollouts.
-            return selectID(otherConfigIDs, "non-RUNNING");
-        }
-
-        private Optional<UUID> selectID(Map<String, UUID> configIDs, String taskTypeToLog) {
-            if (configIDs.values().stream().distinct().count() > 1) {
-                logger.warn("Multiple {} tasks with different target configs. Selecting random config: {}",
-                        taskTypeToLog, configIDs);
-            }
-            return configIDs.values().stream().findAny();
-        }
-
-        @Override
-        public String toString() {
-            return String.format("goal-running=%s, other=%s", runningConfigIDs, otherConfigIDs);
-        }
+    private Optional<UUID> selectRecoveryConfigID() {
+      // Running tasks have first priority: Should contain the more recent config ID.
+      Optional<UUID> selectedConfig = selectID(runningConfigIDs, "RUNNING");
+      if (selectedConfig.isPresent()) {
+        return selectedConfig;
+      }
+      // Other tasks like FINISHED/ONCE have second priority: Not consistently updated with config rollouts.
+      return selectID(otherConfigIDs, "non-RUNNING");
     }
+
+    private Optional<UUID> selectID(Map<String, UUID> configIDs, String taskTypeToLog) {
+      if (configIDs.values().stream().distinct().count() > 1) {
+        logger.warn("Multiple {} tasks with different target configs. Selecting random config: {}",
+            taskTypeToLog, configIDs);
+      }
+      return configIDs.values().stream().findAny();
+    }
+
+    @Override
+    public String toString() {
+      return String.format("goal-running=%s, other=%s", runningConfigIDs, otherConfigIDs);
+    }
+  }
 }

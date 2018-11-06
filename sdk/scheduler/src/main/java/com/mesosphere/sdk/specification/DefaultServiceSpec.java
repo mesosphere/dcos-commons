@@ -1,8 +1,45 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.config.ConfigurationComparator;
+import com.mesosphere.sdk.config.ConfigurationFactory;
+import com.mesosphere.sdk.config.SerializationUtils;
+import com.mesosphere.sdk.config.TaskEnvRouter;
+import com.mesosphere.sdk.dcos.DcosConstants;
+import com.mesosphere.sdk.framework.FrameworkConfig;
+import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.offer.evaluate.placement.AgentRule;
+import com.mesosphere.sdk.offer.evaluate.placement.AndRule;
+import com.mesosphere.sdk.offer.evaluate.placement.AnyMatcher;
+import com.mesosphere.sdk.offer.evaluate.placement.AttributeRule;
+import com.mesosphere.sdk.offer.evaluate.placement.ExactMatcher;
+import com.mesosphere.sdk.offer.evaluate.placement.HostnameRule;
+import com.mesosphere.sdk.offer.evaluate.placement.InvalidPlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.IsLocalRegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.MaxPerAttributeRule;
+import com.mesosphere.sdk.offer.evaluate.placement.MaxPerHostnameRule;
+import com.mesosphere.sdk.offer.evaluate.placement.MaxPerRegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.MaxPerZoneRule;
+import com.mesosphere.sdk.offer.evaluate.placement.NotRule;
+import com.mesosphere.sdk.offer.evaluate.placement.OrRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RegexMatcher;
+import com.mesosphere.sdk.offer.evaluate.placement.RegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RoundRobinByAttributeRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RoundRobinByHostnameRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RoundRobinByRegionRule;
+import com.mesosphere.sdk.offer.evaluate.placement.RoundRobinByZoneRule;
+import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeLabelConverter;
+import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
+import com.mesosphere.sdk.offer.evaluate.placement.ZoneRule;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
+import com.mesosphere.sdk.state.ConfigStoreException;
+import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.DeserializationContext;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -11,19 +48,6 @@ import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
 import com.fasterxml.jackson.databind.module.SimpleModule;
 import com.fasterxml.jackson.databind.node.TextNode;
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.config.ConfigurationComparator;
-import com.mesosphere.sdk.config.ConfigurationFactory;
-import com.mesosphere.sdk.config.SerializationUtils;
-import com.mesosphere.sdk.config.TaskEnvRouter;
-import com.mesosphere.sdk.dcos.DcosConstants;
-import com.mesosphere.sdk.framework.FrameworkConfig;
-import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.offer.evaluate.placement.*;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
-import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
-import com.mesosphere.sdk.state.ConfigStoreException;
-import com.mesosphere.sdk.storage.StorageError.Reason;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -80,213 +104,540 @@ public class DefaultServiceSpec implements ServiceSpec {
         this.pods = pods;
     }
 
+  private static final Logger LOGGER = LoggingUtils.getLogger(DefaultServiceSpec.class);
+
+  private final String name;
+
+  private final String role;
+
+  private final String principal;
+
+  private final String user;
+
+  private final GoalState goalState;
+
+  private final String region;
+
+  private final String webUrl;
+
+  private final String zookeeperConnection;
+
+  private final List<PodSpec> pods;
+
+  private final ReplacementFailurePolicy replacementFailurePolicy;
+
+  @JsonCreator
+  private DefaultServiceSpec(
+      @JsonProperty("name") String name,
+      @JsonProperty("role") String role,
+      @JsonProperty("principal") String principal,
+      @JsonProperty("user") String user,
+      @JsonProperty("goal") GoalState goalState,
+      @JsonProperty("region") String region,
+      @JsonProperty("web-url") String webUrl,
+      @JsonProperty("zookeeper") String zookeeperConnection,
+      @JsonProperty("replacement-failure-policy") ReplacementFailurePolicy replacementFailurePolicy,
+      @JsonProperty("pod-specs") List<PodSpec> pods)
+  {
+    this.name = name;
+    this.role = role;
+    this.principal = principal;
+    this.user = getUser(user, pods);
+    this.goalState = goalState == null ? GoalState.RUNNING : goalState;
+    if (goalState == GoalState.FINISHED) {
+      throw new IllegalArgumentException(
+          "Service goal state is deprecated FINISHED. Did you mean FINISH?"
+      );
+    }
+    this.region = region;
+    this.webUrl = webUrl;
+    // If no zookeeperConnection string is configured, fallback to the default value.
+    this.zookeeperConnection = StringUtils.isBlank(zookeeperConnection)
+        ? DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING : zookeeperConnection;
+    this.replacementFailurePolicy = replacementFailurePolicy;
+    this.pods = pods;
+  }
+
+  private DefaultServiceSpec(Builder builder) {
+    this(
+        builder.name,
+        builder.role,
+        builder.principal,
+        builder.user,
+        builder.goalState,
+        builder.region,
+        builder.webUrl,
+        builder.zookeeperConnection,
+        builder.replacementFailurePolicy,
+        builder.pods);
+
+    ValidationUtils.nonEmpty(this, "name", name);
+    ValidationUtils.nonEmpty(this, "pods", pods);
+    ValidationUtils.isUnique(this, "pods", pods.stream().map(PodSpec::getType));
+  }
+
+  @VisibleForTesting
+  static String getUser(String user, List<PodSpec> podSpecs) {
+    if (!StringUtils.isBlank(user)) {
+      return user;
+    }
+
+    Optional<PodSpec> podSpecOptional = Optional.empty();
+    if (podSpecs != null) {
+      podSpecOptional = podSpecs
+          .stream()
+          .filter(podSpec -> podSpec != null &&
+              podSpec.getUser() != null &&
+              podSpec.getUser().isPresent()
+          )
+          .findFirst();
+    }
+
+    return podSpecOptional
+        .map(podSpec -> podSpec.getUser().get())
+        .orElse(DcosConstants.DEFAULT_SERVICE_USER);
+  }
+
+  /**
+   * Returns a new generator with the provided configuration.
+   *
+   * @param rawServiceSpec    The object model representation of a Service Specification YAML file
+   * @param schedulerConfig   Scheduler configuration containing operator-facing knobs
+   * @param configTemplateDir Path to the directory containing any config templates for the service, often the same
+   *                          directory as the Service Specification YAML file
+   */
+  public static Generator newGenerator(
+      RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig, File configTemplateDir)
+  {
+    return new Generator(rawServiceSpec, schedulerConfig, new TaskEnvRouter(), configTemplateDir);
+  }
+
+  /**
+   * Used by unit tests.
+   */
+  @VisibleForTesting
+  public static Generator newGenerator(
+      File rawServiceSpecFile,
+      SchedulerConfig schedulerConfig)
+      throws Exception
+  {
+    // assume that any configs are in the same directory as the spec
+    return new Generator(
+        RawServiceSpec.newBuilder(rawServiceSpecFile).build(),
+        schedulerConfig,
+        new TaskEnvRouter(),
+        rawServiceSpecFile.getParentFile());
+  }
+
+  /**
+   * Used by unit tests.
+   */
+  @VisibleForTesting
+  public static Generator newGenerator(
+      RawServiceSpec rawServiceSpec,
+      SchedulerConfig schedulerConfig,
+      Map<String, String> schedulerEnvironment,
+      File configTemplateDir)
+  {
+    return new Generator(
+        rawServiceSpec,
+        schedulerConfig,
+        new TaskEnvRouter(schedulerEnvironment),
+        configTemplateDir
+    );
+  }
+
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  public static Builder newBuilder(ServiceSpec copy) {
+    Builder builder = new Builder();
+    builder.name = copy.getName();
+    builder.role = copy.getRole();
+    builder.principal = copy.getPrincipal();
+    builder.user = copy.getUser();
+    builder.goalState = copy.getGoal();
+    builder.region = copy.getRegion().orElse(null);
+    builder.webUrl = copy.getWebUrl();
+    builder.zookeeperConnection = copy.getZookeeperConnection();
+    builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
+    builder.pods = copy.getPods();
+    return builder;
+  }
+
+  /**
+   * Returns a {@link ConfigurationComparator} which may be used to compare
+   * {@link DefaultServiceSpec}s.
+   */
+  public static ConfigurationComparator<ServiceSpec> getComparatorInstance() {
+    return COMPARATOR;
+  }
+
+  /**
+   * Returns a {@link ConfigFactory} which may be used to deserialize
+   * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
+   * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
+   *
+   * @param serviceSpec specification to test for successful serialization/deserialization
+   * @throws IllegalArgumentException if testing the provided specification fails
+   */
+  public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(ServiceSpec serviceSpec) {
+    return getConfigurationFactory(serviceSpec, Collections.emptyList());
+  }
+
+  /**
+   * Returns a {@link ConfigFactory} which may be used to deserialize
+   * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
+   * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
+   *
+   * @param serviceSpec                  specification to test for successful serialization/deserialization
+   * @param additionalSubtypesToRegister any class subtypes which should be registered with Jackson for
+   *                                     deserialization. any custom placement rule implementations must be provided
+   * @throws IllegalArgumentException if testing the provided specification fails
+   */
+  public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
+      ServiceSpec serviceSpec,
+      Collection<Class<?>> additionalSubtypesToRegister)
+  {
+    ConfigurationFactory<ServiceSpec> factory = new ConfigFactory(
+        additionalSubtypesToRegister,
+        ConfigFactory.getReferenceTerminalGoalState(serviceSpec));
+
+    final byte[] serviceSpecBytes;
+    try {
+      serviceSpecBytes = serviceSpec.getBytes();
+    } catch (ConfigStoreException e) {
+      throw new IllegalArgumentException("Failed to convert ServiceSpec to bytes", e);
+    }
+
+    final ServiceSpec loopbackSpecification;
+    try {
+      // Serialize and then deserialize:
+      loopbackSpecification = factory.parse(serviceSpecBytes);
+    } catch (Exception e) { // SUPPRESS CHECKSTYLE IllegalCatch
+      LOGGER.error("Failed to parse JSON for loopback validation", e);
+      LOGGER.error(
+          "JSON to be parsed was:\n{}",
+          new String(serviceSpecBytes, StandardCharsets.UTF_8)
+      );
+      throw new IllegalArgumentException("Failed to parse JSON for loopback validation", e);
+    }
+    // Verify that equality works:
+    if (!loopbackSpecification.equals(serviceSpec)) {
+      final String originalSpecString;
+      try {
+        originalSpecString = serviceSpec.toJsonString();
+      } catch (ConfigStoreException e) {
+        throw new IllegalArgumentException("Failed to convert original ServiceSpec to String", e);
+      }
+      final String loopbackSpecString;
+      try {
+        loopbackSpecString = loopbackSpecification.toJsonString();
+      } catch (ConfigStoreException e) {
+        throw new IllegalArgumentException("Failed to convert loopback ServiceSpec to String", e);
+      }
+
+      StringBuilder error = new StringBuilder();
+      error.append("Equality test failed: Loopback result is not equal to original:\n");
+      error.append("- Original:\n");
+      error.append(originalSpecString);
+      error.append('\n');
+      error.append("- Result:\n");
+      error.append(loopbackSpecString);
+      error.append('\n');
+
+      throw new IllegalArgumentException(error.toString());
+    }
+    return factory;
+  }
+
+  public static ConfigurationFactory<ServiceSpec> getConfigurationFactory() {
+    return new ConfigFactory(Collections.emptyList());
+  }
+
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public String getRole() {
+    return role;
+  }
+
+  @Override
+  public String getPrincipal() {
+    return principal;
+  }
+
+  // CHECKSTYLE:OFF OverloadMethodsDeclarationOrder
+  @Override
+  public String getUser() {
+    return user;
+  }
+  // CHECKSTYLE:ON OverloadMethodsDeclarationOrder
+
+  @Override
+  public GoalState getGoal() {
+    return goalState;
+  }
+
+  @Override
+  public Optional<String> getRegion() {
+    return Optional.ofNullable(region);
+  }
+
+  @Override
+  public String getWebUrl() {
+    return webUrl;
+  }
+
+  @Override
+  public String getZookeeperConnection() {
+    return zookeeperConnection;
+  }
+
+  @Override
+  public Optional<ReplacementFailurePolicy> getReplacementFailurePolicy() {
+    return Optional.ofNullable(replacementFailurePolicy);
+  }
+
+  @Override
+  public List<PodSpec> getPods() {
+    return pods;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+
+  @Override
+  public String toString() {
+    return ToStringBuilder.reflectionToString(this);
+  }
+
+  /**
+   * Comparer which checks for equality of {@link DefaultServiceSpec}s.
+   */
+  public static final class Comparator implements ConfigurationComparator<ServiceSpec> {
+
+    /**
+     * Call {@link DefaultServiceSpec#getComparatorInstance()} instead.
+     */
+    private Comparator() {}
+
+    @Override
+    public boolean equals(ServiceSpec first, ServiceSpec second) {
+      return EqualsBuilder.reflectionEquals(first, second);
+    }
+  }
+
+  /**
+   * Factory which performs the inverse of {@link DefaultServiceSpec#getBytes()}.
+   */
+  public static final class ConfigFactory implements ConfigurationFactory<ServiceSpec> {
+
+    /**
+     * Subtypes to be registered by defaults. This list should include all
+     * {@link PlacementRule}s that are included in the library.
+     */
+    private static final Collection<Class<?>> defaultRegisteredSubtypes = Arrays.asList(
+        AgentRule.class,
+        AndRule.class,
+        AnyMatcher.class,
+        AttributeRule.class,
+        DefaultResourceSpec.class,
+        DefaultVolumeSpec.class,
+        ExactMatcher.class,
+        HostnameRule.class,
+        InvalidPlacementRule.class,
+        IsLocalRegionRule.class,
+        MaxPerAttributeRule.class,
+        MaxPerHostnameRule.class,
+        MaxPerRegionRule.class,
+        MaxPerZoneRule.class,
+        NamedVIPSpec.class,
+        NotRule.class,
+        OrRule.class,
+        PassthroughRule.class,
+        PortSpec.class,
+        RegexMatcher.class,
+        RegionRule.class,
+        RoundRobinByAttributeRule.class,
+        RoundRobinByHostnameRule.class,
+        RoundRobinByRegionRule.class,
+        RoundRobinByZoneRule.class,
+        TaskTypeLabelConverter.class,
+        TaskTypeRule.class,
+        ZoneRule.class,
+        DefaultSecretSpec.class,
+        DefaultHostVolumeSpec.class);
+
+    private final ObjectMapper objectMapper;
+
+    private final GoalState referenceTerminalGoalState;
+
+    /**
+     * @see DefaultServiceSpec#getConfigurationFactory(ServiceSpec, Collection)
+     */
+    private ConfigFactory(Collection<Class<?>> additionalSubtypes, GoalState goalState) {
+      objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
+      objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      for (Class<?> subtype : defaultRegisteredSubtypes) {
+        objectMapper.registerSubtypes(subtype);
+      }
+      for (Class<?> subtype : additionalSubtypes) {
+        objectMapper.registerSubtypes(subtype);
+      }
+
+      SimpleModule module = new SimpleModule();
+      module.addDeserializer(GoalState.class, new GoalStateDeserializer());
+      objectMapper.registerModule(module);
+
+      referenceTerminalGoalState = goalState;
+    }
+
+    private ConfigFactory(Collection<Class<?>> additionalSubtypes) {
+      this(additionalSubtypes, GoalState.ONCE);
+    }
+
+    private static GoalState getReferenceTerminalGoalState(ServiceSpec serviceSpec) {
+      Collection<TaskSpec> serviceTasks = serviceSpec
+          .getPods()
+          .stream()
+          .flatMap(p -> p.getTasks().stream())
+          .collect(Collectors.toList());
+      for (TaskSpec taskSpec : serviceTasks) {
+        if (taskSpec.getGoal().equals(GoalState.FINISHED)) {
+          return GoalState.FINISHED;
+        }
+      }
+      return GoalState.ONCE;
+    }
+
     @VisibleForTesting
-    static String getUser(String user, List<PodSpec> podSpecs) {
-        if (!StringUtils.isBlank(user)) {
-            return user;
-        }
-
-        Optional<PodSpec> podSpecOptional = Optional.empty();
-        if (podSpecs != null) {
-            podSpecOptional = podSpecs.stream()
-                    .filter(podSpec -> podSpec != null && podSpec.getUser() != null && podSpec.getUser().isPresent())
-                    .findFirst();
-        }
-
-        if (podSpecOptional.isPresent()) {
-            return podSpecOptional.get().getUser().get();
-        } else {
-            return DcosConstants.DEFAULT_SERVICE_USER;
-        }
+    public static final Collection<Class<?>> getDefaultRegisteredSubtypes() {
+      return defaultRegisteredSubtypes;
     }
 
-    private DefaultServiceSpec(Builder builder) {
-        this(
-                builder.name,
-                builder.role,
-                builder.principal,
-                builder.user,
-                builder.goalState,
-                builder.region,
-                builder.webUrl,
-                builder.zookeeperConnection,
-                builder.replacementFailurePolicy,
-                builder.pods);
-
-        ValidationUtils.nonEmpty(this, "name", name);
-        ValidationUtils.nonEmpty(this, "pods", pods);
-        ValidationUtils.isUnique(this, "pods", pods.stream().map(p -> p.getType()));
-    }
-
-    /**
-     * Returns a new generator with the provided configuration.
-     *
-     * @param rawServiceSpec    The object model representation of a Service Specification YAML file
-     * @param schedulerConfig   Scheduler configuration containing operator-facing knobs
-     * @param configTemplateDir Path to the directory containing any config templates for the service, often the same
-     *                          directory as the Service Specification YAML file
-     */
-    public static Generator newGenerator(
-            RawServiceSpec rawServiceSpec, SchedulerConfig schedulerConfig, File configTemplateDir) {
-        return new Generator(rawServiceSpec, schedulerConfig, new TaskEnvRouter(), configTemplateDir);
-    }
-
-    /**
-     * Used by unit tests.
-     */
     @VisibleForTesting
-    public static Generator newGenerator(File rawServiceSpecFile, SchedulerConfig schedulerConfig) throws Exception {
-        return new Generator(
-                RawServiceSpec.newBuilder(rawServiceSpecFile).build(),
-                schedulerConfig,
-                new TaskEnvRouter(),
-                rawServiceSpecFile.getParentFile()); // assume that any configs are in the same directory as the spec
+    public GoalStateDeserializer getGoalStateDeserializer() {
+      return new GoalStateDeserializer();
+    }
+
+    @Override
+    public ServiceSpec parse(byte[] bytes) throws ConfigStoreException {
+      try {
+        return SerializationUtils.fromString(
+            new String(bytes, CHARSET), DefaultServiceSpec.class, objectMapper);
+      } catch (IOException e) {
+        throw new ConfigStoreException(Reason.SERIALIZATION_ERROR,
+            "Failed to deserialize DefaultServiceSpecification from JSON: " + e.getMessage(), e);
+      }
     }
 
     /**
-     * Used by unit tests.
+     * Custom deserializer for goal states to accomodate transition from FINISHED to ONCE/FINISH.
      */
-    @VisibleForTesting
-    public static Generator newGenerator(
-            RawServiceSpec rawServiceSpec,
-            SchedulerConfig schedulerConfig,
-            Map<String, String> schedulerEnvironment,
-            File configTemplateDir)
-            throws Exception {
-        return new Generator(
-                rawServiceSpec, schedulerConfig, new TaskEnvRouter(schedulerEnvironment), configTemplateDir);
-    }
+    public class GoalStateDeserializer extends StdDeserializer<GoalState> {
 
-    public static Builder newBuilder() {
-        return new Builder();
-    }
+      public GoalStateDeserializer() {
+        this(null);
+      }
 
-    public static Builder newBuilder(ServiceSpec copy) {
-        Builder builder = new Builder();
-        builder.name = copy.getName();
-        builder.role = copy.getRole();
-        builder.principal = copy.getPrincipal();
-        builder.user = copy.getUser();
-        builder.goalState = copy.getGoal();
-        builder.region = copy.getRegion().orElse(null);
-        builder.webUrl = copy.getWebUrl();
-        builder.zookeeperConnection = copy.getZookeeperConnection();
-        builder.replacementFailurePolicy = copy.getReplacementFailurePolicy().orElse(null);
-        builder.pods = copy.getPods();
-        return builder;
-    }
+      protected GoalStateDeserializer(Class<?> vc) {
+        super(vc);
+      }
 
-    @Override
-    public String getName() {
-        return name;
-    }
+      @Override
+      public GoalState deserialize(
+          JsonParser p, DeserializationContext ctxt) throws IOException
+      {
+        String value = ((TextNode) p.getCodec().readTree(p)).textValue();
 
-    @Override
-    public String getRole() {
-        return role;
-    }
-
-    @Override
-    public String getPrincipal() {
-        return principal;
-    }
-
-    @Override
-    public String getUser() {
-        return user;
-    }
-
-    @Override
-    public GoalState getGoal() {
-        return goalState;
-    }
-
-    @Override
-    public Optional<String> getRegion() {
-        return Optional.ofNullable(region);
-    }
-
-    @Override
-    public String getWebUrl() {
-        return webUrl;
-    }
-
-    @Override
-    public String getZookeeperConnection() {
-        return zookeeperConnection;
-    }
-
-    @Override
-    public Optional<ReplacementFailurePolicy> getReplacementFailurePolicy() {
-        return Optional.ofNullable(replacementFailurePolicy);
-    }
-
-    @Override
-    public List<PodSpec> getPods() {
-        return pods;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    @Override
-    public String toString() {
-        return ToStringBuilder.reflectionToString(this);
-    }
-
-    /**
-     * Returns a {@link ConfigurationComparator} which may be used to compare
-     * {@link DefaultServiceSpec}s.
-     */
-    public static ConfigurationComparator<ServiceSpec> getComparatorInstance() {
-        return COMPARATOR;
-    }
-
-    /**
-     * Comparer which checks for equality of {@link DefaultServiceSpec}s.
-     */
-    public static class Comparator implements ConfigurationComparator<ServiceSpec> {
-
-        /**
-         * Call {@link DefaultServiceSpec#getComparatorInstance()} instead.
-         */
-        private Comparator() {
+        switch (value) {
+          case "FINISHED":
+          case "ONCE":
+            return referenceTerminalGoalState;
+          case "FINISH":
+            return GoalState.FINISH;
+          case "RUNNING":
+            return GoalState.RUNNING;
+          default:
+            LOGGER.warn("Found unknown goal state in config store: {}", value);
+            return GoalState.UNKNOWN;
         }
+      }
+    }
+  }
 
-        @Override
-        public boolean equals(ServiceSpec first, ServiceSpec second) {
-            return EqualsBuilder.reflectionEquals(first, second);
-        }
+  /**
+   * Generates a {@link ServiceSpec} from a given YAML definition in the form of a {@link RawServiceSpec}.
+   */
+  public static final class Generator {
+
+    private final RawServiceSpec rawServiceSpec;
+
+    private final SchedulerConfig schedulerConfig;
+
+    private final TaskEnvRouter taskEnvRouter;
+
+    private Optional<FrameworkConfig> multiServiceFrameworkConfig;
+
+    private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
+
+    private Generator(
+        RawServiceSpec rawServiceSpec,
+        SchedulerConfig schedulerConfig,
+        TaskEnvRouter taskEnvRouter,
+        File configTemplateDir)
+    {
+      this.rawServiceSpec = rawServiceSpec;
+      this.schedulerConfig = schedulerConfig;
+      this.taskEnvRouter = taskEnvRouter;
+      this.multiServiceFrameworkConfig = Optional.empty();
+      this.configTemplateReader = new YAMLToInternalMappers.ConfigTemplateReader(configTemplateDir);
     }
 
     /**
-     * Returns a {@link ConfigFactory} which may be used to deserialize
-     * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
-     * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
-     *
-     * @param serviceSpec               specification to test for successful serialization/deserialization
-     * @throws IllegalArgumentException if testing the provided specification fails
+     * Assigns an environment variable to be included in all service tasks. Note that this may be overridden via
+     * {@code TASKCFG_*} scheduler environment variables at runtime, and by pod-specific settings provided via
+     * {@link #setPodEnv(String, String, String)}.
      */
-    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(ServiceSpec serviceSpec) {
-        return getConfigurationFactory(serviceSpec, Collections.emptyList());
+    public Generator setAllPodsEnv(String key, String value) {
+      this.taskEnvRouter.setAllPodsEnv(key, value);
+      return this;
     }
 
     /**
-     * Returns a {@link ConfigFactory} which may be used to deserialize
-     * {@link DefaultServiceSpec}s, which has been confirmed to successfully and
-     * consistently serialize/deserialize the provided {@code ServiceSpecification} instance.
-     *
-     * @param serviceSpec                  specification to test for successful serialization/deserialization
-     * @param additionalSubtypesToRegister any class subtypes which should be registered with Jackson for
-     *                                     deserialization. any custom placement rule implementations must be provided
-     * @throws IllegalArgumentException    if testing the provided specification fails
+     * Assigns an environment variable to be included in tasks for the specified pod type. For example, all tasks
+     * running inside of "index" pods. Note that this may be overridden via {@code TASKCFG_*} scheduler environment
+     * variables at runtime.
+     */
+    public Generator setPodEnv(String podType, String key, String value) {
+      this.taskEnvRouter.setPodEnv(podType, key, value);
+      return this;
+    }
+
+    /**
+     * Assigns a custom framework config. In the default single-service case, this is derived from the
+     * {@link RawServiceSpec} provided in the constructor.
+     */
+    public Generator setMultiServiceFrameworkConfig(FrameworkConfig multiServiceFrameworkConfig) {
+      this.multiServiceFrameworkConfig = Optional.of(multiServiceFrameworkConfig);
+      return this;
+    }
+
+    /**
+     * Assigns a custom {@link YAMLToInternalMappers.ConfigTemplateReader} implementation for reading config file
+     * templates.  This is exposed to support mocking in tests.
      */
     public static ConfigurationFactory<ServiceSpec> getConfigurationFactory(
             ServiceSpec serviceSpec,
@@ -338,9 +689,16 @@ public class DefaultServiceSpec implements ServiceSpec {
         return factory;
     }
 
-    public static ConfigurationFactory<ServiceSpec> getConfigurationFactory() {
-        return new ConfigFactory(Collections.emptyList());
+    public DefaultServiceSpec build() throws Exception {
+      return YAMLToInternalMappers.convertServiceSpec(
+          rawServiceSpec,
+          // Use provided multi-service config, or derive single-service config from the RawServiceSpec:
+          multiServiceFrameworkConfig.orElse(FrameworkConfig.fromRawServiceSpec(rawServiceSpec)),
+          schedulerConfig,
+          taskEnvRouter,
+          configTemplateReader);
     }
+  }
 
     /**
      * Factory which performs the inverse of {@link DefaultServiceSpec#getBytes()}.
@@ -403,16 +761,7 @@ public class DefaultServiceSpec implements ServiceSpec {
             objectMapper.registerModule(module);
         }
 
-        @Override
-        public ServiceSpec parse(byte[] bytes) throws ConfigStoreException {
-            try {
-                return SerializationUtils.fromString(
-                        new String(bytes, CHARSET), DefaultServiceSpec.class, objectMapper);
-            } catch (IOException e) {
-                throw new ConfigStoreException(Reason.SERIALIZATION_ERROR,
-                        "Failed to deserialize DefaultServiceSpecification from JSON: " + e.getMessage(), e);
-            }
-        }
+    private String role;
 
         @VisibleForTesting
         public static final Collection<Class<?>> getDefaultRegisteredSubtypes() {
@@ -454,231 +803,152 @@ public class DefaultServiceSpec implements ServiceSpec {
         }
     }
 
-    /**
-     * Generates a {@link ServiceSpec} from a given YAML definition in the form of a {@link RawServiceSpec}.
-     */
-    public static class Generator {
+    private String region;
 
-        private final RawServiceSpec rawServiceSpec;
-        private final SchedulerConfig schedulerConfig;
-        private final TaskEnvRouter taskEnvRouter;
-        private Optional<FrameworkConfig> multiServiceFrameworkConfig;
-        private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
+    private String webUrl;
 
-        private Generator(
-                RawServiceSpec rawServiceSpec,
-                SchedulerConfig schedulerConfig,
-                TaskEnvRouter taskEnvRouter,
-                File configTemplateDir) {
-            this.rawServiceSpec = rawServiceSpec;
-            this.schedulerConfig = schedulerConfig;
-            this.taskEnvRouter = taskEnvRouter;
-            this.multiServiceFrameworkConfig = Optional.empty();
-            this.configTemplateReader = new YAMLToInternalMappers.ConfigTemplateReader(configTemplateDir);
-        }
+    private String zookeeperConnection;
 
-        /**
-         * Assigns an environment variable to be included in all service tasks. Note that this may be overridden via
-         * {@code TASKCFG_*} scheduler environment variables at runtime, and by pod-specific settings provided via
-         * {@link #setPodEnv(String, String, String)}.
-         */
-        public Generator setAllPodsEnv(String key, String value) {
-            this.taskEnvRouter.setAllPodsEnv(key, value);
-            return this;
-        }
+    private ReplacementFailurePolicy replacementFailurePolicy;
 
-        /**
-         * Assigns an environment variable to be included in tasks for the specified pod type. For example, all tasks
-         * running inside of "index" pods. Note that this may be overridden via {@code TASKCFG_*} scheduler environment
-         * variables at runtime.
-         */
-        public Generator setPodEnv(String podType, String key, String value) {
-            this.taskEnvRouter.setPodEnv(podType, key, value);
-            return this;
-        }
+    private List<PodSpec> pods = new ArrayList<>();
 
-        /**
-         * Assigns a custom framework config. In the default single-service case, this is derived from the
-         * {@link RawServiceSpec} provided in the constructor.
-         */
-        public Generator setMultiServiceFrameworkConfig(FrameworkConfig multiServiceFrameworkConfig) {
-            this.multiServiceFrameworkConfig = Optional.of(multiServiceFrameworkConfig);
-            return this;
-        }
-
-        /**
-         * Assigns a custom {@link YAMLToInternalMappers.ConfigTemplateReader} implementation for reading config file
-         * templates.  This is exposed to support mocking in tests.
-         */
-        @VisibleForTesting
-        public Generator setConfigTemplateReader(YAMLToInternalMappers.ConfigTemplateReader configTemplateReader) {
-            this.configTemplateReader = configTemplateReader;
-            return this;
-        }
-
-        public DefaultServiceSpec build() throws Exception {
-            return YAMLToInternalMappers.convertServiceSpec(
-                    rawServiceSpec,
-                    // Use provided multi-service config, or derive single-service config from the RawServiceSpec:
-                    multiServiceFrameworkConfig.orElse(FrameworkConfig.fromRawServiceSpec(rawServiceSpec)),
-                    schedulerConfig,
-                    taskEnvRouter,
-                    configTemplateReader);
-        }
+    private Builder() {
     }
 
+    /**
+     * Sets the {@code name} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param name the {@code name} to set
+     * @return a reference to this Builder
+     */
+    public Builder name(String name) {
+      this.name = name;
+      return this;
+    }
 
     /**
-     * {@link DefaultServiceSpec} builder static inner class.
+     * Sets the {@code role} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param role the {@code role} to set
+     * @return a reference to this Builder
      */
-    public static final class Builder {
-        private String name;
-        private String role;
-        private String principal;
-        private String user;
-        private GoalState goalState;
-        private String region;
-        private String webUrl;
-        private String zookeeperConnection;
-        private ReplacementFailurePolicy replacementFailurePolicy;
-        private List<PodSpec> pods = new ArrayList<>();
-
-        private Builder() {
-        }
-
-        /**
-         * Sets the {@code name} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param name the {@code name} to set
-         * @return a reference to this Builder
-         */
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        /**
-         * Sets the {@code role} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param role the {@code role} to set
-         * @return a reference to this Builder
-         */
-        public Builder role(String role) {
-            this.role = role;
-            return this;
-        }
-
-        /**
-         * Sets the {@code principal} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param principal the {@code principal} to set
-         * @return a reference to this Builder
-         */
-        public Builder principal(String principal) {
-            this.principal = principal;
-            return this;
-        }
-
-        /**
-         * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param user the {@code user} to set
-         * @return a reference to this Builder
-         */
-        public Builder user(String user) {
-            this.user = user;
-            return this;
-        }
-
-        /**
-         * Sets the {@code goalState} and returns a reference to this Builder so that the methods can be chained
-         * together. Default value is {@code RUNNING}.
-         *
-         * @param goalState the {@code goalState} to set
-         * @return a reference to this Builder
-         */
-        public Builder goalState(GoalState goalState) {
-            this.goalState = goalState;
-            return this;
-        }
-
-        /**
-         * Sets the {@code region} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param region the {@code region} to set
-         * @return a reference to this Builder
-         */
-        public Builder region(String region) {
-            this.region = region;
-            return this;
-        }
-
-        /**
-         * Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
-         * can be chained together.
-         *
-         * @param webUrl the web URL to set
-         * @return a reference to this Builder
-         */
-        public Builder webUrl(String webUrl) {
-            this.webUrl = webUrl;
-            return this;
-        }
-
-        /**
-         * Sets the {@code zookeeperConnection} and returns a reference to this Builder so that the methods can be
-         * chained together.
-         *
-         * @param zookeeperConnection the {@code zookeeperConnection} to set
-         * @return a reference to this Builder
-         */
-        public Builder zookeeperConnection(String zookeeperConnection) {
-            this.zookeeperConnection = zookeeperConnection;
-            return this;
-        }
-
-        /**
-         * Sets the {@code pods} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param pods the {@code pods} to set
-         * @return a reference to this Builder
-         */
-        public Builder pods(List<PodSpec> pods) {
-            this.pods = pods;
-            return this;
-        }
-
-        /**
-         * Adds the {@code pod} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param pod the {@code pod} to add
-         * @return a reference to this Builder
-         */
-        public Builder addPod(PodSpec pod) {
-            this.pods.add(pod);
-            return this;
-        }
-
-        /**
-         * Sets the {@code replacementFailurePolicy} and returns a reference to this Builder so that the methods can be
-         * chained together.
-         *
-         * @param replacementFailurePolicy the {@code replacementFailurePolicy} to set
-         * @return a reference to this Builder
-         */
-        public Builder replacementFailurePolicy(ReplacementFailurePolicy replacementFailurePolicy) {
-            this.replacementFailurePolicy = replacementFailurePolicy;
-            return this;
-        }
-
-        /**
-         * Returns a {@code DefaultServiceSpec} built from the parameters previously set.
-         *
-         * @return a {@code DefaultServiceSpec} built with parameters of this {@code DefaultServiceSpec.Builder}
-         */
-        public DefaultServiceSpec build() {
-            return new DefaultServiceSpec(this);
-        }
+    public Builder role(String role) {
+      this.role = role;
+      return this;
     }
+
+    /**
+     * Sets the {@code principal} and returns a reference to this Builder so that the methods can be chained
+     * together.
+     *
+     * @param principal the {@code principal} to set
+     * @return a reference to this Builder
+     */
+    public Builder principal(String principal) {
+      this.principal = principal;
+      return this;
+    }
+
+    /**
+     * Sets the {@code user} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param user the {@code user} to set
+     * @return a reference to this Builder
+     */
+    public Builder user(String user) {
+      this.user = user;
+      return this;
+    }
+
+    /**
+     * Sets the {@code goalState} and returns a reference to this Builder so that the methods can be chained
+     * together. Default value is {@code RUNNING}.
+     *
+     * @param goalState the {@code goalState} to set
+     * @return a reference to this Builder
+     */
+    public Builder goalState(GoalState goalState) {
+      this.goalState = goalState;
+      return this;
+    }
+
+    /**
+     * Sets the {@code region} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param region the {@code region} to set
+     * @return a reference to this Builder
+     */
+    public Builder region(String region) {
+      this.region = region;
+      return this;
+    }
+
+    /**
+     * Sets the advertised web UI URL for the service and returns a reference to this Builder so that the methods
+     * can be chained together.
+     *
+     * @param webUrl the web URL to set
+     * @return a reference to this Builder
+     */
+    public Builder webUrl(String webUrl) {
+      this.webUrl = webUrl;
+      return this;
+    }
+
+    /**
+     * Sets the {@code zookeeperConnection} and returns a reference to this Builder so that the methods can be
+     * chained together.
+     *
+     * @param zookeeperConnection the {@code zookeeperConnection} to set
+     * @return a reference to this Builder
+     */
+    public Builder zookeeperConnection(String zookeeperConnection) {
+      this.zookeeperConnection = zookeeperConnection;
+      return this;
+    }
+
+    /**
+     * Sets the {@code pods} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param pods the {@code pods} to set
+     * @return a reference to this Builder
+     */
+    public Builder pods(List<PodSpec> pods) {
+      this.pods = pods;
+      return this;
+    }
+
+    /**
+     * Adds the {@code pod} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param pod the {@code pod} to add
+     * @return a reference to this Builder
+     */
+    public Builder addPod(PodSpec pod) {
+      this.pods.add(pod);
+      return this;
+    }
+
+    /**
+     * Sets the {@code replacementFailurePolicy} and returns a reference to this Builder so that the methods can be
+     * chained together.
+     *
+     * @param replacementFailurePolicy the {@code replacementFailurePolicy} to set
+     * @return a reference to this Builder
+     */
+    public Builder replacementFailurePolicy(ReplacementFailurePolicy replacementFailurePolicy) {
+      this.replacementFailurePolicy = replacementFailurePolicy;
+      return this;
+    }
+
+    /**
+     * Returns a {@code DefaultServiceSpec} built from the parameters previously set.
+     *
+     * @return a {@code DefaultServiceSpec} built with parameters of this {@code DefaultServiceSpec.Builder}
+     */
+    public DefaultServiceSpec build() {
+      return new DefaultServiceSpec(this);
+    }
+  }
 }

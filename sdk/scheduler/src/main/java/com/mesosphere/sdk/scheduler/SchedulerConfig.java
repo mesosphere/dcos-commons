@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.auth0.jwt.algorithms.Algorithm;
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.auth.CachedTokenProvider;
@@ -11,6 +10,8 @@ import com.mesosphere.sdk.generated.SDKBuildInfo;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.state.GoalStateOverride;
+
+import com.auth0.jwt.algorithms.Algorithm;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Credential;

@@ -1,18 +1,28 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.google.protobuf.TextFormat;
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.CreateOfferRecommendation;
+import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.offer.MesosResource;
+import com.mesosphere.sdk.offer.MesosResourcePool;
+import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
+import com.mesosphere.sdk.offer.ResourceBuilder;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.VolumeSpec;
+
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
-import java.util.*;
-
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.fail;
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
- * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
+ * This class evaluates an offer against a given
+ * {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
  * ensuring that it contains an appropriately-sized volume, and creating any necessary instances of
  * {@link com.mesosphere.sdk.offer.ReserveOfferRecommendation} and
  * {@link com.mesosphere.sdk.offer.CreateOfferRecommendation} as necessary.
@@ -78,9 +88,9 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
         this.diskSource = diskSource;
     }
 
-    private boolean createsVolume() {
-        return !persistenceId.isPresent();
-    }
+    logger.info("Generated '{}' resource for task: [{}]",
+        volumeSpec.getName(), TextFormat.shortDebugString(resource));
+    OfferEvaluationUtils.setProtos(podInfoBuilder, resource, taskName);
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
@@ -210,4 +220,17 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
                     .build();
         }
     }
+
+    return EvaluationOutcome.pass(
+        this,
+        offerRecommendations,
+        "Offer contains sufficient %s'disk': for resource: '%s' with resourceId: '%s' and " +
+            "persistenceId: '%s'",
+        detailsClause,
+        volumeSpec,
+        resourceId,
+        persistenceId)
+        .mesosResource(mesosResource)
+        .build();
+  }
 }

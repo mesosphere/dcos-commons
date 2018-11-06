@@ -6,11 +6,11 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.StoreTaskInfoRecommendation;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;
-
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
+import java.util.Collections;
 
 /**
  * This class sets pod metadata on a {@link org.apache.mesos.Protos.TaskInfo}, ensuring
@@ -36,6 +36,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         this.taskSpecName = taskSpecName;
         this.shouldLaunch = shouldLaunch;
     }
+    taskBuilder.setSlaveId(offer.getSlaveId());
 
     @Override
     public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
@@ -84,24 +85,27 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
         }
     }
 
-    private static void updateFaultDomainEnv(Protos.TaskInfo.Builder builder, Protos.Offer offer) {
-        if (!offer.hasDomain() || !offer.getDomain().hasFaultDomain() || !builder.hasCommand()) {
-            return;
-        }
+    taskBuilder.setLabels(writer.toProto());
+    updateFaultDomainEnv(taskBuilder, offer);
 
-        Protos.Environment.Variable regionVar = Protos.Environment.Variable.newBuilder()
-                .setName(EnvConstants.REGION_TASKENV)
-                .setValue(offer.getDomain().getFaultDomain().getRegion().getName())
-                .build();
-
-        Protos.Environment.Variable zoneVar = Protos.Environment.Variable.newBuilder()
-                .setName(EnvConstants.ZONE_TASKENV)
-                .setValue(offer.getDomain().getFaultDomain().getZone().getName())
-                .build();
-
-        builder.getCommandBuilder()
-                .getEnvironmentBuilder()
-                .addVariables(regionVar)
-                .addVariables(zoneVar);
+    if (shouldLaunch) {
+      return EvaluationOutcome.pass(
+          this,
+          // Launch (in Mesos) + Update (in our StateStore)
+          Arrays.asList(
+              new LaunchOfferRecommendation(offer, taskBuilder.build(), executorBuilder.build()),
+              new StoreTaskInfoRecommendation(offer, taskBuilder.build(), executorBuilder.build())),
+          String.format("Added launch operation for %s", taskName))
+          .build();
+    } else {
+      return EvaluationOutcome.pass(
+          this,
+          // Only update in StateStore. No launch in Mesos.
+          Collections.singletonList(
+              new StoreTaskInfoRecommendation(offer, taskBuilder.build(), executorBuilder.build())
+          ),
+          String.format("Added storage update for %s", taskName))
+          .build();
     }
+  }
 }

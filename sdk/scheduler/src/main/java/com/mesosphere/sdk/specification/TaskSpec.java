@@ -11,44 +11,44 @@ import java.util.Optional;
  */
 @JsonDeserialize(as = DefaultTaskSpec.class)
 public interface TaskSpec {
-    @JsonProperty("name")
-    String getName();
+  static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
+    return getInstanceName(podInstance, taskSpec.getName());
+  }
 
-    @JsonProperty("goal")
-    GoalState getGoal();
+  static String getInstanceName(PodInstance podInstance, String taskName) {
+    return podInstance.getName() + "-" + taskName;
+  }
 
-    @JsonProperty("essential")
-    Boolean isEssential();
+  @JsonProperty("name")
+  String getName();
 
-    @JsonProperty("resource-set")
-    ResourceSet getResourceSet();
+  @JsonProperty("goal")
+  GoalState getGoal();
 
-    @JsonProperty("command-spec")
-    Optional<CommandSpec> getCommand();
+  @JsonProperty("essential")
+  Boolean isEssential();
 
-    @JsonProperty("health-check-spec")
-    Optional<HealthCheckSpec> getHealthCheck();
+  @JsonProperty("resource-set")
+  ResourceSet getResourceSet();
 
-    @JsonProperty("readiness-check-spec")
-    Optional<ReadinessCheckSpec> getReadinessCheck();
+  @JsonProperty("command-spec")
+  Optional<CommandSpec> getCommand();
 
-    @JsonProperty("config-files")
-    Collection<ConfigFileSpec> getConfigFiles();
+  @JsonProperty("health-check-spec")
+  Optional<HealthCheckSpec> getHealthCheck();
 
-    @JsonProperty("discovery-spec")
-    Optional<DiscoverySpec> getDiscovery();
+  @JsonProperty("readiness-check-spec")
+  Optional<ReadinessCheckSpec> getReadinessCheck();
 
-    @JsonProperty("kill-grace-period")
-    Integer getTaskKillGracePeriodSeconds();
+  @JsonProperty("config-files")
+  Collection<ConfigFileSpec> getConfigFiles();
 
-    @JsonProperty("transport-encryption")
-    Collection<TransportEncryptionSpec> getTransportEncryption();
+  @JsonProperty("discovery-spec")
+  Optional<DiscoverySpec> getDiscovery();
 
-    static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
-        return getInstanceName(podInstance, taskSpec.getName());
-    }
+  @JsonProperty("kill-grace-period")
+  Integer getTaskKillGracePeriodSeconds();
 
-    static String getInstanceName(PodInstance podInstance, String taskName) {
-        return podInstance.getName() + "-" + taskName;
-    }
+  @JsonProperty("transport-encryption")
+  Collection<TransportEncryptionSpec> getTransportEncryption();
 }

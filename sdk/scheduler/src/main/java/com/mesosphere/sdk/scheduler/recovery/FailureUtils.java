@@ -13,21 +13,21 @@ import java.util.stream.Collectors;
 /**
  * This class provides utility methods for the handling of failed Tasks.
  */
-public class FailureUtils {
+public final class FailureUtils {
 
-    private FailureUtils() {
-        // do not instantiate
-    }
+  private FailureUtils() {
+    // do not instantiate
+  }
 
-    /**
-     * Check if a Task has been marked as permanently failed.
-     *
-     * @param taskInfo The Task to check for failure.
-     * @return True if the Task has been marked, false otherwise.
-     */
-    public static boolean isPermanentlyFailed(Protos.TaskInfo taskInfo) {
-        return new TaskLabelReader(taskInfo).isPermanentlyFailed();
-    }
+  /**
+   * Check if a Task has been marked as permanently failed.
+   *
+   * @param taskInfo The Task to check for failure.
+   * @return True if the Task has been marked, false otherwise.
+   */
+  public static boolean isPermanentlyFailed(Protos.TaskInfo taskInfo) {
+    return new TaskLabelReader(taskInfo).isPermanentlyFailed();
+  }
 
     /**
      * Marks all tasks associated with this pod as failed.

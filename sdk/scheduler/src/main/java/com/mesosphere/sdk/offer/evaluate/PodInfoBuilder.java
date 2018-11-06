@@ -1,10 +1,14 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
-import com.mesosphere.sdk.offer.*;
+import com.mesosphere.sdk.offer.CommonIdUtils;
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.InvalidRequirementException;
+import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.offer.ResourceBuilder;
+import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementUtils;
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
@@ -14,16 +18,40 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.CommandSpec;
+import com.mesosphere.sdk.specification.ConfigFileSpec;
+import com.mesosphere.sdk.specification.DefaultReadinessCheckSpec;
+import com.mesosphere.sdk.specification.DiscoverySpec;
+import com.mesosphere.sdk.specification.HealthCheckSpec;
+import com.mesosphere.sdk.specification.HostVolumeSpec;
+import com.mesosphere.sdk.specification.NetworkSpec;
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.RLimitSpec;
+import com.mesosphere.sdk.specification.ReadinessCheckSpec;
+import com.mesosphere.sdk.specification.SecretSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.TreeMap;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 

@@ -7,7 +7,7 @@ import java.util.List;
  */
 public interface StageBuilder {
 
-    void addPhase(Phase phase);
+  void addPhase(Phase phase);
 
-    void setPhases(List<Phase> phases);
+  void setPhases(List<Phase> phases);
 }

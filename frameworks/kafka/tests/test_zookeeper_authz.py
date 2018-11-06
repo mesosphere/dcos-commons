@@ -6,7 +6,6 @@ import pytest
 import typing
 
 import sdk_auth
-import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
@@ -101,6 +100,7 @@ def zookeeper_service(kerberos):
             config.ZOOKEEPER_PACKAGE_NAME,
             config.ZOOKEEPER_SERVICE_NAME,
             config.ZOOKEEPER_TASK_COUNT,
+            package_version=sdk_install.PackageVersion.LATEST_UNIVERSE,
             additional_options=service_options,
             timeout_seconds=30 * 60,
             insert_strict_options=False,
@@ -173,18 +173,9 @@ def _configure_kafka_cluster(
         additional_options=service_options,
     )
 
-    kafka_server = {**service_options, **{"package_name": config.PACKAGE_NAME}}
-
-    sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "topic create {}".format(TOPIC_NAME),
-    )
-
-    kafka_client.connect()
+    kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
     # Clear the ACLs
-    kafka_client.remove_acls("authorized", TOPIC_NAME)
     return kafka_client
 
 
@@ -205,8 +196,13 @@ def _test_permissions(
 
 
 @pytest.mark.sanity
+@pytest.mark.incremental
 def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_service: typing.Dict):
     def permission_test(c: client.KafkaClient, topic_name: str):
+        # Setup topic with cleared acls
+        kafka_client.create_topic(TOPIC_NAME)
+        kafka_client.remove_acls("authorized", TOPIC_NAME)
+
         # Since no ACLs are specified, only the super user can read and write
         c.check_users_can_read_and_write(["super"], topic_name)
         c.check_users_are_not_authorized_to_read_and_write(
@@ -224,6 +220,7 @@ def test_authz_acls_required(kafka_client: client.KafkaClient, zookeeper_service
 
 
 @pytest.mark.sanity
+@pytest.mark.incremental
 def test_authz_acls_not_required(kafka_client: client.KafkaClient, zookeeper_service: typing.Dict):
     def permission_test(c: client.KafkaClient, topic_name: str):
         # Since no ACLs are specified, all users can read and write.

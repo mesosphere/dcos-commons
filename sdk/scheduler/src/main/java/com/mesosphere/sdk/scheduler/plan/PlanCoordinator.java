@@ -8,13 +8,13 @@ import java.util.List;
  */
 public interface PlanCoordinator {
 
-    /**
-     * @return The {@link Step}s which are eligible for processing.
-     */
-    List<Step> getCandidates();
+  /**
+   * @return The {@link Step}s which are eligible for processing.
+   */
+  List<Step> getCandidates();
 
-    /**
-     * @return The {@link PlanManager}s which the PlanCoordinator coordinates.
-     */
-    Collection<PlanManager> getPlanManagers();
+  /**
+   * @return The {@link PlanManager}s which the PlanCoordinator coordinates.
+   */
+  Collection<PlanManager> getPlanManagers();
 }

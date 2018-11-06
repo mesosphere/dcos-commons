@@ -1,13 +1,13 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
+import com.mesosphere.sdk.specification.NamedVIPSpec;
+
+import org.apache.mesos.Protos;
 
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import com.mesosphere.sdk.specification.NamedVIPSpec;
-import org.apache.mesos.Protos;
 
 /**
  * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement}

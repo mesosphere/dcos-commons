@@ -9,7 +9,7 @@ from typing import List
 
 
 BUILD_FOLDERS = ["cli/", "clivendor/", "govendor/", "sdk/", "testing/", "tools/"]
-BUILD_FILES = ["conftest.py", "test_requirements.txt", "Dockerfile"]
+BUILD_FILES = ["conftest.py", "test_requirements.txt", "frozen_requirements.txt", "Dockerfile"]
 
 
 def get_changed_files(git_reference: str) -> List[str]:

@@ -8,37 +8,41 @@ import java.util.List;
 /**
  * Raw YAML volume.
  */
-public class RawVolume {
+public final class RawVolume {
 
-    private final String path;
-    private final String type;
-    private final List<String> profiles;
-    private final int size;
+  private final String path;
 
-    private RawVolume(
-            @JsonProperty("path") String path,
-            @JsonProperty("type") String type,
-            @JsonProperty("profiles") List<String> profiles,
-            @JsonProperty("size") int size) {
-        this.path = path;
-        this.type = type;
-        this.profiles = profiles == null ? Collections.emptyList() : profiles;
-        this.size = size;
-    }
+  private final String type;
 
-    public String getPath() {
-        return path;
-    }
+  private final List<String> profiles;
 
-    public String getType() {
-        return type;
-    }
+  private final int size;
 
-    public List<String> getProfiles() {
-        return profiles;
-    }
+  private RawVolume(
+      @JsonProperty("path") String path,
+      @JsonProperty("type") String type,
+      @JsonProperty("profiles") List<String> profiles,
+      @JsonProperty("size") int size)
+  {
+    this.path = path;
+    this.type = type;
+    this.profiles = profiles == null ? Collections.emptyList() : profiles;
+    this.size = size;
+  }
 
-    public int getSize() {
-        return size;
-    }
+  public String getPath() {
+    return path;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public List<String> getProfiles() {
+    return profiles;
+  }
+
+  public int getSize() {
+    return size;
+  }
 }

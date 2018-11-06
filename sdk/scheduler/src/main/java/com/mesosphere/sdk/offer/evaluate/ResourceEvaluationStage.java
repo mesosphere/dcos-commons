@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.specification.ResourceSpec;
+
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
 
@@ -13,11 +14,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
- * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
- * ensuring that it contains a sufficient amount or value of the supplied {@link Resource}, and creating a
+ * This class evaluates an offer against a given
+ * {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement}, ensuring that it contains a
+ * sufficient amount or value of the supplied {@link Resource}, and creating a
  * {@link ReserveOfferRecommendation} or {@link UnreserveOfferRecommendation} where necessary.
  */
 public class ResourceEvaluationStage implements OfferEvaluationStage {
@@ -102,4 +103,14 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
         return evaluationOutcome;
     }
+
+    // Use the reservation outcome's resourceId, which is a newly generated UUID if requiredResourceId was empty.
+    OfferEvaluationUtils.setProtos(
+        podInfoBuilder,
+        ResourceBuilder.fromSpec(
+            resourceSpec, reserveEvaluationOutcome.getResourceId(), resourceNamespace).build(),
+        taskName);
+
+    return evaluationOutcome;
+  }
 }

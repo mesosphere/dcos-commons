@@ -1,16 +1,23 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.RangeUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.specification.*;
+import com.mesosphere.sdk.specification.NamedVIPSpec;
+import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.ResourceSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.specification.VolumeSpec;
 
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -49,12 +56,16 @@ class TaskResourceMapper {
         this.evaluationStages = getEvaluationStagesInternal();
     }
 
-    public List<Protos.Resource> getOrphanedResources() {
-        return orphanedResources;
-    }
+    List<OfferEvaluationStage> stages = new ArrayList<>();
 
-    public List<OfferEvaluationStage> getEvaluationStages() {
-        return evaluationStages;
+    if (!orphanedResources.isEmpty()) {
+      logger.info(
+          "Unreserving orphaned task resources no longer in TaskSpec: {}",
+          orphanedResources
+              .stream()
+              .map(TextFormat::shortDebugString)
+              .collect(Collectors.toList())
+      );
     }
 
     private List<OfferEvaluationStage> getEvaluationStagesInternal() {
@@ -177,11 +188,13 @@ class TaskResourceMapper {
         return toEvaluationStage(
                 taskSpecNames,
                 resourceSpec,
-                Optional.empty(),
-                resourceNamespace,
-                Optional.empty(),
-                Optional.empty(),
-                Optional.empty());
+                resourceId.get(),
+                ResourceMapperUtils.getNamespaceLabel(
+                    ResourceUtils.getNamespace(taskResource),
+                    resourceNamespace)
+            )
+        );
+      }
     }
 
     private static OfferEvaluationStage toEvaluationStage(
@@ -210,4 +223,5 @@ class TaskResourceMapper {
             return new ResourceEvaluationStage(resourceSpec, taskSpecNames, resourceId, resourceNamespace);
         }
     }
+  }
 }

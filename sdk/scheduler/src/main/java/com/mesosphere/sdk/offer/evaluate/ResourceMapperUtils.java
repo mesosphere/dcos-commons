@@ -4,19 +4,20 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Optional;
 
-class ResourceMapperUtils {
+final class ResourceMapperUtils {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(ResourceMapperUtils.class);
+  private static final Logger LOGGER = LoggingUtils.getLogger(ResourceMapperUtils.class);
 
-    private ResourceMapperUtils() {
-        // Do not instantiate
-    }
+  private ResourceMapperUtils() {
+    // Do not instantiate
+  }
 
     static Optional<ResourceLabels> findMatchingDiskSpec(
             Protos.Resource taskResource,
@@ -43,6 +44,25 @@ class ResourceMapperUtils {
                         ResourceUtils.getProviderId(taskResource),
                         ResourceUtils.getDiskSource(taskResource)));
     }
+    return resourceSpecs
+        .stream()
+        .filter(resourceSpec -> resourceSpec instanceof VolumeSpec &&
+            taskResource
+                .getDisk()
+                .getVolume()
+                .getContainerPath()
+                .equals(((VolumeSpec) resourceSpec).getContainerPath()))
+        .findFirst()
+        .map(resourceSpec -> new ResourceLabels(
+            resourceSpec,
+            ((VolumeSpec) resourceSpec).withDiskSize(taskResource.getScalar().getValue()),
+            ResourceUtils.getResourceId(taskResource).get(),
+            getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace),
+            ResourceUtils.getPersistenceId(taskResource),
+            ResourceUtils.getProviderId(taskResource),
+            ResourceUtils.getDiskSource(taskResource))
+        );
+  }
 
     static Optional<ResourceLabels> findMatchingResourceSpec(
             Protos.Resource taskResource,
@@ -60,6 +80,16 @@ class ResourceMapperUtils {
                         ResourceUtils.getResourceId(taskResource).get(),
                         getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace)));
     }
+    return resourceSpecs
+        .stream()
+        .filter(resourceSpec -> resourceSpec.getName().equals(taskResource.getName()))
+        .findFirst()
+        .map(resourceSpec -> new ResourceLabels(
+            resourceSpec,
+            ResourceUtils.getResourceId(taskResource).get(),
+            getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace))
+        );
+  }
 
     /**
      * @param taskResourceNamespace This is the namespace label from the Mesos
