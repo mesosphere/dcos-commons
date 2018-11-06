@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.dcos;
 
 import com.mesosphere.sdk.dcos.auth.TokenProvider;
+
 import org.apache.http.HttpRequestInterceptor;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.impl.client.HttpClientBuilder;

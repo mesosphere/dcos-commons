@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.framework;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.state.CycleDetectingLockUtils;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskID;
 import org.slf4j.Logger;

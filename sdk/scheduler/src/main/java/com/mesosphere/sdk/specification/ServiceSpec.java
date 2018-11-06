@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.specification;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.config.Configuration;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 import java.util.Optional;

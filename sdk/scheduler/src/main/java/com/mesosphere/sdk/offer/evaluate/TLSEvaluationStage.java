@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient;
@@ -13,6 +12,8 @@ import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsUpdater;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TransportEncryptionSpec;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;

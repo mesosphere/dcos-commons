@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.metrics;
 
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
-import com.mesosphere.sdk.scheduler.plan.PlanManager;
 
 import java.util.Collection;
 import java.util.Optional;

@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.state;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

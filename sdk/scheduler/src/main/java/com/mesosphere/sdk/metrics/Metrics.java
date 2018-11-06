@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.metrics;
 
+import com.mesosphere.sdk.offer.OfferRecommendation;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.plan.Status;
+
 import com.codahale.metrics.Gauge;
 import com.codahale.metrics.MetricRegistry;
 import com.codahale.metrics.Timer;
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.offer.OfferRecommendation;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.scheduler.plan.Status;
 import com.readytalk.metrics.StatsDReporter;
 import io.prometheus.client.CollectorRegistry;
 import io.prometheus.client.dropwizard.DropwizardExports;

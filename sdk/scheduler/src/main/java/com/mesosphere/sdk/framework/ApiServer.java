@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.framework;
 
-import com.codahale.metrics.jetty9.InstrumentedHandler;
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.metrics.Metrics;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+
+import com.codahale.metrics.jetty9.InstrumentedHandler;
+import com.google.common.annotations.VisibleForTesting;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.servlet.ServletContextHandler;

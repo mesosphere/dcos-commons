@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.framework;
 
-import com.codahale.metrics.Timer;
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.metrics.Metrics;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.DestroyOfferRecommendation;
@@ -19,6 +17,9 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
+
+import com.codahale.metrics.Timer;
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

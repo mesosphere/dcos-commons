@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.http;
 
-import com.google.api.client.util.IOUtils;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
+
+import com.google.api.client.util.IOUtils;
 import org.apache.commons.io.input.BoundedInputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;

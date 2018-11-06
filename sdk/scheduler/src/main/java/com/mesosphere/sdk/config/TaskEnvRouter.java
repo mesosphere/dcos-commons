@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.config;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 
 import java.util.Map;

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.dcos;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
+
 import org.slf4j.Logger;
 
 import java.util.Arrays;

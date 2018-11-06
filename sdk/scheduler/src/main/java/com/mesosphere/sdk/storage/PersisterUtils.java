@@ -9,6 +9,7 @@ import com.mesosphere.sdk.state.SchemaVersionStore;
 import com.mesosphere.sdk.state.SchemaVersionStore.SchemaVersion;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
 import org.slf4j.Logger;
 
 import java.text.SimpleDateFormat;

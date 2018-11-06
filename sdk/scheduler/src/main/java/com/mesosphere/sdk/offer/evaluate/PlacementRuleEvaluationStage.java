@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+
 import org.apache.mesos.Protos;
 
 import java.util.Collection;

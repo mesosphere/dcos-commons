@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.StoreTaskInfoRecommendation;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
+
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;

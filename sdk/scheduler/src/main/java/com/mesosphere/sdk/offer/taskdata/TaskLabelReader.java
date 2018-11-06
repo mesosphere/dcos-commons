@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.taskdata;
 
 import com.mesosphere.sdk.offer.TaskException;
+
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.Label;
 import org.apache.mesos.Protos.Labels;

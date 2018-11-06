@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.http.endpoints.ConfigResource;
@@ -45,6 +44,8 @@ import com.mesosphere.sdk.state.StateStoreException;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

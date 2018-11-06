@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.http.queries;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.RequestUtils;
 import com.mesosphere.sdk.http.ResponseUtils;
@@ -17,6 +16,8 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.json.JSONArray;
 import org.json.JSONException;

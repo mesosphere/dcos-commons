@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.ConfigurationUpdater;
 import com.mesosphere.sdk.config.DefaultConfigurationUpdater;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
@@ -61,6 +60,8 @@ import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 
 import java.time.Duration;

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer;
 
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
+
 import org.apache.mesos.Executor;
 import org.apache.mesos.Protos;
 

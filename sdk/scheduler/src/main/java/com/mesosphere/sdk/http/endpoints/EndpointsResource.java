@@ -4,6 +4,7 @@ import com.mesosphere.sdk.http.queries.EndpointsQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos.DiscoveryInfo;
 import org.apache.mesos.Protos.TaskInfo;
 

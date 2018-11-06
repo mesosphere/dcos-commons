@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.state;
 
-import com.google.common.util.concurrent.CycleDetectingLockFactory;
 import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+
+import com.google.common.util.concurrent.CycleDetectingLockFactory;
 
 import java.util.concurrent.locks.ReadWriteLock;
 

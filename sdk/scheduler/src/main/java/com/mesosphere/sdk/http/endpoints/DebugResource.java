@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.http.endpoints;
 
-import com.codahale.metrics.jvm.ThreadDump;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
+
+import com.codahale.metrics.jvm.ThreadDump;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;

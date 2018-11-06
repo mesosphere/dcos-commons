@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.http.types;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.http.ResponseUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.json.JSONArray;
 
 import javax.ws.rs.ext.ContextResolver;

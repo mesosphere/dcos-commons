@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.ReserveOfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
 import com.mesosphere.sdk.specification.ResourceSpec;
+
 import org.apache.mesos.Protos.Resource;
 import org.slf4j.Logger;
 

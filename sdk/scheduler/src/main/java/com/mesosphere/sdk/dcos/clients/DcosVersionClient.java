@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.dcos.clients;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.DcosVersion;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.http.client.fluent.Request;
 import org.json.JSONObject;
 

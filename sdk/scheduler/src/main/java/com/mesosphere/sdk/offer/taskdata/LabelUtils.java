@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.offer.taskdata;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.offer.TaskException;
+
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.mesos.Protos.HealthCheck;
 import org.apache.mesos.Protos.Label;

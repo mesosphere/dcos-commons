@@ -3,6 +3,7 @@ package com.mesosphere.sdk.storage;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.CycleDetectingLockUtils;
+
 import org.slf4j.Logger;
 
 import java.util.Collection;

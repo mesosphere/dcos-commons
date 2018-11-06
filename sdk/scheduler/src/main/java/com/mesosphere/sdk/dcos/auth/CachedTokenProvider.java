@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.dcos.auth;
 
-import com.auth0.jwt.interfaces.DecodedJWT;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.CycleDetectingLockUtils;
+
+import com.auth0.jwt.interfaces.DecodedJWT;
 
 import java.io.IOException;
 import java.time.Duration;

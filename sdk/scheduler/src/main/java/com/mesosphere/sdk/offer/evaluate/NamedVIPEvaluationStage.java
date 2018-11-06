@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
+
 import org.apache.mesos.Protos;
 
 import java.util.Collection;

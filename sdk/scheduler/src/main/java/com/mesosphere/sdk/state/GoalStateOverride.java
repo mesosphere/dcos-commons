@@ -2,6 +2,7 @@ package com.mesosphere.sdk.state;
 
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.GoalState;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 

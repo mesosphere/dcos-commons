@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.curator;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.storage.PersisterUtils;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.recipes.locks.InterProcessSemaphoreMutex;

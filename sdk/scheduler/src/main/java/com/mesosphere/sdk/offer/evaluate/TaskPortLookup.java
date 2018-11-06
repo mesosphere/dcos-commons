@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.specification.PortSpec;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 

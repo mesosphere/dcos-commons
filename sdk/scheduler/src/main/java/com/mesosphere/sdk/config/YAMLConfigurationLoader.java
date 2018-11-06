@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.config;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.mesosphere.sdk.offer.LoggingUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.text.StrLookup;
 import org.apache.commons.lang3.text.StrSubstitutor;

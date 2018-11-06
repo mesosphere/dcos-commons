@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.storage;
 
-import com.google.common.base.Splitter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.CycleDetectingLockUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
+import com.google.common.base.Splitter;
 
 import java.util.AbstractMap;
 import java.util.ArrayList;

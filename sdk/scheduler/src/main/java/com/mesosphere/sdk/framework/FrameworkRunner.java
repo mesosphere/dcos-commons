@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.framework;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
@@ -19,6 +17,9 @@ import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.TextFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;

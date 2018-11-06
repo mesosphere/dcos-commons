@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.framework;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 
 import java.time.Duration;

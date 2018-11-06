@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.framework;
 
-import com.google.protobuf.ByteString;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.mesos.HTTPAdapter.MesosToSchedulerDriverAdapter;
 import com.mesosphere.mesos.protobuf.EvolverDevolver;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+
+import com.google.protobuf.ByteString;
+import com.google.protobuf.TextFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.MesosSchedulerDriver;
 import org.apache.mesos.Protos.Credential;

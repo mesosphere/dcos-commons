@@ -1,11 +1,12 @@
 package com.mesosphere.sdk.offer.taskdata;
 
-import com.google.common.base.Splitter;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.EndpointUtils.VipInfo;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
+
+import com.google.common.base.Splitter;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Label;
 import org.slf4j.Logger;

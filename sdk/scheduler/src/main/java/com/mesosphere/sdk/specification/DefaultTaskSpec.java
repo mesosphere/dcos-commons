@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.TaskUtils;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.offer.Constants;
-import com.mesosphere.sdk.offer.TaskUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.MesosResourcePool;
+
 import org.apache.mesos.Protos;
 
 import java.util.Optional;

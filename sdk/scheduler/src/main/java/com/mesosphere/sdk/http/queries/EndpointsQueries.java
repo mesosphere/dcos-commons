@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.http.queries;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -12,6 +11,8 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
+
+import com.google.protobuf.TextFormat;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;

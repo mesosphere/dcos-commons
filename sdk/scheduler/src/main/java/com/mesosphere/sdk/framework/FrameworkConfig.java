@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.framework;
 
-import com.google.common.collect.ImmutableList;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
@@ -8,6 +7,8 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawPod;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
+
+import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 

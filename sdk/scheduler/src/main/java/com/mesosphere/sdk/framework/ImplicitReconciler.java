@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.framework;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 
 import java.util.Collections;

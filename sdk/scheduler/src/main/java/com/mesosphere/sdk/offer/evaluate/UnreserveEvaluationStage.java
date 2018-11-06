@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.MesosResource;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.UnreserveOfferRecommendation;
+
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 
 import java.util.Collections;

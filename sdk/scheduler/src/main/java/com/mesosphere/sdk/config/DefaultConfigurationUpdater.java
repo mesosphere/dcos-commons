@@ -1,9 +1,5 @@
 package com.mesosphere.sdk.config;
 
-import com.google.common.base.Joiner;
-import com.google.common.base.Splitter;
-import com.google.common.collect.Lists;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.dcos.DcosConstants;
@@ -19,6 +15,11 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
+import com.google.common.base.Joiner;
+import com.google.common.base.Splitter;
+import com.google.common.collect.Lists;
+import com.google.protobuf.TextFormat;
 import difflib.DiffUtils;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.TaskInfo;

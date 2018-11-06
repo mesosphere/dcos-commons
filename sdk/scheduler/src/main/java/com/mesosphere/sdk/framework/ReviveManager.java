@@ -3,6 +3,7 @@ package com.mesosphere.sdk.framework;
 import com.mesosphere.sdk.metrics.Metrics;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+
 import org.slf4j.Logger;
 
 /**

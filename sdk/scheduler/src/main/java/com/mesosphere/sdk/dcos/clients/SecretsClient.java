@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.dcos.clients;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.offer.LoggingUtils;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.http.HttpResponse;

@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.LoggingUtils;
@@ -28,6 +26,9 @@ import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

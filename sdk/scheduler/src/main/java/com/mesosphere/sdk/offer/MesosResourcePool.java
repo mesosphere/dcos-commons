@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.offer;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.specification.VolumeSpec;
+
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;

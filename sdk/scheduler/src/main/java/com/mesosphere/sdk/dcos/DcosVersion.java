@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.dcos;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.PlanGenerator;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 

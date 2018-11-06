@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.state;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
+import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
