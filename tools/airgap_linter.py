@@ -117,17 +117,17 @@ def validate_all_uris(framework_directory):
 def validate_images(framework_directory):
     files = get_files_to_check_for_uris(framework_directory)
 
+    bad_image = False
     for file_name in files:
         lines = readlines_if_text_file(file_name)
 
-        bad_image = False
         for line in lines:
             line = line.strip()
             if "image:" in line:
                 image_matcher = re.compile("image:\s?(.*)$", re.IGNORECASE)
                 match = image_matcher.match(line)
                 image_path = match.group(1)
-                env_var_matcher = re.compile("\{\{[A-Z0-9_]*\}\}")
+                env_var_matcher = re.compile("[\"]?\{\{[A-Z0-9_]*\}\}[\"]?")
                 if not env_var_matcher.match(image_path):
                     print(
                         """Bad image found in {}. It is a direct reference instead of a templated reference: {}
