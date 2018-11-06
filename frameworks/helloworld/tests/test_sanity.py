@@ -63,12 +63,18 @@ def test_metrics_cli_for_scheduler_metrics(configure_package):
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics_for_task_metrics(configure_package):
 
+    metric_name = "test.metrics.CamelCase"
     bash_command = sdk_cmd.get_bash_command(
-        'echo \\"test.metrics.CamelCase:1|c\\" | ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT',
+        'echo \\"{}:1|c\\" | ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT'.format(
+            metric_name
+        ),
         environment=None,
     )
 
     sdk_cmd.service_task_exec(configure_package["service"]["name"], "hello-0-server", bash_command)
+
+    def expected_metrics_exist(emitted_metrics) -> bool:
+        return sdk_metrics.check_metrics_presence(emitted_metrics, [metric_name])
 
     sdk_metrics.wait_for_service_metrics(
         configure_package["package_name"],
@@ -76,7 +82,7 @@ def test_metrics_for_task_metrics(configure_package):
         "hello-0",
         "hello-0-server",
         timeout=5 * 60,
-        expected_metrics_callback=lambda x: "test.metrics.CamelCase" in x,
+        expected_metrics_callback=expected_metrics_exist,
     )
 
 
