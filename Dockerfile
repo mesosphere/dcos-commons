@@ -1,5 +1,10 @@
 # See Dockerfile.base for instructions on how to update this base image.
-FROM mesosphere/dcos-commons-base:latest@sha256:e9f67d72aa1431f4a15544981285f028decc7507538f8e5aa8b0888a94d820c0
+# TODO: change to mesosphere/dcos-commons-base:latest@sha256:somechecksum once
+# the docker on TeamCity is recent enough. Until it happens, renovatebot will
+# not be updating this dependency.  See
+# https://mesosphere.slack.com/archives/C4E91G0CX/p1541505296001800 for more
+# background.
+FROM mesosphere/dcos-commons-base@sha256:e9f67d72aa1431f4a15544981285f028decc7507538f8e5aa8b0888a94d820c0
 
 ENV GO_VERSION=1.10.2
 ENV PATH=$PATH:/usr/local/go/bin
