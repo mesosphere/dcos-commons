@@ -25,10 +25,13 @@ def _duplicates(strings: [str]) -> [str]:
     return [s for s, v in counts.items() if v > 1]
 
 
-def _extract_info_from_url(line):
+def _process_line(line: str) -> str:
+    if not line.startswith('git+http'):
+        return line
+
     parsed = urllib.parse.urlparse(line.strip())
-    base = os.path.basename(parsed.path)
-    name = os.path.splitext(base)[0]
+    repo_and_sha = os.path.basename(parsed.path)
+    name = os.path.splitext(repo_and_sha)[0]
 
     m = _HINT_RE.match(parsed.fragment)
     if m:
@@ -40,18 +43,12 @@ def _extract_info_from_url(line):
                 return '%s===%s' % (name, version)
             else:
                 return '%s==%s' % (name, version)
-    else:
-        return name
+    return name
 
 
 def main(requirements_filename: str) -> int:
     with open(requirements_filename, 'r') as requirements_file:
-        requirement_strings = []
-        for line in requirements_file:
-            if line.startswith('git+http'):
-                requirement_strings.append(_extract_info_from_url(line))
-            else:
-                requirement_strings.append(line)
+        requirement_strings = [_process_line(line) for line in requirements_file]
         requirements = list(pkg_resources.parse_requirements(requirement_strings))
     logging.info('Loaded %d requirements from %s.', len(requirements), requirements_filename)
 
@@ -67,16 +64,16 @@ def main(requirements_filename: str) -> int:
     required_but_not_present = set(requirements).difference(set(frozen_requirements))
     present_but_not_required = [r for r in set(frozen_requirements).difference(set(requirements))
                                 if r.key not in _IGNORED_WHITELIST]
+    rc = 0
     if required_but_not_present:
         logging.error('Required but not currently present: %s', required_but_not_present)
         logging.error('Please investigate why a required module was not installed.')
+        rc += 2
     if present_but_not_required:
         logging.error('Present but not required: %s', present_but_not_required)
         logging.error('Add these to requirements_frozen.txt or ignored whitelist.')
-    if required_but_not_present or present_but_not_required:
-        return 1
-
-    return 0
+        rc += 4
+    return rc
 
 
 if __name__ == '__main__':
