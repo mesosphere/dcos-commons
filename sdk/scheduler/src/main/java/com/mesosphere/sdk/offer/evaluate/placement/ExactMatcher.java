@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 

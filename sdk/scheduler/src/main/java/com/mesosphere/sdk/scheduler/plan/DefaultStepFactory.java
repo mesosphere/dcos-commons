@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
@@ -12,6 +11,8 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.ConfigTargetStore;
 import com.mesosphere.sdk.state.StateStore;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;

@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.specification.yaml;
 
+import com.mesosphere.sdk.offer.Constants;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.mesosphere.sdk.offer.Constants;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;

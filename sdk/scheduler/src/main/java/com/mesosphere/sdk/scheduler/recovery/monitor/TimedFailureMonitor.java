@@ -8,6 +8,7 @@ import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

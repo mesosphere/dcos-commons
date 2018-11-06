@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.UninstallRecommendation;
 import com.mesosphere.sdk.scheduler.OfferResources;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

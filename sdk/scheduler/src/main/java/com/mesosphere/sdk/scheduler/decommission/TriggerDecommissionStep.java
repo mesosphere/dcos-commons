@@ -4,6 +4,7 @@ import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallStep;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 
 import java.util.Optional;

@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.recovery.monitor;
 
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
+
 import org.apache.mesos.Protos;
 
 /**

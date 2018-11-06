@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.bouncycastle.asn1.pkcs.PKCSObjectIdentifiers;
 import org.bouncycastle.asn1.x509.ExtendedKeyUsage;
 import org.bouncycastle.asn1.x509.Extension;

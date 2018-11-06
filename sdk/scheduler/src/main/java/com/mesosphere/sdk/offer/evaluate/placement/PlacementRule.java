@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 

@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.scheduler.multi;
 
-import com.google.common.base.Splitter;
-import com.google.common.collect.ImmutableSet;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
+import com.google.common.base.Splitter;
+import com.google.common.collect.ImmutableSet;
 import jersey.repackaged.com.google.common.base.Joiner;
 
 import java.nio.charset.Charset;

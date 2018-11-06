@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
 import com.mesosphere.sdk.specification.TransportEncryptionSpec;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.stream.Collectors;

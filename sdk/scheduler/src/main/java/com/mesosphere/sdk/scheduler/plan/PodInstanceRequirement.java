@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 

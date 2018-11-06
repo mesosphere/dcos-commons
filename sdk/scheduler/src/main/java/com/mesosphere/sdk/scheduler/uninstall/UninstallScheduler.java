@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.http.endpoints.DeprecatedPlanResource;
@@ -24,6 +23,8 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

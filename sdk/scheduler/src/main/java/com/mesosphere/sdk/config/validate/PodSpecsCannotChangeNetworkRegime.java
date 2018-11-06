@@ -4,6 +4,7 @@ import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.specification.NetworkSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

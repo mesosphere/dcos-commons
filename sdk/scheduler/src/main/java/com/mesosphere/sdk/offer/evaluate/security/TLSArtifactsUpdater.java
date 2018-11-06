@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.LoggingUtils;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
 
 import java.util.Collection;

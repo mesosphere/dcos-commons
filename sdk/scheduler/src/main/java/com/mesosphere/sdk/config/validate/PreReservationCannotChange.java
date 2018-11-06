@@ -2,6 +2,7 @@ package com.mesosphere.sdk.config.validate;
 
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;

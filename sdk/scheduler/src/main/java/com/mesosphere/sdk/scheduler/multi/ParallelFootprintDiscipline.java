@@ -5,6 +5,7 @@ import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+
 import org.slf4j.Logger;
 
 import java.util.Collection;

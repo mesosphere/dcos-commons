@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.specification.PodSpec;
+
 import org.apache.mesos.Protos;
 
 import java.util.ArrayList;

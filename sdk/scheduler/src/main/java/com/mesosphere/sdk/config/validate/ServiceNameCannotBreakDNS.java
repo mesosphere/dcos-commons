@@ -3,6 +3,7 @@ package com.mesosphere.sdk.config.validate;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
+
 import org.slf4j.Logger;
 
 import java.util.Collection;

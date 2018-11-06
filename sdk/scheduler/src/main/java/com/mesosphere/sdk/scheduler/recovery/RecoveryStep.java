@@ -6,6 +6,7 @@ import com.mesosphere.sdk.scheduler.plan.DeploymentStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 

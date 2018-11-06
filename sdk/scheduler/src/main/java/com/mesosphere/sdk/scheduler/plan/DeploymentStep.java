@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
@@ -11,6 +9,9 @@ import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 
 import java.util.ArrayList;

@@ -1,7 +1,8 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;

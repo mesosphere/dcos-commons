@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;

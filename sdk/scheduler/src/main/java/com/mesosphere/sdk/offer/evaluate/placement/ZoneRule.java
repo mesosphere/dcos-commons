@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.specification.PodInstance;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.TaskInfo;

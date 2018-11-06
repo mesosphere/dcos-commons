@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.scheduler.plan.AbstractStep;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
+
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 
 import java.util.Collection;

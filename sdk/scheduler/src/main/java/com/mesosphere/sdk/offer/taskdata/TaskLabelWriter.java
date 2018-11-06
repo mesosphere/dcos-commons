@@ -1,9 +1,8 @@
 package com.mesosphere.sdk.offer.taskdata;
 
-import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting;
-
 import com.mesosphere.sdk.offer.TaskException;
 
+import com.google.api.client.repackaged.com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Attribute;
 import org.apache.mesos.Protos.HealthCheck;

@@ -22,6 +22,7 @@ import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;

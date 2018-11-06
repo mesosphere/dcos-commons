@@ -5,6 +5,7 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
+
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
 import org.bouncycastle.asn1.x500.style.BCStyle;

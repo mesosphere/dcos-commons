@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+
 import org.apache.mesos.Protos.TaskStatus;
 
 import java.util.List;

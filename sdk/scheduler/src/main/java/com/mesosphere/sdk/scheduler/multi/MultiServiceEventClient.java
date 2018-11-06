@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.scheduler.multi;
 
-import com.google.common.annotations.VisibleForTesting;
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.MultiArtifactResource;
 import com.mesosphere.sdk.http.endpoints.MultiConfigResource;
@@ -27,6 +25,9 @@ import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
 import com.mesosphere.sdk.storage.Persister;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

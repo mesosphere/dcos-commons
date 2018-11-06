@@ -1,13 +1,14 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.evaluate.EvaluationOutcome;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ValidationUtils;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.TaskInfo;
 import org.slf4j.Logger;

@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

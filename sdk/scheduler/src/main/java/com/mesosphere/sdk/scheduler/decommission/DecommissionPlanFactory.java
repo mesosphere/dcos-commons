@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.decommission;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.ResourceUtils;
@@ -18,6 +17,8 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import com.mesosphere.sdk.state.StateStore;
+
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;

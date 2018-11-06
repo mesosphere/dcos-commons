@@ -5,6 +5,7 @@ import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Arrays;

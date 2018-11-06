@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.scheduler.uninstall.ResourceCleanupStep;
+
 import org.apache.mesos.Protos;
 
 import java.util.Collection;

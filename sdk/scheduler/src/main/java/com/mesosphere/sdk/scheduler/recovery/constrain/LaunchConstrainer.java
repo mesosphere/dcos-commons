@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.recovery.constrain;
 
 import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+
 import org.apache.mesos.Protos.Offer.Operation;
 
 /**

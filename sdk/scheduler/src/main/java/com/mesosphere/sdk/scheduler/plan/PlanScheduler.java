@@ -8,6 +8,7 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 

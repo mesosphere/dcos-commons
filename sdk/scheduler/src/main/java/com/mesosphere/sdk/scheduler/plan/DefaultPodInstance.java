@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
+
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 

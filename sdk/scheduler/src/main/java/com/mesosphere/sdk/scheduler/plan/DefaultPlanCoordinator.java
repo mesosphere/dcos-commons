@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.LoggingUtils;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.slf4j.Logger;
 

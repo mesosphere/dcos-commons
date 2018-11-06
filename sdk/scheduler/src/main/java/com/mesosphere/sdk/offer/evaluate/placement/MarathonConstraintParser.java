@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.offer.evaluate.placement;
 
+import com.mesosphere.sdk.offer.LoggingUtils;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
-import com.mesosphere.sdk.offer.LoggingUtils;
 import jersey.repackaged.com.google.common.collect.Lists;
 import org.slf4j.Logger;
 

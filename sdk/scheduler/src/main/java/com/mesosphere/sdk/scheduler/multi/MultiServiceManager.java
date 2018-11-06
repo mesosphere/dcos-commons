@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.multi;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
@@ -9,6 +8,8 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler;
 import com.mesosphere.sdk.state.CycleDetectingLockUtils;
+
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
