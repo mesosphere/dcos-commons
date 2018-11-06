@@ -1,67 +1,70 @@
 package com.mesosphere.sdk.http.types;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
-import com.mesosphere.sdk.scheduler.plan.Step;
 
 /**
  * Immutable JSON serialization object for a {@link Step}.
  */
-class StepInfo {
-    private final String id;
-    private final String status;
-    private final String name;
-    private final String message;
+final class StepInfo {
+  private final String id;
 
-    public static StepInfo forStep(final Step step) {
-        return new StepInfo(
-                step.getId().toString(),
-                step.getDisplayStatus(),
-                step.getName(),
-                step.getMessage());
-    }
+  private final String status;
 
-    private StepInfo(final String id, final String status, final String name, final String message) {
-        this.id = id;
-        this.status = status;
-        this.name = name;
-        this.message = message;
-    }
+  private final String name;
 
-    @JsonProperty("id")
-    public String getId() {
-        return id;
-    }
+  private final String message;
 
-    @JsonProperty("message")
-    public String getMessage() {
-        return message;
-    }
+  private StepInfo(final String id, final String status, final String name, final String message) {
+    this.id = id;
+    this.status = status;
+    this.name = name;
+    this.message = message;
+  }
 
-    @JsonProperty("name")
-    public String getName() {
-        return name;
-    }
+  public static StepInfo forStep(final Step step) {
+    return new StepInfo(
+        step.getId().toString(),
+        step.getDisplayStatus(),
+        step.getName(),
+        step.getMessage());
+  }
 
-    @JsonProperty("status")
-    public String getStatus() {
-        return status;
-    }
+  @JsonProperty("id")
+  public String getId() {
+    return id;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
+  @JsonProperty("message")
+  public String getMessage() {
+    return message;
+  }
 
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
+  @JsonProperty("name")
+  public String getName() {
+    return name;
+  }
 
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
+  @JsonProperty("status")
+  public String getStatus() {
+    return status;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+
+  @Override
+  public String toString() {
+    return ReflectionToStringBuilder.toString(this);
+  }
 }

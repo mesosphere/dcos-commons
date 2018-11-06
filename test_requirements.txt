@@ -14,6 +14,9 @@ toolz==0.9.0
 git+https://github.com/dcos/dcos-test-utils.git@3ebfc18ff9c5a1aa382311474a9192a68c98b0a7
 git+https://github.com/dcos/dcos-launch.git@dc1e116685fba5105f322b007549b7eb104cf441
 
+# AWS CLI for uploading build artifacts
+awscli
+
 # CI:
 teamcity-messages
 

@@ -1,141 +1,148 @@
 package com.mesosphere.sdk.framework;
 
-import org.slf4j.Logger;
-
-import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.metrics.Metrics;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import org.slf4j.Logger;
 
 /**
  * Handles scheduling of Mesos suppress and revive calls.
- *
- * NOTE: Does not protect against multithreaded access. All calls should only be made on a single thread, separate from
- * the thread that receives offers. Otherwise there is a risk of a deadlock because SchedulerDriver.reviveOffers() can
- * block on sending us new offers.
+ * <p>
+ * NOTE: Does not protect against multithreaded access. All calls should only be made on a single
+ * thread, separate from the thread that receives offers. Otherwise there is a risk of a deadlock
+ * because SchedulerDriver.reviveOffers() can block on sending us new offers.
  *
  * <ul>
- * <li>Suppress is performed whenever the underlying services are all idle and no further offers are needed. This allows
- * Mesos to scale to more frameworks. When the framework is suppressed, it will not receive any offers for any reason.
+ * <li>Suppress is performed whenever the underlying services are all idle and no further offers are
+ * needed. This allows Mesos to scale to more frameworks. When the framework is suppressed, it
+ * will not receive any offers for any reason.
  * </li>
- * <li>From our perspective, a Revive call will reset any prior Suppress call, and/or reset any offers which were
- * previously declined, resulting in all offers being sent again. It should be invoked when any new work has appeared,
+ * <li>From our perspective, a Revive call will reset any prior Suppress call, and/or reset any
+ * offers which were previously declined, resulting in all offers being sent again. It should be
+ * invoked when any new work has appeared,
  * but Revive calls should be rate limited to avoid taxing Mesos.</li>
  * </ul>
  */
 class ReviveManager {
 
-    private static final Logger LOGGER = LoggingUtils.getLogger(ReviveManager.class);
+  private static final Logger LOGGER = LoggingUtils.getLogger(ReviveManager.class);
 
-    // Rate limiter for revive calls.
-    private final TokenBucket reviveTokenBucket;
-    // Whether suppress calls are enabled. We still 'simulate' suppress behavior internally, even when this is disabled.
-    private final boolean suppressEnabled;
+  // Rate limiter for revive calls.
+  private final TokenBucket reviveTokenBucket;
 
-    // Whether we have had new work appear since the last time revive was called:
-    private boolean reviveRequested;
-    // Whether we think that we have suppressed offers from Mesos due to an idle state on our end:
-    private boolean isSuppressed;
+  // Whether suppress calls are enabled. We still 'simulate' suppress behavior internally,
+  // even when this is disabled.
+  private final boolean suppressEnabled;
 
-    ReviveManager(TokenBucket reviveTokenBucket, SchedulerConfig schedulerConfig) {
-        this.reviveTokenBucket = reviveTokenBucket;
-        this.suppressEnabled = schedulerConfig.isSuppressEnabled();
-        this.reviveRequested = false;
-        this.isSuppressed = false;
+  // Whether we have had new work appear since the last time revive was called:
+  private boolean reviveRequested;
+
+  // Whether we think that we have suppressed offers from Mesos due to an idle state on our end:
+  private boolean isSuppressed;
+
+  ReviveManager(TokenBucket reviveTokenBucket, SchedulerConfig schedulerConfig) {
+    this.reviveTokenBucket = reviveTokenBucket;
+    this.suppressEnabled = schedulerConfig.isSuppressEnabled();
+    this.reviveRequested = false;
+    this.isSuppressed = false;
+  }
+
+  /**
+   * Notifies the manager that we are no longer suppressed. This should be called whenever offers
+   * are received from Mesos. This confirmation is done separately from the revive call to avoid
+   * the possibility of the following
+   * scenario:
+   *
+   * <ol>
+   * <li>Offers are suppressed</li>
+   * <li>A revive call is issued</li>
+   * <li>The revive call fails or is lost for any reason</li>
+   * <li>We continue to be suppressed, even though we think we issued a revive...</li>
+   * </ol>
+   * <p>
+   * In practice, there isn't a confirmed case of this ever happening, but it doesn't hurt to be
+   * conservative here, because we cannot deterministically tell if we are actually suppressed or
+   * not. This logic could be revisited if Mesos someday offers a call which tells us whether or
+   * not we're suppressed.
+   * <p>
+   * Note that this also ensures that by flipping the {@code isSuppressed} flag if we receive an
+   * offer when we SHOULD BE suppressed, we are ensuring that the future calls to {@code
+   * suppressIfActive} would reissue SUPPRESS.
+   */
+  void notifyOffersReceived() {
+    isSuppressed = false;
+    Metrics.notSuppressed();
+  }
+
+  /**
+   * Issues a call to suppress offers, but only if the service does not already appear to be suppressed.
+   * This should be invoked when the service(s) are all in an IDLE state, so that the offer stream may be temporarily
+   * halted.
+   */
+  void suppressIfActive() {
+    if (isSuppressed) {
+      // Service doesn't need offers, but offers are already suppressed. Avoid duplicate suppress call.
+      return;
     }
 
-    /**
-     * Notifies the manager that we are no longer suppressed. This should be called whenever offers are received from
-     * Mesos. This confirmation is done separately from the revive call to avoid the possibility of the following
-     * scenario:
-     *
-     * <ol>
-     * <li>Offers are suppressed</li>
-     * <li>A revive call is issued</li>
-     * <li>The revive call fails or is lost for any reason</li>
-     * <li>We continue to be suppressed, even though we think we issued a revive...</li>
-     * </ol>
-     *
-     * In practice, there isn't a confirmed case of this ever happening, but it doesn't hurt to be conservative here,
-     * because we cannot deterministically tell if we are actually suppressed or not. This logic could be revisited if
-     * Mesos someday offers a call which tells us whether or not we're suppressed.
-     *
-     * Note that this also ensures that by flipping the {@code isSuppressed} flag if we receive an offer when we
-     * SHOULD BE suppressed, we are ensuring that the future calls to {@code suppressIfActive} would reissue SUPPRESS.
-     */
-    void notifyOffersReceived() {
-        isSuppressed = false;
-        Metrics.notSuppressed();
+    // Service doesn't need offers, and offers are not suppressed. Suppress.
+    if (suppressEnabled) {
+      LOGGER.info("Suppressing offers");
+      Driver.getInstance().suppressOffers();
+      Metrics.incrementSuppresses();
+    } else {
+      LOGGER.info("Refraining from suppressing offers (disabled via DISABLE_SUPPRESS)");
     }
 
-    /**
-     * Issues a call to suppress offers, but only if the service does not already appear to be suppressed.
-     * This should be invoked when the service(s) are all in an IDLE state, so that the offer stream may be temporarily
-     * halted.
-     */
-    void suppressIfActive() {
-        if (isSuppressed) {
-            // Service doesn't need offers, but offers are already suppressed. Avoid duplicate suppress call.
-            return;
-        }
+    isSuppressed = true;
+  }
 
-        // Service doesn't need offers, and offers are not suppressed. Suppress.
-        if (suppressEnabled) {
-            LOGGER.info("Suppressing offers");
-            Driver.getInstance().suppressOffers();
-            Metrics.incrementSuppresses();
-        } else {
-            LOGGER.info("Refraining from suppressing offers (disabled via DISABLE_SUPPRESS)");
-        }
+  /**
+   * Notifies the manager that a revive should be sent, but only if we're currently suppressed.
+   * This should be invoked when the service(s) are in a WORKING state, so that any suppressed state gets cleared.
+   */
+  void requestReviveIfSuppressed() {
+    if (!isSuppressed) {
+      // Not suppressed, skip.
+      return;
+    }
+    requestRevive();
+  }
 
-        isSuppressed = true;
+  /**
+   * Notifies the manager that a revive should be sent soon. This is needed in either of the following cases:
+   * <ul>
+   * <li>The service has new work to do and any previously declined offers should be sent again</li>
+   * <li>Offers are suppressed but the service is not idle (via {@link #requestReviveIfSuppressed()}</li>
+   * </ul>
+   */
+  void requestRevive() {
+    reviveRequested = true;
+  }
+
+  /**
+   * Pings the manager to perform a revive call to Mesos if one was previously requested. This must be invoked
+   * periodically to trigger revives. This structure allows us to enforce a rate limit on revive calls.
+   */
+  void reviveIfRequested() {
+    if (!reviveRequested) {
+      return;
     }
 
-    /**
-     * Notifies the manager that a revive should be sent, but only if we're currently suppressed.
-     * This should be invoked when the service(s) are in a WORKING state, so that any suppressed state gets cleared.
-     */
-    void requestReviveIfSuppressed() {
-        if (!isSuppressed) {
-            // Not suppressed, skip.
-            return;
-        }
-        requestRevive();
+    if (!reviveTokenBucket.tryAcquire()) {
+      LOGGER.info("Revive attempt has been throttled");
+      Metrics.incrementReviveThrottles();
+      return;
     }
 
-    /**
-     * Notifies the manager that a revive should be sent soon. This is needed in either of the following cases:
-     * <ul>
-     * <li>The service has new work to do and any previously declined offers should be sent again</li>
-     * <li>Offers are suppressed but the service is not idle (via {@link #requestReviveIfSuppressed()}</li>
-     * </ul>
-     */
-    void requestRevive() {
-        reviveRequested = true;
-    }
+    LOGGER.info("Reviving offers");
+    Driver.getInstance().reviveOffers();
+    reviveRequested = false;
 
-    /**
-     * Pings the manager to perform a revive call to Mesos if one was previously requested. This must be invoked
-     * periodically to trigger revives. This structure allows us to enforce a rate limit on revive calls.
-     */
-    void reviveIfRequested() {
-        if (!reviveRequested) {
-            return;
-        }
+    // NOTE: We intentionally do not clear isSuppressed here. Instead, we wait until we've actually received new
+    // offers. This is a 'just in case' measure to avoid a zombie state if the revive call is dropped. In practice,
+    // there isn't a confirmed case of this ever happening, but it doesn't hurt to be conservative here.
 
-        if (!reviveTokenBucket.tryAcquire()) {
-            LOGGER.info("Revive attempt has been throttled");
-            Metrics.incrementReviveThrottles();
-            return;
-        }
-
-        LOGGER.info("Reviving offers");
-        Driver.getInstance().reviveOffers();
-        reviveRequested = false;
-
-        // NOTE: We intentionally do not clear isSuppressed here. Instead, we wait until we've actually received new
-        // offers. This is a 'just in case' measure to avoid a zombie state if the revive call is dropped. In practice,
-        // there isn't a confirmed case of this ever happening, but it doesn't hurt to be conservative here.
-
-        Metrics.incrementRevives();
-    }
+    Metrics.incrementRevives();
+  }
 }

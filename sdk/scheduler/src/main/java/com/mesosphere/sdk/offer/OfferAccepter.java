@@ -3,12 +3,16 @@ package com.mesosphere.sdk.offer;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.framework.Driver;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 /**
@@ -16,72 +20,76 @@ import java.util.stream.Collectors;
  * Operations.
  */
 public class OfferAccepter {
-    private static final Logger LOGGER = LoggingUtils.getLogger(OfferAccepter.class);
-    /**
-     * Tell Mesos to consider unused resources as refused for 1 second.
-     */
-    private static final Protos.Filters FILTERS = Protos.Filters.newBuilder().setRefuseSeconds(1).build();
+  private static final Logger LOGGER = LoggingUtils.getLogger(OfferAccepter.class);
 
-    public void accept(List<OfferRecommendation> recommendations) {
-        if (CollectionUtils.isEmpty(recommendations)) {
-            return;
-        }
+  /**
+   * Tell Mesos to consider unused resources as refused for 1 second.
+   */
+  private static final Protos.Filters FILTERS =
+      Protos.Filters.newBuilder().setRefuseSeconds(1).build();
 
-        // Group recommendations by agent: Mesos requires that acceptOffers() only applies to a single agent at a time.
-        // Note that ORDERING IS IMPORTANT:
-        //    The resource lifecycle is RESERVE -> CREATE -> DESTROY -> UNRESERVE
-        //    Therefore we must preserve ordering within each per-agent set of operations.
-        final Map<String, List<OfferRecommendation>> recsByAgent = groupByAgent(recommendations);
-        for (Map.Entry<String, List<OfferRecommendation>> agentRecs : recsByAgent.entrySet()) {
-            Collection<Protos.Offer.Operation> operations = new ArrayList<>();
-            Collection<Protos.OfferID> offerIds = new HashSet<>();
-            for (OfferRecommendation rec : agentRecs.getValue()) {
-                rec.getOperation().ifPresent(operation -> {
-                    // Note: We ensure that we only include the offerids for recommendations with operations to perform:
-                    operations.add(rec.getOperation().get());
-                    offerIds.add(rec.getOfferId());
-                });
-            }
+  /**
+   * Groups recommendations by agent, while preserving their existing order.
+   */
+  @VisibleForTesting
+  protected static Map<String, List<OfferRecommendation>> groupByAgent(
+      List<OfferRecommendation> recommendations)
+  {
+    // Use TreeMap for consistent ordering. Not required but simplifies testing, and nice to have consistent output.
+    final Map<String, List<OfferRecommendation>> recommendationsByAgent = new TreeMap<>();
+    for (OfferRecommendation recommendation : recommendations) {
+      final String agentId = recommendation.getAgentId().getValue();
+      List<OfferRecommendation> agentRecommendations =
+          recommendationsByAgent.computeIfAbsent(agentId, k -> new ArrayList<>());
+      agentRecommendations.add(recommendation);
+    }
+    return recommendationsByAgent;
+  }
 
-            int skippedOperations = operations.size() - agentRecs.getValue().size();
-            if (skippedOperations != 0) {
-                LOGGER.info("Skipping {} recommendations with no operation", skippedOperations);
-            }
-            logOperations(agentRecs.getKey(), offerIds, operations);
-            Driver.getInstance().acceptOffers(offerIds, operations, FILTERS);
-        }
+  private static void logOperations(
+      String agentId,
+      Collection<Protos.OfferID> offerIds,
+      Collection<Protos.Offer.Operation> operations)
+  {
+    LOGGER.info("Accepting {} offer{} for agent {} with {} operation{}: {}",
+        offerIds.size(),
+        offerIds.size() == 1 ? "" : "s",
+        agentId,
+        operations.size(),
+        operations.size() == 1 ? "" : "s",
+        offerIds.stream().map(Protos.OfferID::getValue).collect(Collectors.toSet()));
+    for (Protos.Offer.Operation op : operations) {
+      LOGGER.info("  {}", TextFormat.shortDebugString(op));
+    }
+  }
+
+  public void accept(List<OfferRecommendation> recommendations) {
+    if (CollectionUtils.isEmpty(recommendations)) {
+      return;
     }
 
-    /**
-     * Groups recommendations by agent, while preserving their existing order.
-     */
-    @VisibleForTesting
-    protected static Map<String, List<OfferRecommendation>> groupByAgent(List<OfferRecommendation> recommendations) {
-        // Use TreeMap for consistent ordering. Not required but simplifies testing, and nice to have consistent output.
-        final Map<String, List<OfferRecommendation>> recommendationsByAgent = new TreeMap<>();
-        for (OfferRecommendation recommendation : recommendations) {
-            final String agentId = recommendation.getAgentId().getValue();
-            List<OfferRecommendation> agentRecommendations = recommendationsByAgent.get(agentId);
-            if (agentRecommendations == null) {
-                agentRecommendations = new ArrayList<>();
-                recommendationsByAgent.put(agentId, agentRecommendations);
-            }
-            agentRecommendations.add(recommendation);
-        }
-        return recommendationsByAgent;
-    }
+    // Group recommendations by agent: Mesos requires that acceptOffers() only applies to a single agent at a time.
+    // Note that ORDERING IS IMPORTANT:
+    //    The resource lifecycle is RESERVE -> CREATE -> DESTROY -> UNRESERVE
+    //    Therefore we must preserve ordering within each per-agent set of operations.
+    final Map<String, List<OfferRecommendation>> recsByAgent = groupByAgent(recommendations);
+    for (Map.Entry<String, List<OfferRecommendation>> agentRecs : recsByAgent.entrySet()) {
+      Collection<Protos.Offer.Operation> operations = new ArrayList<>();
+      Collection<Protos.OfferID> offerIds = new HashSet<>();
+      for (OfferRecommendation rec : agentRecs.getValue()) {
+        rec.getOperation().ifPresent(operation -> {
+          // Note: We ensure that we only include the offerids for recommendations with operations to perform:
+          operations.add(rec.getOperation().get());
+          offerIds.add(rec.getOfferId());
+        });
+      }
 
-    private static void logOperations(
-            String agentId, Collection<Protos.OfferID> offerIds, Collection<Protos.Offer.Operation> operations) {
-        LOGGER.info("Accepting {} offer{} for agent {} with {} operation{}: {}",
-                offerIds.size(),
-                offerIds.size() == 1 ? "" : "s",
-                agentId,
-                operations.size(),
-                operations.size() == 1 ? "" : "s",
-                offerIds.stream().map(Protos.OfferID::getValue).collect(Collectors.toSet()));
-        for (Protos.Offer.Operation op : operations) {
-            LOGGER.info("  {}", TextFormat.shortDebugString(op));
-        }
+      int skippedOperations = operations.size() - agentRecs.getValue().size();
+      if (skippedOperations != 0) {
+        LOGGER.info("Skipping {} recommendations with no operation", skippedOperations);
+      }
+      logOperations(agentRecs.getKey(), offerIds, operations);
+      Driver.getInstance().acceptOffers(offerIds, operations, FILTERS);
     }
+  }
 }

@@ -7,6 +7,7 @@
 /logs
 
 !test_requirements.txt
+!frozen_requirements.txt
 !test_runner.sh
 !/tools/ci
 !test.sh

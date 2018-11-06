@@ -7,27 +7,27 @@ package com.mesosphere.sdk.specification;
  */
 public interface PodInstance {
 
-    /**
-     * The specification that defines this pod instance.
-     */
-    PodSpec getPod();
+  /**
+   * The specification that defines this pod instance.
+   */
+  PodSpec getPod();
 
-    /**
-     * The index of this pod instance. Each pod instance has a unique index, starting at zero.
-     */
-    int getIndex();
+  /**
+   * The index of this pod instance. Each pod instance has a unique index, starting at zero.
+   */
+  int getIndex();
 
-    default String getName() {
-        return getName(getPod().getType(), getIndex());
-    }
+  static String getName(String podType, int index) {
+    return String.format("%s-%d", podType, index);
+  }
 
-    public static String getName(String podType, int index) {
-        return String.format("%s-%d", podType, index);
-    }
+  default String getName() {
+    return getName(getPod().getType(), getIndex());
+  }
 
-    default boolean conflictsWith(PodInstance podInstance) {
-        boolean sameType = podInstance.getPod().getType().equals(getPod().getType());
-        boolean sameIndex = podInstance.getIndex() == getIndex();
-        return sameType && sameIndex;
-    }
+  default boolean conflictsWith(PodInstance podInstance) {
+    boolean sameType = podInstance.getPod().getType().equals(getPod().getType());
+    boolean sameIndex = podInstance.getIndex() == getIndex();
+    return sameType && sameIndex;
+  }
 }

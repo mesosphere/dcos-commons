@@ -8,7 +8,7 @@ import sdk_plan
 import sdk_security
 import sdk_utils
 
-from tests import config, test_utils
+from tests import config, client
 
 
 pytestmark = pytest.mark.skip(reason="INFINITY-3363: Skipping test until it is better implemented")
@@ -55,8 +55,18 @@ def zookeeper_service(configure_security):
         sdk_security.cleanup_security(config.ZOOKEEPER_SERVICE_NAME, service_account_info)
 
 
+@pytest.fixture(scope="module")
+def kafka_client():
+    try:
+        kafka_client = client.KafkaClient("kafka-client", config.PACKAGE_NAME, config.SERVICE_NAME)
+        kafka_client.install()
+        yield kafka_client
+    finally:
+        kafka_client.uninstall()
+
+
 @pytest.fixture(scope="module", autouse=True)
-def kafka_server(zookeeper_service):
+def kafka_server(zookeeper_service, kafka_client):
     try:
 
         # Get the zookeeper DNS values
@@ -74,7 +84,7 @@ def kafka_server(zookeeper_service):
         )
 
         # wait for brokers to finish registering before starting tests
-        test_utils.broker_count_check(config.DEFAULT_BROKER_COUNT, service_name=config.SERVICE_NAME)
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
 
         yield  # let the test session execute
     finally:
@@ -83,7 +93,7 @@ def kafka_server(zookeeper_service):
 
 @pytest.mark.sanity
 @pytest.mark.zookeeper
-def test_zookeeper_reresolution(kafka_server):
+def test_zookeeper_reresolution():
 
     # First get the last logs lines for the kafka brokers
     broker_log_line = []

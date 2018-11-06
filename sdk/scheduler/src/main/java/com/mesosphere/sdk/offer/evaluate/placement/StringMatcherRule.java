@@ -13,43 +13,48 @@ import java.util.Collection;
  * of some key (e.g. attribute, hostname, region, zone ...).
  */
 public abstract class StringMatcherRule implements PlacementRule {
-    private final StringMatcher matcher;
-    private final String name;
+  private final StringMatcher matcher;
 
-    protected StringMatcherRule(String name, StringMatcher matcher) {
-        this.name = name;
-        this.matcher = matcher;
+  private final String name;
+
+  protected StringMatcherRule(String name, StringMatcher matcher) {
+    this.name = name;
+    this.matcher = matcher;
+  }
+
+  @JsonProperty("matcher")
+  protected StringMatcher getMatcher() {
+    return matcher;
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+
+  @Override
+  public String toString() {
+    return String.format("%s{matcher=%s}", name, matcher);
+  }
+
+  public abstract Collection<String> getKeys(Protos.Offer offer);
+
+  protected boolean isAcceptable(
+      Protos.Offer offer,
+      PodInstance podInstance,
+      Collection<Protos.TaskInfo> tasks)
+  {
+    for (String key : getKeys(offer)) {
+      if (getMatcher().matches(key)) {
+        return true;
+      }
     }
 
-    @JsonProperty("matcher")
-    protected StringMatcher getMatcher() {
-        return matcher;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
-
-    @Override
-    public String toString() {
-        return String.format("%s{matcher=%s}", name, matcher);
-    }
-
-    public abstract Collection<String> getKeys(Protos.Offer offer);
-
-    protected boolean isAcceptable(Protos.Offer offer, PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
-        for (String key : getKeys(offer)) {
-            if (getMatcher().matches(key)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    return false;
+  }
 }

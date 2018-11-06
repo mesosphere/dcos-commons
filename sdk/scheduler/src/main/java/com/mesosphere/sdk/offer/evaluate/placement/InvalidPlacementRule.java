@@ -16,51 +16,68 @@ import java.util.Collections;
  * An implementation of a {@PlacementRule} that is ALWAYS invalid.
  */
 public class InvalidPlacementRule implements PlacementRule {
-    private final String constraints;
-    private final String exception;
+  private final String constraints;
 
-    @JsonCreator
-    public InvalidPlacementRule(
-            @JsonProperty("constraints ") String constraints,
-            @JsonProperty("exception") String exception) {
-        this.constraints = constraints;
-        this.exception = exception;
-    }
+  private final String exception;
 
-    @Override
-    public EvaluationOutcome filter(Offer offer, PodInstance podInstance, Collection<TaskInfo> tasks) {
-        return EvaluationOutcome.fail(this,
-                String.format("Invalid placement constraints for %s: %s", podInstance.getName(), constraints)).build();
-    }
+  @JsonCreator
+  public InvalidPlacementRule(
+      @JsonProperty("constraints ") String constraints,
+      @JsonProperty("exception") String exception)
+  {
+    this.constraints = constraints;
+    this.exception = exception;
+  }
 
-    @Override
-    public String toString() {
-        return String.format("InvalidPlacementRule{constraints=%s, exception=%s}", constraints, exception);
-    }
+  @Override
+  public EvaluationOutcome filter(
+      Offer offer,
+      PodInstance podInstance,
+      Collection<TaskInfo> tasks)
+  {
+    return EvaluationOutcome
+        .fail(
+            this,
+            String.format(
+                "Invalid placement constraints for %s: %s",
+                podInstance.getName(),
+                constraints
+            )
+        ).build();
+  }
 
-    @Override
-    public Collection<PlacementField> getPlacementFields() {
-        return Collections.emptyList();
-    }
+  @Override
+  public String toString() {
+    return String.format(
+        "InvalidPlacementRule{constraints=%s, exception=%s}",
+        constraints,
+        exception
+    );
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
+  @Override
+  public Collection<PlacementField> getPlacementFields() {
+    return Collections.emptyList();
+  }
 
-    @JsonProperty("constraints")
-    public String getConstraints() {
-        return constraints;
-    }
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
 
-    @JsonProperty("exception")
-    public String getException() {
-        return exception;
-    }
+  @JsonProperty("constraints")
+  public String getConstraints() {
+    return constraints;
+  }
 
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
+  @JsonProperty("exception")
+  public String getException() {
+    return exception;
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
 
 }

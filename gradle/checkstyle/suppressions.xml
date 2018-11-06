@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE suppressions PUBLIC
+        "-//Checkstyle//DTD SuppressionFilter Configuration 1.2//EN"
+        "https://checkstyle.org/dtds/suppressions_1_2.dtd">
+<suppressions>
+    <!-- Checks disabled for specification -->
+    <suppress checks="MethodCount" files=".*[\\/]com[\\/]mesosphere[\\/]sdk[\\/]specification[\\/]"/>
+    <suppress checks="HiddenField" files=".*[\\/]com[\\/]mesosphere[\\/]sdk[\\/]specification[\\/]"/>
+    <suppress checks="ParameterNumber" files=".*[\\/]com[\\/]mesosphere[\\/]sdk[\\/]specification[\\/]"/>
+    <suppress checks="MultipleStringLiterals" files=".*[\\/]com[\\/]mesosphere[\\/]sdk[\\/]specification[\\/]"/>
+
+    <!--Disable all checks for *Test files-->
+    <suppress checks=".*" files=".*[\\/]test[\\/].*"/>
+
+    <suppress checks="HiddenField" files=".*Builder\.java"/>
+</suppressions>

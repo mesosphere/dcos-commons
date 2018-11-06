@@ -11,17 +11,17 @@ import java.util.Optional;
  */
 public class TaskKillStep extends UninstallStep {
 
-    private final Protos.TaskID taskID;
+  private final Protos.TaskID taskID;
 
-    public TaskKillStep(Protos.TaskID taskID, Optional<String> namespace) {
-        super("kill-task-" + taskID.getValue(), namespace);
-        this.taskID = taskID;
-    }
+  public TaskKillStep(Protos.TaskID taskID, Optional<String> namespace) {
+    super("kill-task-" + taskID.getValue(), namespace);
+    this.taskID = taskID;
+  }
 
-    @Override
-    public void start() {
-        setStatus(Status.IN_PROGRESS);
-        TaskKiller.killTask(taskID);
-        setStatus(Status.COMPLETE);
-    }
+  @Override
+  public void start() {
+    setStatus(Status.IN_PROGRESS);
+    TaskKiller.killTask(taskID);
+    setStatus(Status.COMPLETE);
+  }
 }

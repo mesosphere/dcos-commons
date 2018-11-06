@@ -6,61 +6,64 @@ import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Offer.Operation;
 import org.apache.mesos.Protos.Resource;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.Optional;
 
 /**
  * This {@link OfferRecommendation} encapsulates a Mesos {@code UNRESERVE} Operation.
  */
 public class UnreserveOfferRecommendation implements UninstallRecommendation {
-    private final Offer offer;
-    private final Operation operation;
-    private final Resource resource;
+  private final Offer offer;
 
-    public UnreserveOfferRecommendation(Offer offer, Resource resource) {
-        this.offer = offer;
-        Resource.Builder resourceBuilder = resource.toBuilder();
+  private final Operation operation;
 
-        // If non-root disk resource, we want to clear ALL fields except for the field indicating the disk source.
-        if (resource.hasDisk() && resource.getDisk().hasSource()) {
-            resource = resourceBuilder.setDisk(
-                    Resource.DiskInfo.newBuilder()
-                            .setSource(resource.getDisk().getSource()))
-                    .build();
-        } else {
-            resource = resourceBuilder.clearDisk().clearRevocable().build();
-        }
+  private final Resource resource;
 
-        this.operation = Operation.newBuilder()
-                .setType(Operation.Type.UNRESERVE)
-                .setUnreserve(Operation.Unreserve.newBuilder()
-                        .addAllResources(Arrays.asList(resource)))
-                .build();
-        this.resource = resource;
+  public UnreserveOfferRecommendation(Offer offer, Resource resource) {
+    this.offer = offer;
+    Resource.Builder resourceBuilder = resource.toBuilder();
+
+    Resource resourceR;
+    // If non-root disk resource, we want to clear ALL fields except for the field indicating the disk source.
+    if (resource.hasDisk() && resource.getDisk().hasSource()) {
+      resourceR = resourceBuilder
+          .setDisk(Resource.DiskInfo.newBuilder().setSource(resource.getDisk().getSource()))
+          .build();
+    } else {
+      resourceR = resourceBuilder.clearDisk().clearRevocable().build();
     }
 
-    @Override
-    public Optional<Protos.Offer.Operation> getOperation() {
-        return Optional.of(operation);
-    }
+    this.operation = Operation.newBuilder()
+        .setType(Operation.Type.UNRESERVE)
+        .setUnreserve(
+            Operation.Unreserve.newBuilder().addAllResources(Collections.singletonList(resourceR))
+        )
+        .build();
+    this.resource = resourceR;
+  }
 
-    @Override
-    public Protos.OfferID getOfferId() {
-        return offer.getId();
-    }
+  @Override
+  public Optional<Protos.Offer.Operation> getOperation() {
+    return Optional.of(operation);
+  }
 
-    @Override
-    public Protos.SlaveID getAgentId() {
-        return offer.getSlaveId();
-    }
+  @Override
+  public Protos.OfferID getOfferId() {
+    return offer.getId();
+  }
 
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
+  @Override
+  public Protos.SlaveID getAgentId() {
+    return offer.getSlaveId();
+  }
 
-    @Override
-    public Resource getResource() {
-        return resource;
-    }
+  @Override
+  public String toString() {
+    return ReflectionToStringBuilder.toString(this);
+  }
+
+  @Override
+  public Resource getResource() {
+    return resource;
+  }
 }

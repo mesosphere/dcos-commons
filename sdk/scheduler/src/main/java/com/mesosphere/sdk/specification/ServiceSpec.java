@@ -10,33 +10,33 @@ import java.util.Optional;
  * Defines a Service's configuration.
  */
 public interface ServiceSpec extends Configuration {
-    @JsonProperty("name")
-    String getName();
+  @JsonProperty("name")
+  String getName();
 
-    @JsonProperty("role")
-    String getRole();
+  @JsonProperty("role")
+  String getRole();
 
-    @JsonProperty("principal")
-    String getPrincipal();
+  @JsonProperty("principal")
+  String getPrincipal();
 
-    @JsonProperty("user")
-    String getUser();
+  @JsonProperty("user")
+  String getUser();
 
-    @JsonProperty("goal")
-    GoalState getGoal();
+  @JsonProperty("goal")
+  GoalState getGoal();
 
-    @JsonProperty("region")
-    Optional<String> getRegion();
+  @JsonProperty("region")
+  Optional<String> getRegion();
 
-    @JsonProperty("web-url")
-    String getWebUrl();
+  @JsonProperty("web-url")
+  String getWebUrl();
 
-    @JsonProperty("zookeeper")
-    String getZookeeperConnection();
+  @JsonProperty("zookeeper")
+  String getZookeeperConnection();
 
-    @JsonProperty("replacement-failure-policy")
-    Optional<ReplacementFailurePolicy> getReplacementFailurePolicy();
+  @JsonProperty("replacement-failure-policy")
+  Optional<ReplacementFailurePolicy> getReplacementFailurePolicy();
 
-    @JsonProperty("pod-specs")
-    List<PodSpec> getPods();
+  @JsonProperty("pod-specs")
+  List<PodSpec> getPods();
 }

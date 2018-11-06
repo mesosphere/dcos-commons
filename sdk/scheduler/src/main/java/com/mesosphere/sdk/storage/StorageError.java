@@ -4,40 +4,40 @@ package com.mesosphere.sdk.storage;
  * Container for types related to {@link com.mesosphere.sdk.state.ConfigStoreException}s and
  * {@link com.mesosphere.sdk.state.StateStoreException}s.
  */
-public class StorageError {
+public final class StorageError {
 
-    private StorageError() {
-        // do not instantiate
-    }
+  private StorageError() {
+    // do not instantiate
+  }
+
+  /**
+   * Machine-parseable indicator of the cause for a storage-related exception.
+   */
+  public enum Reason {
 
     /**
-     * Machine-parseable indicator of the cause for a storage-related exception.
+     * Cause is unexpected or reason could not be determined.
      */
-    public enum Reason {
+    UNKNOWN,
 
-        /**
-         * Cause is unexpected or reason could not be determined.
-         */
-        UNKNOWN,
+    /**
+     * The requested data was not found.
+     */
+    NOT_FOUND,
 
-        /**
-         * The requested data was not found.
-         */
-        NOT_FOUND,
+    /**
+     * The underlying storage failed to store or retrieve the requested data.
+     */
+    STORAGE_ERROR,
 
-        /**
-         * The underlying storage failed to store or retrieve the requested data.
-         */
-        STORAGE_ERROR,
+    /**
+     * The data could not be serialized or deserialized into a format suitable for storage.
+     */
+    SERIALIZATION_ERROR,
 
-        /**
-         * The data could not be serialized or deserialized into a format suitable for storage.
-         */
-        SERIALIZATION_ERROR,
-
-        /**
-         * The requested operation is invalid.
-         */
-        LOGIC_ERROR
-    }
+    /**
+     * The requested operation is invalid.
+     */
+    LOGIC_ERROR
+  }
 }

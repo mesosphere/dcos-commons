@@ -17,41 +17,46 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class PlanReporter {
 
-    private static final int PLAN_SCRAPE_PERIOD_MS = 5000;
+  private static final int PLAN_SCRAPE_PERIOD_MS = 5000;
 
-    private final Optional<String> namespace;
-    private final Collection<PlanManager> managers;
-    private final AtomicBoolean hasScraped;
-    private final ScheduledExecutorService executor;
+  private final Optional<String> namespace;
 
-    public PlanReporter(Optional<String> namespace, Collection<PlanManager> managers) {
-        this(namespace, managers, PLAN_SCRAPE_PERIOD_MS);
+  private final Collection<PlanManager> managers;
+
+  private final AtomicBoolean hasScraped;
+
+  private final ScheduledExecutorService executor;
+
+  public PlanReporter(Optional<String> namespace, Collection<PlanManager> managers) {
+    this(namespace, managers, PLAN_SCRAPE_PERIOD_MS);
+  }
+
+  @VisibleForTesting
+  PlanReporter(Optional<String> namespace, Collection<PlanManager> managers, int periodMs) {
+    this.namespace = namespace;
+    this.managers = managers;
+    this.hasScraped = new AtomicBoolean(false);
+    this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder()
+        .setDaemon(true)
+        .setNameFormat("PlanReporterThread")
+        .build());
+
+    executor.scheduleAtFixedRate(this::scrapeStatuses, 0, periodMs, TimeUnit.MILLISECONDS);
+  }
+
+  private void scrapeStatuses() {
+    for (PlanManager manager : managers) {
+      Metrics.updatePlanStatus(
+          namespace,
+          manager.getPlan().getName(),
+          manager.getPlan().getStatus()
+      );
     }
+    hasScraped.compareAndSet(false, true);
+  }
 
-    @VisibleForTesting
-    PlanReporter(Optional<String> namespace, Collection<PlanManager> managers, int periodMs) {
-        this.namespace = namespace;
-        this.managers = managers;
-        this.hasScraped = new AtomicBoolean(false);
-        this.executor = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryBuilder()
-                .setDaemon(true)
-                .setNameFormat("PlanReporterThread")
-                .build());
-
-        executor.scheduleAtFixedRate(() -> {
-            scrapeStatuses();
-        }, 0, periodMs, TimeUnit.MILLISECONDS);
-    }
-
-    private void scrapeStatuses() {
-        for (PlanManager manager : managers) {
-            Metrics.updatePlanStatus(namespace, manager.getPlan().getName(), manager.getPlan().getStatus());
-        }
-        hasScraped.compareAndSet(false, true);
-    }
-
-    @VisibleForTesting
-    boolean getHasScraped() {
-        return hasScraped.get();
-    }
+  @VisibleForTesting
+  boolean getHasScraped() {
+    return hasScraped.get();
+  }
 }
