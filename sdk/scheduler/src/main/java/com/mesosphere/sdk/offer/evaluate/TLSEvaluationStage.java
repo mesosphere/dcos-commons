@@ -28,6 +28,10 @@ import java.util.stream.Collectors;
  * A {@link TLSEvaluationStage} is responsible for provisioning X.509 certificates, converting them to
  * PEM and KeyStore formats and injecting them to the container as a secret.
  */
+@SuppressWarnings({
+    "checkstyle:InnerTypeLast",
+    "checkstyle:IllegalCatch",
+})
 public class TLSEvaluationStage implements OfferEvaluationStage {
 
   private final Logger logger;
@@ -78,7 +82,12 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
     }
 
     public TLSEvaluationStage build(String taskName) {
-      return new TLSEvaluationStage(serviceName, taskName, namespace, tlsArtifactsUpdater, schedulerConfig);
+      return new TLSEvaluationStage(
+          serviceName,
+          taskName,
+          namespace,
+          tlsArtifactsUpdater,
+          schedulerConfig);
     }
   }
 
@@ -98,23 +107,31 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
   }
 
   @Override
-  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool,
+                                    PodInfoBuilder podInfoBuilder)
+  {
     TaskSpec taskSpec = podInfoBuilder.getPodInstance().getPod().getTasks().stream()
         .filter(task -> task.getName().equals(taskName))
         .findFirst()
         .get();
     if (taskSpec.getTransportEncryption().isEmpty()) {
-      return EvaluationOutcome.pass(this, "No TLS specs found for task").build();
+      return EvaluationOutcome.pass(
+          this,
+          "No TLS specs found for task").build();
     }
 
     CertificateNamesGenerator certificateNamesGenerator =
-        new CertificateNamesGenerator(serviceName, taskSpec, podInfoBuilder.getPodInstance(), schedulerConfig);
+        new CertificateNamesGenerator(
+            serviceName, taskSpec,
+            podInfoBuilder.getPodInstance(),
+            schedulerConfig);
     TLSArtifactPaths tlsArtifactPaths = new TLSArtifactPaths(
         namespace,
         TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),
         certificateNamesGenerator.getSANsHash());
 
-    Collection<TransportEncryptionSpec> transportEncryptionSpecs = taskSpec.getTransportEncryption();
+    Collection<TransportEncryptionSpec> transportEncryptionSpecs =
+        taskSpec.getTransportEncryption();
     logger.info("Processing TLS info for {} elements of {}",
         transportEncryptionSpecs.size(),
         transportEncryptionSpecs);
@@ -125,8 +142,10 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
       } catch (Exception e) {
         logger.error(String.format("Failed to process certificates for %s", taskName), e);
         return EvaluationOutcome.fail(
-            this, "Failed to store TLS artifacts for task %s because of exception: %s", taskName, e)
-            .build();
+            this,
+            "Failed to store TLS artifacts for task %s because of exception: %s",
+            taskName,
+            e).build();
       }
 
       Set<Protos.Volume> existingVolumes = podInfoBuilder.getTaskBuilder(taskName)
@@ -159,14 +178,17 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
           .addAllVolumes(additionalVolumes);
     }
 
-    return EvaluationOutcome.pass(this, "TLS certificate created and added to the task").build();
+    return EvaluationOutcome.pass(
+        this,
+        "TLS certificate created and added to the task").build();
   }
 
   private static Set<Protos.Volume> getExecutorInfoSecretVolumes(
       TransportEncryptionSpec spec, TLSArtifactPaths tlsArtifactPaths)
   {
 
-    Collection<TLSArtifactPaths.Entry> paths = tlsArtifactPaths.getPathsForType(spec.getType(), spec.getName());
+    Collection<TLSArtifactPaths.Entry> paths =
+        tlsArtifactPaths.getPathsForType(spec.getType(), spec.getName());
     return paths.stream()
         .map(TLSEvaluationStage::getSecretVolume)
         .collect(Collectors.toSet());

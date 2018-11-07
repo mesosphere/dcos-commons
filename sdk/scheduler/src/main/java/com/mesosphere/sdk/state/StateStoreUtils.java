@@ -25,7 +25,12 @@ import java.util.stream.Collectors;
 /**
  * Utilities for implementations and users of {@link StateStore}.
  */
-public class StateStoreUtils {
+@SuppressWarnings({
+    "checkstyle:InnerTypeLast",
+    "checkstyle:IllegalCatch",
+    "checkstyle:AtclauseOrder",
+})
+public final class StateStoreUtils {
 
   private static final Logger LOGGER = LoggingUtils.getLogger(StateStoreUtils.class);
 
@@ -53,12 +58,13 @@ public class StateStoreUtils {
   }
 
   /**
-   * Returns all {@link Protos.TaskInfo}s associated with the provided {@link PodInstance}, or an empty list if none
-   * were found.
+   * Returns all {@link Protos.TaskInfo}s associated with the provided {@link PodInstance},
+   * or an empty list if none were found.
    *
    * @throws StateStoreException in the event of an IO error other than missing tasks
    */
-  public static Collection<Protos.TaskInfo> fetchPodTasks(StateStore stateStore, PodInstance podInstance)
+  public static Collection<Protos.TaskInfo> fetchPodTasks(StateStore stateStore,
+                                                          PodInstance podInstance)
       throws StateStoreException
   {
     Collection<String> taskInfoNames = podInstance.getPod().getTasks().stream()
@@ -98,8 +104,9 @@ public class StateStoreUtils {
 
   /**
    * TaskInfo and TaskStatus objects referring to the same Task name are not written atomically.
-   * It is therefore possible for the states across these elements to become out of sync.  While the scheduler process
-   * is up they remain in sync.  This method produces an initial synchronized state.
+   * It is therefore possible for the states across these elements to become out of sync.
+   * While the scheduler process is up they remain in sync.
+   * This method produces an initial synchronized state.
    * <p>
    * For example:
    * <ol>
@@ -108,7 +115,8 @@ public class StateStoreUtils {
    * <li>Task foo is reconfigured/relaunched</li>
    * <li>TaskInfo(name=foo, id=2) is written</li>
    * <li>Scheduler is restarted before new TaskStatus is written</li>
-   * <li>Scheduler comes back and sees TaskInfo(name=foo, id=2) and TaskStatus(name=foo, id=1, status=RUNNING)</li>
+   * <li>Scheduler comes back and sees TaskInfo(name=foo, id=2)
+   * and TaskStatus(name=foo, id=1, status=RUNNING)</li>
    * </ol>
    */
   static void repairTaskIDs(StateStore stateStore) {
@@ -122,7 +130,8 @@ public class StateStoreUtils {
         Protos.TaskStatus status = statusOptional.get();
         if (!status.getTaskId().equals(task.getTaskId())) {
           LOGGER.warn(
-              "Found StateStore status inconsistency for task {}: task.taskId={}, taskStatus.taskId={}",
+              "Found StateStore status inconsistency for task {}: task.taskId={}, " +
+                  "taskStatus.taskId={}",
               task.getName(), task.getTaskId(), status.getTaskId());
           repairedTasks.add(task.toBuilder().setTaskId(status.getTaskId()).build());
           repairedStatuses.put(
@@ -144,21 +153,23 @@ public class StateStoreUtils {
     stateStore.storeTasks(repairedTasks);
     repairedStatuses.entrySet().stream()
         .filter(statusEntry -> !statusEntry.getValue().getTaskId().getValue().equals(""))
-        .forEach(statusEntry -> stateStore.storeStatus(statusEntry.getKey(), statusEntry.getValue()));
+        .forEach(statusEntry -> stateStore.storeStatus(
+            statusEntry.getKey(), statusEntry.getValue()));
   }
 
   /**
-   * Returns the current value of the 'uninstall' property in the provided {@link StateStore}. If the
-   * {@link StateStore} was created against a namespaced service, then this returns whether that service is
-   * uninstalling.
+   * Returns the current value of the 'uninstall' property in the provided {@link StateStore}.
+   * If the {@link StateStore} was created against a namespaced service,
+   * then this returns whether that service is uninstalling.
    */
   public static boolean isUninstalling(StateStore stateStore) throws StateStoreException {
     return fetchBooleanProperty(stateStore, UNINSTALLING_PROPERTY_KEY);
   }
 
   /**
-   * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}. If the {@link StateStore} was
-   * created against a namespaced service, then this flags that service as uninstalling. This value may be checked
+   * Sets an 'uninstall' property in the provided {@link StateStore} to {@code true}.
+   * If the {@link StateStore} was created against a namespaced service,
+   * then this flags that service as uninstalling. This value may be checked
    * using {@link #isUninstalling(StateStore)}.
    */
   public static void setUninstalling(StateStore stateStore) {
@@ -180,24 +191,30 @@ public class StateStoreUtils {
     }
   }
 
-  private static void setBooleanProperty(StateStore stateStore, String propertyName, boolean value) {
+  private static void setBooleanProperty(StateStore stateStore,
+                                         String propertyName,
+                                         boolean value)
+  {
     stateStore.storeProperty(propertyName, new JsonSerializer().serialize(value));
   }
 
   /**
    * Stores a TaskStatus as a Property in the provided state store.
    */
-  public static void storeTaskStatusAsProperty(StateStore stateStore, String taskName, Protos.TaskStatus taskStatus)
+  public static void storeTaskStatusAsProperty(StateStore stateStore, String taskName,
+                                               Protos.TaskStatus taskStatus)
       throws StateStoreException
   {
     stateStore.storeProperty(taskName + PROPERTY_TASK_INFO_SUFFIX, taskStatus.toByteArray());
   }
 
   /**
-   * Returns an Optional<TaskStatus> from the properties in the provided state store for the specified
-   * task name.
+   * Returns an Optional<TaskStatus> from the properties in the provided state store for the
+   * specified task name.
    */
-  public static Optional<Protos.TaskStatus> getTaskStatusFromProperty(StateStore stateStore, String taskName) {
+  public static Optional<Protos.TaskStatus> getTaskStatusFromProperty(StateStore stateStore,
+                                                                      String taskName)
+  {
     try {
       return Optional.of(Protos.TaskStatus.parseFrom(
           stateStore.fetchProperty(taskName + PROPERTY_TASK_INFO_SUFFIX)));
@@ -221,10 +238,12 @@ public class StateStoreUtils {
   }
 
   /**
-   * Gets whether the service has previously completed deployment. If this is {@code true}, then any configuration
+   * Gets whether the service has previously completed deployment. If this is {@code true},
+   * then any configuration
    * changes should be treated as an update rather than a new deployment.
    */
   public static boolean getDeploymentWasCompleted(StateStore stateStore) {
-    return Arrays.equals(fetchPropertyOrEmptyArray(stateStore, LAST_COMPLETED_UPDATE_TYPE_KEY), DEPLOYMENT_TYPE);
+    return Arrays.equals(fetchPropertyOrEmptyArray(stateStore, LAST_COMPLETED_UPDATE_TYPE_KEY),
+        DEPLOYMENT_TYPE);
   }
 }

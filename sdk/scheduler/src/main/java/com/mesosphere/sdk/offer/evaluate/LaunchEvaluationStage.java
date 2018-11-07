@@ -11,8 +11,6 @@ import org.apache.mesos.Protos;
 
 import java.util.Arrays;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
-
 /**
  * This class sets pod metadata on a {@link org.apache.mesos.Protos.TaskInfo}, ensuring
  * that this metadata is available in the task's environment and creating a {@link LaunchOfferRecommendation}.
@@ -41,7 +39,9 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
   }
 
   @Override
-  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool,
+                                    PodInfoBuilder podInfoBuilder)
+  {
     Protos.ExecutorInfo.Builder executorBuilder = podInfoBuilder.getExecutorBuilder().get();
     Protos.Offer offer = mesosResourcePool.getOffer();
     Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskSpecName);
@@ -69,7 +69,7 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
     updateFaultDomainEnv(taskBuilder, offer);
 
     if (shouldLaunch) {
-      return pass(
+      return EvaluationOutcome.pass(
           this,
           // Launch (in Mesos) + Update (in our StateStore)
           Arrays.asList(
@@ -78,10 +78,11 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
           String.format("Added launch operation for %s", taskSpecName))
           .build();
     } else {
-      return pass(
+      return EvaluationOutcome.pass(
           this,
           // Only update in StateStore. No launch in Mesos.
-          Arrays.asList(new StoreTaskInfoRecommendation(offer, taskBuilder.build(), executorBuilder.build())),
+          Arrays.asList(new StoreTaskInfoRecommendation(
+              offer, taskBuilder.build(), executorBuilder.build())),
           String.format("Added metadata update for %s", taskSpecName))
           .build();
     }

@@ -92,7 +92,8 @@ public class TLSArtifactsUpdater {
     for (String secretName : currentSecretNames
         .stream()
         .filter(expectedSecretNames::contains)
-        .collect(Collectors.toList())) {
+        .collect(Collectors.toList()))
+    {
       String secretPath = namespace + "/" + secretName;
       logger.info("Deleting secret: {}", secretPath);
       secretsClient.delete(secretPath);

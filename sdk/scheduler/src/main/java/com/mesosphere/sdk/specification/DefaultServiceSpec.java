@@ -70,7 +70,17 @@ import java.util.Optional;
 /**
  * Default implementation of {@link ServiceSpec}.
  */
-public class DefaultServiceSpec implements ServiceSpec {
+@SuppressWarnings({
+    "checkstyle:LineLength",
+    "checkstyle:EqualsAvoidNull",
+    "checkstyle:MultipleStringLiterals",
+    "checkstyle:InnerTypeLast",
+    "checkstyle:IllegalCatch",
+    "checkstyle:DeclarationOrder",
+    "checkstyle:FinalClass",
+    "checkstyle:OverloadMethodsDeclarationOrder"
+})
+public final class DefaultServiceSpec implements ServiceSpec {
   private static final Comparator COMPARATOR = new Comparator();
 
   private static final Logger LOGGER = LoggingUtils.getLogger(DefaultServiceSpec.class);
@@ -131,7 +141,8 @@ public class DefaultServiceSpec implements ServiceSpec {
     Optional<PodSpec> podSpecOptional = Optional.empty();
     if (podSpecs != null) {
       podSpecOptional = podSpecs.stream()
-          .filter(podSpec -> podSpec != null && podSpec.getUser() != null && podSpec.getUser().isPresent())
+          .filter(podSpec -> podSpec != null && podSpec.getUser() != null
+              && podSpec.getUser().isPresent())
           .findFirst();
     }
 
@@ -178,12 +189,15 @@ public class DefaultServiceSpec implements ServiceSpec {
    * Used by unit tests.
    */
   @VisibleForTesting
-  public static Generator newGenerator(File rawServiceSpecFile, SchedulerConfig schedulerConfig) throws Exception {
+  public static Generator newGenerator(File rawServiceSpecFile, SchedulerConfig schedulerConfig)
+      throws Exception
+  {
     return new Generator(
         RawServiceSpec.newBuilder(rawServiceSpecFile).build(),
         schedulerConfig,
         new TaskEnvRouter(),
-        rawServiceSpecFile.getParentFile()); // assume that any configs are in the same directory as the spec
+        rawServiceSpecFile.getParentFile());
+    // assume that any configs are in the same directory as the spec
   }
 
   /**
@@ -198,7 +212,10 @@ public class DefaultServiceSpec implements ServiceSpec {
       throws Exception
   {
     return new Generator(
-        rawServiceSpec, schedulerConfig, new TaskEnvRouter(schedulerEnvironment), configTemplateDir);
+        rawServiceSpec,
+        schedulerConfig,
+        new TaskEnvRouter(schedulerEnvironment),
+        configTemplateDir);
   }
 
   public static Builder newBuilder() {
@@ -351,7 +368,8 @@ public class DefaultServiceSpec implements ServiceSpec {
       loopbackSpecification = factory.parse(serviceSpecBytes);
     } catch (Exception e) {
       LOGGER.error("Failed to parse JSON for loopback validation", e);
-      LOGGER.error("JSON to be parsed was:\n{}", new String(serviceSpecBytes, StandardCharsets.UTF_8));
+      LOGGER.error("JSON to be parsed was:\n{}",
+          new String(serviceSpecBytes, StandardCharsets.UTF_8));
       throw new IllegalArgumentException("Failed to parse JSON for loopback validation", e);
     }
     // Verify that equality works:
@@ -482,7 +500,7 @@ public class DefaultServiceSpec implements ServiceSpec {
           JsonParser p, DeserializationContext ctxt) throws IOException, JsonParseException
       {
         String value = ((TextNode) p.getCodec().readTree(p)).textValue();
-
+        //checkstyle:OFF EqualsAvoidNull
         if (value.equals("FINISHED") || value.equals("ONCE")) {
           // If an old service spec (e.g. from ZK) had the deprecated "FINISHED" value, convert it to ONCE
           // automatically. Note that we block new instances of FINISHED coming in from YAML definitions as of
@@ -496,6 +514,8 @@ public class DefaultServiceSpec implements ServiceSpec {
           LOGGER.warn("Found unknown goal state in config store: {}", value);
           return GoalState.UNKNOWN;
         }
+        //checkstyle:ON EqualsAvoidNull
+
       }
     }
   }
@@ -562,7 +582,9 @@ public class DefaultServiceSpec implements ServiceSpec {
      * templates.  This is exposed to support mocking in tests.
      */
     @VisibleForTesting
-    public Generator setConfigTemplateReader(YAMLToInternalMappers.ConfigTemplateReader configTemplateReader) {
+    public Generator setConfigTemplateReader(
+        YAMLToInternalMappers.ConfigTemplateReader configTemplateReader)
+    {
       this.configTemplateReader = configTemplateReader;
       return this;
     }

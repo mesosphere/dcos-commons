@@ -10,7 +10,11 @@ import java.time.Duration;
  * @see com.mesosphere.sdk.offer.taskdata.EnvConstants
  * @see com.mesosphere.sdk.offer.taskdata.LabelConstants
  */
-public class Constants {
+@SuppressWarnings({
+    "checkstyle:DeclarationOrder"
+})
+public final class Constants {
+  private Constants() { }
 
   /**
    * The name used for the deployment plan.
@@ -74,13 +78,15 @@ public class Constants {
    * determining what ports to advertise, where {@code EXTERNAL} means advertise and non-{@code EXTERNAL} means don't
    * advertise. According to the networking team this isn't currently used by DC/OS itself (as of 1.10).
    */
-  public static final DiscoveryInfo.Visibility DISPLAYED_PORT_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
+  public static final DiscoveryInfo.Visibility DISPLAYED_PORT_VISIBILITY =
+      DiscoveryInfo.Visibility.EXTERNAL;
 
   /**
    * The visibility setting to use by default in Mesos Ports, for non-VIP ports. This may be revisited later where
    * they will be made visible by default.
    */
-  public static final DiscoveryInfo.Visibility OMITTED_PORT_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
+  public static final DiscoveryInfo.Visibility OMITTED_PORT_VISIBILITY =
+      DiscoveryInfo.Visibility.CLUSTER;
 
   /**
    * The visibility setting to use by default in a Task's DiscoveryInfo, for both VIP and non-VIP ports.
@@ -88,7 +94,8 @@ public class Constants {
    * According to the networking team this isn't currently used by DC/OS itself (as of 1.10). It likewise isn't used
    * by the SDK.
    */
-  public static final DiscoveryInfo.Visibility DEFAULT_TASK_DISCOVERY_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
+  public static final DiscoveryInfo.Visibility DEFAULT_TASK_DISCOVERY_VISIBILITY =
+      DiscoveryInfo.Visibility.CLUSTER;
 
   /**
    * The duration in seconds to decline offers the scheduler does not need for the foreseeable future.

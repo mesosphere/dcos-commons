@@ -32,7 +32,10 @@ public class PlanScheduler {
 
   private final StateStore stateStore;
 
-  public PlanScheduler(OfferEvaluator offerEvaluator, StateStore stateStore, Optional<String> namespace) {
+  public PlanScheduler(OfferEvaluator offerEvaluator,
+                       StateStore stateStore,
+                       Optional<String> namespace)
+  {
     this.logger = LoggingUtils.getLogger(getClass(), namespace);
     this.offerEvaluator = offerEvaluator;
     this.stateStore = stateStore;
@@ -68,13 +71,16 @@ public class PlanScheduler {
 
   private List<OfferRecommendation> resourceOffers(List<Protos.Offer> offers, Step step) {
     if (!(step.isPending() || step.isPrepared())) {
-      logger.info("Ignoring resource offers for step: {} status: {}", step.getName(), step.getStatus());
+      logger.info("Ignoring resource offers for step: {} status: {}",
+          step.getName(),
+          step.getStatus());
       return Collections.emptyList();
     }
 
     logger.info("Processing resource offers for step: {}", step.getName());
     step.start();
-    Optional<PodInstanceRequirement> podInstanceRequirementOptional = step.getPodInstanceRequirement();
+    Optional<PodInstanceRequirement> podInstanceRequirementOptional =
+        step.getPodInstanceRequirement();
     if (!podInstanceRequirementOptional.isPresent()) {
       logger.info("No PodInstanceRequirement for step: {}", step.getName());
       step.updateOfferStatus(Collections.emptyList());
@@ -119,13 +125,15 @@ public class PlanScheduler {
 
   private void killTasks(PodInstanceRequirement podInstanceRequirement) {
 
-    Set<String> resourceSetsToConsume = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+    Set<String> resourceSetsToConsume = podInstanceRequirement
+        .getPodInstance().getPod().getTasks().stream()
         .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
         .map(taskSpec -> taskSpec.getResourceSet().getId())
         .collect(Collectors.toSet());
     List<String> tasksToKill = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
         .filter(taskSpec -> resourceSetsToConsume.contains(taskSpec.getResourceSet().getId()))
-        .map(taskSpec -> TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
+        .map(taskSpec ->
+            TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
         .collect(Collectors.toList());
     logger.info("Killing {} for pod instance requirement {}:{}, with resource sets to consume {}",
         tasksToKill,

@@ -29,6 +29,10 @@ import java.util.stream.Collectors;
 /**
  * This class is a default implementation of the {@link StepFactory} interface.
  */
+@SuppressWarnings({
+    "checkstyle:IllegalCatch",
+    "checkstyle:ThrowsCount"
+})
 public class DefaultStepFactory implements StepFactory {
   private static final Logger LOGGER = LoggingUtils.getLogger(DefaultStepFactory.class);
 
@@ -51,7 +55,9 @@ public class DefaultStepFactory implements StepFactory {
   @Override
   public Step getStep(PodInstance podInstance, Collection<String> tasksToLaunch) {
     try {
-      LOGGER.info("Generating step for pod: {}, with tasks: {}", podInstance.getName(), tasksToLaunch);
+      LOGGER.info("Generating step for pod: {}, with tasks: {}",
+          podInstance.getName(),
+          tasksToLaunch);
       validate(podInstance, tasksToLaunch);
 
       List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance, tasksToLaunch).stream()
@@ -65,7 +71,8 @@ public class DefaultStepFactory implements StepFactory {
           PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build(),
           stateStore,
           namespace)
-          .updateInitialStatus(taskInfos.isEmpty() ? Status.PENDING : getStatus(podInstance, taskInfos));
+          .updateInitialStatus(taskInfos.isEmpty() ?
+              Status.PENDING : getStatus(podInstance, taskInfos));
     } catch (Exception e) {
       LOGGER.error("Failed to generate Step with exception: ", e);
       return new DeploymentStep(
@@ -77,7 +84,9 @@ public class DefaultStepFactory implements StepFactory {
     }
   }
 
-  private void validate(PodInstance podInstance, Collection<String> tasksToLaunch) throws Exception {
+  private void validate(PodInstance podInstance, Collection<String> tasksToLaunch)
+      throws Exception
+  {
     List<TaskSpec> taskSpecsToLaunch = podInstance.getPod().getTasks().stream()
         .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
         .collect(Collectors.toList());
@@ -88,8 +97,10 @@ public class DefaultStepFactory implements StepFactory {
 
     if (hasDuplicates(resourceSetIds)) {
       throw new Exception(String.format(
-          "Attempted to simultaneously launch tasks: %s in pod: %s using the same resource set id: %s. " +
-              "These tasks should either be run in separate steps or use different resource set ids",
+          "Attempted to simultaneously launch tasks: %s in pod: %s " +
+              "using the same resource set id: %s. " +
+              "These tasks should either be run in separate steps or use " +
+              "different resource set ids",
           tasksToLaunch, podInstance.getName(), resourceSetIds));
     }
 
@@ -150,7 +161,9 @@ public class DefaultStepFactory implements StepFactory {
   }
 
   @VisibleForTesting
-  protected boolean hasReachedGoalState(Protos.TaskInfo taskInfo, GoalState goalState, UUID targetConfigId)
+  protected boolean hasReachedGoalState(Protos.TaskInfo taskInfo,
+                                        GoalState goalState,
+                                        UUID targetConfigId)
       throws TaskException
   {
     Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInfo.getName());

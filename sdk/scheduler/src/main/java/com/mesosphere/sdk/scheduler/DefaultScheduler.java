@@ -64,6 +64,13 @@ import java.util.stream.Collectors;
  * when possible.  Changes to the ServiceSpec will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
+@SuppressWarnings({
+    "checkstyle:MultipleStringLiterals",
+    "checkstyle:IllegalCatch",
+    "checkstyle:LineLength",
+    "checkstyle:ParameterNumber",
+    "checkstyle:DeclarationOrder"
+})
 public class DefaultScheduler extends AbstractScheduler {
 
   private final Logger logger;
@@ -148,6 +155,7 @@ public class DefaultScheduler extends AbstractScheduler {
     Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(planCoordinator);
     if (decommissionManager.isPresent()) {
       this.decommissionRecorder =
+
           Optional.of(new UninstallRecorder(stateStore, decommissionManager.get().getResourceSteps()));
     } else {
       this.decommissionRecorder = Optional.empty();
@@ -258,9 +266,9 @@ public class DefaultScheduler extends AbstractScheduler {
     if (goalState == GoalState.FINISH && deployCompleted && recoveryPlanManager.getPlan().isComplete()) {
       // Service has a FINISH goal state, and deployment+recovery are complete. Tell upstream to uninstall us.
       return ClientStatusResponse.readyToUninstall();
-    } else if (!deployCompleted // TODO(nickbp): use footprint plan once available
+    } else if (!deployCompleted
         || isReplacing(recoveryPlanManager))
-    { // TODO(nickbp): footprint plan should have replacing tasks?
+    {
       // Service is acquiring footprint, either via initial deployment or via replacing a task
       return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
     } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> isWorking(pm.getPlan()))) {
@@ -290,9 +298,10 @@ public class DefaultScheduler extends AbstractScheduler {
       case WAITING:
         // The plan currently has no work to do: finished, or in a stopped state.
         return false;
+      default:
+        throw new IllegalStateException(
+            String.format("Unsupported status in %s plan: %s", plan.getName(), plan.getStatus()));
     }
-    throw new IllegalStateException(
-        String.format("Unsupported status in %s plan: %s", plan.getName(), plan.getStatus()));
   }
 
   private static boolean isReplacing(PlanManager recoveryPlanManager) {

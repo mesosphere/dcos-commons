@@ -37,14 +37,16 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.http.ResponseUtils.jsonOkResponse;
-import static com.mesosphere.sdk.http.ResponseUtils.jsonResponseBean;
 
 /**
- * A read-only API for accessing information about the pods which compose the service, and restarting/replacing those
- * pods.
+ * A read-only API for accessing information about the pods which compose the service, and
+ * restarting/replacing those pods.
  */
-public class PodQueries {
+@SuppressWarnings({
+    "checkstyle:MultipleStringLiterals",
+    "checkstyle:IllegalCatch"
+})
+public final class PodQueries {
 
   private static final Logger LOGGER = LoggingUtils.getLogger(PodQueries.class);
 
@@ -71,7 +73,8 @@ public class PodQueries {
         try {
           podNames.add(PodInstance.getName(labels.getType(), labels.getIndex()));
         } catch (Exception e) {
-          LOGGER.warn(String.format("Failed to extract pod information from task %s", taskInfo.getName()), e);
+          LOGGER.warn(String.format("Failed to extract pod information from task %s",
+              taskInfo.getName()), e);
           unknownTaskNames.add(taskInfo.getName());
         }
       }
@@ -84,7 +87,7 @@ public class PodQueries {
           jsonArray.put(String.format("%s_%s", UNKNOWN_POD_LABEL, unknownName));
         }
       }
-      return jsonOkResponse(jsonArray);
+      return ResponseUtils.jsonOkResponse(jsonArray);
     } catch (Exception e) {
       LOGGER.error("Failed to fetch list of pods", e);
       return Response.serverError().build();
@@ -98,15 +101,17 @@ public class PodQueries {
     try {
       // Group the tasks by pod:
       GroupedTasks groupedTasks = GroupedTasks.create(stateStore);
-
       // Output statuses for all tasks in each pod:
       JSONObject responseJson = new JSONObject();
       responseJson.put("service", serviceName);
       for (Map.Entry<String, Map<Integer, List<TaskInfoAndStatus>>> podType
-          : groupedTasks.byPodTypeAndIndex.entrySet()) {
+          : groupedTasks.byPodTypeAndIndex.entrySet())
+      {
         JSONObject podJson = new JSONObject();
         podJson.put("name", podType.getKey());
-        for (Map.Entry<Integer, List<TaskInfoAndStatus>> podInstance : podType.getValue().entrySet()) {
+        for (Map.Entry<Integer, List<TaskInfoAndStatus>> podInstance :
+            podType.getValue().entrySet())
+        {
           podJson.append("instances", getPodInstanceStatusJson(
               stateStore,
               PodInstance.getName(podType.getKey(), podInstance.getKey()),
@@ -126,7 +131,7 @@ public class PodQueries {
         responseJson.append("pods", podTypeJson);
       }
 
-      return jsonOkResponse(responseJson);
+      return ResponseUtils.jsonOkResponse(responseJson);
     } catch (Exception e) {
       LOGGER.error("Failed to fetch collated list of task statuses by pod", e);
       return Response.serverError().build();
@@ -143,7 +148,10 @@ public class PodQueries {
       if (!podTasks.isPresent()) {
         return podNotFoundResponse(podInstanceName);
       }
-      return jsonOkResponse(getPodInstanceStatusJson(stateStore, podInstanceName, podTasks.get()));
+      return ResponseUtils.jsonOkResponse(
+          getPodInstanceStatusJson(stateStore,
+          podInstanceName,
+          podTasks.get()));
     } catch (Exception e) {
       LOGGER.error(String.format("Failed to fetch status for pod '%s'", podInstanceName), e);
       return Response.serverError().build();
@@ -160,7 +168,7 @@ public class PodQueries {
       if (!podTasks.isPresent()) {
         return podNotFoundResponse(podInstanceName);
       }
-      return jsonResponseBean(podTasks.get(), Response.Status.OK);
+      return ResponseUtils.jsonResponseBean(podTasks.get(), Response.Status.OK);
     } catch (Exception e) {
       LOGGER.error(String.format("Failed to fetch info for pod '%s'", podInstanceName), e);
       return Response.serverError().build();
@@ -181,7 +189,8 @@ public class PodQueries {
     try {
       return overrideGoalState(stateStore, podName, taskFilter, GoalStateOverride.PAUSED);
     } catch (Exception e) {
-      LOGGER.error(String.format("Failed to pause pod '%s' with task filter '%s'", podName, taskFilter), e);
+      LOGGER.error(String.format("Failed to pause pod '%s' with task filter '%s'",
+          podName, taskFilter), e);
       return Response.serverError().build();
     }
   }
@@ -200,13 +209,17 @@ public class PodQueries {
     try {
       return overrideGoalState(stateStore, podName, taskFilter, GoalStateOverride.NONE);
     } catch (Exception e) {
-      LOGGER.error(String.format("Failed to resume pod '%s' with task filter '%s'", podName, taskFilter), e);
+      LOGGER.error(String.format("Failed to resume pod '%s' with task filter '%s'",
+          podName, taskFilter), e);
       return Response.serverError().build();
     }
   }
 
   private static Response overrideGoalState(
-      StateStore stateStore, String podInstanceName, Set<String> taskNameFilter, GoalStateOverride override)
+      StateStore stateStore,
+      String podInstanceName,
+      Set<String> taskNameFilter,
+      GoalStateOverride override)
   {
     Optional<Collection<TaskInfoAndStatus>> allPodTasks =
         GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
@@ -225,8 +238,9 @@ public class PodQueries {
       return podNotFoundResponse(podInstanceName);
     }
 
-    // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
-    // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
+    // invoke the restart request itself against ALL tasks. this ensures that
+    // they're ALL flagged as failed via FailureUtils, which is then checked by
+    // DefaultRecoveryPlanManager.
     LOGGER.info("Performing {} goal state override of {} tasks in pod {}:",
         override, podTasks.size(), podInstanceName);
 
@@ -236,18 +250,25 @@ public class PodQueries {
       stateStore.storeGoalOverrideStatus(taskToOverride.getInfo().getName(), pendingStatus);
     }
 
-    // Second pass: Restart the tasks. They will be updated to IN_PROGRESS once we receive a terminal TaskStatus.
+    // Second pass: Restart the tasks. They will be updated to IN_PROGRESS once we receive a
+    // terminal TaskStatus.
     return killTasks(podInstanceName, podTasks);
   }
 
   /**
    * Restarts a pod instance in-place.
    */
-  public static Response restart(StateStore stateStore, ConfigStore<ServiceSpec> configStore, String podInstanceName,
+  public static Response restart(StateStore stateStore, ConfigStore<ServiceSpec> configStore,
+                                 String podInstanceName,
                                  RecoveryType recoveryType)
   {
     try {
-      return restartPod(stateStore, configStore, podInstanceName, recoveryType, DEFAULT_FAILURE_SETTER);
+      return restartPod(
+          stateStore,
+          configStore,
+          podInstanceName,
+          recoveryType,
+          DEFAULT_FAILURE_SETTER);
     } catch (Exception e) {
       LOGGER.error(String.format("Failed to %s pod '%s'",
           recoveryType == RecoveryType.PERMANENT ? "replace" : "restart", podInstanceName), e);
@@ -266,14 +287,16 @@ public class PodQueries {
     // look up all tasks in the provided pod name:
     Optional<Collection<TaskInfoAndStatus>> podTasks =
         GroupedTasks.create(stateStore).getPodInstanceTasks(podInstanceName);
-    if (!podTasks.isPresent() || podTasks.get().isEmpty()) { // shouldn't ever be empty, but just in case
+    if (!podTasks.isPresent() || podTasks.get().isEmpty()) {
+      // shouldn't ever be empty, but just in case
       return podNotFoundResponse(podInstanceName);
     }
 
-    // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged as failed via
-    // FailureUtils, which is then checked by DefaultRecoveryPlanManager.
+    // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged
+    // as failed via FailureUtils, which is then checked by DefaultRecoveryPlanManager.
     LOGGER.info("Performing {} of pod {} by killing {} tasks:",
-        recoveryType == RecoveryType.PERMANENT ? "replace" : "restart", podInstanceName, podTasks.get().size());
+        recoveryType == RecoveryType.PERMANENT ? "replace" : "restart",
+        podInstanceName, podTasks.get().size());
 
     if (recoveryType.equals(RecoveryType.PERMANENT)) {
       Collection<Protos.TaskInfo> taskInfos = podTasks.get().stream()
@@ -283,22 +306,6 @@ public class PodQueries {
     }
 
     return killTasks(podInstanceName, podTasks.get());
-  }
-
-  /**
-   * Broken out into a separate callback to simplify unit testing.
-   */
-  @VisibleForTesting
-  static class FailureSetter {
-    /**
-     * Default behavior: Set permanently failed bit in state store tasks.
-     */
-    public void setFailure(
-        ConfigStore<ServiceSpec> configStore, StateStore stateStore, Collection<Protos.TaskInfo> taskInfos)
-    {
-      getPods(configStore, taskInfos)
-          .forEach(podInstance -> FailureUtils.setPermanentlyFailed(stateStore, podInstance));
-    }
   }
 
   private static Set<PodInstance> getPods(
@@ -314,7 +321,8 @@ public class PodQueries {
       try {
         podInstances.add(TaskUtils.getPodInstance(configStore, taskInfo));
       } catch (TaskException e) {
-        LOGGER.error(String.format("Failed to get pod for task %s", taskInfo.getTaskId().getValue()), e);
+        LOGGER.error(String.format("Failed to get pod for task %s",
+            taskInfo.getTaskId().getValue()), e);
       }
     }
 
@@ -339,8 +347,9 @@ public class PodQueries {
 
     JSONObject json = new JSONObject();
     json.put("pod", podName);
-    json.put("tasks", tasksToKill.stream().map(t -> t.getInfo().getName()).collect(Collectors.toList()));
-    return jsonOkResponse(json);
+    json.put("tasks", tasksToKill.stream().map(t ->
+        t.getInfo().getName()).collect(Collectors.toList()));
+    return ResponseUtils.jsonOkResponse(json);
   }
 
   /**
@@ -363,7 +372,10 @@ public class PodQueries {
       JSONObject jsonTask = new JSONObject();
       jsonTask.put("id", task.getInfo().getTaskId().getValue());
       jsonTask.put("name", task.getInfo().getName());
-      Optional<String> stateString = getTaskStateString(stateStore, task.getInfo().getName(), task.getStatus());
+      Optional<String> stateString = getTaskStateString(
+          stateStore,
+          task.getInfo().getName(),
+          task.getStatus());
       if (stateString.isPresent()) {
         jsonTask.put("status", stateString.get());
       }
@@ -377,7 +389,8 @@ public class PodQueries {
   {
     GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskName);
     if (!mesosStatus.isPresent()) {
-      // This task has never been prepared -- even if its goal state is overridden, it doesn't have a run state.
+      // This task has never been prepared -- even if its goal state is overridden, it doesn't
+      // have a run state.
       return Optional.empty();
     } else if (!GoalStateOverride.Status.INACTIVE.equals(overrideStatus)) {
       // This task is affected by an override. Use the override status as applicable.
@@ -394,7 +407,8 @@ public class PodQueries {
     }
 
     String stateString = mesosStatus.get().getState().toString();
-    if (stateString.startsWith("TASK_")) { // should always be the case
+    if (stateString.startsWith("TASK_")) {
+      // should always be the case
       // Trim "TASK_" prefix ("TASK_RUNNING" => "RUNNING"):
       stateString = stateString.substring("TASK_".length());
     }
@@ -403,5 +417,23 @@ public class PodQueries {
 
   private static Response podNotFoundResponse(String podInstanceName) {
     return ResponseUtils.notFoundResponse("Pod " + podInstanceName);
+  }
+
+  /**
+   * Broken out into a separate callback to simplify unit testing.
+   */
+  @VisibleForTesting
+  static class FailureSetter {
+    /**
+     * Default behavior: Set permanently failed bit in state store tasks.
+     */
+    public void setFailure(
+        ConfigStore<ServiceSpec> configStore,
+        StateStore stateStore,
+        Collection<Protos.TaskInfo> taskInfos)
+    {
+      getPods(configStore, taskInfos)
+          .forEach(podInstance -> FailureUtils.setPermanentlyFailed(stateStore, podInstance));
+    }
   }
 }

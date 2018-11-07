@@ -62,7 +62,9 @@ public class PortEvaluationStage implements OfferEvaluationStage {
   }
 
   @Override
-  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool,
+                                    PodInfoBuilder podInfoBuilder)
+  {
     long requestedPort = portSpec.getValue().getRanges().getRange(0).getBegin();
     long assignedPort = requestedPort;
     if (requestedPort == 0) {
@@ -108,7 +110,12 @@ public class PortEvaluationStage implements OfferEvaluationStage {
     if (useHostPorts) {
       OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
           OfferEvaluationUtils.evaluateSimpleResource(
-              logger, this, updatedPortSpec, resourceId, resourceNamespace, mesosResourcePool);
+              logger,
+              this,
+              updatedPortSpec,
+              resourceId,
+              resourceNamespace,
+              mesosResourcePool);
       EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
       if (!evaluationOutcome.isPassing()) {
         return evaluationOutcome;
@@ -131,7 +138,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
           ResourceBuilder.fromSpec(updatedPortSpec, resourceId, resourceNamespace).build());
       return EvaluationOutcome.pass(
           this,
-          "Port %s doesn't require resource reservation, ignoring resource requirements and using port %d",
+          "Port %s doesn't require resource reservation, " +
+              "ignoring resource requirements and using port %d",
           portSpec.getPortName(), assignedPort)
           .build();
     }
@@ -166,7 +174,10 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
         // Add port to the main task environment:
         taskBuilder.getCommandBuilder().setEnvironment(
-            EnvUtils.withEnvVar(taskBuilder.getCommandBuilder().getEnvironment(), portEnvKey, portEnvVal));
+            EnvUtils.withEnvVar(
+                taskBuilder.getCommandBuilder().getEnvironment(),
+                portEnvKey,
+                portEnvVal));
 
         // Add port to the health check environment (if defined):
         if (taskBuilder.hasHealthCheck()) {
@@ -198,7 +209,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         }
       }
 
-      if (useHostPorts) { // we only use the resource if we're using the host ports
+      if (useHostPorts) {
+        // we only use the resource if we're using the host ports
         taskBuilder.addResources(resource);
       }
     }
@@ -244,7 +256,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
       consumedPorts.addAll(getPortsInResource(resourceBuilder.build()));
     }
 
-    Protos.Value availablePorts = mesosResourcePool.getUnreservedMergedPool().get(Constants.PORTS_RESOURCE_TYPE);
+    Protos.Value availablePorts =
+        mesosResourcePool.getUnreservedMergedPool().get(Constants.PORTS_RESOURCE_TYPE);
     Optional<Integer> dynamicPort = Optional.empty();
     if (availablePorts != null) {
       dynamicPort = availablePorts.getRanges().getRangeList().stream()
@@ -260,7 +273,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
     // take the next available port in the range.
     Optional<Integer> dynamicPort = Optional.empty();
     for (Integer i = DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_START;
-         i <= DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_END; i++) {
+         i <= DcosConstants.OVERLAY_DYNAMIC_PORT_RANGE_END; i++)
+    {
       if (!podInfoBuilder.isAssignedOverlayPort(i.longValue())) {
         dynamicPort = Optional.of(i);
         podInfoBuilder.addAssignedOverlayPort(i.longValue());
@@ -281,7 +295,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
   }
 
   private static boolean requireHostPorts(Collection<String> networkNames) {
-    if (networkNames.isEmpty()) {  // no network names, must be on host network and use the host IP
+    if (networkNames.isEmpty()) {
+      // no network names, must be on host network and use the host IP
       return true;
     } else {
       return networkNames.stream()

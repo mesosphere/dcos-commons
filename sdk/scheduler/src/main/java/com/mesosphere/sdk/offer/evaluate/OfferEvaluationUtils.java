@@ -22,12 +22,17 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Optional;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.fail;
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
  * This class encapsulates shared offer evaluation logic for evaluation stages.
  */
+@SuppressWarnings({
+    "checkstyle:LineLength",
+    "checkstyle:InnerTypeLast",
+    "checkstyle:HiddenField",
+    "checkstyle:ThrowsCount",
+    "checkstyle:FinalClass"
+})
 class OfferEvaluationUtils {
 
   private OfferEvaluationUtils() {
@@ -73,7 +78,7 @@ class OfferEvaluationUtils {
     if (!mesosResourceOptional.isPresent()) {
       if (!resourceId.isPresent()) {
         return new ReserveEvaluationOutcome(
-            fail(
+            EvaluationOutcome.fail(
                 offerEvaluationStage,
                 "Offer lacks sufficient unreserved '%s' with role '%s' for new reservation: '%s'",
                 resourceSpec.getName(),
@@ -83,7 +88,7 @@ class OfferEvaluationUtils {
             null);
       } else {
         return new ReserveEvaluationOutcome(
-            fail(
+            EvaluationOutcome.fail(
                 offerEvaluationStage,
                 "Offer lacks previously reserved '%s' with resourceId: '%s' for resource: '%s'",
                 resourceSpec.getName(),
@@ -112,7 +117,7 @@ class OfferEvaluationUtils {
         offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
         String newResourceId = ResourceUtils.getResourceId(resource).get();
         return new ReserveEvaluationOutcome(
-            pass(
+            EvaluationOutcome.pass(
                 offerEvaluationStage,
                 Arrays.asList(offerRecommendation),
                 "Offer contains sufficient unreserved '%s', generated new resourceId: '%s' " +
@@ -125,7 +130,7 @@ class OfferEvaluationUtils {
             newResourceId);
       } else {
         return new ReserveEvaluationOutcome(
-            pass(
+            EvaluationOutcome.pass(
                 offerEvaluationStage,
                 Collections.emptyList(),
                 "Offer contains previously reserved '%s' with resourceId: '%s' for resource: '%s'",
@@ -157,7 +162,7 @@ class OfferEvaluationUtils {
 
         if (!mesosResourceOptional.isPresent()) {
           return new ReserveEvaluationOutcome(
-              fail(offerEvaluationStage,
+              EvaluationOutcome.fail(offerEvaluationStage,
                   "Insufficient resources to increase reservation of existing '%s' resource '%s' " +
                       "with resourceId '%s': needed %s",
                   resourceSpec.getName(),
@@ -175,7 +180,7 @@ class OfferEvaluationUtils {
         // Reservation of additional resources
         offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
         return new ReserveEvaluationOutcome(
-            pass(
+            EvaluationOutcome.pass(
                 offerEvaluationStage,
                 Arrays.asList(offerRecommendation),
                 "Offer contains sufficient '%s' to increase desired resource by %s: " +
@@ -202,7 +207,7 @@ class OfferEvaluationUtils {
         // Unreservation of no longer needed resources
         offerRecommendation = new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
         return new ReserveEvaluationOutcome(
-            pass(
+            EvaluationOutcome.pass(
                 offerEvaluationStage,
                 Arrays.asList(offerRecommendation),
                 "Decreased '%s' by %s for desired resource with resourceId: '%s': %s",

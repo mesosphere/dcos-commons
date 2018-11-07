@@ -41,6 +41,10 @@ import java.util.stream.Collectors;
 /**
  * This scheduler uninstalls a service and releases all of its resources.
  */
+@SuppressWarnings({
+    "checkstyle:MagicNumber",
+    "checkstyle:IllegalCatch"
+})
 public class UninstallScheduler extends AbstractScheduler {
 
   private final Logger logger;
@@ -107,7 +111,8 @@ public class UninstallScheduler extends AbstractScheduler {
     this.schedulerConfig = schedulerConfig;
 
     if (!StateStoreUtils.isUninstalling(stateStore)) {
-      logger.info("Service has been told to uninstall. Marking this in the persistent state store. " +
+      logger.info("Service has been told to uninstall. Marking this in the " +
+          "persistent state store. " +
           "Uninstall cannot be canceled once triggered.");
       StateStoreUtils.setUninstalling(stateStore);
     }
@@ -144,7 +149,8 @@ public class UninstallScheduler extends AbstractScheduler {
 
   @Override
   public Collection<Object> getHTTPEndpoints() {
-    PlansResource plansResource = new PlansResource(Collections.singletonList(uninstallPlanManager));
+    PlansResource plansResource =
+        new PlansResource(Collections.singletonList(uninstallPlanManager));
     return Arrays.asList(
         plansResource,
         new DeprecatedPlanResource(plansResource),
@@ -204,7 +210,8 @@ public class UninstallScheduler extends AbstractScheduler {
       Optional<Plan> deployPlan = getPlans().stream()
           .filter(plan -> plan.isDeployPlan())
           .findAny();
-      logger.error("Failed to complete uninstall within {}s timeout, forcing cleanup. Deploy plan was: {}",
+      logger.error("Failed to complete uninstall within {}s timeout, " +
+              "forcing cleanup. Deploy plan was: {}",
           uninstallTimeoutSecs, deployPlan.isPresent() ? deployPlan.get().toString() : "UNKNOWN");
       return ClientStatusResponse.readyToRemove();
     } else {

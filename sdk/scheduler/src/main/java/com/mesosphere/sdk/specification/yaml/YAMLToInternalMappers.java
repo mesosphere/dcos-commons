@@ -72,7 +72,16 @@ import java.util.stream.IntStream;
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
-public class YAMLToInternalMappers {
+@SuppressWarnings({
+    "checkstyle:InnerTypeLast",
+    "checkstyle:IllegalCatch",
+    "checkstyle:DeclarationOrder",
+    "checkstyle:VariableDeclarationUsageDistance",
+    "checkstyle:EqualsAvoidNull"
+})
+public final class YAMLToInternalMappers {
+
+  private YAMLToInternalMappers() {}
 
   private static final Logger LOGGER = LoggingUtils.getLogger(YAMLToInternalMappers.class);
 
@@ -88,7 +97,9 @@ public class YAMLToInternalMappers {
     }
 
     public String read(String templateFileName) throws IOException {
-      return FileUtils.readFileToString(new File(templateDir, templateFileName), StandardCharsets.UTF_8);
+      return FileUtils.readFileToString(
+          new File(templateDir, templateFileName),
+          StandardCharsets.UTF_8);
     }
   }
 
@@ -199,7 +210,10 @@ public class YAMLToInternalMappers {
       }
       if (pod.getResourceSets() != null) {
         for (RawResourceSet resourceSet : pod.getResourceSets().values()) {
-          collectDuplicateEndpoints(resourceSet.getPorts(), allEndpointNames, duplicateEndpointNames);
+          collectDuplicateEndpoints(
+              resourceSet.getPorts(),
+              allEndpointNames,
+              duplicateEndpointNames);
         }
       }
     }
@@ -243,7 +257,8 @@ public class YAMLToInternalMappers {
       visibility = Protos.DiscoveryInfo.Visibility.valueOf(rawDiscovery.getVisibility());
       if (visibility == null) {
         throw new IllegalArgumentException(String.format(
-            "Visibility must be one of: %s", Arrays.asList(Protos.DiscoveryInfo.Visibility.values())));
+            "Visibility must be one of: %s",
+            Arrays.asList(Protos.DiscoveryInfo.Visibility.values())));
       }
     }
 
@@ -266,7 +281,7 @@ public class YAMLToInternalMappers {
     DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(
         podName,
         rawPod.getCount(),
-        Collections.emptyList()) // Tasks are added below
+        Collections.emptyList())
         .user(user)
         .preReservedRole(rawPod.getPreReservedRole())
         .sharePidNamespace(rawPod.getSharePidNamespace())
@@ -342,7 +357,11 @@ public class YAMLToInternalMappers {
     if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
       Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
           Collections.emptyList() :
-          Arrays.asList(convertVolume(rawPod.getVolume(), role, rawPod.getPreReservedRole(), principal)));
+          Arrays.asList(convertVolume(
+              rawPod.getVolume(),
+              role,
+              rawPod.getPreReservedRole(),
+              principal)));
 
       volumeSpecs.addAll(rawPod.getVolumes().values().stream()
           .map(v -> convertVolume(v, role, rawPod.getPreReservedRole(), principal))
@@ -498,7 +517,8 @@ public class YAMLToInternalMappers {
       Collection<String> networkNames)
   {
 
-    DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet.newBuilder(role, preReservedRole, principal);
+    DefaultResourceSet.Builder resourceSetBuilder =
+        DefaultResourceSet.newBuilder(role, preReservedRole, principal);
 
     if (rawVolumes != null) {
       if (rawSingleVolume != null) {
@@ -608,7 +628,7 @@ public class YAMLToInternalMappers {
           "Virtual Network %s doesn't support container->host port mapping", networkName));
     }
     if (supportsPortMapping) {
-      Map<Integer, Integer> portMap = new HashMap<>();  // hostPort:containerPort
+      Map<Integer, Integer> portMap = new HashMap<>();
       if (rawNetwork.numberOfPortMappings() > 0) {
         // zip the host and container ports together
         portMap = IntStream.range(0, rawNetwork.numberOfPortMappings())
@@ -664,14 +684,16 @@ public class YAMLToInternalMappers {
   {
     Collection<PortSpec> portSpecs = new ArrayList<>();
     Set<Integer> ports = new HashSet<>();
-    Protos.Value.Builder portsValueBuilder = Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
+    Protos.Value.Builder portsValueBuilder =
+        Protos.Value.newBuilder().setType(Protos.Value.Type.RANGES);
 
     for (Map.Entry<String, RawPort> portEntry : rawPorts.entrySet()) {
       String name = portEntry.getKey();
       RawPort rawPort = portEntry.getValue();
       boolean ok = ports.add(rawPort.getPort());
       if (!ok && rawPort.getPort() > 0) {
-        throw new IllegalArgumentException(String.format("Cannot have duplicate port values: Task has " +
+        throw new IllegalArgumentException(String.format(
+            "Cannot have duplicate port values: Task has " +
             "multiple ports with value %d", rawPort.getPort()));
       }
       Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
@@ -682,7 +704,8 @@ public class YAMLToInternalMappers {
       portsValueBuilder.mergeRanges(portValueBuilder.getRanges());
 
       final Protos.DiscoveryInfo.Visibility visibility =
-          rawPort.isAdvertised() ? Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
+          rawPort.isAdvertised() ?
+              Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
 
       PortSpec.Builder portSpecBuilder;
       if (rawPort.getVip() == null) {

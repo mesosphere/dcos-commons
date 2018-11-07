@@ -11,19 +11,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static j2html.TagCreator.body;
-import static j2html.TagCreator.br;
-import static j2html.TagCreator.div;
-import static j2html.TagCreator.each;
-import static j2html.TagCreator.html;
-import static j2html.TagCreator.style;
-import static j2html.TagCreator.table;
-import static j2html.TagCreator.td;
-import static j2html.TagCreator.th;
-import static j2html.TagCreator.tr;
-
-// CHECKSTYLE:OFF AvoidStarImport
 // CHECKSTYLE:OFF AvoidStaticImport
+// CHECKSTYLE:OFF AvoidStarImport
+
+import static j2html.TagCreator.*;
 
 
 /**

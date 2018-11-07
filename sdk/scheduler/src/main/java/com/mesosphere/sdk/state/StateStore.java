@@ -647,7 +647,8 @@ public class StateStore {
     // previously has a state that is no longer recognized by the scheduler. The most reasonable thing in this
     // case is to fall back to a no-override state.
     logger.warn("Task '{}' has unrecognized override progress '{}'. " +
-            "Left over from a recent upgrade/downgrade? Falling back to inactive override progress.",
+            "Left over from a recent upgrade/downgrade? Falling back to inactive " +
+            "override progress.",
         taskName,
         progressName
     );

@@ -21,8 +21,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.fail;
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
 
 /**
  * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
@@ -30,7 +28,10 @@ import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
  * {@link com.mesosphere.sdk.offer.ReserveOfferRecommendation} and
  * {@link com.mesosphere.sdk.offer.CreateOfferRecommendation} as necessary.
  */
-public class VolumeEvaluationStage implements OfferEvaluationStage {
+@SuppressWarnings({
+    "checkstyle:DeclarationOrder",
+})
+public final class VolumeEvaluationStage implements OfferEvaluationStage {
 
   private final Logger logger;
 
@@ -106,14 +107,18 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
   }
 
   @Override
-  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool,
+                                    PodInfoBuilder podInfoBuilder)
+  {
     List<OfferRecommendation> offerRecommendations = new ArrayList<>();
     Protos.Resource resource;
     final MesosResource mesosResource;
 
     boolean isRunningExecutor =
         OfferEvaluationUtils.isRunningExecutor(podInfoBuilder, mesosResourcePool.getOffer());
-    if (taskNames.isEmpty() && isRunningExecutor && resourceId.isPresent() && persistenceId.isPresent()) {
+    if (taskNames.isEmpty() && isRunningExecutor &&
+        resourceId.isPresent() && persistenceId.isPresent())
+    {
       // This is a volume on a running executor, so it isn't present in the offer, but we need to make sure to
       // add it to the ExecutorInfo.
       podInfoBuilder.setExecutorVolume(volumeSpec);
@@ -127,7 +132,7 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
           diskSource);
       podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
-      return pass(
+      return EvaluationOutcome.pass(
           this,
           Collections.emptyList(),
           "Setting info for already running Executor with existing volume " +
@@ -140,7 +145,12 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     if (volumeSpec.getType().equals(VolumeSpec.Type.ROOT)) {
       OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
           OfferEvaluationUtils.evaluateSimpleResource(
-              logger, this, volumeSpec, resourceId, resourceNamespace, mesosResourcePool);
+              logger,
+              this,
+              volumeSpec,
+              resourceId,
+              resourceNamespace,
+              mesosResourcePool);
       EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
       if (!evaluationOutcome.isPassing()) {
         return evaluationOutcome;
@@ -168,7 +178,10 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
       }
 
       if (!mesosResourceOptional.isPresent()) {
-        return fail(this, "Failed to find MOUNT volume for '%s'.", volumeSpec).build();
+        return EvaluationOutcome.fail(
+            this,
+            "Failed to find MOUNT volume for '%s'.",
+            volumeSpec).build();
       }
 
       mesosResource = mesosResourceOptional.get();
@@ -195,7 +208,8 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
 
     if (createsVolume()) {
       logger.info("Resource '{}' requires a CREATE operation", volumeSpec.getName());
-      offerRecommendations.add(new CreateOfferRecommendation(mesosResourcePool.getOffer(), resource));
+      offerRecommendations.add(
+          new CreateOfferRecommendation(mesosResourcePool.getOffer(), resource));
     }
 
     logger.info("Generated '{}' resource for tasks {}: [{}]",
@@ -211,21 +225,23 @@ public class VolumeEvaluationStage implements OfferEvaluationStage {
     }
 
     if (resourceId.isPresent()) {
-      return pass(
+      return EvaluationOutcome.pass(
           this,
           offerRecommendations,
-          "Offer contains previously reserved 'disk' with resourceId: '%s' and persistenceId: '%s' " +
+          "Offer contains previously reserved 'disk' with resourceId: " +
+              "'%s' and persistenceId: '%s' " +
               "for resource: '%s'",
           resourceId.get(),
-          persistenceId, // in case persistenceId is unset, even if resourceId is set
+          persistenceId,
           volumeSpec)
           .mesosResource(mesosResource)
           .build();
     } else {
-      return pass(
+      return EvaluationOutcome.pass(
           this,
           offerRecommendations,
-          "Offer contains sufficient unreserved 'disk', generated new resourceId: '%s' " +
+          "Offer contains sufficient unreserved 'disk', " +
+              "generated new resourceId: '%s' " +
               "for new reservation: '%s'",
           ResourceUtils.getResourceId(resource).get(),
           volumeSpec)

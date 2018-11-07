@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 /**
  * This class provides utility methods for the handling of failed Tasks.
  */
-public class FailureUtils {
+public final class FailureUtils {
 
   private FailureUtils() {
     // do not instantiate
@@ -41,7 +41,9 @@ public class FailureUtils {
     setPermanentlyFailed(stateStore, TaskUtils.getPodTasks(podInstance, stateStore.fetchTasks()));
   }
 
-  public static void setPermanentlyFailed(StateStore stateStore, Collection<Protos.TaskInfo> failedTasks) {
+  public static void setPermanentlyFailed(StateStore stateStore,
+                                          Collection<Protos.TaskInfo> failedTasks)
+  {
     stateStore.storeTasks(failedTasks.stream()
         .map(taskInfo -> taskInfo.toBuilder()
             .setLabels(new TaskLabelWriter(taskInfo).setPermanentlyFailed().toProto())

@@ -27,6 +27,12 @@ import java.util.stream.Collectors;
 /**
  * Step which implements the deployment of a pod.
  */
+@SuppressWarnings({
+    "checkstyle:HiddenField",
+    "checkstyle:OverloadMethodsDeclarationOrder",
+    "checkstyle:ReturnCount",
+    "checkstyle:CyclomaticComplexity"
+})
 public class DeploymentStep extends AbstractStep {
 
   protected final StateStore stateStore;
@@ -47,6 +53,7 @@ public class DeploymentStep extends AbstractStep {
    * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
    * by the step, and any {@code errors} to be displayed to the user.
    */
+
   public DeploymentStep(
       String name,
       PodInstanceRequirement podInstanceRequirement,
@@ -115,7 +122,8 @@ public class DeploymentStep extends AbstractStep {
     recommendations.stream()
         .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
         .map(recommendation -> ((LaunchOfferRecommendation) recommendation).getTaskInfo())
-        .forEach(taskInfo -> tasks.put(taskInfo.getTaskId(), new TaskStatusPair(taskInfo, Status.PREPARED)));
+        .forEach(taskInfo -> tasks.put(taskInfo.getTaskId(),
+            new TaskStatusPair(taskInfo, Status.PREPARED)));
 
     if (recommendations.isEmpty()) {
       tasks.keySet().forEach(id -> setTaskStatus(id, Status.PREPARED));
@@ -139,8 +147,11 @@ public class DeploymentStep extends AbstractStep {
     // updates while they're still deploying.
 
     // Extract full names of the defined tasks, e.g. "pod-0-task":
-    Collection<String> taskFullNames = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-        .map(taskSpec -> TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
+    Collection<String> taskFullNames =
+        podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+        .map(taskSpec -> TaskSpec.getInstanceName(
+            podInstanceRequirement.getPodInstance(),
+            taskSpec))
         .collect(Collectors.toList());
     return getDisplayStatus(stateStore, super.getStatus(), taskFullNames);
   }
@@ -203,7 +214,8 @@ public class DeploymentStep extends AbstractStep {
             break;
           case UNKNOWN:
           default:
-            throw new IllegalArgumentException(String.format("Unsupported goal state %s for task %s",
+            throw new IllegalArgumentException(String.format(
+                "Unsupported goal state %s for task %s",
                 goalState, status.getTaskId().getValue()));
         }
         break;
@@ -240,7 +252,8 @@ public class DeploymentStep extends AbstractStep {
   }
 
   private void setOverrideStatus(Protos.TaskID taskID, Status status) {
-    GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(getTaskName(taskID));
+    GoalStateOverride.Status overrideStatus =
+        stateStore.fetchGoalOverrideStatus(getTaskName(taskID));
 
     if (!GoalStateOverride.Progress.COMPLETE.equals(overrideStatus.progress)) {
       logger.info("Goal override status: {}", overrideStatus);
@@ -272,13 +285,20 @@ public class DeploymentStep extends AbstractStep {
     if (status.isPresent()) {
       super.setStatus(status.get());
     } else {
-      logger.warn("The minimum status of the set of task statuses, {}, is not explicitly handled. " +
-          "Leaving current step status as-is: {} {}", taskStatuses, super.getName(), super.getStatus());
+      logger.warn("The minimum status of the set of task statuses, {}, " +
+              "is not explicitly handled. " +
+          "Leaving current step status as-is: {} {}",
+          taskStatuses,
+          super.getName(),
+          super.getStatus());
     }
   }
 
   @VisibleForTesting
-  static String getDisplayStatus(StateStore stateStore, Status stepStatus, Collection<String> tasksToLaunch) {
+  static String getDisplayStatus(StateStore stateStore,
+                                 Status stepStatus,
+                                 Collection<String> tasksToLaunch)
+  {
     // It is valid for some tasks to be paused and not others, i.e. user specified specific task(s) to paused.
     // Only display a PAUSING/PAUSED state in the plan if ALL the tasks are marked as paused.
     boolean allTasksPaused = !tasksToLaunch.isEmpty() && tasksToLaunch.stream()
@@ -350,7 +370,9 @@ public class DeploymentStep extends AbstractStep {
 
     @Override
     public String toString() {
-      return String.format("%s(%s):%s", taskInfo.getName(), taskInfo.getTaskId().getValue(), status);
+      return String.format("%s(%s):%s", taskInfo.getName(),
+          taskInfo.getTaskId().getValue(),
+          status);
     }
   }
 }

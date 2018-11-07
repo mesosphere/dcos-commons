@@ -289,7 +289,8 @@ public final class PersisterUtils {
         } catch (PersisterException e) {
           LOGGER.error(
               "Delete the Mono Service Schema Manually. Ignoring the exception encountered " +
-                  "when trying to delete the mono service schema nodes afer a successful migration.",
+                  "when trying to delete the mono service schema nodes afer a s" +
+                  "uccessful migration.",
               e
           );
         }

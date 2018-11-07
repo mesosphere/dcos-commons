@@ -46,6 +46,11 @@ import java.util.stream.Collectors;
  * {@code Plan}. {@link DefaultRecoveryPlanManager} tracks currently failed (permanent) and stopped (transient) tasks,
  * generates a new {@link RecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
+@SuppressWarnings({
+    "checkstyle:LineLength",
+    "checkstyle:DeclarationOrder",
+    "checkstyle:HiddenField",
+})
 public class DefaultRecoveryPlanManager implements PlanManager {
   public static final String DEFAULT_RECOVERY_PHASE_NAME = "default";
 

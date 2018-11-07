@@ -11,6 +11,10 @@ import org.slf4j.Logger;
 import java.util.Collection;
 import java.util.Optional;
 
+@SuppressWarnings({
+    "checkstyle:FinalClass",
+    "checkstyle:MultipleStringLiterals"
+})
 class ResourceMapperUtils {
 
   private static final Logger LOGGER = LoggingUtils.getLogger(ResourceMapperUtils.class);

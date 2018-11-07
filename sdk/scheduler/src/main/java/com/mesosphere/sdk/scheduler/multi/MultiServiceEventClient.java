@@ -435,7 +435,8 @@ public class MultiServiceEventClient implements MesosEventClient {
     // Any unwanted resources then get added to unexpectedResources.
     boolean anyFailedServices = false;
     for (Map.Entry<String, Map<Protos.OfferID, OfferResources>> entry :
-        offersByService.entrySet()) {
+        offersByService.entrySet())
+    {
       String serviceName = entry.getKey();
       Collection<OfferResources> serviceOffers = entry.getValue().values();
 

@@ -85,7 +85,8 @@ public final class GroupedTasks {
 
   public Optional<Collection<TaskInfoAndStatus>> getPodInstanceTasks(String podInstanceName) {
     for (Map.Entry<String, Map<Integer, List<TaskInfoAndStatus>>> pod :
-        byPodTypeAndIndex.entrySet()) {
+        byPodTypeAndIndex.entrySet())
+    {
       for (Map.Entry<Integer, List<TaskInfoAndStatus>> podInstance : pod.getValue().entrySet()) {
         if (PodInstance.getName(pod.getKey(), podInstance.getKey()).equals(podInstanceName)) {
           return Optional.of(podInstance.getValue());

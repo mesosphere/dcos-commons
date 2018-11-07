@@ -42,12 +42,18 @@ import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static com.mesosphere.sdk.offer.Constants.PORTS_RESOURCE_TYPE;
-
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
  */
-public class TaskUtils {
+
+@SuppressWarnings({
+    "checkstyle:LineLength",
+    "checkstyle:MethodCount",
+    "checkstyle:ExecutableStatementCount",
+    "checkstyle:ReturnCount",
+    "checkstyle:OverloadMethodsDeclarationOrder",
+})
+public final class TaskUtils {
 
   private static final Logger LOGGER = LoggingUtils.getLogger(TaskUtils.class);
 
@@ -278,7 +284,7 @@ public class TaskUtils {
     Map<String, ResourceSpec> resourceMap = new HashMap<>();
     for (ResourceSpec resourceSpec : resourceSpecs) {
       ResourceSpec prevValue = resourceMap.put(resourceSpec.getName(), resourceSpec);
-      if (prevValue != null && !prevValue.getName().equals(PORTS_RESOURCE_TYPE)) {
+      if (prevValue != null && !prevValue.getName().equals(Constants.PORTS_RESOURCE_TYPE)) {
         throw new IllegalArgumentException(String.format(
             "Non-port resources for a given task may not share the same name. " +
                 "name:'%s' oldResource:'%s' newResource:'%s'",
@@ -590,15 +596,19 @@ public class TaskUtils {
       case TASK_GONE:
       case TASK_KILLED:
         return true;
-      case TASK_GONE_BY_OPERATOR: // mesos.proto: "might return to RUNNING in the future"
+      case TASK_GONE_BY_OPERATOR:
+        // mesos.proto: "might return to RUNNING in the future"
       case TASK_KILLING:
       case TASK_LOST:
       case TASK_RUNNING:
       case TASK_STAGING:
       case TASK_STARTING:
-      case TASK_UNKNOWN: // mesos.proto: "may or may not still be running"
+      case TASK_UNKNOWN:
+        // mesos.proto: "may or may not still be running"
       case TASK_UNREACHABLE:
         break;
+      default:
+        return false;
     }
 
     return false;

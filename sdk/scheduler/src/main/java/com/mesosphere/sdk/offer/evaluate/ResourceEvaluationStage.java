@@ -14,8 +14,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 
-import static com.mesosphere.sdk.offer.evaluate.EvaluationOutcome.pass;
-
 /**
  * This class evaluates an offer against a given {@link com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement},
  * ensuring that it contains a sufficient amount or value of the supplied {@link Resource}, and creating a
@@ -55,7 +53,9 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
   }
 
   @Override
-  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder) {
+  public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool,
+                                    PodInfoBuilder podInfoBuilder)
+  {
     boolean isRunningExecutor =
         OfferEvaluationUtils.isRunningExecutor(podInfoBuilder, mesosResourcePool.getOffer());
     if (taskNames.isEmpty() && isRunningExecutor && requiredResourceId.isPresent()) {
@@ -67,7 +67,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
           podInfoBuilder,
           ResourceBuilder.fromSpec(resourceSpec, requiredResourceId, resourceNamespace).build(),
           Optional.empty());
-      return pass(
+      return EvaluationOutcome.pass(
           this,
           Collections.emptyList(),
           "Including running executor's '%s' resource with resourceId: '%s': %s",
@@ -79,7 +79,12 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
     OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
         OfferEvaluationUtils.evaluateSimpleResource(
-            logger, this, resourceSpec, requiredResourceId, resourceNamespace, mesosResourcePool);
+            logger,
+            this,
+            resourceSpec,
+            requiredResourceId,
+            resourceNamespace,
+            mesosResourcePool);
 
     EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
     if (!evaluationOutcome.isPassing()) {

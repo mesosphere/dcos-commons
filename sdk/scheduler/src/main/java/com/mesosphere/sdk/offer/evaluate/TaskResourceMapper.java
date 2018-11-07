@@ -24,6 +24,9 @@ import java.util.stream.Collectors;
  * Handles cross-referencing a preexisting {@link Protos.TaskInfo}'s current {@link Protos.Resource}s against a set
  * of expected {@link ResourceSpec}s for that task.
  */
+@SuppressWarnings({
+    "checkstyle:HiddenField",
+})
 class TaskResourceMapper {
 
   private final Logger logger;
@@ -111,7 +114,8 @@ class TaskResourceMapper {
 
     if (!orphanedResources.isEmpty()) {
       logger.info("Unreserving orphaned task resources no longer in TaskSpec: {}",
-          orphanedResources.stream().map(TextFormat::shortDebugString).collect(Collectors.toList()));
+          orphanedResources.stream().map(TextFormat::shortDebugString)
+              .collect(Collectors.toList()));
     }
 
     if (!matchingResources.isEmpty()) {
@@ -214,7 +218,11 @@ class TaskResourceMapper {
       return new NamedVIPEvaluationStage(
           (NamedVIPSpec) resourceSpec, taskSpecNames, resourceId, resourceNamespace);
     } else if (resourceSpec instanceof PortSpec) {
-      return new PortEvaluationStage((PortSpec) resourceSpec, taskSpecNames, resourceId, resourceNamespace);
+      return new PortEvaluationStage(
+          (PortSpec) resourceSpec,
+          taskSpecNames,
+          resourceId,
+          resourceNamespace);
     } else if (resourceSpec instanceof VolumeSpec) {
       return VolumeEvaluationStage.getExisting(
           (VolumeSpec) resourceSpec,
@@ -225,7 +233,11 @@ class TaskResourceMapper {
           providerId,
           diskSource);
     } else {
-      return new ResourceEvaluationStage(resourceSpec, taskSpecNames, resourceId, resourceNamespace);
+      return new ResourceEvaluationStage(
+          resourceSpec,
+          taskSpecNames,
+          resourceId,
+          resourceNamespace);
     }
   }
 }

@@ -100,7 +100,10 @@ public class ExecutorResourceMapper {
 
     if (!orphanedResources.isEmpty()) {
       logger.info("Orphaned executor resources no longer in executor: {}",
-          orphanedResources.stream().map(TextFormat::shortDebugString).collect(Collectors.toList()));
+          orphanedResources
+              .stream()
+              .map(TextFormat::shortDebugString)
+              .collect(Collectors.toList()));
     }
 
     if (!matchingResources.isEmpty()) {

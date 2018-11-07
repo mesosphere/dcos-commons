@@ -15,7 +15,10 @@ import java.util.regex.Pattern;
 /**
  * This class provides a default implementation of the VolumeSpec interface.
  */
-public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec {
+@SuppressWarnings({
+    "checkstyle:DeclarationOrder",
+})
+public final class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec {
 
   /**
    * Disallow slashes in the container path. If a slash is used, Mesos will silently ignore the mount operation for
@@ -25,7 +28,8 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
    * <p>
    * To play it safe, we explicitly whitelist the valid characters here.
    */
-  private static final Pattern VALID_CONTAINER_PATH_PATTERN = Pattern.compile("[a-zA-Z0-9]+([a-zA-Z0-9_-]*)*");
+  private static final Pattern VALID_CONTAINER_PATH_PATTERN =
+      Pattern.compile("[a-zA-Z0-9]+([a-zA-Z0-9_-]*)*");
 
   /**
    * Limit the length and characters in a profile name. A profile name should consist of alphanumeric
@@ -154,7 +158,10 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
 
   private void validateVolume() {
     validateResource();
-    ValidationUtils.matchesRegex(this, "containerPath", containerPath, VALID_CONTAINER_PATH_PATTERN);
+    ValidationUtils.matchesRegex(this,
+        "containerPath",
+        containerPath,
+        VALID_CONTAINER_PATH_PATTERN);
 
     ValidationUtils.nonNull(this, "profiles", profiles);
     if (type != Type.MOUNT) {
@@ -163,7 +170,10 @@ public class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec
 
     int index = 0;
     for (String profile : profiles) {
-      ValidationUtils.matchesRegex(this, "profiles[" + index + "]", profile, VALID_PROFILE_PATTERN);
+      ValidationUtils.matchesRegex(this,
+          "profiles[" + index + "]",
+          profile,
+          VALID_PROFILE_PATTERN);
       index++;
     }
 

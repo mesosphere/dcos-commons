@@ -64,6 +64,11 @@ import java.util.stream.Collectors;
  * As a part of evaluating offers, the {@link org.apache.mesos.Protos.TaskInfo.Builder}s constructed here are copied
  * into {@link OfferRecommendation}s. The ones which are not launched do not get used.
  */
+@SuppressWarnings({
+    "checkstyle:LineLength",
+    "checkstyle:LocalVariableName",
+    "checkstyle:VariableDeclarationUsageDistance"
+})
 public class PodInfoBuilder {
   private static final Logger LOGGER = LoggingUtils.getLogger(PodInfoBuilder.class);
 
@@ -241,6 +246,7 @@ public class PodInfoBuilder {
       GoalStateOverride override) throws InvalidRequirementException
   {
     if (override == null) {
+      // SUPPRESS CHECKSTYLE ParameterAssignment
       override = GoalStateOverride.NONE;
     }
 
@@ -279,7 +285,6 @@ public class PodInfoBuilder {
         commandBuilder.addUrisBuilder().setValue(schedulerConfig.getBootstrapURI());
       }
 
-
       // Any URIs defined in PodSpec itself.
       for (URI uri : podSpec.getUris()) {
         commandBuilder.addUrisBuilder().setValue(uri.toString());
@@ -313,9 +318,7 @@ public class PodInfoBuilder {
       taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
     }
 
-
     taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), true, true));
-
 
     setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
     setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
@@ -336,7 +339,6 @@ public class PodInfoBuilder {
         .setName(podSpec.getType())
         .setExecutorId(Protos.ExecutorID.newBuilder().setValue("").build());
     AuxLabelAccess.setDcosSpace(executorInfoBuilder, schedulerConfig.getDcosSpace());
-
 
     executorInfoBuilder.setType(Protos.ExecutorInfo.Type.DEFAULT)
         .setFrameworkId(frameworkID);
@@ -463,9 +465,7 @@ public class PodInfoBuilder {
         .setConsecutiveFailures(healthCheckSpec.getMaxConsecutiveFailures())
         .setGracePeriodSeconds(healthCheckSpec.getGracePeriod());
 
-
     healthCheckBuilder.setType(Protos.HealthCheck.Type.COMMAND);
-
 
     healthCheckBuilder.getCommandBuilder()
         .setValue(healthCheckSpec.getCommand())
@@ -532,7 +532,9 @@ public class PodInfoBuilder {
           "kill-grace-period must be zero or a positive integer, received: %d",
           taskKillGracePeriodSeconds));
     }
+    // SUPPRESS CHECKSTYLE MagicNumber
     long taskKillGracePeriodNanoseconds = 1000000000L * taskKillGracePeriodSeconds;
+
     Protos.DurationInfo taskKillGracePeriodDuration = Protos.DurationInfo.newBuilder()
         .setNanoseconds(taskKillGracePeriodNanoseconds)
         .build();
@@ -619,7 +621,6 @@ public class PodInfoBuilder {
         containerInfo.addVolumes(secretVolume);
       }
     }
-
 
     return containerInfo.build();
   }

@@ -39,7 +39,15 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
  * to simplify scheduler tests, and to make it painfully obvious when global settings are being used in awkward places.
  */
-public class SchedulerConfig {
+@SuppressWarnings({
+    "checkstyle:MethodCount",
+    "checkstyle:MultipleStringLiterals",
+    "checkstyle:MagicNumber",
+    "checkstyle:TrailingComment",
+    "checkstyle:DeclarationOrder"
+
+})
+public final class SchedulerConfig {
 
   private static final Logger LOGGER = LoggingUtils.getLogger(SchedulerConfig.class);
 
@@ -221,9 +229,11 @@ public class SchedulerConfig {
    * <ul><li>Delay before first implicit reconciliation is triggered (in milliseconds).</li>
    * <li>Duration between implicit reconciliations (in milliseconds).</li></ul>
    */
-  private static final String IMPLICIT_RECONCILIATION_DELAY_MS_ENV = "IMPLICIT_RECONCILIATION_DELAY_MS";
+  private static final String IMPLICIT_RECONCILIATION_DELAY_MS_ENV =
+      "IMPLICIT_RECONCILIATION_DELAY_MS";
 
-  private static final String IMPLICIT_RECONCILIATION_PERIOD_MS_ENV = "IMPLICIT_RECONCILIATION_PERIOD_MS";
+  private static final String IMPLICIT_RECONCILIATION_PERIOD_MS_ENV =
+      "IMPLICIT_RECONCILIATION_PERIOD_MS";
 
   /**
    * Environment variable for allowing region awareness.
@@ -291,7 +301,8 @@ public class SchedulerConfig {
    * Returns the configured time to wait for the API server to come up during scheduler initialization.
    */
   public Duration getApiServerInitTimeout() {
-    return Duration.ofSeconds(envStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S));
+    return Duration.ofSeconds(
+        envStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S));
   }
 
   /**
@@ -415,7 +426,8 @@ public class SchedulerConfig {
    */
   public TokenProvider getDcosAuthTokenProvider() throws IOException {
     JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV));
-    PemReader pemReader = new PemReader(new StringReader(serviceAccountObject.getString("private_key")));
+    PemReader pemReader = new PemReader(
+        new StringReader(serviceAccountObject.getString("private_key")));
     try {
       RSAPrivateKey privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(
           new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent()));
@@ -433,7 +445,10 @@ public class SchedulerConfig {
       Duration authTokenRefreshThreshold = Duration.ofSeconds(envStore.getOptionalInt(
           AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
 
-      return new CachedTokenProvider(serviceAccountIAMTokenProvider, authTokenRefreshThreshold, this);
+      return new CachedTokenProvider(
+          serviceAccountIAMTokenProvider,
+          authTokenRefreshThreshold,
+          this);
     } catch (InvalidKeySpecException e) {
       throw new IllegalArgumentException(e);
     } catch (NoSuchAlgorithmException e) {

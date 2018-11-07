@@ -54,6 +54,15 @@ import java.util.stream.Collectors;
  * The determination of what {@link OfferRecommendation}s, if any should be made are made
  * in reference to {@link PodInstanceRequirement}s.
  */
+@SuppressWarnings({
+    "checkstyle:LineLength",
+    "checkstyle:MultipleStringLiterals",
+    "checkstyle:LineLength",
+    "checkstyle:InnerTypeLast",
+    "checkstyle:HiddenField",
+    "checkstyle:ThrowsCount",
+    "checkstyle:FinalClass"
+})
 public class OfferEvaluator {
 
   private final Logger logger;
