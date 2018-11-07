@@ -1,11 +1,10 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Range;
 import org.apache.mesos.Protos.Value.Type;
-
-import com.google.protobuf.TextFormat;
 
 import java.util.Collections;
 import java.util.List;
@@ -13,84 +12,52 @@ import java.util.List;
 /**
  * Utilities for manipulating Value protobufs.
  */
-public class ValueUtils {
-    public static Value getValue(Resource resource) {
-        Type type = resource.getType();
-        Value.Builder builder = Value.newBuilder();
-        builder.setType(type);
+public final class ValueUtils {
+  private ValueUtils() { }
 
-        switch (type) {
-            case SCALAR:
-                return builder.setScalar(resource.getScalar()).build();
-            case RANGES:
-                return builder.setRanges(resource.getRanges()).build();
-            case SET:
-                return builder.setSet(resource.getSet()).build();
-            default:
-                throw new IllegalArgumentException(String.format("Unsupported value type %s in resource %s",
-                        type,
-                        TextFormat.shortDebugString(resource)));
-        }
+  public static Value getValue(Resource resource) {
+    Type type = resource.getType();
+    Value.Builder builder = Value.newBuilder();
+    builder.setType(type);
+
+    switch (type) {
+      case SCALAR:
+        return builder.setScalar(resource.getScalar()).build();
+      case RANGES:
+        return builder.setRanges(resource.getRanges()).build();
+      case SET:
+        return builder.setSet(resource.getSet()).build();
+      default:
+        throw new IllegalArgumentException(String.format("Unsupported value type %s in resource %s",
+            type,
+            TextFormat.shortDebugString(resource)));
     }
   }
 
-    public static Value add(Value val1, Value val2) {
-        Type type1 = val1.getType();
-        Type type2 = val2.getType();
-
-        if (type1 != type2) {
-            throw new IllegalArgumentException(String.format("Values to add do not have matching type: %s vs %s",
-                    TextFormat.shortDebugString(val1),
-                    TextFormat.shortDebugString(val2)));
-        }
-
-        switch (type1) {
-            case SCALAR:
-                Value.Scalar scalar = add(val1.getScalar(), val2.getScalar());
-                return Value.newBuilder().setType(type1).setScalar(scalar).build();
-            case RANGES:
-                Value.Ranges ranges = add(val1.getRanges(), val2.getRanges());
-                return Value.newBuilder().setType(type1).setRanges(ranges).build();
-            default:
-                throw new IllegalArgumentException(String.format("Unsupported type %s when adding %s to %s",
-                        type1,
-                        TextFormat.shortDebugString(val1),
-                        TextFormat.shortDebugString(val2)));
-        }
-    }
-
-    private static Value.Scalar add(Value.Scalar scal1, Value.Scalar scal2) {
-        double value = scal1.getValue() + scal2.getValue();
-        return Value.Scalar.newBuilder().setValue(value).build();
-    }
+  public static Value add(Value val1, Value val2) {
+    Type type1 = val1.getType();
+    Type type2 = val2.getType();
 
     if (type1 != type2) {
-      return null;
+      throw new IllegalArgumentException(String.format(
+          "Values to add do not have matching type: %s vs %s",
+          TextFormat.shortDebugString(val1),
+          TextFormat.shortDebugString(val2)));
     }
 
-    public static Value subtract(Value val1, Value val2) {
-        Type type1 = val1.getType();
-        Type type2 = val2.getType();
-
-        if (type1 != type2) {
-            throw new IllegalArgumentException(String.format("Values to subtract do not have matching type: %s vs %s",
-                    TextFormat.shortDebugString(val1),
-                    TextFormat.shortDebugString(val2)));
-        }
-
-        switch (type1) {
-            case SCALAR:
-                Value.Scalar scalar = subtract(val1.getScalar(), val2.getScalar());
-                return Value.newBuilder().setType(type1).setScalar(scalar).build();
-            case RANGES:
-                Value.Ranges ranges = subtract(val1.getRanges(), val2.getRanges());
-                return Value.newBuilder().setType(type1).setRanges(ranges).build();
-            default:
-                throw new IllegalArgumentException(String.format("Unsupported type %s when subtracting %s from %s",
-                        type1,
-                        TextFormat.shortDebugString(val2),
-                        TextFormat.shortDebugString(val1)));
-        }
+    switch (type1) {
+      case SCALAR:
+        Value.Scalar scalar = add(val1.getScalar(), val2.getScalar());
+        return Value.newBuilder().setType(type1).setScalar(scalar).build();
+      case RANGES:
+        Value.Ranges ranges = add(val1.getRanges(), val2.getRanges());
+        return Value.newBuilder().setType(type1).setRanges(ranges).build();
+      default:
+        throw new IllegalArgumentException(String.format(
+            "Unsupported type %s when adding %s to %s",
+            type1,
+            TextFormat.shortDebugString(val1),
+            TextFormat.shortDebugString(val2)));
     }
   }
 
@@ -111,7 +78,10 @@ public class ValueUtils {
     Type type2 = val2.getType();
 
     if (type1 != type2) {
-      return null;
+      throw new IllegalArgumentException(String.format(
+          "Values to subtract do not have matching type: %s vs %s",
+          TextFormat.shortDebugString(val1),
+          TextFormat.shortDebugString(val2)));
     }
 
     switch (type1) {
@@ -122,7 +92,11 @@ public class ValueUtils {
         Value.Ranges ranges = subtract(val1.getRanges(), val2.getRanges());
         return Value.newBuilder().setType(type1).setRanges(ranges).build();
       default:
-        return null;
+        throw new IllegalArgumentException(String.format(
+            "Unsupported type %s when subtracting %s from %s",
+            type1,
+            TextFormat.shortDebugString(val2),
+            TextFormat.shortDebugString(val1)));
     }
   }
 
@@ -147,30 +121,23 @@ public class ValueUtils {
     Type type2 = val2.getType();
 
     if (type1 != type2) {
-      return null;
+      throw new IllegalArgumentException(String.format(
+          "Values to compare do not have matching type: %s vs %s",
+          TextFormat.shortDebugString(val1),
+          TextFormat.shortDebugString(val2)));
     }
 
-    public static Integer compare(Value val1, Value val2) {
-        Type type1 = val1.getType();
-        Type type2 = val2.getType();
-
-        if (type1 != type2) {
-            throw new IllegalArgumentException(String.format("Values to compare do not have matching type: %s vs %s",
-                    TextFormat.shortDebugString(val1),
-                    TextFormat.shortDebugString(val2)));
-        }
-
-        switch (type1) {
-            case SCALAR:
-                return compare(val1.getScalar(), val2.getScalar());
-            case RANGES:
-                return compare(val1.getRanges(), val2.getRanges());
-            default:
-                throw new IllegalArgumentException(String.format("Unsupported type %s when comparing values: %s vs %s",
-                        type1,
-                        TextFormat.shortDebugString(val1),
-                        TextFormat.shortDebugString(val2)));
-        }
+    switch (type1) {
+      case SCALAR:
+        return compare(val1.getScalar(), val2.getScalar());
+      case RANGES:
+        return compare(val1.getRanges(), val2.getRanges());
+      default:
+        throw new IllegalArgumentException(String.format(
+            "Unsupported type %s when comparing values: %s vs %s",
+            type1,
+            TextFormat.shortDebugString(val1),
+            TextFormat.shortDebugString(val2)));
     }
   }
 
@@ -198,18 +165,20 @@ public class ValueUtils {
     } else {
       return 1;
     }
+  }
 
-    public static Value getZero(Value.Type type) {
-        switch (type) {
-            case SCALAR:
-                Value.Scalar scalar = Value.Scalar.newBuilder().setValue(0).build();
-                return Value.newBuilder().setType(type).setScalar(scalar).build();
-            case RANGES:
-                Value.Ranges ranges = Value.Ranges.newBuilder().addAllRange(Collections.emptyList()).build();
-                return Value.newBuilder().setType(type).setRanges(ranges).build();
-            default:
-                throw new IllegalArgumentException(String.format("Unsupported type %s for zero value", type));
-        }
+  public static Value getZero(Value.Type type) {
+    switch (type) {
+      case SCALAR:
+        Value.Scalar scalar = Value.Scalar.newBuilder().setValue(0).build();
+        return Value.newBuilder().setType(type).setScalar(scalar).build();
+      case RANGES:
+        Value.Ranges ranges =
+            Value.Ranges.newBuilder().addAllRange(Collections.emptyList()).build();
+        return Value.newBuilder().setType(type).setRanges(ranges).build();
+      default:
+        throw new IllegalArgumentException(
+            String.format("Unsupported type %s for zero value", type));
     }
   }
 }

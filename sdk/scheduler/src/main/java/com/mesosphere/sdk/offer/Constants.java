@@ -10,66 +10,100 @@ import java.time.Duration;
  * @see com.mesosphere.sdk.offer.taskdata.EnvConstants
  * @see com.mesosphere.sdk.offer.taskdata.LabelConstants
  */
-public class Constants {
+@SuppressWarnings({
+    "checkstyle:DeclarationOrder"
+})
+public final class Constants {
+  private Constants() { }
 
-    /** The name used for the deployment plan. */
-    public static final String DEPLOY_PLAN_NAME = "deploy";
-    /** The name used for the recovery plan. */
-    public static final String RECOVERY_PLAN_NAME = "recovery";
-    /** The name used in specifications for the update plan. Overrides the deploy plan when relevant. */
-    public static final String UPDATE_PLAN_NAME = "update";
-    /** The name used for the decommission plan. */
-    public static final String DECOMMISSION_PLAN_NAME = "decommission";
+  /**
+   * The name used for the deployment plan.
+   */
+  public static final String DEPLOY_PLAN_NAME = "deploy";
 
-    /** The name used for reserved network port resources. */
-    public static final String PORTS_RESOURCE_TYPE = "ports";
-    /** The name used for reserved storage/disk resources. */
-    public static final String DISK_RESOURCE_TYPE = "disk";
-    /** The name used for cpu resources. */
-    public static final String CPUS_RESOURCE_TYPE = "cpus";
-    /** The name used for memory resources. */
-    public static final String MEMORY_RESOURCE_TYPE = "mem";
-    /** The name used for GPU resources. */
-    public static final String GPUS_RESOURCE_TYPE = "gpus";
+  /**
+   * The name used for the recovery plan.
+   */
+  public static final String RECOVERY_PLAN_NAME = "recovery";
+
+  /**
+   * The name used in specifications for the update plan. Overrides the deploy plan when relevant.
+   */
+  public static final String UPDATE_PLAN_NAME = "update";
+
+  /**
+   * The name used for the decommission plan.
+   */
+  public static final String DECOMMISSION_PLAN_NAME = "decommission";
+
+  /**
+   * The name used for reserved network port resources.
+   */
+  public static final String PORTS_RESOURCE_TYPE = "ports";
+
+  /**
+   * The name used for reserved storage/disk resources.
+   */
+  public static final String DISK_RESOURCE_TYPE = "disk";
+
+  /**
+   * The name used for cpu resources.
+   */
+  public static final String CPUS_RESOURCE_TYPE = "cpus";
+
+  /**
+   * The name used for memory resources.
+   */
+  public static final String MEMORY_RESOURCE_TYPE = "mem";
+
+  /**
+   * The name used for GPU resources.
+   */
+  public static final String GPUS_RESOURCE_TYPE = "gpus";
 
 
-    /** The "any role" wildcard resource role. */
-    public static final String ANY_ROLE = "*";
+  /**
+   * The "any role" wildcard resource role.
+   */
+  public static final String ANY_ROLE = "*";
 
-    /**
-     * The visibility setting to use by default in Mesos Ports, for VIP ports. Non-VIP ports are currently hidden by
-     * default.
-     *
-     * This may be overridden by manually constructing the {@link com.mesosphere.sdk.specification.NamedVIPSpec} or
-     * {@link com.mesosphere.sdk.specification.PortSpec}.
-     *
-     * As of this writing, this setting is only used by {@link com.mesosphere.sdk.http.endpoints.EndpointsResource} for
-     * determining what ports to advertise, where {@code EXTERNAL} means advertise and non-{@code EXTERNAL} means don't
-     * advertise. According to the networking team this isn't currently used by DC/OS itself (as of 1.10).
-     */
-    public static final DiscoveryInfo.Visibility DISPLAYED_PORT_VISIBILITY = DiscoveryInfo.Visibility.EXTERNAL;
+  /**
+   * The visibility setting to use by default in Mesos Ports, for VIP ports. Non-VIP ports are currently hidden by
+   * default.
+   * <p>
+   * This may be overridden by manually constructing the {@link com.mesosphere.sdk.specification.NamedVIPSpec} or
+   * {@link com.mesosphere.sdk.specification.PortSpec}.
+   * <p>
+   * As of this writing, this setting is only used by {@link com.mesosphere.sdk.http.endpoints.EndpointsResource} for
+   * determining what ports to advertise, where {@code EXTERNAL} means advertise and non-{@code EXTERNAL} means don't
+   * advertise. According to the networking team this isn't currently used by DC/OS itself (as of 1.10).
+   */
+  public static final DiscoveryInfo.Visibility DISPLAYED_PORT_VISIBILITY =
+      DiscoveryInfo.Visibility.EXTERNAL;
 
-    /**
-     * The visibility setting to use by default in Mesos Ports, for non-VIP ports. This may be revisited later where
-     * they will be made visible by default.
-     */
-    public static final DiscoveryInfo.Visibility OMITTED_PORT_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
+  /**
+   * The visibility setting to use by default in Mesos Ports, for non-VIP ports. This may be revisited later where
+   * they will be made visible by default.
+   */
+  public static final DiscoveryInfo.Visibility OMITTED_PORT_VISIBILITY =
+      DiscoveryInfo.Visibility.CLUSTER;
 
-    /**
-     * The visibility setting to use by default in a Task's DiscoveryInfo, for both VIP and non-VIP ports.
-     *
-     * According to the networking team this isn't currently used by DC/OS itself (as of 1.10). It likewise isn't used
-     * by the SDK.
-     */
-    public static final DiscoveryInfo.Visibility DEFAULT_TASK_DISCOVERY_VISIBILITY = DiscoveryInfo.Visibility.CLUSTER;
+  /**
+   * The visibility setting to use by default in a Task's DiscoveryInfo, for both VIP and non-VIP ports.
+   * <p>
+   * According to the networking team this isn't currently used by DC/OS itself (as of 1.10). It likewise isn't used
+   * by the SDK.
+   */
+  public static final DiscoveryInfo.Visibility DEFAULT_TASK_DISCOVERY_VISIBILITY =
+      DiscoveryInfo.Visibility.CLUSTER;
 
-    /**
-     * The duration in seconds to decline offers the scheduler does not need for the foreseeable future.
-     */
-    public static final int LONG_DECLINE_SECONDS = Math.toIntExact(Duration.ofDays(14).getSeconds());
+  /**
+   * The duration in seconds to decline offers the scheduler does not need for the foreseeable future.
+   */
+  public static final int LONG_DECLINE_SECONDS = Math.toIntExact(Duration.ofDays(14).getSeconds());
 
-    /**
-     * The duration in seconds to decline offers the scheduler does not need for a short time.
-     */
-    public static final int SHORT_DECLINE_SECONDS = 5;
+  /**
+   * The duration in seconds to decline offers the scheduler does not need for a short time.
+   */
+  public static final int SHORT_DECLINE_SECONDS = 5;
 }

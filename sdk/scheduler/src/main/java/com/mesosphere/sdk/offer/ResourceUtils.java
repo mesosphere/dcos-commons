@@ -17,7 +17,8 @@ import java.util.stream.Collectors;
  */
 public final class ResourceUtils {
 
-  private ResourceUtils() {}
+  private ResourceUtils() {
+  }
 
   /**
    * Returns a list of all the resources associated with one or more tasks, including {@link Executor} resources.
@@ -124,12 +125,12 @@ public final class ResourceUtils {
 
   /**
    * Filter resources which are dynamically reserved against a role which isn't ours.
-   * <p>
+   *
    * <p>We may receive resources with the following reservation semantics:
    * <ul><li>Dynamic against "our-role" or "pre-reserved-role/our-role" (belongs to us)</li>
    * <li>Static against "pre-reserved-role" (we can reserve against it)</li>
    * <li>Dynamic against "pre-reserved-role" (DOESN'T belong to us at all! Likely created by Marathon)</li></ul>
-   * <p>
+   *
    * <p>This function should return {@code false} for all reservations of the last type.
    *
    * @param resource the resource to be examined

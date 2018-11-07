@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * A {@link FrameworkStore} stores the Framework ID for the scheduler. The framework ID is required for the scheduler to
  * re-identify itself with Mesos after initial registration.
- * <p>
+ *
  * <p>The structure used in the underlying persister is as follows:
  * <br>rootPath/
  * <br>&nbsp;-> FrameworkID

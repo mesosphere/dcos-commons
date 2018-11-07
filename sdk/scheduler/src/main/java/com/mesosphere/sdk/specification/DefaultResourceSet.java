@@ -234,7 +234,7 @@ public final class DefaultResourceSet implements ResourceSet {
 
     @Override
     public String toString() {
-        return ToStringBuilder.reflectionToString(this);
+      return ToStringBuilder.reflectionToString(this);
     }
 
     /**

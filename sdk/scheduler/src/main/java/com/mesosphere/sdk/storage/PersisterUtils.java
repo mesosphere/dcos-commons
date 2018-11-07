@@ -130,7 +130,7 @@ public final class PersisterUtils {
 
   /**
    * Returns a recursive list of all paths which are the parent of the provided path.
-   * <p>
+   *
    * <p>/path/to/thing => ["/path", "/path/to"] (skip "/" and "/path/to/thing")
    */
   public static List<String> getParentPaths(final String path) {
@@ -289,7 +289,8 @@ public final class PersisterUtils {
         } catch (PersisterException e) {
           LOGGER.error(
               "Delete the Mono Service Schema Manually. Ignoring the exception encountered " +
-              "when trying to delete the mono service schema nodes afer a successful migration.",
+                  "when trying to delete the mono service schema nodes afer a s" +
+                  "uccessful migration.",
               e
           );
         }

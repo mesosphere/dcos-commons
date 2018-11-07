@@ -12,7 +12,7 @@ import org.slf4j.Logger;
  * NOTE: Does not protect against multithreaded access. All calls should only be made on a single
  * thread, separate from the thread that receives offers. Otherwise there is a risk of a deadlock
  * because SchedulerDriver.reviveOffers() can block on sending us new offers.
- * <p>
+ *
  * <ul>
  * <li>Suppress is performed whenever the underlying services are all idle and no further offers are
  * needed. This allows Mesos to scale to more frameworks. When the framework is suppressed, it
@@ -53,7 +53,7 @@ class ReviveManager {
    * are received from Mesos. This confirmation is done separately from the revive call to avoid
    * the possibility of the following
    * scenario:
-   * <p>
+   *
    * <ol>
    * <li>Offers are suppressed</li>
    * <li>A revive call is issued</li>

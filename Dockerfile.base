@@ -9,9 +9,8 @@
 # 1) Slower but semi-automatic and public:
 # - once the desired version of this file is merged to master, the auto-builder
 #   on dockerhub will build a new version of this image
-# - just go to https://hub.docker.com/r/mesosphere/dcos-commons-base/tags/
-#   to copy the tag name
-# - put the tag into the FROM line in Dockerfile (of the main image).
+# - at that point, renovatebot will make a PR to bump the sha in FROM line in
+#   Dockerfile (of the main image)
 #
 # 2) Faster, for local testing:
 # - make the required changes to this file, and/or run the following build
@@ -21,10 +20,7 @@
 # - put the tag into the FROM line in Dockerfile (of the main image)
 #   temporarily, rebuild that one, test, etc.
 #
-# TODO(DCOS-42576): set a periodic job to update the FROM line in Dockerfile,
-# so that we pick up updates regularly but in a controlled manner.
-#
-FROM ubuntu:18.04
+FROM ubuntu:18.04@sha256:29934af957c53004d7fb6340139880d23fb1952505a15d69a03af0d1418878cb
 
 # Install JDK via PPA: https://github.com/franzwong/til/blob/master/java/silent-install-oracle-jdk8-ubuntu.md
 RUN apt-get update && \

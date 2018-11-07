@@ -13,7 +13,8 @@ public final class SchedulerUtils {
    */
   private static final String SLASH_REPLACEMENT = "__";
 
-  private SchedulerUtils() {}
+  private SchedulerUtils() {
+  }
 
   /**
    * Removes any slashes from the provided name and replaces them with double underscores. Any leading slash is

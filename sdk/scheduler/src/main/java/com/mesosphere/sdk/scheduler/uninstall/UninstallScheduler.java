@@ -36,12 +36,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 /**
  * This scheduler uninstalls a service and releases all of its resources.
  */
+@SuppressWarnings({
+    "checkstyle:MagicNumber",
+    "checkstyle:IllegalCatch"
+})
 public class UninstallScheduler extends AbstractScheduler {
 
   private final Logger logger;
@@ -108,10 +111,9 @@ public class UninstallScheduler extends AbstractScheduler {
     this.schedulerConfig = schedulerConfig;
 
     if (!StateStoreUtils.isUninstalling(stateStore)) {
-      logger.info(
-          "Service has been told to uninstall. Marking this in the persistent state store. " +
-          "Uninstall cannot be canceled once triggered."
-      );
+      logger.info("Service has been told to uninstall. Marking this in the " +
+          "persistent state store. " +
+          "Uninstall cannot be canceled once triggered.");
       StateStoreUtils.setUninstalling(stateStore);
     }
 
@@ -137,11 +139,9 @@ public class UninstallScheduler extends AbstractScheduler {
     } else {
       // Use uninstall timeout, unless disabled in SchedulerConfig with negative or zero value
       this.uninstallTimeoutSecs = schedulerConfig.getMultiServiceRemovalTimeout().getSeconds();
-      this.uninstallDeadlineMillis = uninstallTimeoutSecs <= 0 ?
-          Optional.empty() :
-          Optional.of(timeFetcher.getCurrentTimeMillis() +
-              TimeUnit.MILLISECONDS.convert(uninstallTimeoutSecs, TimeUnit.SECONDS)
-          );
+      this.uninstallDeadlineMillis = uninstallTimeoutSecs <= 0
+          ? Optional.empty()
+          : Optional.of(timeFetcher.getCurrentTimeMillis() + (uninstallTimeoutSecs * 1000));
     }
 
     customizePlans();
@@ -207,15 +207,12 @@ public class UninstallScheduler extends AbstractScheduler {
         && timeFetcher.getCurrentTimeMillis() > uninstallDeadlineMillis.get())
     {
       // Configured uninstall timeout has passed, and we're still uninstalling. Tell upstream that we're "done".
-      Optional<Plan> deployPlan = getPlans()
-          .stream()
-          .filter(Plan::isDeployPlan)
+      Optional<Plan> deployPlan = getPlans().stream()
+          .filter(plan -> plan.isDeployPlan())
           .findAny();
-      logger.error(
-          "Failed to complete uninstall within {}s timeout, forcing cleanup. Deploy plan was: {}",
-          uninstallTimeoutSecs,
-          deployPlan.isPresent() ? deployPlan.get().toString() : "UNKNOWN"
-      );
+      logger.error("Failed to complete uninstall within {}s timeout, " +
+              "forcing cleanup. Deploy plan was: {}",
+          uninstallTimeoutSecs, deployPlan.isPresent() ? deployPlan.get().toString() : "UNKNOWN");
       return ClientStatusResponse.readyToRemove();
     } else {
       // Still uninstalling, and no timeout has passed.
@@ -224,9 +221,13 @@ public class UninstallScheduler extends AbstractScheduler {
     }
   }
 
-    @Override
-    protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
-        stateStore.storeStatus(StateStoreUtils.fetchTaskInfo(stateStore, status).getName(), status);
+  @Override
+  protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
+    // Get candidate steps to be scheduled
+    if (!steps.isEmpty()) {
+      logger.info("Attempting to process {} candidates from uninstall plan: {}",
+          steps.size(), steps.stream().map(Element::getName).collect(Collectors.toList()));
+      steps.forEach(Step::start);
     }
 
     // No recommendations. Upstream should invoke the cleaner against any unexpected resources in unclaimed
@@ -247,12 +248,12 @@ public class UninstallScheduler extends AbstractScheduler {
             // In addition, checking for a valid resource_id label is a good sanity check to avoid
             // potentially unreserving any resources that weren't originally created by the SDK.
             // This is in addition to separate filtering in FrameworkScheduler of reserved Marathon volumes.
-            .filter(ResourceUtils::hasResourceId)
+            .filter(resource -> ResourceUtils.hasResourceId(resource))
             .collect(Collectors.toList())))
         .collect(Collectors.toList());
     try {
       recorder.recordCleanupOrUninstall(unexpected);
-    } catch (Exception e) { // SUPPRESS CHECKSTYLE IllegalCatch
+    } catch (Exception e) {
       // Failed to record the upcoming dereservation. Don't return the resources as unexpected until we can record
       // the dereservation.
       logger.error("Failed to record unexpected resources", e);
@@ -262,8 +263,8 @@ public class UninstallScheduler extends AbstractScheduler {
   }
 
   @Override
-  protected void processStatusUpdate(Protos.TaskStatus status) {
-    stateStore.storeStatus(StateStoreUtils.getTaskName(stateStore, status), status);
+  protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
+    stateStore.storeStatus(StateStoreUtils.fetchTaskInfo(stateStore, status).getName(), status);
   }
 
   public DeregisterStep getDeregisterStep() {

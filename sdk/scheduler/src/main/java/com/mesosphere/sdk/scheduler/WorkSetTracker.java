@@ -36,6 +36,7 @@ public class WorkSetTracker {
   }
 
   // CHECKSTYLE:OFF AtclauseOrder
+
   /**
    * Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
    * (a.k.a. forever) whenever we decline any offer.  When we see *new* work ({@link PodInstanceRequirement}s) we

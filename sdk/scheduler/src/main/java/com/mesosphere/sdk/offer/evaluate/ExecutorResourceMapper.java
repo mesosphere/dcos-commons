@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -98,13 +99,11 @@ public class ExecutorResourceMapper {
     List<OfferEvaluationStage> stages = new ArrayList<>();
 
     if (!orphanedResources.isEmpty()) {
-      logger.info(
-          "Orphaned executor resources no longer in executor: {}",
+      logger.info("Orphaned executor resources no longer in executor: {}",
           orphanedResources
               .stream()
               .map(TextFormat::shortDebugString)
-              .collect(Collectors.toList())
-      );
+              .collect(Collectors.toList()));
     }
 
     if (!matchingResources.isEmpty()) {
@@ -114,37 +113,46 @@ public class ExecutorResourceMapper {
       }
     }
 
-    private OfferEvaluationStage newUpdateEvaluationStage(ResourceLabels resourceLabels) {
-        ResourceSpec resourceSpec = resourceLabels.getUpdated();
-        Optional<String> resourceId = Optional.of(resourceLabels.getResourceId());
-
-        if (resourceSpec instanceof VolumeSpec) {
-            return VolumeEvaluationStage.getExisting(
-                    (VolumeSpec) resourceSpec,
-                    Collections.emptyList(),
-                    resourceId,
-                    resourceLabels.getResourceNamespace(),
-                    resourceLabels.getPersistenceId(),
-                    resourceLabels.getProviderId(),
-                    resourceLabels.getDiskSource());
-        } else {
-            return new ResourceEvaluationStage(
-                    resourceSpec,
-                    Collections.emptyList(),
-                    resourceId,
-                    resourceLabels.getResourceNamespace()
-            );
-        }
+    if (!remainingResourceSpecs.isEmpty()) {
+      logger.info("Missing resources not found in executor: {}", remainingResourceSpecs);
+      for (ResourceSpec missingResource : remainingResourceSpecs) {
+        stages.add(newCreateEvaluationStage(missingResource));
+      }
     }
 
-    private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
-        if (resourceSpec instanceof VolumeSpec) {
-            return VolumeEvaluationStage.getNew(
-                    (VolumeSpec) resourceSpec, Collections.emptyList(), resourceNamespace);
-        } else {
-            return new ResourceEvaluationStage(
-                    resourceSpec, Collections.emptyList(), Optional.empty(), resourceNamespace);
-        }
+    return stages;
+  }
+
+  private OfferEvaluationStage newUpdateEvaluationStage(ResourceLabels resourceLabels) {
+    ResourceSpec resourceSpec = resourceLabels.getUpdated();
+    Optional<String> resourceId = Optional.of(resourceLabels.getResourceId());
+
+    if (resourceSpec instanceof VolumeSpec) {
+      return VolumeEvaluationStage.getExisting(
+          (VolumeSpec) resourceSpec,
+          Collections.emptyList(),
+          resourceId,
+          resourceLabels.getResourceNamespace(),
+          resourceLabels.getPersistenceId(),
+          resourceLabels.getProviderId(),
+          resourceLabels.getDiskSource());
+    } else {
+      return new ResourceEvaluationStage(
+          resourceSpec,
+          Collections.emptyList(),
+          resourceId,
+          resourceLabels.getResourceNamespace()
+      );
+    }
+  }
+
+  private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
+    if (resourceSpec instanceof VolumeSpec) {
+      return VolumeEvaluationStage.getNew(
+          (VolumeSpec) resourceSpec, Collections.emptyList(), resourceNamespace);
+    } else {
+      return new ResourceEvaluationStage(
+          resourceSpec, Collections.emptyList(), Optional.empty(), resourceNamespace);
     }
   }
 }

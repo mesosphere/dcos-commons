@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
+
 import org.apache.mesos.Protos;
 
 import java.util.Collection;
@@ -29,22 +30,24 @@ public final class FailureUtils {
     return new TaskLabelReader(taskInfo).isPermanentlyFailed();
   }
 
-    /**
-     * Marks all tasks associated with this pod as failed.
-     * This setting will effectively be automatically cleared when the pod is redeployed.
-     *
-     * @param stateStore the state storage where any updated tasks will be stored
-     * @param podInstance the pod whose tasks will be marked as failed
-     */
-    public static void setPermanentlyFailed(StateStore stateStore, PodInstance podInstance) {
-        setPermanentlyFailed(stateStore, TaskUtils.getPodTasks(podInstance, stateStore.fetchTasks()));
-    }
+  /**
+   * Marks all tasks associated with this pod as failed.
+   * This setting will effectively be automatically cleared when the pod is redeployed.
+   *
+   * @param stateStore  the state storage where any updated tasks will be stored
+   * @param podInstance the pod whose tasks will be marked as failed
+   */
+  public static void setPermanentlyFailed(StateStore stateStore, PodInstance podInstance) {
+    setPermanentlyFailed(stateStore, TaskUtils.getPodTasks(podInstance, stateStore.fetchTasks()));
+  }
 
-    public static void setPermanentlyFailed(StateStore stateStore, Collection<Protos.TaskInfo> failedTasks) {
-        stateStore.storeTasks(failedTasks.stream()
-                .map(taskInfo -> taskInfo.toBuilder()
-                        .setLabels(new TaskLabelWriter(taskInfo).setPermanentlyFailed().toProto())
-                        .build())
-                .collect(Collectors.toList()));
-    }
+  public static void setPermanentlyFailed(StateStore stateStore,
+                                          Collection<Protos.TaskInfo> failedTasks)
+  {
+    stateStore.storeTasks(failedTasks.stream()
+        .map(taskInfo -> taskInfo.toBuilder()
+            .setLabels(new TaskLabelWriter(taskInfo).setPermanentlyFailed().toProto())
+            .build())
+        .collect(Collectors.toList()));
+  }
 }

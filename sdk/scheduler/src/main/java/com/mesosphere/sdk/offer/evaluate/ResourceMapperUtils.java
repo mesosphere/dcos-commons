@@ -11,7 +11,11 @@ import org.slf4j.Logger;
 import java.util.Collection;
 import java.util.Optional;
 
-final class ResourceMapperUtils {
+@SuppressWarnings({
+    "checkstyle:FinalClass",
+    "checkstyle:MultipleStringLiterals"
+})
+class ResourceMapperUtils {
 
   private static final Logger LOGGER = LoggingUtils.getLogger(ResourceMapperUtils.class);
 
@@ -19,39 +23,22 @@ final class ResourceMapperUtils {
     // Do not instantiate
   }
 
-    static Optional<ResourceLabels> findMatchingDiskSpec(
-            Protos.Resource taskResource,
-            Collection<ResourceSpec> resourceSpecs,
-            Optional<String> resourceNamespace) {
-        if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
-            LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
-            return Optional.empty();
-        }
-        return resourceSpecs.stream()
-                .filter(resourceSpec -> resourceSpec instanceof VolumeSpec
-                        && taskResource
-                                .getDisk()
-                                .getVolume()
-                                .getContainerPath()
-                                .equals(((VolumeSpec) resourceSpec).getContainerPath()))
-                .findFirst()
-                .map(resourceSpec -> new ResourceLabels(
-                        resourceSpec,
-                        ((VolumeSpec) resourceSpec).withDiskSize(taskResource.getScalar().getValue()),
-                        ResourceUtils.getResourceId(taskResource).get(),
-                        getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace),
-                        ResourceUtils.getPersistenceId(taskResource),
-                        ResourceUtils.getProviderId(taskResource),
-                        ResourceUtils.getDiskSource(taskResource)));
+  static Optional<ResourceLabels> findMatchingDiskSpec(
+      Protos.Resource taskResource,
+      Collection<ResourceSpec> resourceSpecs,
+      Optional<String> resourceNamespace)
+  {
+    if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
+      LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+      return Optional.empty();
     }
-    return resourceSpecs
-        .stream()
-        .filter(resourceSpec -> resourceSpec instanceof VolumeSpec &&
-            taskResource
-                .getDisk()
-                .getVolume()
-                .getContainerPath()
-                .equals(((VolumeSpec) resourceSpec).getContainerPath()))
+    return resourceSpecs.stream()
+        .filter(resourceSpec -> resourceSpec instanceof VolumeSpec
+            && taskResource
+            .getDisk()
+            .getVolume()
+            .getContainerPath()
+            .equals(((VolumeSpec) resourceSpec).getContainerPath()))
         .findFirst()
         .map(resourceSpec -> new ResourceLabels(
             resourceSpec,
@@ -60,54 +47,45 @@ final class ResourceMapperUtils {
             getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace),
             ResourceUtils.getPersistenceId(taskResource),
             ResourceUtils.getProviderId(taskResource),
-            ResourceUtils.getDiskSource(taskResource))
-        );
+            ResourceUtils.getDiskSource(taskResource)));
   }
 
-    static Optional<ResourceLabels> findMatchingResourceSpec(
-            Protos.Resource taskResource,
-            Collection<ResourceSpec> resourceSpecs,
-            Optional<String> resourceNamespace) {
-        if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
-            LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
-            return Optional.empty();
-        }
-        return resourceSpecs.stream()
-                .filter(resourceSpec -> resourceSpec.getName().equals(taskResource.getName()))
-                .findFirst()
-                .map(resourceSpec -> new ResourceLabels(
-                        resourceSpec,
-                        ResourceUtils.getResourceId(taskResource).get(),
-                        getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace)));
+  static Optional<ResourceLabels> findMatchingResourceSpec(
+      Protos.Resource taskResource,
+      Collection<ResourceSpec> resourceSpecs,
+      Optional<String> resourceNamespace)
+  {
+    if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
+      LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
+      return Optional.empty();
     }
-    return resourceSpecs
-        .stream()
+    return resourceSpecs.stream()
         .filter(resourceSpec -> resourceSpec.getName().equals(taskResource.getName()))
         .findFirst()
         .map(resourceSpec -> new ResourceLabels(
             resourceSpec,
             ResourceUtils.getResourceId(taskResource).get(),
-            getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace))
-        );
+            getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace)));
   }
 
-    /**
-     * @param taskResourceNamespace This is the namespace label from the Mesos
-     * @return If the taskResourceNamespace is non-empty, it MUST match with the namespace the scheduler is in.
-     * If the taskResourceNamespace is empty, we should NOT add a label now.
-     * This is applicable only in the "UPDATE" flow. During creating of new resources, we use the Scheduler namespace.
-     */
-    static Optional<String> getNamespaceLabel(
-            Optional<String> taskResourceNamespace,
-            Optional<String> resourceNamespace) {
-        return taskResourceNamespace.flatMap(x -> {
-            if (!resourceNamespace.isPresent() || !resourceNamespace.get().equals(x)) {
-                LOGGER.error("Resource has [{}] namespace label but scheduler is in [{}] namespace",
-                        x, resourceNamespace);
-                return Optional.empty();
-            } else {
-                return taskResourceNamespace;
-            }
-        });
-    }
+  /**
+   * @param taskResourceNamespace This is the namespace label from the Mesos
+   * @return If the taskResourceNamespace is non-empty, it MUST match with the namespace the scheduler is in.
+   * If the taskResourceNamespace is empty, we should NOT add a label now.
+   * This is applicable only in the "UPDATE" flow. During creating of new resources, we use the Scheduler namespace.
+   */
+  static Optional<String> getNamespaceLabel(
+      Optional<String> taskResourceNamespace,
+      Optional<String> resourceNamespace)
+  {
+    return taskResourceNamespace.flatMap(x -> {
+      if (!resourceNamespace.isPresent() || !resourceNamespace.get().equals(x)) {
+        LOGGER.error("Resource has [{}] namespace label but scheduler is in [{}] namespace",
+            x, resourceNamespace);
+        return Optional.empty();
+      } else {
+        return taskResourceNamespace;
+      }
+    });
+  }
 }

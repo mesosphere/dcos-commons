@@ -33,7 +33,7 @@ import java.util.TreeMap;
  * TaskStatus is reported by Mesos to Frameworks at various points including at Task Reconciliation
  * and when Tasks change state.  The TaskStatus of a Task should be recorded so that the state of
  * a Framework's Tasks can be queried.
- * <p>
+ *
  * <p>The structure used in the underlying persister is as follows:
  * <br>namespacedPath/ ("Services/NAMESPACE/" or "/")
  * <br>&nbsp; Tasks/
@@ -93,7 +93,7 @@ public class StateStore {
    *
    * @param persister The persister which holds the state data
    * @param namespace The namespace for data to be stored within, or an empty Optional for
-   *                 no namespacing
+   *                  no namespacing
    */
   public StateStore(Persister persister, Optional<String> namespace) {
     this.logger = LoggingUtils.getLogger(getClass(), namespace);
@@ -203,7 +203,7 @@ public class StateStore {
    *
    * @param tasks Tasks to be stored, which each meet the above requirements
    * @throws StateStoreException when persisting TaskInfo information fails, or if its TaskId is
-   * malformed
+   *                             malformed
    */
   public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
     Map<String, byte[]> taskBytesMap = new HashMap<>();
@@ -647,7 +647,8 @@ public class StateStore {
     // previously has a state that is no longer recognized by the scheduler. The most reasonable thing in this
     // case is to fall back to a no-override state.
     logger.warn("Task '{}' has unrecognized override progress '{}'. " +
-        "Left over from a recent upgrade/downgrade? Falling back to inactive override progress.",
+            "Left over from a recent upgrade/downgrade? Falling back to inactive " +
+            "override progress.",
         taskName,
         progressName
     );

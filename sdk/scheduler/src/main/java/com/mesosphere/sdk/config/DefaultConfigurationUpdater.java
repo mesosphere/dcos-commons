@@ -84,13 +84,13 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
    * When evaluating whether a pod should be updated, some PodSpec changes are immaterial:
    * <ol>
    * <li>
-   *   Count: Extant pods do not care if they will have more fellows
+   * Count: Extant pods do not care if they will have more fellows
    * </li>
    * <li>
-   *   Placement Rules: Extant pods should not (immediately) move around due to placement changes
+   * Placement Rules: Extant pods should not (immediately) move around due to placement changes
    * </li>
    * <li>
-   *   Allow decommission: Does not affect the pods themselves, only how we treat them
+   * Allow decommission: Does not affect the pods themselves, only how we treat them
    * </li>
    * </ol>
    * As such, ignore these fields when checking for differences.

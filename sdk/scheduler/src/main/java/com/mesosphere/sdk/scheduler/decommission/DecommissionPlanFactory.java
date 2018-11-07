@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * <p>
  * The plan is structured as a series of phases, one per pod to be decommissioned. Each pod will be decommissioned as
  * follows:
- * <p>
+ *
  * <ol><li>Tasks in the pod are set to a DECOMMISSIONED+IN_PROGRESS state, from DECOMMISSIONED+PENDING which was set
  * when the Plan was initialized.</li>
  * <li>Kill is issued for all tasks in the pod.</li>
@@ -50,7 +50,7 @@ import java.util.stream.Collectors;
  * <li>Once the resources are all cleared, the task is deleted from the {@link StateStore}.</li></ol>
  * <p>
  * Note that this is different from uninstall behavior in a couple ways, resulting in different handling from uninstall:
- * <p>
+ *
  * <ul><li>The decommission operation can be cancelled by incrementing pod count, whereas uninstall cannot be cancelled
  * once it's started. We remove resources from the {@code TaskInfo}s instead of marking them with tombstones to reduce
  * the likelihood of a partial decommission causing problems.</li>

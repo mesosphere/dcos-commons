@@ -155,7 +155,8 @@ public final class DefaultHealthCheckSpec implements HealthCheckSpec {
 
     private Integer gracePeriod;
 
-    private Builder() {}
+    private Builder() {
+    }
 
     /**
      * Sets the {@code command} and returns a reference to this Builder so that the methods can be chained together.

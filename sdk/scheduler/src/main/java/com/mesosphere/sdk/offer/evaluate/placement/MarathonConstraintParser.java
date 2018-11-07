@@ -41,7 +41,8 @@ public final class MarathonConstraintParser {
     SUPPORTED_OPERATORS.put("IS", new IsOperator());
   }
 
-  private MarathonConstraintParser() {}
+  private MarathonConstraintParser() {
+  }
 
   /**
    * Creates and returns a new {@link PlacementRule} against the provided marathon-style
@@ -123,7 +124,7 @@ public final class MarathonConstraintParser {
    * on the element contents.
    */
   @VisibleForTesting
-  static List<List<String>> splitConstraints(String marathonConstraints){
+  static List<List<String>> splitConstraints(String marathonConstraints) {
     ObjectMapper mapper = new ObjectMapper();
     // The marathon doc uses a format like: '[["a", "b", "c"], ["d", "e"]]'
     // Meanwhile the marathon web interface uses a format like: 'a:b:c,d:e'
@@ -131,7 +132,8 @@ public final class MarathonConstraintParser {
       // First try: ["a", "b", "c"]
       // This format technically isn't present in the Marathon docs, but we're being lenient here.
       List<String> row = mapper
-          .readValue(marathonConstraints, new TypeReference<List<String>>() {});
+          .readValue(marathonConstraints, new TypeReference<List<String>>() {
+          });
       LOGGER.debug("Flat list '{}' => single row: '{}'", marathonConstraints, row);
       return Collections.singletonList(row);
     } catch (IOException | ClassCastException e1) {

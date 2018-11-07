@@ -11,7 +11,8 @@ import java.util.Optional;
  */
 public final class LoggingUtils {
 
-  private LoggingUtils() {}
+  private LoggingUtils() {
+  }
 
   /**
    * Creates a logger which is tagged with the provided class.
@@ -45,7 +46,7 @@ public final class LoggingUtils {
 
   /**
    * Returns a class name suitable for using in logs.
-   * <p>
+   *
    * <p>At the moment this results in a class name of just e.g. "{@code LoggingUtils}".
    */
   private static String getClassName(Class<?> clazz) {

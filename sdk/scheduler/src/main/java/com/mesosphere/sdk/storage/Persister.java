@@ -5,10 +5,10 @@ import java.util.Map;
 
 /**
  * A low-level interface for key/value storage in a tree structure.
- * <p>
+ *
  * <p>Individual nodes may be the parent of other nodes. Some of these parent nodes may lack any data of their own. The
  * root-level node (with path "", or "/") is considered to always be present.
- * <p>
+ *
  * <p>This interface should be implemented in order to store and fetch data, with paths delimited by
  * {@link com.mesosphere.sdk.storage.PersisterUtils#PATH_DELIM}.
  */
@@ -25,10 +25,10 @@ public interface Persister {
   /**
    * Returns the names of child nodes at the provided path. Some returned nodes may have {@code null} data when
    * retrieved via {@link #get(String)}, indicating that these are stub parent entries to other nodes.
-   * <p>
+   *
    * <p>To translate the returned values to full absolute paths, they may be joined with the provided {@code path}
    * input using {@link PersisterUtils#join(String, String)}.
-   * <p>
+   *
    * <p>To get the list of nodes at the root, use "" or "/" as the input path.
    *
    * @throws PersisterException if the requested path doesn't exist, or for other access errors
@@ -85,7 +85,7 @@ public interface Persister {
 
   /**
    * Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
-   * <p>
+   *
    * <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.
    *
    * @throws PersisterException if the data at the requested path didn't exist, or for other access errors
