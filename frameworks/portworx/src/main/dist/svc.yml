@@ -269,7 +269,7 @@ pods:
           type: ROOT
           size: 100
         cmd: |
-            clusteruuid=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -s http://api.$FRAMEWORK_NAME.l4lb.thisdcos.directory:{{PORTWORX_START_PORT}}/config | jq -r '.clusteruuid')
+            clusteruuid=$(LD_LIBRARY_PATH=/usr/lib/x86_64-linux-gnu curl -s http://api.$FRAMEWORK_VIP_HOST:{{PORTWORX_START_PORT}}/config | jq -r '.clusteruuid')
 
             if [ ! -f $MESOS_SANDBOX/lh-data/lh/config.yaml ]; then
               mkdir -p $MESOS_SANDBOX/lh-data/lh
@@ -283,8 +283,8 @@ pods:
             clusters:
             - uuid: $clusteruuid
               clusterid: {{PORTWORX_CLUSTER_NAME}}
-              origendpoint: api.$FRAMEWORK_NAME.l4lb.thisdcos.directory
-              endpoint: api.$FRAMEWORK_NAME.l4lb.thisdcos.directory
+              origendpoint: api.$FRAMEWORK_VIP_HOST
+              endpoint: api.$FRAMEWORK_VIP_HOST
               port: '{{PORTWORX_START_PORT}}'
               scheme: http
               clientcertificates:
