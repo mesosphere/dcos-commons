@@ -168,11 +168,10 @@ def grant_perms_for_registry_account(service_uid: str) -> None:
 
 
 def package_registry_session(tmpdir_factory):  # _pytest.TempdirFactory
-    pkg_reg_stub = {}
     pkg_reg_repo = {}
+    service_uid = "pkg-reg-uid-{}".format(sdk_utils.random_string())
+    secret_path = "{}-secret-{}".format(service_uid, sdk_utils.random_string())
     try:
-        service_uid = "pkg-reg-uid-{}".format(sdk_utils.random_string())
-        secret_path = "{}-secret-{}".format(service_uid, sdk_utils.random_string())
         sdk_security.create_service_account(service_uid, secret_path)
         grant_perms_for_registry_account(service_uid)
         pkg_reg_repo = install_package_registry(secret_path)
@@ -183,6 +182,5 @@ def package_registry_session(tmpdir_factory):  # _pytest.TempdirFactory
         sdk_repository.remove_universe_repos(pkg_reg_repo)
         # TODO If/when adding S3 backend, remove `Added` packages.
         sdk_install.uninstall(PACKAGE_REGISTRY_NAME, PACKAGE_REGISTRY_SERVICE_NAME)
-        sdk_repository.remove_universe_repos(pkg_reg_stub)
-        # No need to revoke perms, just delete the secret.
+        # No need to revoke perms, just delete the secret; the following ignores any failures.
         sdk_security.delete_service_account(service_uid, secret_path)
