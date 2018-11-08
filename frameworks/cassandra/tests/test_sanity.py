@@ -78,7 +78,6 @@ def test_repair_cleanup_plans_complete():
 
 
 @pytest.mark.sanity
-@pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics():
     expected_metrics = [

@@ -353,7 +353,6 @@ def test_modify_app_config_rollback():
 
 
 @pytest.mark.sanity
-@pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics():
     expected_metrics = [

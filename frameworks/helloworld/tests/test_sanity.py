@@ -44,7 +44,6 @@ def test_install():
 
 
 @pytest.mark.sanity
-@pytest.mark.metrics
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics_cli_for_scheduler_metrics(configure_package):
@@ -58,7 +57,6 @@ def test_metrics_cli_for_scheduler_metrics(configure_package):
 
 
 @pytest.mark.sanity
-@pytest.mark.metrics
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics_for_task_metrics(configure_package):
