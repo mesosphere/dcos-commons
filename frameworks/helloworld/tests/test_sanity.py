@@ -39,12 +39,6 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_install():
-    config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
-
-
-@pytest.mark.sanity
-@pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics_cli_for_scheduler_metrics(configure_package):
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(
@@ -61,15 +55,24 @@ def test_metrics_cli_for_scheduler_metrics(configure_package):
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics_for_task_metrics(configure_package):
 
-    metric_name = "test.metrics.CamelCase"
-    bash_command = sdk_cmd.get_bash_command(
-        'echo \\"{}:1|c\\" | ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT'.format(
-            metric_name
-        ),
-        environment=None,
-    )
+    def write_metric_to_statsd_counter(metric_name: str, value: int):
+        """
+        Write a metric with the specified value to statsd.
 
-    sdk_cmd.service_task_exec(configure_package["service"]["name"], "hello-0-server", bash_command)
+        This is done by echoing the statsd string through ncat to the statsd host an port.
+        """
+        metric_echo = 'echo \\"{}:{}|c\\"'.format(metric_name, value)
+        ncat_command = 'ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT'
+        pipe = " | "
+
+        bash_command = sdk_cmd.get_bash_command(
+            metric_echo + pipe + ncat_command,
+            environment=None,
+        )
+        sdk_cmd.service_task_exec(configure_package["service"]["name"], "hello-0-server", bash_command)
+
+    metric_name = "test.metrics.CamelCaseMetric"
+    write_metric_to_statsd_counter(metric_name, 1)
 
     def expected_metrics_exist(emitted_metrics) -> bool:
         return sdk_metrics.check_metrics_presence(emitted_metrics, [metric_name])
