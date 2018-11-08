@@ -134,6 +134,7 @@
         "verbose_mesos_logging": {
           "description": "Sets the value of GLOG_v env-var used by Mesos. Enabled by default, set to 0 to disable.",
           "type": "integer",
+          "enum": [0, 1],
           "default": 1
         }
       }
