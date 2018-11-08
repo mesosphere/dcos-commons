@@ -31,7 +31,32 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 def test_envvar_accross_restarts():
+
+    class ConfigException(Exception):
+        pass
+
+    def assert_envvar_has_value(envvar: str, expected_value: str):
+        _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "env")
+        env = dict(l.strip().split("=", 1) for l in stdout.readlines())
+        val = env.get(envvar, "absent")
+
+        if val == "absent":
+            raise ConfigException("Required envvar not found")
+
+        if val != expected_value:
+            log.error("Looking for %s=%d but found: %s", envvar, sleep_duration, val)
+            raise ConfigException("Envvar not set to required value")
+
+        log.info("%s has expected value %s", envvar, expected_value)
+
+    envvar = "CONFIG_SLEEP_DURATION"
     sleep_duration = 9999
+
+    try:
+        assert_envvar_has_value(envvar, str(sleep_duration))
+    except ConfigException:
+        log.debug("%s is set to something other than %d as expected", envvar, sleep_duration)
+
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
@@ -43,26 +68,17 @@ def test_envvar_accross_restarts():
         wait_for_deployment=True,
     )
 
-    for attempt in range(3):
-        cmd_list = ["pod", "restart", "hello-0"]
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, " ".join(cmd_list))
+    log.info("Checking after update")
+    assert_envvar_has_value(envvar, str(sleep_duration))
 
-        sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
-        sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
+    cmd_list = ["pod", "restart", "hello-0"]
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, " ".join(cmd_list))
 
-        _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "env")
+    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
 
-        envvar = "CONFIG_SLEEP_DURATION="
-        envvar_pos = stdout.find(envvar)
-        if envvar_pos < 0:
-            raise Exception("Required envvar not found")
-
-        if not stdout[envvar_pos + len(envvar) :].startswith("{}".format(sleep_duration)):
-            found_string = stdout[envvar_pos + len(envvar) : envvar_pos + len(envvar) + 15]
-            log.error(
-                "(%d) Looking for %s%d but found: %s", attempt, envvar, sleep_duration, found_string
-            )
-            raise Exception("Envvar not set to required value")
+    log.info("Checking after restart")
+    assert_envvar_has_value(envvar, str(sleep_duration))
 
 
 @pytest.mark.sanity
