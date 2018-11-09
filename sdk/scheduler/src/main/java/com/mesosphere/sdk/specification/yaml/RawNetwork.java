@@ -3,10 +3,8 @@ package com.mesosphere.sdk.specification.yaml;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
  * Raw YAML network.
@@ -60,22 +58,5 @@ public final class RawNetwork {
 
   public String getLabelsCsv() {
     return labelsCsv;
-  }
-
-  public List<String[]> getValidatedLabels() throws IllegalArgumentException {
-    List<String[]> kvs = Arrays.stream(labelsCsv.split(","))
-        .map(s -> s.split(":", 2))
-        .collect(Collectors.toList());
-    kvs.forEach(kv -> {
-      if (kv.length != 2) {
-        throw new IllegalArgumentException(String.format(
-            "Illegal label string, got %s, should be " +
-                "comma-seperated key value pairs (seperated by colons)." +
-                " For example: k_0:v_0,k_1:v_1,...,k_n:v_n",
-            labelsCsv
-        ));
-      }
-    });
-    return kvs;
   }
 }

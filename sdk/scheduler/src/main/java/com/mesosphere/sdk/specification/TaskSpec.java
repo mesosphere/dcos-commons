@@ -36,7 +36,7 @@ public interface TaskSpec {
   Optional<CommandSpec> getCommand();
 
   @JsonProperty("task-labels")
-  Map<String, String> getLabels();
+  Map<String, String> getTaskLabels();
 
   @JsonProperty("health-check-spec")
   Optional<HealthCheckSpec> getHealthCheck();

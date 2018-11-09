@@ -412,17 +412,30 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
-    public void validLabels() throws Exception {
+    public void validTaskLabels() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-labels.yml").getFile());
+        File file = new File(classLoader.getResource("valid-task-labels.yml").getFile());
         DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-        Assert.assertEquals("label1-value", defaultServiceSpec.getPods().get(0).getTasks().get(0).getLabels().get("label1"));
+        PodSpec podSpec = defaultServiceSpec.getPods().get(0);
+        Assert.assertTrue("", Iterables.get(podSpec.getTasks(), 0).getTaskLabels().containsKey("label1"));
+        Assert.assertTrue("", Iterables.get(podSpec.getTasks(), 0).getTaskLabels()
+                          .get("label1").equals("label1-value"));
+        Assert.assertTrue("", Iterables.get(podSpec.getTasks(), 0).getTaskLabels().containsKey("label2"));
+        Assert.assertTrue("", Iterables.get(podSpec.getTasks(), 0).getTaskLabels()
+                          .get("label2").equals("path:/"));
     }
 
     @Test(expected = IllegalArgumentException.class)
-    public void invalidLabels() throws Exception {
+    public void invalidTaskLabelsFormat() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("invalid-labels.yml").getFile());
+        File file = new File(classLoader.getResource("invalid-task-labels-format.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidTaskLabelsBlank() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-task-labels-blank.yml").getFile());
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
@@ -452,7 +465,7 @@ public class DefaultServiceSpecTest {
                 .get("key1").equals("val1"));
         Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels().containsKey("key2"));
         Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels()
-                .get("key2").equals("val2"));
+                .get("key2").equals("val2a:val2b"));
     }
 
     @Test
@@ -481,13 +494,26 @@ public class DefaultServiceSpecTest {
         }
     }
 
-
     @Test(expected = IllegalArgumentException.class)
     public void invalidNetworks() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         // this service spec contains specifies an overlay network that doesn't support port mapping, but contains
         // port mapping requests
         File file = new File(classLoader.getResource("invalid-network.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidNetworkLabelsFormat() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-network-labels-format.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidNetworkLabelsBlank() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-network-labels-blank.yml").getFile());
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 

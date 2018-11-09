@@ -1,4 +1,4 @@
-name: "valid-labels-test"
+name: "valid-task-labels-test"
 pods:
   server:
     count: 1

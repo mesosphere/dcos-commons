@@ -479,8 +479,7 @@ public final class YAMLToInternalMappers {
         .name(taskName);
 
     if (!Strings.isNullOrEmpty(rawTask.getLabelsCsv())) {
-      builder.taskLabels(rawTask.getValidatedLabels()
-          .stream().collect(Collectors.toMap(s -> s[0], s -> s[1])));
+      builder.taskLabels(convertLabels(rawTask.getLabelsCsv()));
     }
 
     if (StringUtils.isNotBlank(rawTask.getResourceSet())) {
@@ -621,6 +620,26 @@ public final class YAMLToInternalMappers {
         principal);
   }
 
+  private static Map<String, String> convertLabels(
+      String rawLabelsCsv) throws IllegalArgumentException
+  {
+    List<String[]> kvs = Arrays.stream(rawLabelsCsv.split(","))
+        .map(s -> s.split(":", 2))
+        .collect(Collectors.toList());
+    kvs.forEach(kv -> {
+      if (kv.length != 2) {
+        throw new IllegalArgumentException(String.format(
+            "Illegal label string, got %s, should be " +
+                "comma-seperated key value pairs (seperated by colons)." +
+                " For example: k_0:v_0,k_1:v_1,...,k_n:v_n",
+            rawLabelsCsv
+        ));
+      }
+    });
+
+    return kvs.stream().collect(Collectors.toMap(s -> s[0], s -> s[1]));
+  }
+
   private static DefaultNetworkSpec convertNetwork(
       String networkName,
       RawNetwork rawNetwork,
@@ -652,8 +671,7 @@ public final class YAMLToInternalMappers {
     }
 
     if (!Strings.isNullOrEmpty(rawNetwork.getLabelsCsv())) {
-      builder.networkLabels(rawNetwork.getValidatedLabels()
-          .stream().collect(Collectors.toMap(s -> s[0], s -> s[1])));
+      builder.networkLabels(convertLabels(rawNetwork.getLabelsCsv()));
     }
 
     return builder.build();

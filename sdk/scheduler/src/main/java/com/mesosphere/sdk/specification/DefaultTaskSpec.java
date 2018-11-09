@@ -36,7 +36,7 @@ public final class DefaultTaskSpec implements TaskSpec {
 
   private final CommandSpec commandSpec;
 
-  private final Map<String, String> labels;
+  private final Map<String, String> taskLabels;
 
   private final HealthCheckSpec healthCheckSpec;
 
@@ -60,7 +60,7 @@ public final class DefaultTaskSpec implements TaskSpec {
       @JsonProperty("essential") Boolean essential,
       @JsonProperty("resource-set") ResourceSet resourceSet,
       @JsonProperty("command-spec") CommandSpec commandSpec,
-      @JsonProperty("task-labels") Map<String, String> labels,
+      @JsonProperty("task-labels") Map<String, String> taskLabels,
       @JsonProperty("health-check-spec") HealthCheckSpec healthCheckSpec,
       @JsonProperty("readiness-check-spec") ReadinessCheckSpec readinessCheckSpec,
       @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles,
@@ -74,7 +74,7 @@ public final class DefaultTaskSpec implements TaskSpec {
     this.essential = (essential != null) ? essential : true;
     this.resourceSet = resourceSet;
     this.commandSpec = commandSpec;
-    this.labels = (labels != null) ? labels : Collections.emptyMap();
+    this.taskLabels = (taskLabels != null) ? taskLabels : Collections.emptyMap();
     this.healthCheckSpec = healthCheckSpec;
     this.readinessCheckSpec = readinessCheckSpec;
     this.configFiles = (configFiles != null) ? configFiles : Collections.emptyList();
@@ -94,7 +94,7 @@ public final class DefaultTaskSpec implements TaskSpec {
         builder.essential,
         builder.resourceSet,
         builder.commandSpec,
-        builder.labels,
+        builder.taskLabels,
         builder.healthCheckSpec,
         builder.readinessCheckSpec,
         builder.configFiles,
@@ -141,7 +141,7 @@ public final class DefaultTaskSpec implements TaskSpec {
     builder.essential = copy.isEssential();
     builder.resourceSet = copy.getResourceSet();
     builder.commandSpec = copy.getCommand().orElse(null);
-    builder.labels = copy.getLabels();
+    builder.taskLabels = copy.getTaskLabels();
     builder.readinessCheckSpec(copy.getReadinessCheck().orElse(null));
     builder.healthCheckSpec = copy.getHealthCheck().orElse(null);
     builder.readinessCheckSpec = copy.getReadinessCheck().orElse(null);
@@ -178,8 +178,8 @@ public final class DefaultTaskSpec implements TaskSpec {
   }
 
   @Override
-  public Map<String, String> getLabels() {
-    return labels;
+  public Map<String, String> getTaskLabels() {
+    return taskLabels;
   }
 
   @Override
@@ -245,7 +245,7 @@ public final class DefaultTaskSpec implements TaskSpec {
 
     private CommandSpec commandSpec;
 
-    private Map<String, String> labels;
+    private Map<String, String> taskLabels;
 
     private HealthCheckSpec healthCheckSpec;
 
@@ -322,14 +322,14 @@ public final class DefaultTaskSpec implements TaskSpec {
     }
 
     /**
-     * Sets the {@code labels} and returns a reference to this Builder so that the methods can be
+     * Sets the {@code taskLabels} and returns a reference to this Builder so that the methods can be
      * chained together.
      *
-     * @param labels the {@code labels} to set
+     * @param taskLabels the {@code taskLabels} to set
      * @return a reference to this Builder
      */
-    public Builder taskLabels(Map<String, String> labels) {
-      this.labels = labels;
+    public Builder taskLabels(Map<String, String> taskLabels) {
+      this.taskLabels = taskLabels;
       return this;
     }
 
