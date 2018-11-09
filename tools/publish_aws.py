@@ -139,7 +139,7 @@ def s3_urls_from_env(package_name):
             "".join(
                 [
                     random.SystemRandom().choice(string.ascii_letters + string.digits)
-                    for i in range(16)
+                    for _ in range(16)
                 ]
             ),
         )
