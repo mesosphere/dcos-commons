@@ -1,6 +1,9 @@
 package main
 
-import "io/ioutil"
+import (
+	"io/ioutil"
+	"strings"
+)
 import "log"
 import "os"
 import "testing"
@@ -74,6 +77,43 @@ rack=zone0
 
 	expectedFalsy := "one=true\n"
 	doFalsyTemplateTest(asrt, &val, expectedFalsy)
+}
+
+func TestFilterEnv(t *testing.T) {
+	secureKeys := map[string]string {
+		"my-secret-key": "does-not-matter",
+		"my-cReDeNtIaL-key": "does-not-matter",
+		"DCOS_SERVICE_ACCOUNT_CREDENTIAL": "does-not-matter",
+		"password": "does-not-matter",
+		"tokEN": "does-not-matter",
+	}
+	inSecureKeys := map[string]string {
+		"alpha-key": "does-matter",
+		"numeric-key": "67890876",
+		"DCOS_SERVICE_ACCOUNT_CRED": "does-matter",
+		"toke-n": "****.*",
+	}
+	for k, v := range secureKeys {
+		os.Setenv(k, v)
+	}
+	for k, v := range inSecureKeys {
+		os.Setenv(k, v)
+	}
+	filteredEnv := filterEnv(false)
+	for _, keyValue := range filteredEnv {
+		s := strings.Split(keyValue, "=")
+		key := s[0]
+		value := s[1]
+		if _, ok := secureKeys[key]; ok {
+			if value != hiddenEnvKeyValue {
+				t.Fatalf("[%s:%s] Sensitive keys should not be printed as plain text: %v", key, value, filteredEnv)
+			}
+		} else if val, ok := inSecureKeys[key]; ok {
+			if value != val {
+				t.Fatalf("Expected %s Got %s for %s : %v", val, value, key, filteredEnv)
+			}
+		}
+	}
 }
 
 func doCassandraTemplateTest(asrt *assert.Assertions, envVal *string, expected string) {
