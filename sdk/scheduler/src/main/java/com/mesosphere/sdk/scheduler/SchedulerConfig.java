@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.state.GoalStateOverride;
+
+import org.apache.commons.io.IOUtils;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos.Credential;
 import org.bouncycastle.util.io.pem.PemReader;
@@ -13,8 +15,11 @@ import com.mesosphere.sdk.dcos.auth.CachedTokenProvider;
 import com.mesosphere.sdk.dcos.auth.TokenProvider;
 import com.mesosphere.sdk.dcos.clients.ServiceAccountIAMTokenClient;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
@@ -24,6 +29,8 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.time.Duration;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
@@ -69,6 +76,8 @@ public class SchedulerConfig {
             return String.format("%s (errtype: %s)", super.getMessage(), type);
         }
     }
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(SchedulerConfig.class);
 
     /** Envvar to specify a custom amount of time to wait for the Scheduler API to come up during startup. */
     private static final String API_SERVER_TIMEOUT_S_ENV = "API_SERVER_TIMEOUT_S";
@@ -252,7 +261,7 @@ public class SchedulerConfig {
      * environment doesn't provide the needed information (e.g. on a DC/OS Open cluster)
      */
     public TokenProvider getDcosAuthTokenProvider() throws IOException {
-        JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME));
+        JSONObject serviceAccountObject = loadFileOrEnvSecret();
         PemReader pemReader = new PemReader(new StringReader(serviceAccountObject.getString("private_key")));
         try {
             RSAPrivateKey privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(
@@ -280,6 +289,19 @@ public class SchedulerConfig {
             pemReader.close();
         }
     }
+
+    private JSONObject loadFileOrEnvSecret() throws IOException {
+        String content = envStore.getRequired(SIDECHANNEL_AUTH_ENV_NAME);
+        JSONObject serviceAccountObject;
+        if (Files.isRegularFile(Paths.get(content))) {
+          LOGGER.info("Reading file {} to load secrets", content);
+          serviceAccountObject = new JSONObject(IOUtils.toString(new FileInputStream(content)));
+        } else {
+          LOGGER.info("Reading service account information from {}", SIDECHANNEL_AUTH_ENV_NAME);
+          serviceAccountObject = new JSONObject(content);
+        }
+        return serviceAccountObject;
+      }
 
     /**
      * Returns the package name as advertised in the scheduler environment.

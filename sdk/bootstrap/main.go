@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -25,13 +26,19 @@ import (
 const (
 	configTemplatePrefix = "CONFIG_TEMPLATE_"
 	resolveRetryDelay    = time.Duration(1) * time.Second
+	hiddenEnvKeyValue    = "********"
 )
 
 var verbose = false
 
+var blackListedEnvironKeys = regexp.MustCompile(`(?i)(DCOS_SERVICE_ACCOUNT_CREDENTIAL|credential|password|secret|token)`)
+
 type args struct {
 	// Whether to print the container environment up-front
 	printEnvEnabled bool
+
+	// Whether to print the process environment including all the sensitive keys
+	printEnvInsecureEnabled bool
 
 	// Whether to enable host resolution at startup
 	resolveEnabled bool
@@ -61,6 +68,9 @@ func parseArgs() args {
 
 	flag.BoolVar(&args.printEnvEnabled, "print-env", true,
 		"Whether to print the process environment.")
+
+	flag.BoolVar(&args.printEnvInsecureEnabled, "insecure", false,
+		"Whether to print the process environment including ALL THE SENSITIVE KEYS. This flag needs to be passed along with print-env flag and is meant only for diagnostic purposes")
 
 	flag.BoolVar(&args.resolveEnabled, "resolve", true,
 		"Whether to enable the step of waiting for hosts to resolve. "+
@@ -93,7 +103,7 @@ func parseArgs() args {
 		// the user didn't provide hosts of their own.
 		taskHost, err := parseTaskHost()
 		if err != nil {
-			printEnv()
+			printEnv(args.printEnvInsecureEnabled)
 			log.Fatalf("Missing required envvar(s) to build default -resolve-hosts value. " +
 				"Either specify -resolve-hosts or provide these envvars: TASK_NAME, FRAMEWORK_HOST.")
 
@@ -130,11 +140,28 @@ func splitAndClean(s string, sep string) []string {
 }
 
 // env print
-
-func printEnv() {
-	env := os.Environ()
+func printEnv(printEnvInsecureEnabled bool) {
+	env := filterEnv(printEnvInsecureEnabled)
 	sort.Strings(env)
 	log.Printf("Bootstrapping with environment:\n%s", strings.Join(env, "\n"))
+}
+
+// loads environment, also filters sensitive environment keys
+func filterEnv(printEnvInsecureEnabled bool) ([]string) {
+	defaultEnviron := os.Environ()
+	if printEnvInsecureEnabled {
+		return defaultEnviron
+	}
+	var filteredEnviron []string
+	for _, keyValue := range defaultEnviron {
+		key := strings.Split(keyValue, "=")[0]
+		if blackListedEnvironKeys.MatchString(key) {
+			filteredEnviron = append(filteredEnviron, fmt.Sprintf("%s=%s", key, hiddenEnvKeyValue))
+		} else {
+			filteredEnviron = append(filteredEnviron, keyValue)
+		}
+	}
+	return filteredEnviron
 }
 
 // Check whether a timer is expired or not.
@@ -210,10 +237,10 @@ func waitForResolve(resolveHosts []string, resolveTimeout time.Duration) {
 	}
 }
 
-func verifySelfResolution(podIP string, resolveTimeout time.Duration) {
+func verifySelfResolution(podIP string, resolveTimeout time.Duration, printEnvInsecureEnabled bool) {
 	taskHost, err := parseTaskHost()
 	if err != nil {
-		printEnv()
+		printEnv(printEnvInsecureEnabled)
 		log.Fatalf("Missing required envvars to build task DNS address. " +
 			"Ensure that TASK_NAME and FRAMEWORK_HOST are both set or " +
 			"disable self resolution with --self-resolve=false")
@@ -459,14 +486,14 @@ func main() {
 	}
 
 	if args.printEnvEnabled {
-		printEnv()
+		printEnv(args.printEnvInsecureEnabled)
 	}
 
 	if args.resolveEnabled {
 		waitForResolve(args.resolveHosts, args.resolveTimeout)
 
 		if args.selfResolveAndVerify {
-			verifySelfResolution(podIP, args.resolveTimeout)
+			verifySelfResolution(podIP, args.resolveTimeout, args.printEnvInsecureEnabled)
 		}
 	} else {
 		log.Printf("Resolve disabled via -resolve=false: Skipping host resolution")
