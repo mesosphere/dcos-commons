@@ -135,6 +135,8 @@ public class Main {
                 PORT_COUNT + DEFAULT_RANGE_EXTRA_PORTS : PORT_COUNT;
 
         List<Long> ports = new ArrayList<>();
+        // Start port which is the REST server port is already reserved as VIP port.
+        // So start port reservation from next port.
         for (long port = startPort + 1; port < startPort + portCount; port++) {
             ports.add(port);
         }
