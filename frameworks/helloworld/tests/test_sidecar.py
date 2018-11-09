@@ -37,7 +37,7 @@ def test_envvar_accross_restarts():
 
     def assert_envvar_has_value(envvar: str, expected_value: str):
         _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "env")
-        env = dict(l.strip().split("=", 1) for l in stdout.readlines())
+        env = dict(l.strip().split("=", 1) for l in stdout.strip().split('\n'))
         val = env.get(envvar, "absent")
 
         if val == "absent":
