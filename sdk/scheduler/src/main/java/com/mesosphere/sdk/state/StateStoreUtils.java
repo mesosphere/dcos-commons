@@ -3,6 +3,7 @@ package com.mesosphere.sdk.state;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
     "checkstyle:InnerTypeLast",
     "checkstyle:IllegalCatch",
     "checkstyle:AtclauseOrder",
+    "checkstyle:SingleSpaceSeparator",
 })
 public final class StateStoreUtils {
 
@@ -125,10 +127,16 @@ public final class StateStoreUtils {
 
     for (Protos.TaskInfo task : stateStore.fetchTasks()) {
       Optional<Protos.TaskStatus> statusOptional = stateStore.fetchStatus(task.getName());
-
       if (statusOptional.isPresent()) {
         Protos.TaskStatus status = statusOptional.get();
-        if (!status.getTaskId().equals(task.getTaskId())) {
+        if (task.getTaskId().getValue().isEmpty() && TaskUtils.isTerminal(status)) {
+          LOGGER.warn(
+              "Found empty StateStore taskInfo task {}: task.taskId={}, " +
+                  "taskStatus.taskId={} reconciling from taskStatus", task.getName(),
+              task.getTaskId(), status.getTaskId());
+          repairedStatuses.put(
+              task.getName(), status.toBuilder().setState(status.getState()).build());
+        }  else if (!status.getTaskId().equals(task.getTaskId())) {
           LOGGER.warn(
               "Found StateStore status inconsistency for task {}: task.taskId={}, " +
                   "taskStatus.taskId={}",
