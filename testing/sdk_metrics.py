@@ -10,6 +10,7 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import retrying
+import typing
 
 import sdk_cmd
 import sdk_tasks
@@ -74,6 +75,32 @@ def wait_for_scheduler_counter_value(
     return check_for_value()
 
 
+def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> typing.Dict:
+    @retrying.retry(
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
+    )
+    def _getter():
+        return get_metrics_from_cli(task_name)
+
+    return _getter()
+
+
+def get_metrics_from_cli(task_name: str) -> typing.Dict:
+    cmd_list = ["task", "metrics", "details", "--json", task_name]
+    rc, stdout, stderr = sdk_cmd.run_cli(" ".join(cmd_list))
+    if rc:
+        log.error("Error fetching metrics for %s:\nSTDOUT=%s\nSTDERR=%s", task_name, stdout, stderr)
+        return dict()
+
+    try:
+        metrics = json.loads(stdout)
+    except json.JSONDecodeError as json_error:
+        log.error("Error decoding JSON from %s: %s", stdout, json_error)
+        raise
+
+    return metrics
+
+
 def get_metrics(package_name, service_name, pod_name, task_name):
     """Return a list of DC/OS metrics datapoints.
 
@@ -136,28 +163,42 @@ def get_metrics(package_name, service_name, pod_name, task_name):
         ),
         retry=False,
     )
-    app_json = json.loads(app_response.text)
+    app_response.raise_for_status()
+    app_json = app_response.json()
+
+    if "dimensions" not in app_json:
+        log.error("Expected key '%s' not found in app metrics: %s", "dimensions", app_json)
+        raise Exception("Expected key 'dimensions' not found in app metrics")
+
+    if "task_name" not in app_json["dimensions"]:
+        log.error(
+            "Expected key '%s' not found in app metrics: %s", "dimensions.task_name", app_json
+        )
+        raise Exception("Expected key 'dimensions.task_name' not found in app metrics")
+
     if app_json["dimensions"]["task_name"] == task_name:
         return app_json["datapoints"]
 
     raise Exception("No metrics found for task {} in service {}".format(task_name, service_name))
 
 
-def check_metrics_presence(emitted_metrics, expected_metrics):
-    metrics_exist = True
+def check_metrics_presence(emitted_metrics: typing.List[str], expected_metrics: typing.List[str]) -> bool:
+    """Check whether a given list contains all
+    """
+    lower_case_emitted_metrics = set(map(lambda m: m.lower(), emitted_metrics))
+
+    missing_metrics = []
     for metric in expected_metrics:
-        if metric not in emitted_metrics:
-            metrics_exist = False
-            log.error("Unable to find metric {}".format(metric))
-            # don't short-circuit to log if multiple metrics are missing
+        if metric.lower() not in lower_case_emitted_metrics:
+            missing_metrics.append(metric)
 
-    if not metrics_exist:
-        log.info(
-            "Metrics emitted: {},\nMetrics expected: {}".format(emitted_metrics, expected_metrics)
-        )
+    if missing_metrics:
+        log.warning("Expected metrics: %s", expected_metrics)
+        log.warning("Emitted metrics: %s", emitted_metrics)
+        log.warning("The following metrics are missing: %s", missing_metrics)
+        return False
 
-    log.info("Expected metrics exist: {}".format(metrics_exist))
-    return metrics_exist
+    return True
 
 
 def wait_for_service_metrics(

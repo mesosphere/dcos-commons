@@ -12,6 +12,7 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.state.GoalStateOverride;
 
 import com.auth0.jwt.algorithms.Algorithm;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.impl.client.LaxRedirectStrategy;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Credential;
@@ -19,8 +20,11 @@ import org.bouncycastle.util.io.pem.PemReader;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
@@ -421,18 +425,28 @@ public final class SchedulerConfig {
   }
 
   /**
-   * Returns a token provider which may be used to retrieve DC/OS JWT auth tokens, or throws an exception if the local
-   * environment doesn't provide the needed information (e.g. on a DC/OS Open cluster)
+   * Returns a token provider which may be used to retrieve DC/OS JWT auth tokens, or throws an
+   * exception if the local environment doesn't provide the needed information (e.g. on a DC/OS
+   * Open cluster)
    */
   public TokenProvider getDcosAuthTokenProvider() throws IOException {
-    JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV));
-    PemReader pemReader = new PemReader(
-        new StringReader(serviceAccountObject.getString("private_key")));
-    try {
-      RSAPrivateKey privateKey = (RSAPrivateKey) KeyFactory.getInstance("RSA").generatePrivate(
-          new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent()));
-      RSAPublicKey publicKey = (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(
-          new RSAPublicKeySpec(privateKey.getModulus(), privateKey.getPrivateExponent()));
+    JSONObject serviceAccountObject = loadFileOrEnvSecret();
+    try (PemReader pemReader = new PemReader(
+        new StringReader(serviceAccountObject.getString("private_key"))
+    ))
+    {
+      RSAPrivateKey privateKey = (RSAPrivateKey) KeyFactory
+          .getInstance("RSA")
+          .generatePrivate(new PKCS8EncodedKeySpec(pemReader.readPemObject().getContent()));
+
+      RSAPublicKey publicKey = (RSAPublicKey) KeyFactory
+          .getInstance("RSA")
+          .generatePublic(
+              new RSAPublicKeySpec(
+                  privateKey.getModulus(),
+                  privateKey.getPrivateExponent()
+              )
+          );
 
       ServiceAccountIAMTokenClient serviceAccountIAMTokenProvider =
           new ServiceAccountIAMTokenClient(
@@ -453,9 +467,19 @@ public final class SchedulerConfig {
       throw new IllegalArgumentException(e);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);
-    } finally {
-      pemReader.close();
+  }
+
+  private JSONObject loadFileOrEnvSecret() throws IOException {
+    String content = envStore.getRequired(SIDECHANNEL_AUTH_ENV);
+    JSONObject serviceAccountObject;
+    if (Files.isRegularFile(Paths.get(content))) {
+      LOGGER.info("Reading file {} to load secrets", content);
+      serviceAccountObject = new JSONObject(IOUtils.toString(new FileInputStream(content)));
+    } else {
+      LOGGER.info("Reading service account information from {}", SIDECHANNEL_AUTH_ENV);
+      serviceAccountObject = new JSONObject(content);
     }
+    return serviceAccountObject;
   }
 
   /**

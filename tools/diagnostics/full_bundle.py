@@ -30,17 +30,14 @@ def get_dcos_services() -> (bool, str):
         return (True, stdout)
 
 
-def to_dcos_service_name(service_name: str) -> str:
-    """DC/OS service names don't contain the first slash.
-    i.e.: |     SDK service name     |   DC/OS service name    |
+def is_service_named(service_name: str, service: dict) -> bool:
+    """Handles a case where DC/OS service names sometimes don't contain the first slash.
+    e.g.: |     SDK service name     |   DC/OS service name    |
           |--------------------------+-------------------------|
           | /data-services/cassandra | data-services/cassandra |
+          | /production/cassandra    | /production/cassandra   |
     """
-    return service_name.lstrip("/")
-
-
-def is_service_named(service_name: str, service: dict) -> bool:
-    return service.get("name") == to_dcos_service_name(service_name)
+    return service.get("name") in [service_name, service_name.lstrip("/")]
 
 
 def is_service_active(service: dict) -> bool:
@@ -63,9 +60,7 @@ def is_service_scheduler_task(package_name: str, service_name: str, task: dict) 
     dcos_service_name = next(
         iter([l.get("value") for l in labels if l.get("key") == "DCOS_SERVICE_NAME"]), ""
     )
-    return dcos_package_name == package_name and dcos_service_name == to_dcos_service_name(
-        service_name
-    )
+    return dcos_package_name == package_name and dcos_service_name == service_name
 
 
 def directory_date_string() -> str:

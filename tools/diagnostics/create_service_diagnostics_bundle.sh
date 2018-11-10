@@ -31,7 +31,7 @@ else
   readonly CONTAINER_DCOS_COMMONS_VOLUME_MOUNT=
 fi
 
-readonly VERSION='v0.1.0'
+readonly VERSION='v0.2.0-snapshot'
 
 function version () {
   echo "${VERSION}"
