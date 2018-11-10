@@ -467,8 +467,6 @@ public final class SchedulerConfig {
       throw new IllegalArgumentException(e);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);
-    } finally {
-      pemReader.close();
     }
   }
 
