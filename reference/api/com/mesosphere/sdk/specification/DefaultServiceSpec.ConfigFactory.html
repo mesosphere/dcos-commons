@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":10,"i2":10};
+var methods = {"i0":9,"i1":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -115,7 +115,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public static final class <span class="typeNameLabel">DefaultServiceSpec.ConfigFactory</span>
+<pre>public static class <span class="typeNameLabel">DefaultServiceSpec.ConfigFactory</span>
 extends java.lang.Object
 implements <a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;</pre>
 <div class="block">Factory which performs the inverse of <a href="../../../../com/mesosphere/sdk/config/Configuration.html#getBytes--"><code>Configuration.getBytes()</code></a>.</div>
@@ -138,7 +138,7 @@ implements <a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.h
 <th class="colLast" scope="col">Class and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colFirst"><code>class&nbsp;</code></td>
+<td class="colFirst"><code>static class&nbsp;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.GoalStateDeserializer.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.ConfigFactory.GoalStateDeserializer</a></span></code>
 <div class="block">Custom deserializer for goal states to accomodate transition from FINISHED to ONCE/FINISH.</div>
 </td>
@@ -163,10 +163,6 @@ implements <a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.h
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html#getDefaultRegisteredSubtypes--">getDefaultRegisteredSubtypes</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.GoalStateDeserializer.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.ConfigFactory.GoalStateDeserializer</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html#getGoalStateDeserializer--">getGoalStateDeserializer</a></span>()</code>&nbsp;</td>
-</tr>
-<tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html#parse-byte:A-">parse</a></span>(byte[]&nbsp;bytes)</code>
 <div class="block">Parses the provided <code>bytes</code> and returns a configuration object.</div>
@@ -194,28 +190,10 @@ implements <a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.h
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getDefaultRegisteredSubtypes--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getDefaultRegisteredSubtypes</h4>
-<pre>public static final&nbsp;java.util.Collection&lt;java.lang.Class&lt;?&gt;&gt;&nbsp;getDefaultRegisteredSubtypes()</pre>
-</li>
-</ul>
-<a name="getGoalStateDeserializer--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getGoalStateDeserializer</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.GoalStateDeserializer.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.ConfigFactory.GoalStateDeserializer</a>&nbsp;getGoalStateDeserializer()</pre>
-</li>
-</ul>
 <a name="parse-byte:A-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>parse</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;parse(byte[]&nbsp;bytes)
@@ -228,6 +206,15 @@ implements <a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.h
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/ConfigStoreException.html" title="class in com.mesosphere.sdk.state">ConfigStoreException</a></code> - if parsing fails</dd>
 </dl>
+</li>
+</ul>
+<a name="getDefaultRegisteredSubtypes--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getDefaultRegisteredSubtypes</h4>
+<pre>public static final&nbsp;java.util.Collection&lt;java.lang.Class&lt;?&gt;&gt;&nbsp;getDefaultRegisteredSubtypes()</pre>
 </li>
 </ul>
 </li>

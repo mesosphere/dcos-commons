@@ -139,8 +139,8 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html#NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.lang.String-java.util.Optional-java.util.Optional-">NamedVIPEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a>&nbsp;namedVIPSpec,
-                       java.lang.String&nbsp;taskName,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html#NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.util.Collection-java.util.Optional-java.util.Optional-">NamedVIPEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a>&nbsp;namedVIPSpec,
+                       java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames,
                        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
                        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</code>&nbsp;</td>
 </tr>
@@ -172,7 +172,7 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.offer.evaluate.<a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getTaskName--">getTaskName</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate</a>, <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#getTaskNames--">getTaskNames</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.java.lang.Object">
@@ -195,14 +195,14 @@ extends <a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortEvaluation
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.lang.String-java.util.Optional-java.util.Optional-">
+<a name="NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.util.Collection-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>NamedVIPEvaluationStage</h4>
 <pre>public&nbsp;NamedVIPEvaluationStage(<a href="../../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a>&nbsp;namedVIPSpec,
-                               java.lang.String&nbsp;taskName,
+                               java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames,
                                java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
                                java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</pre>
 </li>

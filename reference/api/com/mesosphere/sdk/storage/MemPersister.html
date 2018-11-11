@@ -194,7 +194,11 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage">MemPersister.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/storage/MemPersister.html#newBuilder--">newBuilder</a></span>()</code>
-<div class="block">Returns a new <a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage"><code>MemPersister.Builder</code></a> instance with the following default configuration:</div>
+<div class="block">Returns a new <a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage"><code>MemPersister.Builder</code></a> instance with the following default configuration:
+
+ Locking enabled
+ Exit if there's a deadlock
+ No initial data</div>
 </td>
 </tr>
 <tr id="i6" class="altColor">
@@ -261,7 +265,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <h4>newBuilder</h4>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage">MemPersister.Builder</a>&nbsp;newBuilder()</pre>
 <div class="block">Returns a new <a href="../../../../com/mesosphere/sdk/storage/MemPersister.Builder.html" title="class in com.mesosphere.sdk.storage"><code>MemPersister.Builder</code></a> instance with the following default configuration:
- <p>
+
  <ul><li>Locking enabled</li>
  <li>Exit if there's a deadlock</li>
  <li>No initial data</li></ul>
@@ -299,10 +303,10 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getChildren-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Returns the names of child nodes at the provided path. Some returned nodes may have <code>null</code> data when
  retrieved via <a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>Persister.get(String)</code></a>, indicating that these are stub parent entries to other nodes.
- <p>
+
  <p>To translate the returned values to full absolute paths, they may be joined with the provided <code>path</code>
  input using <code>PersisterUtils#join(String, String)</code>.
- <p>
+
  <p>To get the list of nodes at the root, use "" or "/" as the input path.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
@@ -422,7 +426,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
                      throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
- <p>
+
  <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>

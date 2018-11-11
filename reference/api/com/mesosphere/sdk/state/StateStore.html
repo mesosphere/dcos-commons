@@ -119,7 +119,7 @@ extends java.lang.Object</pre>
  TaskStatus is reported by Mesos to Frameworks at various points including at Task Reconciliation
  and when Tasks change state.  The TaskStatus of a Task should be recorded so that the state of
  a Framework's Tasks can be queried.
- <p>
+
  <p>The structure used in the underlying persister is as follows:
  <br>namespacedPath/ ("Services/NAMESPACE/" or "/")
  <br>&nbsp; Tasks/
@@ -425,7 +425,7 @@ extends java.lang.Object</pre>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>persister</code> - The persister which holds the state data</dd>
 <dd><code>namespace</code> - The namespace for data to be stored within, or an empty Optional for
-                 no namespacing</dd>
+                  no namespacing</dd>
 </dl>
 </li>
 </ul>
@@ -568,7 +568,7 @@ extends java.lang.Object</pre>
 <dd><code>tasks</code> - Tasks to be stored, which each meet the above requirements</dd>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></code> - when persisting TaskInfo information fails, or if its TaskId is
- malformed</dd>
+                             malformed</dd>
 </dl>
 </li>
 </ul>

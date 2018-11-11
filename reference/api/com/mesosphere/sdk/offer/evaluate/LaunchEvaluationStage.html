@@ -135,8 +135,10 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 </tr>
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/LaunchEvaluationStage.html#LaunchEvaluationStage-java.lang.String-java.lang.String-boolean-">LaunchEvaluationStage</a></span>(java.lang.String&nbsp;serviceName,
-                     java.lang.String&nbsp;taskName,
-                     boolean&nbsp;shouldLaunch)</code>&nbsp;</td>
+                     java.lang.String&nbsp;taskSpecName,
+                     boolean&nbsp;shouldLaunch)</code>
+<div class="block">Creates a new evaluation stage for launching a task.</div>
+</td>
 </tr>
 </table>
 </li>
@@ -190,8 +192,17 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <li class="blockList">
 <h4>LaunchEvaluationStage</h4>
 <pre>public&nbsp;LaunchEvaluationStage(java.lang.String&nbsp;serviceName,
-                             java.lang.String&nbsp;taskName,
+                             java.lang.String&nbsp;taskSpecName,
                              boolean&nbsp;shouldLaunch)</pre>
+<div class="block">Creates a new evaluation stage for launching a task.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>serviceName</code> - The name of the service that's being launched into</dd>
+<dd><code>taskSpecName</code> - The name of the task (as from the TaskSpec)</dd>
+<dd><code>shouldLaunch</code> - Whether a Launch recommendation should actually be emitted. If false, then the StateStore
+                     will be updated with the resulting TaskInfo, but no launch will actually occur. This is used for updating
+                     local information about tasks</dd>
+</dl>
 </li>
 </ul>
 </li>

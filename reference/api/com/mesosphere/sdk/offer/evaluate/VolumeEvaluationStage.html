@@ -114,8 +114,7 @@ var activeTableTab = "activeTableTab";
 <pre>public final class <span class="typeNameLabel">VolumeEvaluationStage</span>
 extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a></pre>
-<div class="block">This class evaluates an offer against a given
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
+<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
  ensuring that it contains an appropriately-sized volume, and creating any necessary instances of
  <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> and
  <a href="../../../../../com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>CreateOfferRecommendation</code></a> as necessary.</div>
@@ -147,8 +146,8 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getExisting-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">getExisting</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
-           java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getExisting-com.mesosphere.sdk.specification.VolumeSpec-java.util.Collection-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">getExisting</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
+           java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames,
            java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
            java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
            java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,
@@ -157,8 +156,8 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getNew-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-">getNew</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
-      java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getNew-com.mesosphere.sdk.specification.VolumeSpec-java.util.Collection-java.util.Optional-">getNew</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
+      java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames,
       java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</code>&nbsp;</td>
 </tr>
 </table>
@@ -183,25 +182,25 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="getNew-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-">
+<a name="getNew-com.mesosphere.sdk.specification.VolumeSpec-java.util.Collection-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getNew</h4>
 <pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a>&nbsp;getNew(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
-                                           java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName,
+                                           java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames,
                                            java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</pre>
 </li>
 </ul>
-<a name="getExisting-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">
+<a name="getExisting-com.mesosphere.sdk.specification.VolumeSpec-java.util.Collection-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>getExisting</h4>
 <pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a>&nbsp;getExisting(<a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&nbsp;volumeSpec,
-                                                java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName,
+                                                java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames,
                                                 java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceId,
                                                 java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
                                                 java.util.Optional&lt;java.lang.String&gt;&nbsp;persistenceId,

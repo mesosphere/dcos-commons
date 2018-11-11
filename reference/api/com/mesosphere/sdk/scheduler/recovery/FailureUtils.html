@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9};
+var methods = {"i0":9,"i1":9,"i2":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -136,6 +136,11 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static void</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#setPermanentlyFailed-com.mesosphere.sdk.state.StateStore-java.util.Collection-">setPermanentlyFailed</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                    java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;failedTasks)</code>&nbsp;</td>
+</tr>
+<tr id="i2" class="altColor">
+<td class="colFirst"><code>static void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/FailureUtils.html#setPermanentlyFailed-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-">setPermanentlyFailed</a></span>(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                     <a href="../../../../../com/mesosphere/sdk/specification/PodInstance.html" title="interface in com.mesosphere.sdk.specification">PodInstance</a>&nbsp;podInstance)</code>
 <div class="block">Marks all tasks associated with this pod as failed.</div>
@@ -182,7 +187,7 @@ extends java.lang.Object</pre>
 <a name="setPermanentlyFailed-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.specification.PodInstance-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>setPermanentlyFailed</h4>
 <pre>public static&nbsp;void&nbsp;setPermanentlyFailed(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
@@ -194,6 +199,16 @@ extends java.lang.Object</pre>
 <dd><code>stateStore</code> - the state storage where any updated tasks will be stored</dd>
 <dd><code>podInstance</code> - the pod whose tasks will be marked as failed</dd>
 </dl>
+</li>
+</ul>
+<a name="setPermanentlyFailed-com.mesosphere.sdk.state.StateStore-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>setPermanentlyFailed</h4>
+<pre>public static&nbsp;void&nbsp;setPermanentlyFailed(<a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
+                                        java.util.Collection&lt;Protos.TaskInfo&gt;&nbsp;failedTasks)</pre>
 </li>
 </ul>
 </li>

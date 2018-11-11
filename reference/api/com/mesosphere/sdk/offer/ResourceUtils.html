@@ -344,12 +344,12 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;boolean&nbsp;isProcessable(Protos.Resource&nbsp;resource,
                                     java.util.Collection&lt;java.lang.String&gt;&nbsp;ourRoles)</pre>
 <div class="block">Filter resources which are dynamically reserved against a role which isn't ours.
- <p>
+
  <p>We may receive resources with the following reservation semantics:
  <ul><li>Dynamic against "our-role" or "pre-reserved-role/our-role" (belongs to us)</li>
  <li>Static against "pre-reserved-role" (we can reserve against it)</li>
  <li>Dynamic against "pre-reserved-role" (DOESN'T belong to us at all! Likely created by Marathon)</li></ul>
- <p>
+
  <p>This function should return <code>false</code> for all reservations of the last type.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>

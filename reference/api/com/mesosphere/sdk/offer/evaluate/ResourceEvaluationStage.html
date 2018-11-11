@@ -114,9 +114,8 @@ var activeTableTab = "activeTableTab";
 <pre>public class <span class="typeNameLabel">ResourceEvaluationStage</span>
 extends java.lang.Object
 implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a></pre>
-<div class="block">This class evaluates an offer against a given
- <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>, ensuring that it contains a
- sufficient amount or value of the supplied <code>Resource</code>, and creating a
+<div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
+ ensuring that it contains a sufficient amount or value of the supplied <code>Resource</code>, and creating a
  <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> or <a href="../../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>UnreserveOfferRecommendation</code></a> where necessary.</div>
 </li>
 </ul>
@@ -136,8 +135,8 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.util.Optional-java.util.Optional-">ResourceEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
-                       java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Collection-java.util.Optional-java.util.Optional-">ResourceEvaluationStage</a></span>(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
+                       java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames,
                        java.util.Optional&lt;java.lang.String&gt;&nbsp;requiredResourceId,
                        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</code>
 <div class="block">Creates a new instance for basic resource evaluation.</div>
@@ -188,21 +187,21 @@ implements <a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvalua
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.util.Optional-java.util.Optional-">
+<a name="ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Collection-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>ResourceEvaluationStage</h4>
 <pre>public&nbsp;ResourceEvaluationStage(<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&nbsp;resourceSpec,
-                               java.util.Optional&lt;java.lang.String&gt;&nbsp;taskName,
+                               java.util.Collection&lt;java.lang.String&gt;&nbsp;taskNames,
                                java.util.Optional&lt;java.lang.String&gt;&nbsp;requiredResourceId,
                                java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</pre>
 <div class="block">Creates a new instance for basic resource evaluation.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>resourceSpec</code> - the resource spec to be evaluated</dd>
-<dd><code>taskName</code> - the name of the task which will use this resource</dd>
+<dd><code>taskNames</code> - the name of the tasks which will use this resource: multiple when they share a ResourceSet</dd>
 <dd><code>requiredResourceId</code> - any previously reserved resource ID to be required, or empty for a new reservation</dd>
 <dd><code>resourceNamespace</code> - the namespace label, if any, to store in the resource</dd>
 </dl>

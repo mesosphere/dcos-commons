@@ -350,10 +350,10 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#getChildren-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Returns the names of child nodes at the provided path. Some returned nodes may have <code>null</code> data when
  retrieved via <a href="../../../../com/mesosphere/sdk/storage/Persister.html#get-java.lang.String-"><code>Persister.get(String)</code></a>, indicating that these are stub parent entries to other nodes.
- <p>
+
  <p>To translate the returned values to full absolute paths, they may be joined with the provided <code>path</code>
  input using <code>PersisterUtils#join(String, String)</code>.
- <p>
+
  <p>To get the list of nodes at the root, use "" or "/" as the input path.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
@@ -461,7 +461,7 @@ implements <a href="../../../../com/mesosphere/sdk/storage/Persister.html" title
                      throws <a href="../../../../com/mesosphere/sdk/storage/PersisterException.html" title="class in com.mesosphere.sdk.storage">PersisterException</a></pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../com/mesosphere/sdk/storage/Persister.html#recursiveDelete-java.lang.String-">Persister</a></code></span></div>
 <div class="block">Recursively deletes the data at the specified path, or throws an exception if no data existed at that location.
- <p>
+
  <p>Deleting the root node (as "" or "/") will result in all nodes EXCEPT the root node being deleted.</div>
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>

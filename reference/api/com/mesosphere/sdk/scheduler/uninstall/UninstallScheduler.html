@@ -499,7 +499,8 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <ul class="blockList">
 <li class="blockList">
 <h4>processStatusUpdate</h4>
-<pre>protected&nbsp;void&nbsp;processStatusUpdate(Protos.TaskStatus&nbsp;status)</pre>
+<pre>protected&nbsp;void&nbsp;processStatusUpdate(Protos.TaskStatus&nbsp;status)
+                            throws java.lang.Exception</pre>
 <div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.html#processStatusUpdate-Protos.TaskStatus-">AbstractScheduler</a></code></span></div>
 <div class="block">Invoked when Mesos has provided a task status to be processed.</div>
 <dl>
@@ -508,6 +509,8 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/AbstractScheduler.h
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>status</code> - the task status, which may be for a task which no longer exists or is otherwise unrelated to the
                service</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.Exception</code></dd>
 </dl>
 </li>
 </ul>

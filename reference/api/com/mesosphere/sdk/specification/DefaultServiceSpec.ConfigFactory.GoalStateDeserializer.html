@@ -116,7 +116,7 @@ var activeTableTab = "activeTableTab";
 </dl>
 <hr>
 <br>
-<pre>public class <span class="typeNameLabel">DefaultServiceSpec.ConfigFactory.GoalStateDeserializer</span>
+<pre>public static class <span class="typeNameLabel">DefaultServiceSpec.ConfigFactory.GoalStateDeserializer</span>
 extends &lt;any&gt;</pre>
 <div class="block">Custom deserializer for goal states to accomodate transition from FINISHED to ONCE/FINISH.</div>
 </li>
@@ -221,10 +221,12 @@ extends &lt;any&gt;</pre>
 <h4>deserialize</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a>&nbsp;deserialize(JsonParser&nbsp;p,
                              DeserializationContext&nbsp;ctxt)
-                      throws java.io.IOException</pre>
+                      throws java.io.IOException,
+                             JsonParseException</pre>
 <dl>
 <dt><span class="throwsLabel">Throws:</span></dt>
 <dd><code>java.io.IOException</code></dd>
+<dd><code>JsonParseException</code></dd>
 </dl>
 </li>
 </ul>

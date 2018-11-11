@@ -138,25 +138,20 @@ extends java.lang.Enum&lt;<a href="../../../../com/mesosphere/sdk/specification/
 </tr>
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/GoalState.html#FINISH">FINISH</a></span></code>
-<div class="block">Running and then exiting successfully.</div>
+<div class="block">Running and then exiting successfully once for a given configuration.</div>
 </td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/GoalState.html#FINISHED">FINISHED</a></span></code>
-<div class="block">Running only once over the lifetime of a service.</div>
-</td>
-</tr>
-<tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/GoalState.html#ONCE">ONCE</a></span></code>
 <div class="block">Running only once over the lifetime of a service.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/GoalState.html#RUNNING">RUNNING</a></span></code>
 <div class="block">Running continuously.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/GoalState.html#UNKNOWN">UNKNOWN</a></span></code>
 <div class="block">ERROR.</div>
 </td>
@@ -238,17 +233,6 @@ the order they are declared.</div>
 <div class="block">Running continuously. Should be restarted if it exits.</div>
 </li>
 </ul>
-<a name="FINISHED">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>FINISHED</h4>
-<pre>public static final&nbsp;<a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a> FINISHED</pre>
-<div class="block">Running only once over the lifetime of a service. Should not be run again for the duration of this install. (Will
- be deprecated in favor of ONCE in future releases, which shares the same semantics.</div>
-</li>
-</ul>
 <a name="FINISH">
 <!--   -->
 </a>
@@ -256,7 +240,8 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>FINISH</h4>
 <pre>public static final&nbsp;<a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a> FINISH</pre>
-<div class="block">Running and then exiting successfully. Should not be restarted upon a successful exit.</div>
+<div class="block">Running and then exiting successfully once for a given configuration. Should not be restarted upon a successful
+ exit, but may be run again if there's a config change.</div>
 </li>
 </ul>
 <a name="ONCE">
@@ -266,7 +251,8 @@ the order they are declared.</div>
 <li class="blockList">
 <h4>ONCE</h4>
 <pre>public static final&nbsp;<a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a> ONCE</pre>
-<div class="block">Running only once over the lifetime of a service. Should not be run again for the duration of this install.</div>
+<div class="block">Running only once over the lifetime of a service. Should not be run again for the duration of this install,
+ regardless of any config changes.</div>
 </li>
 </ul>
 </li>

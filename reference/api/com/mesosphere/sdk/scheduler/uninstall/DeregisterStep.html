@@ -265,7 +265,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <div class="block"><span class="descfrmTypeLabel">Description copied from interface:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--">Step</a></code></span></div>
 <div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>. This will continue to be called for as
  long as <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html#isPending--"><code>Element.isPending()</code></a> returns <code>true</code>.
-
+ <p>
  See <code>#updateOfferStatus(Collection&lt;org.apache.mesos.Protos.Offer.Operation&gt;)</code> which
  returns the outcome of
  the <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a></div>

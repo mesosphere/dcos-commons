@@ -387,8 +387,13 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a>&nbsp;newGenerator(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
                                                         <a href="../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler">SchedulerConfig</a>&nbsp;schedulerConfig,
                                                         java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;schedulerEnvironment,
-                                                        java.io.File&nbsp;configTemplateDir)</pre>
+                                                        java.io.File&nbsp;configTemplateDir)
+                                                 throws java.lang.Exception</pre>
 <div class="block">Used by unit tests.</div>
+<dl>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.Exception</code></dd>
+</dl>
 </li>
 </ul>
 <a name="newBuilder--">
@@ -407,65 +412,6 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <li class="blockList">
 <h4>newBuilder</h4>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a>&nbsp;newBuilder(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;copy)</pre>
-</li>
-</ul>
-<a name="getComparatorInstance--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getComparatorInstance</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationComparator.html" title="interface in com.mesosphere.sdk.config">ConfigurationComparator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getComparatorInstance()</pre>
-<div class="block">Returns a <a href="../../../../com/mesosphere/sdk/config/ConfigurationComparator.html" title="interface in com.mesosphere.sdk.config"><code>ConfigurationComparator</code></a> which may be used to compare
- <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s.</div>
-</li>
-</ul>
-<a name="getConfigurationFactory-com.mesosphere.sdk.specification.ServiceSpec-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getConfigurationFactory</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigurationFactory(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</pre>
-<div class="block">Returns a <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec.ConfigFactory</code></a> which may be used to deserialize
- <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s, which has been confirmed to successfully and
- consistently serialize/deserialize the provided <code>ServiceSpecification</code> instance.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>serviceSpec</code> - specification to test for successful serialization/deserialization</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.IllegalArgumentException</code> - if testing the provided specification fails</dd>
-</dl>
-</li>
-</ul>
-<a name="getConfigurationFactory-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getConfigurationFactory</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigurationFactory(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
-                                                                        java.util.Collection&lt;java.lang.Class&lt;?&gt;&gt;&nbsp;additionalSubtypesToRegister)</pre>
-<div class="block">Returns a <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec.ConfigFactory</code></a> which may be used to deserialize
- <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s, which has been confirmed to successfully and
- consistently serialize/deserialize the provided <code>ServiceSpecification</code> instance.</div>
-<dl>
-<dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>serviceSpec</code> - specification to test for successful serialization/deserialization</dd>
-<dd><code>additionalSubtypesToRegister</code> - any class subtypes which should be registered with Jackson for
-                                     deserialization. any custom placement rule implementations must be provided</dd>
-<dt><span class="throwsLabel">Throws:</span></dt>
-<dd><code>java.lang.IllegalArgumentException</code> - if testing the provided specification fails</dd>
-</dl>
-</li>
-</ul>
-<a name="getConfigurationFactory--">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>getConfigurationFactory</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigurationFactory()</pre>
 </li>
 </ul>
 <a name="getName--">
@@ -627,7 +573,7 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <a name="toString--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
 <pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
@@ -635,6 +581,65 @@ implements <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.htm
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>toString</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
 </dl>
+</li>
+</ul>
+<a name="getComparatorInstance--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getComparatorInstance</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationComparator.html" title="interface in com.mesosphere.sdk.config">ConfigurationComparator</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getComparatorInstance()</pre>
+<div class="block">Returns a <a href="../../../../com/mesosphere/sdk/config/ConfigurationComparator.html" title="interface in com.mesosphere.sdk.config"><code>ConfigurationComparator</code></a> which may be used to compare
+ <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s.</div>
+</li>
+</ul>
+<a name="getConfigurationFactory-com.mesosphere.sdk.specification.ServiceSpec-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getConfigurationFactory</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigurationFactory(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</pre>
+<div class="block">Returns a <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec.ConfigFactory</code></a> which may be used to deserialize
+ <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s, which has been confirmed to successfully and
+ consistently serialize/deserialize the provided <code>ServiceSpecification</code> instance.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>serviceSpec</code> - specification to test for successful serialization/deserialization</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.IllegalArgumentException</code> - if testing the provided specification fails</dd>
+</dl>
+</li>
+</ul>
+<a name="getConfigurationFactory-com.mesosphere.sdk.specification.ServiceSpec-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getConfigurationFactory</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigurationFactory(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+                                                                        java.util.Collection&lt;java.lang.Class&lt;?&gt;&gt;&nbsp;additionalSubtypesToRegister)</pre>
+<div class="block">Returns a <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec.ConfigFactory</code></a> which may be used to deserialize
+ <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s, which has been confirmed to successfully and
+ consistently serialize/deserialize the provided <code>ServiceSpecification</code> instance.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>serviceSpec</code> - specification to test for successful serialization/deserialization</dd>
+<dd><code>additionalSubtypesToRegister</code> - any class subtypes which should be registered with Jackson for
+                                     deserialization. any custom placement rule implementations must be provided</dd>
+<dt><span class="throwsLabel">Throws:</span></dt>
+<dd><code>java.lang.IllegalArgumentException</code> - if testing the provided specification fails</dd>
+</dl>
+</li>
+</ul>
+<a name="getConfigurationFactory--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getConfigurationFactory</h4>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/config/ConfigurationFactory.html" title="interface in com.mesosphere.sdk.config">ConfigurationFactory</a>&lt;<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&gt;&nbsp;getConfigurationFactory()</pre>
 </li>
 </ul>
 </li>

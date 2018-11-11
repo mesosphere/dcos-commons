@@ -283,7 +283,7 @@ implements <a href="../../../../com/mesosphere/sdk/offer/OfferRecommendation.htm
 <pre>public&nbsp;Protos.TaskInfo&nbsp;getStateStoreTaskInfo()</pre>
 <div class="block">Returns the <code>Protos.TaskInfo</code> to be passed to a StateStore upon launch. The TaskInfo is formatted
  differently depending on where it's being sent:
- <p>
+
  <ul><li>Mesos <code>LAUNCH_GROUP</code>: The <code>Protos.ExecutorInfo</code> is included in the
  <code>Protos.Offer.Operation</code>, but not in the <code>Protos.TaskInfo</code>.</li>
  <li>StateStore: The <code>Protos.ExecutorInfo</code> is included in the <code>Protos.TaskInfo</code> directly. This is how
