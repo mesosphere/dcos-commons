@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DiscoverySpec;
@@ -18,8 +19,8 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
-import com.mesosphere.sdk.state.StateStore;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.mesos.Protos;
@@ -44,22 +45,27 @@ import java.util.stream.Collectors;
 /**
  * Various utility methods for manipulating data in {@link TaskInfo}s.
  */
-@SuppressWarnings({"checkstyle:MethodCount"})
+
+@SuppressWarnings({
+    "checkstyle:LineLength",
+    "checkstyle:MethodCount",
+    "checkstyle:ExecutableStatementCount",
+    "checkstyle:ReturnCount",
+    "checkstyle:OverloadMethodsDeclarationOrder",
+})
 public final class TaskUtils {
 
   private static final Logger LOGGER = LoggingUtils.getLogger(TaskUtils.class);
 
-  private TaskUtils() {}
+  private TaskUtils() {
+    // do not instantiate
+  }
 
   /**
    * Returns the {@link TaskSpec} in the provided {@link com.mesosphere.sdk.specification.DefaultServiceSpec}
    * which matches the provided {@link TaskInfo}, or {@code null} if no match could be found.
    */
-  public static Optional<PodSpec> getPodSpec(
-      ServiceSpec serviceSpec,
-      Protos.TaskInfo taskInfo)
-      throws TaskException
-  {
+  public static Optional<PodSpec> getPodSpec(ServiceSpec serviceSpec, Protos.TaskInfo taskInfo) throws TaskException {
     String podType = new TaskLabelReader(taskInfo).getType();
 
     for (PodSpec podSpec : serviceSpec.getPods()) {
@@ -90,10 +96,7 @@ public final class TaskUtils {
    * @param tasksToLaunch The names of TaskSpecs which should be launched.
    * @return A list of the appropriate task names.
    */
-  public static List<String> getTaskNames(
-      PodInstance podInstance,
-      Collection<String> tasksToLaunch)
-  {
+  public static List<String> getTaskNames(PodInstance podInstance, Collection<String> tasksToLaunch) {
     LOGGER.debug("PodInstance tasks: {}", TaskUtils.getTaskNames(podInstance));
     return podInstance.getPod().getTasks().stream()
         .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
@@ -115,12 +118,12 @@ public final class TaskUtils {
    * Returns the TaskInfos associated with a PodInstance if its ever been launched.  The list will be empty if the
    * PodInstance has never been launched.
    *
-   * @param podInstance A PodInstance
-   * @param stateStore  A StateStore to search for the appropriate TaskInfos.
-   * @return The list of TaskInfos associated with a PodInstance.
+   * @param podInstance A PodInstance to match against in the provided tasks
+   * @param tasks       All tasks in the StateStore
+   * @return TaskInfos associated with the PodInstance.
    */
-  public static List<Protos.TaskInfo> getPodTasks(PodInstance podInstance, StateStore stateStore) {
-    return stateStore.fetchTasks().stream()
+  public static Collection<Protos.TaskInfo> getPodTasks(PodInstance podInstance, Collection<Protos.TaskInfo> tasks) {
+    return tasks.stream()
         .filter(taskInfo -> areEquivalent(taskInfo, podInstance))
         .collect(Collectors.toList());
   }
@@ -147,7 +150,6 @@ public final class TaskUtils {
    * @param newTaskSpec The new definition of a Task.
    * @return true if the Tasks are different, false otherwise.
    */
-  @SuppressWarnings({"checkstyle:ReturnCount", "checkstyle:ExecutableStatementCount"})
   public static boolean areDifferent(TaskSpec oldTaskSpec, TaskSpec newTaskSpec) {
 
     // Names
@@ -217,9 +219,7 @@ public final class TaskUtils {
     Optional<HealthCheckSpec> oldHealthCheck = oldTaskSpec.getHealthCheck();
     Optional<HealthCheckSpec> newHealthCheck = newTaskSpec.getHealthCheck();
     if (!Objects.equals(oldHealthCheck, newHealthCheck)) {
-      LOGGER.debug(
-          "Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck
-      );
+      LOGGER.debug("Task healthchecks '{}' and '{}' are different.", oldHealthCheck, newHealthCheck);
       return true;
     }
 
@@ -228,9 +228,7 @@ public final class TaskUtils {
     Optional<ReadinessCheckSpec> oldReadinessCheck = oldTaskSpec.getReadinessCheck();
     Optional<ReadinessCheckSpec> newReadinessCheck = newTaskSpec.getReadinessCheck();
     if (!Objects.equals(oldReadinessCheck, newReadinessCheck)) {
-      LOGGER.debug(
-          "Task readinesschecks '{}' and '{}' are different.", oldReadinessCheck, newReadinessCheck
-      );
+      LOGGER.debug("Task readinesschecks '{}' and '{}' are different.", oldReadinessCheck, newReadinessCheck);
       return true;
     }
 
@@ -239,9 +237,7 @@ public final class TaskUtils {
     Map<String, ConfigFileSpec> oldConfigMap = getConfigTemplateMap(oldTaskSpec.getConfigFiles());
     Map<String, ConfigFileSpec> newConfigMap = getConfigTemplateMap(newTaskSpec.getConfigFiles());
     if (!Objects.equals(oldConfigMap, newConfigMap)) {
-      LOGGER.debug(
-          "Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap
-      );
+      LOGGER.debug("Config templates '{}' and '{}' are different.", oldConfigMap, newConfigMap);
       return true;
     }
 
@@ -250,20 +246,15 @@ public final class TaskUtils {
     Optional<DiscoverySpec> oldDiscoverySpec = oldTaskSpec.getDiscovery();
     Optional<DiscoverySpec> newDiscoverySpec = newTaskSpec.getDiscovery();
     if (!Objects.equals(oldDiscoverySpec, newDiscoverySpec)) {
-      LOGGER.debug(
-          "DiscoverySpecs '{}' and '{}' are different.", oldDiscoverySpec, newDiscoverySpec
-      );
+      LOGGER.debug("DiscoverySpecs '{}' and '{}' are different.", oldDiscoverySpec, newDiscoverySpec);
       return true;
     }
 
     int oldTaskKillGracePeriodSeconds = oldTaskSpec.getTaskKillGracePeriodSeconds();
     int newTaskKillGracePeriodSeconds = newTaskSpec.getTaskKillGracePeriodSeconds();
     if (oldTaskKillGracePeriodSeconds != newTaskKillGracePeriodSeconds) {
-      LOGGER.debug(
-          "TaskKillGracePeriodSeconds '{}' and '{}' are different.",
-          oldTaskKillGracePeriodSeconds,
-          newTaskKillGracePeriodSeconds
-      );
+      LOGGER.debug("TaskKillGracePeriodSeconds '{}' and '{}' are different.",
+          oldTaskKillGracePeriodSeconds, newTaskKillGracePeriodSeconds);
       return true;
     }
 
@@ -310,8 +301,7 @@ public final class TaskUtils {
    *
    * @throws IllegalArgumentException if multiple config specifications have matching relative path strings
    */
-  private static Map<String, ConfigFileSpec> getConfigTemplateMap(
-      Collection<ConfigFileSpec> configSpecs)
+  private static Map<String, ConfigFileSpec> getConfigTemplateMap(Collection<ConfigFileSpec> configSpecs)
       throws IllegalArgumentException
   {
     Set<String> configPaths = new HashSet<>();
@@ -342,11 +332,7 @@ public final class TaskUtils {
    * @return The {@link GoalState} of the task.
    * @throws TaskException is thrown when unable to determine a task's {@link GoalState}
    */
-  public static GoalState getGoalState(
-      PodInstance podInstance,
-      String taskName)
-      throws TaskException
-  {
+  public static GoalState getGoalState(PodInstance podInstance, String taskName) throws TaskException {
     Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskName);
     if (taskSpec.isPresent()) {
       return taskSpec.get().getGoal();
@@ -355,9 +341,7 @@ public final class TaskUtils {
     }
   }
 
-  public static Optional<TaskSpec> getTaskSpec(
-      ConfigStore<ServiceSpec> configStore,
-      Protos.TaskInfo taskInfo)
+  public static Optional<TaskSpec> getTaskSpec(ConfigStore<ServiceSpec> configStore, Protos.TaskInfo taskInfo)
       throws TaskException
   {
     return getTaskSpec(getPodInstance(configStore, taskInfo), taskInfo.getName());
@@ -369,11 +353,7 @@ public final class TaskUtils {
         .findFirst();
   }
 
-  public static Optional<TaskSpec> getTaskSpec(
-      ServiceSpec serviceSpec,
-      String podType,
-      String taskName)
-  {
+  public static Optional<TaskSpec> getTaskSpec(ServiceSpec serviceSpec, String podType, String taskName) {
     for (PodSpec podSpec : serviceSpec.getPods()) {
       if (!podSpec.getType().equals(podType)) {
         continue;
@@ -395,8 +375,9 @@ public final class TaskUtils {
    * @return list of pods, each with contained named tasks to be relaunched
    */
   public static List<PodInstanceRequirement> getPodRequirements(
-      StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
+      Collection<Protos.TaskInfo> allTaskInfos,
+      Collection<Protos.TaskStatus> allTaskStatuses,
       Collection<Protos.TaskInfo> failedTasks)
   {
 
@@ -412,14 +393,14 @@ public final class TaskUtils {
           LOGGER.error("No TaskSpec found for failed task: {}", taskInfo.getName());
           continue;
         }
-        Collection<TaskSpec> failedTaskSpecs =
-            podsToFailedTasks.computeIfAbsent(podInstance, k -> new ArrayList<>());
+        Collection<TaskSpec> failedTaskSpecs = podsToFailedTasks.get(podInstance);
+        if (failedTaskSpecs == null) {
+          failedTaskSpecs = new ArrayList<>();
+          podsToFailedTasks.put(podInstance, failedTaskSpecs);
+        }
         failedTaskSpecs.add(taskSpec.get());
       } catch (TaskException e) {
-        LOGGER.error(
-            String.format("Failed to get pod instance for task: %s", taskInfo.getName()),
-            e
-        );
+        LOGGER.error(String.format("Failed to get pod instance for task: %s", taskInfo.getName()), e);
       }
     }
     if (podsToFailedTasks.isEmpty()) {
@@ -430,20 +411,26 @@ public final class TaskUtils {
     // Log failed pod map
     for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
       List<String> taskNames = entry.getValue().stream()
-          .map(TaskSpec::getName)
+          .map(taskSpec -> taskSpec.getName())
           .collect(Collectors.toList());
       LOGGER.info("Failed pod: {} with tasks: {}", entry.getKey().getName(), taskNames);
     }
 
-    Set<String> allLaunchedTaskNames = stateStore.fetchTasks().stream()
-        .filter(taskInfo -> stateStore.fetchStatus(taskInfo.getName()).isPresent())
-        .map(TaskInfo::getName)
+    // We treat a task as having "launched" if there exists a TaskStatus for it.
+    Set<String> allLaunchedTaskIds = allTaskStatuses.stream()
+        .map(status -> status.getTaskId().getValue())
+        .collect(Collectors.toSet());
+
+    Set<String> allLaunchedTaskNames = allTaskInfos.stream()
+        .filter(taskInfo -> allLaunchedTaskIds.contains(taskInfo.getTaskId().getValue()))
+        .map(taskInfo -> taskInfo.getName())
         .collect(Collectors.toSet());
 
     List<PodInstanceRequirement> podInstanceRequirements = new ArrayList<>();
     for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
+      boolean anyFailedTasksAreEssential = entry.getValue().stream().anyMatch(taskSpec -> taskSpec.isEssential());
       Collection<TaskSpec> taskSpecsToLaunch;
-      if (entry.getValue().stream().anyMatch(TaskSpec::isEssential)) {
+      if (anyFailedTasksAreEssential) {
         // One or more of the failed tasks in this pod are marked as 'essential'.
         // Relaunch all applicable tasks in the pod.
         taskSpecsToLaunch = entry.getKey().getPod().getTasks();
@@ -454,16 +441,11 @@ public final class TaskUtils {
       }
 
       // Additional filtering:
-      // - Only relaunch tasks that have a RUNNING goal state. Don't worry about FINISHED tasks.
+      // - Only relaunch tasks that aren't eligible for recovery. Those are instead handled by the deploy plan.
       // - Don't relaunch tasks that haven't been launched yet (as indicated by presence in allLaunchedTasks)
-      taskSpecsToLaunch = taskSpecsToLaunch
-          .stream()
-          .filter(taskSpec ->
-              taskSpec.getGoal() == GoalState.RUNNING &&
-              allLaunchedTaskNames.contains(
-                  TaskSpec.getInstanceName(entry.getKey(), taskSpec.getName())
-              )
-          )
+      taskSpecsToLaunch = taskSpecsToLaunch.stream()
+          .filter(taskSpec -> isEligibleForRecovery(taskSpec) &&
+              allLaunchedTaskNames.contains(TaskSpec.getInstanceName(entry.getKey(), taskSpec.getName())))
           .collect(Collectors.toList());
 
       if (taskSpecsToLaunch.isEmpty()) {
@@ -471,56 +453,32 @@ public final class TaskUtils {
         continue;
       }
 
-      LOGGER.info(
-          "Tasks to relaunch in pod {}: {}",
-          entry.getKey().getName(),
-          taskSpecsToLaunch
-              .stream()
-              .map(taskSpec ->
-                  String.format(
-                      "%s=%s",
-                      taskSpec.getName(),
-                      taskSpec.isEssential() ? "essential" : "nonessential"
-                  )
-              )
-              .collect(Collectors.toList())
-      );
-      podInstanceRequirements.add(
-          PodInstanceRequirement
-              .newBuilder(
-                  entry.getKey(),
-                  taskSpecsToLaunch
-                      .stream()
-                      .map(TaskSpec::getName)
-                      .collect(Collectors.toList())
-              )
-              .build()
-      );
+      LOGGER.info("Tasks to relaunch in pod {}: {}", entry.getKey().getName(), taskSpecsToLaunch.stream()
+          .map(taskSpec -> String.format(
+              "%s=%s", taskSpec.getName(), taskSpec.isEssential() ? "essential" : "nonessential"))
+          .collect(Collectors.toList()));
+      podInstanceRequirements.add(PodInstanceRequirement.newBuilder(
+          entry.getKey(),
+          taskSpecsToLaunch.stream()
+              .map(taskSpec -> taskSpec.getName())
+              .collect(Collectors.toList()))
+          .build());
     }
 
     return podInstanceRequirements;
   }
 
-  public static PodInstance getPodInstance(
-      ConfigStore<ServiceSpec> configStore,
-      Protos.TaskInfo taskInfo)
+  public static PodInstance getPodInstance(ConfigStore<ServiceSpec> configStore, Protos.TaskInfo taskInfo)
       throws TaskException
   {
     return getPodInstance(getPodSpec(configStore, taskInfo), taskInfo);
   }
 
-  public static PodInstance getPodInstance(
-      PodSpec podSpec,
-      Protos.TaskInfo taskInfo)
-      throws TaskException
-  {
+  public static PodInstance getPodInstance(PodSpec podSpec, Protos.TaskInfo taskInfo) throws TaskException {
     return new DefaultPodInstance(podSpec, new TaskLabelReader(taskInfo).getIndex());
   }
 
-  @SuppressWarnings("checkstyle:OverloadMethodsDeclarationOrder")
-  private static PodSpec getPodSpec(
-      ConfigStore<ServiceSpec> configStore,
-      Protos.TaskInfo taskInfo)
+  private static PodSpec getPodSpec(ConfigStore<ServiceSpec> configStore, Protos.TaskInfo taskInfo)
       throws TaskException
   {
     UUID configId = new TaskLabelReader(taskInfo).getTargetConfiguration();
@@ -544,20 +502,83 @@ public final class TaskUtils {
   }
 
   /**
-   * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
+   * Filters and returns all {@link Protos.TaskInfo}s for tasks needing recovery.
+   *
+   * @return terminated TaskInfos
    */
-  public static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
-    switch (taskStatus.getState()) {
-      case TASK_FINISHED:
-      case TASK_FAILED:
-      case TASK_KILLED:
-      case TASK_ERROR:
-      case TASK_LOST:
+  public static Collection<Protos.TaskInfo> getTasksNeedingRecovery(
+      ConfigStore<ServiceSpec> configStore,
+      Collection<Protos.TaskInfo> allTaskInfos,
+      Collection<Protos.TaskStatus> allTaskStatuses) throws TaskException
+  {
+
+    Map<Protos.TaskID, Protos.TaskStatus> statusMap = new HashMap<>();
+    for (Protos.TaskStatus status : allTaskStatuses) {
+      statusMap.put(status.getTaskId(), status);
+    }
+
+    List<Protos.TaskInfo> results = new ArrayList<>();
+    for (Protos.TaskInfo info : allTaskInfos) {
+      Protos.TaskStatus status = statusMap.get(info.getTaskId());
+      if (status == null) {
+        continue;
+      }
+
+      Optional<TaskSpec> taskSpec = getTaskSpec(configStore, info);
+      if (!taskSpec.isPresent()) {
+        throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
+      }
+
+      boolean markedPermanentlyFailed = FailureUtils.isPermanentlyFailed(info);
+      if (isEligibleForRecovery(taskSpec.get()) && (isRecoveryNeeded(status) || markedPermanentlyFailed)) {
+        LOGGER.info("{} needs recovery with state: {}, goal state: {}, marked permanently failed: {}",
+            info.getName(), status.getState(), taskSpec.get().getGoal().name(), markedPermanentlyFailed);
+        results.add(info);
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Returns whether the provided {@link TaskSpec} should be managed by the recovery plan if the task has failed.
+   * <p>
+   * Tasks with a {@code ONCE} or {@code FINISH} goal state are effectively only managed by the deploy plan, and are
+   * not the responsibility of the recovery plan. Recovery only applies to tasks that had reached their goal state of
+   * {@code RUNNING} and then later failed.
+   */
+  private static boolean isEligibleForRecovery(TaskSpec taskSpec) {
+    switch (taskSpec.getGoal()) {
+      case RUNNING:
         return true;
-      case TASK_KILLING:
-      case TASK_RUNNING:
-      case TASK_STAGING:
-      case TASK_STARTING:
+      case ONCE:
+      case FINISH:
+        // Tasks with a ONCE or FINISH goal state are effectively managed by the deploy plan, and are not the
+        // responsibility of the recovery plan. Recovery only applies to tasks that had reached their goal state
+        // of RUNNING and then later failed.
+        return false;
+      case UNKNOWN:
+      default:
+        throw new IllegalArgumentException(String.format("Unsupported goal state: %s", taskSpec.getGoal()));
+    }
+  }
+
+  /**
+   * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
+   * <p>
+   * This assumes that the task is not supposed to be {@code FINISHED}.
+   */
+  @VisibleForTesting
+  static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
+    // Note that we include FINISHED as "needs recovery", because we assume the task is supposed to be RUNNING.
+    if (isTerminal(taskStatus)) {
+      return true;
+    }
+    // Non-terminal cases which need recovery:
+    switch (taskStatus.getState()) {
+      case TASK_GONE_BY_OPERATOR:
+      case TASK_LOST:
+      case TASK_UNREACHABLE:
+        return true;
       default:
         return false;
     }
@@ -567,55 +588,30 @@ public final class TaskUtils {
    * Returns whether the provided {@link TaskStatus} has reached a terminal state.
    */
   public static boolean isTerminal(Protos.TaskStatus taskStatus) {
-    return isTerminal(taskStatus.getState());
-  }
-
-  /**
-   * Returns whether the provided {@link TaskState} has reached a terminal state.
-   */
-  public static boolean isTerminal(Protos.TaskState taskState) {
-    switch (taskState) {
-      case TASK_FINISHED:
-      case TASK_FAILED:
-      case TASK_KILLED:
+    switch (taskStatus.getState()) {
+      case TASK_DROPPED:
       case TASK_ERROR:
+      case TASK_FAILED:
+      case TASK_FINISHED:
+      case TASK_GONE:
+      case TASK_KILLED:
         return true;
-      case TASK_LOST:
+      case TASK_GONE_BY_OPERATOR:
+        // mesos.proto: "might return to RUNNING in the future"
       case TASK_KILLING:
+      case TASK_LOST:
       case TASK_RUNNING:
       case TASK_STAGING:
       case TASK_STARTING:
+      case TASK_UNKNOWN:
+        // mesos.proto: "may or may not still be running"
+      case TASK_UNREACHABLE:
+        break;
       default:
         return false;
     }
-  }
 
-  /**
-   * Determines whether a Task needs to be recovered based on its current definition (TaskSpec) and status
-   * (TaskStatus).
-   *
-   * @param taskSpec   The definition of a task
-   * @param taskStatus The status of the task.
-   * @return true if recovery is needed, false otherwise.
-   */
-  public static boolean needsRecovery(TaskSpec taskSpec, Protos.TaskStatus taskStatus) {
-    // Tasks with a goal state of finished should never leave the purview of their original
-    // plan, so they are not the responsibility of recovery.  Recovery only applies to Tasks
-    // which reached their goal state of RUNNING and then later failed.
-    switch (taskSpec.getGoal()) {
-      case ONCE:
-      case FINISH:
-      case FINISHED:
-        return false;
-      case RUNNING:
-      case UNKNOWN:
-        return isRecoveryNeeded(taskStatus);
-      default:
-        throw new IllegalStateException(String.format(
-            "Unable to determine whether recovery is needed for TaskSpec: %s",
-            taskSpec
-        ));
-    }
+    return false;
   }
 
   /**
@@ -636,11 +632,7 @@ public final class TaskUtils {
    * @return A boolean indicating whether the task is in a zone.
    */
   public static boolean taskHasZone(Protos.TaskInfo taskInfo) {
-    return taskInfo
-        .getCommand()
-        .getEnvironment()
-        .getVariablesList()
-        .stream()
+    return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
         .anyMatch(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV));
   }
 
@@ -651,15 +643,8 @@ public final class TaskUtils {
    * @return A string indicating the zone the task is in.
    */
   public static String getTaskZone(Protos.TaskInfo taskInfo) {
-    return taskInfo
-        .getCommand()
-        .getEnvironment()
-        .getVariablesList()
-        .stream()
-        .filter(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV))
-        .findFirst()
-        .get()
-        .getValue();
+    return taskInfo.getCommand().getEnvironment().getVariablesList().stream()
+        .filter(variable -> variable.getName().equals(EnvConstants.ZONE_TASKENV)).findFirst().get().getValue();
   }
 
   /**
@@ -672,14 +657,8 @@ public final class TaskUtils {
     List<Protos.NetworkInfo> networkInfo = taskStatus.getContainerStatus().getNetworkInfosList();
     if (networkInfo.isEmpty()) {
       throw new IllegalStateException(
-          String.format("No network info can be found for the task info: %s", taskStatus.toString())
-      );
+          String.format("No network info can be found for the task info: %s", taskStatus.toString()));
     }
-    return networkInfo
-        .stream()
-        .findFirst()
-        .get()
-        .getIpAddresses(0)
-        .getIpAddress();
+    return networkInfo.stream().findFirst().get().getIpAddresses(0).getIpAddress();
   }
 }

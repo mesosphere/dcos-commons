@@ -50,6 +50,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -63,6 +64,13 @@ import java.util.stream.Collectors;
  * when possible.  Changes to the ServiceSpec will result in rolling configuration updates, or the creation of
  * new Tasks where applicable.
  */
+@SuppressWarnings({
+    "checkstyle:MultipleStringLiterals",
+    "checkstyle:IllegalCatch",
+    "checkstyle:LineLength",
+    "checkstyle:ParameterNumber",
+    "checkstyle:DeclarationOrder"
+})
 public class DefaultScheduler extends AbstractScheduler {
 
   private final Logger logger;
@@ -76,6 +84,8 @@ public class DefaultScheduler extends AbstractScheduler {
   private final GoalState goalState;
 
   private final PlanManager deploymentPlanManager;
+
+  private boolean deploymentCompletionWasStored;
 
   private final PlanManager recoveryPlanManager;
 
@@ -91,12 +101,34 @@ public class DefaultScheduler extends AbstractScheduler {
 
   private final PlanScheduler planScheduler;
 
-  private boolean deploymentCompletionWasStored;
+  /**
+   * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
+   * including details such as the service name, the pods/tasks to be deployed, and the plans describing how the
+   * deployment should be organized.
+   */
+  public static SchedulerBuilder newBuilder(
+      ServiceSpec serviceSpec,
+      SchedulerConfig schedulerConfig) throws PersisterException
+  {
+    return new SchedulerBuilder(serviceSpec, schedulerConfig);
+  }
+
+  /**
+   * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
+   * including details such as the service name, the pods/tasks to be deployed, and the plans describing how the
+   * deployment should be organized.
+   */
+  public static SchedulerBuilder newBuilder(
+      ServiceSpec serviceSpec,
+      SchedulerConfig schedulerConfig,
+      Persister persister) throws PersisterException
+  {
+    return new SchedulerBuilder(serviceSpec, schedulerConfig, persister);
+  }
 
   /**
    * Creates a new DefaultScheduler. See information about parameters in {@link SchedulerBuilder}.
    */
-  // SUPPRESS CHECKSTYLE ParameterNumber
   protected DefaultScheduler(
       ServiceSpec serviceSpec,
       SchedulerConfig schedulerConfig,
@@ -121,32 +153,29 @@ public class DefaultScheduler extends AbstractScheduler {
 
     this.launchRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec, namespace);
     Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(planCoordinator);
-    this.decommissionRecorder = decommissionManager
-        .map(decommissionPlanManager ->
-            new UninstallRecorder(stateStore, decommissionPlanManager.getResourceSteps())
-        );
+    if (decommissionManager.isPresent()) {
+      this.decommissionRecorder =
+
+          Optional.of(new UninstallRecorder(stateStore, decommissionManager.get().getResourceSteps()));
+    } else {
+      this.decommissionRecorder = Optional.empty();
+    }
 
     // Get the recovery and deploy plan managers. We store the PlanManagers, not the underlying Plans, because
     // PlanManagers can change their plans at any time.
-    this.deploymentPlanManager = planCoordinator
-        .getPlanManagers()
-        .stream()
+    this.deploymentPlanManager = planCoordinator.getPlanManagers().stream()
         .filter(pm -> pm.getPlan().isDeployPlan())
         .findAny()
         .get();
     this.deploymentCompletionWasStored = false;
-    this.recoveryPlanManager = planCoordinator
-        .getPlanManagers()
-        .stream()
+    this.recoveryPlanManager = planCoordinator.getPlanManagers().stream()
         .filter(pm -> pm.getPlan().isRecoveryPlan())
         .findAny()
         .get();
 
     // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
     // reduce memory consumption.
-    this.offerOutcomeTracker = namespace.isPresent() ?
-        Optional.empty() :
-        Optional.of(new OfferOutcomeTracker());
+    this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
 
     this.planScheduler = new PlanScheduler(
         new OfferEvaluator(
@@ -164,29 +193,91 @@ public class DefaultScheduler extends AbstractScheduler {
     customizePlans();
   }
 
-  /**
-   * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
-   * including details such as the service name, the pods/tasks to be deployed, and the plans describing how the
-   * deployment should be organized.
-   */
-  public static SchedulerBuilder newBuilder(
-      ServiceSpec serviceSpec,
-      SchedulerConfig schedulerConfig) throws PersisterException
-  {
-    return new SchedulerBuilder(serviceSpec, schedulerConfig);
+  @Override
+  public Collection<Object> getHTTPEndpoints() {
+    Collection<Object> resources = new ArrayList<>();
+    resources.addAll(customResources);
+    resources.add(new ArtifactResource(configStore));
+    resources.add(new ConfigResource(configStore));
+    EndpointsResource endpointsResource = new EndpointsResource(stateStore, serviceSpec.getName(), schedulerConfig);
+    for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
+      endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
+    }
+    resources.add(endpointsResource);
+    PlansResource plansResource = new PlansResource(planCoordinator);
+    resources.add(plansResource);
+    resources.add(new DeprecatedPlanResource(plansResource));
+    resources.add(new HealthResource(planCoordinator, schedulerConfig));
+    resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
+    resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
+    offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
+    return resources;
   }
 
-  /**
-   * Creates a new {@link SchedulerBuilder} based on the provided {@link ServiceSpec} describing the service,
-   * including details such as the service name, the pods/tasks to be deployed, and the plans describing how the
-   * deployment should be organized.
-   */
-  public static SchedulerBuilder newBuilder(
-      ServiceSpec serviceSpec,
-      SchedulerConfig schedulerConfig,
-      Persister persister)
-  {
-    return new SchedulerBuilder(serviceSpec, schedulerConfig, persister);
+  @Override
+  public Map<String, EndpointProducer> getCustomEndpoints() {
+    return customEndpointProducers;
+  }
+
+  @Override
+  public ConfigStore<ServiceSpec> getConfigStore() {
+    return configStore;
+  }
+
+  @Override
+  protected void registeredWithMesos() {
+    Set<String> activeTasks = PlanUtils.getLaunchableTasks(getPlans());
+
+    Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(getPlanCoordinator());
+    if (decommissionManager.isPresent()) {
+      Collection<String> decommissionedTasks = decommissionManager.get().getTasksToDecommission().stream()
+          .map(taskInfo -> taskInfo.getName())
+          .collect(Collectors.toList());
+      activeTasks.addAll(decommissionedTasks);
+    }
+
+    if (schedulerConfig.useLegacyUnneededTaskKills()) {
+      //TODO(kjoshi): Remove this function on or after Dec 2018.
+      //This case is turned off by default.
+      legacyKillUnneededTasks(stateStore, activeTasks, logger);
+    } else {
+      killUnneededTasks(stateStore, activeTasks);
+    }
+  }
+
+  @Override
+  public void unregistered() {
+    throw new UnsupportedOperationException(
+        "Should not have received unregistered call. This is only applicable to UninstallSchedulers");
+  }
+
+  @Override
+  protected ClientStatusResponse getStatus() {
+    // Take this opportunity to store whether we've completed our deploy plan.
+    // This ensures that we correctly select the custom update plan if one is provided during an update.
+    boolean deployCompleted = deploymentPlanManager.getPlan().isComplete();
+    if (deployCompleted && !deploymentCompletionWasStored) {
+      logger.info("Marking deployment as completed");
+      StateStoreUtils.setDeploymentWasCompleted(stateStore);
+      // Avoid hitting StateStore too much...:
+      deploymentCompletionWasStored = true;
+    }
+
+    if (goalState == GoalState.FINISH && deployCompleted && recoveryPlanManager.getPlan().isComplete()) {
+      // Service has a FINISH goal state, and deployment+recovery are complete. Tell upstream to uninstall us.
+      return ClientStatusResponse.readyToUninstall();
+    } else if (!deployCompleted
+        || isReplacing(recoveryPlanManager))
+    {
+      // Service is acquiring footprint, either via initial deployment or via replacing a task
+      return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
+    } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> isWorking(pm.getPlan()))) {
+      // One or more plans (including e.g. sidecar plans) is doing work: Not idle
+      return ClientStatusResponse.launching(workSetTracker.hasNewWork());
+    } else {
+      // All plans are complete, or are not doing work: Idle
+      return ClientStatusResponse.idle();
+    }
   }
 
   /**
@@ -221,63 +312,48 @@ public class DefaultScheduler extends AbstractScheduler {
         .anyMatch(step ->
             !step.isComplete()
                 && step instanceof RecoveryStep
-                && ((RecoveryStep) step).getRecoveryType() == RecoveryType.PERMANENT
-        );
+                && ((RecoveryStep) step).getRecoveryType() == RecoveryType.PERMANENT);
   }
 
-  private static Optional<DecommissionPlanManager> getDecommissionManager(
-      PlanCoordinator planCoordinator)
-  {
-    return planCoordinator
-        .getPlanManagers()
-        .stream()
+  private static Optional<DecommissionPlanManager> getDecommissionManager(PlanCoordinator planCoordinator) {
+    return planCoordinator.getPlanManagers().stream()
         .filter(planManager -> planManager.getPlan().isDecommissionPlan())
         .map(planManager -> (DecommissionPlanManager) planManager)
         .findFirst();
   }
 
   private static void killUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames) {
-    Set<Protos.TaskInfo> unneededTaskInfos = stateStore
-        .fetchTasks()
-        .stream()
+    Set<Protos.TaskInfo> unneededTaskInfos = stateStore.fetchTasks().stream()
         .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
         .collect(Collectors.toSet());
 
-    Set<Protos.TaskID> taskIdsToKill = unneededTaskInfos
-        .stream()
-        .map(Protos.TaskInfo::getTaskId)
+    Set<Protos.TaskID> taskIdsToKill = unneededTaskInfos.stream()
+        .map(taskInfo -> taskInfo.getTaskId())
         .collect(Collectors.toSet());
 
-    taskIdsToKill.forEach(TaskKiller::killTask);
+    taskIdsToKill.forEach(taskID -> TaskKiller.killTask(taskID));
   }
 
-  private static void legacyKillUnneededTasks(
-      StateStore stateStore,
-      Set<String> taskToDeployNames,
-      Logger logger)
-  {
+  private static void legacyKillUnneededTasks(StateStore stateStore, Set<String> taskToDeployNames, Logger logger) {
+
     //This method is retained to understand why we're cleaning out TaskInfo's and why
     //a global kill was issued to pending tasks. This method can be invoked in frameworks
     //that do not have require extensive cleanup via decommissioning. The environment
     //variable USE_LEGACY_KILL_UNNEEDED_TASKS should be set to invoke this method at runtime.
     //TODO(kjoshi): Remove this function on or after Dec 2018.
 
-    Set<Protos.TaskInfo> unneededTaskInfos = stateStore
-        .fetchTasks()
-        .stream()
+    Set<Protos.TaskInfo> unneededTaskInfos = stateStore.fetchTasks().stream()
         .filter(taskInfo -> !taskToDeployNames.contains(taskInfo.getName()))
         .collect(Collectors.toSet());
 
-    Set<Protos.TaskID> taskIdsToKill = unneededTaskInfos
-        .stream()
-        .map(Protos.TaskInfo::getTaskId)
+    Set<Protos.TaskID> taskIdsToKill = unneededTaskInfos.stream()
+        .map(taskInfo -> taskInfo.getTaskId())
         .collect(Collectors.toSet());
 
     // Clear the TaskIDs from the TaskInfos so we drop all future TaskStatus Messages
     //TODO(kjoshi): Investigate why this is needed anymore.
-    Set<Protos.TaskInfo> cleanedTaskInfos = unneededTaskInfos
-        .stream()
-        .map(Protos.TaskInfo::toBuilder)
+    Set<Protos.TaskInfo> cleanedTaskInfos = unneededTaskInfos.stream()
+        .map(taskInfo -> taskInfo.toBuilder())
         .map(builder -> builder.setTaskId(Protos.TaskID.newBuilder().setValue("")).build())
         .collect(Collectors.toSet());
 
@@ -286,22 +362,21 @@ public class DefaultScheduler extends AbstractScheduler {
     //TODO(kjoshi): Investigate why this is needed anymore.
     for (Protos.TaskInfo taskInfo : cleanedTaskInfos) {
       stateStore.clearTask(taskInfo.getName());
-      stateStore.storeTasks(Collections.singletonList(taskInfo));
+      stateStore.storeTasks(Arrays.asList(taskInfo));
     }
 
-    unneededTaskInfos.forEach(taskInfo ->
+    unneededTaskInfos.stream().forEach(taskInfo ->
         logger.info("Enqueued kill of taskName: {} taskId: {} due to unneeded taskinfos!",
             taskInfo.getName(),
             taskInfo.getTaskId()));
 
-    taskIdsToKill.forEach(TaskKiller::killTask);
+    taskIdsToKill.forEach(taskID -> TaskKiller.killTask(taskID));
 
     //WARNING: This is a global kill of pending tasks. This can interfere with
     //decommission steps which may have started up in pending state.
     //Some frameworks like k8s need decommission steps to execute correctly for cleanup.
     for (Protos.TaskInfo taskInfo : stateStore.fetchTasks()) {
-      GoalStateOverride.Status overrideStatus =
-          stateStore.fetchGoalOverrideStatus(taskInfo.getName());
+      GoalStateOverride.Status overrideStatus = stateStore.fetchGoalOverrideStatus(taskInfo.getName());
       if (overrideStatus.progress == GoalStateOverride.Progress.PENDING) {
         logger.warn("Enqueued kill of taskName: {} taskId: {} due to GoalStateOverride PENDING!",
             taskInfo.getName(),
@@ -312,6 +387,11 @@ public class DefaultScheduler extends AbstractScheduler {
         TaskKiller.killTask(taskInfo.getTaskId());
       }
     }
+  }
+
+  @Override
+  protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
+    return processOffers(logger, planScheduler, launchRecorder, decommissionRecorder, offers, steps);
   }
 
   /**
@@ -347,7 +427,7 @@ public class DefaultScheduler extends AbstractScheduler {
         // Notify decommission plan of dereservations:
         decommissionRecorder.get().recordDecommission(offerRecommendations);
       }
-    } catch (Exception ex) { // SUPPRESS CHECKSTYLE IllegalCatch
+    } catch (Exception ex) {
       // Note: If a subset of operations were recorded, things could still be left in a bad state. However, in
       // practice any storage failure should have occurred in launchRecorder before any of the recommendations
       // were recorded. So in practice this record operation should be 'roughly atomic'.
@@ -359,115 +439,9 @@ public class DefaultScheduler extends AbstractScheduler {
     return OfferResponse.processed(offerRecommendations);
   }
 
-  @Override
-  protected OfferResponse processOffers(Collection<Protos.Offer> offers, Collection<Step> steps) {
-    return processOffers(
-        logger, planScheduler, launchRecorder, decommissionRecorder, offers, steps
-    );
-  }
-
-  @Override
-  public Collection<Object> getHTTPEndpoints() {
-    Collection<Object> resources = new ArrayList<>(customResources);
-    resources.add(new ArtifactResource(configStore));
-    resources.add(new ConfigResource(configStore));
-    EndpointsResource endpointsResource =
-        new EndpointsResource(stateStore, serviceSpec.getName(), schedulerConfig);
-    for (Map.Entry<String, EndpointProducer> entry : customEndpointProducers.entrySet()) {
-      endpointsResource.setCustomEndpoint(entry.getKey(), entry.getValue());
-    }
-    resources.add(endpointsResource);
-    PlansResource plansResource = new PlansResource(planCoordinator);
-    resources.add(plansResource);
-    resources.add(new DeprecatedPlanResource(plansResource));
-    resources.add(new HealthResource(planCoordinator, schedulerConfig));
-    resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
-    resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
-    offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
-    return resources;
-  }
-
-  @Override
-  public Map<String, EndpointProducer> getCustomEndpoints() {
-    return customEndpointProducers;
-  }
-
-  @Override
-  public ConfigStore<ServiceSpec> getConfigStore() {
-    return configStore;
-  }
-
-  @Override
-  protected void registeredWithMesos() {
-    Set<String> activeTasks = PlanUtils.getLaunchableTasks(getPlans());
-
-    Optional<DecommissionPlanManager> decommissionManager =
-        getDecommissionManager(getPlanCoordinator());
-    if (decommissionManager.isPresent()) {
-      Collection<String> decommissionedTasks = decommissionManager
-          .get()
-          .getTasksToDecommission().stream()
-          .map(Protos.TaskInfo::getName)
-          .collect(Collectors.toList());
-      activeTasks.addAll(decommissionedTasks);
-    }
-
-    if (schedulerConfig.useLegacyUnneededTaskKills()) {
-      //TODO(kjoshi): Remove this function on or after Dec 2018.
-      //This case is turned off by default.
-      legacyKillUnneededTasks(stateStore, activeTasks, logger);
-    } else {
-      killUnneededTasks(stateStore, activeTasks);
-    }
-  }
-
-  @Override
-  public void unregistered() {
-    throw new UnsupportedOperationException(
-        "Should not have received unregistered call. This is only applicable to UninstallSchedulers"
-    );
-  }
-
-  @Override
-  protected ClientStatusResponse getStatus() {
-    // Take this opportunity to store whether we've completed our deploy plan.
-    // This ensures that we correctly select the custom update plan if one is provided during an update.
-    boolean deployCompleted = deploymentPlanManager.getPlan().isComplete();
-    if (deployCompleted && !deploymentCompletionWasStored) {
-      logger.info("Marking deployment as completed");
-      StateStoreUtils.setDeploymentWasCompleted(stateStore);
-      // Avoid hitting StateStore too much...:
-      deploymentCompletionWasStored = true;
-    }
-
-    if (goalState == GoalState.FINISH && deployCompleted &&
-        recoveryPlanManager.getPlan().isComplete())
-    {
-      // Service has a FINISH goal state, and deployment+recovery are complete. Tell upstream to uninstall us.
-      return ClientStatusResponse.readyToUninstall();
-    } else if (!deployCompleted
-        || isReplacing(recoveryPlanManager))
-    {
-      // TODO(nickbp): footprint plan should have replacing tasks?
-      // TODO(nickbp): use footprint plan once available
-      // Service is acquiring footprint, either via initial deployment or via replacing a task
-      return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
-    } else if (getPlanCoordinator()
-            .getPlanManagers()
-            .stream()
-            .anyMatch(pm -> isWorking(pm.getPlan())))
-    {
-      // One or more plans (including e.g. sidecar plans) is doing work: Not idle
-      return ClientStatusResponse.launching(workSetTracker.hasNewWork());
-    } else {
-      // All plans are complete, or are not doing work: Idle
-      return ClientStatusResponse.idle();
-    }
-  }
-
   /**
    * Returns the resources which are not expected by this service.
-   * <p>
+   *
    * <p>Resources can be unexpected for one of the following reasons:
    * <ul>
    * <li>The resource is from an old task and the service has since moved on (e.g. agent recently revived)</li>
@@ -491,7 +465,7 @@ public class DefaultScheduler extends AbstractScheduler {
           .map(taskInfo -> ResourceUtils.getResourceIds(ResourceUtils.getAllResources(taskInfo)))
           .flatMap(Collection::stream)
           .collect(Collectors.toSet());
-    } catch (Exception e) { // SUPPRESS CHECKSTYLE IllegalCatch
+    } catch (Exception e) {
       logger.error("Failed to fetch expected tasks to determine unexpected resources", e);
       return UnexpectedResourcesResponse.failed(Collections.emptyList());
     }
@@ -518,7 +492,7 @@ public class DefaultScheduler extends AbstractScheduler {
     if (decommissionRecorder.isPresent()) {
       try {
         decommissionRecorder.get().recordCleanupOrUninstall(unexpectedResources);
-      } catch (Exception e) { // SUPPRESS CHECKSTYLE IllegalCatch
+      } catch (Exception e) {
         // Failed to record the decommission. Refrain from returning these resources as unexpected for now, try
         // again later.
         logger.error("Failed to record unexpected resources in decommission recorder", e);
@@ -529,9 +503,9 @@ public class DefaultScheduler extends AbstractScheduler {
   }
 
   @Override
-  protected void processStatusUpdate(Protos.TaskStatus status) {
+  protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
     // Store status, then pass status to PlanManager => Plan => Steps
-    String taskName = StateStoreUtils.getTaskName(stateStore, status);
+    String taskName = StateStoreUtils.fetchTaskInfo(stateStore, status).getName();
 
     // StateStore updates:
     // - TaskStatus

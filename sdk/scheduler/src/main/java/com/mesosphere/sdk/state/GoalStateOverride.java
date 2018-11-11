@@ -85,7 +85,7 @@ public enum GoalStateOverride {
   /**
    * The label which tasks in this state are given. For example "RUNNING" or "PAUSED". This is shown to users and
    * stored in task state storage.
-   * <p>
+   *
    * <p>WARNING: THIS IS STORED IN ZOOKEEPER TASK METADATA AND THEREFORE CANNOT EASILY BE CHANGED
    */
   public String getSerializedName() {
@@ -129,7 +129,7 @@ public enum GoalStateOverride {
     /**
      * The label which overrides in this state are given. For example "RUNNING" or "PAUSED". This is stored in task
      * state storage.
-     * <p>
+     *
      * <p>WARNING: THIS IS STORED IN ZOOKEEPER TASK METADATA AND THEREFORE CANNOT EASILY BE CHANGED
      */
     public String getSerializedName() {
@@ -141,7 +141,7 @@ public enum GoalStateOverride {
    * Describes the current state of an override.
    * <p>
    * The state of the override itself. Sample flow for enabling and disabling an override:
-   * <p>
+   *
    * <table><tr><td>Operation</td><td>Resulting status (override + progress)</td></tr>
    * <tr><td>(Initial state)</td><td>NONE + COMPLETE (==INACTIVE)</td></tr>
    * <tr><td>"Pause" triggered, kill command issued</td><td>PAUSED + PENDING</td></tr>

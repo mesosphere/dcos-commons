@@ -16,9 +16,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -34,10 +32,9 @@ public class PlanScheduler {
 
   private final StateStore stateStore;
 
-  public PlanScheduler(
-      OfferEvaluator offerEvaluator,
-      StateStore stateStore,
-      Optional<String> namespace)
+  public PlanScheduler(OfferEvaluator offerEvaluator,
+                       StateStore stateStore,
+                       Optional<String> namespace)
   {
     this.logger = LoggingUtils.getLogger(getClass(), namespace);
     this.offerEvaluator = offerEvaluator;
@@ -62,7 +59,7 @@ public class PlanScheduler {
 
       // Remove the consumed offers from the list of available offers
       Set<Protos.OfferID> usedOfferIds = stepRecommendations.stream()
-          .map(OfferRecommendation::getOfferId)
+          .map(rec -> rec.getOfferId())
           .collect(Collectors.toSet());
       availableOffers = availableOffers.stream()
           .filter(offer -> !usedOfferIds.contains(offer.getId()))
@@ -74,11 +71,9 @@ public class PlanScheduler {
 
   private List<OfferRecommendation> resourceOffers(List<Protos.Offer> offers, Step step) {
     if (!(step.isPending() || step.isPrepared())) {
-      logger.info(
-          "Ignoring resource offers for step: {} status: {}",
+      logger.info("Ignoring resource offers for step: {} status: {}",
           step.getName(),
-          step.getStatus()
-      );
+          step.getStatus());
       return Collections.emptyList();
     }
 
@@ -129,26 +124,16 @@ public class PlanScheduler {
   }
 
   private void killTasks(PodInstanceRequirement podInstanceRequirement) {
-    Map<String, Protos.TaskInfo> taskInfoMap = new HashMap<>();
-    stateStore.fetchTasks().forEach(taskInfo -> taskInfoMap.put(taskInfo.getName(), taskInfo));
 
     Set<String> resourceSetsToConsume = podInstanceRequirement
-        .getPodInstance()
-        .getPod()
-        .getTasks()
-        .stream()
+        .getPodInstance().getPod().getTasks().stream()
         .filter(taskSpec -> podInstanceRequirement.getTasksToLaunch().contains(taskSpec.getName()))
         .map(taskSpec -> taskSpec.getResourceSet().getId())
         .collect(Collectors.toSet());
-    List<String> tasksToKill = podInstanceRequirement
-        .getPodInstance()
-        .getPod()
-        .getTasks()
-        .stream()
+    List<String> tasksToKill = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
         .filter(taskSpec -> resourceSetsToConsume.contains(taskSpec.getResourceSet().getId()))
         .map(taskSpec ->
-            TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec)
-        )
+            TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
         .collect(Collectors.toList());
     logger.info("Killing {} for pod instance requirement {}:{}, with resource sets to consume {}",
         tasksToKill,
@@ -158,8 +143,8 @@ public class PlanScheduler {
         tasksToKill);
 
     for (String taskName : tasksToKill) {
-      Protos.TaskInfo taskInfo = taskInfoMap.get(taskName);
-      if (taskInfo == null) {
+      Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTask(taskName);
+      if (!taskInfo.isPresent()) {
         // No TaskInfo at all. This should (only) be the case when the service is first being deployed.
         // Avoid sending out kill requests for tasks that never existed: there's no ID regardless
         logger.info("Skipping kill request for {}: no TaskInfo found, new task?", taskName);
@@ -169,13 +154,13 @@ public class PlanScheduler {
       Optional<Protos.TaskStatus> taskStatusOptional = stateStore.fetchStatus(taskName);
       if (!taskStatusOptional.isPresent()) {
         // Couldn't find status, which shouldn't happen in practice. Just issue a kill request regardless.
-        TaskKiller.killTask(taskInfo.getTaskId());
-      } else if (TaskUtils.isTerminal(taskStatusOptional.get().getState())) {
+        TaskKiller.killTask(taskInfo.get().getTaskId());
+      } else if (TaskUtils.isTerminal(taskStatusOptional.get())) {
         logger.info("Skipping kill request for {}: already in terminal state {}",
             taskName, taskStatusOptional.get().getState());
       } else {
         // Task isn't already in terminal state. Issue a kill request.
-        TaskKiller.killTask(taskInfo.getTaskId());
+        TaskKiller.killTask(taskInfo.get().getTaskId());
       }
     }
   }

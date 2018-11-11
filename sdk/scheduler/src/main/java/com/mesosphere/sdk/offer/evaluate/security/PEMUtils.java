@@ -17,7 +17,8 @@ import java.security.cert.X509Certificate;
  */
 public final class PEMUtils {
 
-  private PEMUtils() {}
+  private PEMUtils() {
+  }
 
   public static byte[] toPEM(PKCS10CertificationRequest csr) throws IOException {
     ByteArrayOutputStream os = new ByteArrayOutputStream();

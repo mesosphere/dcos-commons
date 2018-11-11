@@ -48,10 +48,6 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 Optional.empty());
     }
 
-    protected static String getFirstResourceId(List<Resource> resources) {
-        return ResourceUtils.getResourceId(resources.get(0)).get();
-    }
-
     protected List<Resource> recordLaunchWithCompleteOfferedResources(
             PodInstanceRequirement podInstanceRequirement, Resource... offeredResources)
             throws InvalidRequirementException, IOException {
@@ -96,11 +92,11 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         return reservedResources;
     }
 
-    protected String getResourceId(Resource resource) {
+    protected static String getResourceId(Resource resource) {
         return ResourceUtils.getResourceId(resource).get();
     }
 
-    protected String getPrincipal(Resource resource) {
+    protected static String getPrincipal(Resource resource) {
         return ResourceUtils.getPrincipal(resource).get();
     }
 }

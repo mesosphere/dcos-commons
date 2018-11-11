@@ -18,7 +18,8 @@ public final class PlanUtils {
 
   private static final Logger LOGGER = LoggingUtils.getLogger(PlanUtils.class);
 
-  private PlanUtils() {}
+  private PlanUtils() {
+  }
 
   /**
    * Determines whether the specified asset refers to the same pod instance and tasks other assets.

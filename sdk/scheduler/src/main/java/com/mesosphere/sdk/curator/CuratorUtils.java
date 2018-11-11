@@ -44,7 +44,7 @@ public final class CuratorUtils {
 
   /**
    * Returns the root node to store all scheduler ZK data inside. For example:
-   * <p>
+   *
    * <ul>
    * <li>"your-name-here" => /dcos-service-your-name-here</li>
    * <li>"/path/to/your-name-here" => /dcos-service-path__to__your-name-here</li>
@@ -67,25 +67,25 @@ public final class CuratorUtils {
    * Compares the service name to the previously stored name in zookeeper, or creates a new node
    * containing this data if it isn't already present. This is useful for two situations where
    * foldered service names may be confused with literal double-underscore delimited names:
-   * <p>
+   *
    * <ul>
    * <li>
-   *   Protecting against collisions if someone uses periods in their service names. For example,
-   *   a foldered service named "/myteam/kafka" could collide with a non-foldered service named
-   *   "myteam.kafka" as the prior is converted to the latter where ZK is concerned.
+   * Protecting against collisions if someone uses periods in their service names. For example,
+   * a foldered service named "/myteam/kafka" could collide with a non-foldered service named
+   * "myteam.kafka" as the prior is converted to the latter where ZK is concerned.
    * </li>
    * <li>
-   *   Allowing deterministic mapping of a given ZK node back to the originating service.
-   *   For example, the data in "dcos-service-myteam.kafka" could be for a service named "myteam
-   *   .kafka", or for a foldered service named "/myteam/kafka". Storing the name explicitly
-   *   allows potential tooling to tell which one it is. This isn't currently needed but could be
-   *   useful someday.
+   * Allowing deterministic mapping of a given ZK node back to the originating service.
+   * For example, the data in "dcos-service-myteam.kafka" could be for a service named "myteam
+   * .kafka", or for a foldered service named "/myteam/kafka". Storing the name explicitly
+   * allows potential tooling to tell which one it is. This isn't currently needed but could be
+   * useful someday.
    * </li>
    * </ul>
    *
    * @param persister   the persister where the service name should be written
    * @param serviceName the service name to check for equality, or to write if no service name
-   *                   node exists
+   *                    node exists
    * @see CuratorUtils#getServiceRootPath(String)
    */
   static void initServiceName(Persister persister, String serviceName) {

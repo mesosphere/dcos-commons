@@ -16,7 +16,7 @@ public interface Step extends Element, Interruptible {
   /**
    * Starts the Step, whose {@link Status} should be {@link Status#PENDING}. This will continue to be called for as
    * long as {@link Element#isPending()} returns {@code true}.
-   *
+   * <p>
    * See {@code #updateOfferStatus(Collection<org.apache.mesos.Protos.Offer.Operation>)} which
    * returns the outcome of
    * the {@link PodInstanceRequirement}

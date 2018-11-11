@@ -10,7 +10,11 @@ import java.time.Duration;
  * @see com.mesosphere.sdk.offer.taskdata.EnvConstants
  * @see com.mesosphere.sdk.offer.taskdata.LabelConstants
  */
+@SuppressWarnings({
+    "checkstyle:DeclarationOrder"
+})
 public final class Constants {
+  private Constants() { }
 
   /**
    * The name used for the deployment plan.
@@ -57,24 +61,6 @@ public final class Constants {
    */
   public static final String GPUS_RESOURCE_TYPE = "gpus";
 
-  /**
-   * The amount of additional CPU to require for the default executor.
-   * Not applicable for the old custom executor.
-   */
-  public static final double DEFAULT_EXECUTOR_CPUS = 0.1;
-
-  /**
-   * The amount of additional memory (in MB) to require for the default executor.
-   * Not applicable for the old custom executor.
-   */
-  public static final double DEFAULT_EXECUTOR_MEMORY = 32;
-
-  /**
-   * The amount of additional disk (in MB) to require for the default executor.
-   * Not applicable for the old custom executor.
-   */
-  public static final double DEFAULT_EXECUTOR_DISK = 256;
-
 
   /**
    * The "any role" wildcard resource role.
@@ -114,13 +100,10 @@ public final class Constants {
   /**
    * The duration in seconds to decline offers the scheduler does not need for the foreseeable future.
    */
-  public static final int LONG_DECLINE_SECONDS =
-      Math.toIntExact(Duration.ofDays(14).getSeconds());
+  public static final int LONG_DECLINE_SECONDS = Math.toIntExact(Duration.ofDays(14).getSeconds());
 
   /**
    * The duration in seconds to decline offers the scheduler does not need for a short time.
    */
   public static final int SHORT_DECLINE_SECONDS = 5;
-
-  private Constants() {}
 }

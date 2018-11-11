@@ -141,7 +141,8 @@ public class DefaultResourceSpec implements ResourceSpec {
 
     protected String preReservedRole = Constants.ANY_ROLE;
 
-    protected Builder() {}
+    protected Builder() {
+    }
 
     /**
      * Sets the {@code name} and returns a reference to this Builder so that the methods can be chained together.

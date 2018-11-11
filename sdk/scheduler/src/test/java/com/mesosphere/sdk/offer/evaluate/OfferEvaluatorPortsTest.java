@@ -75,7 +75,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(555);
         Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 podInstanceRequirement,
-                ResourceTestUtils.getUnreservedPorts(555, 555)).get(0);
+                ResourceTestUtils.getUnreservedPorts(555, 555)).get(3);
         String resourceId = getResourceId(reserveResource);
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
@@ -103,7 +103,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         // Launch for the first time: get port 10000
         PodInstanceRequirement podInstanceRequirement = PodInstanceRequirementTestUtils.getPortRequirement(0);
         Resource reserveResource = recordLaunchWithCompleteOfferedResources(
-                podInstanceRequirement, ResourceTestUtils.getUnreservedPorts(10000, 10000)).get(0);
+                podInstanceRequirement, ResourceTestUtils.getUnreservedPorts(10000, 10000)).get(3);
         String resourceId = getResourceId(reserveResource);
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
@@ -154,7 +154,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         // Launch for the first time: get port 555
         Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 PodInstanceRequirementTestUtils.getPortRequirement(555),
-                ResourceTestUtils.getUnreservedPorts(555, 555)).get(0);
+                ResourceTestUtils.getUnreservedPorts(555, 555)).get(3);
         String resourceId = getResourceId(reserveResource);
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
@@ -191,7 +191,7 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         // Launch for the first time: get port 555 from dynamic port
         Resource reserveResource = recordLaunchWithCompleteOfferedResources(
                 PodInstanceRequirementTestUtils.getPortRequirement(0),
-                ResourceTestUtils.getUnreservedPorts(555, 555)).get(0);
+                ResourceTestUtils.getUnreservedPorts(555, 555)).get(3);
         String resourceId = getResourceId(reserveResource);
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
@@ -228,8 +228,8 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
         List<Resource> reserveResources = recordLaunchWithCompleteOfferedResources(
                 podInstanceRequirement, ResourceTestUtils.getUnreservedPorts(10000, 10001));
         Assert.assertEquals(reserveResources.toString(), 5, reserveResources.size());
-        String resourceId0 = getResourceId(reserveResources.get(0));
-        String resourceId1 = getResourceId(reserveResources.get(1));
+        String resourceId0 = getResourceId(reserveResources.get(3));
+        String resourceId1 = getResourceId(reserveResources.get(4));
         Collection<Resource> expectedResources = getExpectedExecutorResources(
                 stateStore.fetchTasks().iterator().next().getExecutor());
         expectedResources.addAll(Arrays.asList(
@@ -280,12 +280,12 @@ public class OfferEvaluatorPortsTest extends OfferEvaluatorTestBase {
                         .map(rec -> rec.getOperation().isPresent() ? rec.getOperation().get().getType() : null)
                         .collect(Collectors.toList()));
 
-        Operation reserveOperation = recommendations.get(0).getOperation().get();
+        Operation reserveOperation = recommendations.get(3).getOperation().get();
         Resource fulfilledPortResource1 = reserveOperation.getReserve().getResources(0);
         Assert.assertEquals(10000, fulfilledPortResource1.getRanges().getRange(0).getBegin());
         Assert.assertEquals(10000, fulfilledPortResource1.getRanges().getRange(0).getEnd());
 
-        reserveOperation = recommendations.get(1).getOperation().get();
+        reserveOperation = recommendations.get(4).getOperation().get();
         Resource fulfilledPortResource2 = reserveOperation.getReserve().getResources(0);
         Assert.assertEquals(10001, fulfilledPortResource2.getRanges().getRange(0).getBegin());
         Assert.assertEquals(10001, fulfilledPortResource2.getRanges().getRange(0).getEnd());

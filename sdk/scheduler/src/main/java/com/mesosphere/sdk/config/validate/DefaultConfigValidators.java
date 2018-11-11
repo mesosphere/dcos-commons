@@ -11,7 +11,8 @@ import java.util.Collection;
  */
 public final class DefaultConfigValidators {
 
-  private DefaultConfigValidators() {}
+  private DefaultConfigValidators() {
+  }
 
   public static Collection<ConfigValidator<ServiceSpec>> getValidators(
       SchedulerConfig schedulerConfig)

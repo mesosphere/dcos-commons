@@ -87,7 +87,8 @@ public final class DefaultHostVolumeSpec implements HostVolumeSpec {
 
     private String containerPath;
 
-    private Builder() {}
+    private Builder() {
+    }
 
     public Builder hostPath(String hostPath) {
       this.hostPath = hostPath;

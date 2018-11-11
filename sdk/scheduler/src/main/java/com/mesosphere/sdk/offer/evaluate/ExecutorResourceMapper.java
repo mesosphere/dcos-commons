@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -98,13 +99,11 @@ public class ExecutorResourceMapper {
     List<OfferEvaluationStage> stages = new ArrayList<>();
 
     if (!orphanedResources.isEmpty()) {
-      logger.info(
-          "Orphaned executor resources no longer in executor: {}",
+      logger.info("Orphaned executor resources no longer in executor: {}",
           orphanedResources
               .stream()
               .map(TextFormat::shortDebugString)
-              .collect(Collectors.toList())
-      );
+              .collect(Collectors.toList()));
     }
 
     if (!matchingResources.isEmpty()) {
@@ -131,7 +130,7 @@ public class ExecutorResourceMapper {
     if (resourceSpec instanceof VolumeSpec) {
       return VolumeEvaluationStage.getExisting(
           (VolumeSpec) resourceSpec,
-          Optional.empty(),
+          Collections.emptyList(),
           resourceId,
           resourceLabels.getResourceNamespace(),
           resourceLabels.getPersistenceId(),
@@ -140,7 +139,7 @@ public class ExecutorResourceMapper {
     } else {
       return new ResourceEvaluationStage(
           resourceSpec,
-          Optional.empty(),
+          Collections.emptyList(),
           resourceId,
           resourceLabels.getResourceNamespace()
       );
@@ -150,14 +149,10 @@ public class ExecutorResourceMapper {
   private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
     if (resourceSpec instanceof VolumeSpec) {
       return VolumeEvaluationStage.getNew(
-          (VolumeSpec) resourceSpec, Optional.empty(), resourceNamespace);
+          (VolumeSpec) resourceSpec, Collections.emptyList(), resourceNamespace);
     } else {
       return new ResourceEvaluationStage(
-          resourceSpec,
-          Optional.empty(),
-          Optional.empty(),
-          resourceNamespace
-      );
+          resourceSpec, Collections.emptyList(), Optional.empty(), resourceNamespace);
     }
   }
 }

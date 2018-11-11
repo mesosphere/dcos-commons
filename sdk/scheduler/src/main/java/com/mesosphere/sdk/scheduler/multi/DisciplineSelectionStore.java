@@ -19,7 +19,7 @@ import java.util.Set;
  * time. This storage ensures that the selection remains consistent across scheduler restarts.
  * <p>
  * Includes an internal write-through cache which avoids persister writes if the selected services haven't changed.
- * <p>
+ *
  * <p>The structure used in the underlying persister is as follows:
  * <br>rootPath/
  * <br>&nbsp;-> SelectedServices

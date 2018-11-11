@@ -65,7 +65,8 @@ public final class DefaultDiscoverySpec implements DiscoverySpec {
 
     private Protos.DiscoveryInfo.Visibility visibility;
 
-    private Builder() {}
+    private Builder() {
+    }
 
     public Builder prefix(String prefix) {
       this.prefix = prefix;

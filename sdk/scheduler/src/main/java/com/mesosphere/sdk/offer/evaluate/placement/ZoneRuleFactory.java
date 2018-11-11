@@ -6,7 +6,8 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 public final class ZoneRuleFactory implements RuleFactory {
   private static final ZoneRuleFactory factory = new ZoneRuleFactory();
 
-  private ZoneRuleFactory() {}
+  private ZoneRuleFactory() {
+  }
 
   public static ZoneRuleFactory getInstance() {
     return factory;

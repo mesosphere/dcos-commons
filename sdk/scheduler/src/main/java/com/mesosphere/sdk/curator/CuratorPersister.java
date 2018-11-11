@@ -399,7 +399,7 @@ public class CuratorPersister implements Persister {
    * Maps the provided external path into a framework-namespaced path. This translation MUST be
    * performed against all externally-provided paths, or else unintended data loss in ZK may
    * result!!
-   * <p>
+   *
    * <p>Examples:
    * <ul><li>"/foo" => "/dcos-service-svcname/foo"</li>
    * <li>"/" => "/dcos-service-svcname"</li>

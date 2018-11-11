@@ -26,8 +26,8 @@ import java.util.Collection;
  * Client for communicating with DC/OS secret service API.
  *
  * @see <a href="https://docs.mesosphere.com/1.9/security/secrets/secrets-api/#api-reference">
- *   Secrets API Reference
- *   </a>
+ * Secrets API Reference
+ * </a>
  */
 public class SecretsClient {
 

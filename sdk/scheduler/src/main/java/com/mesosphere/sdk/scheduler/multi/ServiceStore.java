@@ -36,7 +36,7 @@ public class ServiceStore {
   /**
    * An arbitrary limit on the amount of context data to allow for each service. In practice, services are expected to
    * just store a small (<1KB) blob of JSON or similar that describes the service in the developer's own terms.
-   * <p>
+   *
    * <p>100KB is arbitrary, but in practice this must stay well under the default ZK limit of 1024KB. Ideally,
    * developers would only store e.g. a bit of JSON here which describes how the service should be constructed within
    * the context of their application.

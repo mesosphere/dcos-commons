@@ -46,12 +46,12 @@ public final class FrameworkConfig {
 
   /**
    * @param frameworkName     name to use for ZK and for registering the framework, in
-   *                         single-service schedulers this is the service name
+   *                          single-service schedulers this is the service name
    * @param principal         the principal to use when registering the framework
    * @param user              the username to use when registering the framework
    * @param zookeeperHostPort ZK connection string of the form "master.mesos:2181"
    * @param preReservedRoles  list of pre-reserved parent roles to register for (in addition to the
-   *                         base role)
+   *                          base role)
    * @param role              base mesos role
    * @param webUrl            optional URL to advertise in framework info, or empty string
    */
@@ -131,12 +131,12 @@ public final class FrameworkConfig {
    * Returns the configured Mesos role to use for running the service, based on the service name.
    * Unlike the Mesos principal and pre-reserved roles, this value cannot be configured directly
    * via the YAML schema.
-   *
+   * <p>
    * Use {@code <svcname>-role} (or throw if svcname is missing)
-   *
+   * <p>
    * If the service name has a leading slash (due to folders), omit that leading slash from the role
    * This is done with the reasoning that "/path/to/kafka" and "path/to/kafka" should be equivalent.
-   *
+   * <p>
    * Slashes are currently banned from roles by as of mesos commit e0d8cc7c. Sounds like they will
    * be allowed again in 1.4 when hierarchical roles are supported.
    * <p>
