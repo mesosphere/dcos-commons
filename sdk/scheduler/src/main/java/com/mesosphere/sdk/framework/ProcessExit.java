@@ -36,7 +36,8 @@ public final class ProcessExit {
   //public static final Code SCHEDULER_INITIALIZATION_FAILURE = new Code(12);
   public static final Code DRIVER_EXITED = new Code(13, "DRIVER_EXITED");
 
-  private ProcessExit() {}
+  private ProcessExit() {
+  }
 
   /**
    * Immediately exits the process with the ordinal value of the provided {@link ProcessExit}.

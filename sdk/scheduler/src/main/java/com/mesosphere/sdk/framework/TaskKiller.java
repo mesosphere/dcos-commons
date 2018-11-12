@@ -61,7 +61,7 @@ public final class TaskKiller {
    * Resets the {@link TaskKiller}'s internal state for tests.
    *
    * @param executorEnabledInternal whether the background kill executor should be enabled,
-   *                               should only be disabled in tests
+   *                                should only be disabled in tests
    */
   @VisibleForTesting
   public static void reset(boolean executorEnabledInternal) throws InterruptedException {
@@ -85,7 +85,7 @@ public final class TaskKiller {
    * Calling this method will cause the referenced TaskID to be reliably killed.  An attempt to kill the task will be
    * immediately made.  Continued periodic attempts will be made to kill the task until Mesos indicates that it has
    * killed the Task or doesn't recongize the task.
-   * <p>
+   *
    * <p>This is still not a guarantee that a task has been killed.  Mesos may not know about a particular TaskID at
    * any given time.
    *

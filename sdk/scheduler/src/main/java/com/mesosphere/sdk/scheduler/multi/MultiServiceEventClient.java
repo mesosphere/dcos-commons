@@ -151,7 +151,7 @@ public class MultiServiceEventClient implements MesosEventClient {
 
   /**
    * Returns our status to the upstream {@code OfferProcessor}. The logic is as follows:
-   * <p>
+   *
    * <ol>
    * <li>If no services are present: uninstall mode: {@code IDLE/REMOVE_CLIENT}, otherwise: {@code IDLE/NONE}</li>
    * <li>If all services are idle: {@code IDLE/NONE}</li>
@@ -373,7 +373,7 @@ public class MultiServiceEventClient implements MesosEventClient {
   /**
    * Maps the reserved resources in the provided unused offers according to the services that own them, then queries
    * those services directly to see what resources they consider unexpected.
-   * <p>
+   *
    * <p>This is an optimization which avoids querying services about unexpected resources that don't relate to them.
    * <p>In addition to reducing unnecessary queries, this also improves isolation between services. They only see
    * resources which relate to them.
@@ -498,7 +498,7 @@ public class MultiServiceEventClient implements MesosEventClient {
 
   /**
    * Maps the provided status to the service that owns its task, then queries that service with the status.
-   * <p>
+   *
    * <p>This is an optimization which avoids querying services about task statuses that don't relate to them.
    * <p>In addition to reducing unnecessary queries, this also improves isolation between services. They only see
    * task statuses which relate to them.

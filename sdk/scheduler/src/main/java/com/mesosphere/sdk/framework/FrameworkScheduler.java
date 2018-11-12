@@ -215,24 +215,24 @@ public class FrameworkScheduler implements Scheduler {
   /**
    * Before we forward offers to be processed, we filter out resource reservations within those
    * offers that don't belong to us.
-   * <p>
+   *
    * <p>Resources can look like one of the following:
    * <ol>
-   *   <li>Dynamic against "our-role" or "pre-reserved-role/our-role" (belongs to us)</li>
-   *   <li>Static against "pre-reserved-role" (we can reserve against it)</li>
-   *   <li>Dynamic against "pre-reserved-role" (DOESN'T belong to us at all! Likely created by
-   *  Marathon)</li>
+   * <li>Dynamic against "our-role" or "pre-reserved-role/our-role" (belongs to us)</li>
+   * <li>Static against "pre-reserved-role" (we can reserve against it)</li>
+   * <li>Dynamic against "pre-reserved-role" (DOESN'T belong to us at all! Likely created by
+   * Marathon)</li>
    * </ol>
    * <p>
    * <p>
-   *   We specifically want to ensure that any resources from case 3 are not visible to our service.
-   *   They are effectively a quirk of how Mesos behaves with roles, and ideally we wouldn't see
-   *   these resources at all.
+   * We specifically want to ensure that any resources from case 3 are not visible to our service.
+   * They are effectively a quirk of how Mesos behaves with roles, and ideally we wouldn't see
+   * these resources at all.
    * <p>
    * <p>
-   *   So what we do here is filter out all the resources which are dynamic AND which lack one of
-   *   our expected resource roles. To be extra safe, we also check that any dynamic resources
-   *   have a resource_id label, which hints that the resources were indeed created by us.
+   * So what we do here is filter out all the resources which are dynamic AND which lack one of
+   * our expected resource roles. To be extra safe, we also check that any dynamic resources
+   * have a resource_id label, which hints that the resources were indeed created by us.
    *
    * @param offer the original offer received by mesos
    * @return a copy of that offer with any resources which don't belong to us filtered out, or

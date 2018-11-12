@@ -10,8 +10,9 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-// CHECKSTYLE:OFF AvoidStarImport
+
 // CHECKSTYLE:OFF AvoidStaticImport
+// CHECKSTYLE:OFF AvoidStarImport
 
 import static j2html.TagCreator.*;
 

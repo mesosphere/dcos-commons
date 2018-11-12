@@ -104,5 +104,6 @@ final class LabelConstants {
   // host/native network
   static final String VIP_BRIDGE_FLAG_VALUE = "host";
 
-  private LabelConstants() {}
+  private LabelConstants() {
+  }
 }

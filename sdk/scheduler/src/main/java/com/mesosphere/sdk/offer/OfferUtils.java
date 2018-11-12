@@ -12,7 +12,8 @@ import java.util.stream.Collectors;
  */
 public final class OfferUtils {
 
-  private OfferUtils() {}
+  private OfferUtils() {
+  }
 
   /**
    * Filters out Offers which have pending Operations against Mesos, and returns a list of any remaining offers.

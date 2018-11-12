@@ -5,7 +5,7 @@ import com.mesosphere.sdk.specification.NamedVIPSpec;
 
 import org.apache.mesos.Protos;
 
-import java.util.List;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -20,11 +20,11 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
 
   public NamedVIPEvaluationStage(
       NamedVIPSpec namedVIPSpec,
-      String taskName,
+      Collection<String> taskNames,
       Optional<String> resourceId,
       Optional<String> resourceNamespace)
   {
-    super(namedVIPSpec, taskName, resourceId, resourceNamespace);
+    super(namedVIPSpec, taskNames, resourceId, resourceNamespace);
     this.namedVIPSpec = namedVIPSpec;
   }
 
@@ -33,24 +33,22 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
     super.setProtos(podInfoBuilder, resource);
 
     // Find the matching port entry which was created above.
-    Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(getTaskName().get());
-    List<Protos.Port.Builder> portBuilders =
-        taskBuilder.getDiscoveryBuilder().getPortsBuilder().getPortsBuilderList().stream()
+    Optional<Protos.Port.Builder> portBuilder = getTaskNames().stream()
+        .map(taskName -> podInfoBuilder.getTaskBuilder(taskName)
+            .getDiscoveryBuilder().getPortsBuilder().getPortsBuilderList().stream()
             .filter(port -> port.getName().equals(namedVIPSpec.getPortName()))
-            .collect(Collectors.toList());
-    if (portBuilders.size() != 1) {
-      throw new IllegalStateException(
-          String.format(
-              "Expected one port entry with name %s: %s",
-              namedVIPSpec.getPortName(),
-              portBuilders.toString()
-          )
-      );
+            .collect(Collectors.toList()))
+        .filter(portBuilders -> portBuilders.size() == 1)
+        .map(portBuilders -> portBuilders.get(0))
+        .findAny();
+    if (!portBuilder.isPresent()) {
+      throw new IllegalStateException(String.format(
+          "Unable to find port entry with name %s in tasks: %s",
+          namedVIPSpec.getPortName(), getTaskNames()));
     }
 
     // Update port entry with VIP metadata.
-    Protos.Port.Builder portBuilder = portBuilders.get(0);
-    portBuilder.setProtocol(namedVIPSpec.getProtocol());
-    AuxLabelAccess.setVIPLabels(portBuilder, namedVIPSpec);
+    portBuilder.get().setProtocol(namedVIPSpec.getProtocol());
+    AuxLabelAccess.setVIPLabels(portBuilder.get(), namedVIPSpec);
   }
 }

@@ -50,7 +50,7 @@ public class StoreTaskInfoRecommendation implements OfferRecommendation {
   /**
    * Returns the {@link Protos.TaskInfo} to be passed to a StateStore upon launch. The TaskInfo is formatted
    * differently depending on where it's being sent:
-   * <p>
+   *
    * <ul><li>Mesos {@code LAUNCH_GROUP}: The {@link Protos.ExecutorInfo} is included in the
    * {@link Protos.Offer.Operation}, but not in the {@link Protos.TaskInfo}.</li>
    * <li>StateStore: The {@link Protos.ExecutorInfo} is included in the {@link Protos.TaskInfo} directly. This is how

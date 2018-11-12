@@ -35,7 +35,7 @@ public class DependencyStrategyHelper<C extends Element> {
 
   /**
    * Marks a direct dependency between two nodes, where {@code child} depends on {@code parent}.
-   * <p>
+   *
    * <p>NOTE: This helper does NOT handle any inferred/chained dependencies. It is the responsibility of the caller to
    * explicitly add each dependency directly. For example, given c->b->a, the caller MUST explicitly specify c->b,
    * b->a, AND c->a as dependencies.

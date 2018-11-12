@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer;
 
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 import org.apache.mesos.Protos.Value.Range;
@@ -12,8 +13,7 @@ import java.util.List;
  * Utilities for manipulating Value protobufs.
  */
 public final class ValueUtils {
-
-  private ValueUtils() {}
+  private ValueUtils() { }
 
   public static Value getValue(Resource resource) {
     Type type = resource.getType();
@@ -28,7 +28,9 @@ public final class ValueUtils {
       case SET:
         return builder.setSet(resource.getSet()).build();
       default:
-        return null;
+        throw new IllegalArgumentException(String.format("Unsupported value type %s in resource %s",
+            type,
+            TextFormat.shortDebugString(resource)));
     }
   }
 
@@ -37,7 +39,10 @@ public final class ValueUtils {
     Type type2 = val2.getType();
 
     if (type1 != type2) {
-      return null;
+      throw new IllegalArgumentException(String.format(
+          "Values to add do not have matching type: %s vs %s",
+          TextFormat.shortDebugString(val1),
+          TextFormat.shortDebugString(val2)));
     }
 
     switch (type1) {
@@ -48,7 +53,11 @@ public final class ValueUtils {
         Value.Ranges ranges = add(val1.getRanges(), val2.getRanges());
         return Value.newBuilder().setType(type1).setRanges(ranges).build();
       default:
-        return null;
+        throw new IllegalArgumentException(String.format(
+            "Unsupported type %s when adding %s to %s",
+            type1,
+            TextFormat.shortDebugString(val1),
+            TextFormat.shortDebugString(val2)));
     }
   }
 
@@ -69,7 +78,10 @@ public final class ValueUtils {
     Type type2 = val2.getType();
 
     if (type1 != type2) {
-      return null;
+      throw new IllegalArgumentException(String.format(
+          "Values to subtract do not have matching type: %s vs %s",
+          TextFormat.shortDebugString(val1),
+          TextFormat.shortDebugString(val2)));
     }
 
     switch (type1) {
@@ -80,7 +92,11 @@ public final class ValueUtils {
         Value.Ranges ranges = subtract(val1.getRanges(), val2.getRanges());
         return Value.newBuilder().setType(type1).setRanges(ranges).build();
       default:
-        return null;
+        throw new IllegalArgumentException(String.format(
+            "Unsupported type %s when subtracting %s from %s",
+            type1,
+            TextFormat.shortDebugString(val2),
+            TextFormat.shortDebugString(val1)));
     }
   }
 
@@ -105,7 +121,10 @@ public final class ValueUtils {
     Type type2 = val2.getType();
 
     if (type1 != type2) {
-      return null;
+      throw new IllegalArgumentException(String.format(
+          "Values to compare do not have matching type: %s vs %s",
+          TextFormat.shortDebugString(val1),
+          TextFormat.shortDebugString(val2)));
     }
 
     switch (type1) {
@@ -114,7 +133,11 @@ public final class ValueUtils {
       case RANGES:
         return compare(val1.getRanges(), val2.getRanges());
       default:
-        return null;
+        throw new IllegalArgumentException(String.format(
+            "Unsupported type %s when comparing values: %s vs %s",
+            type1,
+            TextFormat.shortDebugString(val1),
+            TextFormat.shortDebugString(val2)));
     }
   }
 
@@ -150,19 +173,12 @@ public final class ValueUtils {
         Value.Scalar scalar = Value.Scalar.newBuilder().setValue(0).build();
         return Value.newBuilder().setType(type).setScalar(scalar).build();
       case RANGES:
-        return Value
-            .newBuilder()
-            .setType(type)
-            .setRanges(
-                Value
-                    .Ranges
-                    .newBuilder()
-                    .addAllRange(Collections.emptyList())
-                    .build()
-            )
-            .build();
+        Value.Ranges ranges =
+            Value.Ranges.newBuilder().addAllRange(Collections.emptyList()).build();
+        return Value.newBuilder().setType(type).setRanges(ranges).build();
       default:
-        return null;
+        throw new IllegalArgumentException(
+            String.format("Unsupported type %s for zero value", type));
     }
   }
 }

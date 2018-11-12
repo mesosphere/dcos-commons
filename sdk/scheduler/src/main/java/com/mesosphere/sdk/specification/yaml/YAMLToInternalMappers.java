@@ -72,18 +72,42 @@ import java.util.stream.IntStream;
 /**
  * Adapter utilities for mapping Raw YAML objects to internal objects.
  */
+@SuppressWarnings({
+    "checkstyle:InnerTypeLast",
+    "checkstyle:IllegalCatch",
+    "checkstyle:DeclarationOrder",
+    "checkstyle:VariableDeclarationUsageDistance",
+    "checkstyle:EqualsAvoidNull"
+})
 public final class YAMLToInternalMappers {
+
+  private YAMLToInternalMappers() {}
 
   private static final Logger LOGGER = LoggingUtils.getLogger(YAMLToInternalMappers.class);
 
-  private YAMLToInternalMappers() {}
+  /**
+   * Implementation for reading files from disk. Meant to be overridden by a mock in tests.
+   */
+  @VisibleForTesting
+  public static class ConfigTemplateReader {
+    private final File templateDir;
+
+    public ConfigTemplateReader(File templateDir) {
+      this.templateDir = templateDir;
+    }
+
+    public String read(String templateFileName) throws IOException {
+      return FileUtils.readFileToString(
+          new File(templateDir, templateFileName),
+          StandardCharsets.UTF_8);
+    }
+  }
 
   /**
    * Converts the provided YAML {@link RawServiceSpec} into a new {@link ServiceSpec}.
    *
    * @param rawServiceSpec       the raw service specification representing a YAML file
-   * @param configTemplateReader the file reader to be used for reading template files,
-   *                             allowing overrides for testing
+   * @param configTemplateReader the file reader to be used for reading template files, allowing overrides for testing
    * @throws Exception if the conversion fails
    */
   public static DefaultServiceSpec convertServiceSpec(
@@ -106,9 +130,9 @@ public final class YAMLToInternalMappers {
   }
 
   /**
-   * Note: We make it very explicit here that many fields from the {@link RawServiceSpec} should
-   * not be read directly. Instead we should go to the {@link FrameworkConfig} for those values.
-   * This is because they may be different in the case of a multi-service scheduler.
+   * Note: We make it very explicit here that many fields from the {@link RawServiceSpec} should not be read directly.
+   * Instead we should go to the {@link FrameworkConfig} for those values. This is because they may be different in
+   * the case of a multi-service scheduler.
    */
   private static DefaultServiceSpec convertServiceSpec(
       String serviceName,
@@ -116,8 +140,7 @@ public final class YAMLToInternalMappers {
       FrameworkConfig frameworkConfig,
       SchedulerConfig schedulerConfig,
       TaskEnvRouter taskEnvRouter,
-      ConfigTemplateReader configTemplateReader
-  ) throws Exception
+      ConfigTemplateReader configTemplateReader) throws Exception
   {
     LOGGER.info("Using framework config : {}", frameworkConfig.toString());
     verifyDistinctDiscoveryPrefixes(rawPods.values());
@@ -154,10 +177,7 @@ public final class YAMLToInternalMappers {
   /**
    * Verifies that tasks in separate pods don't share a discovery prefix.
    */
-  private static void verifyDistinctDiscoveryPrefixes(
-      Collection<RawPod> rawPods
-  )
-  {
+  private static void verifyDistinctDiscoveryPrefixes(Collection<RawPod> rawPods) {
     Map<String, Long> dnsPrefixCounts = rawPods.stream()
         .flatMap(p -> p.getTasks().values().stream()
             .map(RawTask::getDiscovery)
@@ -193,8 +213,7 @@ public final class YAMLToInternalMappers {
           collectDuplicateEndpoints(
               resourceSet.getPorts(),
               allEndpointNames,
-              duplicateEndpointNames
-          );
+              duplicateEndpointNames);
         }
       }
     }
@@ -205,18 +224,18 @@ public final class YAMLToInternalMappers {
   }
 
   private static void collectDuplicateEndpoints(
-      Map<String, RawPort> map, Set<String> seenEndpoints,
-      Set<String> duplicateEndpoints)
+      Map<String, RawPort> map, Set<String> seenEndpoints, Set<String> duplicateEndpoints)
   {
-    if (map != null) {
-      for (Map.Entry<String, RawPort> entry : map.entrySet()) {
-        if (!entry.getValue().isAdvertised()) {
-          // Only check ports that are flagged as endpoints
-          continue;
-        }
-        if (!seenEndpoints.add(entry.getKey())) {
-          duplicateEndpoints.add(entry.getKey());
-        }
+    if (map == null) {
+      return;
+    }
+    for (Map.Entry<String, RawPort> entry : map.entrySet()) {
+      if (!entry.getValue().isAdvertised()) {
+        // Only check ports that are flagged as endpoints
+        continue;
+      }
+      if (!seenEndpoints.add(entry.getKey())) {
+        duplicateEndpoints.add(entry.getKey());
       }
     }
   }
@@ -238,8 +257,8 @@ public final class YAMLToInternalMappers {
       visibility = Protos.DiscoveryInfo.Visibility.valueOf(rawDiscovery.getVisibility());
       if (visibility == null) {
         throw new IllegalArgumentException(String.format(
-            "Visibility must be one of: %s", Arrays.asList(Protos.DiscoveryInfo.Visibility.values())
-        ));
+            "Visibility must be one of: %s",
+            Arrays.asList(Protos.DiscoveryInfo.Visibility.values())));
       }
     }
 
@@ -259,8 +278,10 @@ public final class YAMLToInternalMappers {
       String user) throws Exception
   {
 
-    DefaultPodSpec.Builder builder = DefaultPodSpec
-        .newBuilder(podName, rawPod.getCount(), Collections.emptyList())
+    DefaultPodSpec.Builder builder = DefaultPodSpec.newBuilder(
+        podName,
+        rawPod.getCount(),
+        Collections.emptyList())
         .user(user)
         .preReservedRole(rawPod.getPreReservedRole())
         .sharePidNamespace(rawPod.getSharePidNamespace())
@@ -316,34 +337,31 @@ public final class YAMLToInternalMappers {
     }
 
     if (!rawPod.getSecrets().isEmpty()) {
-      Collection<SecretSpec> secretSpecs = rawPod
-          .getSecrets()
-          .values()
-          .stream()
-          .map(YAMLToInternalMappers::convertSecret).collect(Collectors.toList());
+      Collection<SecretSpec> secretSpecs = new ArrayList<>();
+      secretSpecs.addAll(rawPod.getSecrets().values().stream()
+          .map(v -> convertSecret(v))
+          .collect(Collectors.toList()));
 
       builder.secrets(secretSpecs);
     }
 
     if (!rawPod.getHostVolumes().isEmpty()) {
-      Collection<HostVolumeSpec> hostVolumeSpecs = rawPod
-          .getHostVolumes()
-          .values()
-          .stream()
-          .map(YAMLToInternalMappers::convertHostVolume).collect(Collectors.toList());
+      Collection<HostVolumeSpec> hostVolumeSpecs = new ArrayList<>();
+      hostVolumeSpecs.addAll(rawPod.getHostVolumes().values().stream()
+          .map(v -> convertHostVolume(v))
+          .collect(Collectors.toList()));
 
       builder.hostVolumes(hostVolumeSpecs);
     }
 
     if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
-      Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume()
-          == null ? Collections.emptyList() :
-          Collections.singletonList(
-              convertVolume(
-                  rawPod.getVolume(),
-                  role,
-                  rawPod.getPreReservedRole(), principal))
-      );
+      Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
+          Collections.emptyList() :
+          Arrays.asList(convertVolume(
+              rawPod.getVolume(),
+              role,
+              rawPod.getPreReservedRole(),
+              principal)));
 
       volumeSpecs.addAll(rawPod.getVolumes().values().stream()
           .map(v -> convertVolume(v, role, rawPod.getPreReservedRole(), principal))
@@ -393,8 +411,8 @@ public final class YAMLToInternalMappers {
       String principal,
       Collection<String> networkNames) throws IOException
   {
-    final DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec
-        .newBuilder(additionalEnv)
+
+    DefaultCommandSpec.Builder commandSpecBuilder = DefaultCommandSpec.newBuilder(additionalEnv)
         .environment(rawTask.getEnv())
         .value(rawTask.getCmd());
 
@@ -441,11 +459,17 @@ public final class YAMLToInternalMappers {
             .build())
         .collect(Collectors.toCollection(ArrayList::new));
 
+    String goalString = StringUtils.upperCase(rawTask.getGoal());
+    if (goalString.equals("FINISHED")) {
+      throw new IllegalArgumentException(String.format(
+          "Unsupported GoalState %s in task %s, expected one of: %s",
+          goalString, taskName, Arrays.asList(GoalState.values())));
+    }
     DefaultTaskSpec.Builder builder = DefaultTaskSpec.newBuilder()
         .commandSpec(commandSpecBuilder.build())
         .configFiles(configFiles)
         .discoverySpec(discoverySpec)
-        .goalState(GoalState.valueOf(StringUtils.upperCase(rawTask.getGoal())))
+        .goalState(GoalState.valueOf(goalString))
         .essential(rawTask.isEssential())
         .healthCheckSpec(healthCheckSpec)
         .readinessCheckSpec(readinessCheckSpec)
@@ -493,8 +517,8 @@ public final class YAMLToInternalMappers {
       Collection<String> networkNames)
   {
 
-    DefaultResourceSet.Builder resourceSetBuilder = DefaultResourceSet
-        .newBuilder(role, preReservedRole, principal);
+    DefaultResourceSet.Builder resourceSetBuilder =
+        DefaultResourceSet.newBuilder(role, preReservedRole, principal);
 
     if (rawVolumes != null) {
       if (rawSingleVolume != null) {
@@ -505,7 +529,7 @@ public final class YAMLToInternalMappers {
       for (RawVolume rawVolume : rawVolumes.values()) {
         resourceSetBuilder.addVolume(
             rawVolume.getType(),
-            (double) rawVolume.getSize(),
+            Double.valueOf(rawVolume.getSize()),
             rawVolume.getPath(),
             rawVolume.getProfiles());
       }
@@ -513,7 +537,7 @@ public final class YAMLToInternalMappers {
     if (rawSingleVolume != null) {
       resourceSetBuilder.addVolume(
           rawSingleVolume.getType(),
-          (double) rawSingleVolume.getSize(),
+          Double.valueOf(rawSingleVolume.getSize()),
           rawSingleVolume.getPath(),
           rawSingleVolume.getProfiles());
     }
@@ -570,7 +594,7 @@ public final class YAMLToInternalMappers {
     VolumeSpec.Type volumeTypeEnum;
     try {
       volumeTypeEnum = VolumeSpec.Type.valueOf(rawVolume.getType());
-    } catch (Exception e) { // SUPPRESS CHECKSTYLE IllegalCatch
+    } catch (Exception e) {
       throw new IllegalArgumentException(String.format(
           "Provided volume type '%s' for path '%s' is invalid. Expected type to be one of: %s",
           rawVolume.getType(), rawVolume.getPath(), Arrays.asList(VolumeSpec.Type.values())));
@@ -604,7 +628,6 @@ public final class YAMLToInternalMappers {
           "Virtual Network %s doesn't support container->host port mapping", networkName));
     }
     if (supportsPortMapping) {
-      // hostPort:containerPort
       Map<Integer, Integer> portMap = new HashMap<>();
       if (rawNetwork.numberOfPortMappings() > 0) {
         // zip the host and container ports together
@@ -670,9 +693,8 @@ public final class YAMLToInternalMappers {
       boolean ok = ports.add(rawPort.getPort());
       if (!ok && rawPort.getPort() > 0) {
         throw new IllegalArgumentException(String.format(
-            "Cannot have duplicate port values: Task has multiple ports with value %d",
-            rawPort.getPort()
-        ));
+            "Cannot have duplicate port values: Task has " +
+            "multiple ports with value %d", rawPort.getPort()));
       }
       Protos.Value.Builder portValueBuilder = Protos.Value.newBuilder()
           .setType(Protos.Value.Type.RANGES);
@@ -683,8 +705,7 @@ public final class YAMLToInternalMappers {
 
       final Protos.DiscoveryInfo.Visibility visibility =
           rawPort.isAdvertised() ?
-              Constants.DISPLAYED_PORT_VISIBILITY :
-              Constants.OMITTED_PORT_VISIBILITY;
+              Constants.DISPLAYED_PORT_VISIBILITY : Constants.OMITTED_PORT_VISIBILITY;
 
       PortSpec.Builder portSpecBuilder;
       if (rawPort.getVip() == null) {
@@ -738,25 +759,6 @@ public final class YAMLToInternalMappers {
       return role;
     } else {
       return preReservedRole + "/" + role;
-    }
-  }
-
-  /**
-   * Implementation for reading files from disk. Meant to be overridden by a mock in tests.
-   */
-  @VisibleForTesting
-  public static class ConfigTemplateReader {
-    private final File templateDir;
-
-    public ConfigTemplateReader(File templateDir) {
-      this.templateDir = templateDir;
-    }
-
-    public String read(String templateFileName) throws IOException {
-      return FileUtils.readFileToString(
-          new File(templateDir, templateFileName),
-          StandardCharsets.UTF_8
-      );
     }
   }
 }

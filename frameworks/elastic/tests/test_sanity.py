@@ -87,9 +87,7 @@ def test_pod_replace_then_immediate_config_update():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     for endpoint in config.ENDPOINT_TYPES:
-        endpoints = sdk_networks.get_endpoint(
-            config.PACKAGE_NAME, foldered_name, endpoint
-        )
+        endpoints = sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, endpoint)
         host = endpoint.split("-")[0]  # 'coordinator-http' => 'coordinator'
         assert endpoints["dns"][0].startswith(
             sdk_hosts.autoip_host(foldered_name, host + "-0-node")
@@ -116,12 +114,7 @@ def test_indexing(default_populated_index):
 
 
 @pytest.mark.sanity
-@pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
-@pytest.mark.skipif(
-    sdk_utils.dcos_version_at_least("1.12"),
-    reason="Metrics are not working on 1.12. Reenable once this is fixed",
-)
 def test_metrics():
     expected_metrics = [
         "node.data-0-node.fs.total.total_in_bytes",

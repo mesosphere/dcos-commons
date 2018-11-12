@@ -14,19 +14,49 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
+import java.util.Arrays;
 import java.util.Collections;
-import java.util.Objects;
 import java.util.Optional;
+
 
 /**
  * This class encapsulates shared offer evaluation logic for evaluation stages.
  */
-final class OfferEvaluationUtils {
+@SuppressWarnings({
+    "checkstyle:LineLength",
+    "checkstyle:InnerTypeLast",
+    "checkstyle:HiddenField",
+    "checkstyle:ThrowsCount",
+    "checkstyle:FinalClass"
+})
+class OfferEvaluationUtils {
 
-  private OfferEvaluationUtils() {}
+  private OfferEvaluationUtils() {
+    // Do not instantiate this class.
+  }
+
+  static class ReserveEvaluationOutcome {
+    private final EvaluationOutcome evaluationOutcome;
+
+    private final String resourceId;
+
+    ReserveEvaluationOutcome(EvaluationOutcome evaluationOutcome, String resourceId) {
+      this.evaluationOutcome = evaluationOutcome;
+      this.resourceId = resourceId;
+    }
+
+    EvaluationOutcome getEvaluationOutcome() {
+      return evaluationOutcome;
+    }
+
+    Optional<String> getResourceId() {
+      return Optional.ofNullable(resourceId);
+    }
+  }
 
   static ReserveEvaluationOutcome evaluateSimpleResource(
       Logger logger,
@@ -46,14 +76,27 @@ final class OfferEvaluationUtils {
           resourceSpec.getName(), resourceSpec.getValue(), resourceId.get());
     }
     if (!mesosResourceOptional.isPresent()) {
-      return new ReserveEvaluationOutcome(
-          EvaluationOutcome.fail(
-              offerEvaluationStage,
-              "Offer failed to satisfy: %s with resourceId: %s",
-              resourceSpec,
-              resourceId)
-              .build(),
-          null);
+      if (!resourceId.isPresent()) {
+        return new ReserveEvaluationOutcome(
+            EvaluationOutcome.fail(
+                offerEvaluationStage,
+                "Offer lacks sufficient unreserved '%s' with role '%s' for new reservation: '%s'",
+                resourceSpec.getName(),
+                resourceSpec.getPreReservedRole(),
+                resourceSpec)
+                .build(),
+            null);
+      } else {
+        return new ReserveEvaluationOutcome(
+            EvaluationOutcome.fail(
+                offerEvaluationStage,
+                "Offer lacks previously reserved '%s' with resourceId: '%s' for resource: '%s'",
+                resourceSpec.getName(),
+                resourceId.get(),
+                resourceSpec)
+                .build(),
+            null);
+      }
     }
 
     OfferRecommendation offerRecommendation = null;
@@ -68,50 +111,46 @@ final class OfferEvaluationUtils {
 
       if (!resourceId.isPresent()) {
         // Initial reservation of resources
-        Protos.Resource resource = ResourceBuilder
-            .fromSpec(resourceSpec, resourceId, resourceNamespace)
+        Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, Optional.empty(), resourceNamespace)
             .setMesosResource(mesosResource)
             .build();
-        offerRecommendation =
-            new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
+        offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
+        String newResourceId = ResourceUtils.getResourceId(resource).get();
         return new ReserveEvaluationOutcome(
             EvaluationOutcome.pass(
                 offerEvaluationStage,
-                Collections.singletonList(offerRecommendation),
-                "Offer contains sufficient '%s': for resource: '%s' with resourceId: '%s'",
+                Arrays.asList(offerRecommendation),
+                "Offer contains sufficient unreserved '%s', generated new resourceId: '%s' " +
+                    "for new reservation: '%s'",
                 resourceSpec.getName(),
-                resourceSpec,
-                resourceId)
+                newResourceId,
+                resourceSpec)
                 .mesosResource(mesosResource)
                 .build(),
-            ResourceUtils.getResourceId(resource).get());
+            newResourceId);
       } else {
         return new ReserveEvaluationOutcome(
             EvaluationOutcome.pass(
                 offerEvaluationStage,
                 Collections.emptyList(),
-                "Offer contains sufficient previously reserved '%s':" +
-                    " for resource: '%s' with resourceId: '%s'",
+                "Offer contains previously reserved '%s' with resourceId: '%s' for resource: '%s'",
                 resourceSpec.getName(),
-                resourceSpec,
-                resourceId)
+                resourceId.get(),
+                resourceSpec)
                 .mesosResource(mesosResource)
                 .build(),
             resourceId.get());
       }
     } else {
-      Protos.Value difference =
-          ValueUtils.subtract(resourceSpec.getValue(), mesosResource.getValue());
+      Protos.Value difference = ValueUtils.subtract(resourceSpec.getValue(), mesosResource.getValue());
       if (ValueUtils.compare(difference, ValueUtils.getZero(difference.getType())) > 0) {
-        logger.info(
-            "Reservation for resource '{}' needs increasing from current '{}' to required '{}' " +
+        logger.info("Reservation for resource '{}' needs increasing from current '{}' to required '{}' " +
                 "(add: '{}' from role: '{}')",
             resourceSpec.getName(),
             AttributeStringUtils.toString(mesosResource.getValue()),
             AttributeStringUtils.toString(resourceSpec.getValue()),
             AttributeStringUtils.toString(difference),
-            resourceSpec.getPreReservedRole()
-        );
+            resourceSpec.getPreReservedRole());
 
         ResourceSpec requiredAdditionalResources = DefaultResourceSpec.newBuilder(resourceSpec)
             .value(difference)
@@ -124,8 +163,9 @@ final class OfferEvaluationUtils {
         if (!mesosResourceOptional.isPresent()) {
           return new ReserveEvaluationOutcome(
               EvaluationOutcome.fail(offerEvaluationStage,
-                  "Insufficient resources to increase reservation of existing resource '%s' with " +
-                      "resourceId '%s': needed %s",
+                  "Insufficient resources to increase reservation of existing '%s' resource '%s' " +
+                      "with resourceId '%s': needed %s",
+                  resourceSpec.getName(),
                   resourceSpec,
                   resourceId,
                   AttributeStringUtils.toString(difference))
@@ -134,51 +174,47 @@ final class OfferEvaluationUtils {
         }
 
         mesosResource = mesosResourceOptional.get();
-        Protos.Resource resource = ResourceBuilder
-            .fromSpec(resourceSpec, resourceId, resourceNamespace)
+        Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId, resourceNamespace)
             .setValue(mesosResource.getValue())
             .build();
         // Reservation of additional resources
-        offerRecommendation =
-            new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
+        offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
         return new ReserveEvaluationOutcome(
             EvaluationOutcome.pass(
                 offerEvaluationStage,
-                Collections.singletonList(offerRecommendation),
-                "Offer contains sufficient '%s': for " +
-                    "increasing resource: '%s' with resourceId: '%s'",
+                Arrays.asList(offerRecommendation),
+                "Offer contains sufficient '%s' to increase desired resource by %s: " +
+                    "resourceId: '%s': '%s'",
                 resourceSpec.getName(),
-                resourceSpec,
-                resourceId)
+                TextFormat.shortDebugString(difference),
+                resourceId,
+                resourceSpec)
                 .mesosResource(mesosResource)
                 .build(),
             ResourceUtils.getResourceId(resource).get());
       } else {
-        Protos.Value unreserve =
-            ValueUtils.subtract(mesosResource.getValue(), resourceSpec.getValue());
-        logger.info(
-            "Reservation for resource '{}' needs decreasing from current {} to required {} " +
+        Protos.Value unreserve = ValueUtils.subtract(mesosResource.getValue(), resourceSpec.getValue());
+        logger.info("Reservation for resource '{}' needs decreasing from current {} to required {} " +
                 "(subtract: {})",
             resourceSpec.getName(),
             AttributeStringUtils.toString(mesosResource.getValue()),
             AttributeStringUtils.toString(resourceSpec.getValue()),
-            AttributeStringUtils.toString(Objects.requireNonNull(unreserve)));
+            AttributeStringUtils.toString(unreserve));
 
-        Protos.Resource resource = ResourceBuilder
-            .fromSpec(resourceSpec, resourceId, resourceNamespace)
+        Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId, resourceNamespace)
             .setValue(unreserve)
             .build();
         // Unreservation of no longer needed resources
-        offerRecommendation =
-            new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
+        offerRecommendation = new UnreserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
         return new ReserveEvaluationOutcome(
             EvaluationOutcome.pass(
                 offerEvaluationStage,
-                Collections.singletonList(offerRecommendation),
-                "Decreased '%s': for resource: '%s' with resourceId: '%s'",
+                Arrays.asList(offerRecommendation),
+                "Decreased '%s' by %s for desired resource with resourceId: '%s': %s",
                 resourceSpec.getName(),
-                resourceSpec,
-                resourceId)
+                TextFormat.shortDebugString(unreserve),
+                resourceId,
+                resourceSpec)
                 .mesosResource(mesosResource)
                 .build(),
             ResourceUtils.getResourceId(resource).get());
@@ -194,11 +230,7 @@ final class OfferEvaluationUtils {
         .findFirst();
   }
 
-  static void setProtos(
-      PodInfoBuilder podInfoBuilder,
-      Protos.Resource resource,
-      Optional<String> taskName)
-  {
+  static void setProtos(PodInfoBuilder podInfoBuilder, Protos.Resource resource, Optional<String> taskName) {
     if (taskName.isPresent()) {
       Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(taskName.get());
       taskBuilder.addResources(resource);
@@ -220,24 +252,5 @@ final class OfferEvaluationUtils {
     }
 
     return false;
-  }
-
-  static class ReserveEvaluationOutcome {
-    private final EvaluationOutcome evaluationOutcome;
-
-    private final String resourceId;
-
-    ReserveEvaluationOutcome(EvaluationOutcome evaluationOutcome, String resourceId) {
-      this.evaluationOutcome = evaluationOutcome;
-      this.resourceId = resourceId;
-    }
-
-    EvaluationOutcome getEvaluationOutcome() {
-      return evaluationOutcome;
-    }
-
-    Optional<String> getResourceId() {
-      return Optional.ofNullable(resourceId);
-    }
   }
 }

@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 
 import java.util.Collections;
@@ -16,6 +15,9 @@ import java.util.regex.Pattern;
 /**
  * This class provides a default implementation of the VolumeSpec interface.
  */
+@SuppressWarnings({
+    "checkstyle:DeclarationOrder",
+})
 public final class DefaultVolumeSpec extends DefaultResourceSpec implements VolumeSpec {
 
   /**
@@ -41,25 +43,6 @@ public final class DefaultVolumeSpec extends DefaultResourceSpec implements Volu
   private final String containerPath;
 
   private final List<String> profiles;
-
-  @JsonCreator
-  private DefaultVolumeSpec(
-      @JsonProperty("type") Type type,
-      @JsonProperty("container-path") String containerPath,
-      @JsonProperty("profiles") List<String> profiles,
-      @JsonProperty("name") String name,
-      @JsonProperty("value") Protos.Value value,
-      @JsonProperty("role") String role,
-      @JsonProperty("pre-reserved-role") String preReservedRole,
-      @JsonProperty("principal") String principal)
-  {
-    super(name, value, role, preReservedRole, principal);
-    this.type = type;
-    this.containerPath = containerPath;
-    this.profiles = profiles == null ? Collections.emptyList() : profiles;
-
-    validateVolume();
-  }
 
   public static DefaultVolumeSpec createRootVolume(
       double diskSize,
@@ -98,10 +81,23 @@ public final class DefaultVolumeSpec extends DefaultResourceSpec implements Volu
         principal);
   }
 
-  private static Protos.Value scalarValue(double value) {
-    Protos.Value.Builder builder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
-    builder.getScalarBuilder().setValue(value);
-    return builder.build();
+  @JsonCreator
+  private DefaultVolumeSpec(
+      @JsonProperty("type") Type type,
+      @JsonProperty("container-path") String containerPath,
+      @JsonProperty("profiles") List<String> profiles,
+      @JsonProperty("name") String name,
+      @JsonProperty("value") Protos.Value value,
+      @JsonProperty("role") String role,
+      @JsonProperty("pre-reserved-role") String preReservedRole,
+      @JsonProperty("principal") String principal)
+  {
+    super(name, value, role, preReservedRole, principal);
+    this.type = type;
+    this.containerPath = containerPath;
+    this.profiles = profiles == null ? Collections.emptyList() : profiles;
+
+    validateVolume();
   }
 
   @Override
@@ -147,17 +143,25 @@ public final class DefaultVolumeSpec extends DefaultResourceSpec implements Volu
 
   @Override
   public String toString() {
-    return ToStringBuilder.reflectionToString(this);
+    return String.format("%s, type: %s, container-path: %s, profiles: %s",
+        super.toString(),
+        getType(),
+        getContainerPath(),
+        getProfiles());
+  }
+
+  private static Protos.Value scalarValue(double value) {
+    Protos.Value.Builder builder = Protos.Value.newBuilder().setType(Protos.Value.Type.SCALAR);
+    builder.getScalarBuilder().setValue(value);
+    return builder.build();
   }
 
   private void validateVolume() {
     validateResource();
-    ValidationUtils.matchesRegex(
-        this,
+    ValidationUtils.matchesRegex(this,
         "containerPath",
         containerPath,
-        VALID_CONTAINER_PATH_PATTERN
-    );
+        VALID_CONTAINER_PATH_PATTERN);
 
     ValidationUtils.nonNull(this, "profiles", profiles);
     if (type != Type.MOUNT) {
@@ -166,7 +170,10 @@ public final class DefaultVolumeSpec extends DefaultResourceSpec implements Volu
 
     int index = 0;
     for (String profile : profiles) {
-      ValidationUtils.matchesRegex(this, "profiles[" + index + "]", profile, VALID_PROFILE_PATTERN);
+      ValidationUtils.matchesRegex(this,
+          "profiles[" + index + "]",
+          profile,
+          VALID_PROFILE_PATTERN);
       index++;
     }
 

@@ -49,7 +49,8 @@ public final class Metrics {
 
   private static final AtomicBoolean isSuppressed = new AtomicBoolean(false);
 
-  private Metrics() {}
+  private Metrics() {
+  }
 
   // This may be accessed both by whatever thread metrics runs on, and the main offer processing thread:
 
