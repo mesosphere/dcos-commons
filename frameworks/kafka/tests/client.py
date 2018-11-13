@@ -146,7 +146,7 @@ class KafkaClient:
             "mem": 512,
             "container": {
                 "type": "MESOS",
-                "docker": {"image": "elezar/kafka-client:deca3d0", "forcePullImage": True},
+                "docker": {"image": "mesosphere/kafka-testing-client:30ff636fdf1795a7c3f443cfa77898720a3e6fd3", "forcePullImage": True},
             },
             "networks": [{"mode": "host"}],
             "env": {
