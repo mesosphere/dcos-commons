@@ -28,7 +28,8 @@ func CheckHTTPResponse(response *http.Response, err error) ([]byte, error) {
 		// extract wrapped error
 		err = err.(*url.Error).Err
 	}
-	if err != nil {
+
+	if err != nil && response != nil {
 		switch err.(type) {
 		case x509.UnknownAuthorityError:
 			// custom suggestions for a certificate error:
@@ -46,6 +47,8 @@ HTTP %s Query for %s failed: %s
 For more syntax information`,
 				response.Request.Method, response.Request.URL, err)
 		}
+	} else if response == nil {
+		return nil, fmt.Errorf("Encountered an empty response, with error:", err)
 	}
 
 	// Now look at the content of the response itself for any errors.
