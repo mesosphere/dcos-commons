@@ -9,18 +9,17 @@
 import json
 import logging
 import os
-import random
 import shutil
 import stat
-import string
 import subprocess
 import sys
 import tempfile
-import time
 import urllib.request
 
 import publish_aws
 import universe
+
+from publish_aws import s3_urls_from_env
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -44,25 +43,7 @@ class DCOSFilePublisher(object):
         logger.info("Using artifact bucket: {}".format(s3_bucket))
         self._s3_bucket = s3_bucket
 
-        s3_dir_path = os.environ.get("S3_DIR_PATH")
-        if not s3_dir_path:
-            s3_dir_path = os.path.join(
-                "autodelete7d",
-                "{}-{}".format(
-                    time.strftime("%Y%m%d-%H%M%S"),
-                    "".join(
-                        [random.choice(string.ascii_letters + string.digits) for _ in range(16)]
-                    ),
-                ),
-            )
-
-        # Sample S3 file url:
-        # Dev : infinity-artifacts/autodelete7d/20160815-134747-S6vxd0gRQBw43NNy/kafka/stub-universe/kafka-stub-universe.dcos
-        # Release : infinity-artifacts/permanent/kafka/1.2.3/kafka-1.2.3.dcos
-        s3_directory_url = os.environ.get(
-            "S3_URL",
-            "s3://{}/{}/{}/{}".format(s3_bucket, s3_dir_path, package_name, package_version),
-        )
+        s3_directory_url, _ = s3_urls_from_env(package_name)
         self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
 
     def upload(self):
