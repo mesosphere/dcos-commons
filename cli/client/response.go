@@ -47,7 +47,7 @@ For more syntax information`,
 				response.Request.Method, response.Request.URL, err)
 		}
 	} else if response == nil {
-		return nul, fmt.Errorf("Encountered an empty response, with error: %s", err)
+		return nil, fmt.Errorf("Encountered an empty response, with error: %s", err)
 	}
 
 	// Now look at the content of the response itself for any errors.
