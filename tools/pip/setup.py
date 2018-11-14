@@ -50,9 +50,6 @@ def main():
     if os.path.exists(output_dir_path):
         shutil.rmtree(output_dir_path)
     os.makedirs(output_dir_path)
-    build_dir_path = os.path.join(script_dir, "build")
-    if os.path.exists(build_dir_path):
-        shutil.rmtree(build_dir_path)
     # copy all input files to ./<outname>/...
     for input_relative_file_path in input_relative_file_paths:
         src_path = os.path.join(input_dir_path, input_relative_file_path)
@@ -92,7 +89,6 @@ def main():
     )
 
     # clean up build detritus:
-    shutil.rmtree(build_dir_path)
     shutil.rmtree(os.path.join(script_dir, "{}.egg-info".format(output_name)))
     shutil.rmtree(output_dir_path)
     # move whl file into script dir:
