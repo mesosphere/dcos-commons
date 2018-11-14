@@ -21,7 +21,8 @@ import java.nio.file.Paths;
 public final class YAMLConfigurationLoader {
   private static final Logger LOGGER = LoggingUtils.getLogger(YAMLConfigurationLoader.class);
 
-  private YAMLConfigurationLoader() {}
+  private YAMLConfigurationLoader() {
+  }
 
   public static <T> T loadConfigFromEnv(Class<T> configurationClass, final String path)
       throws IOException

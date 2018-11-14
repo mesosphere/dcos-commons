@@ -126,7 +126,7 @@ def test_broker_invalid():
         config.PACKAGE_NAME, FOLDERED_NAME, "broker get {}".format(config.DEFAULT_BROKER_COUNT + 1)
     )
     assert rc != 0, "Invalid broker id should have failed"
-    assert "Got 404" in stderr
+    assert "error" in stderr
 
 
 # --------- Pods -------------
@@ -153,12 +153,7 @@ def test_pod_replace(kafka_client: client.KafkaClient):
 
 
 @pytest.mark.sanity
-@pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
-@pytest.mark.skipif(
-    sdk_utils.dcos_version_at_least("1.12"),
-    reason="Metrics are not working on 1.12. Reenable once this is fixed",
-)
 def test_metrics():
     expected_metrics = [
         "kafka.network.RequestMetrics.ResponseQueueTimeMs.max",

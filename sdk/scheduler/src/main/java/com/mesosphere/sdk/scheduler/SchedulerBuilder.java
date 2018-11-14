@@ -158,9 +158,9 @@ public class SchedulerBuilder {
     // Other custom plan managers
     planManagers
         .addAll(plans.stream()
-        .filter(plan -> !plan.isDeployPlan())
-        .map(DefaultPlanManager::createInterrupted)
-        .collect(Collectors.toList()));
+            .filter(plan -> !plan.isDeployPlan())
+            .map(DefaultPlanManager::createInterrupted)
+            .collect(Collectors.toList()));
 
     return new DefaultPlanCoordinator(namespace, planManagers);
   }

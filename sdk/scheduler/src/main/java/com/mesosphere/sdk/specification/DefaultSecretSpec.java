@@ -95,7 +95,8 @@ public final class DefaultSecretSpec implements SecretSpec {
 
     private String filePath;
 
-    private Builder() {}
+    private Builder() {
+    }
 
     public Builder secretPath(String secretPath) {
       this.secretPath = secretPath;

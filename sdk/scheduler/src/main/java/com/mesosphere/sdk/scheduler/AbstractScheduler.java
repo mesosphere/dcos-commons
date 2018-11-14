@@ -194,7 +194,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
       {
         logger.info(
             "Status for unknown task. This may be expected if Mesos sent stale status information: "
-            + TextFormat.shortDebugString(status),
+                + TextFormat.shortDebugString(status),
             e
         );
         return TaskStatusResponse.unknownTask();

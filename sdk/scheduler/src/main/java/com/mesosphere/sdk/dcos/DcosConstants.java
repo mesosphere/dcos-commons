@@ -53,7 +53,8 @@ public final class DcosConstants {
   private static final Set<String> SUPPORTED_OVERLAY_NETWORKS = new HashSet<>(
       Arrays.asList(DEFAULT_OVERLAY_NETWORK, DEFAULT_BRIDGE_NETWORK));
 
-  private DcosConstants() {}
+  private DcosConstants() {
+  }
 
   public static boolean networkSupportsPortMapping(String networkName) {
     switch (networkName) {

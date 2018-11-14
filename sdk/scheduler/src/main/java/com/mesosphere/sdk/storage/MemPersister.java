@@ -52,7 +52,7 @@ public final class MemPersister implements Persister {
 
   /**
    * Returns a new {@link Builder} instance with the following default configuration:
-   * <p>
+   *
    * <ul><li>Locking enabled</li>
    * <li>Exit if there's a deadlock</li>
    * <li>No initial data</li></ul>
@@ -265,7 +265,7 @@ public final class MemPersister implements Persister {
 
   /**
    * Deletes the entry if present. Returns whether the entry to be removed was found.
-   * <p>
+   *
    * <p>Note: Caller must obtain a read-write lock before invoking this method.
    */
   private boolean deleteAllImpl(String path) {

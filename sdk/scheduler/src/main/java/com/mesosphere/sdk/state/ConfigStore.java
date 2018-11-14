@@ -20,7 +20,7 @@ import java.util.UUID;
 
 /**
  * An implementation of {@link ConfigStore} which relies on the provided {@link Persister} for data persistence.
- * <p>
+ *
  * <p>The ZNode structure in Zookeeper is as follows:
  * <br>namespacedPath/ ("Services/NAMESPACE/" or "/")
  * <br>&nbsp; ConfigTarget (contains UUID)

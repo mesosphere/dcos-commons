@@ -27,6 +27,12 @@ import java.util.stream.Collectors;
 /**
  * Step which implements the deployment of a pod.
  */
+@SuppressWarnings({
+    "checkstyle:HiddenField",
+    "checkstyle:OverloadMethodsDeclarationOrder",
+    "checkstyle:ReturnCount",
+    "checkstyle:CyclomaticComplexity"
+})
 public class DeploymentStep extends AbstractStep {
 
   protected final StateStore stateStore;
@@ -39,14 +45,15 @@ public class DeploymentStep extends AbstractStep {
 
   private final Map<String, String> parameters = new HashMap<>();
 
-  private final AtomicBoolean prepared = new AtomicBoolean(false);
-
   private Map<Protos.TaskID, TaskStatusPair> tasks = new HashMap<>();
+
+  private final AtomicBoolean prepared = new AtomicBoolean(false);
 
   /**
    * Creates a new instance with the provided {@code name}, initial {@code status}, associated pod instance required
    * by the step, and any {@code errors} to be displayed to the user.
    */
+
   public DeploymentStep(
       String name,
       PodInstanceRequirement podInstanceRequirement,
@@ -63,63 +70,6 @@ public class DeploymentStep extends AbstractStep {
     }
     logger.info("Goal states: {}", goalStateByTaskName);
     updateStatus();
-  }
-
-  @VisibleForTesting
-  static String getDisplayStatus(
-      StateStore stateStore,
-      Status stepStatus,
-      Collection<String> tasksToLaunch)
-  {
-    // It is valid for some tasks to be paused and not others, i.e. user specified specific task(s) to paused.
-    // Only display a PAUSING/PAUSED state in the plan if ALL the tasks are marked as paused.
-    boolean allTasksPaused = !tasksToLaunch.isEmpty() && tasksToLaunch.stream()
-        .map(stateStore::fetchGoalOverrideStatus)
-        .allMatch(goalOverrideStatus -> goalOverrideStatus.target == GoalStateOverride.PAUSED);
-    if (allTasksPaused) {
-      // Show a custom display status when the task is in or entering a paused state:
-      if (stepStatus.isRunning()) {
-        return GoalStateOverride.PAUSED.getTransitioningName();
-      } else if (stepStatus == Status.COMPLETE || stepStatus == Status.STARTED) {
-        return GoalStateOverride.PAUSED.getSerializedName();
-      }
-    }
-    return stepStatus.toString();
-  }
-
-  @VisibleForTesting
-  @SuppressWarnings("checkstyle:ReturnCount")
-  static Optional<Status> getStatus(Set<Status> statuses, boolean hasErrors, boolean isPrepared) {
-    // A DeploymentStep should have the "least" status of its consituent tasks.
-    // 1 PENDING task and 2 STARTING tasks => PENDING step state
-    // 2 STARTING tasks and 1 COMPLETE task=> STARTING step state
-    // 3 COMPLETE tasks => COMPLETE step state
-    if (hasErrors) {
-      return Optional.of(Status.ERROR);
-    } else if (statuses.isEmpty()) {
-      if (isPrepared) {
-        return Optional.of(Status.PREPARED);
-      } else {
-        return Optional.of(Status.PENDING);
-      }
-    } else if (statuses.contains(Status.ERROR)) {
-      return Optional.of(Status.ERROR);
-    } else if (statuses.contains(Status.PENDING)) {
-      return Optional.of(Status.PENDING);
-    } else if (statuses.contains(Status.PREPARED)) {
-      return Optional.of(Status.PREPARED);
-    } else if (statuses.contains(Status.STARTING)) {
-      return Optional.of(Status.STARTING);
-    } else if (statuses.contains(Status.STARTED)) {
-      return Optional.of(Status.STARTED);
-    } else if (statuses.contains(Status.COMPLETE) && statuses.size() == 1) {
-      // If the size of the set statuses == 1, then all tasks have the same status.
-      // In this case, the status COMPLETE.
-      return Optional.of(Status.COMPLETE);
-    }
-
-    // If we don't explicitly handle the new status, we will fall back to the existing parent status.
-    return Optional.empty();
   }
 
   /**
@@ -145,9 +95,9 @@ public class DeploymentStep extends AbstractStep {
   }
 
   @Override
-  public void updateParameters(Map<String, String> updateParameters) {
+  public void updateParameters(Map<String, String> parameters) {
     this.parameters.clear();
-    this.parameters.putAll(updateParameters);
+    this.parameters.putAll(parameters);
   }
 
   @Override
@@ -169,15 +119,11 @@ public class DeploymentStep extends AbstractStep {
   @Override
   public synchronized void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
     tasks.clear();
-    recommendations
-        .stream()
+    recommendations.stream()
         .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
         .map(recommendation -> ((LaunchOfferRecommendation) recommendation).getTaskInfo())
-        .forEach(taskInfo ->
-            tasks.put(
-                taskInfo.getTaskId(),
-                new TaskStatusPair(taskInfo, Status.PREPARED)
-            ));
+        .forEach(taskInfo -> tasks.put(taskInfo.getTaskId(),
+            new TaskStatusPair(taskInfo, Status.PREPARED)));
 
     if (recommendations.isEmpty()) {
       tasks.keySet().forEach(id -> setTaskStatus(id, Status.PREPARED));
@@ -195,21 +141,17 @@ public class DeploymentStep extends AbstractStep {
   }
 
   @Override
-  @SuppressWarnings("checkstyle:OverloadMethodsDeclarationOrder")
   public String getDisplayStatus() {
     // NOTE: This is obtained on the fly because it's only effectively needed when someone is actually fetching
     // plan status. Similarly, it can be incorrect for non-recovery deployment steps, as they're only getting
     // updates while they're still deploying.
 
     // Extract full names of the defined tasks, e.g. "pod-0-task":
-    Collection<String> taskFullNames = podInstanceRequirement
-        .getPodInstance()
-        .getPod()
-        .getTasks()
-        .stream()
-        .map(taskSpec ->
-            TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec)
-        )
+    Collection<String> taskFullNames =
+        podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
+        .map(taskSpec -> TaskSpec.getInstanceName(
+            podInstanceRequirement.getPodInstance(),
+            taskSpec))
         .collect(Collectors.toList());
     return getDisplayStatus(stateStore, super.getStatus(), taskFullNames);
   }
@@ -259,14 +201,22 @@ public class DeploymentStep extends AbstractStep {
       }
       case TASK_FINISHED: {
         GoalState goalState = getGoalState(status.getTaskId());
-        if (
-            goalState.equals(GoalState.ONCE) ||
-                goalState.equals(GoalState.FINISH) ||
-                goalState.equals(GoalState.FINISHED))
-        {
-          setTaskStatus(status.getTaskId(), Status.COMPLETE);
-        } else {
-          setTaskStatus(status.getTaskId(), Status.PENDING);
+        switch (goalState) {
+          case FINISH:
+            // fall through
+          case ONCE:
+            // The task is FINISHED, which is what the GoalState prescribed. All done!
+            setTaskStatus(status.getTaskId(), Status.COMPLETE);
+            break;
+          case RUNNING:
+            // This task isn't supposed to be finished! Mark the Step as PENDING so that we relaunch it.
+            setTaskStatus(status.getTaskId(), Status.PENDING);
+            break;
+          case UNKNOWN:
+          default:
+            throw new IllegalArgumentException(String.format(
+                "Unsupported goal state %s for task %s",
+                goalState, status.getTaskId().getValue()));
         }
         break;
       }
@@ -335,14 +285,68 @@ public class DeploymentStep extends AbstractStep {
     if (status.isPresent()) {
       super.setStatus(status.get());
     } else {
-      logger.warn(
-          "The minimum status of the set of task statuses, {}, is not explicitly handled. " +
+      logger.warn("The minimum status of the set of task statuses, {}, " +
+              "is not explicitly handled. " +
           "Leaving current step status as-is: {} {}",
           taskStatuses,
           super.getName(),
-          super.getStatus()
-      );
+          super.getStatus());
     }
+  }
+
+  @VisibleForTesting
+  static String getDisplayStatus(StateStore stateStore,
+                                 Status stepStatus,
+                                 Collection<String> tasksToLaunch)
+  {
+    // It is valid for some tasks to be paused and not others, i.e. user specified specific task(s) to paused.
+    // Only display a PAUSING/PAUSED state in the plan if ALL the tasks are marked as paused.
+    boolean allTasksPaused = !tasksToLaunch.isEmpty() && tasksToLaunch.stream()
+        .map(taskName -> stateStore.fetchGoalOverrideStatus(taskName))
+        .allMatch(goalOverrideStatus -> goalOverrideStatus.target == GoalStateOverride.PAUSED);
+    if (allTasksPaused) {
+      // Show a custom display status when the task is in or entering a paused state:
+      if (stepStatus.isRunning()) {
+        return GoalStateOverride.PAUSED.getTransitioningName();
+      } else if (stepStatus == Status.COMPLETE || stepStatus == Status.STARTED) {
+        return GoalStateOverride.PAUSED.getSerializedName();
+      }
+    }
+    return stepStatus.toString();
+  }
+
+  @VisibleForTesting
+  static Optional<Status> getStatus(Set<Status> statuses, boolean hasErrors, boolean isPrepared) {
+    // A DeploymentStep should have the "least" status of its consituent tasks.
+    // 1 PENDING task and 2 STARTING tasks => PENDING step state
+    // 2 STARTING tasks and 1 COMPLETE task=> STARTING step state
+    // 3 COMPLETE tasks => COMPLETE step state
+    if (hasErrors) {
+      return Optional.of(Status.ERROR);
+    } else if (statuses.isEmpty()) {
+      if (isPrepared) {
+        return Optional.of(Status.PREPARED);
+      } else {
+        return Optional.of(Status.PENDING);
+      }
+    } else if (statuses.contains(Status.ERROR)) {
+      return Optional.of(Status.ERROR);
+    } else if (statuses.contains(Status.PENDING)) {
+      return Optional.of(Status.PENDING);
+    } else if (statuses.contains(Status.PREPARED)) {
+      return Optional.of(Status.PREPARED);
+    } else if (statuses.contains(Status.STARTING)) {
+      return Optional.of(Status.STARTING);
+    } else if (statuses.contains(Status.STARTED)) {
+      return Optional.of(Status.STARTED);
+    } else if (statuses.contains(Status.COMPLETE) && statuses.size() == 1) {
+      // If the size of the set statuses == 1, then all tasks have the same status.
+      // In this case, the status COMPLETE.
+      return Optional.of(Status.COMPLETE);
+    }
+
+    // If we don't explicitly handle the new status, we will fall back to the existing parent status.
+    return Optional.empty();
   }
 
   @VisibleForTesting
@@ -366,12 +370,9 @@ public class DeploymentStep extends AbstractStep {
 
     @Override
     public String toString() {
-      return String.format(
-          "%s(%s):%s",
-          taskInfo.getName(),
+      return String.format("%s(%s):%s", taskInfo.getName(),
           taskInfo.getTaskId().getValue(),
-          status
-      );
+          status);
     }
   }
 }

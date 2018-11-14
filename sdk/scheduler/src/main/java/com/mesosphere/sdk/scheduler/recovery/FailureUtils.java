@@ -1,13 +1,14 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
+import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.state.StateStore;
-import com.mesosphere.sdk.state.StateStoreUtils;
 
 import org.apache.mesos.Protos;
 
+import java.util.Collection;
 import java.util.stream.Collectors;
 
 /**
@@ -37,11 +38,16 @@ public final class FailureUtils {
    * @param podInstance the pod whose tasks will be marked as failed
    */
   public static void setPermanentlyFailed(StateStore stateStore, PodInstance podInstance) {
-    stateStore.storeTasks(
-        StateStoreUtils.fetchPodTasks(stateStore, podInstance).stream()
-            .map(taskInfo -> taskInfo.toBuilder()
-                .setLabels(new TaskLabelWriter(taskInfo).setPermanentlyFailed().toProto())
-                .build())
-            .collect(Collectors.toList()));
+    setPermanentlyFailed(stateStore, TaskUtils.getPodTasks(podInstance, stateStore.fetchTasks()));
+  }
+
+  public static void setPermanentlyFailed(StateStore stateStore,
+                                          Collection<Protos.TaskInfo> failedTasks)
+  {
+    stateStore.storeTasks(failedTasks.stream()
+        .map(taskInfo -> taskInfo.toBuilder()
+            .setLabels(new TaskLabelWriter(taskInfo).setPermanentlyFailed().toProto())
+            .build())
+        .collect(Collectors.toList()));
   }
 }

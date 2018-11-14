@@ -7,18 +7,24 @@ import com.mesosphere.sdk.dcos.auth.TokenProvider;
 import com.mesosphere.sdk.dcos.clients.ServiceAccountIAMTokenClient;
 import com.mesosphere.sdk.framework.EnvStore;
 import com.mesosphere.sdk.generated.SDKBuildInfo;
+import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.state.GoalStateOverride;
 
 import com.auth0.jwt.algorithms.Algorithm;
+import org.apache.commons.io.IOUtils;
 import org.apache.http.impl.client.LaxRedirectStrategy;
+import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Credential;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
@@ -28,28 +34,24 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import java.util.TreeMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
  * to simplify scheduler tests, and to make it painfully obvious when global settings are being used in awkward places.
  */
-@SuppressWarnings("checkstyle:MethodCount")
+@SuppressWarnings({
+    "checkstyle:MethodCount",
+    "checkstyle:MultipleStringLiterals",
+    "checkstyle:MagicNumber",
+    "checkstyle:TrailingComment",
+    "checkstyle:DeclarationOrder"
+
+})
 public final class SchedulerConfig {
-
-  /**
-   * (Multi-service only) Envvar to specify the number of services that may be reserving footprint at the same time.
-   * <ul><li>High value (or <=0 for no limit): Faster deployment across multiple services, but risks deadlocks if two
-   * simultaneous deployments  both want the same resources. However, this can be ameliorated by enforcing per-service
-   * quotas.</li>
-   * <li>Lower value: Slower deployment, but reduces the risk of two deploying services being stuck on the same
-   * resource. Setting the value to {@code 1} should remove the risk entirely.</li></ul>
-   */
-  public static final String RESERVE_DISCIPLINE_ENV = "RESERVE_DISCIPLINE";
-
-  public static final String MESOS_API_VERSION_V1 = "V1";
 
   private static final Logger LOGGER = LoggingUtils.getLogger(SchedulerConfig.class);
 
@@ -61,7 +63,7 @@ public final class SchedulerConfig {
   /**
    * The default number of seconds to wait for the Scheduler API to come up during startup.
    */
-  private static final int DEFAULT_API_SERVER_TIMEOUT_S = 600;
+  private static final int DEFAULT_API_SERVER_TIMEOUT_S = 600; // 10 minutes
 
   /**
    * (Multi-service only) Envvar to specify the amount of time in seconds for a removed service to complete uninstall
@@ -74,13 +76,23 @@ public final class SchedulerConfig {
   /**
    * The default number of seconds to wait for a service to finish uninstall before being forcibly removed.
    */
-  private static final int DEFAULT_SERVICE_REMOVE_TIMEOUT_S = 600;
+  private static final int DEFAULT_SERVICE_REMOVE_TIMEOUT_S = 600; // 10 minutes
+
+  /**
+   * (Multi-service only) Envvar to specify the number of services that may be reserving footprint at the same time.
+   * <ul><li>High value (or <=0 for no limit): Faster deployment across multiple services, but risks deadlocks if two
+   * simultaneous deployments  both want the same resources. However, this can be ameliorated by enforcing per-service
+   * quotas.</li>
+   * <li>Lower value: Slower deployment, but reduces the risk of two deploying services being stuck on the same
+   * resource. Setting the value to {@code 1} should remove the risk entirely.</li></ul>
+   */
+  public static final String RESERVE_DISCIPLINE_ENV = "RESERVE_DISCIPLINE";
 
   /**
    * The default reserve discipline, which is to have no limit on deployments. Operators may configure a limit on the
    * number of parallel deployments via the above envvar.
    */
-  private static final int DEFAULT_RESERVE_DISCIPLINE = 0;
+  private static final int DEFAULT_RESERVE_DISCIPLINE = 0; // No limit
 
   /**
    * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
@@ -142,6 +154,22 @@ public final class SchedulerConfig {
   private static final String DISABLE_SUPPRESS_ENV = "DISABLE_SUPPRESS";
 
   /**
+   * These define how many resources to reserve for the default executor in every pod. This effectively appears as
+   * resource overhead on top of any the resources declared for the tasks in the pod.
+   */
+  private static final String EXECUTOR_CPUS_ENV = "EXECUTOR_CPUS";
+
+  private static final double DEFAULT_EXECUTOR_CPUS = 0.1;
+
+  private static final String EXECUTOR_MEM_MB_ENV = "EXECUTOR_MEM_MB";
+
+  private static final double DEFAULT_EXECUTOR_MEM_MB = 32;
+
+  private static final String EXECUTOR_DISK_MB_ENV = "EXECUTOR_DISK_MB";
+
+  private static final double DEFAULT_EXECUTOR_DISK_MB = 256;
+
+  /**
    * When a port named {@code api} is added to the Marathon app definition for the scheduler, marathon should create
    * an envvar with this name in the scheduler env. This is preferred over using e.g. the {@code PORT0} envvar which
    * is against the index of the port in the list.
@@ -192,6 +220,8 @@ public final class SchedulerConfig {
    * Environment variables for configuring Mesos API version.
    */
   private static final String MESOS_API_VERSION_ENV = "MESOS_API_VERSION";
+
+  public static final String MESOS_API_VERSION_V1 = "V1";
 
   /**
    * Environment variable for manually configuring the command to run when pausing a pod.
@@ -247,16 +277,6 @@ public final class SchedulerConfig {
    */
   private static final AtomicBoolean PRINTED_BUILD_INFO = new AtomicBoolean(false);
 
-  private final EnvStore envStore;
-
-  private SchedulerConfig(EnvStore envStore) {
-    this.envStore = envStore;
-
-    if (!PRINTED_BUILD_INFO.getAndSet(true)) {
-      LOGGER.info("Build information:\n{} ", getBuildInfo().toString(2));
-    }
-  }
-
   /**
    * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
    */
@@ -271,13 +291,22 @@ public final class SchedulerConfig {
     return new SchedulerConfig(envStore);
   }
 
+  private final EnvStore envStore;
+
+  private SchedulerConfig(EnvStore envStore) {
+    this.envStore = envStore;
+
+    if (!PRINTED_BUILD_INFO.getAndSet(true)) {
+      LOGGER.info("Build information:\n{} ", getBuildInfo().toString(2));
+    }
+  }
+
   /**
    * Returns the configured time to wait for the API server to come up during scheduler initialization.
    */
   public Duration getApiServerInitTimeout() {
     return Duration.ofSeconds(
-        envStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S)
-    );
+        envStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S));
   }
 
   /**
@@ -294,6 +323,30 @@ public final class SchedulerConfig {
    */
   public int getMultiServiceReserveDiscipline() {
     return envStore.getOptionalInt(RESERVE_DISCIPLINE_ENV, DEFAULT_RESERVE_DISCIPLINE);
+  }
+
+  /**
+   * Returns the default resources to be require for a pod's executor, in addition to any resources for the tasks
+   * composing the pod. This is effectively the configured executor overhead.
+   *
+   * @return a mapping of resource name to value for the resources to be reserved for a pod's executor
+   */
+  public Map<String, Protos.Value> getExecutorResources() {
+    Map<String, Protos.Value> map = new TreeMap<>();
+    map.put(Constants.CPUS_RESOURCE_TYPE,
+        scalar(envStore.getOptionalDouble(EXECUTOR_CPUS_ENV, DEFAULT_EXECUTOR_CPUS)));
+    map.put(Constants.MEMORY_RESOURCE_TYPE,
+        scalar(envStore.getOptionalDouble(EXECUTOR_MEM_MB_ENV, DEFAULT_EXECUTOR_MEM_MB)));
+    map.put(Constants.DISK_RESOURCE_TYPE,
+        scalar(envStore.getOptionalDouble(EXECUTOR_DISK_MB_ENV, DEFAULT_EXECUTOR_DISK_MB)));
+    return map;
+  }
+
+  private static Protos.Value scalar(double val) {
+    Protos.Value.Builder builder = Protos.Value.newBuilder()
+        .setType(Protos.Value.Type.SCALAR);
+    builder.getScalarBuilder().setValue(val);
+    return builder.build();
   }
 
   /**
@@ -320,7 +373,6 @@ public final class SchedulerConfig {
     return envStore.getRequired(JAVA_HOME_ENV);
   }
 
-  @SuppressWarnings("checkstyle:MultipleStringLiterals")
   public String getDcosSpace() {
     // Try in order: DCOS_SPACE, MARATHON_APP_ID, "/"
     String value = envStore.getOptional(DCOS_SPACE_ENV, null);
@@ -373,12 +425,12 @@ public final class SchedulerConfig {
   }
 
   /**
-   * Returns a token provider which may be used to retrieve DC/OS JWT auth tokens, or throws an exception if the local
-   * environment doesn't provide the needed information (e.g. on a DC/OS Open cluster)
+   * Returns a token provider which may be used to retrieve DC/OS JWT auth tokens, or throws an
+   * exception if the local environment doesn't provide the needed information (e.g. on a DC/OS
+   * Open cluster)
    */
-  @SuppressWarnings("checkstyle:MultipleStringLiterals")
   public TokenProvider getDcosAuthTokenProvider() throws IOException {
-    JSONObject serviceAccountObject = new JSONObject(envStore.getRequired(SIDECHANNEL_AUTH_ENV));
+    JSONObject serviceAccountObject = loadFileOrEnvSecret();
     try (PemReader pemReader = new PemReader(
         new StringReader(serviceAccountObject.getString("private_key"))
     ))
@@ -398,14 +450,11 @@ public final class SchedulerConfig {
 
       ServiceAccountIAMTokenClient serviceAccountIAMTokenProvider =
           new ServiceAccountIAMTokenClient(
-              new DcosHttpExecutor(
-                  new DcosHttpClientBuilder()
-                      .setDefaultConnectionTimeout(DEFAULT_AUTH_TOKEN_REFRESH_TIMEOUT_S)
-                      .setRedirectStrategy(new LaxRedirectStrategy())
-              ),
+              new DcosHttpExecutor(new DcosHttpClientBuilder()
+                  .setDefaultConnectionTimeout(DEFAULT_AUTH_TOKEN_REFRESH_TIMEOUT_S)
+                  .setRedirectStrategy(new LaxRedirectStrategy())),
               serviceAccountObject.getString("uid"),
-              Algorithm.RSA256(publicKey, privateKey)
-          );
+              Algorithm.RSA256(publicKey, privateKey));
 
       Duration authTokenRefreshThreshold = Duration.ofSeconds(envStore.getOptionalInt(
           AUTH_TOKEN_REFRESH_THRESHOLD_S_ENV, DEFAULT_AUTH_TOKEN_REFRESH_THRESHOLD_S));
@@ -413,13 +462,25 @@ public final class SchedulerConfig {
       return new CachedTokenProvider(
           serviceAccountIAMTokenProvider,
           authTokenRefreshThreshold,
-          this
-      );
+          this);
     } catch (InvalidKeySpecException e) {
       throw new IllegalArgumentException(e);
     } catch (NoSuchAlgorithmException e) {
       throw new IllegalStateException(e);
     }
+  }
+
+  private JSONObject loadFileOrEnvSecret() throws IOException {
+    String content = envStore.getRequired(SIDECHANNEL_AUTH_ENV);
+    JSONObject serviceAccountObject;
+    if (Files.isRegularFile(Paths.get(content))) {
+      LOGGER.info("Reading file {} to load secrets", content);
+      serviceAccountObject = new JSONObject(IOUtils.toString(new FileInputStream(content)));
+    } else {
+      LOGGER.info("Reading service account information from {}", SIDECHANNEL_AUTH_ENV);
+      serviceAccountObject = new JSONObject(content);
+    }
+    return serviceAccountObject;
   }
 
   /**
@@ -521,10 +582,7 @@ public final class SchedulerConfig {
    * Returns the duration to wait between implicit reconcilations, in milliseconds.
    */
   public long getImplicitReconcilePeriodMs() {
-    return envStore.getOptionalLong(
-        IMPLICIT_RECONCILIATION_PERIOD_MS_ENV,
-        TimeUnit.SECONDS.convert(1L, TimeUnit.HOURS)
-    );
+    return envStore.getOptionalLong(IMPLICIT_RECONCILIATION_PERIOD_MS_ENV, 60 * 60 * 1000 /* 1 hour */);
   }
 
   /**

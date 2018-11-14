@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
 
 import java.util.Arrays;
@@ -229,6 +230,11 @@ public final class DefaultResourceSet implements ResourceSet {
 
     public Builder addMountVolume(Double size, String containerPath, List<String> profiles) {
       return addVolume("MOUNT", size, containerPath, profiles);
+    }
+
+    @Override
+    public String toString() {
+      return ToStringBuilder.reflectionToString(this);
     }
 
     /**

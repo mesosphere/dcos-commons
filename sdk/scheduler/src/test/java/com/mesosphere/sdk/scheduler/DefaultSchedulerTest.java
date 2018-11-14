@@ -376,13 +376,15 @@ public class DefaultSchedulerTest {
 
         // Three RESERVE, One CREATE, three RESERVE (for executor) and two LAUNCH_GROUP operations
         Assert.assertEquals(Arrays.asList(
+                // Executor:
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                // Task:
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.CREATE,
-                Protos.Offer.Operation.Type.RESERVE,
-                Protos.Offer.Operation.Type.RESERVE,
-                Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.LAUNCH_GROUP,
                 null,
                 Protos.Offer.Operation.Type.LAUNCH_GROUP,
@@ -406,13 +408,15 @@ public class DefaultSchedulerTest {
         Protos.Offer offer1 = getSufficientOfferForTaskA();
         OfferResponse response = defaultScheduler.offers(Arrays.asList(offer1));
         Assert.assertEquals(Arrays.asList(
+                // Executor:
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                // Task:
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.CREATE,
-                Protos.Offer.Operation.Type.RESERVE,
-                Protos.Offer.Operation.Type.RESERVE,
-                Protos.Offer.Operation.Type.RESERVE,
                 Offer.Operation.Type.LAUNCH_GROUP,
                 null),
                 response.recommendations.stream()
@@ -872,13 +876,15 @@ public class DefaultSchedulerTest {
 
         // Verify operations (the 9th recommendation lacks an operation):
         Assert.assertEquals(Arrays.asList(
+                // Executor:
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                // Task:
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.CREATE,
-                Protos.Offer.Operation.Type.RESERVE,
-                Protos.Offer.Operation.Type.RESERVE,
-                Protos.Offer.Operation.Type.RESERVE,
                 Offer.Operation.Type.LAUNCH_GROUP,
                 null),
                 response.recommendations.stream()

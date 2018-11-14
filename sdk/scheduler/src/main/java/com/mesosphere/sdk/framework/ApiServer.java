@@ -186,7 +186,7 @@ public class ApiServer {
    * Launches the API server on a separate thread.
    *
    * @param listener A listener object which will be notified when the underlying server changes
-   *                state
+   *                 state
    */
   private void start(LifeCycle.Listener listener) {
     if (server.isStarted()) {
@@ -250,7 +250,7 @@ public class ApiServer {
 
   /**
    * Waits for the server to stop. If the server is not stopped, this waits forever.
-   * <p>
+   *
    * <p>Useful for keeping the scheduler alive while only running the HTTP service.
    */
   public void join() {
