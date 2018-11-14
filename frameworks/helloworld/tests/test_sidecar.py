@@ -44,7 +44,7 @@ def test_envvar_accross_restarts():
             raise ConfigException("Required envvar not found")
 
         if val != expected_value:
-            log.error("Looking for %s=%d but found: %s", envvar, sleep_duration, val)
+            log.error("Looking for %s=%s but found: %s", envvar, expected_value, val)
             raise ConfigException("Envvar not set to required value")
 
         log.info("%s has expected value %s", envvar, expected_value)
