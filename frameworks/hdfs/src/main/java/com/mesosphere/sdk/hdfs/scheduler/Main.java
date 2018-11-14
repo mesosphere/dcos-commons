@@ -36,12 +36,10 @@ public class Main {
     private static final String JOURNAL_POD_TYPE = "journal";
     private static final String NAME_POD_TYPE = "name";
     private static final String DATA_POD_TYPE = "data";
-    private static final String YARN_POD_TYPE = "yarn";
 
     static final String SERVICE_ZK_ROOT_TASKENV = "SERVICE_ZK_ROOT";
     static final String HDFS_SITE_XML = "hdfs-site.xml";
     static final String CORE_SITE_XML = "core-site.xml";
-    static final String YARN_SITE_XML = "yarn-site.xml";
 
     public static void main(String[] args) throws Exception {
         if (args.length != 1) {
@@ -70,8 +68,6 @@ public class Main {
                         renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName())))
                 .setEndpointProducer(CORE_SITE_XML, EndpointProducer.constant(
                         renderTemplate(new File(configDir, CORE_SITE_XML), serviceSpec.getName())))
-                .setEndpointProducer(YARN_SITE_XML, EndpointProducer.constant(
-                        renderTemplate(new File(configDir, YARN_SITE_XML), serviceSpec.getName())))
                 .setCustomConfigValidators(Arrays.asList(new HDFSZoneValidator()));
     }
 
@@ -103,10 +99,9 @@ public class Main {
         PodSpec journal = getJournalPodSpec(serviceSpec);
         PodSpec name = getNamePodSpec(serviceSpec);
         PodSpec data = getDataPodSpec(serviceSpec);
-        PodSpec yarn = getYarnPodSpec(serviceSpec);
 
         return DefaultServiceSpec.newBuilder(serviceSpec)
-                .pods(Arrays.asList(journal, name, data, yarn))
+                .pods(Arrays.asList(journal, name, data))
                 .build();
     }
 
@@ -149,15 +144,6 @@ public class Main {
         // Data nodes avoid themselves.
         PlacementRule placementRule = TaskTypeRule.avoid(DATA_POD_TYPE);
         return getPodPlacementRule(serviceSpec, DATA_POD_TYPE, placementRule);
-    }
-
-    private static PodSpec getYarnPodSpec(ServiceSpec serviceSpec) {
-        // Yarn nodes avoid themselves.
-        PlacementRule placementRule = new AndRule(
-                TaskTypeRule.avoid(YARN_POD_TYPE),
-                TaskTypeRule.colocateWith(DATA_POD_TYPE)
-        );
-        return getPodPlacementRule(serviceSpec, YARN_POD_TYPE, placementRule);
     }
 
     private static PodSpec getPodPlacementRule(ServiceSpec serviceSpec, String podType, PlacementRule placementRule) {
