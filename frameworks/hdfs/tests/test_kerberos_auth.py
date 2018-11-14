@@ -128,15 +128,14 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     )
 
     alice_dir = "/users/alice"
-    config.run_client_command(" && ".join([
-        config.hdfs_command(c) for c in [
-            "mkdir -p {}".format(alice_dir),
-            "chown alice:users {}".format(alice_dir),
-            "chmod 700 {}".format(alice_dir),
-        ]
-    ]))
+    success = True
+    success = success and config.run_client_command(" ".join(["mkdir", "-p", alice_dir]))
+    success = success and config.run_client_command(" ".join(["chown", "alice:users", alice_dir]))
+    success = success and config.run_client_command(" ".join(["chmod", "700", alice_dir]))
 
-    test_filename = "{}/{}".format(alice_dir, config.get_unique_filename("test_kerberos_auth_user_permissions"))
+    if not success:
+        log.error("Error creating %s", alice_dir)
+        raise Exception("Error creating user directory")
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])
@@ -144,6 +143,7 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("alice")
     )
 
+    test_filename = "{}/{}".format(alice_dir, config.get_unique_filename("test_kerberos_auth_user_permissions"))
     config.hdfs_client_write_data(test_filename)
     config.hdfs_client_read_data(test_filename)
     _, stdout, _ = config.hdfs_client_list_files(alice_dir)
