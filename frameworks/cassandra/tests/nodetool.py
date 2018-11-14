@@ -1,4 +1,4 @@
-import sdk_cmd
+from sdk.testing import sdk_cmd
 
 
 def cmd(service_name, task_name, command):

@@ -4,8 +4,8 @@ import json
 import logging
 import os
 
-import sdk_cmd
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_utils
 
 from bundle import Bundle
 from service_bundle import ServiceBundle

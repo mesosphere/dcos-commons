@@ -3,14 +3,14 @@ import os
 import pytest
 import uuid
 
-import sdk_cmd
-import sdk_install
-import sdk_jobs
-import sdk_plan
-import sdk_recovery
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
+from sdk.testing import sdk_jobs
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_recovery
+from sdk.testing import sdk_utils
 
-from security import transport_encryption
+from sdk.testing.security import transport_encryption
 
 from tests import config
 

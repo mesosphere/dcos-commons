@@ -4,8 +4,8 @@ import retrying
 import pytest
 import uuid
 
-import sdk_cmd
-import sdk_install
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
 
 from tests import config
 from tests import topics

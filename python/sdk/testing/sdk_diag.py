@@ -17,11 +17,11 @@ import inspect
 import pytest
 import retrying
 
-import sdk_cmd
-import sdk_install
-import sdk_package_registry
-import sdk_plan
-import sdk_tasks
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
+from sdk.testing import sdk_package_registry
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_tasks
 
 log = logging.getLogger(__name__)
 

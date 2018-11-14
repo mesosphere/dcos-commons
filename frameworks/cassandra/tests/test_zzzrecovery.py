@@ -4,12 +4,12 @@ import logging
 import pytest
 import re
 
-import sdk_agents
-import sdk_cmd
-import sdk_install
-import sdk_marathon
-import sdk_plan
-import sdk_tasks
+from sdk.testing import sdk_agents
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_tasks
 from tests import config
 
 RECOVERY_TIMEOUT_SECONDS = 20 * 60

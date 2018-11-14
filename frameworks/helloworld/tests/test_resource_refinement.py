@@ -1,10 +1,10 @@
 import pytest
 import retrying
 
-import sdk_install
-import sdk_utils
-import sdk_marathon
-import sdk_cmd
+from sdk.testing import sdk_install
+from sdk.testing import sdk_utils
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_cmd
 
 from tests import config
 

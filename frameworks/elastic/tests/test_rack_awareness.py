@@ -2,9 +2,9 @@ import logging
 import pytest
 from toolz import get_in
 
-import sdk_fault_domain
-import sdk_install
-import sdk_utils
+from sdk.testing import sdk_fault_domain
+from sdk.testing import sdk_install
+from sdk.testing import sdk_utils
 from tests import config
 
 log = logging.getLogger(__name__)

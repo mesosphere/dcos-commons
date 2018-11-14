@@ -1,14 +1,14 @@
 import logging
 import pytest
 
-import sdk_auth
-import sdk_hosts
-import sdk_install
-import sdk_marathon
-import sdk_utils
+from sdk.testing import sdk_auth
+from sdk.testing import sdk_hosts
+from sdk.testing import sdk_install
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_utils
 
-from security import kerberos as krb5
-from security import transport_encryption
+from sdk.testing.security import kerberos as krb5
+from sdk.testing.security import transport_encryption
 
 from tests import auth
 from tests import config

@@ -9,9 +9,9 @@ import logging
 import typing
 import retrying
 
-import sdk_agents
-import sdk_cmd
-import sdk_tasks
+from sdk.testing import sdk_agents
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_tasks
 
 
 log = logging.getLogger(__name__)

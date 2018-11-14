@@ -14,7 +14,7 @@ import logging
 import sys
 
 from full_bundle import FullBundle
-import sdk_cmd
+from sdk.testing import sdk_cmd
 
 log = logging.getLogger(__name__)
 

@@ -2,10 +2,10 @@ import logging
 
 import pytest
 import retrying
-import sdk_install
-import sdk_marathon
-import sdk_tasks
-import sdk_plan
+from sdk.testing import sdk_install
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_tasks
+from sdk.testing import sdk_plan
 from tests import config
 
 log = logging.getLogger(__name__)

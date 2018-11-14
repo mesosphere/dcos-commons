@@ -10,11 +10,12 @@ import sys
 import time
 
 import pytest
-import sdk_diag
-import sdk_repository
-import sdk_package_registry
-import sdk_utils
 import teamcity
+
+from sdk.testing import sdk_diag
+from sdk.testing import sdk_repository
+from sdk.testing import sdk_package_registry
+from sdk.testing import sdk_utils
 
 log_level = os.getenv("TEST_LOG_LEVEL", "INFO").upper()
 log_levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "EXCEPTION")

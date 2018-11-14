@@ -5,9 +5,9 @@ import os
 from toolz import groupby
 from typing import List
 
-import sdk_cmd
-import sdk_diag
-import sdk_hosts
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_diag
+from sdk.testing import sdk_hosts
 
 from bundle import Bundle
 import agent

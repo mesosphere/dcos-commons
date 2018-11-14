@@ -1,13 +1,13 @@
 import json
 import pytest
 
-import sdk_cmd
-import sdk_install
-import sdk_hosts
-import sdk_recovery
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
+from sdk.testing import sdk_hosts
+from sdk.testing import sdk_recovery
+from sdk.testing import sdk_utils
 
-from security import transport_encryption
+from sdk.testing.security import transport_encryption
 
 from tests import config
 

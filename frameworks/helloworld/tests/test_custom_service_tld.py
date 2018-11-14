@@ -2,9 +2,9 @@ import logging
 
 import pytest
 
-import sdk_hosts
-import sdk_install
-import sdk_networks
+from sdk.testing import sdk_hosts
+from sdk.testing import sdk_install
+from sdk.testing import sdk_networks
 
 from tests import config
 

@@ -1,10 +1,10 @@
 import pytest
 
-import sdk_utils
-import sdk_auth
-import sdk_install
+from sdk.testing import sdk_utils
+from sdk.testing import sdk_auth
+from sdk.testing import sdk_install
 
-from security import transport_encryption
+from sdk.testing.security import transport_encryption
 
 from tests import config, auth
 

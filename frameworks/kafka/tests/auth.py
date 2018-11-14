@@ -1,10 +1,10 @@
 import logging
 import retrying
 
-import sdk_cmd
-import sdk_hosts
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_hosts
 
-from security import kerberos
+from sdk.testing.security import kerberos
 
 
 LOG = logging.getLogger(__name__)

@@ -2,8 +2,8 @@ import os
 import uuid
 
 import pytest
-import sdk_install
-import sdk_jobs
+from sdk.testing import sdk_install
+from sdk.testing import sdk_jobs
 from tests import config
 
 

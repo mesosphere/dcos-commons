@@ -12,11 +12,11 @@ import retrying
 import tempfile
 from enum import Enum
 
-import sdk_cmd
-import sdk_marathon
-import sdk_plan
-import sdk_tasks
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_tasks
+from sdk.testing import sdk_utils
 
 log = logging.getLogger(__name__)
 

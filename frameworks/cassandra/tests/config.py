@@ -5,10 +5,10 @@ import logging
 import textwrap
 import traceback
 
-import sdk_hosts
-import sdk_jobs
-import sdk_plan
-import sdk_utils
+from sdk.testing import sdk_hosts
+from sdk.testing import sdk_jobs
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_utils
 
 log = logging.getLogger(__name__)
 

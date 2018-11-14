@@ -8,10 +8,10 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 import logging
 import retrying
 
-import sdk_agents
-import sdk_cmd
-import sdk_package_registry
-import sdk_plan
+from sdk.testing import sdk_agents
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_package_registry
+from sdk.testing import sdk_plan
 
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60

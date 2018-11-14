@@ -1,20 +1,20 @@
 import logging
 
 import pytest
-import sdk_cmd
-import sdk_hosts
-import sdk_install
-import sdk_marathon
-import sdk_plan
-import sdk_security
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_hosts
+from sdk.testing import sdk_install
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_security
+from sdk.testing import sdk_utils
 
 from cryptography import x509
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509.oid import ExtensionOID, NameOID
 
 from tests import config
-from security import transport_encryption
+from sdk.testing.security import transport_encryption
 
 DEFAULT_BACKEND = default_backend()
 

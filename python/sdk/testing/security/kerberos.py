@@ -4,7 +4,7 @@ A set of Kerberos utilities
 import itertools
 import logging
 
-import sdk_cmd
+from sdk.testing import sdk_cmd
 
 
 log = logging.getLogger(__name__)

@@ -1,9 +1,9 @@
 import pytest
-import sdk_install
-import sdk_jobs
-import sdk_networks
-import sdk_plan
-import sdk_tasks
+from sdk.testing import sdk_install
+from sdk.testing import sdk_jobs
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_tasks
 from tests import config
 
 

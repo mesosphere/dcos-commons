@@ -1,5 +1,5 @@
 import pytest
-import sdk_security
+from sdk.testing import sdk_security
 from tests import config
 
 

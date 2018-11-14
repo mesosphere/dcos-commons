@@ -7,11 +7,11 @@ import typing
 import json
 import retrying
 
-import sdk_auth
-import sdk_cmd
-import sdk_marathon
-import sdk_networks
-import sdk_utils
+from sdk.testing import sdk_auth
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_utils
 
 from tests import auth
 from tests import topics

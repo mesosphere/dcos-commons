@@ -3,10 +3,10 @@ import logging
 import pytest
 from tests import config
 
-import sdk_install
-import sdk_plan
-import sdk_tasks
-import sdk_upgrade
+from sdk.testing import sdk_install
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_tasks
+from sdk.testing import sdk_upgrade
 
 log = logging.getLogger(__name__)
 

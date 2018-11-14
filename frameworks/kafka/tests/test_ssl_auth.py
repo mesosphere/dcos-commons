@@ -1,10 +1,10 @@
 import logging
 import pytest
 
-import sdk_install
-import sdk_utils
+from sdk.testing import sdk_install
+from sdk.testing import sdk_utils
 
-from security import transport_encryption
+from sdk.testing.security import transport_encryption
 
 from tests import client
 from tests import config

@@ -1,6 +1,6 @@
 import os
 
-import sdk_auth
+from sdk.testing import sdk_auth
 
 
 ACTIVE_DIRECTORY_ENVVAR = "TESTING_ACTIVE_DIRECTORY_SERVER"

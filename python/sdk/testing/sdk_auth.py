@@ -22,10 +22,10 @@ import subprocess
 
 from typing import List
 
-import sdk_cmd
-import sdk_hosts
-import sdk_marathon
-import sdk_security
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_hosts
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_security
 
 
 log = logging.getLogger(__name__)

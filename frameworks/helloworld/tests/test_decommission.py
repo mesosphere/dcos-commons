@@ -1,11 +1,11 @@
 import logging
 
 import pytest
-import sdk_install
-import sdk_marathon
-import sdk_plan
-import sdk_upgrade
-import sdk_utils
+from sdk.testing import sdk_install
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_upgrade
+from sdk.testing import sdk_utils
 from tests import config
 
 

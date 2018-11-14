@@ -1,5 +1,5 @@
-import sdk_marathon
-import sdk_tasks
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_tasks
 
 PACKAGE_NAME = "hello-world"
 SERVICE_NAME = PACKAGE_NAME

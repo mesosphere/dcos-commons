@@ -10,8 +10,8 @@ import retrying
 import requests
 import typing
 
-import sdk_cmd
-import sdk_tasks
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_tasks
 
 TIMEOUT_SECONDS = 15 * 60
 

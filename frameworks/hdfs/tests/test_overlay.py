@@ -3,11 +3,11 @@ from xml.etree import ElementTree
 import pytest
 import retrying
 
-import sdk_cmd
-import sdk_install
-import sdk_marathon
-import sdk_networks
-import sdk_tasks
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_tasks
 
 from tests import config
 

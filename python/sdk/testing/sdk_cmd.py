@@ -17,7 +17,7 @@ import time
 import urllib.parse
 import urllib3
 
-import sdk_utils
+from sdk.testing import sdk_utils
 
 
 log = logging.getLogger(__name__)

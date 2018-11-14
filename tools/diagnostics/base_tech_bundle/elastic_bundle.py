@@ -1,6 +1,6 @@
 import logging
 
-import sdk_cmd
+from sdk.testing import sdk_cmd
 
 from base_tech_bundle import BaseTechBundle
 import config

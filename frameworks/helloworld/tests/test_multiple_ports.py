@@ -1,8 +1,8 @@
 import logging
 import pytest
 
-import sdk_install
-import sdk_tasks
+from sdk.testing import sdk_install
+from sdk.testing import sdk_tasks
 
 from tests import config
 

@@ -1,8 +1,8 @@
 import logging
 
 import pytest
-import sdk_install
-import sdk_plan
+from sdk.testing import sdk_install
+from sdk.testing import sdk_plan
 from tests import config
 
 

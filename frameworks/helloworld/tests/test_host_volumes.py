@@ -2,8 +2,8 @@ import logging
 import retrying
 import pytest
 
-import sdk_cmd
-import sdk_install
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
 from tests import config
 
 log = logging.getLogger(__name__)

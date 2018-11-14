@@ -1,12 +1,12 @@
 import pytest
 import retrying
 
-import sdk_cmd
-import sdk_install
-import sdk_networks
-import sdk_plan
-import sdk_security
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_security
+from sdk.testing import sdk_utils
 
 from tests import config, client
 

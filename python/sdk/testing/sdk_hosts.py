@@ -8,8 +8,8 @@ SHOULD ALSO BE APPLIED TO sdk_hosts IN ANY OTHER PARTNER REPOS
 import json
 import retrying
 
-import sdk_cmd
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_utils
 
 
 AUTOIP_HOST_SUFFIX = "autoip.dcos.thisdcos.directory"

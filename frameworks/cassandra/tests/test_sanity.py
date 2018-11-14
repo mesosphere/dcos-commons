@@ -1,13 +1,13 @@
 import pytest
 import logging
 
-import sdk_hosts
-import sdk_install
-import sdk_jobs
-import sdk_metrics
-import sdk_networks
-import sdk_plan
-import sdk_upgrade
+from sdk.testing import sdk_hosts
+from sdk.testing import sdk_install
+from sdk.testing import sdk_jobs
+from sdk.testing import sdk_metrics
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_upgrade
 
 from tests import config
 

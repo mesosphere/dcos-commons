@@ -1,8 +1,8 @@
 import pytest
-import sdk_install
-import sdk_marathon
-import sdk_plan
-import sdk_tasks
+from sdk.testing import sdk_install
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_tasks
 from tests import config
 
 

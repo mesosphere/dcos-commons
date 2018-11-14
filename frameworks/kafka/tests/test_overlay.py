@@ -1,8 +1,8 @@
 import pytest
-import sdk_install as install
-import sdk_networks
-import sdk_tasks
-import sdk_utils
+from sdk.testing import sdk_install as install
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_tasks
+from sdk.testing import sdk_utils
 from tests import config, test_utils, client
 
 

@@ -1,8 +1,8 @@
 import pytest
 import retrying
-import sdk_install
-import sdk_networks
-import sdk_tasks
+from sdk.testing import sdk_install
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_tasks
 from tests import config
 
 

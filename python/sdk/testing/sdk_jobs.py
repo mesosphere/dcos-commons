@@ -10,7 +10,7 @@ import logging
 
 import retrying
 
-import sdk_cmd
+from sdk.testing import sdk_cmd
 
 log = logging.getLogger(__name__)
 

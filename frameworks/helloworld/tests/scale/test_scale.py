@@ -1,8 +1,8 @@
 import pytest
 import logging
-import sdk_install
-import sdk_security
-import sdk_utils
+from sdk.testing import sdk_install
+from sdk.testing import sdk_security
+from sdk.testing import sdk_utils
 from tests import config
 
 log = logging.getLogger(__name__)

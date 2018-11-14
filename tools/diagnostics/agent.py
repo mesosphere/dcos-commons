@@ -3,7 +3,7 @@ import os
 import re
 from typing import List
 
-import sdk_cmd
+from sdk.testing import sdk_cmd
 
 import config
 

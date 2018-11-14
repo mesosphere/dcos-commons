@@ -13,7 +13,7 @@ import pytest
 import random
 import string
 
-import sdk_cmd
+from sdk.testing import sdk_cmd
 
 from distutils.version import LooseVersion
 

@@ -4,9 +4,9 @@ Authnz specifics for HDFS tests
 import logging
 import base64
 
-from security import kerberos
+from sdk.testing.security import kerberos
 
-import sdk_hosts
+from sdk.testing import sdk_hosts
 
 
 log = logging.getLogger(__name__)

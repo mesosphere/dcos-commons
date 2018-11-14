@@ -2,17 +2,17 @@ import logging
 import xml.etree.ElementTree as etree
 
 import pytest
-import sdk_cmd
-import sdk_hosts
-import sdk_install
-import sdk_marathon
-import sdk_metrics
-import sdk_networks
-import sdk_plan
-import sdk_recovery
-import sdk_tasks
-import sdk_upgrade
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_hosts
+from sdk.testing import sdk_install
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_metrics
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_plan
+from sdk.testing import sdk_recovery
+from sdk.testing import sdk_tasks
+from sdk.testing import sdk_upgrade
+from sdk.testing import sdk_utils
 
 from tests import config
 

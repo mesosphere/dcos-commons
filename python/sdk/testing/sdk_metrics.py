@@ -12,8 +12,8 @@ import logging
 import retrying
 import typing
 
-import sdk_cmd
-import sdk_tasks
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_tasks
 
 log = logging.getLogger(__name__)
 

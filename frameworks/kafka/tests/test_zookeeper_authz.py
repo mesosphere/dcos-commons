@@ -5,14 +5,14 @@ import logging
 import pytest
 import typing
 
-import sdk_auth
-import sdk_hosts
-import sdk_install
-import sdk_networks
-import sdk_security
-import sdk_utils
+from sdk.testing import sdk_auth
+from sdk.testing import sdk_hosts
+from sdk.testing import sdk_install
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_security
+from sdk.testing import sdk_utils
 
-from security import kerberos as krb5
+from sdk.testing.security import kerberos as krb5
 
 from tests import auth
 from tests import client

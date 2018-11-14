@@ -3,14 +3,14 @@ import logging
 import pytest
 from toolz import get_in
 
-import sdk_cmd
-import sdk_install
-import sdk_networks
-import sdk_recovery
-import sdk_security
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_recovery
+from sdk.testing import sdk_security
+from sdk.testing import sdk_utils
 
-from security import transport_encryption, cipher_suites
+from sdk.testing.security import transport_encryption, cipher_suites
 
 from tests import config, client
 

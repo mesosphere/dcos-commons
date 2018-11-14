@@ -5,11 +5,11 @@ import logging
 import uuid
 import pytest
 
-import sdk_cmd
-import sdk_install
-import sdk_marathon
-import sdk_networks
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_install
+from sdk.testing import sdk_marathon
+from sdk.testing import sdk_networks
+from sdk.testing import sdk_utils
 
 from tests import active_directory
 from tests import auth

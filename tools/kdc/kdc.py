@@ -57,9 +57,9 @@ import argparse
 import logging
 import os
 
-import sdk_auth
-import sdk_cmd
-import sdk_security
+from sdk.testing import sdk_auth
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_security
 
 
 logging.basicConfig(format="[%(asctime)s|%(name)s|%(levelname)s]: %(message)s", level=logging.INFO)

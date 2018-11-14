@@ -9,8 +9,8 @@ import json
 import logging
 import os
 
-import sdk_cmd
-import sdk_utils
+from sdk.testing import sdk_cmd
+from sdk.testing import sdk_utils
 
 log = logging.getLogger(__name__)
 

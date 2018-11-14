@@ -2,9 +2,9 @@ import logging
 
 import pytest
 
-import sdk_auth
-import sdk_install
-import sdk_utils
+from sdk.testing import sdk_auth
+from sdk.testing import sdk_install
+from sdk.testing import sdk_utils
 
 from tests import auth
 from tests import client

@@ -1,8 +1,8 @@
 import logging
 import pytest
-import sdk_install
-import sdk_upgrade
-import sdk_utils
+from sdk.testing import sdk_install
+from sdk.testing import sdk_upgrade
+from sdk.testing import sdk_utils
 
 from tests import config
 from tests import nodetool
