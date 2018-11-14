@@ -10,7 +10,7 @@ import sys
 
 def syntax():
     print(
-        "Syntax: OUTPUT_NAME=foo INPUT_DIR=path/to/foo VERSION=0.123.0 {} -q bdist_wheel".format(
+        "Syntax: OUTPUT_NAME=foo INPUT_DIR=path/to/foo VERSION=0.123.0 {} [-q] (bdist_wheel | develop | install | egg_info)".format(
             sys.argv[0]
         )
     )
@@ -27,6 +27,11 @@ def main():
 
     if not os.path.isdir(input_dir_path):
         print("Provided input path is not a directory: {}".format(input_dir_path))
+        syntax()
+        return 1
+
+    if not set(["bdist_wheel", "develop", "egg_info", "install"]).intersection(sys.argv):
+        print("Must build as 'bdist_wheel', 'develop', 'egg_info' or 'install'")
         syntax()
         return 1
 
@@ -91,17 +96,20 @@ def main():
         package_data={output_name: input_relative_file_paths},
     )
 
-    # clean up build detritus:
-    shutil.rmtree(build_dir_path)
-    shutil.rmtree(os.path.join(script_dir, "{}.egg-info".format(output_name)))
-    shutil.rmtree(output_dir_path)
-    # move whl file into script dir:
-    output_file = "{}-{}-py3-none-any.whl".format(output_name, version)
-    output_path = os.path.join(script_dir, output_file)
-    os.rename(os.path.join(script_dir, "dist", output_file), output_path)
-    shutil.rmtree(os.path.join(script_dir, "dist"))
+    if "bdist_wheel" in sys.argv:
+        # clean up build detritus:
+        shutil.rmtree(build_dir_path)
+        shutil.rmtree(os.path.join(script_dir, "{}.egg-info".format(output_name)))
+        shutil.rmtree(output_dir_path)
 
-    print("""Built {}-{}: {}""".format(output_name, version, output_path))
+        # move whl file into script dir:
+        output_file = "{}-{}-py3-none-any.whl".format(output_name, version)
+        output_path = os.path.join(script_dir, output_file)
+        os.rename(os.path.join(script_dir, "dist", output_file), output_path)
+        shutil.rmtree(os.path.join(script_dir, "dist"))
+
+        print("""Built {}-{}: {}""".format(output_name, version, output_path))
+
     return 0
 
 
