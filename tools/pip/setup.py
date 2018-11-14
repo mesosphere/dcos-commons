@@ -89,7 +89,7 @@ def main():
     )
 
     # clean up build detritus:
-    shutil.rmtree(os.path.join(script_dir, "{}.egg-info".format(output_name)))
+    shutil.rmtree(os.path.join(script_dir, "pip-egg-info", "{}.egg-info".format(output_name)))
     shutil.rmtree(output_dir_path)
     # move whl file into script dir:
     output_file = "{}-{}-py3-none-any.whl".format(output_name, version)
