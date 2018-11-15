@@ -49,7 +49,7 @@ HTTP %s Query for %s failed: %s
 For more syntax information`,
 				response.Request.Method, response.Request.URL, err)
 		}
-	} 
+	}
 
 	// Now look at the content of the response itself for any errors.
 	body, err := getResponseBytes(response)
