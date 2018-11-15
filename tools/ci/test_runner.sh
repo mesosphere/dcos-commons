@@ -140,8 +140,8 @@ fi
 
 # If not already set, ensure that the PYTHONPATH is correct
 if [ -n $PYTHONPATH ]; then
-    if [ -d ${REPO_ROOT_DIR}/testing ]; then
-        export PYTHONPATH=${REPO_ROOT_DIR}/testing
+    if [ -d ${REPO_ROOT_DIR}/python ]; then
+        export PYTHONPATH=${REPO_ROOT_DIR}/python
     fi
 fi
 

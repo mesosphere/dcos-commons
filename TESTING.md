@@ -98,7 +98,7 @@ Before running test we perform the following steps inside the container:
 
 It may also be required to set the `PYTHONPATH` environment variable:
 ```bash
-export PYTHONPATH=/build/testing
+export PYTHONPATH=/build/python
 ```
 
 Most system integration tests rely on a stub-universe being set up allowing us to install the version of the framework under test. Thus it is required to run:
