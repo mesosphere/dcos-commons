@@ -24,11 +24,14 @@ func SetCustomResponseCheck(check responseCheck) {
 func CheckHTTPResponse(response *http.Response, err error) ([]byte, error) {
 	// Check for anything to return from the query itself
 	switch err.(type) {
+	if response == nil {
+		return nil, fmt.Errorf("Encountered an empty response, with error: %s, retry the operation again later", err)
+	}
 	case *url.Error:
 		// extract wrapped error
 		err = err.(*url.Error).Err
 	}
-	if err != nil && response != nil {
+	if err != nil {
 		switch err.(type) {
 		case x509.UnknownAuthorityError:
 			// custom suggestions for a certificate error:
@@ -46,9 +49,7 @@ HTTP %s Query for %s failed: %s
 For more syntax information`,
 				response.Request.Method, response.Request.URL, err)
 		}
-	} else if response == nil {
-		return nil, fmt.Errorf("Encountered an empty response, with error: %s", err)
-	}
+	} 
 
 	// Now look at the content of the response itself for any errors.
 	body, err := getResponseBytes(response)
