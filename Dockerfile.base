@@ -46,3 +46,6 @@ RUN apt-get update && \
     zip && \
     rm -rf /var/lib/apt/lists/* && \
     java -version
+
+#Remove pycrypto-2.6.1 due to https://nvd.nist.gov/vuln/detail/CVE-2018-6594 
+RUN apt-get remove -y python3-crypto
