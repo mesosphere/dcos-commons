@@ -88,7 +88,7 @@ function usage()
     echo "  --headless"
     echo "    Run docker command in headless mode, without attaching to stdin. Sometimes needed in CI."
     echo "  --package-registry"
-    echo "    Enables using a package registry to install packages. Works in 1.12.1 and above only.
+    echo "    Enables using a package registry to install packages. Works in 1.12.1 and above only."
     echo "  --dcos-files-path DIR"
     echo "    Sets the directory to look for .dcos files. If empty, uses stub universe urls to build .dcos file(s)."
     echo "  --gradle-cache $gradle_cache"
