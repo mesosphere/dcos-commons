@@ -8,11 +8,13 @@ Most of the linting rules are taken from google style guide with some customizat
 
 This plugin does not support all the rules that we use out of box. Following needs to be done manually if using this plugin:
 
+- Install the `Checkstyle-IDEA` plugin.
 - Navigate to `Settings  > Editor > Code Style > Java`
-- Import the `checkstyle.xml` as a new Scheme.
+- Import the `checkstyle.xml` as a new Scheme (Look for a gear icon next to `Scheme`s dropdown).
 - Set the `Class count to use import with '*'` to a very large value (like `99`).
-- Set the `Import Layout` as
-  0. `com.mesosphere.*` followed by a blank line
-  0. All third party imports followed by a blank line
-  0. `javax.*` followed by a blank line
-  0. `java.*` imports  
+- Set the `Import Layout` as:
+
+  1. `com.mesosphere.*` followed by a blank line
+  2. All third party imports followed by a blank line
+  3. `javax.*` followed by a blank line
+  4. `java.*` imports  
