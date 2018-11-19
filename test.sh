@@ -88,7 +88,7 @@ function usage()
     echo "  --headless"
     echo "    Run docker command in headless mode, without attaching to stdin. Sometimes needed in CI."
     echo "  --package-registry"
-    echo "    Enables using a package registry to install packages. Requires \$PACKAGE_REGISTRY_STUB_URL."
+    echo "    Enables using a package registry to install packages. Works in 1.12.1 and above only."
     echo "  --dcos-files-path DIR"
     echo "    Sets the directory to look for .dcos files. If empty, uses stub universe urls to build .dcos file(s)."
     echo "  --gradle-cache $gradle_cache"
@@ -317,13 +317,6 @@ if [ -n "$pytest_m" ]; then
     PYTEST_ARGS="$PYTEST_ARGS-m \"$pytest_m\""
 fi
 
-if [ x"$package_registry" == x"true" ]; then
-    if [ -z "$PACKAGE_REGISTRY_STUB_URL" ]; then
-        echo "PACKAGE_REGISTRY_STUB_URL not found in environment. Exiting..."
-        exit 1
-    fi
-fi
-
 if [ -n "$dcos_files_path" ]; then
     volume_args="$volume_args -v ${dcos_files_path}:${dcos_files_path}"
 fi
@@ -354,7 +347,6 @@ DCOS_LOGIN_USERNAME=$DCOS_LOGIN_USERNAME
 DCOS_SSH_USERNAME=$ssh_user
 FRAMEWORK=$framework
 PACKAGE_REGISTRY_ENABLED=$package_registry
-PACKAGE_REGISTRY_STUB_URL=$PACKAGE_REGISTRY_STUB_URL
 PYTEST_ARGS=$PYTEST_ARGS
 S3_BUCKET=$S3_BUCKET
 SECURITY=$security
