@@ -147,6 +147,7 @@
 <li class="toc-entry toc-h2"><a href="#mesos-dns">Mesos-DNS</a></li>
 <li class="toc-entry toc-h2"><a href="#vip">VIP</a></li>
 <li class="toc-entry toc-h2"><a href="#virtual-networks">Virtual networks</a></li>
+<li class="toc-entry toc-h2"><a href="#label-based-discovery">Label-Based Discovery</a></li>
 </ul>
 </li>
 <li class="toc-entry toc-h1"><a href="#metrics">Metrics</a>
@@ -1333,6 +1334,28 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
   <li>A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.</li>
 </ul>
 
+<h2 id="label-based-discovery">
+<a id="label-based-discovery" class="anchor" href="#label-based-discovery" aria-hidden="true"><span class="octicon octicon-link"></span></a>Label-Based Discovery</h2>
+
+<p>Some external tools such as <a href="https://docs.traefik.io">Taefik</a> require tasks to be configured with custom labels which are accessed by reading Mesos state. Below is an example of specifying labels for a task in your service spec YAML:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>name: "hello-world"
+pods:
+  hello:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello &gt;&gt; hello-container-path/output &amp;&amp; sleep 1000"
+        cpus: 0.2
+        memory: 256
+        labels: "traefik.enable:true,traefik.frontend.entryPoints:http,traefik.frontend.rule:PathPrefix:/"
+        ports:
+          http:
+          port: 8080
+          advertise: true
+</code></pre></div></div>
+
 <h1 id="metrics">
 <a id="metrics" class="anchor" href="#metrics" aria-hidden="true"><span class="octicon octicon-link"></span></a>Metrics</h1>
 <h2 id="default">
@@ -1372,57 +1395,57 @@ The count of all TaskStatus messages is reported.</p>
 <h6 id="json">
 <a id="json" class="anchor" href="#json" aria-hidden="true"><span class="octicon octicon-link"></span></a>JSON</h6>
 <div class="language-json highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="p">{</span><span class="w">
-	</span><span class="s2">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.1.3"</span><span class="p">,</span><span class="w">
-	</span><span class="s2">"gauges"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
-	</span><span class="s2">"counters"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-		</span><span class="s2">"declines.long"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="w">
-		</span><span class="p">},</span><span class="w">
-		</span><span class="s2">"offers.processed"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">18</span><span class="w">
-		</span><span class="p">},</span><span class="w">
-		</span><span class="s2">"offers.received"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">18</span><span class="w">
-		</span><span class="p">},</span><span class="w">
-		</span><span class="s2">"operation.create"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w">
-		</span><span class="p">},</span><span class="w">
-		</span><span class="s2">"operation.launch_group"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w">
-		</span><span class="p">},</span><span class="w">
-		</span><span class="s2">"operation.reserve"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="w">
-		</span><span class="p">},</span><span class="w">
-		</span><span class="s2">"revives"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w">
-		</span><span class="p">},</span><span class="w">
-		</span><span class="s2">"task_status.task_running"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="w">
-		</span><span class="p">}</span><span class="w">
-	</span><span class="p">},</span><span class="w">
-	</span><span class="s2">"histograms"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
-	</span><span class="s2">"meters"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
-	</span><span class="s2">"timers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-		</span><span class="s2">"offers.process"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
-			</span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"max"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"mean"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.15145255818999337</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"min"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.367950000000001E-4</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"p50"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0035879090000000002</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"p75"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.40317217800000005</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"p95"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"p98"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"p99"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"p999"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"stddev"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.24017017290826104</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"m15_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5944843686231079</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"m1_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5250565015924039</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"m5_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.583689104996544</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"mean_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.3809369986002824</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"duration_units"</span><span class="p">:</span><span class="w"> </span><span class="s2">"seconds"</span><span class="p">,</span><span class="w">
-			</span><span class="s2">"rate_units"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calls/second"</span><span class="w">
-		</span><span class="p">}</span><span class="w">
-	</span><span class="p">}</span><span class="w">
+    </span><span class="s2">"version"</span><span class="p">:</span><span class="w"> </span><span class="s2">"3.1.3"</span><span class="p">,</span><span class="w">
+    </span><span class="s2">"gauges"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+    </span><span class="s2">"counters"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"declines.long"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">15</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"offers.processed"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">18</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"offers.received"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">18</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"operation.create"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">5</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"operation.launch_group"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"operation.reserve"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">20</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"revives"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="w">
+        </span><span class="p">},</span><span class="w">
+        </span><span class="s2">"task_status.task_running"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">6</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">},</span><span class="w">
+    </span><span class="s2">"histograms"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+    </span><span class="s2">"meters"</span><span class="p">:</span><span class="w"> </span><span class="p">{},</span><span class="w">
+    </span><span class="s2">"timers"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+        </span><span class="s2">"offers.process"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w">
+            </span><span class="s2">"count"</span><span class="p">:</span><span class="w"> </span><span class="mi">10</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"max"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"mean"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.15145255818999337</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"min"</span><span class="p">:</span><span class="w"> </span><span class="mf">5.367950000000001E-4</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"p50"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.0035879090000000002</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"p75"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.40317217800000005</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"p95"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"p98"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"p99"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"p999"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.684745927</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"stddev"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.24017017290826104</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"m15_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5944843686231079</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"m1_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.5250565015924039</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"m5_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.583689104996544</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"mean_rate"</span><span class="p">:</span><span class="w"> </span><span class="mf">0.3809369986002824</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"duration_units"</span><span class="p">:</span><span class="w"> </span><span class="s2">"seconds"</span><span class="p">,</span><span class="w">
+            </span><span class="s2">"rate_units"</span><span class="p">:</span><span class="w"> </span><span class="s2">"calls/second"</span><span class="w">
+        </span><span class="p">}</span><span class="w">
+    </span><span class="p">}</span><span class="w">
 </span><span class="p">}</span><span class="w">
 </span></code></pre></div></div>
 
