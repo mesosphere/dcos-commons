@@ -31,8 +31,8 @@ public final class DefaultNetworkSpec implements NetworkSpec {
       @JsonProperty("network-labels") Map<String, String> labels)
   {
     this.networkName = networkName;
-    this.portMappings = portMappings == null ? Collections.emptyMap() : portMappings;
-    this.labels = labels == null ? Collections.emptyMap() : labels;
+    this.portMappings = (portMappings != null) ? portMappings : Collections.emptyMap();
+    this.labels = (labels != null) ? labels : Collections.emptyMap();
   }
 
   private DefaultNetworkSpec(Builder builder) {

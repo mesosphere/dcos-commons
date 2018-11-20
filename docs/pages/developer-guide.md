@@ -1053,6 +1053,28 @@ Specifying that pods join a virtual network has the following indirect effects:
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
 
+## Label-Based Discovery
+
+Some external tools such as [Taefik](https://docs.traefik.io) require tasks to be configured with custom labels which are accessed by reading Mesos state. Below is an example of specifying labels for a task in your service spec YAML:
+
+```
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> hello-container-path/output && sleep 1000"
+        cpus: 0.2
+        memory: 256
+        labels: "traefik.enable:true,traefik.frontend.entryPoints:http,traefik.frontend.rule:PathPrefix:/"
+        ports:
+          http:
+          port: 8080
+          advertise: true
+```
+
 # Metrics
 ## Default
 Schedulers generate a set of default metrics.  Metrics are reported in three main categories: offers, operations, and status messages.
@@ -1084,57 +1106,57 @@ The JSON representation of the metrics is available at the `/v1/metrics` endpoin
 ###### JSON
 ```json
 {
-	"version": "3.1.3",
-	"gauges": {},
-	"counters": {
-		"declines.long": {
-			"count": 15
-		},
-		"offers.processed": {
-			"count": 18
-		},
-		"offers.received": {
-			"count": 18
-		},
-		"operation.create": {
-			"count": 5
-		},
-		"operation.launch_group": {
-			"count": 3
-		},
-		"operation.reserve": {
-			"count": 20
-		},
-		"revives": {
-			"count": 3
-		},
-		"task_status.task_running": {
-			"count": 6
-		}
-	},
-	"histograms": {},
-	"meters": {},
-	"timers": {
-		"offers.process": {
-			"count": 10,
-			"max": 0.684745927,
-			"mean": 0.15145255818999337,
-			"min": 5.367950000000001E-4,
-			"p50": 0.0035879090000000002,
-			"p75": 0.40317217800000005,
-			"p95": 0.684745927,
-			"p98": 0.684745927,
-			"p99": 0.684745927,
-			"p999": 0.684745927,
-			"stddev": 0.24017017290826104,
-			"m15_rate": 0.5944843686231079,
-			"m1_rate": 0.5250565015924039,
-			"m5_rate": 0.583689104996544,
-			"mean_rate": 0.3809369986002824,
-			"duration_units": "seconds",
-			"rate_units": "calls/second"
-		}
-	}
+    "version": "3.1.3",
+    "gauges": {},
+    "counters": {
+        "declines.long": {
+            "count": 15
+        },
+        "offers.processed": {
+            "count": 18
+        },
+        "offers.received": {
+            "count": 18
+        },
+        "operation.create": {
+            "count": 5
+        },
+        "operation.launch_group": {
+            "count": 3
+        },
+        "operation.reserve": {
+            "count": 20
+        },
+        "revives": {
+            "count": 3
+        },
+        "task_status.task_running": {
+            "count": 6
+        }
+    },
+    "histograms": {},
+    "meters": {},
+    "timers": {
+        "offers.process": {
+            "count": 10,
+            "max": 0.684745927,
+            "mean": 0.15145255818999337,
+            "min": 5.367950000000001E-4,
+            "p50": 0.0035879090000000002,
+            "p75": 0.40317217800000005,
+            "p95": 0.684745927,
+            "p98": 0.684745927,
+            "p99": 0.684745927,
+            "p999": 0.684745927,
+            "stddev": 0.24017017290826104,
+            "m15_rate": 0.5944843686231079,
+            "m1_rate": 0.5250565015924039,
+            "m5_rate": 0.583689104996544,
+            "mean_rate": 0.3809369986002824,
+            "duration_units": "seconds",
+            "rate_units": "calls/second"
+        }
+    }
 }
 ```
 
