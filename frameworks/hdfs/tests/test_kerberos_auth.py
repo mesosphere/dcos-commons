@@ -129,9 +129,17 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
 
     alice_dir = "/users/alice"
     success = True
-    success = success and config.run_client_command(" ".join(["mkdir", "-p", alice_dir]))
-    success = success and config.run_client_command(" ".join(["chown", "alice:users", alice_dir]))
-    success = success and config.run_client_command(" ".join(["chmod", "700", alice_dir]))
+    cmd_lists = [
+        ["mkdir", "-p", alice_dir],
+        ["chown", "alice:users", alice_dir],
+        ["chmod", "700", alice_dir],
+    ]
+    for cmd_list in cmd_lists:
+        cmd = config.hdfs_command(" ".join(cmd_list))
+        cmd_success = config.run_client_command(cmd)
+        if not cmd_success:
+            log.error("Error executing: %s", cmd)
+        success = success and cmd_success
 
     if not success:
         log.error("Error creating %s", alice_dir)
