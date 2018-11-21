@@ -15,8 +15,13 @@ def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {
-            "service": {"yaml": "pod-profile-mount-volume"},
-            "hello": {"volume_profile": "xfs"}  # hardcoded in `tools/create_testing_volumes.py`.
+            "service": {
+                "test_profile_volume": "df -t xfs",
+                "yaml": "pod-profile-mount-volume"
+            },
+            "hello": {
+                "volume_profile": "xfs"  # hardcoded in `tools/create_testing_volumes.py`.
+            }
         }
 
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO, additional_options=options)

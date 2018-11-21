@@ -14,7 +14,12 @@ pods:
       profile:
         goal: RUNNING
         essential: false
-        cmd: df -t $VOLUME_PROFILE pod-container-path >> pod-container-path/output && df -t $VOLUME_PROFILE profile-container-path >> profile-container-path/output && sleep $SLEEP_DURATION
+        cmd: >
+               [ -z "{{{TEST_PROFILE_VOLUME}}}" ] ||
+               ({{{TEST_PROFILE_VOLUME}}} pod-container-path && {{{TEST_PROFILE_VOLUME}}} profile-container-path) &&
+               echo profile >> pod-container-path/output &&
+               echo profile >> profile-container-path/output &&
+               sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:
@@ -28,7 +33,12 @@ pods:
       noprofile:
         goal: RUNNING
         essential: false
-        cmd: df -t $VOLUME_PROFILE pod-container-path >> pod-container-path/output && df -t ext4 noprofile-container-path >> noprofile-container-path/output && sleep $SLEEP_DURATION
+        cmd: >
+               [ -z "{{{TEST_PROFILE_VOLUME}}}" ] ||
+               ({{{TEST_PROFILE_VOLUME}}} pod-container-path && ! {{{TEST_PROFILE_VOLUME}}} noprofile-container-path) &&
+               echo noprofile >> pod-container-path/output &&
+               echo noprofile >> noprofile-container-path/output &&
+               sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:
