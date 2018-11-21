@@ -53,7 +53,7 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         stage.evaluate(new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Protos.TaskInfo.Builder taskBuilder = podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME);
 
-        Assert.assertEquals(5, taskBuilder.getLabels().getLabelsCount());
+        Assert.assertEquals(6, taskBuilder.getLabels().getLabelsCount());
 
         // labels are sorted alphabetically (see LabelUtils):
         Protos.Label label = taskBuilder.getLabels().getLabels(0);
@@ -61,18 +61,22 @@ public class LaunchEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(Integer.toString(TestConstants.TASK_INDEX), label.getValue());
 
         label = taskBuilder.getLabels().getLabels(1);
+        Assert.assertEquals(label.getKey(), "label1");
+        Assert.assertEquals("label1-value", label.getValue());
+
+        label = taskBuilder.getLabels().getLabels(2);
         Assert.assertEquals("offer_attributes", label.getKey());
         Assert.assertEquals("", label.getValue());
 
-        label = taskBuilder.getLabels().getLabels(2);
+        label = taskBuilder.getLabels().getLabels(3);
         Assert.assertEquals("offer_hostname", label.getKey());
         Assert.assertEquals(TestConstants.HOSTNAME, label.getValue());
 
-        label = taskBuilder.getLabels().getLabels(3);
+        label = taskBuilder.getLabels().getLabels(4);
         Assert.assertEquals("target_configuration", label.getKey());
         Assert.assertEquals(36, label.getValue().length());
 
-        label = taskBuilder.getLabels().getLabels(4);
+        label = taskBuilder.getLabels().getLabels(5);
         Assert.assertEquals(label.getKey(), "task_type");
         Assert.assertEquals(TestConstants.POD_TYPE, label.getValue());
     }

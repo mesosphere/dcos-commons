@@ -1,10 +1,10 @@
-name: "valid-container-network-test"
+name: "invalid-network-labels-blank-test"
 pods:
   server:
     count: 1
     networks:
       dcos:
-        labels: "key1:val1,key2:val2a:val2b"
+        labels: "   "
     tasks:
       server:
         goal: RUNNING
