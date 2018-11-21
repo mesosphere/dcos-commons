@@ -24,7 +24,8 @@ HDFS_POD_TYPES = {"journal", "name", "data"}
 KEYTAB = "hdfs.keytab"
 HADOOP_VERSION = "hadoop-2.6.0-cdh5.9.1"
 
-DOCKER_IMAGE_NAME = "mesosphere/hdfs-testing-client:30ff636fdf1795a7c3f443cfa77898720a3e6fd3"
+# TODO: This should be replaced once the tests pass.
+DOCKER_IMAGE_NAME = "elezar/hdfs-testing-client:dev"
 CLIENT_APP_NAME = "hdfs-client"
 
 
