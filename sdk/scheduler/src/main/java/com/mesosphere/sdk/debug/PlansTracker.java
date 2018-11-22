@@ -65,7 +65,6 @@ public class PlansTracker implements DebugEndpoint {
 			planObject.put("name", plan.getName());
 			planObject.put("status", plan.getStatus());
 			planObject.put("strategy", plan.getStrategy().getName());
-			planObject.put("errors", plan.getErrors());
 			planObject.put("phases", phaseArray);
 		
 			//Get a rollup aggregation of the steps.
@@ -95,7 +94,6 @@ public class PlansTracker implements DebugEndpoint {
 				phaseObject.put("name", phase.getName());
 				phaseObject.put("status", phase.getStatus());
 				phaseObject.put("strategy", phase.getStrategy().getName());
-				phaseObject.put("errors", phase.getErrors());
 				phaseObject.put("steps", stepArray);
 			
 				//Iterate over steps.
