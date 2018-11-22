@@ -17,8 +17,6 @@ public final class RawTask {
 
   private final String cmd;
 
-  private final String labelsCsv;
-
   private final Map<String, String> env;
 
   private final WriteOnceLinkedHashMap<String, RawConfig> configs;
@@ -51,7 +49,6 @@ public final class RawTask {
       @JsonProperty("goal") String goal,
       @JsonProperty("essential") Boolean essential,
       @JsonProperty("cmd") String cmd,
-      @JsonProperty("labels") String labels,
       @JsonProperty("env") Map<String, String> env,
       @JsonProperty("configs") WriteOnceLinkedHashMap<String, RawConfig> configs,
       @JsonProperty("cpus") Double cpus,
@@ -70,7 +67,6 @@ public final class RawTask {
     this.goal = goal;
     this.essential = essential;
     this.cmd = cmd;
-    this.labelsCsv = labels;
     this.env = env;
     this.configs = configs;
     this.cpus = cpus;
@@ -129,10 +125,6 @@ public final class RawTask {
 
   public String getCmd() {
     return cmd;
-  }
-
-  public String getLabelsCsv() {
-    return labelsCsv;
   }
 
   public Map<String, String> getEnv() {

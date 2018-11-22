@@ -200,11 +200,6 @@
           "description": "any arbitrary port can be used",
           "type": "integer",
           "default": 1729
-        },
-        "labels": {
-          "description": "labels",
-          "type": "string",
-          "default": ""
         }
       },
       "required": [

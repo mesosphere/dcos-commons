@@ -9,7 +9,6 @@ pods:
     count: 2
     networks:
       dcos:
-        labels: "key1:value1"
     rlimits:
       RLIMIT_AS:
         soft: 5
@@ -45,7 +44,6 @@ pods:
         goal: RUNNING
         cmd: "echo $TASK_NAME >> $TASK_NAME$CONTAINER_PATH_SUFFIX/output && sleep $SLEEP_DURATION"
         resource-set: meta-data-resources
-        labels: "label1:label1-value,label2:label2-value"
         env:
           TASK_NAME: "meta-data"
           CONTAINER_PATH_SUFFIX: "-container-path"

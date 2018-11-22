@@ -25,7 +25,6 @@ pods:
           delay: 0
           timeout: 10
           max-consecutive-failures: 3
-        labels: {{HELLO_LABELS}}
   world:
     count: {{WORLD_COUNT}}
     allow-decommission: true

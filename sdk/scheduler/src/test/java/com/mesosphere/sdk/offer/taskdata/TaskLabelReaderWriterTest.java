@@ -8,9 +8,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -107,18 +105,6 @@ public class TaskLabelReaderWriterTest {
         builder = getTestTaskInfo().toBuilder();
         builder.setLabels(new TaskLabelWriter(builder).setType("").toProto());
         Assert.assertEquals("", new TaskLabelReader(builder).getType());
-    }
-
-    @Test
-    public void testAdditionalLabels() throws TaskException {
-        Map<String, String> labels = new HashMap<String, String>();
-        labels.put("label1", "label1-value");
-        labels.put("label2", "label2-value");
-
-        Protos.TaskInfo.Builder builder = getTestTaskInfo().toBuilder();
-        builder.setLabels(new TaskLabelWriter(builder).setAdditionalLabels(labels).toProto());
-        Assert.assertEquals("label1-value", new LabelReader("", builder.getLabels()).getOrThrow("label1"));
-        Assert.assertEquals("label2-value", new LabelReader("", builder.getLabels()).getOrThrow("label2"));
     }
 
     @Test

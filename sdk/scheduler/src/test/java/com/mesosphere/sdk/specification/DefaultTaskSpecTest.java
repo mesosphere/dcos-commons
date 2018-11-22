@@ -61,7 +61,6 @@ public class DefaultTaskSpecTest {
                         .visibility(Protos.DiscoveryInfo.Visibility.CLUSTER)
                         .build())
                 .taskKillGracePeriodSeconds(DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT)
-                .taskLabels(TestConstants.LABELS)
                 .build();
 
         DefaultTaskSpec clone = DefaultTaskSpec.newBuilder(original).build();

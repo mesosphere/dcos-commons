@@ -172,7 +172,6 @@ public class PodInstanceRequirementTestUtils {
                                 .build())
                 .goalState(GoalState.RUNNING)
                 .resourceSet(resourceSet)
-                .taskLabels(TestConstants.LABELS)
                 .build();
 
         PodSpec podSpec = DefaultPodSpec.newBuilder(type, 1, Arrays.asList(taskSpec))

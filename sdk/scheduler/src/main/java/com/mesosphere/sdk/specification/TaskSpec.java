@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -34,9 +33,6 @@ public interface TaskSpec {
 
   @JsonProperty("command-spec")
   Optional<CommandSpec> getCommand();
-
-  @JsonProperty("task-labels")
-  Map<String, String> getTaskLabels();
 
   @JsonProperty("health-check-spec")
   Optional<HealthCheckSpec> getHealthCheck();
