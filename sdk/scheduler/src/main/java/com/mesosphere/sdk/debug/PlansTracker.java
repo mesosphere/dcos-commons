@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.debug;
 
 import java.util.List;
+import java.util.HashMap;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.QueryParam;
@@ -24,8 +25,33 @@ public class PlansTracker implements DebugEndpoint {
 		this.planCoordinator = planCoordinator;
 	}
 	
-	private Response generateResponse(String u_plan, String u_phase, String u_step) {
+	private HashMap<String, JSONArray> generateServiceTopology() {
+		
+		HashMap<String, JSONArray> plansTree = new HashMap<String, JSONArray>();
+		for(PlanManager planManager: planCoordinator.getPlanManagers())
+		{
+			Plan plan = planManager.getPlan();
+			JSONArray phasesArray = new JSONArray();
+			for(Phase phase: plan.getChildren())
+			{
+				HashMap<String, JSONArray> phaseTree = new HashMap<String, JSONArray>();
+				JSONArray stepsArray = new JSONArray();
+				for(Step step: phase.getChildren())
+				{
+					stepsArray.put(step.getName());
+				}
+				phaseTree.put(phase.getName(), stepsArray);
+				phasesArray.put(phaseTree);
+			}
+			plansTree.put(plan.getName(), phasesArray);
+		}
+		return plansTree;
+	}
+	
+	private JSONObject generateServiceStatus(String u_plan, String u_phase, String u_step) {
 		JSONObject outcome = new JSONObject();
+		JSONArray plansArray = new JSONArray();
+		
 		for(PlanManager planManager: planCoordinator.getPlanManagers())
 		{
 			Plan plan  = planManager.getPlan();
@@ -36,6 +62,7 @@ public class PlansTracker implements DebugEndpoint {
 			
 			JSONObject planObject = new JSONObject();
 			JSONArray phaseArray = new JSONArray();
+			planObject.put("name", plan.getName());
 			planObject.put("status", plan.getStatus());
 			planObject.put("strategy", plan.getStrategy().getName());
 			planObject.put("errors", plan.getErrors());
@@ -89,28 +116,26 @@ public class PlansTracker implements DebugEndpoint {
 				phaseArray.put(phaseObject);
 			}
 			
-			outcome.put("(plan) "+plan.getName(), planObject);
+			plansArray.put(planObject);
 		}
-	
-		return ResponseUtils.jsonOkResponse(outcome);		
+		outcome.put("plans", plansArray);
+		return outcome;		
 	}
 
-	private Response getValidationErrorResponse(String u_plan, String u_phase, String u_step)
+	private JSONObject getValidationErrorResponse(String u_plan, String u_phase, String u_step)
 	{
 		//If a step is defined ensure both plan and phase are also provided.
 		if(u_step != null && (u_plan == null || u_phase == null))
 		{
 			JSONObject outcome = new JSONObject();
-			outcome.put("invalid_input", "Step specified without parent Phase and Plan values.");			
-			return ResponseUtils.jsonOkResponse(outcome);		
+			return outcome.put("invalid_input", "Step specified without parent Phase and Plan values.");			
 		}
 	
 		//If a phase is defined ensure parent plan is also provided.
 		if(u_phase != null && u_plan == null)
 		{
 			JSONObject outcome = new JSONObject();
-			outcome.put("invalid_input", "Phase specified without parent Plan.");			
-			return ResponseUtils.jsonOkResponse(outcome);
+			return outcome.put("invalid_input", "Phase specified without parent Plan.");			
 		}
 		
 		//Ensure correct ownership. Start with the plan.
@@ -127,8 +152,7 @@ public class PlansTracker implements DebugEndpoint {
 		if(planManagers.size() != 1)
 		{
 			JSONObject outcome = new JSONObject();
-			outcome.put("invalid_input", "Supplied plan not found in list of all available plans!");			
-			return ResponseUtils.jsonOkResponse(outcome);
+			return outcome.put("invalid_input", "Supplied plan not found in list of all available plans!");			
 		}
 			
 		//If no explicit phase defined, nothing further to do.
@@ -145,8 +169,7 @@ public class PlansTracker implements DebugEndpoint {
 		if(phaseList.size() != 1)
 		{
 			JSONObject outcome = new JSONObject();
-			outcome.put("invalid_input", "Supplied phase not found in set of possible phases with supplied plan!");			
-			return ResponseUtils.jsonOkResponse(outcome);
+			return outcome.put("invalid_input", "Supplied phase not found in set of possible phases with supplied plan!");			
 		}
 			
 		//If no explicit step defined, nothing further to do.
@@ -161,8 +184,7 @@ public class PlansTracker implements DebugEndpoint {
 		if(stepList.size() != 1)
 		{
 			JSONObject outcome = new JSONObject();
-			outcome.put("invalid_input", "Supplied step not found in set of possible steps with supplied plan and phase!");			
-			return ResponseUtils.jsonOkResponse(outcome);
+			return outcome.put("invalid_input", "Supplied step not found in set of possible steps with supplied plan and phase!");			
 		}
 		
 		//Successfully found plan, phase and step.
@@ -177,13 +199,18 @@ public class PlansTracker implements DebugEndpoint {
 		//Validate plan/phase/step if provided.
 		if(u_plan != null || u_phase != null || u_step != null)
 		{
-			Response validationErrorResponse = getValidationErrorResponse(u_plan, u_phase, u_step);
-			if(validationErrorResponse != null)
-				return validationErrorResponse;
+			JSONObject validationOutcome = getValidationErrorResponse(u_plan, u_phase, u_step);
+			if(validationOutcome != null)
+				return ResponseUtils.jsonOkResponse(validationOutcome);
 		}
 	
 		//At this point we're either returning the entire plans tree or
 		//pruning it down to a plan/phase/step which has been validated.
-		return generateResponse(u_plan, u_phase, u_step);
+	
+		JSONObject response = new JSONObject();
+		response.put("service-topology", generateServiceTopology());
+		response.put("service-status", generateServiceStatus(u_plan, u_phase, u_step));
+		
+		return ResponseUtils.jsonOkResponse(response);
 	}
 }
