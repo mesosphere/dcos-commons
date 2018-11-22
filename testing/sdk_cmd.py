@@ -409,7 +409,9 @@ def _scp(
         # -q: Don't show banner, if any is configured, and suppress other warning/diagnostic messages.
         #     In particular, avoid messages that may mess up stdout/stderr output.
         # -l <user>: Username to log in as (depends on cluster OS, default to CoreOS)
-        proxy_arg = ' -oProxyCommand="ssh {} -A -q -l {} {}:22 {}"'.format(
+        # -W <host:port>: Requests that standard input and output on the client
+        #                 be forwarded to host on port over the secure channel.
+        proxy_arg = ' -oProxyCommand="ssh {} -A -q -l {} -W {}:22 {}"'.format(
             common_args, SSH_USERNAME, host, _external_cluster_host()
         )
 
