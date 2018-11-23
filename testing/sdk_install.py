@@ -152,18 +152,25 @@ def uninstall(
         service_account,
         zk)
 
-# Portworx specific cleanups are done here. 
-def _portworx_cleanup():
+# Portworx volume specific cleanups are done here. 
+def _portworx_volcleanup():
     client = mesos.DCOSClient()
     agents = client.get_state_summary()['slaves']
+    exit_status = True
+    output_agent = ""
     # The framework tests only unmount and detach the portworx volumes created during tests
     # Find the portworx volumes and delete those.
     log.info("PORTWORX: cleanup portworx volumes")
-    exit_status, output_agent = shakedown.run_command_on_agent(agents[0]['hostname'],
-        'pxctl -j v l', 'vagrant','/ssh/key')
+    try:
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[0]['hostname'],
+            'pxctl -j v l', 'vagrant','/ssh/key')
+    except:
+        log.info("PORTWORX: Skipping portworx specific cleanups")
+        return 1
+
     if exit_status != True:
-        log.info("PORTWORX: Failed to to collect px-volume list {}".format(output_agent))
-        return
+        log.info("PORTWORX: Failed to collect px-volume list {}".format(output_agent))
+        return 1 
     
     pxvols = json.loads(output_agent)
     sleep(5) # Extra time after detach volumes before deleting. 
@@ -173,6 +180,44 @@ def _portworx_cleanup():
         exit_status, output_agent = shakedown.run_command_on_agent(agents[0]['hostname'], cmd, 'vagrant','/ssh/key')	
         if exit_status != True:
             log.info("PORTWORX: Failed to delete px-volume {} {}".format(vol['locator']['name'], output_agent))
+    return 0
+
+# Portworx cleanups on every node
+def portworx_cleanup():
+    client = mesos.DCOSClient()
+    agents = client.get_state_summary()['slaves']
+    exit_status = True
+    output_agent = ""
+
+    for i in range(len(agents)):
+        log.info("PORTWORX: i==> {} Agent hostname: {}".format(i,  agents[i]['hostname']))
+        # Skipping exit status checks
+        cmd = 'sudo systemctl stop portworx'
+        exit_status, output_agent = shakedown.run_command_on_agent('192.168.65.131', cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo docker rm portworx.service -f'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo rm -f /etc/systemd/system/portworx.service'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo rm -f /etc/systemd/system/dcos.target.wants/portworx.service'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo rm -f /etc/systemd/system/multi-user.target.wants/portworx.service'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo systemctl daemon-reload'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo /opt/pwx/bin/pxctl service node-wipe --all'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo chattr -i /etc/pwx/.private.json'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo rm -rf /etc/pwx'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo umount /opt/pwx/oci'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo rm -rf /opt/pwx'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        cmd = 'sudo rmmod px -f'
+        exit_status, output_agent = shakedown.run_command_on_agent(agents[i]['hostname'], cmd, 'vagrant','/ssh/key')
+        # Skipping exit status checks
+    return 0
 
 def _uninstall(
         package_name,
@@ -260,7 +305,7 @@ def _uninstall(
         finally:
             sdk_utils.list_reserved_resources()
     # Call portworx specific cleanup routine at the end.
-    _portworx_cleanup()
+    _portworx_volcleanup()
 
 def merge_dictionaries(dict1, dict2):
     if (not isinstance(dict2, dict)):

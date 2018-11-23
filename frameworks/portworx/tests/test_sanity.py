@@ -7,7 +7,6 @@ import sdk_upgrade
 import shakedown
 from tests import config
 
-
 @pytest.fixture(scope='module', autouse=True)
 def configure_package(configure_security):
     try:
@@ -36,7 +35,7 @@ def test_uninstall_package():
 # Do post uninstall cleanup
 @pytest.mark.sanity
 def test_post_uninstall_cleanup():
-    assert sdk_cmd.run_system_cmd(config.PX_CLEANUP_SCRIPT_PATH) == 0
+    assert sdk_install.portworx_cleanup() == 0
 
 # Upgrade portworx
 @pytest.mark.sanity
@@ -45,7 +44,5 @@ def test_upgrade_framework():
     sdk_upgrade.test_upgrade(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
-        config.DEFAULT_TASK_COUNT)
-
-#TODO
-# Update portworx options
+        config.DEFAULT_TASK_COUNT,
+        additional_options=sdk_install.merge_dictionaries(sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS, config.PX_NODE_OPTIONS))
