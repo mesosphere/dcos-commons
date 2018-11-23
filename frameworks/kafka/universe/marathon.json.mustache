@@ -15,6 +15,15 @@
     "DCOS_SERVICE_SCHEME": "http"
   },
   {{#service.service_account_secret}}
+  "container": {
+    "type": "MESOS",
+    "volumes": [
+      {
+        "containerPath": "secrets/service-account.json",
+        "secret": "serviceCredential"
+      }
+    ]
+  },
   "secrets": {
     "serviceCredential": {
       "source": "{{service.service_account_secret}}"
@@ -36,7 +45,6 @@
     "KAFKA_URI": "{{resource.assets.uris.kafka-tgz}}",
     "KAFKA_JAVA_URI": "{{resource.assets.uris.kafka-jre-tar-gz}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
-    "MESOS_API_VERSION": "{{service.mesos_api_version}}",
     "KAFKA_STATSD_URI": "{{resource.assets.uris.kafka-statsd-jar}}",
     "CLIENT_STATSD_URI": "{{resource.assets.uris.statsd-client-jar}}",
     "SETUP_HELPER_URI": "{{resource.assets.uris.setup-helper-zip}}",
@@ -75,8 +83,8 @@
     "BROKER_PORT": "{{brokers.port}}",
 
     {{#service.service_account_secret}}
-    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
-    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
+    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": "secrets/service-account.json",
+    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\",\"parameters\":[{\"key\":\"service_account_credential\",\"value\":\"file://secrets/service-account.json\"}]},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"service_account_credential\",\"value\":\"file://secrets/service-account.json\"},{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
@@ -132,7 +140,7 @@
     "KAFKA_ZOOKEEPER_URI": "{{kafka.kafka_zookeeper_uri}}",
 
     {{#kafka.kafka_advertise_host_ip}}
-    "TASKCFG_ALL_KAFKA_ADVERTISE_HOST" : "set",
+    "TASKCFG_ALL_KAFKA_ADVERTISE_HOST" : "true",
     {{/kafka.kafka_advertise_host_ip}}
 
     "TASKCFG_ALL_KAFKA_RESERVED_BROKER_MAX_ID": "{{kafka.reserved_broker_max_id}}",

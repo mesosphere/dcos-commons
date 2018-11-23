@@ -8,15 +8,15 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  */
 @JsonDeserialize(as = DefaultReadinessCheckSpec.class)
 public interface ReadinessCheckSpec {
-    @JsonProperty("command")
-    String getCommand();
+  @JsonProperty("command")
+  String getCommand();
 
-    @JsonProperty("delay")
-    Integer getDelay();
+  @JsonProperty("delay")
+  Integer getDelay();
 
-    @JsonProperty("interval")
-    Integer getInterval();
+  @JsonProperty("interval")
+  Integer getInterval();
 
-    @JsonProperty("timeout")
-    Integer getTimeout();
+  @JsonProperty("timeout")
+  Integer getTimeout();
 }

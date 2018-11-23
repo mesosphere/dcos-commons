@@ -93,7 +93,11 @@ public class ArtifactQueriesTest {
         when(mockPodSpec.getType()).thenReturn("pod");
         when(mockPodSpec.getTasks()).thenReturn(Arrays.asList(mockTaskSpec));
         when(mockTaskSpec.getName()).thenReturn("task");
-        ConfigFileSpec configSpec = new DefaultConfigFileSpec("conffile", "../conf/confpath.xml", "content goes here");
+        ConfigFileSpec configSpec = DefaultConfigFileSpec.newBuilder()
+                .name("conffile")
+                .relativePath("../conf/confpath.xml")
+                .templateContent("content goes here")
+                .build();
         when(mockTaskSpec.getConfigFiles()).thenReturn(Arrays.asList(configSpec));
         Response r = ArtifactQueries.getTemplate(mockConfigStore, uuid.toString(), "pod", "task", "conffile");
         assertEquals(200, r.getStatus());

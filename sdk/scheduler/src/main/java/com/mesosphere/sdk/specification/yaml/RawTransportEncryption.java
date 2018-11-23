@@ -5,23 +5,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Raw YAML transport encryption.
  */
-public class RawTransportEncryption {
-    private final String name;
-    private final String type;
+public final class RawTransportEncryption {
+  private final String name;
 
-    private RawTransportEncryption(
-            @JsonProperty("name") String name,
-            @JsonProperty("type") String type) {
-        this.name = name;
-        this.type = type;
-    }
+  private final String type;
 
-    public String getName() {
+  private RawTransportEncryption(
+      @JsonProperty("name") String name,
+      @JsonProperty("type") String type)
+  {
+    this.name = name;
+    this.type = type;
+  }
 
-        return name;
-    }
+  public String getName() {
 
-    public String getType() {
-        return type;
-    }
+    return name;
+  }
+
+  public String getType() {
+    return type;
+  }
 }

@@ -41,27 +41,22 @@ public class MultiServiceRunnerTest {
         MockitoAnnotations.initMocks(this);
     }
 
-    @Test
+    @Test(expected = IllegalArgumentException.class)
     public void checkSchemaVersionFails() throws Exception {
         // Set up a schema version which shouldn't work, to verify that the schema version is being checked:
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         persister.set("SchemaVersion", "123".getBytes(StandardCharsets.UTF_8));
 
-        MultiServiceRunner.Builder runnerBuilder =
-                MultiServiceRunner.newBuilder(mockSchedulerConfig, mockFrameworkConfig, persister, mockClient);
-        try {
-            runnerBuilder.build();
-            Assert.fail("Expected exception due to bad schema version");
-        } catch (IllegalStateException e) {
-            Assert.assertEquals(
-                    "Storage schema version 123 is not supported by this software (expected: 2)", e.getMessage());
-        }
+        MultiServiceRunner
+                .newBuilder(mockSchedulerConfig, mockFrameworkConfig, persister, mockClient)
+                .build();
+        Assert.fail("Expected exception due to bad schema version");
     }
 
     @Test
     public void checkSchemaVersionSucceeds() throws Exception {
         // Set up a schema version which shouldn't work, to verify that the schema version is being checked:
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         persister.set("SchemaVersion", "2".getBytes(StandardCharsets.UTF_8));
 
         MultiServiceRunner.newBuilder(mockSchedulerConfig, mockFrameworkConfig, persister, mockClient).build();

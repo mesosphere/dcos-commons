@@ -1,11 +1,9 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.Constants;
+
 import java.util.Collection;
 import java.util.stream.Collectors;
-
-import static com.mesosphere.sdk.offer.Constants.DECOMMISSION_PLAN_NAME;
-import static com.mesosphere.sdk.offer.Constants.DEPLOY_PLAN_NAME;
-import static com.mesosphere.sdk.offer.Constants.RECOVERY_PLAN_NAME;
 
 /**
  * Defines the interface for a collection of one or more {@link Phase}s, along with any errors encountered while
@@ -23,25 +21,24 @@ import static com.mesosphere.sdk.offer.Constants.RECOVERY_PLAN_NAME;
  * list of one or more error messages to be shown to the user.
  */
 public interface Plan extends ParentElement<Phase> {
-    default Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
-        Collection<Phase> candidatePhases = getStrategy().getCandidates(getChildren(), dirtyAssets);
-        Collection<Step> candidateSteps = candidatePhases.stream()
-                .map(phase -> phase.getStrategy().getCandidates(phase.getChildren(), dirtyAssets))
-                .flatMap(steps -> steps.stream())
-                .collect(Collectors.toList());
+  default Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
+    return getStrategy()
+        .getCandidates(getChildren(), dirtyAssets)
+        .stream()
+        .map(phase -> phase.getStrategy().getCandidates(phase.getChildren(), dirtyAssets))
+        .flatMap(Collection::stream)
+        .collect(Collectors.toList());
+  }
 
-        return candidateSteps;
-    }
+  default boolean isDeployPlan() {
+    return getName().equals(Constants.DEPLOY_PLAN_NAME);
+  }
 
-    default boolean isDeployPlan() {
-        return getName().equals(DEPLOY_PLAN_NAME);
-    }
+  default boolean isRecoveryPlan() {
+    return getName().equals(Constants.RECOVERY_PLAN_NAME);
+  }
 
-    default boolean isRecoveryPlan() {
-        return getName().equals(RECOVERY_PLAN_NAME);
-    }
-
-    default boolean isDecommissionPlan() {
-        return getName().equals(DECOMMISSION_PLAN_NAME);
-    }
+  default boolean isDecommissionPlan() {
+    return getName().equals(Constants.DECOMMISSION_PLAN_NAME);
+  }
 }

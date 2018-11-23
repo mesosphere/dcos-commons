@@ -29,6 +29,7 @@ tools/template
 *.log
 *.pem
 .pytest_cache/
+__pycache__
 
 # idea
 *.i??
@@ -61,3 +62,6 @@ frameworks/*/*-universe-url*
 
 # OS X
 .DS_Store
+
+# service diagnostics
+/service-diagnostic-bundles

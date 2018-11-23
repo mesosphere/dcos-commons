@@ -43,78 +43,6 @@ Although all SDK services written today store metadata in ZooKeeper, this is an 
 
 They store the desired configuration of a service and all relevant information regarding Mesos tasks, respectively, but the precise format or location of the underlying data may be customized.  For example, the data may be stored in ZooKeeper, but in a different format, or the data may be stored in a different persistent storage like etcd.  The defaults should be reasonable for most developers, however. Support for optional customization via drop-in replacement is a common pattern throughout the SDK.
 
-# Pre-requisites
-
-1. `dcos-commmons` checked out locally on your machine.
-
-  ```bash
-  $ git clone git@github.com:mesosphere/dcos-commons.git
-  $ cd dcos-commons
-  ```
-
-1. Access to a DC/OS 1.8 (or newer) cluster.
-
-1. The DC/OS CLI [installed](https://docs.mesosphere.com/latest/cli/install/) and [configured](https://docs.mesosphere.com/latest/cli/configure/) to point to your cluster.
-
-1. [Required AWS credentials set in your environment](https://github.com/mesosphere/dcos-commons/blob/master/tools/README.md#environment-variables).
-
-1. The [AWS CLI](https://aws.amazon.com/cli/) and [Go (1.8 or newer)](https://golang.org/dl/) installed.
-
-# Getting Started
-
-
-1. Create your framework.
-
-   ```bash
-   $ ./new-framework.sh frameworks/myframework
-   $ cd frameworks/myframework
-   ```
-
-   `new-framework.sh` creates a skeleton framework.  You will extend
-   this skeleton.
-
-1. View `svc.yml`.
-
-   Take a look at `src/main/dist/svc.yml`.  This is the YAML file that defines your framework.  You will be editing this file.
-
-1. View `Main.java`.
-
-   Take a look at `src/main/java/com/mesosphere/sdk/myframework/scheduler/Main.java`.  This is the main method for your scheduler, which will be run in DC/OS via Marathon.  It reads `svc.yml`, which defines its behavior.  If you need any advanced functionality not provided by YAML, such as complex deployment plans, you will write it here.
-
-1. Build a [package](#packaging). You must run the build.sh that is within `frameworks/myframework` directory that was just generated.
-
-   ```bash
-   $ ./build.sh aws
-   ```
-
-   You will deploy your framework to DC/OS as a
-   [package](#packaging).  `build.sh` creates this package and uploads it to an AWS S3 bucket that is used to make it available to a DC/OS cluster.
-
-1. Install your package.
-
-   `build.sh` prints instructions for installing the package that look something like this:
-
-   ```bash
-   $ dcos package repo remove myframework-aws
-   $ dcos package repo add --index=0 myframework-aws https://mybucket.s3.amazonaws.com/stub-universe-myframework.zip
-   $ dcos package install --yes myframework
-   ```
-
-   Navigate to the [DC/OS Services UI](https://docs.mesosphere.com/latest/gui/#services) to view the deployment.
-
-1. Uninstall your package.
-
-   ```
-   $ dcos package uninstall myframework
-   $ dcos node ssh --master-proxy --leader "docker run mesosphere/janitor /janitor.py -r myframework-role -p myframework-principal -z dcos-service-myframework"
-   ```
-
-   The second command above runs the **janitor** script.  The janitor
-   script runs inside the DC/OS cluster, cleaning up ZooKeeper state
-   and resource reservations made by a framework.  DC/OS will soon
-   support uninstall hooks so this can happen automatically, but for
-   now, you must manually run the janitor script as shown above.
-
 # Introduction to DC/OS Service Definitions
 
 At the highest level of abstraction, a DC/OS service breaks down into *which* tasks to launch and *how* to launch them. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) defines what a service is and [Plan](#plans)[s] define how to control it in deployment, update, and failure scenarios. The [ServiceSpec](https://github.com/mesosphere/dcos-commons/blob/master/sdk/scheduler/src/main/java/com/mesosphere/sdk/specification/ServiceSpec.java) and [Plan](#plans)[s] are [packaged](#packaging) so that the service can be deployed on a DC/OS cluster from Universe.
@@ -198,7 +126,9 @@ Since a single pod instance was requested via the *count* element, only a single
 
 ## Plans
 
-In the simple example above, it is obvious *how* to deploy this service.  It consists of a single task that launches . For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks. You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
+In the simple example above, it is obvious *how* to deploy this service.  It consists of a launching a single task. For more complex services with multiple pods, the SDK allows the definition of *plans* to orchestrate the deployment of tasks. You can learn more about the full capabilities of plans [here](#plan-execution) and [here](#custom-plans-java).
+
+For more in-depth information about how Plans work internally, see the [Plans and Deployment](../plans/) documentation.
 
 ### Default Deployment Plan
 
@@ -1123,6 +1053,28 @@ Specifying that pods join a virtual network has the following indirect effects:
     * This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.
   * A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.
 
+## Label-Based Discovery
+
+Some external tools such as [Taefik](https://docs.traefik.io) require tasks to be configured with custom labels which are accessed by reading Mesos state. Below is an example of specifying labels for a task in your service spec YAML:
+
+```
+name: "hello-world"
+pods:
+  hello:
+    count: 1
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: "echo hello >> hello-container-path/output && sleep 1000"
+        cpus: 0.2
+        memory: 256
+        labels: "traefik.enable:true,traefik.frontend.entryPoints:http,traefik.frontend.rule:PathPrefix:/"
+        ports:
+          http:
+          port: 8080
+          advertise: true
+```
+
 # Metrics
 ## Default
 Schedulers generate a set of default metrics.  Metrics are reported in three main categories: offers, operations, and status messages.
@@ -1154,57 +1106,57 @@ The JSON representation of the metrics is available at the `/v1/metrics` endpoin
 ###### JSON
 ```json
 {
-	"version": "3.1.3",
-	"gauges": {},
-	"counters": {
-		"declines.long": {
-			"count": 15
-		},
-		"offers.processed": {
-			"count": 18
-		},
-		"offers.received": {
-			"count": 18
-		},
-		"operation.create": {
-			"count": 5
-		},
-		"operation.launch_group": {
-			"count": 3
-		},
-		"operation.reserve": {
-			"count": 20
-		},
-		"revives": {
-			"count": 3
-		},
-		"task_status.task_running": {
-			"count": 6
-		}
-	},
-	"histograms": {},
-	"meters": {},
-	"timers": {
-		"offers.process": {
-			"count": 10,
-			"max": 0.684745927,
-			"mean": 0.15145255818999337,
-			"min": 5.367950000000001E-4,
-			"p50": 0.0035879090000000002,
-			"p75": 0.40317217800000005,
-			"p95": 0.684745927,
-			"p98": 0.684745927,
-			"p99": 0.684745927,
-			"p999": 0.684745927,
-			"stddev": 0.24017017290826104,
-			"m15_rate": 0.5944843686231079,
-			"m1_rate": 0.5250565015924039,
-			"m5_rate": 0.583689104996544,
-			"mean_rate": 0.3809369986002824,
-			"duration_units": "seconds",
-			"rate_units": "calls/second"
-		}
-	}
+    "version": "3.1.3",
+    "gauges": {},
+    "counters": {
+        "declines.long": {
+            "count": 15
+        },
+        "offers.processed": {
+            "count": 18
+        },
+        "offers.received": {
+            "count": 18
+        },
+        "operation.create": {
+            "count": 5
+        },
+        "operation.launch_group": {
+            "count": 3
+        },
+        "operation.reserve": {
+            "count": 20
+        },
+        "revives": {
+            "count": 3
+        },
+        "task_status.task_running": {
+            "count": 6
+        }
+    },
+    "histograms": {},
+    "meters": {},
+    "timers": {
+        "offers.process": {
+            "count": 10,
+            "max": 0.684745927,
+            "mean": 0.15145255818999337,
+            "min": 5.367950000000001E-4,
+            "p50": 0.0035879090000000002,
+            "p75": 0.40317217800000005,
+            "p95": 0.684745927,
+            "p98": 0.684745927,
+            "p99": 0.684745927,
+            "p999": 0.684745927,
+            "stddev": 0.24017017290826104,
+            "m15_rate": 0.5944843686231079,
+            "m1_rate": 0.5250565015924039,
+            "m5_rate": 0.583689104996544,
+            "mean_rate": 0.3809369986002824,
+            "duration_units": "seconds",
+            "rate_units": "calls/second"
+        }
+    }
 }
 ```
 
@@ -1339,7 +1291,7 @@ name: secret-svc/instance2
 pods:
   pod-with-image:
     count: {{COUNT}}
-    image: ubuntu:14.04
+    image: ubuntu:18.04
     user: nobody
     secrets:
       secret_name4:
@@ -1578,7 +1530,7 @@ Unit tests that follow the pattern described above will be automatically run on 
 
 ## Integration tests
 
-Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The library that provides the majority of the functionality required to write such tests is called [shakedown](https://github.com/dcos/shakedown). Shakedown provides capabilities that make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The hello-world framework provides [some example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py).
+Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The SDK provides utilities in its [testing/](http://github.com/mesosphere/dcos-commons/tree/master/testing) directory centered around writing these tests. These make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The reference hello-world framework provides many [example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py) which are used to validate SDK behavior.
 
 You can run integration tests manually using `py.test`.  The
 integration tests assume you have a running DC/OS cluster, and have

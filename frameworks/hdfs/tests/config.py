@@ -2,9 +2,10 @@ import json
 import logging
 import os
 import retrying
-import shakedown
+import uuid
 
 import sdk_cmd
+import sdk_hosts
 import sdk_plan
 import sdk_tasks
 import sdk_utils
@@ -18,19 +19,18 @@ FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
 DEFAULT_TASK_COUNT = 10  # 3 data nodes, 3 journal nodes, 2 name nodes, 2 zkfc nodes
 
 TEST_CONTENT_SMALL = "This is some test data"
-# use long-read alignments to human chromosome 1 as large file input (11GB)
-TEST_CONTENT_LARGE_SOURCE = "http://s3.amazonaws.com/nanopore-human-wgs/chr1.sorted.bam"
 DEFAULT_HDFS_TIMEOUT = 5 * 60
 HDFS_POD_TYPES = {"journal", "name", "data"}
-DOCKER_IMAGE_NAME = "nvaziri/hdfs-client:stable"
 KEYTAB = "hdfs.keytab"
 HADOOP_VERSION = "hadoop-2.6.0-cdh5.9.1"
+
+DOCKER_IMAGE_NAME = "mesosphere/hdfs-testing-client:6972ea3833c9449111aceaa998e3e093a9c8dcee"
+CLIENT_APP_NAME = "hdfs-client"
 
 
 def get_kerberized_hdfs_client_app():
     app_def_path = "{current_dir}/../tools/docker-client/{client_id}".format(
-        current_dir=os.path.dirname(os.path.realpath(__file__)),
-        client_id="hdfsclient.json"
+        current_dir=os.path.dirname(os.path.realpath(__file__)), client_id="hdfsclient.json"
     )
     with open(app_def_path) as f:
         app_def = json.load(f)
@@ -38,96 +38,146 @@ def get_kerberized_hdfs_client_app():
     return app_def
 
 
+def hadoop_command(command):
+    return "/{}/bin/hdfs {}".format(HADOOP_VERSION, command)
+
+
 def hdfs_command(command):
-    return "/{}/bin/hdfs dfs -{}".format(HADOOP_VERSION, command)
+    return hadoop_command("dfs -{}".format(command))
 
 
-def hdfs_write_command(content_to_write, filename):
-    return "echo {} | /{}/bin/hdfs dfs -put - {}".format(content_to_write, HADOOP_VERSION, filename)
+def get_unique_filename(prefix: str) -> str:
+    return "{}.{}".format(prefix, str(uuid.uuid4()))
 
 
-def write_data_to_hdfs(service_name, filename, content_to_write=TEST_CONTENT_SMALL):
-    rc, _ = run_hdfs_command(service_name, hdfs_write_command(content_to_write, filename))
-    # rc being True is effectively it being 0...
-    return rc
+def hdfs_client_write_data(
+        filename,
+        expect_failure_message=None,
+        content_to_write=TEST_CONTENT_SMALL,
+) -> tuple:
+    def success_check(rc, stdout, stderr):
+        if rc == 0 and not stderr:
+            # rc is still zero even if the "put" command failed! This is because "task exec" eats the return code.
+            # Therefore we must also check stderr to tell if the command actually succeeded.
+            # In practice, stderr is empty when a "put" operation has succeeded.
+            return True
+        elif expect_failure_message and expect_failure_message in stderr:
+            # The expected failure message has occurred. Stop trying.
+            return True
+        elif "File exists" in stderr:
+            # If the command returned an error of "File exists", then assume the write had succeeded on a previous run.
+            # This can happen when e.g. the write succeeded in a previous attempt, but then the connection flaked, or
+            # if hdfs had previously successfully completed the write when also outputting some warning on stderr.
+            log.info("Ignoring failure: Looks like the data was successfully written in a previous attempt")
+            return True
+        else:
+            # Try again
+            return False
+
+    success, stdout, stderr = run_client_command(
+        "echo {} | {}".format(content_to_write, hdfs_command("put - {}".format(filename))),
+        success_check=success_check,
+    )
+    assert success, "Failed to write {}: {}".format(filename, stderr)
+    return (success, stdout, stderr)
 
 
-def hdfs_read_command(filename):
-    return "/{}/bin/hdfs dfs -cat {}".format(HADOOP_VERSION, filename)
+def hdfs_client_read_data(
+        filename,
+        expect_failure_message=None,
+        content_to_verify=TEST_CONTENT_SMALL,
+) -> tuple:
+    def success_check(rc, stdout, stderr):
+        if rc == 0 and stdout.rstrip() == content_to_verify:
+            # rc only tells us if the 'task exec' operation itself failed. It is zero when the hdfs command fails.
+            # This is because "task exec" eats that return code.
+            # However, we CANNOT just check for an empty stderr here because hdfs can put superfluous warnings there even when the operation succeeds.
+            # So to determine success, we just directly check that the content of stdout matches what we're looking for.
+            # Example stderr garbage:
+            #   18/08/22 02:43:28 WARN shortcircuit.DomainSocketFactory: error creating DomainSocket
+            #   java.net.ConnectException: connect(2) error: No such file or directory when trying to connect to 'dn_socket'
+            #   ...
+            return True
+        elif expect_failure_message and expect_failure_message in stderr:
+            # The expected failure message has occurred. Stop trying.
+            return True
+        else:
+            # Try again
+            return False
+
+    success, stdout, stderr = run_client_command(
+        hdfs_command("cat {}".format(filename)),
+        success_check=success_check,
+    )
+    assert success, "Failed to read {}, or content didn't match expected value '{}': {}".format(filename, content_to_verify, stderr)
+    return (success, stdout, stderr)
 
 
-def read_data_from_hdfs(service_name, filename):
-    rc, output = run_hdfs_command(service_name, hdfs_read_command(filename))
-    return rc and output.rstrip() == TEST_CONTENT_SMALL
+def hdfs_client_list_files(filename) -> tuple:
+    return run_client_command(hdfs_command("ls {}".format(filename)))
 
 
-def hdfs_delete_file_command(filename):
-    return "/{}/bin/hdfs dfs -rm /{}".format(HADOOP_VERSION, filename)
-
-
-def delete_data_from_hdfs(service_name, filename):
-    rc, _ = run_hdfs_command(service_name, hdfs_delete_file_command(filename))
-    return rc
-
-
-def write_lots_of_data_to_hdfs(service_name, filename):
-    write_command = "wget {} -qO- | /{}/bin/hdfs dfs -put /{}"\
-        .format(TEST_CONTENT_LARGE_SOURCE, HADOOP_VERSION, filename)
-    rc, _ = run_hdfs_command(service_name, write_command)
-    return rc
-
-
-def get_active_name_node(service_name):
-    name_node_0_status = get_name_node_status(service_name, "name-0-node")
-    if name_node_0_status == "active":
-        return "name-0-node"
-
-    name_node_1_status = get_name_node_status(service_name, "name-1-node")
-    if name_node_1_status == "active":
-        return "name-1-node"
-
-    raise Exception("Failed to determine active name node")
-
-
-@retrying.retry(
-    wait_fixed=1000,
-    stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
-    retry_on_result=lambda res: not res)
-def get_name_node_status(service_name, name_node):
-    rc, output = run_hdfs_command(service_name, "/{}/bin/hdfs haadmin -getServiceState {}"
-                                  .format(HADOOP_VERSION, name_node))
-    if not rc:
-        return rc
-
-    return output.strip()
-
-
-def run_hdfs_command(service_name, command):
+def get_hdfs_client_app(service_name, kerberos=None) -> dict:
     """
-    Execute the command using the Docker client
+    Returns a Marathon app definition for an HDFS client against the specified service.
+
+    This app should be installed AFTER the service is up and running, or else it may fail with an error like:
+
+    18/08/21 20:36:57 FATAL conf.Configuration: error parsing conf core-site.xml
+           org.xml.sax.SAXParseException; Premature end of file.
     """
-    def get_bash_command(cmd: str, environment: str) -> str:
-        """
-        TODO: This has been copied from the Kafka auth tests and should be made
-        a util.
-        """
-        env_str = "{} && ".format(environment) if environment else ""
+    app = {
+        "id": CLIENT_APP_NAME,
+        "mem": 1024,
+        "user": "nobody",
+        "container": {
+            "type": "MESOS",
+            "docker": {"image": DOCKER_IMAGE_NAME, "forcePullImage": True},
+        },
+        "networks": [{"mode": "host"}],
+        "env": {
+            "JAVA_HOME": "/usr/lib/jvm/default-java",
+            "KRB5_CONFIG": "/etc/krb5.conf",
+            # for foldered name in test_kerberos_auth.py:
+            "HDFS_SERVICE_NAME": sdk_hosts._safe_name(service_name),
+            "HADOOP_VERSION": HADOOP_VERSION,
+        },
+    }
 
-        return "bash -c \"{}{}\"".format(env_str, cmd)
+    if kerberos:
+        # Insert kerberos-related configuration into the client:
+        app["env"]["REALM"] = kerberos.get_realm()
+        app["env"]["KDC_ADDRESS"] = kerberos.get_kdc_address()
+        app["secrets"] = {
+            "hdfs_keytab": {
+                "source": kerberos.get_keytab_path()
+            }
+        }
+        app["container"]["volumes"] = [
+            {
+                "containerPath": "/{}/hdfs.keytab".format(HADOOP_VERSION),
+                "secret": "hdfs_keytab"
+            }
+        ]
 
-    cmd = ["docker", "run",
-           "-e", "HDFS_SERVICE_NAME={}".format(service_name),
-           DOCKER_IMAGE_NAME,
-           get_bash_command("/{}/configure-hdfs.sh && /bin/bash -c '{}'".format(HADOOP_VERSION, command), ""), ]
-    full_command = " ".join(cmd)
+    return app
 
+
+def run_client_command(hdfs_command, success_check=lambda rc, stdout, stderr: rc == 0):
+    """
+    Execute the provided shell command within the HDFS Docker client.
+    Client app must have first been installed to marathon, see using get_hdfs_client_app().
+    """
     @retrying.retry(
         wait_fixed=1000,
-        stop_max_delay=DEFAULT_HDFS_TIMEOUT*1000,
-        retry_on_result=lambda res: not res[0])
-    def fn():
-        return sdk_cmd.master_ssh(full_command)
-    return fn()
+        stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
+        retry_on_result=lambda res: not res[0],
+    )
+    def _run_client_command():
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(CLIENT_APP_NAME, "/bin/bash -c '{}'".format(hdfs_command))
+        return (success_check(rc, stdout, stderr), stdout, stderr)
+
+    return _run_client_command()
 
 
 def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=False):
@@ -146,5 +196,5 @@ def expect_recovery(service_name):
 
 
 def get_pod_type_instances(pod_type_prefix, service_name=SERVICE_NAME):
-    pod_types = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, 'pod list', json=True)
-    return [pod_type for pod_type in pod_types if pod_type.startswith(pod_type_prefix)]
+    _, stdout, _ = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, "pod list", check=True)
+    return [pod_type for pod_type in json.loads(stdout) if pod_type.startswith(pod_type_prefix)]

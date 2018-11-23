@@ -14,19 +14,20 @@ import com.mesosphere.sdk.scheduler.SchedulerConfig;
 
 public class MultiArtifactResourceTest {
 
-    @Mock SchedulerConfig mockSchedulerConfig;
+    @Mock private SchedulerConfig mockSchedulerConfig;
 
     @Before
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
         when(mockSchedulerConfig.getApiServerPort()).thenReturn(1234);
-        when(mockSchedulerConfig.getServiceTLD()).thenReturn("some.tld");
+        when(mockSchedulerConfig.getAutoipTLD()).thenReturn("some.tld");
+        when(mockSchedulerConfig.getMarathonName()).thenReturn("test-marathon");
     }
 
     @Test
     public void testGetQueuesTemplateUrl() {
         UUID uuid = UUID.randomUUID();
-        assertEquals("http://fwk-name.marathon.some.tld:1234/v1/service/job-name/artifacts/template/"
+        assertEquals("http://fwk-name.test-marathon.some.tld:1234/v1/service/job-name/artifacts/template/"
                         + uuid.toString() + "/some-pod/some-task/some-config",
                 MultiArtifactResource.getUrlFactory("fwk-name", "job-name", mockSchedulerConfig).get(uuid, "some-pod", "some-task", "some-config"));
     }
@@ -35,7 +36,7 @@ public class MultiArtifactResourceTest {
     public void testGetQueuesTemplateUrlSlashed() {
         UUID uuid = UUID.randomUUID();
         assertEquals(
-                "http://fwk-name-to-path.marathon.some.tld:1234/v1/service/path.to.job-name/artifacts/template/"
+                "http://fwk-name-to-path.test-marathon.some.tld:1234/v1/service/path.to.job-name/artifacts/template/"
                         + uuid.toString() + "/some-pod/some-task/some-config",
                 MultiArtifactResource.getUrlFactory("/path/to/fwk-name", "/path/to/job-name", mockSchedulerConfig).get(uuid, "some-pod", "some-task", "some-config"));
     }

@@ -13,8 +13,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-import javax.validation.ConstraintViolationException;
-
 /**
  * This class tests {@link DefaultPodSpec}.
  */
@@ -23,7 +21,7 @@ public class DefaultPodSpecTest {
     /**
      * Two {@link TaskSpec}s with the same name should fail validation.
      */
-    @Test(expected = ConstraintViolationException.class)
+    @Test(expected = IllegalArgumentException.class)
     public void clonePodSpecDupeNamesFail() throws InvalidRLimitException {
         TaskSpec mockTaskSpec = Mockito.mock(TaskSpec.class);
         Mockito.when(mockTaskSpec.getName()).thenReturn("test-task");
@@ -44,26 +42,31 @@ public class DefaultPodSpecTest {
     }
 
     private static PodSpec getPodSpec(List<TaskSpec> taskSpecs) throws InvalidRLimitException {
-        return new DefaultPodSpec(
-                "podtype",
-                "root",
-                5,
-                "mesosphere:image",
-                Arrays.asList(new DefaultNetworkSpec("net-name", Collections.singletonMap(5, 4), Collections.singletonMap("key", "val"))),
-                Arrays.asList(new RLimitSpec("RLIMIT_CPU", 20L, 50L)),
-                Arrays.asList(URI.create("http://example.com/artifact.tgz")),
-                taskSpecs,
-                new HostnameRule(RegexMatcher.create(".*")),
-                Arrays.asList(new DefaultVolumeSpec(
+        return DefaultPodSpec.newBuilder("podtype", 5, taskSpecs)
+                .user("root")
+                .allowDecommission(true)
+                .image("mesosphere:image")
+                .networks(Collections.singleton(DefaultNetworkSpec.newBuilder()
+                        .networkName("net-name")
+                        .portMappings(Collections.singletonMap(5, 4))
+                        .networkLabels(Collections.singletonMap("key", "val"))
+                        .build()))
+                .rlimits(Collections.singleton(new RLimitSpec("RLIMIT_CPU", 20L, 50L)))
+                .uris(Collections.singleton(URI.create("http://example.com/artifact.tgz")))
+                .placementRule(new HostnameRule(RegexMatcher.create(".*")))
+                .volumes(Collections.singleton(DefaultVolumeSpec.createRootVolume(
                         100,
-                        VolumeSpec.Type.ROOT,
                         TestConstants.CONTAINER_PATH,
                         TestConstants.ROLE,
                         TestConstants.PRE_RESERVED_ROLE,
-                        TestConstants.PRINCIPAL)),
-                "slave_public",
-                Arrays.asList(new DefaultSecretSpec("secretPath", "envKey", "filePath")),
-                true,
-                true);
+                        TestConstants.PRINCIPAL)))
+                .preReservedRole("slave_public")
+                .secrets(Collections.singleton(DefaultSecretSpec.newBuilder()
+                        .secretPath("secretPath")
+                        .envKey("envKey")
+                        .filePath("filePath")
+                        .build()))
+                .sharePidNamespace(true)
+                .build();
     }
 }

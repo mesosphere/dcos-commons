@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.google.common.annotations.VisibleForTesting;
-
 import com.mesosphere.sdk.offer.OfferRecommendation;
+
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -30,9 +30,8 @@ public class TestStep extends AbstractStep {
     }
 
     @Override
-    public Optional<PodInstanceRequirement> start() {
+    public void start() {
         setStatus(Status.PREPARED);
-        return getPodInstanceRequirement();
     }
 
     @Override

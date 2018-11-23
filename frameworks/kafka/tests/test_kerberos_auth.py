@@ -2,7 +2,6 @@ import logging
 import pytest
 
 import sdk_auth
-import sdk_cmd
 import sdk_install
 import sdk_networks
 import sdk_utils
@@ -15,13 +14,12 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def kerberos(configure_security):
     try:
         kerberos_env = sdk_auth.KerberosEnvironment()
 
-        principals = auth.get_service_principals(config.SERVICE_NAME,
-                                                 kerberos_env.get_realm())
+        principals = auth.get_service_principals(config.SERVICE_NAME, kerberos_env.get_realm())
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
 
@@ -31,8 +29,8 @@ def kerberos(configure_security):
         kerberos_env.cleanup()
 
 
-@pytest.fixture(scope='module', autouse=True)
-def kafka_server(kerberos):
+@pytest.fixture(scope="module", autouse=True)
+def kafka_server(kerberos, kafka_client: client.KafkaClient):
     """
     A pytest fixture that installs a Kerberized kafka service.
 
@@ -44,14 +42,11 @@ def kafka_server(kerberos):
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc": {
-                        "hostname": kerberos.get_host(),
-                        "port": int(kerberos.get_port())
-                    },
+                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
                     "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 }
-            }
+            },
         }
     }
 
@@ -62,51 +57,40 @@ def kafka_server(kerberos):
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
             additional_options=service_kerberos_options,
-            timeout_seconds=30 * 60)
+            timeout_seconds=30 * 60,
+        )
 
-        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME}}
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+        yield
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module")
 def kafka_client(kerberos):
     try:
-        kafka_client = client.KafkaClient("kafka-client")
-        kafka_client.install(kerberos)
+        kafka_client = client.KafkaClient(
+            "kafka-client", config.PACKAGE_NAME, config.SERVICE_NAME, kerberos
+        )
+        kafka_client.install()
 
         yield kafka_client
     finally:
         kafka_client.uninstall()
 
 
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_no_vip(kafka_server):
-    endpoints = sdk_networks.get_and_test_endpoints(kafka_server["package_name"],
-                                                    kafka_server["service"]["name"],
-                                                    "broker", 2)
-    assert "vip" not in endpoints
+    broker_endpoint = sdk_networks.get_endpoint(config.PACKAGE_NAME, config.SERVICE_NAME, "broker")
+    assert "vip" not in broker_endpoint
 
 
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
-
+def test_client_can_read_and_write(kafka_client: client.KafkaClient):
     topic_name = "authn.test"
-    sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
-                    "topic create {}".format(topic_name),
-                    json=True)
-
-    kafka_client.connect(kafka_server)
-    user = "client"
-
-    write_success, read_successes, _ = kafka_client.can_write_and_read(user, kafka_server, topic_name, kerberos)
-    assert write_success, "Write failed (user={})".format(user)
-    assert read_successes, "Read failed (user={}): " \
-                           "MESSAGES={} " \
-                           "read_successes={}".format(user,
-                                                      kafka_client.MESSAGES,
-                                                      read_successes)
+    kafka_client.create_topic(topic_name)
+    kafka_client.check_users_can_read_and_write(["client"], topic_name)

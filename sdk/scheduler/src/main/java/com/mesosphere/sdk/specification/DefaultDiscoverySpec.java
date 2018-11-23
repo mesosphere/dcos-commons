@@ -7,48 +7,79 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 
-import javax.validation.Valid;
 import java.util.Optional;
 
 /**
  * Default implementation of a {@link DiscoverySpec}.
  */
-public class DefaultDiscoverySpec implements DiscoverySpec {
-    @Valid
-    private final String prefix;
-    @Valid
-    private final Protos.DiscoveryInfo.Visibility visibility;
+public final class DefaultDiscoverySpec implements DiscoverySpec {
 
-    @JsonCreator
-    public DefaultDiscoverySpec(
-            @JsonProperty("prefix") String prefix,
-            @JsonProperty("visibility") Protos.DiscoveryInfo.Visibility visibility) {
-        this.prefix = prefix;
-        this.visibility = visibility;
+  private final String prefix;
+
+  private final Protos.DiscoveryInfo.Visibility visibility;
+
+  @JsonCreator
+  private DefaultDiscoverySpec(
+      @JsonProperty("prefix") String prefix,
+      @JsonProperty("visibility") Protos.DiscoveryInfo.Visibility visibility)
+  {
+    this.prefix = prefix;
+    this.visibility = visibility;
+  }
+
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  @Override
+  public Optional<String> getPrefix() {
+    return Optional.ofNullable(prefix);
+  }
+
+  @Override
+  public Optional<Protos.DiscoveryInfo.Visibility> getVisibility() {
+    return Optional.ofNullable(visibility);
+  }
+
+  @Override
+  public String toString() {
+    return ReflectionToStringBuilder.toString(this);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+
+  /**
+   * Builder for {@link DefaultDiscoverySpec}.
+   */
+  public static final class Builder {
+
+    private String prefix;
+
+    private Protos.DiscoveryInfo.Visibility visibility;
+
+    private Builder() {
     }
 
-    @Override
-    public Optional<String> getPrefix() {
-        return Optional.ofNullable(prefix);
+    public Builder prefix(String prefix) {
+      this.prefix = prefix;
+      return this;
     }
 
-    @Override
-    public Optional<Protos.DiscoveryInfo.Visibility> getVisibility() {
-        return Optional.ofNullable(visibility);
+    public Builder visibility(Protos.DiscoveryInfo.Visibility visibility) {
+      this.visibility = visibility;
+      return this;
     }
 
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
+    public DefaultDiscoverySpec build() {
+      return new DefaultDiscoverySpec(prefix, visibility);
     }
-
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
-
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
+  }
 }

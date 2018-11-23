@@ -6,30 +6,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Raw YAML secret.
  */
-public class RawSecret {
+public final class RawSecret {
 
-    private final String secretPath;
-    private final String envKey;
-    private final String filePath;
+  private final String secretPath;
 
-    private RawSecret(
-            @JsonProperty("secret") String secretPath,
-            @JsonProperty("env-key") String envKey,
-            @JsonProperty("file") String filePath) {
-        this.secretPath = secretPath;
-        this.envKey = envKey;
-        this.filePath = filePath;
-    }
+  private final String envKey;
 
-    public String getSecretPath() {
-        return secretPath;
-    }
+  private final String filePath;
 
-    public String getEnvKey() {
-        return envKey;
-    }
+  private RawSecret(
+      @JsonProperty("secret") String secretPath,
+      @JsonProperty("env-key") String envKey,
+      @JsonProperty("file") String filePath)
+  {
+    this.secretPath = secretPath;
+    this.envKey = envKey;
+    this.filePath = filePath;
+  }
 
-    public String getFilePath() {
-        return filePath;
-    }
+  public String getSecretPath() {
+    return secretPath;
+  }
+
+  public String getEnvKey() {
+    return envKey;
+  }
+
+  public String getFilePath() {
+    return filePath;
+  }
 }

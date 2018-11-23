@@ -38,7 +38,7 @@ public class StateStoreTest {
 
     @Before
     public void beforeEach() throws Exception {
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
         store = new StateStore(persister);
     }
 
@@ -109,7 +109,7 @@ public class StateStoreTest {
 
     @Test
     public void testStoreFetchTask() throws Exception {
-        Protos.TaskInfo testTask = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo testTask = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(testTask));
         assertEquals(testTask, store.fetchTask(TestConstants.TASK_NAME).get());
         Collection<Protos.TaskInfo> outTasks = store.fetchTasks();
@@ -193,7 +193,7 @@ public class StateStoreTest {
         assertTrue(store.fetchTasks().isEmpty());
         assertTrue(store.fetchStatuses().isEmpty());
 
-        Protos.TaskInfo taskInfoA = StateStoreUtilsTest.createTask("a");
+        Protos.TaskInfo taskInfoA = createTask("a");
         store.storeTasks(Arrays.asList(taskInfoA));
 
         assertEquals(taskInfoA, store.fetchTask("a").get());
@@ -202,7 +202,7 @@ public class StateStoreTest {
         assertEquals(taskInfoA, store.fetchTasks().iterator().next());
         assertTrue(store.fetchStatuses().isEmpty());
 
-        Protos.TaskInfo taskInfoB = StateStoreUtilsTest.createTask("b");
+        Protos.TaskInfo taskInfoB = createTask("b");
         store.storeTasks(Arrays.asList(taskInfoB));
 
         assertEquals(taskInfoB, store.fetchTask("b").get());
@@ -229,7 +229,7 @@ public class StateStoreTest {
 
     @Test
     public void testStoreFetchStatusExactMatch() throws Exception {
-        Protos.TaskInfo task = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo task = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(task));
 
         // taskstatus id must exactly match taskinfo id:
@@ -253,7 +253,7 @@ public class StateStoreTest {
 
     @Test
     public void testRepeatedStoreStatus() throws Exception {
-        Protos.TaskInfo task = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo task = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(task));
 
         // taskstatus id must exactly match taskinfo id:
@@ -277,8 +277,8 @@ public class StateStoreTest {
         assertTrue(store.fetchStatuses().isEmpty());
 
         // must have TaskInfos first:
-        Protos.TaskInfo taskA = StateStoreUtilsTest.createTask("a");
-        Protos.TaskInfo taskB = StateStoreUtilsTest.createTask("b");
+        Protos.TaskInfo taskA = createTask("a");
+        Protos.TaskInfo taskB = createTask("b");
         store.storeTasks(Arrays.asList(taskA, taskB));
 
         assertEquals(Arrays.asList("a", "b"), store.fetchTaskNames());
@@ -317,13 +317,13 @@ public class StateStoreTest {
 
     @Test
     public void testStoreStatusSucceedsOnUUIDChangeWithTaskInfoUpdate() throws Exception {
-        Protos.TaskInfo task = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo task = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(task));
         store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
         assertEquals(TASK_STATUS, store.fetchStatus(TestConstants.TASK_NAME).get());
 
         // change the taskinfo id:
-        Protos.TaskInfo taskNewId = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo taskNewId = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(taskNewId));
         store.storeStatus(TestConstants.TASK_NAME, TASK_STATUS);
         assertEquals(TASK_STATUS, store.fetchStatus(TestConstants.TASK_NAME).get());
@@ -331,7 +331,7 @@ public class StateStoreTest {
 
     @Test
     public void testStoreFetchTaskAndStatus() throws Exception {
-        Protos.TaskInfo testTask = StateStoreUtilsTest.createTask(TestConstants.TASK_NAME);
+        Protos.TaskInfo testTask = createTask(TestConstants.TASK_NAME);
         store.storeTasks(Arrays.asList(testTask));
         Collection<Protos.TaskInfo> outTasks = store.fetchTasks();
         assertEquals(1, outTasks.size());
@@ -347,7 +347,7 @@ public class StateStoreTest {
         assertTrue(store.fetchTasks().isEmpty());
         assertTrue(store.fetchStatuses().isEmpty());
 
-        Protos.TaskInfo taskInfoA = StateStoreUtilsTest.createTask("a");
+        Protos.TaskInfo taskInfoA = createTask("a");
         store.storeTasks(Arrays.asList(taskInfoA));
 
         assertEquals(taskInfoA, store.fetchTask("a").get());
@@ -568,9 +568,17 @@ public class StateStoreTest {
     private static Collection<Protos.TaskInfo> createTasks(String... taskNames) {
         List<Protos.TaskInfo> taskInfos = new ArrayList<>();
         for (String taskName : taskNames) {
-            taskInfos.add(StateStoreUtilsTest.createTask(taskName));
+            taskInfos.add(createTask(taskName));
         }
         return taskInfos;
+    }
+
+    public static Protos.TaskInfo createTask(String taskName) {
+        return Protos.TaskInfo.newBuilder()
+                .setName(taskName)
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName))
+                .setSlaveId(Protos.SlaveID.newBuilder().setValue("ignored")) // proto field required
+                .build();
     }
 
     private void checkPathNotFound(String path) {

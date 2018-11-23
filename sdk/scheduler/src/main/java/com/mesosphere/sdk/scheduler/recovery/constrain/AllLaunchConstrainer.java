@@ -14,26 +14,26 @@ import java.util.List;
  * LaunchConstrainer}s reject the task.
  */
 public class AllLaunchConstrainer implements LaunchConstrainer {
-    private List<LaunchConstrainer> constrainers;
+  private List<LaunchConstrainer> constrainers;
 
-    public AllLaunchConstrainer(LaunchConstrainer... constrainers) {
-        this.constrainers = Arrays.asList(constrainers);
-    }
+  public AllLaunchConstrainer(LaunchConstrainer... constrainers) {
+    this.constrainers = Arrays.asList(constrainers);
+  }
 
-    @Override
-    public void launchHappened(LaunchOfferRecommendation recommendation, RecoveryType recoveryType) {
-        for (LaunchConstrainer constrainer : constrainers) {
-            constrainer.launchHappened(recommendation, recoveryType);
-        }
+  @Override
+  public void launchHappened(LaunchOfferRecommendation recommendation, RecoveryType recoveryType) {
+    for (LaunchConstrainer constrainer : constrainers) {
+      constrainer.launchHappened(recommendation, recoveryType);
     }
+  }
 
-    @Override
-    public boolean canLaunch(RecoveryType recoveryType) {
-        for (LaunchConstrainer constrainer : constrainers) {
-            if (!constrainer.canLaunch(recoveryType)) {
-                return false;
-            }
-        }
-        return true;
+  @Override
+  public boolean canLaunch(RecoveryType recoveryType) {
+    for (LaunchConstrainer constrainer : constrainers) {
+      if (!constrainer.canLaunch(recoveryType)) {
+        return false;
+      }
     }
+    return true;
+  }
 }

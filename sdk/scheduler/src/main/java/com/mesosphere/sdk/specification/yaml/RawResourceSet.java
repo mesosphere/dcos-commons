@@ -5,51 +5,57 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Raw YAML ResourceSet.
  */
-public class RawResourceSet {
+public final class RawResourceSet {
 
-    private final Double cpus;
-    private final Double gpus;
-    private final Integer memory;
-    private final WriteOnceLinkedHashMap<String, RawPort> ports;
-    private final RawVolume volume;
-    private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
+  private final Double cpus;
 
-    private RawResourceSet(
-            @JsonProperty("cpus") Double cpus,
-            @JsonProperty("gpus") Double gpus,
-            @JsonProperty("memory") Integer memory,
-            @JsonProperty("ports") WriteOnceLinkedHashMap<String, RawPort> ports,
-            @JsonProperty("volume") RawVolume volume,
-            @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes) {
-        this.cpus = cpus;
-        this.gpus = gpus;
-        this.memory = memory;
-        this.ports = ports;
-        this.volume = volume;
-        this.volumes = volumes;
-    }
+  private final Double gpus;
 
-    public Double getCpus() {
-        return cpus;
-    }
+  private final Integer memory;
 
-    public Double getGpus() {
-        return gpus;
-    }
+  private final WriteOnceLinkedHashMap<String, RawPort> ports;
 
-    public Integer getMemory() {
-        return memory;
-    }
+  private final RawVolume volume;
 
-    public WriteOnceLinkedHashMap<String, RawPort> getPorts() {
-        return ports;
-    }
+  private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
 
-    public RawVolume getVolume() {
-        return volume;
-    }
+  private RawResourceSet(
+      @JsonProperty("cpus") Double cpus,
+      @JsonProperty("gpus") Double gpus,
+      @JsonProperty("memory") Integer memory,
+      @JsonProperty("ports") WriteOnceLinkedHashMap<String, RawPort> ports,
+      @JsonProperty("volume") RawVolume volume,
+      @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes)
+  {
+    this.cpus = cpus;
+    this.gpus = gpus;
+    this.memory = memory;
+    this.ports = ports;
+    this.volume = volume;
+    this.volumes = volumes;
+  }
 
-    public WriteOnceLinkedHashMap<String, RawVolume> getVolumes() {
-        return volumes;
-    }
+  public Double getCpus() {
+    return cpus;
+  }
+
+  public Double getGpus() {
+    return gpus;
+  }
+
+  public Integer getMemory() {
+    return memory;
+  }
+
+  public WriteOnceLinkedHashMap<String, RawPort> getPorts() {
+    return ports;
+  }
+
+  public RawVolume getVolume() {
+    return volume;
+  }
+
+  public WriteOnceLinkedHashMap<String, RawVolume> getVolumes() {
+    return volumes;
+  }
 }

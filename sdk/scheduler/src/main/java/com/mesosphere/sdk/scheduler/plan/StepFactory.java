@@ -11,5 +11,5 @@ import java.util.Collection;
  * needed.
  */
 public interface StepFactory {
-    Step getStep(PodInstance podInstance, Collection<String> tasksToLaunch);
+  Step getStep(PodInstance podInstance, Collection<String> tasksToLaunch);
 }

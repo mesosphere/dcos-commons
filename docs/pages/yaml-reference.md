@@ -347,7 +347,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
             port: 80 # create a VIP
         debug:
           port: 9090
-          env-var: DEBUG_PORT # advertise DEBUG_PORT=9090 in task env
+          env-key: DEBUG_PORT # advertise DEBUG_PORT=9090 in task env
       ```
 
       All ports are reserved against the same interface that Mesos uses to connect to the rest of the cluster. In practice you should only use this interface as well. Surprising behavior may result if you use a different interface than Mesos does. For example, imagine dealing with a situation where Mesos loses connectivity on `eth0`, but your service is still connected fine over `eth1`. Or vice versa.
@@ -442,6 +442,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
         <li><code>MOUNT</code> volumes are separate partitions which the cluster administrator had mounted onto the host machine as <code>/dcos/volumeN</code>. These partitions will typically have their own dedicated IO/spindles, resulting in more consistent performance. <code>MOUNT</code> volumes are reserved as a unit and are not shared across services. If a service requests a 1 GB volume and the <code>MOUNT</code> volumes are all 100 GB, then the service is getting a 100 GB volume all to itself.</li>
         </ul></div>
 
+      * `profiles`
+
+        A list of [volume profiles](https://docs.mesosphere.com/services/beta-storage/0.4.0-beta/terminology-and-concepts/#volume-profile) any of which the persistent volume should be provisioned on. This is only supported for `MOUNT` volumes in DC/OS 1.12+.
+
       * `size`
 
         The required minimum size of the volume. See reservation semantics between `ROOT` and `MOUNT` volume types above.
@@ -463,6 +467,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       * `visibility`
 
         The default visibility for the discovery information. May be `FRAMEWORK`, `CLUSTER`, or `EXTERNAL`. If unset this defaults to `CLUSTER`. See [Mesos documentation](http://mesos.apache.org/documentation/latest/app-framework-development-guide/) on service discovery for more information on these visibility values.
+
+    * `labels`
+
+        This may be used to define custom task labels which will be present in the Mesos state.
 
     * `transport-encryption`
 

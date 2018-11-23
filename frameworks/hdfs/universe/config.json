@@ -40,15 +40,6 @@
           "type": "string",
           "default": ""
         },
-        "mesos_api_version": {
-          "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
-          "type": "string",
-          "enum": [
-            "V0",
-            "V1"
-          ],
-          "default": "V1"
-        },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
@@ -107,6 +98,11 @@
                       "description": "The port of the host running a KDC for that realm."
                     }
                   }
+                },
+                "primary": {
+                  "type": "string",
+                  "description": "The Kerberos primary used by HDFS tasks. The full principal will be <service.kerberos.primary>/<mesos_dns_address>@<service.kerberos.realm>",
+                  "default": "hdfs"
                 },
                 "realm": {
                   "type": "string",
