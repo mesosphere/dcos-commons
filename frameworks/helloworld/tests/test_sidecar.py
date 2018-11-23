@@ -7,7 +7,9 @@ import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
+import sdk_upgrade
 import sdk_utils
+
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -25,6 +27,58 @@ def configure_package(configure_security):
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+@pytest.mark.sanity
+def test_envvar_accross_restarts():
+
+    class ConfigException(Exception):
+        pass
+
+    def assert_envvar_has_value(envvar: str, expected_value: str):
+        _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "env")
+        env = dict(l.strip().split("=", 1) for l in stdout.strip().split('\n'))
+        val = env.get(envvar, "absent")
+
+        if val == "absent":
+            raise ConfigException("Required envvar not found")
+
+        if val != expected_value:
+            log.error("Looking for %s=%s but found: %s", envvar, expected_value, val)
+            raise ConfigException("Envvar not set to required value")
+
+        log.info("%s has expected value %s", envvar, expected_value)
+
+    envvar = "CONFIG_SLEEP_DURATION"
+    sleep_duration = 9999
+
+    try:
+        assert_envvar_has_value(envvar, str(sleep_duration))
+    except ConfigException:
+        log.debug("%s is set to something other than %d as expected", envvar, sleep_duration)
+
+    sdk_upgrade.update_or_upgrade_or_downgrade(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        to_package_version=None,
+        additional_options={
+            "service": {"name": config.SERVICE_NAME, "sleep": sleep_duration, "yaml": "sidecar"}
+        },
+        expected_running_tasks=2,
+        wait_for_deployment=True,
+    )
+
+    log.info("Checking after update")
+    assert_envvar_has_value(envvar, str(sleep_duration))
+
+    cmd_list = ["pod", "restart", "hello-0"]
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, " ".join(cmd_list))
+
+    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
+
+    log.info("Checking after restart")
+    assert_envvar_has_value(envvar, str(sleep_duration))
 
 
 @pytest.mark.sanity

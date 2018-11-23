@@ -11,23 +11,23 @@ import java.util.Optional;
  */
 public class DeregisterStep extends UninstallStep {
 
-    public DeregisterStep(Optional<String> namespace) {
-        super("deregister", namespace);
-    }
+  public DeregisterStep(Optional<String> namespace) {
+    super("deregister", namespace);
+  }
 
-    @Override
-    public void start() {
-        if (isPending()) {
-            setStatus(Status.PREPARED);
-        }
+  @Override
+  public void start() {
+    if (isPending()) {
+      setStatus(Status.PREPARED);
     }
+  }
 
-    /**
-     * Marks this step complete after the framework has been deregistered.
-     * At this point, the overall {@code deploy} plan for uninstall should be complete, and the Scheduler process should
-     * be destroyed by DC/OS soon after.
-     */
-    public void setComplete() {
-        setStatus(Status.COMPLETE);
-    }
+  /**
+   * Marks this step complete after the framework has been deregistered.
+   * At this point, the overall {@code deploy} plan for uninstall should be complete, and the Scheduler process should
+   * be destroyed by DC/OS soon after.
+   */
+  public void setComplete() {
+    setStatus(Status.COMPLETE);
+  }
 }

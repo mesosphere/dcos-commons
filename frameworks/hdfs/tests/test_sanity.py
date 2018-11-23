@@ -58,9 +58,7 @@ def pre_test_setup():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(
-        sdk_networks.get_endpoint_string(
-            config.PACKAGE_NAME, foldered_name, "core-site.xml"
-        )
+        sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "core-site.xml")
     )
     check_properties(
         core_site,
@@ -68,9 +66,7 @@ def test_endpoints():
     )
 
     hdfs_site = etree.fromstring(
-        sdk_networks.get_endpoint_string(
-            config.PACKAGE_NAME, foldered_name, "hdfs-site.xml"
-        )
+        sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "hdfs-site.xml")
     )
     expect = {
         "dfs.namenode.shared.edits.dir": "qjournal://{}/hdfs".format(
@@ -163,6 +159,7 @@ def test_kill_scheduler():
 
     # scheduler should be restarted, but service tasks should be left as-is:
     sdk_tasks.check_tasks_updated("marathon", scheduler_task_prefix, scheduler_ids)
+    sdk_tasks.wait_for_active_framework(foldered_name)
     sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
     config.check_healthy(service_name=foldered_name)
 
@@ -356,12 +353,7 @@ def test_modify_app_config_rollback():
 
 
 @pytest.mark.sanity
-@pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
-@pytest.mark.skipif(
-    sdk_utils.dcos_version_at_least("1.12"),
-    reason="Metrics are not working on 1.12. Reenable once this is fixed",
-)
 def test_metrics():
     expected_metrics = [
         "JournalNode.jvm.JvmMetrics.ThreadsRunnable",

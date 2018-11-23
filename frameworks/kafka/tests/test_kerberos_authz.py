@@ -3,7 +3,6 @@ import logging
 import pytest
 
 import sdk_auth
-import sdk_cmd
 import sdk_install
 import sdk_utils
 
@@ -31,7 +30,7 @@ def kerberos(configure_security):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def kafka_server(kerberos):
+def kafka_server(kerberos, kafka_client: client.KafkaClient):
     """
     A pytest fixture that installs a Kerberized kafka service.
 
@@ -68,10 +67,8 @@ def kafka_server(kerberos):
             timeout_seconds=30 * 60,
         )
 
-        yield {
-            **service_options,
-            **{"package_name": config.PACKAGE_NAME, "super_principal": super_principal},
-        }
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+        yield
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -92,18 +89,10 @@ def kafka_client(kerberos):
 @pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_authz_acls_required(
-    kafka_client: client.KafkaClient, kafka_server: dict, kerberos: sdk_auth.KerberosEnvironment
-):
+def test_authz_acls_required(kafka_client: client.KafkaClient):
 
     topic_name = "authz.test"
-    sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "topic create {}".format(topic_name),
-    )
-
-    kafka_client.connect()
+    kafka_client.create_topic(topic_name)
 
     # Since no ACLs are specified, only the super user can read and write
 

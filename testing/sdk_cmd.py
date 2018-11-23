@@ -110,9 +110,14 @@ def cluster_request(
 
     def _cluster_request():
         start = time.time()
-        response = requests.request(
-            method, url, auth=auth, verify=False, timeout=timeout_seconds, **kwargs
-        )
+
+        # check if we have verify key already exists.
+        if kwargs is not None and kwargs.get('verify') is not None:
+            kwargs['verify'] = False
+            response = requests.request(method, url, auth=auth, timeout=timeout_seconds, **kwargs)
+        else:
+            response = requests.request(method, url, auth=auth, verify=False, timeout=timeout_seconds, **kwargs)
+
         end = time.time()
 
         log_msg = "(HTTP {}) {}".format(method.upper(), cluster_path)
@@ -434,7 +439,7 @@ def _internal_leader_host():
     return leader_hosts[0]["ip"]
 
 
-def marathon_task_exec(task_name: str, cmd: str) -> tuple:
+def marathon_task_exec(task_name: str, cmd: str, print_output=True) -> tuple:
     """
     Invokes the given command on the named Marathon task via `dcos task exec`.
     : param task_name: Name of task to run 'cmd' on.
@@ -445,7 +450,7 @@ def marathon_task_exec(task_name: str, cmd: str) -> tuple:
               To check for errors in underlying commands, check stderr.
     """
     # Marathon TaskIDs are of the form "<name>.<uuid>"
-    return _task_exec(task_name, cmd)
+    return _task_exec(task_name, cmd, print_output=print_output)
 
 
 def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
@@ -475,7 +480,7 @@ def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
     return rc, stdout, stderr
 
 
-def _task_exec(task_id_prefix: str, cmd: str) -> tuple:
+def _task_exec(task_id_prefix: str, cmd: str, print_output=True) -> tuple:
     if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
         # On 1.9 task exec is run relative to the host filesystem, not the container filesystem
         full_cmd = os.path.join(get_task_sandbox_path(task_id_prefix), cmd)
@@ -486,7 +491,7 @@ def _task_exec(task_id_prefix: str, cmd: str) -> tuple:
     else:
         full_cmd = cmd
 
-    return run_cli("task exec {} {}".format(task_id_prefix, cmd))
+    return run_cli("task exec {} {}".format(task_id_prefix, cmd), print_output=print_output)
 
 
 def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str = "./bootstrap") -> bool:
@@ -562,3 +567,9 @@ def _get_task_info(task_id_prefix: str) -> dict:
         ",".join([t.get("id", "NO-ID") for t in tasks]),
     )
     return {}
+
+
+def get_bash_command(cmd: str, environment: str) -> str:
+    env_str = "{} && ".format(environment) if environment else ""
+
+    return 'bash -c "{}{}"'.format(env_str, cmd)

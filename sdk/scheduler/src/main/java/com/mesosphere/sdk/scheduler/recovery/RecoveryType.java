@@ -6,20 +6,20 @@ package com.mesosphere.sdk.scheduler.recovery;
  */
 public enum RecoveryType {
 
-    /**
-     * No action is needed. No-op.
-     */
-    NONE,
+  /**
+   * No action is needed. No-op.
+   */
+  NONE,
 
-    /**
-     * Transient failure (e.g. exited when goal=RUNNING, or exited non-zero when goal=ONCE or FINISH, or
-     * 'pod restart' cmd), relaunch the task in-place without modifying its persistent volumes.
-     */
-    TRANSIENT,
+  /**
+   * Transient failure (e.g. exited when goal=RUNNING, or exited non-zero when goal=ONCE or FINISH, or
+   * 'pod restart' cmd), relaunch the task in-place without modifying its persistent volumes.
+   */
+  TRANSIENT,
 
-    /**
-     * Permanent failure (e.g. bad machine or 'pod replace' cmd), destroy the current task's state and relaunch it
-     * elsewhere from scratch.
-     */
-    PERMANENT
+  /**
+   * Permanent failure (e.g. bad machine or 'pod replace' cmd), destroy the current task's state and relaunch it
+   * elsewhere from scratch.
+   */
+  PERMANENT
 }

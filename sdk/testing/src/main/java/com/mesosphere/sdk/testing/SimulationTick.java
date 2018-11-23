@@ -5,8 +5,8 @@ package com.mesosphere.sdk.testing;
  */
 public interface SimulationTick {
 
-    /**
-     * Returns a description of this step for debugging by the user.
-     */
-    public String getDescription();
+  /**
+   * Returns a description of this step for debugging by the user.
+   */
+  public String getDescription();
 }

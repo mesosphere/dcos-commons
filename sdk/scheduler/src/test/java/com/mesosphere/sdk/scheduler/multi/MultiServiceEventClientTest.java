@@ -348,8 +348,8 @@ public class MultiServiceEventClientTest {
         Set<Integer> expectedConsumedOffers = new HashSet<>(Arrays.asList(1, 2, 3, 5, 6, 7));
         Assert.assertEquals(expectedConsumedOffers.size(), response.recommendations.size());
         for (OfferRecommendation rec : response.recommendations) {
-            Assert.assertTrue(rec.getOffer().getId().getValue(),
-                    expectedConsumedOffers.contains(Integer.parseInt(rec.getOffer().getId().getValue())));
+            Assert.assertTrue(rec.getOfferId().getValue(),
+                    expectedConsumedOffers.contains(Integer.parseInt(rec.getOfferId().getValue())));
         }
         // Verify that offers are consumed in the order we would expect:
         verify(mockClient1).offers(Arrays.asList(

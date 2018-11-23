@@ -4,13 +4,13 @@ import org.apache.mesos.Protos;
 
 /**
  * A special {@link FailureMonitor} that never fails tasks.
- *
+ * <p>
  * This is equivalent to disabling the failure detection feature.
  */
 public class NeverFailureMonitor implements FailureMonitor {
 
-    @Override
-    public boolean hasFailed(Protos.TaskInfo task) {
-        return false;
-    }
+  @Override
+  public boolean hasFailed(Protos.TaskInfo task) {
+    return false;
+  }
 }

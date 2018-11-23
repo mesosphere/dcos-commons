@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+
 import org.apache.mesos.Protos.TaskStatus;
 
 import java.util.List;
@@ -14,101 +15,102 @@ import java.util.UUID;
  * candidates for execution.
  */
 public interface Element {
-    /**
-     * Returns the unique identifier of this Element.
-     */
-    UUID getId();
+  /**
+   * Returns the unique identifier of this Element.
+   */
+  UUID getId();
 
-    /**
-     * Returns a user-visible name describing the purpose of this Element.
-     */
-    String getName();
+  /**
+   * Returns a user-visible name describing the purpose of this Element.
+   */
+  String getName();
 
-    /**
-     * Returns the {@link Status} of this Element, used to determine if the element still has work to be completed.
-     */
-    Status getStatus();
+  /**
+   * Returns the {@link Status} of this Element, used to determine if the element still has work to be completed.
+   */
+  Status getStatus();
 
-    /**
-     * Provides the Element with a recent {@link TaskStatus} update which was received from Mesos.
-     */
-    void update(TaskStatus status);
+  /**
+   * Provides the Element with a recent {@link TaskStatus} update which was received from Mesos.
+   */
+  void update(TaskStatus status);
 
-    /**
-     * Forcefully restarts the element by putting it into a {@link Status#PENDING} state.
-     */
-    void restart();
+  /**
+   * Forcefully restarts the element by putting it into a {@link Status#PENDING} state.
+   */
+  void restart();
 
-    /**
-     * Forcefully marks the element as {@link Status#COMPLETE}, cancelling any work that hasn't started.
-     */
-    void forceComplete();
+  /**
+   * Forcefully marks the element as {@link Status#COMPLETE}, cancelling any work that hasn't started.
+   */
+  void forceComplete();
 
-    /**
-     * Returns a list of user-visible descriptive error messages associated with this Element.
-     */
-    List<String> getErrors();
+  /**
+   * Returns a list of user-visible descriptive error messages associated with this Element.
+   */
+  List<String> getErrors();
 
-    /**
-     * Indicates whether this Element has encountered errors.
-     */
-    default boolean hasErrors() {
-        return getStatus().equals(Status.ERROR);
-    }
+  /**
+   * Indicates whether this Element has encountered errors.
+   */
+  default boolean hasErrors() {
+    return getStatus().equals(Status.ERROR);
+  }
 
-    /**
-     * Indicates whether this Element has been started.
-     */
-    default boolean isPending() {
-        return getStatus().equals(Status.PENDING);
-    }
+  /**
+   * Indicates whether this Element has been started.
+   */
+  default boolean isPending() {
+    return getStatus().equals(Status.PENDING);
+  }
 
-    /**
-     * Indicates whether this Element is prepared.
-     */
-    default boolean isPrepared() {
-        return getStatus().equals(Status.PREPARED);
-    }
+  /**
+   * Indicates whether this Element is prepared.
+   */
+  default boolean isPrepared() {
+    return getStatus().equals(Status.PREPARED);
+  }
 
-    /**
-     * Indicates whether the Element is starting.
-     */
-    default boolean isStarting() {
-        return getStatus().equals(Status.STARTING);
-    }
+  /**
+   * Indicates whether the Element is starting.
+   */
+  default boolean isStarting() {
+    return getStatus().equals(Status.STARTING);
+  }
 
-    /**
-     * Indicates whether the Element is starting.
-     */
-    default boolean isStarted() {
-        return getStatus().equals(Status.STARTED);
-    }
+  /**
+   * Indicates whether the Element is starting.
+   */
+  default boolean isStarted() {
+    return getStatus().equals(Status.STARTED);
+  }
 
-    /**
-     * Indicates whether this Element is complete.
-     */
-    default boolean isComplete() {
-        return getStatus().equals(Status.COMPLETE);
-    }
+  /**
+   * Indicates whether this Element is complete.
+   */
+  default boolean isComplete() {
+    return getStatus().equals(Status.COMPLETE);
+  }
 
-    /**
-     * Indicates whether this Element is prepared, starting, or in progress.
-     */
-    default boolean isRunning() {
-        return getStatus().isRunning();
-    }
+  /**
+   * Indicates whether this Element is prepared, starting, or in progress.
+   */
+  default boolean isRunning() {
+    return getStatus().isRunning();
+  }
 
-    /**
-     * Provides the Element with a set of named string parameters that it can either use on start or provide to
-     * children, if it has any.
-     */
-    default void updateParameters(Map<String, String> parameters) { }
+  /**
+   * Provides the Element with a set of named string parameters that it can either use on start or provide to
+   * children, if it has any.
+   */
+  default void updateParameters(Map<String, String> parameters) {
+  }
 
-    /**
-     * Returns a reasonable user-visible status message.
-     */
-    default String getMessage() {
-        return String.format("%s: %s [%s] with status: %s",
-                getClass().getName(), getName(), getId(), getStatus());
-    }
+  /**
+   * Returns a reasonable user-visible status message.
+   */
+  default String getMessage() {
+    return String.format("%s: %s [%s] with status: %s",
+        getClass().getName(), getName(), getId(), getStatus());
+  }
 }
