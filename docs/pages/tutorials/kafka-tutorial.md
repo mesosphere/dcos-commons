@@ -1,5 +1,6 @@
 ---
 title: Kafka Tutorial
+type: tutorial
 ---
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->

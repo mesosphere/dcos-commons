@@ -10,7 +10,6 @@ pods:
       - {{KAFKA_URI}}
       - {{KAFKA_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
-      - {{EXECUTOR_URI}}
       - {{LIBMESOS_URI}}
       - {{KAFKA_STATSD_URI}}
       - {{CLIENT_STATSD_URI}}
@@ -103,6 +102,8 @@ pods:
       {{/TASKCFG_ALL_KEYSTORE_PASSWORD}}
 
           # setup-helper determines the correct listeners and security.inter.broker.protocol.
+          # it relies on the task IP being stored in MESOS_CONTAINER_IP
+          export MESOS_CONTAINER_IP=$( ./bootstrap --get-task-ip )
           ./setup-helper
           export SETUP_HELPER_ADVERTISED_LISTENERS=`cat advertised.listeners`
           export SETUP_HELPER_LISTENERS=`cat listeners`

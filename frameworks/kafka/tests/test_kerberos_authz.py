@@ -1,30 +1,25 @@
 import logging
-import uuid
 
 import pytest
 
 import sdk_auth
-import sdk_cmd
 import sdk_install
-import sdk_marathon
 import sdk_utils
 
 from tests import auth
+from tests import client
 from tests import config
-from tests import topics
-from tests import test_utils
 
 
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def kerberos(configure_security):
     try:
         kerberos_env = sdk_auth.KerberosEnvironment()
 
-        principals = auth.get_service_principals(config.SERVICE_NAME,
-                                                 kerberos_env.get_realm())
+        principals = auth.get_service_principals(config.SERVICE_NAME, kerberos_env.get_realm())
         kerberos_env.add_principals(principals)
         kerberos_env.finalize()
 
@@ -34,8 +29,8 @@ def kerberos(configure_security):
         kerberos_env.cleanup()
 
 
-@pytest.fixture(scope='module', autouse=True)
-def kafka_server(kerberos):
+@pytest.fixture(scope="module", autouse=True)
+def kafka_server(kerberos, kafka_client: client.KafkaClient):
     """
     A pytest fixture that installs a Kerberized kafka service.
 
@@ -44,24 +39,21 @@ def kafka_server(kerberos):
 
     super_principal = "super"
 
-    service_kerberos_options = {
+    service_options = {
         "service": {
             "name": config.SERVICE_NAME,
             "security": {
                 "kerberos": {
                     "enabled": True,
-                    "kdc": {
-                        "hostname": kerberos.get_host(),
-                        "port": int(kerberos.get_port())
-                    },
-                    "realm": sdk_auth.REALM,
+                    "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
+                    "realm": kerberos.get_realm(),
                     "keytab_secret": kerberos.get_keytab_path(),
                 },
                 "authorization": {
                     "enabled": True,
-                    "super_users": "User:{}".format(super_principal)
-                }
-            }
+                    "super_users": "User:{}".format(super_principal),
+                },
+            },
         }
     }
 
@@ -71,139 +63,48 @@ def kafka_server(kerberos):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             config.DEFAULT_BROKER_COUNT,
-            additional_options=service_kerberos_options,
-            timeout_seconds=30 * 60)
+            additional_options=service_options,
+            timeout_seconds=30 * 60,
+        )
 
-        yield {**service_kerberos_options, **{"package_name": config.PACKAGE_NAME,
-                                              "super_principal": super_principal}}
+        kafka_client.connect(config.DEFAULT_BROKER_COUNT)
+        yield
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.fixture(scope='module', autouse=True)
-def kafka_client(kerberos, kafka_server):
-
-    brokers = sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "endpoint broker", json=True)["dns"]
-
+@pytest.fixture(scope="module", autouse=True)
+def kafka_client(kerberos):
     try:
-        client_id = "kafka-client"
-        client = {
-            "id": client_id,
-            "mem": 512,
-            "container": {
-                "type": "MESOS",
-                "docker": {
-                    "image": "elezar/kafka-client:latest",
-                    "forcePullImage": True
-                },
-                "volumes": [
-                    {
-                        "containerPath": "/tmp/kafkaconfig/kafka-client.keytab",
-                        "secret": "kafka_keytab"
-                    }
-                ]
-            },
-            "secrets": {
-                "kafka_keytab": {
-                    "source": kerberos.get_keytab_path(),
+        kafka_client = client.KafkaClient(
+            "kafka-client", config.PACKAGE_NAME, config.SERVICE_NAME, kerberos
+        )
+        kafka_client.install()
 
-                }
-            },
-            "networks": [
-                {
-                    "mode": "host"
-                }
-            ],
-            "env": {
-                "JVM_MaxHeapSize": "512",
-                "KAFKA_CLIENT_MODE": "test",
-                "KAFKA_TOPIC": "securetest",
-                "KAFKA_BROKER_LIST": ",".join(brokers)
-            }
-        }
-
-        sdk_marathon.install_app(client)
-        yield {**client, **{"brokers": list(map(lambda x: x.split(':')[0], brokers))}}
-
+        yield kafka_client
     finally:
-        sdk_marathon.destroy_app(client_id)
+        kafka_client.uninstall()
 
 
-@pytest.mark.dcos_min_version('1.10')
+@pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_authz_acls_required(kafka_client, kafka_server, kerberos):
-    client_id = kafka_client["id"]
-
-    auth.wait_for_brokers(kafka_client["id"], kafka_client["brokers"])
+def test_authz_acls_required(kafka_client: client.KafkaClient):
 
     topic_name = "authz.test"
-    sdk_cmd.svc_cli(kafka_server["package_name"], kafka_server["service"]["name"],
-                    "topic create {}".format(topic_name),
-                    json=True)
+    kafka_client.create_topic(topic_name)
 
-    test_utils.wait_for_topic(kafka_server["package_name"], kafka_server["service"]["name"], topic_name)
+    # Since no ACLs are specified, only the super user can read and write
 
-    message = str(uuid.uuid4())
+    kafka_client.check_users_can_read_and_write(["super"], topic_name)
+    kafka_client.check_users_are_not_authorized_to_read_and_write(
+        ["authorized", "unauthorized"], topic_name
+    )
 
-    log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not write_to_topic("authorized", client_id, topic_name, message, kerberos)
+    log.info("Writing and reading: Adding acl for authorized user")
 
-    log.info("Writing and reading: Writing to the topic, as super user")
-    assert write_to_topic("super", client_id, topic_name, message, kerberos)
+    kafka_client.add_acls("authorized", topic_name)
 
-    log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(read_from_topic("authorized", client_id, topic_name, 1, kerberos))
-
-    log.info("Writing and reading: Reading from the topic, as super user")
-    assert message in read_from_topic("super", client_id, topic_name, 1, kerberos)
-
-    zookeeper_endpoint = sdk_cmd.svc_cli(
-        kafka_server["package_name"],
-        kafka_server["service"]["name"],
-        "endpoint zookeeper").strip()
-
-    # TODO: If zookeeper has Kerberos enabled, then the environment should be changed
-    topics.add_acls("authorized", client_id, topic_name, zookeeper_endpoint, env_str=None)
-
-    # Send a second message which should not be authorized
-    second_message = str(uuid.uuid4())
-    log.info("Writing and reading: Writing to the topic, but not super user")
-    assert write_to_topic("authorized", client_id, topic_name, second_message, kerberos)
-
-    log.info("Writing and reading: Writing to the topic, as super user")
-    assert write_to_topic("super", client_id, topic_name, second_message, kerberos)
-
-    log.info("Writing and reading: Reading from the topic, but not super user")
-    topic_output = read_from_topic("authorized", client_id, topic_name, 3, kerberos)
-    assert message in topic_output
-    assert second_message in topic_output
-
-    log.info("Writing and reading: Reading from the topic, as super user")
-    topic_output = read_from_topic("super", client_id, topic_name, 3, kerberos)
-    assert message in topic_output
-    assert second_message in topic_output
-
-    # Check that the unauthorized client can still not read or write from the topic.
-    log.info("Writing and reading: Writing to the topic, but not super user")
-    assert not write_to_topic("unauthorized", client_id, topic_name, second_message, kerberos)
-
-    log.info("Writing and reading: Reading from the topic, but not super user")
-    assert auth.is_not_authorized(read_from_topic("unauthorized", client_id, topic_name, 1, kerberos))
-
-
-def write_to_topic(cn: str, task: str, topic: str, message: str, krb5: object) -> bool:
-
-    return auth.write_to_topic(cn, task, topic, message,
-                               auth.get_kerberos_client_properties(ssl_enabled=False),
-                               auth.setup_krb5_env(cn, task, krb5))
-
-
-def read_from_topic(cn: str, task: str, topic: str, messages: int, krb5: object) -> str:
-
-    return auth.read_from_topic(cn, task, topic, messages,
-                                auth.get_kerberos_client_properties(ssl_enabled=False),
-                                auth.setup_krb5_env(cn, task, krb5))
+    # After adding ACLs the authorized user and super user should still have access to the topic.
+    kafka_client.check_users_can_read_and_write(["authorized", "super"], topic_name)
+    kafka_client.check_users_are_not_authorized_to_read_and_write(["unauthorized"], topic_name)

@@ -2,7 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.mesos.Protos;
-import com.mesosphere.sdk.reconciliation.Reconciler;
+
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.junit.Assert;
@@ -25,7 +25,6 @@ public class DefaultPlanManagerTest {
     private PlanManager planManager;
 
     @Mock Step mockStep;
-    @Mock Reconciler reconciler;
     @Mock private PodInstanceRequirement podInstance0;
     @Mock private PodInstanceRequirement podInstance1;
 
@@ -211,7 +210,6 @@ public class DefaultPlanManagerTest {
 
     @Test
     public void testAllDirtyAssets() {
-        when(reconciler.isReconciled()).thenReturn(false);
         final TestStep step1 = new TestStep("test-step-0", podInstance0);
         final TestStep step2 = new TestStep("test-step-1", podInstance1);
 
@@ -243,7 +241,6 @@ public class DefaultPlanManagerTest {
 
     @Test
     public void testOneInProgressOnePending() {
-        when(reconciler.isReconciled()).thenReturn(false);
         final TestStep step1 = new TestStep("test-step-0", podInstance0);
         final TestStep step2 = new TestStep("test-step-1", podInstance1);
         final DefaultPhase phase = new DefaultPhase(
@@ -273,7 +270,6 @@ public class DefaultPlanManagerTest {
 
     @Test
     public void testOneInProgressOneComplete() {
-        when(reconciler.isReconciled()).thenReturn(false);
         final TestStep step1 = new TestStep("test-step-0", podInstance0);
         final TestStep step2 = new TestStep("test-step-1", podInstance1);
         final DefaultPhase phase = new DefaultPhase(

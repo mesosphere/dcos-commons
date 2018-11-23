@@ -5,23 +5,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Raw YAML vip.
  */
-public class RawVip {
+public final class RawVip {
 
-    private final int port;
-    private final String prefix;
+  private final int port;
 
-    private RawVip(
-            @JsonProperty("port") int port,
-            @JsonProperty("prefix") String prefix) {
-        this.port = port;
-        this.prefix = prefix;
-    }
+  private final String prefix;
 
-    public int getPort() {
-        return port;
-    }
+  private RawVip(
+      @JsonProperty("port") int port,
+      @JsonProperty("prefix") String prefix)
+  {
+    this.port = port;
+    this.prefix = prefix;
+  }
 
-    public String getPrefix() {
-        return prefix;
-    }
+  public int getPort() {
+    return port;
+  }
+
+  public String getPrefix() {
+    return prefix;
+  }
 }

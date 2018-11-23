@@ -1,7 +1,7 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
-  principal: {{SERVICE_PRINCIPAL}}
-  user: {{SERVICE_USER}}
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 web-url: http://hello-world.marathon.mesos:{{PORT_API}}
 pods:
   hello:

@@ -1,7 +1,7 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
-  principal: {{SERVICE_PRINCIPAL}}
-  user: {{SERVICE_USER}}
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
@@ -25,6 +25,7 @@ pods:
           delay: 0
           timeout: 10
           max-consecutive-failures: 3
+        labels: {{HELLO_LABELS}}
   world:
     count: {{WORLD_COUNT}}
     allow-decommission: true
@@ -57,11 +58,11 @@ pods:
           vol1:
             path: world-container-path1
             type: ROOT
-            size: {{HELLO_DISK}}
+            size: {{WORLD_DISK}}
           vol2:
             path: world-container-path2
             type: ROOT
-            size: {{HELLO_DISK}}
+            size: {{WORLD_DISK}}
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         readiness-check:

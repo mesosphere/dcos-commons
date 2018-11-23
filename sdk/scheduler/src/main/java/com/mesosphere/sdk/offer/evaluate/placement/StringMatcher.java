@@ -9,8 +9,8 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public interface StringMatcher {
 
-    /**
-     * Returns whether the provided string matches some internal criteria.
-     */
-    public boolean matches(String value);
+  /**
+   * Returns whether the provided string matches some internal criteria.
+   */
+  boolean matches(String value);
 }

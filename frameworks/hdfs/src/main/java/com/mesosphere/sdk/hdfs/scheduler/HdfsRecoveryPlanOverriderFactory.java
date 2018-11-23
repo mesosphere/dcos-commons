@@ -12,22 +12,22 @@ import java.util.Optional;
  * This class generates {@link HdfsRecoveryPlanOverrider}s.
  */
 public class HdfsRecoveryPlanOverriderFactory implements RecoveryPlanOverriderFactory {
-    private static final String REPLACE_PLAN_NAME = "replace";
+  private static final String REPLACE_PLAN_NAME = "replace";
 
-    @Override
-    public RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans) {
-        return new HdfsRecoveryPlanOverrider(stateStore, getNameNodeReplacementPlan(plans));
+  @Override
+  public RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans) {
+    return new HdfsRecoveryPlanOverrider(stateStore, getNameNodeReplacementPlan(plans));
+  }
+
+  private Plan getNameNodeReplacementPlan(Collection<Plan> plans) {
+    Optional<Plan> planOptional = plans.stream()
+        .filter(plan -> plan.getName().equals(REPLACE_PLAN_NAME))
+        .findFirst();
+
+    if (planOptional.isPresent()) {
+      return planOptional.get();
+    } else {
+      throw new RuntimeException("Failed to find plan: " + REPLACE_PLAN_NAME);
     }
-
-    private Plan getNameNodeReplacementPlan(Collection<Plan> plans) {
-        Optional<Plan> planOptional = plans.stream()
-                .filter(plan -> plan.getName().equals(REPLACE_PLAN_NAME))
-                .findFirst();
-
-        if (planOptional.isPresent()) {
-            return planOptional.get();
-        } else {
-            throw new RuntimeException("Failed to find plan: " + REPLACE_PLAN_NAME);
-        }
-    }
+  }
 }

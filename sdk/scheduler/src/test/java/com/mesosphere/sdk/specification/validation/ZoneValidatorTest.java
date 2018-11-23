@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification.validation;
 
 import com.mesosphere.sdk.config.validate.ConfigValidationError;
+import com.mesosphere.sdk.config.validate.ZoneValidator;
 import com.mesosphere.sdk.offer.evaluate.placement.ExactMatcher;
 import com.mesosphere.sdk.offer.evaluate.placement.HostnameRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
@@ -18,13 +19,12 @@ import java.util.*;
  * This class tests the {@link ZoneValidator} class.
  */
 public class ZoneValidatorTest {
-    private static final ZoneValidator validator = new ZoneValidator();
     private static final String POD_TYPE = TestConstants.POD_TYPE;
     private static final String TASK_NAME = TestConstants.TASK_NAME;
 
     @Test
     public void noOldConfig() {
-        Collection<ConfigValidationError> errors = validator.validate(
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(
                 Optional.empty(), null, POD_TYPE);
         Assert.assertTrue(errors.isEmpty());
     }
@@ -36,8 +36,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec(newTaskSpec);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -48,8 +47,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec(true);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -60,8 +58,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(oldTaskSpec);
         ServiceSpec newSpec = getServiceSpec(false);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -70,8 +67,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(true);
         ServiceSpec newSpec = getServiceSpec(false);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -80,8 +76,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(false);
         ServiceSpec newSpec = getServiceSpec(true);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertEquals(1, errors.size());
     }
 
@@ -90,8 +85,7 @@ public class ZoneValidatorTest {
         ServiceSpec oldSpec = getServiceSpec(true);
         ServiceSpec newSpec = getServiceSpec(true);
 
-        Collection<ConfigValidationError> errors = validator.validate(
-                Optional.of(oldSpec), newSpec, POD_TYPE);
+        Collection<ConfigValidationError> errors = ZoneValidator.validate(Optional.of(oldSpec), newSpec, POD_TYPE);
         Assert.assertTrue(errors.isEmpty());
     }
 
@@ -115,7 +109,7 @@ public class ZoneValidatorTest {
                                 .id(TestConstants.RESOURCE_SET_ID)
                                 .cpus(1.0)
                                 .memory(256.)
-                                .addVolume(VolumeSpec.Type.ROOT.toString(), 4096., TestConstants.CONTAINER_PATH)
+                                .addRootVolume(4096., TestConstants.CONTAINER_PATH)
                                 .build())
                 .commandSpec(DefaultCommandSpec.newBuilder(Collections.emptyMap())
                         .value("./server")
@@ -129,11 +123,8 @@ public class ZoneValidatorTest {
     }
 
     private static PodSpec getPodSpec(TaskSpec taskSpec) {
-        return DefaultPodSpec.newBuilder("test-executor")
-                .type(POD_TYPE)
-                .count(1)
+        return DefaultPodSpec.newBuilder(POD_TYPE, 1, Arrays.asList(taskSpec))
                 .user(TestConstants.SERVICE_USER)
-                .tasks(Arrays.asList(taskSpec))
                 .build();
     }
 
@@ -142,14 +133,14 @@ public class ZoneValidatorTest {
     }
 
     private static ServiceSpec getServiceSpec(PodSpec podSpec) {
-        return new DefaultServiceSpec(
-                TestConstants.SERVICE_NAME,
-                TestConstants.ROLE,
-                TestConstants.PRINCIPAL,
-                "http://web-url",
-                "http://zookeeper",
-                Arrays.asList(podSpec),
-                null,
-                TestConstants.SERVICE_USER);
+        return DefaultServiceSpec.newBuilder()
+                .name(TestConstants.SERVICE_NAME)
+                .role(TestConstants.ROLE)
+                .principal(TestConstants.PRINCIPAL)
+                .user(TestConstants.SERVICE_USER)
+                .webUrl("http://web-url")
+                .zookeeperConnection("http://zookeeper")
+                .pods(Collections.singletonList(podSpec))
+                .build();
     }
 }

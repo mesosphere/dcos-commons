@@ -1,0 +1,14 @@
+#!/bin/bash
+
+set -x
+
+DATE_STAMP="$(date +%Y%m%d)"
+SOURCE_COMMIT=${SOURCE_COMMIT:-$(git rev-parse HEAD)}
+
+additional_tags=("${SOURCE_COMMIT}" "${DATE_STAMP}-${SOURCE_COMMIT}")
+
+for tag in ${additional_tags[@]}; do
+    target="${DOCKER_REPO}:${tag}"
+    docker tag ${IMAGE_NAME} ${target}
+    docker push ${target}
+done

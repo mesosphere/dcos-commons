@@ -1,6 +1,6 @@
 # Go vendor hack
 
-This directory contains the dependencies for both the service CLIs, and for the `bootstrap` utility.
+This directory contains the dependencies for service CLIs and for the `bootstrap` utility.
 
 This is a workaround for the Go tooling being confused by e.g. `github.com/mesosphere/dcos-commons/frameworks/myframework/cli/` pointing into `github.com/mesosphere/dcos-commons/cli/` when using vendoring.
 

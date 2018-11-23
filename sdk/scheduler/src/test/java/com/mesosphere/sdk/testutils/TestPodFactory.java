@@ -30,6 +30,16 @@ public class TestPodFactory {
                 DISK);
     }
 
+    public static TaskSpec getTaskSpecWithGoalState(String name, String resourceSetId, GoalState goalState) {
+        return getTaskSpec(
+                name,
+                CMD.getValue(),
+                null,
+                getResourceSet(resourceSetId, CPU, MEM, DISK),
+                Collections.emptyList(),
+                goalState);
+    }
+
     public static TaskSpec getTaskSpec(String name, String resourceSetId, String dnsPrefix) {
         return getTaskSpec(
                 name,
@@ -91,16 +101,28 @@ public class TestPodFactory {
             String dnsPrefix,
             ResourceSet resourceSet,
             Collection<ConfigFileSpec> configs) {
+        return getTaskSpec(name, cmd, dnsPrefix, resourceSet, configs, GoalState.RUNNING);
+    }
+
+    public static TaskSpec getTaskSpec(
+            String name,
+            String cmd,
+            String dnsPrefix,
+            ResourceSet resourceSet,
+            Collection<ConfigFileSpec> configs,
+            GoalState goalState) {
         return DefaultTaskSpec.newBuilder()
                 .name(name)
-                .goalState(GoalState.RUNNING)
+                .goalState(goalState)
                 .resourceSet(resourceSet)
                 .commandSpec(DefaultCommandSpec.newBuilder(Collections.emptyMap())
                         .value(cmd)
                         .environment(Collections.emptyMap())
                         .build())
                 .configFiles(configs)
-                .discoverySpec(new DefaultDiscoverySpec(dnsPrefix, null))
+                .discoverySpec(DefaultDiscoverySpec.newBuilder()
+                        .prefix(dnsPrefix)
+                        .build())
                 .build();
     }
 
@@ -109,7 +131,7 @@ public class TestPodFactory {
                 .id(id)
                 .cpus(cpu)
                 .memory(mem)
-                .addVolume(VolumeSpec.Type.ROOT.toString(), disk, TestConstants.CONTAINER_PATH)
+                .addRootVolume(disk, TestConstants.CONTAINER_PATH)
                 .build();
     }
 
@@ -164,11 +186,6 @@ public class TestPodFactory {
     }
 
     public static PodSpec getPodSpec(String type, String user, int count, List<TaskSpec> taskSpecs) {
-        return DefaultPodSpec.newBuilder("test-executor")
-                .type(type)
-                .count(count)
-                .user(user)
-                .tasks(taskSpecs)
-                .build();
+        return DefaultPodSpec.newBuilder(type, count, taskSpecs).user(user).build();
     }
 }

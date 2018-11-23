@@ -1,6 +1,10 @@
-Refer to the [top-level tutorial document](../../docs/pages/developer-guide.md).
+# Hello World service
 
-# Sample configuration files
+This service is used to test and demonstrate SDK features. It doesn't do much on its own.
+
+For more information about service development, see the [SDK docs site](https://mesosphere.github.io/dcos-commons/).
+
+## Sample configuration files
 
 The default example [svc.yml](src/main/dist/svc.yml) has two pods, with volumes and is used in the 'official' `hello-world` package.
 
@@ -18,14 +22,13 @@ See [marathon.json.mustache](universe/marathon.json.mustache) for more informati
     "MARATHON_SINGLE_INSTANCE_APP":"true",
     "DCOS_SERVICE_NAME": "{{service.name}}",
     "DCOS_SERVICE_PORT_INDEX": "0",
-    "DCOS_SERVICE_SCHEME": "http”
+    "DCOS_SERVICE_SCHEME": "http"
 [...]
   "portDefinitions": [
     {
       "port": 0,
       "protocol": "tcp",
-      "name": "api",
-      "labels": { "VIP_0": "/api.{{service.name}}:80" }
+      "name": "api"
     }
 [...]
 ```

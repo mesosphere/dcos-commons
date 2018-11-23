@@ -1,7 +1,7 @@
 name: {{FRAMEWORK_NAME}}
 scheduler:
-  principal: {{SERVICE_PRINCIPAL}}
-  user: {{SERVICE_USER}}
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
 pods:
   hello:
     count: {{HELLO_COUNT}}
@@ -47,7 +47,7 @@ pods:
           max-consecutive-failures: 3
 plans:
   deploy:
-    strategy: serial-canary
+    strategy: serial
     phases:
       hello-deploy:
         strategy: parallel-canary

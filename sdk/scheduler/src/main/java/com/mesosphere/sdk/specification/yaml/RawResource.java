@@ -5,30 +5,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Raw YAML resource.
  */
-public class RawResource {
+public final class RawResource {
 
-    private final String name;
-    private final String value;
-    private final String envKey;
+  private final String name;
 
-    private RawResource(
-            @JsonProperty("name") String name,
-            @JsonProperty("value") String value,
-            @JsonProperty("env-key") String envKey) {
-        this.name = name;
-        this.value = value;
-        this.envKey = envKey;
-    }
+  private final String value;
 
-    public String getName() {
-        return name;
-    }
+  private final String envKey;
 
-    public String getValue() {
-        return value;
-    }
+  private RawResource(
+      @JsonProperty("name") String name,
+      @JsonProperty("value") String value,
+      @JsonProperty("env-key") String envKey)
+  {
+    this.name = name;
+    this.value = value;
+    this.envKey = envKey;
+  }
 
-    public String getEnvKey() {
-        return envKey;
-    }
+  public String getName() {
+    return name;
+  }
+
+  public String getValue() {
+    return value;
+  }
+
+  public String getEnvKey() {
+    return envKey;
+  }
 }

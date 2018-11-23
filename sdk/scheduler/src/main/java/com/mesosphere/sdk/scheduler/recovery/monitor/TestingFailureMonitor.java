@@ -12,18 +12,18 @@ import java.util.List;
  * will be treated as stopped.
  */
 public class TestingFailureMonitor implements FailureMonitor {
-    private List<TaskInfo> failedList;
+  private List<TaskInfo> failedList;
 
-    public TestingFailureMonitor(TaskInfo... failed) {
-        this.failedList = Arrays.asList(failed);
-    }
+  public TestingFailureMonitor(TaskInfo... failed) {
+    this.failedList = Arrays.asList(failed);
+  }
 
-    public void setFailedList(TaskInfo... failed) {
-        this.failedList = Arrays.asList(failed);
-    }
+  public void setFailedList(TaskInfo... failed) {
+    this.failedList = Arrays.asList(failed);
+  }
 
-    @Override
-    public boolean hasFailed(TaskInfo task) {
-        return failedList.stream().anyMatch(task::equals);
-    }
+  @Override
+  public boolean hasFailed(TaskInfo task) {
+    return failedList.stream().anyMatch(task::equals);
+  }
 }

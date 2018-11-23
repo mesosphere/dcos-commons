@@ -1,3 +1,0 @@
-With transport encryption enabled, DC/OS {{ include.techName }} will automatically deploy all nodes with the correct configuration to encrypt communication via SSL. The nodes will communicate securely between themselves using SSL.{% if include.plaintext == "true" %} Optionally, plaintext communication can be left open to clients.{% endif %}
-
-The service uses the [DC/OS CA](https://docs.mesosphere.com/latest/security/ent/tls-ssl/) to generate the SSL artifacts that it uses to secure the service. Any client that trusts the DC/OS CA will consider the service's certificates valid.

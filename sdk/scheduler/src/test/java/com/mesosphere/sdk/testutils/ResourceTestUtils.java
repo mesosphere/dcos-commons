@@ -31,12 +31,16 @@ public class ResourceTestUtils {
         return ResourceUtils.getPersistenceId(diskResource).get();
     }
 
-    public static Protos.Resource getReservedMountVolume(double diskSize) {
-        return getReservedMountVolume(diskSize, TestConstants.RESOURCE_ID, TestConstants.PERSISTENCE_ID);
+    public static Protos.Resource getReservedMountVolume(double diskSize, Optional<String> profile) {
+        return getReservedMountVolume(diskSize, profile, TestConstants.RESOURCE_ID, TestConstants.PERSISTENCE_ID);
     }
 
-    public static Protos.Resource getReservedMountVolume(double diskSize, String resourceId, String persistenceId) {
-        Protos.Resource.Builder builder = getUnreservedMountVolume(diskSize).toBuilder();
+    public static Protos.Resource getReservedMountVolume(
+            double diskSize,
+            Optional<String> profile,
+            String resourceId,
+            String persistenceId) {
+        Protos.Resource.Builder builder = getUnreservedMountVolume(diskSize, profile).toBuilder();
         builder.getDiskBuilder().getPersistenceBuilder()
                 .setId(persistenceId)
                 .setPrincipal(TestConstants.PRINCIPAL);
@@ -51,9 +55,8 @@ public class ResourceTestUtils {
     }
 
     public static Protos.Resource getReservedRootVolume(double diskSize, String resourceId, String persistenceId) {
-        VolumeSpec volumeSpec = new DefaultVolumeSpec(
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createRootVolume(
                 diskSize,
-                VolumeSpec.Type.ROOT,
                 TestConstants.CONTAINER_PATH,
                 TestConstants.ROLE,
                 Constants.ANY_ROLE,
@@ -61,7 +64,9 @@ public class ResourceTestUtils {
         return ResourceBuilder.fromSpec(
                 volumeSpec,
                 Optional.of(resourceId),
+                Optional.empty(),
                 Optional.of(persistenceId),
+                Optional.empty(),
                 Optional.empty())
                 .build();
     }
@@ -83,15 +88,15 @@ public class ResourceTestUtils {
     }
 
     public static Protos.Resource getUnreservedCpus(double cpus, String preReservedRole) {
-        return getUnreservedScalar("cpus", cpus, preReservedRole);
+        return getUnreservedScalar(Constants.CPUS_RESOURCE_TYPE, cpus, preReservedRole);
     }
 
     public static Protos.Resource getUnreservedMem(double mem, String preReservedRole) {
-        return getUnreservedScalar("mem", mem, preReservedRole);
+        return getUnreservedScalar(Constants.MEMORY_RESOURCE_TYPE, mem, preReservedRole);
     }
 
     public static Protos.Resource getUnreservedDisk(double disk, String preReservedRole) {
-        return getUnreservedScalar("disk", disk, preReservedRole);
+        return getUnreservedScalar(Constants.DISK_RESOURCE_TYPE, disk, preReservedRole);
     }
 
     public static Protos.Resource getUnreservedCpus(double cpus) {
@@ -113,11 +118,12 @@ public class ResourceTestUtils {
         return getUnreservedResource(name, builder.build(), role);
     }
 
-    public static Protos.Resource getUnreservedMountVolume(double diskSize) {
+    public static Protos.Resource getUnreservedMountVolume(double diskSize, Optional<String> profile) {
         Protos.Resource.Builder builder = getUnreservedDisk(diskSize).toBuilder();
-        builder.getDiskBuilder().getSourceBuilder()
-                .setType(Protos.Resource.DiskInfo.Source.Type.MOUNT)
-                .getMountBuilder().setRoot(TestConstants.MOUNT_ROOT);
+        builder.getDiskBuilder().setSource(TestConstants.MOUNT_DISK_SOURCE);
+        if (profile.isPresent()) {
+            builder.getDiskBuilder().getSourceBuilder().setProfile(profile.get());
+        }
         return builder.build();
     }
 
@@ -127,23 +133,24 @@ public class ResourceTestUtils {
         builder.getRangesBuilder().addRangeBuilder()
                 .setBegin(begin)
                 .setEnd(end);
-        return getUnreservedResource("ports", builder.build(), Constants.ANY_ROLE);
+        return getUnreservedResource(Constants.PORTS_RESOURCE_TYPE, builder.build(), Constants.ANY_ROLE);
     }
 
     @SuppressWarnings("deprecation") // for Resource.setRole()
     private static Protos.Resource.Builder addReservation(
             Protos.Resource.Builder builder, String resourceId) {
+        Protos.Resource.ReservationInfo.Builder reservationBuilder;
         if (Capabilities.getInstance().supportsPreReservedResources()) {
-            Protos.Resource.ReservationInfo.Builder reservationBuilder = builder.addReservationsBuilder()
+            reservationBuilder = builder.addReservationsBuilder()
                     .setRole(TestConstants.ROLE)
                     .setPrincipal(TestConstants.PRINCIPAL);
-            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         } else {
             builder.setRole(TestConstants.ROLE);
-            Protos.Resource.ReservationInfo.Builder reservationBuilder = builder.getReservationBuilder()
+            reservationBuilder = builder.getReservationBuilder()
                     .setPrincipal(TestConstants.PRINCIPAL);
-            AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         }
+        AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
+        AuxLabelAccess.setResourceNamespace(reservationBuilder, TestConstants.SERVICE_NAME);
         return builder;
     }
 

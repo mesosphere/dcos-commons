@@ -20,7 +20,6 @@ $REPO_ROOT_DIR/tools/build_package.sh \
     elastic \
     $FRAMEWORK_DIR \
     -a "$FRAMEWORK_DIR/build/distributions/$(basename $FRAMEWORK_DIR)-scheduler.zip" \
-    -a "$REPO_ROOT_DIR/sdk/executor/build/distributions/executor.zip" \
     -a "$REPO_ROOT_DIR/sdk/bootstrap/bootstrap.zip" \
     -a "$REPO_ROOT_DIR/sdk/cli/dcos-service-cli-linux" \
     -a "$REPO_ROOT_DIR/sdk/cli/dcos-service-cli-darwin" \
@@ -31,8 +30,8 @@ $REPO_ROOT_DIR/tools/build_package.sh \
 if [ "$UNIVERSE_URL_PATH" ]; then
     # append kibana stub universe URL to UNIVERSE_URL_PATH file (used in CI):
     KIBANA_URL_PATH=${UNIVERSE_URL_PATH}.kibana
-    UNIVERSE_URL_PATH=$KIBANA_URL_PATH $FRAMEWORK_DIR/build-kibana.sh $1
+    UNIVERSE_URL_PATH=$KIBANA_URL_PATH $FRAMEWORK_DIR/build-kibana.sh $1 $2
     cat $KIBANA_URL_PATH >> $UNIVERSE_URL_PATH
 else
-    $FRAMEWORK_DIR/build-kibana.sh $1
+    $FRAMEWORK_DIR/build-kibana.sh $1 $2
 fi

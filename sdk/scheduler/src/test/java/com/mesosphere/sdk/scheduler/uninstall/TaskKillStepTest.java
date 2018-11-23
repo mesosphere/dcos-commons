@@ -1,6 +1,6 @@
 package com.mesosphere.sdk.scheduler.uninstall;
 
-import com.mesosphere.sdk.scheduler.Driver;
+import com.mesosphere.sdk.framework.Driver;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import org.apache.mesos.Protos;
 import org.apache.mesos.SchedulerDriver;
@@ -28,13 +28,14 @@ public class TaskKillStepTest {
     @Test
     public void testStart() {
         TaskKillStep step = createStep();
-        Assert.assertEquals(Optional.empty(), step.start());
+        step.start();
+        Assert.assertEquals(Optional.empty(), step.getPodInstanceRequirement());
         Assert.assertEquals(Status.COMPLETE, step.getStatus());
         Mockito.verify(driver).killTask(taskID);
     }
 
     private TaskKillStep createStep() {
-        TaskKillStep step = new TaskKillStep(taskID);
+        TaskKillStep step = new TaskKillStep(taskID, Optional.empty());
         return step;
     }
 }

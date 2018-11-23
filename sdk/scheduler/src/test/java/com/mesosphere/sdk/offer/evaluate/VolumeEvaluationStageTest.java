@@ -19,7 +19,7 @@ import java.util.UUID;
 public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
     @Test
     public void testCreateSucceeds() throws Exception {
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(2000, Optional.empty());
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
@@ -28,8 +28,8 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
-                getTaskName(podInstanceRequirement.getPodInstance()),
-                true);
+                Collections.singleton(getTaskName(podInstanceRequirement.getPodInstance())),
+                Optional.empty());
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
                         mesosResourcePool,
@@ -37,10 +37,10 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
+                                PodTestUtils.getTemplateUrlFactory(),
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
-                                true,
                                 Collections.emptyMap()));
         Assert.assertTrue(outcome.isPassing());
 
@@ -48,9 +48,9 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals(2, outcome.getOfferRecommendations().size());
 
         OfferRecommendation reserveRecommendation = recommendations.get(0);
-        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, reserveRecommendation.getOperation().getType());
+        Assert.assertEquals(Protos.Offer.Operation.Type.RESERVE, reserveRecommendation.getOperation().get().getType());
 
-        Protos.Resource resource = reserveRecommendation.getOperation().getReserve().getResources(0);
+        Protos.Resource resource = reserveRecommendation.getOperation().get().getReserve().getResources(0);
         Assert.assertEquals("disk", resource.getName());
         Assert.assertEquals(resource.getScalar(), offeredResource.getScalar());
         Protos.Resource.ReservationInfo reservationInfo = ResourceUtils.getReservation(resource).get();
@@ -59,8 +59,8 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         Assert.assertNotEquals(reservationLabel.getValue(), "");
 
         OfferRecommendation createRecommendation = recommendations.get(1);
-        resource = createRecommendation.getOperation().getCreate().getVolumes(0);
-        Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, createRecommendation.getOperation().getType());
+        resource = createRecommendation.getOperation().get().getCreate().getVolumes(0);
+        Assert.assertEquals(Protos.Offer.Operation.Type.CREATE, createRecommendation.getOperation().get().getType());
         Assert.assertEquals("disk", resource.getName());
         Assert.assertEquals(resource.getScalar(), offeredResource.getScalar());
         reservationInfo = ResourceUtils.getReservation(resource).get();
@@ -72,7 +72,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testCreateFails() throws Exception {
-        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(1000);
+        Protos.Resource offeredResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.empty());
         Protos.Offer offer = OfferTestUtils.getCompleteOffer(offeredResource);
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
@@ -81,8 +81,8 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
-                getTaskName(podInstanceRequirement.getPodInstance()),
-                true);
+                Collections.singleton(getTaskName(podInstanceRequirement.getPodInstance())),
+                Optional.empty());
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
                         mesosResourcePool,
@@ -90,20 +90,20 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
+                                PodTestUtils.getTemplateUrlFactory(),
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 Collections.emptyList(),
                                 TestConstants.FRAMEWORK_ID,
-                                true,
                                 Collections.emptyMap()));
         Assert.assertFalse(outcome.isPassing());
         Assert.assertEquals(0, outcome.getOfferRecommendations().size());
     }
 
-    private VolumeSpec getVolumeSpec(PodInstance podInstance) {
+    private static VolumeSpec getVolumeSpec(PodInstance podInstance) {
         return podInstance.getPod().getTasks().get(0).getResourceSet().getVolumes().stream().findFirst().get();
     }
 
-    private String getTaskName(PodInstance podInstance) {
+    private static String getTaskName(PodInstance podInstance) {
         return podInstance.getPod().getTasks().get(0).getName();
     }
 }

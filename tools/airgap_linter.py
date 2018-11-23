@@ -13,11 +13,20 @@ import sys
 import os
 
 
-def extract_uris(file_name):
-    with open(file_name, "r") as file:
-        lines = file.readlines()
+def readlines_if_text_file(filename):
+    try:
+        with open(filename, "r", encoding="utf8") as fh:
+            return fh.readlines()
+    except UnicodeDecodeError as e:
+        msg = "Skipping extracting uris from file `{}`, looks like binary one: {}"
+        print(msg.format(filename, e))
+        return []
 
-    matcher = re.compile(".*https?:\/\/([^\/\?]*)", re.IGNORECASE)
+
+def extract_uris(file_name):
+    lines = readlines_if_text_file(file_name)
+
+    matcher = re.compile(r".*https?:\/\/([^\?\s]*)", re.IGNORECASE)
     matches = []
     for line in lines:
         line = line.strip()
@@ -51,11 +60,18 @@ def is_bad_uri(uri, file_name):
     exceptions = [
         ".thisdcos",
         ".mesos:",
+        ".mesos/",
         "$MESOS_CONTAINER_IP",
         "${MESOS_CONTAINER_IP}",
+        "$LIBPROCESS_IP",
+        "${LIBPROCESS_IP}",
+        "{{LIBPROCESS_IP}}",
         "{{FRAMEWORK_HOST}}",
         "$FRAMEWORK_HOST",
         "${FRAMEWORK_HOST}",
+        "{{SCHEDULER_API_HOSTNAME}}",
+        "${SCHEDULER_API_HOSTNAME}",
+        "$SCHEDULER_API_HOSTNAME",
     ]
 
     # Are any of the exceptions present?
@@ -63,15 +79,23 @@ def is_bad_uri(uri, file_name):
         if exception in uri:
             return False
 
-    print("Found a bad URI:", uri, "in:", file_name,
-                "Export URIs to resource.json to allow packaging for airgapped clusters.")
+    print(
+        "Found a bad URI:",
+        uri,
+        "in:",
+        file_name,
+        "Export URIs to resource.json to allow packaging for airgapped clusters.",
+    )
 
     return True
 
+
 def get_files_to_check_for_uris(framework_directory):
     # There's a set of files that will always be present.
-    files = [os.path.join(framework_directory, "universe", "config.json"),
-             os.path.join(framework_directory, "universe", "marathon.json.mustache")]
+    files = [
+        os.path.join(framework_directory, "universe", "config.json"),
+        os.path.join(framework_directory, "universe", "marathon.json.mustache"),
+    ]
 
     # Always check every file in the `dist` directory of the scheduler.
     dist_dir = os.path.join(framework_directory, "src", "main", "dist")
@@ -96,31 +120,36 @@ def validate_all_uris(framework_directory):
 def validate_images(framework_directory):
     files = get_files_to_check_for_uris(framework_directory)
 
-    for file in files:
-        with open(file, "r") as file:
-            lines = file.readlines()
+    bad_image = False
+    for file_name in files:
+        lines = readlines_if_text_file(file_name)
 
-        bad_image = False
         for line in lines:
             line = line.strip()
             if "image:" in line:
                 image_matcher = re.compile("image:\s?(.*)$", re.IGNORECASE)
                 match = image_matcher.match(line)
                 image_path = match.group(1)
-                env_var_matcher = re.compile("\{\{[A-Z0-9_]*\}\}")
+                env_var_matcher = re.compile("[\"]?\{\{[A-Z0-9_]*\}\}[\"]?")
                 if not env_var_matcher.match(image_path):
-                    print("""Bad image found in {}. It is a direct reference instead of a templated reference: {}
-                    Export images to resource.json to allow packaging for airgapped clusters.""".format(file, image_path))
+                    print(
+                        """Bad image found in {}. It is a direct reference instead of a templated reference: {}
+                    Export images to resource.json to allow packaging for airgapped clusters.""".format(
+                            file_name, image_path
+                        )
+                    )
                     bad_image = True
 
     return not bad_image
 
 
 def print_help():
-    print("""Scans a framework for any airgap issues. Checks all files for external URIs,
+    print(
+        """Scans a framework for any airgap issues. Checks all files for external URIs,
 and docker images for direct references
 
-usage: python airgap_linter.py <framework-directory>""")
+usage: python airgap_linter.py <framework-directory>"""
+    )
 
 
 def main(argv):
@@ -131,7 +160,11 @@ def main(argv):
     framework_directory = argv[1]
 
     if not os.path.isdir(framework_directory):
-        print("Supplied framework directory", framework_directory, "does not exist or is not a directory.")
+        print(
+            "Supplied framework directory",
+            framework_directory,
+            "does not exist or is not a directory.",
+        )
 
     uris_valid = validate_all_uris(framework_directory)
     images_valid = validate_images(framework_directory)
@@ -144,12 +177,16 @@ def main(argv):
         invalid = True
 
     if invalid:
-        print("Airgap check FAILED. This framework will NOT work in an airgap. Fix the detected issues.")
+        print(
+            "Airgap check FAILED. This framework will NOT work in an airgap. Fix the detected issues."
+        )
         sys.exit(1)
 
-    print("Airgap check complete. This framework will probably work in an airgapped cluster, but for the love of everything test that.")
+    print(
+        "Airgap check complete. This framework will probably work in an airgapped cluster, but for the love of everything test that."
+    )
     sys.exit(0)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     sys.exit(main(sys.argv))

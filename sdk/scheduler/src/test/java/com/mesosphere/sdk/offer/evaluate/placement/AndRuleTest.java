@@ -22,11 +22,8 @@ import static org.junit.Assert.*;
  * Tests for {@link AndRule}.
  */
 public class AndRuleTest {
-    private static final PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-            .type("type")
-            .count(1)
-            .tasks(Arrays.asList(TestPodFactory.getTaskSpec()))
-            .build();
+    private static final PodSpec podSpec =
+            DefaultPodSpec.newBuilder("type", 1, Arrays.asList(TestPodFactory.getTaskSpec())).build();
     private static final PodInstance POD_INSTANCE = new DefaultPodInstance(podSpec, 0);
 
     @Test

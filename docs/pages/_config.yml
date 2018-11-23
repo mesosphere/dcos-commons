@@ -3,7 +3,7 @@ defaults:
     scope:
       path: ""
     values:
-      layout: "layout.pug"
+      layout: "layout"
       stylesheet: "layout.css"
       menuWeight: 999
 plugins:

@@ -1,0 +1,29 @@
+name: {{FRAMEWORK_NAME}}
+pods:
+  hello:
+    count: 2
+    tasks:
+      first:
+        goal: RUNNING
+        cmd: echo hello1 >> output
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+      second:
+        goal: RUNNING
+        cmd: echo hello2 >> output
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+      third:
+        goal: RUNNING
+        cmd: echo hello3 >> output
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      deploy:
+        strategy: {{DEPLOY_STRATEGY}}
+        pod: hello
+        steps:
+          - default: {{DEPLOY_STEPS}}

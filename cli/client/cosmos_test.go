@@ -3,15 +3,15 @@ package client
 import (
 	"bytes"
 	"fmt"
+	"github.com/mesosphere/dcos-commons/cli/config"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/suite"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
-	"github.com/mesosphere/dcos-commons/cli/config"
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/suite"
 )
 
 type CosmosTestSuite struct {
@@ -20,12 +20,6 @@ type CosmosTestSuite struct {
 	requestBody    []byte
 	responseBody   []byte
 	responseStatus int
-	capturedOutput bytes.Buffer
-}
-
-func (suite *CosmosTestSuite) printRecorder(format string, a ...interface{}) (n int, err error) {
-	suite.capturedOutput.WriteString(fmt.Sprintf(format+"\n", a...))
-	return 0, nil // this is probably sub-optimal in the general sense
 }
 
 func (suite *CosmosTestSuite) loadFile(filename string) []byte {
@@ -53,10 +47,6 @@ func (suite *CosmosTestSuite) exampleHandler(w http.ResponseWriter, r *http.Requ
 
 func (suite *CosmosTestSuite) SetupSuite() {
 	os.Setenv("DCOS_ACS_TOKEN", "dummytoken")
-
-	// reassign printing functions to allow us to check output
-	PrintMessage = suite.printRecorder
-	PrintMessageAndExit = suite.printRecorder
 }
 
 func (suite *CosmosTestSuite) SetupTest() {
@@ -68,7 +58,6 @@ func (suite *CosmosTestSuite) SetupTest() {
 }
 
 func (suite *CosmosTestSuite) TearDownTest() {
-	suite.capturedOutput.Reset()
 	suite.server.Close()
 	suite.responseStatus = 0
 }
@@ -77,8 +66,8 @@ func TestUpdateTestSuite(t *testing.T) {
 }
 
 func (suite *CosmosTestSuite) createExampleRequest() (*http.Request, []byte) {
-	requestBody := `{ "appId" : "my-app" }`
-	return createCosmosHTTPJSONRequest("POST", "describe", requestBody), []byte(requestBody)
+	requestBody := []byte(`{ "appId" : "my-app" }`)
+	return createCosmosHTTPJSONRequest("POST", "describe", requestBody), requestBody
 }
 
 func (suite *CosmosTestSuite) createExampleResponse(statusCode int, filename string) (http.Response, []byte) {
@@ -105,7 +94,7 @@ func (suite *CosmosTestSuite) Test500ErrorResponse() {
 	response, body := suite.createExampleResponse(
 		http.StatusInternalServerError, "testdata/responses/cosmos/1.10/enterprise/marathon-error.json")
 	err := checkCosmosHTTPResponse(&response, body)
-	assert.Equal(suite.T(), `HTTP POST Query for ` + suite.server.URL + `/cosmos/service/describe failed: 500 Internal Server Error
+	assert.Equal(suite.T(), `HTTP POST Query for `+suite.server.URL+`/cosmos/service/describe failed: 500 Internal Server Error
 Response: {"type":"unhandled_exception","message":"java.lang.Error: {\"message\":\"App is locked by one or more deployments. Override with the option '?force=true'. View details at '/v2/deployments/<DEPLOYMENT_ID>'.\",\"deployments\":[{\"id\":\"839314dd-f223-4d55-9d74-a556119e84be\"}]}"}
 `, err.Error())
 }
@@ -130,10 +119,14 @@ Possible causes:
 func (suite *CosmosTestSuite) TestBadVersionErrorResponse() {
 	// create 400 responses for BadVersionUpdate
 	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version.json",
-		`Unable to update hello-world to requested version: "not-a-valid"
-Valid package versions are: ["v0.8", "v0.9", "v1.1", "v2.0"]`)
+		`Unable to update hello-world to requested version: not-a-valid
+Valid package versions are:
+- v0.8
+- v0.9
+- v1.1
+- v2.0`)
 	suite.test400ErrorResponse("testdata/responses/cosmos/1.10/enterprise/bad-version-no-versions.json",
-		`Unable to update hello-world to requested version: "not-a-valid"
+		`Unable to update hello-world to requested version: not-a-valid
 No valid package versions to update to.`)
 }
 
@@ -164,7 +157,7 @@ func (suite *CosmosTestSuite) TestCreateCosmosHTTPJSONRequest() {
 	assert.Equal(suite.T(), "application/vnd.dcos.service.describe-response+json;charset=utf-8;version=v1", request.Header["Accept"][0])
 	assert.Equal(suite.T(), "application/vnd.dcos.service.describe-request+json;charset=utf-8;version=v1", request.Header["Content-Type"][0])
 	assert.Equal(suite.T(), "token=dummytoken", request.Header["Authorization"][0])
-	assert.Equal(suite.T(), suite.server.URL + "/cosmos/service/describe", request.URL.String())
+	assert.Equal(suite.T(), suite.server.URL+"/cosmos/service/describe", request.URL.String())
 	actualBody, err := ioutil.ReadAll(request.Body)
 	if err != nil {
 		suite.T().Fatal(err)
@@ -190,8 +183,8 @@ func (suite *CosmosTestSuite) TestCosmosUrl() {
 	describeURL := createCosmosURL("describe")
 	updateURL := createCosmosURL("update")
 
-	assert.Equal(suite.T(), suite.server.URL + "/cosmos/service/describe", describeURL.String())
-	assert.Equal(suite.T(), suite.server.URL + "/cosmos/service/update", updateURL.String())
+	assert.Equal(suite.T(), suite.server.URL+"/cosmos/service/describe", describeURL.String())
+	assert.Equal(suite.T(), suite.server.URL+"/cosmos/service/update", updateURL.String())
 }
 
 func (suite *CosmosTestSuite) TestInvalidMinimumErrorResponse() {
@@ -221,7 +214,7 @@ func (suite *CosmosTestSuite) TestInvalidMinimumErrorResponse() {
 	suite.responseBody = []byte(responseJSON)
 	suite.responseStatus = http.StatusBadRequest
 
-	_, err := HTTPCosmosPostJSON("update", "test-payload")
+	_, err := HTTPCosmosPostJSON("update", []byte("test-payload"))
 
 	// assert CLI output is what we expect
 	expectedOutput := "Unable to update hello-world to requested configuration: options JSON failed validation.\n" +
@@ -280,7 +273,7 @@ func (suite *CosmosTestSuite) TestTwoValidationErrorsResponse() {
 	suite.responseBody = []byte(responseJSON)
 	suite.responseStatus = http.StatusBadRequest
 
-	_, err := HTTPCosmosPostJSON("update", "test-payload")
+	_, err := HTTPCosmosPostJSON("update", []byte("test-payload"))
 
 	// assert CLI output is what we expect
 	expectedOutput := "Unable to update hello-world to requested configuration: options JSON failed validation.\n" +

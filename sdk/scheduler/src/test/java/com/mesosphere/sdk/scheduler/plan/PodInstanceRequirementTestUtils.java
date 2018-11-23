@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler.plan;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.mesos.Protos;
 
 import java.util.*;
@@ -34,15 +35,21 @@ public class PodInstanceRequirementTestUtils {
     }
 
     public static PodInstanceRequirement getMountVolumeRequirement(double cpus, double diskSize) {
-        return getMountVolumeRequirement(cpus, diskSize, 0);
+        return getMountVolumeRequirement(cpus, diskSize, Collections.emptyList(), 0);
+    }
+
+    public static PodInstanceRequirement getMountVolumeRequirement(
+            double cpus, double diskSize, List<String> profiles) {
+        return getMountVolumeRequirement(cpus, diskSize, profiles, 0);
     }
 
     public static PodInstanceRequirement getRootVolumeRequirement(double cpus, double diskSize, int index) {
         return getRequirement(getRootVolumeResourceSet(cpus, diskSize), index);
     }
 
-    public static PodInstanceRequirement getMountVolumeRequirement(double cpus, double diskSize, int index) {
-        return getRequirement(getMountVolumeResourceSet(cpus, diskSize), index);
+    public static PodInstanceRequirement getMountVolumeRequirement(
+            double cpus, double diskSize, List<String> profiles, int index) {
+        return getRequirement(getMountVolumeResourceSet(cpus, diskSize, profiles), index);
     }
 
     public static PodInstanceRequirement getPortRequirement(int... ports) {
@@ -79,18 +86,18 @@ public class PodInstanceRequirementTestUtils {
      * @param diskSize The disk size required.
      */
     private static ResourceSet getRootVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.ROOT.name());
-    }
-
-    private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize) {
-        return getVolumeResourceSet(cpus, diskSize, VolumeSpec.Type.MOUNT.name());
-    }
-
-    private static ResourceSet getVolumeResourceSet(double cpus, double diskSize, String diskType) {
         return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
                 .id(TestConstants.RESOURCE_SET_ID)
                 .cpus(cpus)
-                .addVolume(diskType, diskSize, TestConstants.CONTAINER_PATH)
+                .addRootVolume(diskSize, TestConstants.CONTAINER_PATH)
+                .build();
+    }
+
+    private static ResourceSet getMountVolumeResourceSet(double cpus, double diskSize, List<String> profiles) {
+        return DefaultResourceSet.newBuilder(TestConstants.ROLE, Constants.ANY_ROLE, TestConstants.PRINCIPAL)
+                .id(TestConstants.RESOURCE_SET_ID)
+                .cpus(cpus)
+                .addMountVolume(diskSize, TestConstants.CONTAINER_PATH, profiles)
                 .build();
     }
 
@@ -104,15 +111,18 @@ public class PodInstanceRequirementTestUtils {
             valueBuilder.getRangesBuilder().addRangeBuilder()
                     .setBegin(envPort.getValue())
                     .setEnd(envPort.getValue());
-            builder.addResource(new PortSpec(
-                    valueBuilder.build(),
-                    TestConstants.ROLE,
-                    Constants.ANY_ROLE,
-                    TestConstants.PRINCIPAL,
-                    envPort.getKey(),
-                    String.format("test-port-%s", envPort.getKey()),
-                    TestConstants.PORT_VISIBILITY,
-                    Collections.emptyList()));
+
+            PortSpec.Builder portBuilder = PortSpec.newBuilder()
+                    .envKey(envPort.getKey())
+                    .portName(String.format("test-port-%s", envPort.getKey()))
+                    .visibility(TestConstants.PORT_VISIBILITY)
+                    .networkNames(Collections.emptyList());
+            portBuilder
+                    .value(valueBuilder.build())
+                    .role(TestConstants.ROLE)
+                    .preReservedRole(Constants.ANY_ROLE)
+                    .principal(TestConstants.PRINCIPAL);
+            builder.addResource(portBuilder.build());
         }
         return builder.build();
     }
@@ -128,18 +138,22 @@ public class PodInstanceRequirementTestUtils {
             valueBuilder.getRangesBuilder().addRangeBuilder()
                     .setBegin(taskPort)
                     .setEnd(taskPort);
-            builder.addResource(new NamedVIPSpec(
-                    valueBuilder.build(),
-                    TestConstants.ROLE,
-                    Constants.ANY_ROLE,
-                    TestConstants.PRINCIPAL,
-                    TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort,
-                    TestConstants.VIP_NAME + "-" + taskPort,
-                    "tcp",
-                    TestConstants.PORT_VISIBILITY,
-                    TestConstants.VIP_NAME + "-" + taskPort,
-                    entry.getKey(),
-                    Collections.emptyList()));
+
+            NamedVIPSpec.Builder vipBuilder = NamedVIPSpec.newBuilder()
+                    .protocol("tcp")
+                    .vipName(TestConstants.VIP_NAME + "-" + taskPort)
+                    .vipPort(entry.getKey());
+            vipBuilder
+                    .envKey(TestConstants.PORT_ENV_NAME + "_VIP_" + taskPort)
+                    .portName(TestConstants.VIP_NAME + "-" + taskPort)
+                    .visibility(TestConstants.PORT_VISIBILITY)
+                    .networkNames(Collections.emptyList());
+            vipBuilder
+                    .value(valueBuilder.build())
+                    .role(TestConstants.ROLE)
+                    .preReservedRole(Constants.ANY_ROLE)
+                    .principal(TestConstants.PRINCIPAL);
+            builder.addResource(vipBuilder.build());
         }
         return builder.build();
 
@@ -158,12 +172,10 @@ public class PodInstanceRequirementTestUtils {
                                 .build())
                 .goalState(GoalState.RUNNING)
                 .resourceSet(resourceSet)
+                .taskLabels(TestConstants.LABELS)
                 .build();
 
-        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-                .type(type)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec))
+        PodSpec podSpec = DefaultPodSpec.newBuilder(type, 1, Arrays.asList(taskSpec))
                 .preReservedRole(Constants.ANY_ROLE)
                 .build();
 
@@ -191,10 +203,7 @@ public class PodInstanceRequirementTestUtils {
                 .resourceSet(taskResources)
                 .build();
 
-        PodSpec podSpec = DefaultPodSpec.newBuilder("executor-uri")
-                .type(type)
-                .count(1)
-                .tasks(Arrays.asList(taskSpec))
+        PodSpec podSpec = DefaultPodSpec.newBuilder(type, 1, Arrays.asList(taskSpec))
                 .volumes(executorVolumes)
                 .build();
 

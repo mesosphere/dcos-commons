@@ -19,19 +19,19 @@ public class PersisterUtilsTest {
 
     @Test
     public void testJoinPath() {
-        assertEquals("test/path", PersisterUtils.join("test", "path"));
-        assertEquals("test/path", PersisterUtils.join("test", "/path"));
-        assertEquals("test/path", PersisterUtils.join("test/", "path"));
-        assertEquals("test/path", PersisterUtils.join("test/", "/path"));
-        assertEquals("test//path", PersisterUtils.join("test//", "/path"));
-        assertEquals("test//path", PersisterUtils.join("test/", "//path"));
+        assertEquals("test/path", PersisterUtils.joinPaths("test", "path"));
+        assertEquals("test/path", PersisterUtils.joinPaths("test", "/path"));
+        assertEquals("test/path", PersisterUtils.joinPaths("test/", "path"));
+        assertEquals("test/path", PersisterUtils.joinPaths("test/", "/path"));
+        assertEquals("test//path", PersisterUtils.joinPaths("test//", "/path"));
+        assertEquals("test//path", PersisterUtils.joinPaths("test/", "//path"));
 
-        assertEquals("/test/path", PersisterUtils.join("/test", "path"));
-        assertEquals("/test/path", PersisterUtils.join("/test", "/path"));
-        assertEquals("/test/path", PersisterUtils.join("/test/", "path"));
-        assertEquals("/test/path", PersisterUtils.join("/test/", "/path"));
-        assertEquals("/test//path", PersisterUtils.join("/test//", "/path"));
-        assertEquals("/test//path", PersisterUtils.join("/test/", "//path"));
+        assertEquals("/test/path", PersisterUtils.joinPaths("/test", "path"));
+        assertEquals("/test/path", PersisterUtils.joinPaths("/test", "/path"));
+        assertEquals("/test/path", PersisterUtils.joinPaths("/test/", "path"));
+        assertEquals("/test/path", PersisterUtils.joinPaths("/test/", "/path"));
+        assertEquals("/test//path", PersisterUtils.joinPaths("/test//", "/path"));
+        assertEquals("/test//path", PersisterUtils.joinPaths("/test/", "//path"));
     }
 
     @Test
@@ -63,7 +63,7 @@ public class PersisterUtilsTest {
 
     @Test
     public void testGetAllKeys() throws PersisterException {
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         Map<String, byte[]> map = new HashMap<>();
         byte[] data = new byte[0];
         map.put("/a", data);
@@ -95,7 +95,7 @@ public class PersisterUtilsTest {
 
     @Test
     public void testGetAllData() throws PersisterException {
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         Map<String, byte[]> map = new HashMap<>();
         byte[] data = new byte[0];
         map.put("/a", data);

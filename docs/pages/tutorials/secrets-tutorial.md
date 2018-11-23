@@ -1,5 +1,6 @@
 ---
 title: Secrets Tutorial
+type: tutorial
 ---
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
@@ -72,7 +73,7 @@ scheduler:
   user: {{SERVICE_USER}}
 pods:
   hello:
-    image: ubuntu:14.04
+    image: ubuntu:18.04
     count: {{HELLO_COUNT}}
     placement: '{{{HELLO_PLACEMENT}}}'
     secrets:
@@ -143,7 +144,7 @@ $ cat option.json
           "secret1": "hello-world/secret1",
           "secret2": "hello-world/secret2",
           "secret3": "hello-world/secret3"
-          }
+      }
 }
 ```
 
@@ -156,7 +157,7 @@ Here, we use `examples/secrets.yml` spec file. And, we also overwrite several `h
 
 Use the `dcos task exec` command to attach to the container that is running the task you want to examine.
 
-*Note*: The tasks of the `hello` pod in our example are running inside a docker image (`ubuntu:14.04`).
+*Note*: The tasks of the `hello` pod in our example are running inside a docker image (`ubuntu:18.04`).
 
 Run the following command to attach to the same container that is running the first task of the `hello` pod, that is `hello-0-server` (task name is `server`):
 

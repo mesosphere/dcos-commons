@@ -52,7 +52,7 @@ public class MemPersisterTest {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
     }
 
     @Test
@@ -61,7 +61,7 @@ public class MemPersisterTest {
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
         CuratorTestUtils.clear(testZk);
-        testGetMissingForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testGetMissingForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build());
         testGetMissingForPersister(persister);
     }
 
@@ -94,7 +94,7 @@ public class MemPersisterTest {
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
         CuratorTestUtils.clear(testZk);
-        testGetChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testGetChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build());
         testGetChildrenForPersister(persister);
     }
 
@@ -138,7 +138,7 @@ public class MemPersisterTest {
         when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
         when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
         CuratorTestUtils.clear(testZk);
-        testDeleteChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).build());
+        testDeleteChildrenForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build());
         testDeleteChildrenForPersister(persister);
     }
 
@@ -176,9 +176,68 @@ public class MemPersisterTest {
         testDeleteRootForPersister(persister, "");
         testDeleteRootForPersister(persister, "/");
         CuratorTestUtils.clear(testZk);
-        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build(), "");
+        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build(), "");
         CuratorTestUtils.clear(testZk);
-        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).build(), "/");
+        testDeleteRootForPersister(CuratorPersister.newBuilder(mockServiceSpec).disableLock().build(), "/");
+    }
+
+    @Test
+    public void testRecursiveCopy() throws Exception {
+        // Run the same test against a real ZK persister to validate that the MemPersister behavior matches real ZK:
+        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+
+        persister.set("lock", VAL);
+        persister.set("x", VAL2);
+        persister.set("x/1", VAL);
+        persister.set("x/lock", VAL2);
+        persister.set("x/2/a", VAL);
+        persister.set("x/3", VAL2);
+        persister.set("x/3/a/1", VAL);
+        persister.set("y", VAL2);
+        persister.set("z", VAL);
+        persister.set("w/1/a/1", VAL2);
+
+        persister.recursiveCopy("/x", "/p");
+
+        assertArrayEquals(new String[]{"1", "2", "3", "lock"}, persister.getChildren("/p").toArray());
+        assertTrue(persister.getChildren("/p/1").isEmpty());
+        assertTrue(persister.getChildren("/p/lock").isEmpty());
+        assertArrayEquals(new String[]{"a"}, persister.getChildren("/p/2").toArray());
+        assertArrayEquals(new String[]{"a"}, persister.getChildren("/p/3").toArray());
+        assertArrayEquals(new String[]{"1"}, persister.getChildren("/p/3/a").toArray());
+        assertArrayEquals(VAL2, persister.get("p"));
+        assertArrayEquals(VAL, persister.get("p/1"));
+        assertArrayEquals(VAL2, persister.get("p/lock"));
+        assertArrayEquals(VAL, persister.get("p/2/a"));
+        assertArrayEquals(VAL2, persister.get("p/3"));
+        assertArrayEquals(VAL, persister.get("p/3/a/1"));
+
+    }
+
+    @Test(expected = PersisterException.class)
+    public void recursiveCopyShouldFailIfTargetExists() throws Exception{
+        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+
+        persister.set("x", VAL2);
+        persister.set("y", VAL);
+        persister.recursiveCopy("/x", "/y");
+    }
+
+    @Test(expected = PersisterException.class)
+    public void recursiveCopyShouldFailIfSourceDoesNotExist() throws Exception{
+        when(mockServiceSpec.getName()).thenReturn(TestConstants.SERVICE_NAME);
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+
+        persister.set("y", VAL);
+        persister.recursiveCopy("/x", "/y");
+    }
+
+    @Test(expected = PersisterException.class)
+    public void recursiveCopyShouldFailIfSourceEqualsDestination() throws Exception{
+        when(mockServiceSpec.getZookeeperConnection()).thenReturn(testZk.getConnectString());
+        persister.recursiveCopy("/x", "/x");
     }
 
     private static void testDeleteRootForPersister(Persister persister, String rootPathToDelete) throws Exception {

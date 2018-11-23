@@ -17,7 +17,7 @@ $REPO_ROOT_DIR/tools/build_package.sh \
     hdfs \
     $FRAMEWORK_DIR \
     -a "$FRAMEWORK_DIR/build/distributions/$(basename $FRAMEWORK_DIR)-scheduler.zip" \
-    -a "$REPO_ROOT_DIR/sdk/executor/build/distributions/executor.zip" \
+    -a "$FRAMEWORK_DIR/tools/zone-resolver.sh" \
     -a "$REPO_ROOT_DIR/sdk/bootstrap/bootstrap.zip" \
     -a "$REPO_ROOT_DIR/sdk/cli/dcos-service-cli-linux" \
     -a "$REPO_ROOT_DIR/sdk/cli/dcos-service-cli-darwin" \

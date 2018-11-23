@@ -39,7 +39,6 @@ public class YAMLServiceSpecFactoryTest {
         when(mockConfigTemplateReader.read("config-two.xml.mustache")).thenReturn("hey");
         when(mockConfigTemplateReader.read("config-three.conf.mustache")).thenReturn("hi");
         when(mockSchedulerConfig.getApiServerPort()).thenReturn(123);
-        when(mockSchedulerConfig.getExecutorURI()).thenReturn("test-executor-uri");
 
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, mockSchedulerConfig)
                 .setConfigTemplateReader(mockConfigTemplateReader)

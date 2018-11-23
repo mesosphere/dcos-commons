@@ -1,16 +1,16 @@
 #!/usr/bin/env bash
 
-set -e
+set -e -x
 
 user_usage() {
     # This script is generally called by an upstream 'build.sh' which would be invoked directly by users.
     # This function returns the syntax expected to be used by that upstream 'build.sh'
-    echo "Syntax: build.sh [-h|--help] [aws|local]"
+    echo "Syntax: build.sh [-h|--help] [aws|local|.dcos]"
 }
 
 dev_usage() {
     # Called when a syntax error appears to be an error on the part of the developer.
-    echo "Developer syntax: build_package.sh <framework-name> </abs/path/to/framework> [-a 'path1' -a 'path2' ...] [aws|local]"
+    echo "Developer syntax: build_package.sh <framework-name> </abs/path/to/framework> [-a 'path1' -a 'path2' ...] [aws|local|.dcos]"
 }
 
 # Optional envvars:
@@ -57,6 +57,10 @@ case $1 in
         publish_method="local"
         shift
         ;;
+    .dcos)
+        publish_method=".dcos"
+        shift
+        ;;
     "")
         # no publish method specified
         ;;
@@ -92,16 +96,23 @@ case "$publish_method" in
         echo "Uploading to S3"
         PUBLISH_SCRIPT=${TOOLS_DIR}/publish_aws.py
         ;;
+    .dcos)
+        echo "Uploading .dcos files to S3"
+        PUBLISH_SCRIPT=${TOOLS_DIR}/publish_dcos_file.py
+        ;;
     *)
         echo "---"
         echo "Build complete, skipping publish step."
         echo "Use one of the following additional arguments to get something that runs on a cluster:"
         echo "- 'local': Host the build in a local HTTP server for use by a DC/OS Vagrant cluster."
         echo "- 'aws':   Upload the build to S3."
+        echo "- '.dcos': Upload the build as a .dcos file to S3."
         ;;
 esac
 
+PACKAGE_VERSION=${1:-"stub-universe"}
+
 if [ -n "$PUBLISH_SCRIPT" ]; then
-    # Both scripts use the same argument format:
-    $PUBLISH_SCRIPT ${FRAMEWORK_NAME} ${UNIVERSE_DIR} ${custom_artifacts}
+    # All the scripts use the same argument format:
+    $PUBLISH_SCRIPT "${FRAMEWORK_NAME}" "${PACKAGE_VERSION}" "${UNIVERSE_DIR}" ${custom_artifacts}
 fi

@@ -13,7 +13,7 @@ import org.mockito.MockitoAnnotations;
 import java.io.IOException;
 import java.util.*;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class TLSCleanupStepTest {
@@ -31,7 +31,7 @@ public class TLSCleanupStepTest {
     }
 
     private TLSCleanupStep createTLSCleanupStep() {
-        return new TLSCleanupStep(mockSecretsClient, TestConstants.SERVICE_NAME);
+        return new TLSCleanupStep(mockSecretsClient, TestConstants.SERVICE_NAME, Optional.empty());
     }
 
     @Test

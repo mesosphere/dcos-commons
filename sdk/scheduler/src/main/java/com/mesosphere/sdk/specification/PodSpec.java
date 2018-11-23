@@ -1,9 +1,10 @@
 package com.mesosphere.sdk.specification;
 
+import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 
 import java.net.URI;
 import java.util.Collection;
@@ -15,50 +16,53 @@ import java.util.Optional;
  */
 @JsonDeserialize(as = DefaultPodSpec.class)
 public interface PodSpec {
-    @JsonProperty("type")
-    String getType();
+  @JsonIgnore
+  static String getName(PodSpec podSpec, int index) {
+    return podSpec.getType() + "-" + index;
+  }
 
-    @JsonProperty("count")
-    Integer getCount();
+  @JsonProperty("type")
+  String getType();
 
-    @JsonProperty("allow-decommission")
-    Boolean getAllowDecommission();
+  @JsonProperty("count")
+  Integer getCount();
 
-    @JsonProperty("image")
-    Optional<String> getImage();
+  @JsonProperty("allow-decommission")
+  Boolean getAllowDecommission();
 
-    @JsonProperty("networks")
-    Collection<NetworkSpec> getNetworks();
+  @JsonProperty("image")
+  Optional<String> getImage();
 
-    @JsonProperty("rlimits")
-    Collection<RLimitSpec> getRLimits();
+  @JsonProperty("networks")
+  Collection<NetworkSpec> getNetworks();
 
-    @JsonProperty("uris")
-    Collection<URI> getUris();
+  @JsonProperty("rlimits")
+  Collection<RLimitSpec> getRLimits();
 
-    @JsonProperty("user")
-    Optional<String> getUser();
+  @JsonProperty("uris")
+  Collection<URI> getUris();
 
-    @JsonProperty("task-specs")
-    List<TaskSpec> getTasks();
+  @JsonProperty("user")
+  Optional<String> getUser();
 
-    @JsonProperty("placement-rule")
-    Optional<PlacementRule> getPlacementRule();
+  @JsonProperty("task-specs")
+  List<TaskSpec> getTasks();
 
-    @JsonProperty("volumes")
-    Collection<VolumeSpec> getVolumes();
+  @JsonProperty("placement-rule")
+  Optional<PlacementRule> getPlacementRule();
 
-    @JsonProperty("pre-reserved-role")
-    String getPreReservedRole();
+  @JsonProperty("volumes")
+  Collection<VolumeSpec> getVolumes();
 
-    @JsonProperty("secrets")
-    Collection<SecretSpec> getSecrets();
+  @JsonProperty("pre-reserved-role")
+  String getPreReservedRole();
 
-    @JsonProperty("share-pid-namespace")
-    Boolean getSharePidNamespace();
+  @JsonProperty("secrets")
+  Collection<SecretSpec> getSecrets();
 
-    @JsonIgnore
-    static String getName(PodSpec podSpec, int index) {
-        return podSpec.getType() + "-" + index;
-    }
+  @JsonProperty("share-pid-namespace")
+  Boolean getSharePidNamespace();
+
+  @JsonProperty("host-volumes")
+  Collection<HostVolumeSpec> getHostVolumes();
 }

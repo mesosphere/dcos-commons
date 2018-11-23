@@ -1,21 +1,12 @@
 package com.mesosphere.sdk.dcos;
 
 import org.junit.*;
-import org.junit.contrib.java.lang.system.EnvironmentVariables;
-
 import java.io.IOException;
 
 /**
  * Tests for the {@link Capabilities} class
  */
 public class CapabilitiesTest {
-    @Rule
-    public final EnvironmentVariables environmentVariables = new EnvironmentVariables();
-
-    @Before
-    public void beforeEach() {
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-    }
 
     @Test
     public void test_090() throws IOException {
@@ -24,13 +15,7 @@ public class CapabilitiesTest {
         Assert.assertFalse(capabilities.supportsRLimits());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertFalse(capabilities.supportsDomains());
     }
 
     @Test
@@ -40,13 +25,7 @@ public class CapabilitiesTest {
         Assert.assertFalse(capabilities.supportsRLimits());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertFalse(capabilities.supportsDomains());
     }
 
     @Test
@@ -56,13 +35,7 @@ public class CapabilitiesTest {
         Assert.assertFalse(capabilities.supportsRLimits());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertFalse(capabilities.supportsDomains());
     }
 
     @Test
@@ -73,13 +46,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertFalse(capabilities.supportsDomains());
     }
 
     @Test
@@ -90,13 +57,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertFalse(capabilities.supportsDomains());
     }
 
     @Test
@@ -105,19 +66,14 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
-        //Secrets
+
+        // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertFalse(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertFalse(capabilities.supportsFileBasedSecrets());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertFalse(capabilities.supportsDomains());
     }
 
     @Test
@@ -126,19 +82,14 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
-        //Secrets
+
+        // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertFalse(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertFalse(capabilities.supportsFileBasedSecrets());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertFalse(capabilities.supportsDomains());
     }
 
     @Test
@@ -155,13 +106,7 @@ public class CapabilitiesTest {
         Assert.assertFalse(capabilities.supportsV1APIByDefault());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertFalse(capabilities.supportsDomains());
     }
 
     @Test
@@ -170,6 +115,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
+
         // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
@@ -178,13 +124,7 @@ public class CapabilitiesTest {
         Assert.assertFalse(capabilities.supportsV1APIByDefault());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertFalse(capabilities.supportsDomains());
     }
 
     @Test
@@ -193,6 +133,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
+
         // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
@@ -201,13 +142,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsV1APIByDefault());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertTrue(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertTrue(capabilities.supportsDomains());
     }
 
     @Test
@@ -216,6 +151,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
+
         // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
@@ -224,13 +160,7 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsV1APIByDefault());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertTrue(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertTrue(capabilities.supportsDomains());
     }
 
     @Test
@@ -239,19 +169,14 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsNamedVips());
         Assert.assertTrue(capabilities.supportsGpuResource());
         Assert.assertTrue(capabilities.supportsRLimits());
+
         // Secrets
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsDirectiveLabel());
         Assert.assertTrue(capabilities.supportsEnvBasedSecretsProtobuf());
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertTrue(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertTrue(capabilities.supportsDomains());
     }
 
     @Test
@@ -266,16 +191,10 @@ public class CapabilitiesTest {
         Assert.assertTrue(capabilities.supportsFileBasedSecrets());
 
         // Region awareness
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "true");
-        Assert.assertTrue(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", "false");
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
-        environmentVariables.set("ALLOW_REGION_AWARENESS", null);
-        Assert.assertFalse(capabilities.supportsRegionAwareness());
+        Assert.assertTrue(capabilities.supportsDomains());
     }
 
-    private Capabilities testCapabilities(String version) throws IOException {
-        return new Capabilities(new DcosVersion(version));
+    private static Capabilities testCapabilities(String version) throws IOException {
+        return new Capabilities(new DcosVersion(version, DcosVersion.DcosVariant.UNKNOWN));
     }
 }

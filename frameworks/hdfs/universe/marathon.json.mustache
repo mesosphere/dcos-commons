@@ -15,6 +15,15 @@
     "DCOS_SERVICE_SCHEME": "http"
   },
   {{#service.service_account_secret}}
+  "container": {
+    "type": "MESOS",
+    "volumes": [
+      {
+        "containerPath": "secrets/service-account.json",
+        "secret": "serviceCredential"
+      }
+    ]
+  },
   "secrets": {
     "serviceCredential": {
       "source": "{{service.service_account_secret}}"
@@ -47,15 +56,17 @@
     "DATA_MEM": "{{data_node.mem}}",
     "DATA_DISK": "{{data_node.disk}}",
     "DATA_DISK_TYPE": "{{data_node.disk_type}}",
-    "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
-    "MESOS_API_VERSION": "{{service.mesos_api_version}}",
     "HDFS_URI": "{{resource.assets.uris.hdfs-tar-gz}}",
     "HDFS_BIN_URI": "{{resource.assets.uris.hdfs-bin-tar-gz}}",
     "HDFS_JAVA_URI": "{{resource.assets.uris.hdfs-jre-tar-gz}}",
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "ZONE_RESOLVER": "{{resource.assets.uris.zone-resolver-sh}}",
+
+    {{#service.region}}
+    "SERVICE_REGION": "{{service.region}}",
+    {{/service.region}}
 
     {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
@@ -64,8 +75,8 @@
     {{/service.virtual_network_enabled}}
 
     {{#service.service_account_secret}}
-    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
-    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
+    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": "secrets/service-account.json",
+    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\",\"parameters\":[{\"key\":\"service_account_credential\",\"value\":\"file://secrets/service-account.json\"}]},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"service_account_credential\",\"value\":\"file://secrets/service-account.json\"},{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
@@ -91,7 +102,7 @@
     "SECURITY_KERBEROS_KEYTAB_SECRET": "{{service.security.kerberos.keytab_secret}}",
     "SECURITY_KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",
     "TASKCFG_ALL_SECURITY_KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",
-    "TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY": "hdfs",
+    "TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY": "{{service.security.kerberos.primary}}",
     "TASKCFG_ALL_SECURITY_KERBEROS_PRIMARY_HTTP": "HTTP",
     "TASKCFG_ALL_SECURITY_KERBEROS_REALM": "{{service.security.kerberos.realm}}",
     {{#service.security.kerberos.debug}}

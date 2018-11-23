@@ -12,6 +12,7 @@ import (
 type DcosCliTestSuite struct {
 	suite.Suite
 }
+
 func TestDcosCliTestSuite(t *testing.T) {
 	suite.Run(t, new(DcosCliTestSuite))
 }
@@ -20,7 +21,7 @@ func (suite *DcosCliTestSuite) TestMissingDir() {
 	cachedConfig = nil
 
 	config, err := cliDiskConfig("testdata/cliconfig/missing")
-	assert.Contains(suite.T(), err.Error(),"no such file or directory")
+	assert.Contains(suite.T(), err.Error(), "no such file or directory")
 	assert.Nil(suite.T(), config)
 	assert.Nil(suite.T(), cachedConfig)
 }
@@ -29,7 +30,7 @@ func (suite *DcosCliTestSuite) TestEmptyDir() {
 	cachedConfig = nil
 
 	config, err := cliDiskConfig("testdata/cliconfig/empty")
-	assert.Contains(suite.T(), err.Error(),"no such file or directory")
+	assert.Contains(suite.T(), err.Error(), "no such file or directory")
 	assert.Nil(suite.T(), config)
 	assert.Nil(suite.T(), cachedConfig)
 }
@@ -98,13 +99,13 @@ func (suite *DcosCliTestSuite) checkNewConfig(config map[string]interface{}) {
 	assert.Equal(suite.T(), "cluster-1", value)
 
 	value, err = cliDiskConfigValue(config, "foo")
-	assert.Contains(suite.T(), err.Error(),"Unable to tokenize")
+	assert.Contains(suite.T(), err.Error(), "Unable to tokenize")
 
 	value, err = cliDiskConfigValue(config, "foo.bar")
-	assert.Contains(suite.T(), err.Error(),"No section named 'foo'")
+	assert.Contains(suite.T(), err.Error(), "No section named 'foo'")
 
 	value, err = cliDiskConfigValue(config, "foo.bar.baz")
-	assert.Contains(suite.T(), err.Error(),"No section named 'foo'")
+	assert.Contains(suite.T(), err.Error(), "No section named 'foo'")
 
 	value, err = cliDiskConfigValue(config, "core.foo")
 	assert.Equal(suite.T(), "Unable to retrieve value 'foo' from section 'core'", err.Error())
@@ -155,16 +156,16 @@ func (suite *DcosCliTestSuite) checkOldConfig(config map[string]interface{}) {
 	assert.Equal(suite.T(), "https://old-cluster-cosmos", value)
 
 	value, err = cliDiskConfigValue(config, "cluster.name")
-	assert.Contains(suite.T(), err.Error(),"No section named 'cluster'")
+	assert.Contains(suite.T(), err.Error(), "No section named 'cluster'")
 
 	value, err = cliDiskConfigValue(config, "foo")
-	assert.Contains(suite.T(), err.Error(),"Unable to tokenize")
+	assert.Contains(suite.T(), err.Error(), "Unable to tokenize")
 
 	value, err = cliDiskConfigValue(config, "foo.bar")
-	assert.Contains(suite.T(), err.Error(),"No section named 'foo'")
+	assert.Contains(suite.T(), err.Error(), "No section named 'foo'")
 
 	value, err = cliDiskConfigValue(config, "foo.bar.baz")
-	assert.Contains(suite.T(), err.Error(),"No section named 'foo'")
+	assert.Contains(suite.T(), err.Error(), "No section named 'foo'")
 
 	value, err = cliDiskConfigValue(config, "core.foo")
 	assert.Equal(suite.T(), "Unable to retrieve value 'foo' from section 'core'", err.Error())

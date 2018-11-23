@@ -1,24 +1,18 @@
 import logging
-import re
 
-import dcos.marathon
 import pytest
-import retrying
-import sdk_cmd
 import sdk_install
 import sdk_marathon
 import sdk_plan
-import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import shakedown
 from tests import config
 
 
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope='module', autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
@@ -28,11 +22,9 @@ def configure_package(configure_security):
             foldered_name,
             config.DEFAULT_TASK_COUNT,
             additional_options={
-                "service": {
-                    "name": foldered_name,
-                    "scenario": "CUSTOM_DECOMMISSION"
-                }
-            })
+                "service": {"name": foldered_name, "scenario": "CUSTOM_DECOMMISSION"}
+            },
+        )
 
         yield  # let the test session execute
     finally:
@@ -43,31 +35,31 @@ def configure_package(configure_security):
 def test_custom_decommission():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     marathon_config = sdk_marathon.get_config(foldered_name)
-    marathon_config['env']['WORLD_COUNT'] = '1'
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    marathon_config["env"]["WORLD_COUNT"] = "1"
+    sdk_marathon.update_app(marathon_config)
 
-    sdk_plan.wait_for_completed_plan(foldered_name, 'decommission')
+    sdk_plan.wait_for_completed_plan(foldered_name, "decommission")
     decommission_plan = sdk_plan.get_decommission_plan(foldered_name)
-    log.info("decommission plan: {}".format(decommission_plan))
+    log.info(sdk_plan.plan_string("decommission", decommission_plan))
 
-    custom_step_name = decommission_plan['phases'][0]['steps'][0]['name']
-    assert "custom_decomission_step" == custom_step_name
+    custom_step_name = decommission_plan["phases"][0]["steps"][0]["name"]
+    assert "custom_decommission_step" == custom_step_name
 
     # scale back up
     marathon_config = sdk_marathon.get_config(foldered_name)
-    marathon_config['env']['WORLD_COUNT'] = '2'
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    marathon_config["env"]["WORLD_COUNT"] = "2"
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(foldered_name)
 
     # Let's decommission again!
     marathon_config = sdk_marathon.get_config(foldered_name)
-    marathon_config['env']['WORLD_COUNT'] = '1'
-    sdk_marathon.update_app(foldered_name, marathon_config)
+    marathon_config["env"]["WORLD_COUNT"] = "1"
+    sdk_marathon.update_app(marathon_config)
     sdk_plan.wait_for_completed_deployment(foldered_name)
 
-    sdk_plan.wait_for_completed_plan(foldered_name, 'decommission')
+    sdk_plan.wait_for_completed_plan(foldered_name, "decommission")
     decommission_plan = sdk_plan.get_decommission_plan(foldered_name)
-    log.info("decommission plan: {}".format(decommission_plan))
+    log.info(sdk_plan.plan_string("decommission", decommission_plan))
 
-    custom_step_name = decommission_plan['phases'][0]['steps'][0]['name']
-    assert "custom_decomission_step" == custom_step_name
+    custom_step_name = decommission_plan["phases"][0]["steps"][0]["name"]
+    assert "custom_decommission_step" == custom_step_name

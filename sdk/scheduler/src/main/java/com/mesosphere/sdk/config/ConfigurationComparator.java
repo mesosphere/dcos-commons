@@ -8,8 +8,8 @@ package com.mesosphere.sdk.config;
  * @param <T> The {@code Configuration} type that will be parsed.
  */
 public interface ConfigurationComparator<T extends Configuration> {
-    /**
-     * Returns whether the provided configuration objects are equal.
-     */
-    boolean equals(T first, T second);
+  /**
+   * Returns whether the provided configuration objects are equal.
+   */
+  boolean equals(T first, T second);
 }

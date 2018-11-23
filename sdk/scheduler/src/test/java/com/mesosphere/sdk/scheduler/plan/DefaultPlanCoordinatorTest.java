@@ -1,12 +1,13 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.offer.OfferAccepter;
+import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
+import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.junit.Assert;
@@ -24,7 +25,6 @@ import static org.mockito.Mockito.mock;
  */
 public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
-    private static final String SERVICE_NAME = "test-service-name";
     public static final int SUFFICIENT_CPUS = 2;
     public static final int SUFFICIENT_MEM = 2000;
     public static final int SUFFICIENT_DISK = 10000;
@@ -73,9 +73,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     private DefaultServiceSpec serviceSpecification;
     private DefaultServiceSpec serviceSpecificationB;
-    private StateStore stateStore;
-    private DefaultPlanScheduler planScheduler;
-    private StepFactory stepFactory;
+    private PlanScheduler planScheduler;
     private PhaseFactory phaseFactory;
 
     @Before
@@ -83,29 +81,35 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         MockitoAnnotations.initMocks(this);
 
         serviceSpecification = DefaultServiceSpec.newBuilder()
-                .name(SERVICE_NAME)
+                .name(TestConstants.SERVICE_NAME)
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA))
                 .build();
-        stateStore = new StateStore(new MemPersister());
-        stateStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
-        stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore);
+        Persister persister = MemPersister.newBuilder().build();
+
+        FrameworkStore frameworkStore = new FrameworkStore(persister);
+        frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+        StateStore stateStore = new StateStore(persister);
+
+        StepFactory stepFactory = new DefaultStepFactory(mock(ConfigStore.class), stateStore, Optional.empty());
         phaseFactory = new DefaultPhaseFactory(stepFactory);
 
-        planScheduler = new DefaultPlanScheduler(
-                new OfferAccepter(Arrays.asList()),
+        planScheduler = new PlanScheduler(
                 new OfferEvaluator(
+                        frameworkStore,
                         stateStore,
-                        new OfferOutcomeTracker(),
+                        Optional.empty(),
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
+                        PodTestUtils.getTemplateUrlFactory(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                        true),
-                stateStore);
+                        Optional.empty()),
+                stateStore,
+                Optional.empty());
         serviceSpecificationB = DefaultServiceSpec.newBuilder()
-                .name(SERVICE_NAME + "-B")
+                .name(TestConstants.SERVICE_NAME + "-B")
                 .role(TestConstants.ROLE)
                 .principal(TestConstants.PRINCIPAL)
                 .zookeeperConnection("foo.bar.com")
@@ -140,19 +144,20 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     @Test(expected = IllegalArgumentException.class)
     public void testNoPlanManager() {
-        new DefaultPlanCoordinator(Arrays.asList());
+        new DefaultPlanCoordinator(Optional.empty(), Arrays.asList());
     }
 
     @Test
     public void testOnePlanManagerPendingSufficientOffer() throws Exception {
         final Plan plan = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final PlanManager planManager = DefaultPlanManager.createProceeding(plan);
-        final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(planManager));
+        final DefaultPlanCoordinator coordinator =
+                new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(planManager));
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID),
-                planScheduler.resourceOffers(
+                getDistinctOfferIds(planScheduler.resourceOffers(
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
-                        coordinator.getCandidates()));
+                        coordinator.getCandidates())));
     }
 
     @Test
@@ -219,7 +224,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
     public void testOnePlanManagerPendingInSufficientOffer() throws Exception {
         final Plan plan = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
-                Arrays.asList(DefaultPlanManager.createInterrupted(plan)));
+                Optional.empty(), Arrays.asList(DefaultPlanManager.createInterrupted(plan)));
         Assert.assertEquals(
                 Collections.emptyList(),
                 planScheduler.resourceOffers(
@@ -232,7 +237,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         final Plan plan = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         plan.getChildren().get(0).getChildren().get(0).forceComplete();
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
-                Arrays.asList(DefaultPlanManager.createInterrupted(plan)));
+                Optional.empty(), Arrays.asList(DefaultPlanManager.createInterrupted(plan)));
         Assert.assertEquals(
                 Collections.emptyList(),
                 planScheduler.resourceOffers(
@@ -245,12 +250,13 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecificationB);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                Optional.empty(),
                 Arrays.asList(DefaultPlanManager.createProceeding(planA), DefaultPlanManager.createProceeding(planB)));
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID, OTHER_ID),
-                planScheduler.resourceOffers(
+                getDistinctOfferIds(planScheduler.resourceOffers(
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
-                        coordinator.getCandidates()));
+                        coordinator.getCandidates())));
     }
 
     @Test
@@ -261,12 +267,13 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 .build();
         final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecB);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                Optional.empty(),
                 Arrays.asList(DefaultPlanManager.createProceeding(planA), DefaultPlanManager.createProceeding(planB)));
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID),
-                planScheduler.resourceOffers(
+                getDistinctOfferIds(planScheduler.resourceOffers(
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
-                        coordinator.getCandidates()));
+                        coordinator.getCandidates())));
     }
 
     @Test
@@ -280,7 +287,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         planB.getChildren().get(0).getChildren().get(0).forceComplete();
 
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
-                Arrays.asList(planManagerA, planManagerB));
+                Optional.empty(), Arrays.asList(planManagerA, planManagerB));
         Assert.assertEquals(
                 Collections.emptyList(),
                 planScheduler.resourceOffers(
@@ -293,6 +300,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         final Plan planA = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final Plan planB = new DeployPlanFactory(phaseFactory).getPlan(serviceSpecification);
         final DefaultPlanCoordinator coordinator = new DefaultPlanCoordinator(
+                Optional.empty(),
                 Arrays.asList(DefaultPlanManager.createProceeding(planA), DefaultPlanManager.createProceeding(planB)));
 
         Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));
@@ -304,11 +312,16 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
         // dirty assets.
         Assert.assertEquals(
                 Arrays.asList(TestConstants.OFFER_ID),
-                planScheduler.resourceOffers(
+                getDistinctOfferIds(planScheduler.resourceOffers(
                         getOffers(SUFFICIENT_CPUS, SUFFICIENT_MEM, SUFFICIENT_DISK),
-                        coordinator.getCandidates()));
+                        coordinator.getCandidates())));
 
         Assert.assertTrue(planB.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.STARTING));
         Assert.assertTrue(planA.getChildren().get(0).getChildren().get(0).getStatus().equals(Status.PENDING));
+    }
+
+    private static Collection<Protos.OfferID> getDistinctOfferIds(Collection<OfferRecommendation> recs) {
+        // Each offer produces several OfferRecommendations, one per resource to reserve. Trim that down.
+        return recs.stream().map(rec -> rec.getOfferId()).distinct().collect(Collectors.toList());
     }
 }

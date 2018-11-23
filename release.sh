@@ -98,7 +98,6 @@ fi
 
 sdk/bootstrap/build.sh # produces sdk/bootstrap/bootstrap.zip
 sdk/cli/build.sh # produces sdk/cli/[dcos-service-cli-linux, dcos-service-cli-darwin, dcos-service-cli.exe]
-./gradlew :executor:distZip # produces sdk/executor/build/distributions/executor.zip
 rm -f tools/pip/*.whl
 tools/pip/build.sh $SDK_VERSION # produces tools/pip/[testing|tools]-[SDK_VERSION (with modifications)]-py3-none-any.whl
 
@@ -113,7 +112,6 @@ mkdir $SDK_VERSION
 # Additionally, pip will refuse to install .whl files without the extra info in the filename, so we leave all that in.
 
 cp sdk/bootstrap/bootstrap.zip \
-   sdk/executor/build/distributions/executor.zip \
    sdk/cli/dcos-service-cli* \
    tools/pip/*.whl \
    $SDK_VERSION/

@@ -5,7 +5,7 @@ package com.mesosphere.sdk.specification;
  * TaskSpecifications and TaskTypeSpecifications.
  */
 public class InvalidTaskSpecException extends Exception {
-    public InvalidTaskSpecException(String errMsg) {
-        super(errMsg);
-    }
+  public InvalidTaskSpecException(String errMsg) {
+    super(errMsg);
+  }
 }
