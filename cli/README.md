@@ -41,7 +41,7 @@ To run the compiled CLI (the example below uses Linux, pick the correct binary f
 
 ## Develop
 
-See the [default CLI module](../sdk/) for the default CLI module with no added commands. For an example of adding custom commands, see the [Kafka CLI module](../frameworks/kafka/cli).
+See the [default CLI module](../sdk/) for the default CLI module with no added commands. For an example of adding custom commands, see the [Kafka CLI module](https://github.com/mesosphere/dcos-kafka-service/tree/master/frameworks/kafka/cli).
 
 Like the example CLI modules above, your own code may access the CLI libraries provided here by importing `github.com/mesosphere/dcos-commons/cli`. Your CLI module implementation may pick and choose which standard commands should be included, while also implementing its own custom commands.
 
@@ -98,6 +98,6 @@ When installed, the module is executed as a regular binary by the DC/OS CLI, wit
 $ <exename> <modulename> [args]
 ```
 
-So for example, if someone called `dcos kafka broker list`, the `dcos-service-cli` CLI module would be run as `dcos-service-cli kafka broker list` by the DC/OS CLI.
+So for example, if someone called `dcos hello-world pod list`, the `dcos-service-cli` CLI module would be run as `dcos-service-cli hello-world pod list` by the DC/OS CLI.
 
-The inclusion of `modulename` (`kafka` in this example) as an argument allows reuse of a single CLI module build across multiple packages. In particular this is used by the default CLI build which is shared across most packages.
+The inclusion of `modulename` (`hello-workd` in this example) as an argument allows reuse of a single CLI module build across multiple packages. In particular this is used by the default CLI build which is shared across most packages.

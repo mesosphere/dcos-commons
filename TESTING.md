@@ -63,8 +63,7 @@ frameworks
 ├── cassandra
 ├── elastic
 ├── hdfs
-├── helloworld
-└── kafka
+└── helloworld
 
 6 directories, 0 files
 ```
@@ -73,7 +72,6 @@ The detected frameworks would be:
 - `elastic`
 - `hdfs`
 - `helloworld`
-- `kafka`
 
 * If no `frameworks` folder exists
 
