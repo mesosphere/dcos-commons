@@ -58,7 +58,7 @@
           "type": "boolean",
           "default": true
         },
-        "test_profile_volume": {
+        "test_profile_volume_command": {
           "description": "A shell command to test if a given path is on a profile volume, or empty for no test",
           "type": "string",
           "default": ""

@@ -16,7 +16,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {
             "service": {
-                "test_profile_volume": "df -t xfs",
+                "test_profile_volume_command": "df -t xfs",
                 "yaml": "pod-profile-mount-volume"
             },
             "hello": {

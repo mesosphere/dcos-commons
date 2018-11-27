@@ -15,10 +15,12 @@ pods:
         goal: RUNNING
         essential: false
         cmd: >
-               [ -z "{{{TEST_PROFILE_VOLUME}}}" ] ||
-               ({{{TEST_PROFILE_VOLUME}}} pod-container-path && {{{TEST_PROFILE_VOLUME}}} profile-container-path) &&
-               echo profile >> pod-container-path/output &&
-               echo profile >> profile-container-path/output &&
+               set -e -x
+               [ -n "{{{TEST_PROFILE_VOLUME_COMMAND}}}" ]
+               {{{TEST_PROFILE_VOLUME_COMMAND}}} pod-container-path
+               {{{TEST_PROFILE_VOLUME_COMMAND}}} profile-container-path
+               echo profile >> pod-container-path/output
+               echo profile >> profile-container-path/output
                sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
@@ -34,10 +36,12 @@ pods:
         goal: RUNNING
         essential: false
         cmd: >
-               [ -z "{{{TEST_PROFILE_VOLUME}}}" ] ||
-               ({{{TEST_PROFILE_VOLUME}}} pod-container-path && ! {{{TEST_PROFILE_VOLUME}}} noprofile-container-path) &&
-               echo noprofile >> pod-container-path/output &&
-               echo noprofile >> noprofile-container-path/output &&
+               set -e -x
+               [ -n "{{{TEST_PROFILE_VOLUME_COMMAND}}}" ]
+               {{{TEST_PROFILE_VOLUME_COMMAND}}} pod-container-path
+               ! {{{TEST_PROFILE_VOLUME_COMMAND}}} noprofile-container-path
+               echo noprofile >> pod-container-path/output
+               echo noprofile >> noprofile-container-path/output
                sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
