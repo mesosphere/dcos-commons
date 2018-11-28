@@ -39,31 +39,12 @@ public class PlansTracker implements DebugEndpoint {
     this.stateStore = stateStore;
   }
 
-  @SuppressWarnings("checkstyle:NestedForDepthCheck")
-  private HashMap<String, JSONArray> generateServiceTopology() {
-
-    HashMap<String, JSONArray> plansTree = new HashMap<String, JSONArray>();
-    for (PlanManager planManager : planCoordinator.getPlanManagers()) {
-      Plan plan = planManager.getPlan();
-      JSONArray phasesArray = new JSONArray();
-      for (Phase phase : plan.getChildren()) {
-        HashMap<String, JSONArray> phaseTree = new HashMap<String, JSONArray>();
-        JSONArray stepsArray = new JSONArray();
-        for (Step step : phase.getChildren()) {
-          stepsArray.put(step.getName());
-        }
-        phaseTree.put(phase.getName(), stepsArray);
-        phasesArray.put(phaseTree);
-      }
-      plansTree.put(plan.getName(), phasesArray);
-    }
-    return plansTree;
-  }
-
   @SuppressWarnings({"checkstyle:MultipleStringLiteralsCheck", "checkstyle:NestedForDepthCheck"})
   private JSONObject generateServiceStatus(String filterPlan,
                                            String filterPhase,
-                                           String filterStep)
+                                           String filterStep,
+                                           boolean allowFiltering,
+                                           boolean skipDetails)
   {
     JSONObject outcome = new JSONObject();
     JSONArray plansArray = new JSONArray();
@@ -72,54 +53,62 @@ public class PlansTracker implements DebugEndpoint {
       Plan plan = planManager.getPlan();
 
       //Filter down to a plan if specified.
-      if (filterPlan != null && !plan.getName().equalsIgnoreCase(filterPlan))
+      if (allowFiltering && filterPlan != null && !plan.getName().equalsIgnoreCase(filterPlan))
         continue;
 
       JSONObject planObject = new JSONObject();
       JSONArray phaseArray = new JSONArray();
       planObject.put("name", plan.getName());
-      planObject.put("status", plan.getStatus());
-      planObject.put("strategy", plan.getStrategy().getName());
+      if (!skipDetails) {
+        planObject.put("status", plan.getStatus());
+        planObject.put("strategy", plan.getStrategy().getName());
+      }
       planObject.put("phases", phaseArray);
 
-      //Get a rollup aggregation of the steps.
-      int totalSteps = plan.getChildren().stream()
-          .flatMap(phase -> phase.getChildren().stream())
-          .collect(Collectors.toSet())
-          .size();
-      int completedSteps = plan.getChildren().stream()
-          .flatMap(phase -> phase.getChildren().stream())
-          .filter(step -> step.isComplete())
-          .collect(Collectors.toSet())
-          .size();
+      if (!skipDetails) {
+        //Get a rollup aggregation of the steps.
+        int totalSteps = plan.getChildren().stream()
+            .flatMap(phase -> phase.getChildren().stream())
+            .collect(Collectors.toSet())
+            .size();
+        int completedSteps = plan.getChildren().stream()
+            .flatMap(phase -> phase.getChildren().stream())
+            .filter(step -> step.isComplete())
+            .collect(Collectors.toSet())
+            .size();
 
-      planObject.put("total-steps", totalSteps);
-      planObject.put("completed-steps", completedSteps);
+        planObject.put("total-steps", totalSteps);
+        planObject.put("completed-steps", completedSteps);
+      }
 
       //Iterate over phases.
       for (Phase phase : plan.getChildren()) {
         //Filter down to a phase if specified.
-        if (filterPhase != null && !phase.getName().equalsIgnoreCase(filterPhase))
+        if (allowFiltering && filterPhase != null && !phase.getName().equalsIgnoreCase(filterPhase))
           continue;
 
         JSONObject phaseObject = new JSONObject();
         JSONArray stepArray = new JSONArray();
 
         phaseObject.put("name", phase.getName());
-        phaseObject.put("status", phase.getStatus());
-        phaseObject.put("strategy", phase.getStrategy().getName());
+        if (!skipDetails) {
+          phaseObject.put("status", phase.getStatus());
+          phaseObject.put("strategy", phase.getStrategy().getName());
+        }
         phaseObject.put("steps", stepArray);
 
         //Iterate over steps.
         for (Step step : phase.getChildren()) {
           //Filter down to a step if specified.
-          if (filterStep != null && !step.getName().equalsIgnoreCase(filterStep))
+          if (allowFiltering && filterStep != null && !step.getName().equalsIgnoreCase(filterStep))
             continue;
 
           JSONObject stepObject = new JSONObject();
           stepObject.put("name", step.getName());
-          stepObject.put("status", step.getStatus());
-          stepObject.put("errors", step.getErrors());
+          if (!skipDetails) {
+            stepObject.put("status", step.getStatus());
+            stepObject.put("errors", step.getErrors());
+          }
 
           stepArray.put(stepObject);
         }
@@ -155,7 +144,7 @@ public class PlansTracker implements DebugEndpoint {
     //Ensure correct ownership. Start with the plan.
 
     //If no explicit plan defined, nothing further to do.
-    if (filterPlan == null) return null;
+    if (filterPlan == null) return Optional.empty();
 
     //Plan is specified, ensure it exists within our list of plans.
     //Filter for our desired plan.
@@ -171,7 +160,7 @@ public class PlansTracker implements DebugEndpoint {
     }
 
     //If no explicit phase defined, nothing further to do.
-    if (filterPhase == null) return null;
+    if (filterPhase == null) return Optional.empty();
 
     Plan plan = planManagers.get(0).getPlan();
 
@@ -189,7 +178,7 @@ public class PlansTracker implements DebugEndpoint {
     }
 
     //If no explicit step defined, nothing further to do.
-    if (filterStep == null) return null;
+    if (filterStep == null) return Optional.empty();
 
     Phase phase = phaseList.get(0);
     List<Step> stepList = phase.getChildren().stream()
@@ -227,8 +216,17 @@ public class PlansTracker implements DebugEndpoint {
     //pruning it down to a plan/phase/step which has been validated.
 
     JSONObject response = new JSONObject();
-    response.put("service-topology", generateServiceTopology());
-    response.put("service-status", generateServiceStatus(filterPlan, filterPhase, filterStep));
+    response.put("service-topology", generateServiceStatus(filterPlan,
+        filterPhase,
+        filterStep,
+        false,
+        true));
+
+    response.put("service-status", generateServiceStatus(filterPlan,
+        filterPhase,
+        filterStep,
+        true,
+        false));
 
     //Retrieve the latest Plans from PlanCoordinator. Some plans i.e recovery do change over time.
     HashMap<String, Plan> planMap = new HashMap<String, Plan>();
