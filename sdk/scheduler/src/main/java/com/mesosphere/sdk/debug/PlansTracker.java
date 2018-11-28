@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.debug;
 
-import java.util.List;
 import java.util.HashMap;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.QueryParam;
@@ -16,13 +16,18 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreUtils;
+import com.mesosphere.sdk.offer.Constants;
 
 public class PlansTracker implements DebugEndpoint {
 
+	private final StateStore stateStore;
 	private final PlanCoordinator planCoordinator;
 
-	public PlansTracker(PlanCoordinator planCoordinator) {
+	public PlansTracker(PlanCoordinator planCoordinator, StateStore stateStore) {
 		this.planCoordinator = planCoordinator;
+		this.stateStore = stateStore;
 	}
 	
 	private HashMap<String, JSONArray> generateServiceTopology() {
@@ -208,6 +213,38 @@ public class PlansTracker implements DebugEndpoint {
 		JSONObject response = new JSONObject();
 		response.put("service-topology", generateServiceTopology());
 		response.put("service-status", generateServiceStatus(u_plan, u_phase, u_step));
+
+		//Retrieve the latest Plans. Some plans i.e recovery do change.
+		//Best to retrieve from PlanCoordinator.
+		HashMap<String, Plan> planMap = new HashMap<String, Plan>();
+		//Add all the plans for easy lookups later.
+		for(PlanManager planManager: planCoordinator.getPlanManagers())
+		{
+			Plan plan = planManager.getPlan();
+			planMap.put(plan.getName(), plan);
+		}
+	
+		//Set scheduler to one of DEPLOYING, DEPLOYED, RECOVERING or DECOMISSIONING.
+		//If unknown, set to generic status to RUNNING when running custom-plans.
+		String schedulerStatus = "RUNNING";
+		if(planMap.containsKey(Constants.DEPLOY_PLAN_NAME) && planMap.get(Constants.DEPLOY_PLAN_NAME).isRunning())
+			schedulerStatus = "DEPLOYING";	
+		//Here check the StateStore BEFORE the local-cache.
+		if(StateStoreUtils.getDeploymentWasCompleted(stateStore) || 
+				(planMap.containsKey(Constants.DEPLOY_PLAN_NAME) && planMap.get(Constants.DEPLOY_PLAN_NAME).isComplete()))
+			schedulerStatus = "DEPLOYED";	
+		if(planMap.containsKey(Constants.RECOVERY_PLAN_NAME) && planMap.get(Constants.RECOVERY_PLAN_NAME).isRunning())
+			schedulerStatus = "RECOVERING";
+		if(planMap.containsKey(Constants.DECOMMISSION_PLAN_NAME) && planMap.get(Constants.DECOMMISSION_PLAN_NAME).isRunning())
+			schedulerStatus = "DECOMMISIONING";
+		response.put("scheduler-state", schedulerStatus);	
+
+		//List all active plans.
+		List<String> activePlans = planMap.entrySet().stream()
+											.filter(entry -> entry.getValue().isRunning())
+											.map(entry -> entry.getKey())
+											.collect(Collectors.toList());
+		response.put("active-plans", new JSONArray(activePlans));	
 		
 		return ResponseUtils.jsonOkResponse(response);
 	}
