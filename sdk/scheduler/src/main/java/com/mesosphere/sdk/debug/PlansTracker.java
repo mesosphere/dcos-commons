@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /*
@@ -133,20 +134,22 @@ public class PlansTracker implements DebugEndpoint {
   }
 
   @SuppressWarnings({"checkstyle:ReturnCountCheck", "checkstyle:MultipleStringLiteralsCheck"})
-  private JSONObject getValidationErrorResponse(String filterPlan,
+  private Optional<JSONObject> getValidationErrorResponse(String filterPlan,
                                                 String filterPhase,
                                                 String filterStep)
   {
     //If a step is defined ensure both plan and phase are also provided.
     if (filterStep != null && (filterPlan == null || filterPhase == null)) {
       JSONObject outcome = new JSONObject();
-      return outcome.put("invalid_input", "Step specified without parent Phase and Plan values.");
+      outcome.put("invalid_input", "Step specified without parent Phase and Plan values.");
+      return Optional.of(outcome);
     }
 
     //If a phase is defined ensure parent plan is also provided.
     if (filterPhase != null && filterPlan == null) {
       JSONObject outcome = new JSONObject();
-      return outcome.put("invalid_input", "Phase specified without parent Plan.");
+      outcome.put("invalid_input", "Phase specified without parent Plan.");
+      return Optional.of(outcome);
     }
 
     //Ensure correct ownership. Start with the plan.
@@ -162,8 +165,9 @@ public class PlansTracker implements DebugEndpoint {
     //Ensure we found our plan.
     if (planManagers.size() != 1) {
       JSONObject outcome = new JSONObject();
-      return outcome.put("invalid_input",
+      outcome.put("invalid_input",
           "Supplied plan not found in list of all available plans!");
+      return Optional.of(outcome);
     }
 
     //If no explicit phase defined, nothing further to do.
@@ -179,8 +183,9 @@ public class PlansTracker implements DebugEndpoint {
     //Ensure we found our phase.
     if (phaseList.size() != 1) {
       JSONObject outcome = new JSONObject();
-      return outcome.put("invalid_input",
+      outcome.put("invalid_input",
           "Supplied phase not found in set of possible phases with supplied plan!");
+      return Optional.of(outcome);
     }
 
     //If no explicit step defined, nothing further to do.
@@ -194,12 +199,13 @@ public class PlansTracker implements DebugEndpoint {
     //Ensure we found our phase.
     if (stepList.size() != 1) {
       JSONObject outcome = new JSONObject();
-      return outcome.put("invalid_input",
+      outcome.put("invalid_input",
           "Supplied step not found in set of possible steps with supplied plan and phase!");
+      return Optional.of(outcome);
     }
 
     //Successfully found plan, phase and step.
-    return null;
+    return Optional.empty();
   }
 
   public Response getJson(@QueryParam("plan") String filterPlan,
@@ -210,11 +216,11 @@ public class PlansTracker implements DebugEndpoint {
 
     //Validate plan/phase/step if provided.
     if (filterPlan != null || filterPhase != null || filterStep != null) {
-      JSONObject validationOutcome = getValidationErrorResponse(filterPlan,
-                                                                filterPhase,
-                                                                filterStep);
-      if (validationOutcome != null)
-        return ResponseUtils.jsonOkResponse(validationOutcome);
+      Optional<JSONObject> validationOutcome = getValidationErrorResponse(filterPlan,
+                                                                          filterPhase,
+                                                                          filterStep);
+      if (validationOutcome.isPresent())
+        return ResponseUtils.jsonOkResponse(validationOutcome.get());
     }
 
     //At this point we're either returning the entire plans tree or
