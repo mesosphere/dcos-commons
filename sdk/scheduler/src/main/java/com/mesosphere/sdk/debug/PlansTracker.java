@@ -21,7 +21,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-/*
+// SUPPRESS CHECKSTYLE MultipleStringLiteralsCheck
+
+/**
  * PlansTracker is the backend of the PlansDebugEndpoint.
  * It aggregates the status across all Plans and allows
  * for filtered responses. The PlansTracker also returns
@@ -39,7 +41,6 @@ public class PlansTracker implements DebugEndpoint {
     this.stateStore = stateStore;
   }
 
-  @SuppressWarnings({"checkstyle:MultipleStringLiteralsCheck", "checkstyle:NestedForDepthCheck"})
   private JSONObject generateServiceStatus(String filterPlan,
                                            String filterPhase,
                                            String filterStep,
@@ -53,14 +54,18 @@ public class PlansTracker implements DebugEndpoint {
       Plan plan = planManager.getPlan();
 
       //Filter down to a plan if specified.
-      if (allowFiltering && filterPlan != null && !plan.getName().equalsIgnoreCase(filterPlan))
+      if (allowFiltering && filterPlan != null && !plan.getName().equalsIgnoreCase(filterPlan)) {
         continue;
+      }
 
       JSONObject planObject = new JSONObject();
       JSONArray phaseArray = new JSONArray();
+      // SUPPRESS CHECKSTYLE MultipleStringLiteralsCheck
       planObject.put("name", plan.getName());
       if (!skipDetails) {
+        // SUPPRESS CHECKSTYLE MultipleStringLiteralsCheck
         planObject.put("status", plan.getStatus());
+        // SUPPRESS CHECKSTYLE MultipleStringLiteralsCheck
         planObject.put("strategy", plan.getStrategy().getName());
       }
       planObject.put("phases", phaseArray);
@@ -84,8 +89,12 @@ public class PlansTracker implements DebugEndpoint {
       //Iterate over phases.
       for (Phase phase : plan.getChildren()) {
         //Filter down to a phase if specified.
-        if (allowFiltering && filterPhase != null && !phase.getName().equalsIgnoreCase(filterPhase))
+        if (allowFiltering &&
+            filterPhase != null &&
+            !phase.getName().equalsIgnoreCase(filterPhase))
+        {
           continue;
+        }
 
         JSONObject phaseObject = new JSONObject();
         JSONArray stepArray = new JSONArray();
@@ -98,10 +107,15 @@ public class PlansTracker implements DebugEndpoint {
         phaseObject.put("steps", stepArray);
 
         //Iterate over steps.
+        // SUPPRESS CHECKSTYLE NestedForDepthCheck
         for (Step step : phase.getChildren()) {
           //Filter down to a step if specified.
-          if (allowFiltering && filterStep != null && !step.getName().equalsIgnoreCase(filterStep))
+          if (allowFiltering &&
+              filterStep != null &&
+              !step.getName().equalsIgnoreCase(filterStep))
+          {
             continue;
+          }
 
           JSONObject stepObject = new JSONObject();
           stepObject.put("name", step.getName());
@@ -122,7 +136,7 @@ public class PlansTracker implements DebugEndpoint {
     return outcome;
   }
 
-  @SuppressWarnings({"checkstyle:ReturnCountCheck", "checkstyle:MultipleStringLiteralsCheck"})
+  // SUPPRESS CHECKSTYLE ReturnCountCheck
   private Optional<JSONObject> getValidationErrorResponse(String filterPlan,
                                                 String filterPhase,
                                                 String filterStep)
@@ -130,6 +144,7 @@ public class PlansTracker implements DebugEndpoint {
     //If a step is defined ensure both plan and phase are also provided.
     if (filterStep != null && (filterPlan == null || filterPhase == null)) {
       JSONObject outcome = new JSONObject();
+      // SUPPRESS CHECKSTYLE MultipleStringLiteralsCheck
       outcome.put("invalid_input", "Step specified without parent Phase and Plan values.");
       return Optional.of(outcome);
     }
@@ -144,7 +159,9 @@ public class PlansTracker implements DebugEndpoint {
     //Ensure correct ownership. Start with the plan.
 
     //If no explicit plan defined, nothing further to do.
-    if (filterPlan == null) return Optional.empty();
+    if (filterPlan == null) {
+      return Optional.empty();
+    }
 
     //Plan is specified, ensure it exists within our list of plans.
     //Filter for our desired plan.
@@ -160,7 +177,9 @@ public class PlansTracker implements DebugEndpoint {
     }
 
     //If no explicit phase defined, nothing further to do.
-    if (filterPhase == null) return Optional.empty();
+    if (filterPhase == null) {
+      return Optional.empty();
+    }
 
     Plan plan = planManagers.get(0).getPlan();
 
@@ -178,7 +197,9 @@ public class PlansTracker implements DebugEndpoint {
     }
 
     //If no explicit step defined, nothing further to do.
-    if (filterStep == null) return Optional.empty();
+    if (filterStep == null) {
+      return Optional.empty();
+    }
 
     Phase phase = phaseList.get(0);
     List<Step> stepList = phase.getChildren().stream()
@@ -208,8 +229,9 @@ public class PlansTracker implements DebugEndpoint {
       Optional<JSONObject> validationOutcome = getValidationErrorResponse(filterPlan,
                                                                           filterPhase,
                                                                           filterStep);
-      if (validationOutcome.isPresent())
+      if (validationOutcome.isPresent()) {
         return ResponseUtils.jsonOkResponse(validationOutcome.get());
+      }
     }
 
     //At this point we're either returning the entire plans tree or
@@ -241,18 +263,26 @@ public class PlansTracker implements DebugEndpoint {
     String schedulerStatus = "RUNNING";
     if (planMap.containsKey(Constants.DEPLOY_PLAN_NAME) &&
         planMap.get(Constants.DEPLOY_PLAN_NAME).isRunning())
+    {
       schedulerStatus = "DEPLOYING";
+    }
     //Here check the StateStore BEFORE the local-cache.
     if (StateStoreUtils.getDeploymentWasCompleted(stateStore) ||
         (planMap.containsKey(Constants.DEPLOY_PLAN_NAME) &&
             planMap.get(Constants.DEPLOY_PLAN_NAME).isComplete()))
+    {
       schedulerStatus = "DEPLOYED";
+    }
     if (planMap.containsKey(Constants.RECOVERY_PLAN_NAME) &&
         planMap.get(Constants.RECOVERY_PLAN_NAME).isRunning())
+    {
       schedulerStatus = "RECOVERING";
+    }
     if (planMap.containsKey(Constants.DECOMMISSION_PLAN_NAME) &&
         planMap.get(Constants.DECOMMISSION_PLAN_NAME).isRunning())
+    {
       schedulerStatus = "DECOMMISIONING";
+    }
     response.put("scheduler-state", schedulerStatus);
 
     //List all active plans.

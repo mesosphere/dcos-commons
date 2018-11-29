@@ -13,11 +13,11 @@ import javax.ws.rs.core.Response;
  */
 @Path("/v1/debug")
 public class PlansDebugResource {
-	
+
   private final PlansTracker plansTracker;
 
   public PlansDebugResource(PlansTracker plansTracker) {
-	  this.plansTracker = plansTracker;
+    this.plansTracker = plansTracker;
   }
 
   /**
@@ -28,9 +28,10 @@ public class PlansDebugResource {
   @GET
   @Path("plans")
   public Response getOfferOutcomes(@QueryParam("plan") String plan,
-							 		@QueryParam("phase") String phase,
-							 		@QueryParam("step") String step,
-							 		@QueryParam("sync") boolean sync) {
-	  return plansTracker.getJson(plan, phase, step, sync);
-    }
+                  @QueryParam("phase") String phase,
+                  @QueryParam("step") String step,
+                  @QueryParam("sync") boolean sync)
+  {
+    return plansTracker.getJson(plan, phase, step, sync);
   }
+}

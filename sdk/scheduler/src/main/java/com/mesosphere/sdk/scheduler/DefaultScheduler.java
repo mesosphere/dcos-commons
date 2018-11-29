@@ -100,6 +100,7 @@ public class DefaultScheduler extends AbstractScheduler {
   private final Optional<UninstallRecorder> decommissionRecorder;
 
   private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
+
   private final Optional<PlansTracker> plansTracker;
 
   private final PlanScheduler planScheduler;
@@ -194,7 +195,6 @@ public class DefaultScheduler extends AbstractScheduler {
         namespace);
 
     customizePlans();
-    
     this.plansTracker = Optional.of(new PlansTracker(getPlanCoordinator(), stateStore));
   }
 
