@@ -36,7 +36,7 @@ cd sdk/cli/
 To run the compiled CLI (the example below uses Linux, pick the correct binary for your platform):
 
 ```bash
-./dcos-service-cli-linux hello-world -h
+./dcos-service-cli-linux helloworld -h
 ```
 
 ## Develop
@@ -98,6 +98,6 @@ When installed, the module is executed as a regular binary by the DC/OS CLI, wit
 $ <exename> <modulename> [args]
 ```
 
-So for example, if someone called `dcos hello-world pod list`, the `dcos-service-cli` CLI module would be run as `dcos-service-cli hello-world pod list` by the DC/OS CLI.
+So for example, if someone called `dcos helloworld pod list`, the `dcos-service-cli` CLI module would be run as `dcos-service-cli helloworld pod list` by the DC/OS CLI.
 
-The inclusion of `modulename` (`hello-workd` in this example) as an argument allows reuse of a single CLI module build across multiple packages. In particular this is used by the default CLI build which is shared across most packages.
+The inclusion of `modulename` (`helloworld` in this example) as an argument allows reuse of a single CLI module build across multiple packages. In particular this is used by the default CLI build which is shared across most packages.
