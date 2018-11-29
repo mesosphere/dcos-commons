@@ -19,15 +19,17 @@ import javax.ws.rs.core.Response;
 import java.util.Collection;
 import java.util.Optional;
 
-/*
- * TaskStatusesTracker is the backend of the TaskStatusEndpoint.
- * it aggregates taskStatus for all the plans and allows for filtering based on phase and step
- */
 
+//CHECKSTYLE:OFF NestedForDepth
+
+/**
+ * TaskStatusesTracker is the backend of TaskStatusesResource.
+ * It aggregates taskStatuses (if present) for plans, phases and steps.
+ */
 public class TaskStatusesTracker implements DebugEndpoint {
 
-
   private final StateStore stateStore;
+
   private final PlanCoordinator planCoordinator;
 
 
@@ -53,8 +55,9 @@ public class TaskStatusesTracker implements DebugEndpoint {
           if (filterStep != null && !step.getName().equalsIgnoreCase(filterStep))
             continue;
           JSONObject taskStatus = new JSONObject();
-          Collection<TaskSpec> tasksInStep = step.getPodInstanceRequirement().
-              get().getPodInstance().getPod().getTasks();
+          Collection<TaskSpec> tasksInStep = step
+              .getPodInstanceRequirement()
+              .get().getPodInstance().getPod().getTasks();
           for (TaskSpec taskSpec : tasksInStep) {
             String taskInstanceName = TaskSpec.getInstanceName(
                 step.getPodInstanceRequirement().get().getPodInstance(),
