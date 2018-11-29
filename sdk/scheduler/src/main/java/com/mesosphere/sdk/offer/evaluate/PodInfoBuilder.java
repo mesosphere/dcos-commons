@@ -261,6 +261,7 @@ public class PodInfoBuilder {
         .setTargetConfiguration(targetConfigurationId)
         .setType(podInstance.getPod().getType())
         .setIndex(podInstance.getIndex())
+        .setAdditionalLabels(taskSpec.getTaskLabels())
         .toProto());
 
     if (taskSpec.getCommand().isPresent()) {

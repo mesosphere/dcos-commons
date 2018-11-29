@@ -52,6 +52,7 @@
     {{#hello.kill_grace_period}}
     "HELLO_KILL_GRACE_PERIOD": "{{hello.kill_grace_period}}",
     {{/hello.kill_grace_period}}
+    "HELLO_LABELS": "{{hello.labels}}",
     "WORLD_COUNT": "{{world.count}}",
     "WORLD_CPUS": "{{world.cpus}}",
     "WORLD_MEM": "{{world.mem}}",
@@ -101,10 +102,12 @@
     "KEYSTORE_APP_VERSION": "{{tls.keystore_app_version}}",
     "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}",
     "TEST_BOOLEAN": "{{service.test_boolean}}",
+    "TEST_PROFILE_VOLUME_COMMAND": "{{{service.test_profile_volume_command}}}",
     "SCENARIOS": "{{service.scenario}}",
     "ALLOW_REGION_AWARENESS": "{{service.allow_region_awareness}}",
     "HELLO_PORT_ONE": "{{hello.port_one}}",
-    "GLOG_v":"{{service.verbose_mesos_logging}}"
+    "GLOG_v":"{{service.verbose_mesos_logging}}",
+    "TASKCFG_ALL_PACKAGE_VERSION_TO_FORCE_UPDATE": "{{package-version}}"
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },

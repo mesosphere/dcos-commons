@@ -121,7 +121,7 @@ def kafka_client(kerberos, kafka_server):
             "mem": 512,
             "container": {
                 "type": "MESOS",
-                "docker": {"image": "elezar/kafka-client:4b9c060", "forcePullImage": True},
+                "docker": {"image": "mesosphere/kafka-testing-client:30ff636fdf1795a7c3f443cfa77898720a3e6fd3", "forcePullImage": True},
                 "volumes": [
                     {
                         "containerPath": "/tmp/kafkaconfig/kafka-client.keytab",
