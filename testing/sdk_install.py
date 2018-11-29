@@ -10,6 +10,7 @@ import logging
 import time
 import retrying
 import tempfile
+from enum import Enum
 
 import sdk_cmd
 import sdk_marathon
@@ -35,16 +36,21 @@ def get_installed_service_names() -> set:
     return _installed_service_names
 
 
+class PackageVersion(Enum):
+    STUB_UNIVERSE = "stub-universe"
+    LATEST_UNIVERSE = ""
+
+
 @retrying.retry(stop_max_attempt_number=3, retry_on_exception=lambda e: isinstance(e, Exception))
 def _retried_install_impl(
-    package_name,
-    service_name,
-    expected_running_tasks,
-    options={},
-    package_version=None,
-    timeout_seconds=TIMEOUT_SECONDS,
-    wait_for_all_conditions=True,
-):
+    package_name: str,
+    service_name: str,
+    expected_running_tasks: int,
+    package_version: str,
+    options: dict,
+    timeout_seconds: int,
+    wait_for_all_conditions: bool,
+) -> None:
     log.info(
         "Installing package={} service={} with options={} version={}".format(
             package_name, service_name, options, package_version
@@ -84,16 +90,16 @@ def _retried_install_impl(
 
 
 def install(
-    package_name,
-    service_name,
-    expected_running_tasks,
-    additional_options={},
-    package_version=None,
-    timeout_seconds=TIMEOUT_SECONDS,
-    wait_for_deployment=True,
-    insert_strict_options=True,
-    wait_for_all_conditions=True
-):
+    package_name: str,
+    service_name: str,
+    expected_running_tasks: int,
+    additional_options: dict = {},
+    package_version: PackageVersion = PackageVersion.STUB_UNIVERSE,
+    timeout_seconds: int = TIMEOUT_SECONDS,
+    wait_for_deployment: bool = True,
+    insert_strict_options: bool = True,
+    wait_for_all_conditions: bool = True,
+) -> None:
     start = time.time()
 
     # If the package is already installed at this point, fail immediately.
@@ -122,8 +128,8 @@ def install(
         package_name,
         service_name,
         expected_running_tasks,
+        package_version.value if isinstance(package_version, PackageVersion) else package_version,
         options,
-        package_version,
         timeout_seconds,
         wait_for_all_conditions
     )

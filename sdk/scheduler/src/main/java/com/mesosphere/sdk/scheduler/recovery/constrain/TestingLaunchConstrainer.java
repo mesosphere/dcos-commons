@@ -9,23 +9,23 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
  * Defaults to allowing all launches.
  */
 public class TestingLaunchConstrainer implements LaunchConstrainer {
-    private boolean canLaunch;
+  private boolean canLaunch;
 
-    public TestingLaunchConstrainer() {
-        this.canLaunch = false;
-    }
+  public TestingLaunchConstrainer() {
+    this.canLaunch = false;
+  }
 
-    public void setCanLaunch(boolean canLaunch) {
-        this.canLaunch = canLaunch;
-    }
+  public void setCanLaunch(boolean canLaunch) {
+    this.canLaunch = canLaunch;
+  }
 
-    @Override
-    public void launchHappened(LaunchOfferRecommendation recommendation, RecoveryType recoveryType) {
-        // Does nothing when the launch happens
-    }
+  @Override
+  public void launchHappened(LaunchOfferRecommendation recommendation, RecoveryType recoveryType) {
+    // Does nothing when the launch happens
+  }
 
-    @Override
-    public boolean canLaunch(RecoveryType recoveryType) {
-        return this.canLaunch;
-    }
+  @Override
+  public boolean canLaunch(RecoveryType recoveryType) {
+    return this.canLaunch;
+  }
 }

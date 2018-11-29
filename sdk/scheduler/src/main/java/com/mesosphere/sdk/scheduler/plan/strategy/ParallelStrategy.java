@@ -13,30 +13,33 @@ import java.util.List;
  */
 public class ParallelStrategy<C extends Element> extends InterruptibleStrategy<C> {
 
+  @Override
+  public Collection<C> getCandidates(
+      Collection<C> elements,
+      Collection<PodInstanceRequirement> dirtyAssets)
+  {
+    // No prerequisites configured:
+    return new DependencyStrategyHelper<C>(elements).getCandidates(isInterrupted(), dirtyAssets);
+  }
+
+  @Override
+  public String getName() {
+    return "parallel";
+  }
+
+  public StrategyGenerator<C> getGenerator() {
+    return new Generator<>();
+  }
+
+  /**
+   * This class generates Strategy objects of the appropriate type.
+   *
+   * @param <C> is the type of {@link Element}s to which the Strategy applies.
+   */
+  public static class Generator<C extends Element> implements StrategyGenerator<C> {
     @Override
-    public Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets) {
-        // No prerequisites configured:
-        return new DependencyStrategyHelper<C>(elements).getCandidates(isInterrupted(), dirtyAssets);
+    public Strategy<C> generate(List<C> ignored) {
+      return new ParallelStrategy<C>();
     }
-
-    @Override
-    public String getName() {
-        return "parallel";
-    }
-
-    public StrategyGenerator<C> getGenerator() {
-        return new Generator<>();
-    }
-
-    /**
-     * This class generates Strategy objects of the appropriate type.
-     *
-     * @param <C> is the type of {@link Element}s to which the Strategy applies.
-     */
-    public static class Generator<C extends Element> implements StrategyGenerator<C> {
-        @Override
-        public Strategy<C> generate(List<C> ignored) {
-            return new ParallelStrategy<C>();
-        }
-    }
+  }
 }

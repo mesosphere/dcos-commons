@@ -1,4 +1,4 @@
-FROM mesosphere/kdc:latest
+FROM mesosphere/kdc:latest@sha256:7d8fa40153fde988df54d2b1f3f25cab3e9eac4fb20ab454096765eab9161198
 
 RUN mkdir /kdc
 COPY run.sh /kdc/run.sh

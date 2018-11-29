@@ -307,7 +307,7 @@ public class ServiceTest {
 
         // Running, no readiness check is applicable:
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
-        String taskId = UUID.randomUUID().toString();
+        String taskId = CommonIdUtils.toTaskId("bogus", "taskid").getValue();
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING)
                 .setTaskId(taskId)
                 .build());
@@ -394,8 +394,9 @@ public class ServiceTest {
         // - a recovery plan that's COMPLETE
         // - a decommission plan that's PENDING with phases for world-1 and world-0 (in that order)
 
-        // When default executor is being used, three additional resources need to be unreserved.
-        int stepCount = 9;
+        // When default executor is being used, one additional resource needs to be unreserved (as configured within
+        // ServiceTestRunner).
+        int stepCount = 7;
 
         // Check initial plan state
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
@@ -853,7 +854,9 @@ public class ServiceTest {
                         .collect(Collectors.toMap(
                                 Step::getName,
                                 Step::getStatus,
-                                (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
+                                (u, v) -> {
+                                    throw new IllegalStateException(String.format("Duplicate key %s", u));
+                                },
                                 TreeMap::new));
                 Assert.assertEquals(
                         String.format("Number of steps doesn't match expectation in %s: %s", stepCount, stepStatuses),
@@ -996,6 +999,8 @@ public class ServiceTest {
                 "DEPLOY_STEPS", "[[first, second, third]]"));
         schedulerEnvForExamples.put("pod-profile-mount-volume.yml", toMap(
                 "HELLO_VOLUME_PROFILE", "xfs"));
+        schedulerEnvForExamples.put("svc.yml", toMap(
+                "HELLO_LABELS", "label1:label-value1"));
 
         // Iterate over yml files in dist/examples/, run sanity check for each:
         File[] exampleFiles = ServiceTestRunner.getDistDir().listFiles();

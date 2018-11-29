@@ -100,6 +100,7 @@ def zookeeper_service(kerberos):
             config.ZOOKEEPER_PACKAGE_NAME,
             config.ZOOKEEPER_SERVICE_NAME,
             config.ZOOKEEPER_TASK_COUNT,
+            package_version=sdk_install.PackageVersion.LATEST_UNIVERSE,
             additional_options=service_options,
             timeout_seconds=30 * 60,
             insert_strict_options=False,

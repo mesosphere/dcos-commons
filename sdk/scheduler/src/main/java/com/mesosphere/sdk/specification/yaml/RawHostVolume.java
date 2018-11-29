@@ -5,23 +5,25 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * RawHostVolume YAML spec.
  */
-public class RawHostVolume {
-    private final String hostPath;
-    private final String containerPath;
+public final class RawHostVolume {
+  private final String hostPath;
 
-    private RawHostVolume(
-            @JsonProperty("host-path") String hostPath,
-            @JsonProperty("container-path") String containerPath) {
-        this.hostPath = hostPath;
-        this.containerPath = containerPath;
-    }
+  private final String containerPath;
 
-    public String getHostPath() {
-        return hostPath;
-    }
+  private RawHostVolume(
+      @JsonProperty("host-path") String hostPath,
+      @JsonProperty("container-path") String containerPath)
+  {
+    this.hostPath = hostPath;
+    this.containerPath = containerPath;
+  }
 
-    public String getContainerPath() {
-        return containerPath;
-    }
+  public String getHostPath() {
+    return hostPath;
+  }
+
+  public String getContainerPath() {
+    return containerPath;
+  }
 
 }

@@ -1,67 +1,68 @@
 package com.mesosphere.sdk.http.types;
 
-import java.util.Optional;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.protobuf.TextFormat;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos.TaskInfo;
 import org.apache.mesos.Protos.TaskStatus;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.protobuf.TextFormat;
+import java.util.Optional;
 
 /**
  * Basic container which holds a {@link TaskInfo} and optionally a corresponding {@link TaskStatus} if any is
  * available.
  */
-public class TaskInfoAndStatus {
-    private final TaskInfo info;
-    private final Optional<TaskStatus> status;
+public final class TaskInfoAndStatus {
+  private final TaskInfo info;
 
-    public static TaskInfoAndStatus create(TaskInfo info, Optional<TaskStatus> status) {
-        return new TaskInfoAndStatus(info, status);
-    }
+  private final Optional<TaskStatus> status;
 
-    @JsonProperty("info")
-    public TaskInfo getInfo() {
-        return info;
-    }
+  private TaskInfoAndStatus(
+      @JsonProperty("info") TaskInfo info,
+      @JsonProperty("status") Optional<TaskStatus> status)
+  {
+    this.info = info;
+    this.status = status;
+  }
 
-    @JsonProperty("status")
-    public Optional<TaskStatus> getStatus() {
-        return status;
-    }
+  public static TaskInfoAndStatus create(TaskInfo info, Optional<TaskStatus> status) {
+    return new TaskInfoAndStatus(info, status);
+  }
 
-    public boolean hasStatus() {
-        return status.isPresent();
-    }
+  @JsonProperty("info")
+  public TaskInfo getInfo() {
+    return info;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
+  @JsonProperty("status")
+  public Optional<TaskStatus> getStatus() {
+    return status;
+  }
 
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
-    }
+  public boolean hasStatus() {
+    return status.isPresent();
+  }
 
-    @Override
-    public String toString() {
-        // Manual string: ensure we use shortDebugString() throughout
-        if (status.isPresent()) {
-            return String.format("TaskInfoAndStatus{info=%s, status=%s}",
-                    TextFormat.shortDebugString(info), TextFormat.shortDebugString(status.get()));
-        } else {
-            return String.format("TaskInfoAndStatus{info=%s, status=<unset>}",
-                    TextFormat.shortDebugString(info));
-        }
-    }
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
 
-    private TaskInfoAndStatus(
-            @JsonProperty("info") TaskInfo info,
-            @JsonProperty("status") Optional<TaskStatus> status) {
-        this.info = info;
-        this.status = status;
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+
+  @Override
+  public String toString() {
+    // Manual string: ensure we use shortDebugString() throughout
+    if (status.isPresent()) {
+      return String.format("TaskInfoAndStatus{info=%s, status=%s}",
+          TextFormat.shortDebugString(info), TextFormat.shortDebugString(status.get()));
+    } else {
+      return String.format("TaskInfoAndStatus{info=%s, status=<unset>}",
+          TextFormat.shortDebugString(info));
     }
+  }
 }

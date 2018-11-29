@@ -10,9 +10,9 @@ import java.util.Map;
  */
 @JsonDeserialize(as = DefaultCommandSpec.class)
 public interface CommandSpec {
-    @JsonProperty("value")
-    String getValue();
+  @JsonProperty("value")
+  String getValue();
 
-    @JsonProperty("environment")
-    Map<String, String> getEnvironment();
+  @JsonProperty("environment")
+  Map<String, String> getEnvironment();
 }

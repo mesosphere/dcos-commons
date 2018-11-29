@@ -1,197 +1,207 @@
 package com.mesosphere.sdk.specification;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.offer.Constants;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.protobuf.TextFormat;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
  * This class provides a default implementation of the ResourceSpec interface.
  */
 public class DefaultResourceSpec implements ResourceSpec {
 
-    private final String name;
-    private final Protos.Value value;
-    private final String role;
-    private final String principal;
-    private final String preReservedRole;
+  private final String name;
 
-    @JsonCreator
-    protected DefaultResourceSpec(
-            @JsonProperty("name") String name,
-            @JsonProperty("value") Protos.Value value,
-            @JsonProperty("role") String role,
-            @JsonProperty("pre-reserved-role") String preReservedRole,
-            @JsonProperty("principal") String principal) {
-        this.name = name;
-        this.value = value;
-        this.role = role;
-        this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
-        this.principal = principal;
+  private final Protos.Value value;
+
+  private final String role;
+
+  private final String principal;
+
+  private final String preReservedRole;
+
+  @JsonCreator
+  protected DefaultResourceSpec(
+      @JsonProperty("name") String name,
+      @JsonProperty("value") Protos.Value value,
+      @JsonProperty("role") String role,
+      @JsonProperty("pre-reserved-role") String preReservedRole,
+      @JsonProperty("principal") String principal)
+  {
+    this.name = name;
+    this.value = value;
+    this.role = role;
+    this.preReservedRole = preReservedRole == null ? Constants.ANY_ROLE : preReservedRole;
+    this.principal = principal;
+  }
+
+  private DefaultResourceSpec(Builder builder) {
+    this(builder.name, builder.value, builder.role, builder.preReservedRole, builder.principal);
+
+    validateResource();
+  }
+
+  public static Builder newBuilder() {
+    return new Builder();
+  }
+
+  public static Builder newBuilder(ResourceSpec copy) {
+    Builder builder = new Builder();
+    builder.name = copy.getName();
+    builder.value = copy.getValue();
+    builder.role = copy.getRole();
+    builder.preReservedRole = copy.getPreReservedRole();
+    builder.principal = copy.getPrincipal();
+    return builder;
+  }
+
+  protected void validateResource() {
+    ValidationUtils.nonEmpty(this, "name", name);
+    ValidationUtils.nonNull(this, "value", value);
+    ValidationUtils.nonEmpty(this, "role", role);
+    ValidationUtils.nonEmpty(this, "principal", principal);
+
+    if (value.hasScalar()) {
+      if (value.getScalar().getValue() <= 0) {
+        throw new IllegalArgumentException(
+            String.format("Scalar resource value must be greater than zero: %s", this));
+      }
+    } else if (!value.hasRanges()) {
+      throw new IllegalArgumentException(
+          String.format("Expected resource value to be a scalar or range: %s", this));
     }
+  }
 
-    private DefaultResourceSpec(Builder builder) {
-        this(builder.name, builder.value, builder.role, builder.preReservedRole, builder.principal);
+  @Override
+  @JsonProperty("name")
+  public String getName() {
+    return name;
+  }
 
-        validateResource();
-    }
+  @Override
+  @JsonProperty("value")
+  public Protos.Value getValue() {
+    return value;
+  }
 
-    protected void validateResource() {
-        ValidationUtils.nonEmpty(this, "name", name);
-        ValidationUtils.nonNull(this, "value", value);
-        ValidationUtils.nonEmpty(this, "role", role);
-        ValidationUtils.nonEmpty(this, "principal", principal);
+  @Override
+  @JsonProperty("role")
+  public String getRole() {
+    return role;
+  }
 
-        if (value.hasScalar()) {
-            if (value.getScalar().getValue() <= 0) {
-                throw new IllegalArgumentException(
-                        String.format("Scalar resource value must be greater than zero: %s", this));
-            }
-        } else if (!value.hasRanges()) {
-            throw new IllegalArgumentException(
-                    String.format("Expected resource value to be a scalar or range: %s", this));
-        }
-    }
+  @Override
+  @JsonProperty("pre-reserved-role")
+  public String getPreReservedRole() {
+    return preReservedRole;
+  }
 
-    public static Builder newBuilder() {
-        return new Builder();
-    }
+  @Override
+  @JsonProperty("principal")
+  public String getPrincipal() {
+    return principal;
+  }
 
-    public static Builder newBuilder(ResourceSpec copy) {
-        Builder builder = new Builder();
-        builder.name = copy.getName();
-        builder.value = copy.getValue();
-        builder.role = copy.getRole();
-        builder.preReservedRole = copy.getPreReservedRole();
-        builder.principal = copy.getPrincipal();
-        return builder;
-    }
+  @Override
+  public String toString() {
+    return String.format(
+        "name: %s, value: %s, role: %s, pre-reserved-role: %s, principal: %s",
+        getName(),
+        TextFormat.shortDebugString(getValue()),
+        getRole(),
+        getPreReservedRole(),
+        getPrincipal());
+  }
 
-    @Override
-    @JsonProperty("name")
-    public String getName() {
-        return name;
-    }
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
 
-    @Override
-    @JsonProperty("value")
-    public Protos.Value getValue() {
-        return value;
-    }
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
 
-    @Override
-    @JsonProperty("role")
-    public String getRole() {
-        return role;
-    }
+  /**
+   * {@link DefaultResourceSpec} builder static inner class.
+   */
+  public static class Builder {
+    protected String name;
 
-    @Override
-    @JsonProperty("pre-reserved-role")
-    public String getPreReservedRole() {
-        return preReservedRole;
-    }
+    protected Protos.Value value;
 
-    @Override
-    @JsonProperty("principal")
-    public String getPrincipal() {
-        return principal;
-    }
+    protected String role;
 
-    @Override
-    public String toString() {
-        return String.format(
-                "name: %s, value: %s, role: %s, pre-reserved-role: %s, principal: %s",
-                getName(),
-                TextFormat.shortDebugString(getValue()),
-                getRole(),
-                getPreReservedRole(),
-                getPrincipal());
-    }
+    protected String principal;
 
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
+    protected String preReservedRole = Constants.ANY_ROLE;
 
-    @Override
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+    protected Builder() {
     }
 
     /**
-     * {@link DefaultResourceSpec} builder static inner class.
+     * Sets the {@code name} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param name the {@code name} to set
+     * @return a reference to this Builder
      */
-    public static class Builder {
-        protected String name;
-        protected Protos.Value value;
-        protected String role;
-        protected String principal;
-        protected String preReservedRole = Constants.ANY_ROLE;
-
-        protected Builder() {
-        }
-
-        /**
-         * Sets the {@code name} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param name the {@code name} to set
-         * @return a reference to this Builder
-         */
-        public Builder name(String name) {
-            this.name = name;
-            return this;
-        }
-
-        /**
-         * Sets the {@code value} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param value the {@code value} to set
-         * @return a reference to this Builder
-         */
-        public Builder value(Protos.Value value) {
-            this.value = value;
-            return this;
-        }
-
-        /**
-         * Sets the {@code role} and returns a reference to this Builder so that the methods can be chained together.
-         *
-         * @param role the {@code role} to set
-         * @return a reference to this Builder
-         */
-        public Builder role(String role) {
-            this.role = role;
-            return this;
-        }
-
-        public Builder preReservedRole(String preReservedRole) {
-            this.preReservedRole = preReservedRole;
-            return this;
-        }
-
-        /**
-         * Sets the {@code principal} and returns a reference to this Builder so that the methods can be chained
-         * together.
-         *
-         * @param principal the {@code principal} to set
-         * @return a reference to this Builder
-         */
-        public Builder principal(String principal) {
-            this.principal = principal;
-            return this;
-        }
-
-        /**
-         * Returns a {@code DefaultResourceSpec} built from the parameters previously set.
-         *
-         * @return a {@code DefaultResourceSpec} built with parameters of this
-         * {@code DefaultResourceSpec.Builder}
-         */
-        public DefaultResourceSpec build() {
-            return new DefaultResourceSpec(this);
-        }
+    public Builder name(String name) {
+      this.name = name;
+      return this;
     }
+
+    /**
+     * Sets the {@code value} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param value the {@code value} to set
+     * @return a reference to this Builder
+     */
+    public Builder value(Protos.Value value) {
+      this.value = value;
+      return this;
+    }
+
+    /**
+     * Sets the {@code role} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param role the {@code role} to set
+     * @return a reference to this Builder
+     */
+    public Builder role(String role) {
+      this.role = role;
+      return this;
+    }
+
+    public Builder preReservedRole(String preReservedRole) {
+      this.preReservedRole = preReservedRole;
+      return this;
+    }
+
+    /**
+     * Sets the {@code principal} and returns a reference to this Builder so that the methods can be chained
+     * together.
+     *
+     * @param principal the {@code principal} to set
+     * @return a reference to this Builder
+     */
+    public Builder principal(String principal) {
+      this.principal = principal;
+      return this;
+    }
+
+    /**
+     * Returns a {@code DefaultResourceSpec} built from the parameters previously set.
+     *
+     * @return a {@code DefaultResourceSpec} built with parameters of this
+     * {@code DefaultResourceSpec.Builder}
+     */
+    public DefaultResourceSpec build() {
+      return new DefaultResourceSpec(this);
+    }
+  }
 }

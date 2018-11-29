@@ -4,6 +4,9 @@ import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 
+import java.util.Map;
+import java.util.HashMap;
+
 /**
  * This class encapsulates constants for tests.
  */
@@ -47,6 +50,9 @@ public class TestConstants {
                     .setMount(Protos.Resource.DiskInfo.Source.Mount.newBuilder().setRoot("/mnt/source"))
                     .build();
     public static final String IP_ADDRESS = "localhost";
+    public static final Map<String, String> LABELS = getDefaultLabels();
+
+
 
     // CNI port mapping constants
     public static final int HOST_PORT = 4040;
@@ -107,5 +113,11 @@ public class TestConstants {
                         .setZone(Protos.DomainInfo.FaultDomain.ZoneInfo.newBuilder().setName(TestConstants.ZONE))
                         .setRegion(Protos.DomainInfo.FaultDomain.RegionInfo.newBuilder().setName(region)))
                 .build();
+    }
+
+    private static final Map<String, String> getDefaultLabels() {
+        Map<String, String> labels = new HashMap<String, String>();
+        labels.put("label1", "label1-value");
+        return labels;
     }
 }

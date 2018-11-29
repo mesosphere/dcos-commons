@@ -5,30 +5,33 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Raw Scheduler configuration.
  */
-public class RawScheduler {
+public final class RawScheduler {
 
-    private final String principal;
-    private final String zookeeper;
-    private final String user;
+  private final String principal;
 
-    private RawScheduler(
-            @JsonProperty("principal") String principal,
-            @JsonProperty("zookeeper") String zookeeper,
-            @JsonProperty("user") String user) {
-        this.principal = principal;
-        this.zookeeper = zookeeper;
-        this.user = user;
-    }
+  private final String zookeeper;
 
-    public String getPrincipal() {
-        return principal;
-    }
+  private final String user;
 
-    public String getZookeeper() {
-        return zookeeper;
-    }
+  private RawScheduler(
+      @JsonProperty("principal") String principal,
+      @JsonProperty("zookeeper") String zookeeper,
+      @JsonProperty("user") String user)
+  {
+    this.principal = principal;
+    this.zookeeper = zookeeper;
+    this.user = user;
+  }
 
-    public String getUser() {
-        return user;
-    }
+  public String getPrincipal() {
+    return principal;
+  }
+
+  public String getZookeeper() {
+    return zookeeper;
+  }
+
+  public String getUser() {
+    return user;
+  }
 }

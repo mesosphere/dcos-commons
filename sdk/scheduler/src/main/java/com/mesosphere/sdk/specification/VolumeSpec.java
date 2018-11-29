@@ -12,27 +12,27 @@ import java.util.List;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public interface VolumeSpec extends ResourceSpec {
 
-    /**
-     * Types of Volumes.
-     */
-    enum Type {
-        ROOT,
-        PATH,
-        MOUNT
-    }
+  @JsonProperty("type")
+  Type getType();
 
-    @JsonProperty("type")
-    Type getType();
+  @JsonProperty("container-path")
+  String getContainerPath();
 
-    @JsonProperty("container-path")
-    String getContainerPath();
+  @JsonProperty("profiles")
+  List<String> getProfiles();
 
-    @JsonProperty("profiles")
-    List<String> getProfiles();
+  /**
+   * Returns a copy of the {@link VolumeSpec} which has been updated to have the provided disk size.
+   */
+  @JsonIgnore
+  VolumeSpec withDiskSize(double diskSize);
 
-    /**
-     * Returns a copy of the {@link VolumeSpec} which has been updated to have the provided disk size.
-     */
-    @JsonIgnore
-    VolumeSpec withDiskSize(double diskSize);
+  /**
+   * Types of Volumes.
+   */
+  enum Type {
+    ROOT,
+    PATH,
+    MOUNT
+  }
 }

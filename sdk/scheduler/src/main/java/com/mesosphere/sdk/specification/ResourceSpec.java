@@ -11,18 +11,18 @@ import org.apache.mesos.Protos;
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME)
 public interface ResourceSpec {
 
-    @JsonProperty("value")
-    Protos.Value getValue();
+  @JsonProperty("value")
+  Protos.Value getValue();
 
-    @JsonProperty("name")
-    String getName();
+  @JsonProperty("name")
+  String getName();
 
-    @JsonProperty("role")
-    String getRole();
+  @JsonProperty("role")
+  String getRole();
 
-    @JsonProperty("pre-reserved-role")
-    String getPreReservedRole();
+  @JsonProperty("pre-reserved-role")
+  String getPreReservedRole();
 
-    @JsonProperty("principal")
-    String getPrincipal();
+  @JsonProperty("principal")
+  String getPrincipal();
 }

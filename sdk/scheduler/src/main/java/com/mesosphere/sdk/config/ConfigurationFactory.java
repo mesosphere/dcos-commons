@@ -9,10 +9,10 @@ import com.mesosphere.sdk.state.ConfigStoreException;
  * @param <T> The {@code Configuration} type that will be parsed.
  */
 public interface ConfigurationFactory<T extends Configuration> {
-    /**
-     * Parses the provided {@code bytes} and returns a configuration object.
-     *
-     * @throws ConfigStoreException if parsing fails
-     */
-    T parse(byte[] bytes) throws ConfigStoreException;
+  /**
+   * Parses the provided {@code bytes} and returns a configuration object.
+   *
+   * @throws ConfigStoreException if parsing fails
+   */
+  T parse(byte[] bytes) throws ConfigStoreException;
 }

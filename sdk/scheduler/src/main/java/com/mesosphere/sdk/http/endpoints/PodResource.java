@@ -22,87 +22,93 @@ import javax.ws.rs.core.Response;
 @Path("/v1/pod")
 public class PodResource extends PrettyJsonResource {
 
-    private final StateStore stateStore;
-    private final ConfigStore<ServiceSpec> configStore;
-    private final String serviceName;
+  private final StateStore stateStore;
 
-    /**
-     * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}.
-     */
-    public PodResource(StateStore stateStore, ConfigStore<ServiceSpec> configStore, String serviceName) {
-        this.stateStore = stateStore;
-        this.configStore = configStore;
-        this.serviceName = serviceName;
-    }
+  private final ConfigStore<ServiceSpec> configStore;
 
-    /**
-     * @see PodQueries
-     */
-    @GET
-    public Response list() {
-        return PodQueries.list(stateStore);
-    }
+  private final String serviceName;
 
-    /**
-     * @see PodQueries
-     */
-    @Path("/status")
-    @GET
-    public Response getStatuses() {
-        return PodQueries.getStatuses(stateStore, serviceName);
-    }
+  /**
+   * Creates a new instance which retrieves task/pod state from the provided {@link StateStore}.
+   */
+  public PodResource(
+      StateStore stateStore,
+      ConfigStore<ServiceSpec> configStore,
+      String serviceName)
+  {
+    this.stateStore = stateStore;
+    this.configStore = configStore;
+    this.serviceName = serviceName;
+  }
 
-    /**
-     * @see PodQueries
-     */
-    @Path("/{name}/status")
-    @GET
-    public Response getStatus(@PathParam("name") String podInstanceName) {
-        return PodQueries.getStatus(stateStore, podInstanceName);
-    }
+  /**
+   * @see PodQueries
+   */
+  @GET
+  public Response list() {
+    return PodQueries.list(stateStore);
+  }
 
-    /**
-     * @see PodQueries
-     */
-    @Path("/{name}/info")
-    @GET
-    public Response getInfo(@PathParam("name") String podInstanceName) {
-        return PodQueries.getInfo(stateStore, podInstanceName);
-    }
+  /**
+   * @see PodQueries
+   */
+  @Path("/status")
+  @GET
+  public Response getStatuses() {
+    return PodQueries.getStatuses(stateStore, serviceName);
+  }
 
-    /**
-     * @see PodQueries
-     */
-    @Path("/{name}/pause")
-    @POST
-    public Response pause(@PathParam("name") String podInstanceName, String bodyPayload) {
-        return PodQueries.pause(stateStore, podInstanceName, bodyPayload);
-    }
+  /**
+   * @see PodQueries
+   */
+  @Path("/{name}/status")
+  @GET
+  public Response getStatus(@PathParam("name") String podInstanceName) {
+    return PodQueries.getStatus(stateStore, podInstanceName);
+  }
 
-    /**
-     * @see PodQueries
-     */
-    @Path("/{name}/resume")
-    @POST
-    public Response resume(@PathParam("name") String podInstanceName, String bodyPayload) {
-        return PodQueries.resume(stateStore, podInstanceName, bodyPayload);
-    }
+  /**
+   * @see PodQueries
+   */
+  @Path("/{name}/info")
+  @GET
+  public Response getInfo(@PathParam("name") String podInstanceName) {
+    return PodQueries.getInfo(stateStore, podInstanceName);
+  }
 
-    /**
-     * @see PodQueries
-     */
-    @Path("/{name}/restart")
-    @POST
-    public Response restart(@PathParam("name") String podInstanceName) {
-        return PodQueries.restart(stateStore, configStore, podInstanceName, RecoveryType.TRANSIENT);
-    }
+  /**
+   * @see PodQueries
+   */
+  @Path("/{name}/pause")
+  @POST
+  public Response pause(@PathParam("name") String podInstanceName, String bodyPayload) {
+    return PodQueries.pause(stateStore, podInstanceName, bodyPayload);
+  }
 
-    /**
-     * @see PodQueries
-     */
-    @Path("/{name}/replace")
-    @POST
-    public Response replace(@PathParam("name") String podInstanceName) {
-        return PodQueries.restart(stateStore, configStore, podInstanceName, RecoveryType.PERMANENT);
-    }
+  /**
+   * @see PodQueries
+   */
+  @Path("/{name}/resume")
+  @POST
+  public Response resume(@PathParam("name") String podInstanceName, String bodyPayload) {
+    return PodQueries.resume(stateStore, podInstanceName, bodyPayload);
+  }
+
+  /**
+   * @see PodQueries
+   */
+  @Path("/{name}/restart")
+  @POST
+  public Response restart(@PathParam("name") String podInstanceName) {
+    return PodQueries.restart(stateStore, configStore, podInstanceName, RecoveryType.TRANSIENT);
+  }
+
+  /**
+   * @see PodQueries
+   */
+  @Path("/{name}/replace")
+  @POST
+  public Response replace(@PathParam("name") String podInstanceName) {
+    return PodQueries.restart(stateStore, configStore, podInstanceName, RecoveryType.PERMANENT);
+  }
 }

@@ -9,10 +9,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 @JsonDeserialize(as = DefaultHostVolumeSpec.class)
 public interface HostVolumeSpec {
 
-    @JsonProperty("host-path")
-    String getHostPath();
+  @JsonProperty("host-path")
+  String getHostPath();
 
-    @JsonProperty("container-path")
-    String getContainerPath();
+  @JsonProperty("container-path")
+  String getContainerPath();
 
 }
