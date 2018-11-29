@@ -6,9 +6,10 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 
-
+import org.apache.mesos.Protos;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -16,10 +17,11 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import java.util.Collection;
+import java.util.Optional;
 
 /*
- * TaskStatusesTracker is the backend of the TaskInfoDebugEndpoint.
- * it aggregates taskInfos for all the plans and allows for filtering based on phase and step
+ * TaskStatusesTracker is the backend of the TaskStatusEndpoint.
+ * it aggregates taskStatus for all the plans and allows for filtering based on phase and step
  */
 
 public class TaskStatusesTracker implements DebugEndpoint {
@@ -35,22 +37,43 @@ public class TaskStatusesTracker implements DebugEndpoint {
   }
 
 
-  private JSONArray getTaskInfos() {
-    JSONArray taskArray = new JSONArray();
+  private JSONArray getTaskStatuses(String filterPlan, String filterPhase, String filterStep) {
+    JSONArray planArray = new JSONArray();
     for (PlanManager planManager : planCoordinator.getPlanManagers()) {
+      if (filterPlan != null && !planManager.getPlan().getName().equalsIgnoreCase(filterPlan))
+        continue;
       Plan plan = planManager.getPlan();
+      JSONObject planObject = new JSONObject();
+      planObject.put("plan", plan.getName());
       for (Phase phase : plan.getChildren()) {
-        //Filter down to a phase if specified.
+        if (filterPhase != null && !phase.getName().equalsIgnoreCase(filterPhase))
+          continue;
+        JSONObject phaseObject = new JSONObject();
         for (Step step : phase.getChildren()) {
-          Collection<String> taskInStep = step.getPodInstanceRequirement().get().getTasksToLaunch();
+          if (filterStep != null && !step.getName().equalsIgnoreCase(filterStep))
+            continue;
           JSONObject taskStatus = new JSONObject();
-          taskStatus.put("step", step.getName());
-          taskStatus.put("tasksInStep", taskInStep);
-          taskArray.put(taskStatus);
+          Collection<TaskSpec> tasksInStep = step.getPodInstanceRequirement().
+              get().getPodInstance().getPod().getTasks();
+          for (TaskSpec taskSpec : tasksInStep) {
+            String taskInstanceName = TaskSpec.getInstanceName(
+                step.getPodInstanceRequirement().get().getPodInstance(),
+                taskSpec.getName()
+            );
+            Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInstanceName);
+            taskStatus.put("taskName", taskInstanceName);
+            if (status.isPresent()) {
+              taskStatus.put("taskId", status.get().getTaskId());
+              taskStatus.put("latestTaskState", status.get().getState());
+            }
+          }
+          phaseObject.put(step.getName(), taskStatus);
         }
+        planObject.put(phase.getName(), phaseObject);
       }
+      planArray.put(planObject);
     }
-    return taskArray;
+    return planArray;
   }
 
   public Response getJson(@QueryParam("plan") String filterPlan,
@@ -58,10 +81,6 @@ public class TaskStatusesTracker implements DebugEndpoint {
                           @QueryParam("step") String filterStep,
                           @QueryParam("sync") boolean requireSync)
   {
-    return ResponseUtils.jsonOkResponse(getTaskInfos());
-
+    return ResponseUtils.jsonOkResponse(getTaskStatuses(filterPlan, filterPhase, filterStep));
   }
-
-
-
 }
