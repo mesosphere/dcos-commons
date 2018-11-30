@@ -124,15 +124,6 @@ public class PlansTracker implements DebugEndpoint {
                         @QueryParam("step") String filterStep,
                         @QueryParam("sync") boolean requireSync)
   {
-    return getJsonNew(filterPlan, filterPhase, filterStep, requireSync);
-  }
-
-
-  public Response getJsonNew(@QueryParam("plan") String filterPlan,
-                        @QueryParam("phase") String filterPhase,
-                        @QueryParam("step") String filterStep,
-                        @QueryParam("sync") boolean requireSync)
-  {
 
     //Validate plan/phase/step if provided.
     if (filterPlan != null || filterPhase != null || filterStep != null) {
