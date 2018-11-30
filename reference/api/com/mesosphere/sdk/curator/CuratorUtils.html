@@ -210,13 +210,13 @@ extends java.lang.Object</pre>
  <ul>
  <li>
  Protecting against collisions if someone uses periods in their service names. For example,
- a foldered service named "/myteam/kafka" could collide with a non-foldered service named
- "myteam.kafka" as the prior is converted to the latter where ZK is concerned.
+ a foldered service named "/myteam/database" could collide with a non-foldered service named
+ "myteam.database" as the prior is converted to the latter where ZK is concerned.
  </li>
  <li>
  Allowing deterministic mapping of a given ZK node back to the originating service.
- For example, the data in "dcos-service-myteam.kafka" could be for a service named "myteam
- .kafka", or for a foldered service named "/myteam/kafka". Storing the name explicitly
+ For example, the data in "dcos-service-myteam.database" could be for a service named "myteam
+ .database", or for a foldered service named "/myteam/database". Storing the name explicitly
  allows potential tooling to tell which one it is. This isn't currently needed but could be
  useful someday.
  </li>

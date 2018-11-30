@@ -152,13 +152,13 @@ extends java.lang.Object</pre>
 <tr id="i0" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#removeSlashes-java.lang.String-">removeSlashes</a></span>(java.lang.String&nbsp;name)</code>
-<div class="block">"/group1/group2/group3/group4/group5/kafka" => "group1group2group3group4group5kafka".</div>
+<div class="block">"/group1/group2/group3/group4/group5/service" => "group1group2group3group4group5service".</div>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/http/EndpointUtils.html#replaceDotsWithDashes-java.lang.String-">replaceDotsWithDashes</a></span>(java.lang.String&nbsp;name)</code>
-<div class="block">"hello.kafka" => "hello-kafka".</div>
+<div class="block">"hello.service" => "hello-service".</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
@@ -362,7 +362,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>removeSlashes</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;removeSlashes(java.lang.String&nbsp;name)</pre>
-<div class="block">"/group1/group2/group3/group4/group5/kafka" => "group1group2group3group4group5kafka".</div>
+<div class="block">"/group1/group2/group3/group4/group5/service" => "group1group2group3group4group5service".</div>
 </li>
 </ul>
 <a name="replaceDotsWithDashes-java.lang.String-">
@@ -372,7 +372,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>replaceDotsWithDashes</h4>
 <pre>public static&nbsp;java.lang.String&nbsp;replaceDotsWithDashes(java.lang.String&nbsp;name)</pre>
-<div class="block">"hello.kafka" => "hello-kafka". Used for values in autoip hostnames. Unlike with VIPs and mesos-dns hostnames,
+<div class="block">"hello.service" => "hello-service". Used for values in autoip hostnames. Unlike with VIPs and mesos-dns hostnames,
  dots are converted to dashes with autoip hostnames. See DCOS-16086.</div>
 </li>
 </ul>
