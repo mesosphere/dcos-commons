@@ -44,6 +44,7 @@ def test_service_health():
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.mesos_v0
+@pytest.mark.skip(reason="Latest version from universe doesn't support v0")
 def test_mesos_v0_api():
     service_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     prior_api_version = sdk_marathon.get_mesos_api_version(service_name)
