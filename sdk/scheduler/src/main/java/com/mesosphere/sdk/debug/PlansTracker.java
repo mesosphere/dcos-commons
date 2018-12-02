@@ -34,7 +34,10 @@ import java.util.stream.Collectors;
  */
 public class PlansTracker implements DebugEndpoint {
 
-  private enum SchedulerState {
+  /**
+   * Encapsulates the current state the scheduler is in.
+   */
+  public enum SchedulerState {
     RUNNING,
     DEPLOYED,
     DEPLOYING,
@@ -140,7 +143,7 @@ public class PlansTracker implements DebugEndpoint {
     //At this point we're either returning the entire plans tree or
     //pruning it down to a plan/phase/step which has been validated.
 
-    SerializePlansTracker plansTracker = generateServiceStatusNew(filterPlan,
+    SerializePlansTracker plansTracker = generateServiceStatus(filterPlan,
         filterPhase,
         filterStep);
 
@@ -151,7 +154,7 @@ public class PlansTracker implements DebugEndpoint {
     return ResponseUtils.jsonOkResponse(response);
   }
 
-  private SerializePlansTracker generateServiceStatusNew(String filterPlan,
+  public SerializePlansTracker generateServiceStatus(String filterPlan,
                                                          String filterPhase,
                                                          String filterStep)
   {
@@ -289,7 +292,10 @@ public class PlansTracker implements DebugEndpoint {
         stepsList);
   }
 
-  private static class SerializeStep {
+  /**
+   *  This class is used to capture the basics of a {@link Step}.
+   */
+  public static class SerializeStep {
 
     private final String name;
 
@@ -319,7 +325,10 @@ public class PlansTracker implements DebugEndpoint {
     }
   }
 
-  private static class SerializePhase{
+  /**
+   *  This class is used to capture the basics of a {@link Phase}.
+   */
+  public static class SerializePhase {
 
     private final String name;
 
@@ -353,7 +362,10 @@ public class PlansTracker implements DebugEndpoint {
     }
   }
 
-  private static class SerializePlan {
+  /**
+   *  This class is used to capture the basics of a {@link Plan}.
+   */
+  public static class SerializePlan {
 
     private final String name;
 
@@ -407,7 +419,10 @@ public class PlansTracker implements DebugEndpoint {
     }
   }
 
-  private static class SerializePlansTracker {
+  /**
+   * This class is used to capture the reporting state of a service.
+   */
+  public static class SerializePlansTracker {
 
     private final SchedulerState schedulerState;
 
@@ -445,7 +460,10 @@ public class PlansTracker implements DebugEndpoint {
     }
   }
 
-  private static class SerializeElement {
+  /**
+   * This class is used to capture the basics of the {@link ParentElement} iterface.
+   */
+  public static class SerializeElement {
 
     private final String name;
 
