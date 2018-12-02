@@ -504,15 +504,13 @@ def right_trim(string: str, suffix: str) -> str:
 
 def print_help(argv):
     log.info(
-        "Syntax: {} move|release <package-version> <stub-universe-url> [commit message]".format(
-            argv[0]
-        )
+        "Syntax: %s move|release <package-version> <stub-universe-url> [commit message]", argv[0]
     )
     log.info(
-        "  Example: $ {} 1.2.3-4.5.6 https://example.com/path/to/stub-universe-kafka.json".format(
-            argv[0]
-        )
+        "  Example: $ %s 1.2.3-4.5.6 https://example.com/path/to/stub-universe-hello-world.json",
+        argv[0],
     )
+
     log.info("Required credentials in env:")
     log.info("- AWS S3: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY")
     log.info("- Github (Personal Access Token): GITHUB_TOKEN (only required for release)")
