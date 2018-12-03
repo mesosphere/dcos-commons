@@ -14,11 +14,12 @@ pods:
       profile:
         goal: RUNNING
         essential: false
-        cmd: >
+        cmd: |
                set -e -x
-               [ -n "{{{TEST_PROFILE_VOLUME_COMMAND}}}" ]
-               {{{TEST_PROFILE_VOLUME_COMMAND}}} pod-container-path
-               {{{TEST_PROFILE_VOLUME_COMMAND}}} profile-container-path
+               if [ -n "{{{TEST_PROFILE_VOLUME_COMMAND}}}" ]; then
+                   {{{TEST_PROFILE_VOLUME_COMMAND}}} pod-container-path
+                   {{{TEST_PROFILE_VOLUME_COMMAND}}} profile-container-path
+               fi
                echo profile >> pod-container-path/output
                echo profile >> profile-container-path/output
                sleep $SLEEP_DURATION
@@ -35,11 +36,12 @@ pods:
       noprofile:
         goal: RUNNING
         essential: false
-        cmd: >
+        cmd: |
                set -e -x
-               [ -n "{{{TEST_PROFILE_VOLUME_COMMAND}}}" ]
-               {{{TEST_PROFILE_VOLUME_COMMAND}}} pod-container-path
-               ! {{{TEST_PROFILE_VOLUME_COMMAND}}} noprofile-container-path
+               if [ -n "{{{TEST_PROFILE_VOLUME_COMMAND}}}" ]; then
+                   {{{TEST_PROFILE_VOLUME_COMMAND}}} pod-container-path
+                   ! {{{TEST_PROFILE_VOLUME_COMMAND}}} noprofile-container-path
+               fi
                echo noprofile >> pod-container-path/output
                echo noprofile >> noprofile-container-path/output
                sleep $SLEEP_DURATION
