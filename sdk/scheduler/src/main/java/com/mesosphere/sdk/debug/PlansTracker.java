@@ -72,7 +72,6 @@ public class PlansTracker implements DebugEndpoint {
     }
 
     //Ensure correct ownership. Start with the plan.
-    
     //Keep a pointer here so we don't constantly traverse the tree.
     List<PlanManager> planManagers = null;
 
