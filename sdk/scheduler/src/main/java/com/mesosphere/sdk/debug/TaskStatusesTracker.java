@@ -20,8 +20,6 @@ import java.util.Collection;
 import java.util.Optional;
 
 
-//CHECKSTYLE:OFF NestedForDepth
-
 /**
  * TaskStatusesTracker is the backend of TaskStatusesResource.
  * It aggregates taskStatuses (if present) for plans, phases and steps.

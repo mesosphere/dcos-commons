@@ -103,7 +103,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
   private final Optional<TaskStatusesTracker> statusesTracker;
 
-
   private final PlanScheduler planScheduler;
 
   /**
@@ -181,6 +180,8 @@ public class DefaultScheduler extends AbstractScheduler {
     // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
     // reduce memory consumption.
     this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
+    this.statusesTracker = Optional.of(new TaskStatusesTracker(getPlanCoordinator(), stateStore));
+
 
     this.planScheduler = new PlanScheduler(
         new OfferEvaluator(
@@ -196,9 +197,6 @@ public class DefaultScheduler extends AbstractScheduler {
         namespace);
 
     customizePlans();
-
-    this.statusesTracker = Optional.of(new TaskStatusesTracker(getPlanCoordinator(), stateStore));
-
   }
 
   @Override
