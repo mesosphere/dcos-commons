@@ -35,11 +35,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
-//import org.mockito.Mock;
-//import org.mockito.MockitoAnnotations;
 import org.mockito.MockitoAnnotations;
-
-//import static org.mockito.Mockito.*;
 
 /**
  * This class tests the {@link PlansTracker} class
@@ -378,5 +374,4 @@ public class PlansTrackerTest {
 
     //Done testing filtered plans.
   }
-
 }
