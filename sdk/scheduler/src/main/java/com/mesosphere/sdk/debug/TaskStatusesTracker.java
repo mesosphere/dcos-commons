@@ -1,7 +1,5 @@
 package com.mesosphere.sdk.debug;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -11,11 +9,10 @@ import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 
-import org.apache.mesos.Protos;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
+import org.apache.mesos.Protos;
 import org.json.JSONObject;
 
 import javax.ws.rs.QueryParam;
@@ -44,8 +41,10 @@ public class TaskStatusesTracker implements DebugEndpoint {
   }
 
   //CHECKSTYLE:OFF NestedForDepth
-
-  private List<PlanResponse> getTaskStatuses(String filterPlan, String filterPhase, String filterStep) {
+  public List<PlanResponse> getTaskStatuses(String filterPlan,
+                                            String filterPhase,
+                                            String filterStep)
+  {
     List<PlanResponse> planArray = new ArrayList<>();
     for (PlanManager planManager : planCoordinator.getPlanManagers()) {
       if (filterPlan != null && !planManager.getPlan().getName().equalsIgnoreCase(filterPlan)) {
@@ -61,31 +60,29 @@ public class TaskStatusesTracker implements DebugEndpoint {
         PhaseResponse phaseObject = new PhaseResponse();
         phaseObject.setName(phase.getName());
         for (Step step : phase.getChildren()) {
-          StepResponse stepObject = new StepResponse();
           if (filterStep != null && !step.getName().equalsIgnoreCase(filterStep)) {
             continue;
           }
-          Collection<TaskSpec> tasksInStep = step
-              .getPodInstanceRequirement()
+          Collection<TaskSpec> tasksInStep = step.getPodInstanceRequirement()
               .get().getPodInstance().getPod().getTasks();
-          for (TaskSpec taskSpec : tasksInStep) {
-            //filter tasks in pod belonging to this step
-            TaskStatusResponse taskStatusObject = new TaskStatusResponse();
-            if (step.getName().contains(taskSpec.getName())) {
-              String taskInstanceName = TaskSpec.getInstanceName(
-                  step.getPodInstanceRequirement().get().getPodInstance(),
-                  taskSpec.getName()
-              );
-              Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInstanceName);
-              taskStatusObject.setName(taskInstanceName);
-              if (status.isPresent()) {
-                taskStatusObject.setTaskId(status.get().getTaskId());
-                taskStatusObject.setTaskStatus(status.get().getState());
-              }
-              stepObject.setName(step.getName());
-              stepObject.addTaskStatus(taskStatusObject);
-            }
-          }
+          TaskSpec taskSpec = tasksInStep.stream()
+              .filter(t -> step.getName().contains(t.getName()))
+              .findFirst()
+              .get();
+          TaskStatusResponse taskStatusObject = new TaskStatusResponse();
+          String taskInstanceName = TaskSpec.getInstanceName(
+              step.getPodInstanceRequirement().get().getPodInstance(),
+              taskSpec.getName()
+          );
+          Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInstanceName);
+          taskStatusObject.setName(taskInstanceName);
+          status.ifPresent(s -> {
+            taskStatusObject.setTaskId(s.getTaskId());
+            taskStatusObject.setTaskStatus(s.getState());
+          });
+          StepResponse stepObject = new StepResponse();
+          stepObject.setName(step.getName());
+          stepObject.addTaskStatus(taskStatusObject);
           phaseObject.addStep(stepObject);
         }
         planObject.addPhase(phaseObject);
@@ -113,9 +110,9 @@ public class TaskStatusesTracker implements DebugEndpoint {
   }
 
   /**
-   * Captures metadata for an individual taskStatus
+   * Captures metadata for an individual taskStatus.
    */
-  private class TaskStatusResponse {
+  public static class TaskStatusResponse {
 
     private String name;
 
@@ -133,19 +130,31 @@ public class TaskStatusesTracker implements DebugEndpoint {
       this.name = name;
     }
 
-    public void setTaskStatus(Protos.TaskState taskState) {
-      this.taskState = taskState;
+    public void setTaskStatus(Protos.TaskState newTaskState) {
+      this.taskState = newTaskState;
     }
 
     public void setTaskId(Protos.TaskID taskId) {
       this.taskId = taskId;
     }
+
+    public String getName() {
+      return this.name;
+    }
+
+    public Protos.TaskState getTaskStatus() {
+      return this.taskState;
+    }
+
+    public Protos.TaskID getTaskId() {
+      return this.taskId;
+    }
   }
 
   /**
-   * Captures metadata for an individual Step containing a set of TaskStatuses
+   * Captures metadata for an individual Step containing a set of TaskStatuses.
    */
-  private class StepResponse {
+  public static class StepResponse {
 
     private String name = "";
 
@@ -159,29 +168,46 @@ public class TaskStatusesTracker implements DebugEndpoint {
     public void addTaskStatus(TaskStatusResponse task) {
       this.tasks.add(task);
     }
+
+    public String getName() {
+      return this.name;
+    }
+
+    public List<TaskStatusResponse> getTaskStatus() {
+      return this.tasks;
+    }
   }
 
   /**
    * Captures metadata for an individual Phase containing a set of Steps.
    */
-  private class PhaseResponse {
-    private  String name = "";
+  public static class PhaseResponse {
 
-    private  List<StepResponse> steps = new ArrayList<>();
+    private String name = "";
+
+    private List<StepResponse> steps = new ArrayList<>();
 
     public void addStep(StepResponse stepResponse) {
       this.steps.add(stepResponse);
-    };
+    }
 
     public void setName(String name) {
       this.name = name;
+    }
+
+    public String getName() {
+      return this.name;
+    }
+
+    public List<StepResponse> getSteps() {
+      return this.steps;
     }
   }
 
   /**
    * Captures metadata for an individual Plan containing a set of Phases.
    */
-  private class PlanResponse {
+  public static class PlanResponse {
     private String name = "";
 
     private List<PhaseResponse> phases = new ArrayList<>();
@@ -192,6 +218,14 @@ public class TaskStatusesTracker implements DebugEndpoint {
 
     public void addPhase(PhaseResponse phase) {
       this.phases.add(phase);
+    }
+
+    public String getName() {
+      return this.name;
+    }
+
+    public List<PhaseResponse> getPhases() {
+      return this.phases;
     }
   }
 }
