@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.debug.ReservationsTracker;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.http.endpoints.ConfigResource;
@@ -9,6 +10,7 @@ import com.mesosphere.sdk.http.endpoints.EndpointsResource;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.http.endpoints.PodResource;
+import com.mesosphere.sdk.http.endpoints.ReservationsDebugResource;
 import com.mesosphere.sdk.http.endpoints.StateResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -98,6 +100,8 @@ public class DefaultScheduler extends AbstractScheduler {
   private final Optional<UninstallRecorder> decommissionRecorder;
 
   private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
+
+  private final Optional<ReservationsTracker> reservationsTracker;
 
   private final PlanScheduler planScheduler;
 
@@ -191,6 +195,8 @@ public class DefaultScheduler extends AbstractScheduler {
         namespace);
 
     customizePlans();
+
+    this.reservationsTracker = Optional.of(new ReservationsTracker(this.planCoordinator));
   }
 
   @Override
@@ -211,6 +217,7 @@ public class DefaultScheduler extends AbstractScheduler {
     resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
     resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
     offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
+    reservationsTracker.ifPresent(x -> resources.add(new ReservationsDebugResource(x)));
     return resources;
   }
 
