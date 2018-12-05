@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler;
 
-
 import com.mesosphere.sdk.debug.PlansTracker;
 import com.mesosphere.sdk.debug.TaskStatusesTracker;
 import com.mesosphere.sdk.framework.TaskKiller;
