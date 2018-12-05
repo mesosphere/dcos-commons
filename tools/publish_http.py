@@ -197,13 +197,10 @@ httpd.serve_forever()
 
 
 def print_help(argv):
+    logger.info("Syntax: %s <package-name> <template-package-dir> [artifact files ...]", argv[0])
     logger.info(
-        "Syntax: {} <package-name> <template-package-dir> [artifact files ...]".format(argv[0])
-    )
-    logger.info(
-        "  Example: $ {} kafka /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip".format(
-            argv[0]
-        )
+        "  Example: $ %s hello-world /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip",
+        argv[0],
     )
     logger.info(
         "In addition, environment variables named 'TEMPLATE_SOME_PARAMETER' will be inserted against the provided package template (with params of the form '{{some-parameter}}')"

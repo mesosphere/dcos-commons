@@ -22,9 +22,9 @@ public final class SchedulerUtils {
    * <p>
    * For example:
    * <ul>
-   * <li>/path/to/kafka => path__to__kafka</li>
-   * <li>path/to/some-kafka => path__to__some-kafka</li>
-   * <li>path__to__kafka => EXCEPTION</li>
+   * <li>/path/to/service => path__to__service</li>
+   * <li>path/to/some-service => path__to__some-service</li>
+   * <li>path__to__service => EXCEPTION</li>
    * </ul>
    *
    * @throws IllegalArgumentException if the provided name already contains double underscores

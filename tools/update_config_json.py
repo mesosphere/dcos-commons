@@ -123,7 +123,6 @@ if __name__ == "__main__":
         "frameworks/elastic/universe/config.json",
         "frameworks/hdfs/universe/config.json",
         "frameworks/helloworld/universe/config.json",
-        "frameworks/kafka/universe/config.json",
     ]
 
     for f in files:

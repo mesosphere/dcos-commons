@@ -164,6 +164,7 @@ def install(
 )
 def _retried_run_janitor(service_name):
     cmd_list = [
+        "sudo",
         "docker",
         "run",
         "mesosphere/janitor",
