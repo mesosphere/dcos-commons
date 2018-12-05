@@ -182,7 +182,6 @@ public class DefaultScheduler extends AbstractScheduler {
     this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
     this.statusesTracker = Optional.of(new TaskStatusesTracker(getPlanCoordinator(), stateStore));
 
-
     this.planScheduler = new PlanScheduler(
         new OfferEvaluator(
             frameworkStore,
