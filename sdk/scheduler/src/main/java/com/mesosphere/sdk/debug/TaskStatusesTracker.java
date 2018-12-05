@@ -13,6 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
 import org.apache.mesos.Protos;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.ws.rs.QueryParam;
@@ -104,7 +105,8 @@ public class TaskStatusesTracker implements DebugEndpoint {
     jsonMapper.registerModule(new JsonOrgModule());
 
     List<PlanResponse> serviceResponse = getTaskStatuses(filterPlan, filterPhase, filterStep);
-    JSONObject response = jsonMapper.convertValue(serviceResponse, JSONObject.class);
+    
+    JSONArray response = jsonMapper.convertValue(serviceResponse, JSONArray.class);
 
     return ResponseUtils.jsonOkResponse(response);
   }
