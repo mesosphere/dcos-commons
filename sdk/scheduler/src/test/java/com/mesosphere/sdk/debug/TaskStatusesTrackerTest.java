@@ -200,8 +200,8 @@ public class TaskStatusesTrackerTest {
     assert deployPlanResponse.getPhases().get(1).getSteps().get(1).getName() == "world-step-2";
 
     assert deployPlanResponse.getPhases().get(0).getSteps().get(0).getTaskStatus().get(0).getTaskStatus()
-        == Protos.TaskState.TASK_FINISHED;
+        == "TASK_FINISHED";
     assert deployPlanResponse.getPhases().get(1).getSteps().get(0).getTaskStatus().get(0).getTaskStatus()
-        == Protos.TaskState.TASK_UNKNOWN;
+        == "TASK_UNKNOWN";
   }
 }

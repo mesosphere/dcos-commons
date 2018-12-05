@@ -77,8 +77,8 @@ public class TaskStatusesTracker implements DebugEndpoint {
           Optional<Protos.TaskStatus> status = stateStore.fetchStatus(taskInstanceName);
           taskStatusObject.setName(taskInstanceName);
           status.ifPresent(s -> {
-            taskStatusObject.setTaskId(s.getTaskId());
-            taskStatusObject.setTaskStatus(s.getState());
+            taskStatusObject.setTaskId(s.getTaskId().getValue());
+            taskStatusObject.setTaskStatus(s.getState().toString());
           });
           StepResponse stepObject = new StepResponse();
           stepObject.setName(step.getName());
@@ -116,25 +116,25 @@ public class TaskStatusesTracker implements DebugEndpoint {
 
     private String name;
 
-    private Protos.TaskState taskState;
+    private String taskState;
 
-    private Protos.TaskID taskId;
+    private String taskId;
 
     public TaskStatusResponse() {
       this.name = "";
-      this.taskState = Protos.TaskState.TASK_UNKNOWN;
-      this.taskId = Protos.TaskID.getDefaultInstance();
+      this.taskState = "TASK_UNKNOWN";
+      this.taskId = "";
     }
 
     public void setName(String name) {
       this.name = name;
     }
 
-    public void setTaskStatus(Protos.TaskState newTaskState) {
+    public void setTaskStatus(String newTaskState) {
       this.taskState = newTaskState;
     }
 
-    public void setTaskId(Protos.TaskID taskId) {
+    public void setTaskId(String taskId) {
       this.taskId = taskId;
     }
 
@@ -142,11 +142,11 @@ public class TaskStatusesTracker implements DebugEndpoint {
       return this.name;
     }
 
-    public Protos.TaskState getTaskStatus() {
+    public String getTaskStatus() {
       return this.taskState;
     }
 
-    public Protos.TaskID getTaskId() {
+    public String getTaskId() {
       return this.taskId;
     }
   }
