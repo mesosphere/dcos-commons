@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler;
 
+
 import com.mesosphere.sdk.debug.PlansTracker;
+import com.mesosphere.sdk.debug.TaskStatusesTracker;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.http.endpoints.ConfigResource;
@@ -12,6 +14,7 @@ import com.mesosphere.sdk.http.endpoints.PlansDebugResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.http.endpoints.PodResource;
 import com.mesosphere.sdk.http.endpoints.StateResource;
+import com.mesosphere.sdk.http.endpoints.TaskStatusesResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
@@ -103,6 +106,8 @@ public class DefaultScheduler extends AbstractScheduler {
 
   private final Optional<PlansTracker> plansTracker;
 
+  private final Optional<TaskStatusesTracker> statusesTracker;
+
   private final PlanScheduler planScheduler;
 
   /**
@@ -180,6 +185,7 @@ public class DefaultScheduler extends AbstractScheduler {
     // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
     // reduce memory consumption.
     this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
+    this.statusesTracker = Optional.of(new TaskStatusesTracker(getPlanCoordinator(), stateStore));
 
     this.planScheduler = new PlanScheduler(
         new OfferEvaluator(
@@ -217,6 +223,8 @@ public class DefaultScheduler extends AbstractScheduler {
     resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
     offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
     plansTracker.ifPresent(x -> resources.add(new PlansDebugResource(x)));
+    statusesTracker.ifPresent(x -> resources.add(new TaskStatusesResource(x)));
+
     return resources;
   }
 
