@@ -72,6 +72,7 @@ GOPATH_REPO_ORG_DIR=${GOPATH}/src/${GOPATH_REPO_ORG}
 # ex: /.gopath/src/github.com/mesosphere/dcos-commons/sdk/cli
 GOPATH_EXE_DIR="$GOPATH_REPO_ORG_DIR/$REPO_NAME/$RELATIVE_EXE_DIR"
 GO_LDFLAGS=${GO_LDFLAGS:-""}
+DEFAULT_GO_ARCH=${DEFAULT_GO_ARCH:-"amd64"}
 
 # Add symlink from GOPATH which points into the repository directory, if necessary:
 SYMLINK_LOCATION="$GOPATH_REPO_ORG_DIR/$REPO_NAME"
@@ -146,7 +147,7 @@ else
 
         # available GOOS/GOARCH permutations are listed at:
         # https://golang.org/doc/install/source#environment
-        CGO_ENABLED=0 GOOS=$PLATFORM GOARCH=386 go build -ldflags="-s -w ${GO_LDFLAGS}" -o $PLATFORM_FILENAME
+        CGO_ENABLED=0 GOOS=${PLATFORM} GOARCH=${DEFAULT_GO_ARCH} go build -ldflags="-s -w ${GO_LDFLAGS}" -o ${PLATFORM_FILENAME}
 
         # use upx if:
         # - upx is installed
