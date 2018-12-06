@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.debug.PlansTracker;
 import com.mesosphere.sdk.debug.TaskStatusesTracker;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
@@ -8,6 +9,7 @@ import com.mesosphere.sdk.http.endpoints.DebugResource;
 import com.mesosphere.sdk.http.endpoints.DeprecatedPlanResource;
 import com.mesosphere.sdk.http.endpoints.EndpointsResource;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
+import com.mesosphere.sdk.http.endpoints.PlansDebugResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.http.endpoints.PodResource;
 import com.mesosphere.sdk.http.endpoints.StateResource;
@@ -100,6 +102,8 @@ public class DefaultScheduler extends AbstractScheduler {
   private final Optional<UninstallRecorder> decommissionRecorder;
 
   private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
+
+  private final Optional<PlansTracker> plansTracker;
 
   private final Optional<TaskStatusesTracker> statusesTracker;
 
@@ -196,6 +200,7 @@ public class DefaultScheduler extends AbstractScheduler {
         namespace);
 
     customizePlans();
+    this.plansTracker = Optional.of(new PlansTracker(getPlanCoordinator(), stateStore));
   }
 
   @Override
@@ -216,6 +221,7 @@ public class DefaultScheduler extends AbstractScheduler {
     resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
     resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
     offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
+    plansTracker.ifPresent(x -> resources.add(new PlansDebugResource(x)));
     statusesTracker.ifPresent(x -> resources.add(new TaskStatusesResource(x)));
 
     return resources;
