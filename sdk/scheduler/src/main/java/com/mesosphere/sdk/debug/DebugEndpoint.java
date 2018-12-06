@@ -2,6 +2,7 @@ package com.mesosphere.sdk.debug;
 
 import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
+
 /**
  * Interface for all debug endpoints.
  */

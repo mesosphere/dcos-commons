@@ -121,6 +121,7 @@ ext {
 
 dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonVer}"
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-json-org:${jacksonVer}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
     compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
     compile 'com.hubspot.jackson:jackson-datatype-protobuf:0.9.9-preJackson2.7-proto3'
