@@ -398,3 +398,19 @@ def test_permanently_replace_journalnodes():
         sdk_recovery.check_permanent_recovery(
             config.PACKAGE_NAME, foldered_name, pod, recovery_timeout_s=25 * 60
         )
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_namenodes_acheive_quorum_after_journalnode_replace():
+    config.check_healthy(service_name=foldered_name)
+    name_0_ids = sdk_tasks.get_task_ids(foldered_name, "name-0")
+    name_1_ids = sdk_tasks.get_task_ids(foldered_name, "name-1")
+    pod_list = ["journal-0", "journal-1", "journal-2"]
+    for pod in pod_list:
+        sdk_recovery.check_permanent_recovery(
+            config.PACKAGE_NAME, foldered_name, pod, recovery_timeout_s=25 * 60
+        )
+    config.expect_recovery(service_name=foldered_name)
+    sdk_tasks.check_tasks_updated(foldered_name, "name-0", name_0_ids)
+    sdk_tasks.check_tasks_updated(foldered_name, "name-1", name_1_ids)
