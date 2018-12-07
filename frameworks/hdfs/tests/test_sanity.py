@@ -400,15 +400,14 @@ def test_permanently_replace_journalnodes():
         )
 
 
-"""
-This test aims to check that namenodes recover after a journalnode failure.
-It checks the fix to this issue works: https://jira.apache.org/jira/browse/HDFS-10659
-"""
-
-
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_namenodes_acheive_quorum_after_journalnode_replace():
+    """
+    This test aims to check that namenodes recover after a journalnode failure.
+    It checks the fix to this issue works: https://jira.apache.org/jira/browse/HDFS-10659
+    """
+
     journal_task = sdk_tasks.get_service_tasks(foldered_name, "journal-0")[0]
     sdk_cmd.kill_task_with_pattern("journalnode", "nobody", agent_host=journal_task.host)
 
