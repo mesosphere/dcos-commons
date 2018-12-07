@@ -114,14 +114,14 @@ public final class EndpointUtils {
   }
 
   /**
-   * "/group1/group2/group3/group4/group5/kafka" => "group1group2group3group4group5kafka".
+   * "/group1/group2/group3/group4/group5/service" => "group1group2group3group4group5service".
    */
   public static String removeSlashes(String name) {
     return name.replace("/", "");
   }
 
   /**
-   * "hello.kafka" => "hello-kafka". Used for values in autoip hostnames. Unlike with VIPs and mesos-dns hostnames,
+   * "hello.service" => "hello-service". Used for values in autoip hostnames. Unlike with VIPs and mesos-dns hostnames,
    * dots are converted to dashes with autoip hostnames. See DCOS-16086.
    */
   public static String replaceDotsWithDashes(String name) {
@@ -129,7 +129,7 @@ public final class EndpointUtils {
   }
 
   /**
-   * "/path/to/kafka" => "kafka-to-path".
+   * "/path/to/service" => "service-to-path".
    */
   private static String reverseSlashedSegmentsWithDashes(String name) {
     return Joiner

@@ -144,7 +144,7 @@ def s3_urls_from_env(package_name):
             ),
         )
 
-    # sample s3_directory: 'infinity-artifacts/autodelete7d/kafka/20160815-134747-S6vxd0gRQBw43NNy'
+    # sample s3_directory: 'infinity-artifacts/autodelete7d/hello-world/20160815-134747-S6vxd0gRQBw43NNy'
     s3_directory_url = os.environ.get(
         "S3_URL", "s3://{}/{}/{}/{}".format(s3_bucket, s3_dir_path, package_name, s3_dir_name)
     )
@@ -164,7 +164,7 @@ def print_help(argv):
         "Syntax: {} <package-name> <template-package-dir> [artifact files ...]".format(argv[0])
     )
     logger.info(
-        "  Example: $ {} kafka /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip".format(
+        "  Example: $ {} hello-world /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip".format(
             argv[0]
         )
     )

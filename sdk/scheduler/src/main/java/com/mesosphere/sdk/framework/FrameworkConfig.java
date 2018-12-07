@@ -135,12 +135,13 @@ public final class FrameworkConfig {
    * Use {@code <svcname>-role} (or throw if svcname is missing)
    * <p>
    * If the service name has a leading slash (due to folders), omit that leading slash from the role
-   * This is done with the reasoning that "/path/to/kafka" and "path/to/kafka" should be equivalent.
+   * This is done with the reasoning that "/path/to/service" and "path/to/service" should be
+   * equivalent.
    * <p>
    * Slashes are currently banned from roles by as of mesos commit e0d8cc7c. Sounds like they will
    * be allowed again in 1.4 when hierarchical roles are supported.
    * <p>
-   * For example: /path/to/kafka => path__to__kafka-role
+   * For example: /path/to/service => path__to__service-role
    */
   private static String getServiceRole(String frameworkName) {
     //
