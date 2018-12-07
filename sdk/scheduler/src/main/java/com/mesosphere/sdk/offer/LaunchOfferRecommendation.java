@@ -10,46 +10,48 @@ import java.util.Optional;
  */
 public class LaunchOfferRecommendation implements OfferRecommendation {
 
-    private final Protos.Offer offer;
-    private final Protos.Offer.Operation operation;
+  private final Protos.Offer offer;
 
-    public LaunchOfferRecommendation(
-            Protos.Offer offer,
-            Protos.TaskInfo taskInfo,
-            Protos.ExecutorInfo executorInfo) {
-        this.offer = offer;
+  private final Protos.Offer.Operation operation;
 
-        Protos.Offer.Operation.Builder builder = Protos.Offer.Operation.newBuilder();
-        // For the LAUNCH_GROUP command, we put the ExecutorInfo in the operation, not the task itself.
-        builder.setType(Protos.Offer.Operation.Type.LAUNCH_GROUP)
-                .getLaunchGroupBuilder()
-                        .setExecutor(executorInfo)
-                        .getTaskGroupBuilder()
-                                .addTasks(taskInfo);
-        this.operation = builder.build();
-    }
+  public LaunchOfferRecommendation(
+      Protos.Offer offer,
+      Protos.TaskInfo taskInfo,
+      Protos.ExecutorInfo executorInfo)
+  {
+    this.offer = offer;
 
-    @Override
-    public Optional<Protos.Offer.Operation> getOperation() {
-        return Optional.of(operation);
-    }
+    Protos.Offer.Operation.Builder builder = Protos.Offer.Operation.newBuilder();
+    // For the LAUNCH_GROUP command, we put the ExecutorInfo in the operation, not the task itself.
+    builder.setType(Protos.Offer.Operation.Type.LAUNCH_GROUP)
+        .getLaunchGroupBuilder()
+        .setExecutor(executorInfo)
+        .getTaskGroupBuilder()
+        .addTasks(taskInfo);
+    this.operation = builder.build();
+  }
 
-    public Protos.TaskInfo getTaskInfo() {
-        return operation.getLaunchGroup().getTaskGroup().getTasks(0);
-    }
+  @Override
+  public Optional<Protos.Offer.Operation> getOperation() {
+    return Optional.of(operation);
+  }
 
-    @Override
-    public Protos.OfferID getOfferId() {
-        return offer.getId();
-    }
+  public Protos.TaskInfo getTaskInfo() {
+    return operation.getLaunchGroup().getTaskGroup().getTasks(0);
+  }
 
-    @Override
-    public Protos.SlaveID getAgentId() {
-        return offer.getSlaveId();
-    }
+  @Override
+  public Protos.OfferID getOfferId() {
+    return offer.getId();
+  }
 
-    @Override
-    public String toString() {
-        return ReflectionToStringBuilder.toString(this);
-    }
+  @Override
+  public Protos.SlaveID getAgentId() {
+    return offer.getSlaveId();
+  }
+
+  @Override
+  public String toString() {
+    return ReflectionToStringBuilder.toString(this);
+  }
 }

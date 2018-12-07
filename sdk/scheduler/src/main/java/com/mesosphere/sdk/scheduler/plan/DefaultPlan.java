@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import org.apache.commons.lang3.builder.EqualsBuilder;
-
-import com.google.common.base.Joiner;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
+
+import com.google.common.base.Joiner;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -15,88 +15,93 @@ import java.util.UUID;
 /**
  * An ordered list of {@link Phase}s, composed into a {@link Plan}. It may
  * optionally contain a List of errors associated with the phase.
- *
  */
 public class DefaultPlan implements Plan {
 
-    private final UUID id = UUID.randomUUID();
-    private final Strategy<Phase> strategy;
-    private final List<Phase> phases;
-    private final List<String> errors;
-    private final String name;
+  private final UUID id = UUID.randomUUID();
 
-    public DefaultPlan(
-            final String name,
-            final List<Phase> phases,
-            final Strategy<Phase> strategy,
-            final List<String> errors) {
-        this.name = name;
-        this.strategy = strategy;
-        this.phases = phases;
-        this.errors = errors;
-    }
+  private final Strategy<Phase> strategy;
 
-    public DefaultPlan(String name, List<Phase> phases) {
-        this(name, phases, new SerialStrategy<>());
-    }
+  private final List<Phase> phases;
 
-    public DefaultPlan(String name, List<Phase> phases, Strategy<Phase> strategy) {
-        this(name, phases, strategy, Collections.emptyList());
-    }
+  private final List<String> errors;
 
-    @Override
-    public List<Phase> getChildren() {
-        return phases;
-    }
+  private final String name;
 
-    @Override
-    public Strategy<Phase> getStrategy() {
-        return strategy;
-    }
+  public DefaultPlan(
+      final String name,
+      final List<Phase> phases,
+      final Strategy<Phase> strategy,
+      final List<String> errors)
+  {
+    this.name = name;
+    this.strategy = strategy;
+    this.phases = phases;
+    this.errors = errors;
+  }
 
-    @Override
-    public UUID getId() {
-        return id;
-    }
+  public DefaultPlan(String name, List<Phase> phases) {
+    this(name, phases, new SerialStrategy<>());
+  }
 
-    @Override
-    public String getName() {
-        return name;
-    }
+  public DefaultPlan(String name, List<Phase> phases, Strategy<Phase> strategy) {
+    this(name, phases, strategy, Collections.emptyList());
+  }
 
-    @Override
-    public List<String> getErrors() {
-        return getErrors(errors);
-    }
+  @Override
+  public List<Phase> getChildren() {
+    return phases;
+  }
 
-    @Override
-    public String toString() {
-        // Provide a nicely formatted tree -- mainly for developer use in e.g. unit tests
-        List<String> rows = new ArrayList<>();
-        rows.add(String.format("Plan: %s (%s)", getName(), getStatus()));
-        for (Phase phase : getChildren()) {
-            rows.add(String.format("  Phase: %s (%s)", phase.getName(), phase.getStatus()));
-            for (Step step : phase.getChildren()) {
-                rows.add(String.format("    Step: %s (%s)", step.getName(), step.getStatus()));
-            }
-        }
-        List<String> errors = getErrors();
-        if (!errors.isEmpty()) {
-            rows.add("Errors:");
-            for (String error : errors) {
-                rows.add(String.format("  %s", error));
-            }
-        }
-        return Joiner.on('\n').join(rows);
-    }
+  @Override
+  public Strategy<Phase> getStrategy() {
+    return strategy;
+  }
 
-    @Override
-    public boolean equals(Object o) {
-        return EqualsBuilder.reflectionEquals(this, o);
-    }
+  @Override
+  public UUID getId() {
+    return id;
+  }
 
-    @Override
-    public int hashCode() {
-        return Objects.hash(getId());
+  @Override
+  public String getName() {
+    return name;
+  }
+
+  @Override
+  public List<String> getErrors() {
+    return getErrors(errors);
+  }
+
+  @Override
+  public String toString() {
+    // Provide a nicely formatted tree -- mainly for developer use in e.g. unit tests
+    List<String> rows = new ArrayList<>();
+    rows.add(String.format("Plan: %s (%s)", getName(), getStatus()));
+    for (Phase phase : getChildren()) {
+      rows.add(String.format("  Phase: %s (%s)", phase.getName(), phase.getStatus()));
+      for (Step step : phase.getChildren()) {
+        rows.add(String.format("    Step: %s (%s)", step.getName(), step.getStatus()));
+      }
     }
+    // CHECKSTYLE:OFF HiddenField
+    List<String> errors = getErrors();
+    if (!errors.isEmpty()) {
+      rows.add("Errors:");
+      for (String error : errors) {
+        rows.add(String.format("  %s", error));
+      }
+    }
+    return Joiner.on('\n').join(rows);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(getId());
+  }
 }

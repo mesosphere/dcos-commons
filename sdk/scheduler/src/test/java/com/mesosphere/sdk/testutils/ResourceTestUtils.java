@@ -88,15 +88,15 @@ public class ResourceTestUtils {
     }
 
     public static Protos.Resource getUnreservedCpus(double cpus, String preReservedRole) {
-        return getUnreservedScalar("cpus", cpus, preReservedRole);
+        return getUnreservedScalar(Constants.CPUS_RESOURCE_TYPE, cpus, preReservedRole);
     }
 
     public static Protos.Resource getUnreservedMem(double mem, String preReservedRole) {
-        return getUnreservedScalar("mem", mem, preReservedRole);
+        return getUnreservedScalar(Constants.MEMORY_RESOURCE_TYPE, mem, preReservedRole);
     }
 
     public static Protos.Resource getUnreservedDisk(double disk, String preReservedRole) {
-        return getUnreservedScalar("disk", disk, preReservedRole);
+        return getUnreservedScalar(Constants.DISK_RESOURCE_TYPE, disk, preReservedRole);
     }
 
     public static Protos.Resource getUnreservedCpus(double cpus) {
@@ -133,7 +133,7 @@ public class ResourceTestUtils {
         builder.getRangesBuilder().addRangeBuilder()
                 .setBegin(begin)
                 .setEnd(end);
-        return getUnreservedResource("ports", builder.build(), Constants.ANY_ROLE);
+        return getUnreservedResource(Constants.PORTS_RESOURCE_TYPE, builder.build(), Constants.ANY_ROLE);
     }
 
     @SuppressWarnings("deprecation") // for Resource.setRole()

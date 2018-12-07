@@ -12,6 +12,7 @@ import os.path
 import re
 import shutil
 import time
+import inspect
 
 import pytest
 import retrying
@@ -63,6 +64,11 @@ def get_test_suite_name(item: pytest.Item):
     """Returns the test suite name to use for a given test."""
     # frameworks/template/tests/test_sanity.py => test_sanity_py
     # tests/test_sanity.py => test_sanity_py
+
+    # use the class name as the suite name if item is a method
+    if inspect.ismethod(item.obj):
+        return os.path.basename(item.getparent(pytest.Class).name).replace(".", "_")
+
     return os.path.basename(item.parent.name).replace(".", "_")
 
 
@@ -82,7 +88,11 @@ def handle_test_setup(item: pytest.Item):
         _testlogs_current_test_suite = test_suite
         global _testlogs_ignored_task_ids
         _testlogs_ignored_task_ids = _testlogs_ignored_task_ids.union(
-            [task.id for task in sdk_tasks.get_summary(with_completed=True)]
+            [
+                task.id
+                for task in sdk_tasks.get_summary(with_completed=True)
+                if not _task_whitelist_callback(task)
+            ]
         )
         log.info(
             "Entering new test suite {}: {} preexisting tasks will be ignored on test failure.".format(
@@ -101,6 +111,33 @@ def handle_test_setup(item: pytest.Item):
     _testlogs_test_index += 1
 
 
+def _task_whitelist_callback(item: pytest.Item):
+    """Returns a callback configured by pytest marker diag_task_whitelist
+    to check if a task is whitelisted, which should be used like this:
+
+    def whitelist_fn(task):
+        return re.match('hello.*', task.name)
+
+    @pytest.mark.diag_task_whitelist.with_args(whitelist_fn)
+    def your_test_here(): ...
+
+    Note that the diag_task_whitelist marker can be used on function, class, or module
+    to be able to hierarchically configure the whitelist.
+    """
+    def _callback(task):
+        # get_closest_marker is only available in latest pytest versions
+        if item.get_closest_marker(name='diag_task_whitelist') is None:
+            return False
+
+        for mark in item.iter_markers(name='diag_task_whitelist'):
+            if mark.args[0](task):
+                return True
+
+        return False
+
+    return _callback
+
+
 def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     """Collects information from the cluster following a failed test.
 
@@ -116,7 +153,7 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     service_names = list(
         filter(
             lambda name: name != sdk_package_registry.PACKAGE_REGISTRY_SERVICE_NAME,
-            sdk_install.get_installed_service_names(),
+            sdk_install.get_installed_service_names().union(_whitelisted_service_names(item)),
         )
     )
     if len(service_names) > 0:
@@ -169,6 +206,26 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     except Exception:
         log.exception("Diagnostics bundle creation failed")
     log.info("Post-failure collection complete")
+
+
+def _whitelisted_service_names(item: pytest.Item) -> set:
+    """Returns a set of whitelisted service names configured by pytest marker diag_service_whitelist,
+    which should be used like this:
+
+    @pytest.mark.diag_service_whitelist(set('service1', 'service2'))
+    def your_test_here(): ...
+
+    Note that the diag_service_whitelist marker can be used on function, class, or module
+    to be able to hierarchically configure the whitelist.
+    """
+    if item.get_closest_marker(name='diag_service_whitelist') is None:
+        return set()
+
+    whitelisted_service_names = set()
+    for mark in item.iter_markers(name='diag_service_whitelist'):
+        whitelisted_service_names = whitelisted_service_names.union(mark.args[0])
+
+    return whitelisted_service_names
 
 
 def _dump_plans(item: pytest.Item, service_name: str):

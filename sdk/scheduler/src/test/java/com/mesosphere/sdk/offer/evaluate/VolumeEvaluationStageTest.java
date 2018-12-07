@@ -28,7 +28,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
-                getTaskName(podInstanceRequirement.getPodInstance()),
+                Collections.singleton(getTaskName(podInstanceRequirement.getPodInstance())),
                 Optional.empty());
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
@@ -81,7 +81,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
 
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
-                getTaskName(podInstanceRequirement.getPodInstance()),
+                Collections.singleton(getTaskName(podInstanceRequirement.getPodInstance())),
                 Optional.empty());
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
@@ -103,7 +103,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         return podInstance.getPod().getTasks().get(0).getResourceSet().getVolumes().stream().findFirst().get();
     }
 
-    private static Optional<String> getTaskName(PodInstance podInstance) {
-        return Optional.of(podInstance.getPod().getTasks().get(0).getName());
+    private static String getTaskName(PodInstance podInstance) {
+        return podInstance.getPod().getTasks().get(0).getName();
     }
 }

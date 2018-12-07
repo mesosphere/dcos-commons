@@ -468,6 +468,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
         The default visibility for the discovery information. May be `FRAMEWORK`, `CLUSTER`, or `EXTERNAL`. If unset this defaults to `CLUSTER`. See [Mesos documentation](http://mesos.apache.org/documentation/latest/app-framework-development-guide/) on service discovery for more information on these visibility values.
 
+    * `labels`
+
+        This may be used to define custom task labels which will be present in the Mesos state.
+
     * `transport-encryption`
 
       A task may optionally ask for a X.509 TLS certificate with private key and CA certificate bundle. A certificate can be used by service to enable secure communication.

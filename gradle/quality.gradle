@@ -13,8 +13,15 @@ tasks.withType(FindBugs) {
 }
 
 checkstyle {
-    configFile = file("$rootProject.projectDir/gradle/checkstyle/checkstyle.xml")
-    sourceSets = [project.sourceSets.main] // disable style checks on tests
+    toolVersion = "8.14"
+    configDir = file("$rootProject.projectDir/gradle/checkstyle")
+}
+
+tasks.withType(Checkstyle) {
+    // disable style checks on java unit tests
+    exclude("**/src/test/**")
+    // disable style checks on non essential projects
+    exclude("**/tests/**", "**/sdk/testing/**")
 }
 
 pmd {

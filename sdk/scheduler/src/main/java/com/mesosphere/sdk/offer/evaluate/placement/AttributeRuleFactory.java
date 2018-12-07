@@ -3,19 +3,19 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 /**
  * This class generates {@link AttributeRule}s.
  */
-public class AttributeRuleFactory implements RuleFactory {
-    private static final AttributeRuleFactory factory = new AttributeRuleFactory();
+public final class AttributeRuleFactory implements RuleFactory {
+  private static final AttributeRuleFactory factory = new AttributeRuleFactory();
 
-    public static AttributeRuleFactory getInstance() {
-        return factory;
-    }
+  private AttributeRuleFactory() {
+    // Do not instantiate this class
+  }
 
-    private AttributeRuleFactory() {
-        // Do not instantiate this class
-    }
+  public static AttributeRuleFactory getInstance() {
+    return factory;
+  }
 
-    @Override
-    public PlacementRule require(StringMatcher matcher) {
-        return new AttributeRule(matcher);
-    }
+  @Override
+  public PlacementRule require(StringMatcher matcher) {
+    return new AttributeRule(matcher);
+  }
 }

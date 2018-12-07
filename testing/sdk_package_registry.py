@@ -21,26 +21,13 @@ log = logging.getLogger(__name__)
 
 PACKAGE_REGISTRY_NAME = "package-registry"
 PACKAGE_REGISTRY_SERVICE_NAME = "registry"
-PACKAGE_REGISTRY_STUB_URL = "PACKAGE_REGISTRY_STUB_URL"
-
-
-def add_package_registry_stub() -> Dict:
-    # TODO Remove this method, install from bootstrap registry.
-    if PACKAGE_REGISTRY_STUB_URL not in os.environ:
-        raise Exception("{} is not found in env.".format(PACKAGE_REGISTRY_STUB_URL))
-    stub_url = os.environ[PACKAGE_REGISTRY_STUB_URL]
-    with urllib.request.urlopen(stub_url) as url:
-        repo = json.loads(url.read().decode())
-        min_supported = [x for x in repo["packages"] if x["name"] == PACKAGE_REGISTRY_NAME][0][
-            "minDcosReleaseVersion"
-        ]
-
-    if sdk_utils.dcos_version_less_than(min_supported):
-        raise Exception("Min DC/OS {} required for package registry".format(min_supported))
-    return sdk_repository.add_stub_universe_urls([stub_url])
 
 
 def install_package_registry(service_secret_path: str) -> Dict:
+    # If Bootstrap registry is not added by default and thus Readwrite registry is not found,
+    # fail the test.
+    code, _, _ = sdk_cmd.run_cli("package describe {}".format(PACKAGE_REGISTRY_NAME))
+    assert code == 0, "Package registry was not found to install. Exiting..."
     # Install Package Registry
     # wait_for_deployment is `False` because the deployment checks do not apply
     # to package registry as it is not an SDK app.
@@ -48,6 +35,7 @@ def install_package_registry(service_secret_path: str) -> Dict:
         PACKAGE_REGISTRY_NAME,
         PACKAGE_REGISTRY_SERVICE_NAME,
         expected_running_tasks=0,
+        package_version=sdk_install.PackageVersion.LATEST_UNIVERSE,
         additional_options={"registry": {"service-account-secret-path": service_secret_path}},
         wait_for_deployment=False,
         insert_strict_options=False,
@@ -180,13 +168,10 @@ def grant_perms_for_registry_account(service_uid: str) -> None:
 
 
 def package_registry_session(tmpdir_factory):  # _pytest.TempdirFactory
-    pkg_reg_stub = {}
     pkg_reg_repo = {}
+    service_uid = "pkg-reg-uid-{}".format(sdk_utils.random_string())
+    secret_path = "{}-secret-{}".format(service_uid, sdk_utils.random_string())
     try:
-        # TODO Remove stub. We should install from bootstrap registry.
-        pkg_reg_stub = add_package_registry_stub()
-        service_uid = "pkg-reg-uid-{}".format(sdk_utils.random_string())
-        secret_path = "{}-secret-{}".format(service_uid, sdk_utils.random_string())
         sdk_security.create_service_account(service_uid, secret_path)
         grant_perms_for_registry_account(service_uid)
         pkg_reg_repo = install_package_registry(secret_path)
@@ -197,6 +182,5 @@ def package_registry_session(tmpdir_factory):  # _pytest.TempdirFactory
         sdk_repository.remove_universe_repos(pkg_reg_repo)
         # TODO If/when adding S3 backend, remove `Added` packages.
         sdk_install.uninstall(PACKAGE_REGISTRY_NAME, PACKAGE_REGISTRY_SERVICE_NAME)
-        sdk_repository.remove_universe_repos(pkg_reg_stub)
-        # No need to revoke perms, just delete the secret.
+        # No need to revoke perms, just delete the secret; the following ignores any failures.
         sdk_security.delete_service_account(service_uid, secret_path)
