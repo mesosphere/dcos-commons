@@ -37,7 +37,7 @@ def test_uninstall_package():
 def test_post_uninstall_cleanup():
     assert sdk_install.portworx_cleanup() == 0
 
-# Upgrade portworx
+# Upgrade portworx framework from released version
 @pytest.mark.sanity
 def test_upgrade_framework():
     sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())

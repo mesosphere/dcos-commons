@@ -94,7 +94,7 @@ def update_service_node_to_3(portworx_service: dict):
             }
         }
 
-    update_service(portworx_service, update_options)
+    update_service(update_options)
 
 @pytest.mark.sanity
 def test_update_enable_lighthouse():
@@ -107,7 +107,7 @@ def update_service_enable_lighthouse(portworx_service: dict):
             }
         }
 
-    update_service(portworx_service, update_options)
+    update_service(update_options)
 
 @pytest.mark.sanity
 def test_update_disable_lighthouse():
@@ -120,7 +120,7 @@ def update_service_disable_lighthouse(portworx_service: dict):
             }
         }
 
-    update_service(portworx_service, update_options)
+    update_service(update_options, False)
 
 @pytest.mark.sanity
 def test_update_enable_etcd():
@@ -133,7 +133,7 @@ def update_service_enable_etcd(portworx_service: dict):
             }
         }
 
-    update_service(portworx_service, update_options)
+    update_service(update_options)
 
 @pytest.mark.sanity
 def test_update_enable_etcd():
@@ -146,10 +146,9 @@ def update_service_disable_etcd(portworx_service: dict):
             }
         }
 
-    update_service(portworx_service, update_options)
+    update_service(update_options)
 
-
-def update_service(service: dict, options: dict):
+def update_service(options: dict, wait_for_kick_off=True):
     with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
         options_path = f.name
 
@@ -161,5 +160,6 @@ def update_service(service: dict, options: dict):
         sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, " ".join(cmd))
 
         # An update plan is a deploy plan
-        sdk_plan.wait_for_kicked_off_deployment(config.SERVICE_NAME)
+        if wait_for_kick_off:
+            sdk_plan.wait_for_kicked_off_deployment(config.SERVICE_NAME)
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)

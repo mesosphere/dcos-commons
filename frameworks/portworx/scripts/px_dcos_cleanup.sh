@@ -10,7 +10,7 @@
 echo "Shutting down inactive services"
 echo "---------------------------------------------------------------------------";
 
-px_services=`dcos service --inactive | grep -v "ACTIVE  TASKS  CPU" | grep "portworx" | awk '{print $7}'`
+px_services=`dcos service --inactive --json | jq -r '.[] | select(.name=="portworx") | .id'`
 
 for SERVICE_NAME in $px_services;
 do

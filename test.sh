@@ -127,6 +127,10 @@ case $key in
     aws_profile="$2"
     shift
     ;;
+    --kvdb)
+    KVDB_ARGS="$2"
+    shift
+    ;;
     -*)
     echo "Unknown option: $key"
     usage
@@ -253,6 +257,7 @@ docker run --rm \
     $azure_args \
     -e SECURITY="$security" \
     -e PYTEST_ARGS="$PYTEST_ARGS" \
+    -e KVDB="$KVDB_ARGS" \
     $FRAMEWORK_ARGS \
     -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -v $(pwd):$WORK_DIR \
