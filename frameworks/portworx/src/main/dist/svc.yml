@@ -26,7 +26,6 @@ pods:
         ports:
           api:
             port: {{PORTWORX_START_PORT}}
-            env-key: PWX_MGMT_PORT
             vip:
               prefix: api
               port: {{PORTWORX_START_PORT}}
@@ -120,7 +119,7 @@ pods:
                     [Install]
                     WantedBy=multi-user.target" > /etc/systemd/system/portworx.service.new
 
-                diff -Z /etc/systemd/system/portworx.service.new /etc/systemd/system/portworx.service
+                diff -Z /etc/systemd/system/portworx.service /etc/systemd/system/portworx.service.new
                 difference=$?
 
                 set -e
