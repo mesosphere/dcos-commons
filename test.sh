@@ -131,6 +131,10 @@ case $key in
     KVDB_ARGS="$2"
     shift
     ;;
+    --px-image)
+    PX_IMAGE_ARGS="$2"
+    shift
+    ;;
     -*)
     echo "Unknown option: $key"
     usage
@@ -258,6 +262,7 @@ docker run --rm \
     -e SECURITY="$security" \
     -e PYTEST_ARGS="$PYTEST_ARGS" \
     -e KVDB="$KVDB_ARGS" \
+    -e PX_IMAGE="$PX_IMAGE_ARGS" \
     $FRAMEWORK_ARGS \
     -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -v $(pwd):$WORK_DIR \

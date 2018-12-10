@@ -1,4 +1,4 @@
-# Here are tests for variour update options available for portworx.
+# Here are tests for various update options available for portworx.
 # For example updating portworx cluster from 1 node to 3 node, updating portworx with enabling etcd etc.
 
 import json
@@ -82,12 +82,11 @@ def portworx_service(service_account):
         yield {**options, **{"package_name": config.PACKAGE_NAME}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.portworx_cleanup()
 
 @pytest.mark.sanity
-def test_update_service_node():
-    update_service_node_to_3(portworx_service)
-
-def update_service_node_to_3(portworx_service: dict):
+def test_update_node_count():
+    portworx_service()
     update_options = {
         "node": {
             "count": 3
@@ -97,10 +96,20 @@ def update_service_node_to_3(portworx_service: dict):
     update_service(update_options)
 
 @pytest.mark.sanity
-def test_update_enable_lighthouse():
-    update_service_enable_lighthouse(portworx_service)
+def test_update_px_image():
+    portworx_service()
+    px_image = os.environ['PX_IMAGE']
+    update_options = {
+        "node": {
+            "portworx_image": px_image
+            }
+        }
 
-def update_service_enable_lighthouse(portworx_service: dict):
+    update_service(update_options)
+
+@pytest.mark.sanity
+def test_update_enable_lighthouse():
+    portworx_service()
     update_options = {
         "lighthouse": {
             "enabled": True
@@ -111,9 +120,7 @@ def update_service_enable_lighthouse(portworx_service: dict):
 
 @pytest.mark.sanity
 def test_update_disable_lighthouse():
-    update_service_disable_lighthouse(portworx_service)
-
-def update_service_disable_lighthouse(portworx_service: dict):
+    portworx_service()
     update_options = {
         "lighthouse": {
             "enabled": False
@@ -124,9 +131,7 @@ def update_service_disable_lighthouse(portworx_service: dict):
 
 @pytest.mark.sanity
 def test_update_enable_etcd():
-    update_service_enable_etcd(portworx_service)
-
-def update_service_enable_etcd(portworx_service: dict):
+    portworx_service()
     update_options = {
         "etcd": {
             "enabled": True
@@ -136,17 +141,15 @@ def update_service_enable_etcd(portworx_service: dict):
     update_service(update_options)
 
 @pytest.mark.sanity
-def test_update_enable_etcd():
-    update_service_disable_etcd(portworx_service)
-
-def update_service_disable_etcd(portworx_service: dict):
+def test_update_disable_etcd():
+    portworx_service()
     update_options = {
         "etcd": {
             "enabled": False
             }
         }
 
-    update_service(update_options)
+    update_service(update_options, False)
 
 def update_service(options: dict, wait_for_kick_off=True):
     with tempfile.NamedTemporaryFile("w", suffix=".json") as f:

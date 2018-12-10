@@ -27,6 +27,16 @@ def configure_package(configure_security):
 def test_verify_install():
     shakedown.service_healthy(config.SERVICE_NAME)
 
+# Upgrade portworx framework from released version
+@pytest.mark.sanity
+def test_upgrade_framework():
+    #sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
+    sdk_upgrade.test_upgrade(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        config.DEFAULT_TASK_COUNT,
+        additional_options=sdk_install.merge_dictionaries(sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS, config.PX_NODE_OPTIONS))
+
 # Uninstall portworx
 @pytest.mark.sanity
 def test_uninstall_package():
@@ -37,12 +47,4 @@ def test_uninstall_package():
 def test_post_uninstall_cleanup():
     assert sdk_install.portworx_cleanup() == 0
 
-# Upgrade portworx framework from released version
-@pytest.mark.sanity
-def test_upgrade_framework():
-    sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
-    sdk_upgrade.test_upgrade(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        config.DEFAULT_TASK_COUNT,
-        additional_options=sdk_install.merge_dictionaries(sdk_networks.ENABLE_VIRTUAL_NETWORKS_OPTIONS, config.PX_NODE_OPTIONS))
+
