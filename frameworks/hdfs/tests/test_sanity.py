@@ -411,3 +411,4 @@ def test_namenodes_acheive_quorum_after_journalnode_replace():
     for pod in pod_list:
         sdk_recovery.check_permanent_recovery(config.PACKAGE_NAME, foldered_name, pod, recovery_timeout_s=25 * 60,
                                               pods_with_updated_tasks=pod_list + ["name-0", "name-1"])
+    config.check_healthy(service_name=foldered_name)
