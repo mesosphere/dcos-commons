@@ -421,5 +421,3 @@ def test_namenodes_acheive_quorum_after_journalnode_replace():
     config.expect_recovery(service_name=foldered_name)
 
     assertEqual(0, wait_for_failed_tasks)
-
-
