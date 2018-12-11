@@ -13,6 +13,7 @@ import sdk_recovery
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
+import retrying
 
 from tests import config
 
