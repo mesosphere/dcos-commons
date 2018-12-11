@@ -420,4 +420,4 @@ def test_namenodes_acheive_quorum_after_journalnode_replace():
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod restart journal-1")
     config.expect_recovery(service_name=foldered_name)
 
-    assertEqual(0, wait_for_failed_tasks)
+    assert wait_for_failed_tasks() == 0
