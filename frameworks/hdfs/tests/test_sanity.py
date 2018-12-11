@@ -407,7 +407,19 @@ def test_namenodes_acheive_quorum_after_journalnode_replace():
     This test aims to check that namenodes recover after a journalnode failure.
     It checks the fix to this issue works: https://jira.apache.org/jira/browse/HDFS-10659
     """
-    pod_list = ["journal-0", "journal-1", "journal-2"]
-    for pod in pod_list:
-        sdk_recovery.check_permanent_recovery(config.PACKAGE_NAME, foldered_name, pod, recovery_timeout_s=25 * 60,
-                                              pods_with_updated_tasks=pod_list + ["name-0", "name-1"])
+
+    @retrying.retry(stop_max_delay=150 * 1000,
+                    wait_fixed=1000,
+                    retry_on_result=lambda res: res == 0)
+    def wait_for_failed_tasks():
+        return sdk_tasks.get_failed_task_count(service_name=foldered_name)
+
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace journal-0")
+    config.expect_recovery(service_name=foldered_name)
+
+    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod restart journal-1")
+    config.expect_recovery(service_name=foldered_name)
+
+    assertEqual(0, wait_for_failed_tasks)
+
+
