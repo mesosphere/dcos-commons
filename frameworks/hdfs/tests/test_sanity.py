@@ -415,10 +415,9 @@ def test_namenodes_acheive_quorum_after_journalnode_replace():
     def wait_for_failed_tasks():
         return sdk_tasks.get_failed_task_count(service_name=foldered_name)
 
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace journal-0")
-    config.expect_recovery(service_name=foldered_name)
+    pod_list = ["journal-0", "journal-1"]
+    for pod in pod_list:
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace {}".format(pod))
+        sdk_tasks.check_running(service_name=foldered_name, count=config.DEFAULT_TASK_COUNT)
 
-    sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod restart journal-1")
-    config.expect_recovery(service_name=foldered_name)
-
-    assert wait_for_failed_tasks() == 0
+    assert wait_for_failed_tasks() == 0, "There are failed tasks after JournalNode pods replacement"
