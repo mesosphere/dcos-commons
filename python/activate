@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+
+CURRDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+
+if [ "${VIRTUALENV_DIRECTORY}" != "" ]; then
+    source ${VIRTUALENV_DIRECTORY}/bin/activate
+else
+    source ${CURRDIR}/.virtualenv/bin/activate
+fi
+
+unset CURRDIR
