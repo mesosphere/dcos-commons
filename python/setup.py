@@ -63,7 +63,8 @@ setup(
     # https://packaging.python.org/en/latest/requirements.html
     install_requires=[
         "requests==2.20.1",
-        "retrying==1.3.3"
+        "retrying==1.3.3",
+        "pytest==3.8.2",
     ],
 
     # If there are data files included in your packages that need to be
