@@ -417,7 +417,7 @@ def test_namenodes_acheive_quorum_after_journalnode_replace():
 
     pod_list = ["journal-0", "journal-1"]
     for pod in pod_list:
-        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace {}".format(pod))
-        sdk_tasks.check_running(service_name=foldered_name, count=config.DEFAULT_TASK_COUNT)
-
+        sdk_recovery.check_permanent_recovery(
+            config.PACKAGE_NAME, foldered_name, pod, recovery_timeout_s=25 * 60
+        )
     assert wait_for_failed_tasks() == 0, "There are failed tasks after JournalNode pods replacement"
