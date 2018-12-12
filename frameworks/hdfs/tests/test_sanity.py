@@ -13,7 +13,6 @@ import sdk_recovery
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
-import retrying
 
 from tests import config
 
@@ -406,25 +405,18 @@ def test_permanently_replace_journalnodes():
 def test_namenodes_acheive_quorum_after_journalnode_replace():
     """
     This test aims to check that namenodes recover after a journalnode failure.
-    It checks the fix to this issue works: https://jira.apache.org/jira/browse/HDFS-10659
+    It checks the fix to this issue works: https://jira.apache.org/jira/browse/HDFS-10659.
+    After the first Journal Node recovery, the second Journal Node pod replace triggers
+    crash looping of both replaced Journal Node pod and all NameNode pods.
     """
 
-    @retrying.retry(stop_max_delay=150 * 1000,
-                    wait_fixed=1000,
-                    retry_on_result=lambda res: res == 0)
-    def wait_for_failed_tasks():
-        log.info("RUNNING sdk_tasks.get_failed_task_count(service_name=foldered_name)")
-        failed_tasks = sdk_tasks.get_failed_task_count(service_name=foldered_name)
-        log.info("FAILED TASKS COUNT: {}".format(failed_tasks))
-        return failed_tasks
-
-    pod_list = ["journal-0", "journal-1"]
+    pod_list = ["journal-0", "journal-1", "journal-0"]
     for pod in pod_list:
-        log.info("STARTING REPLACE FOR A POD: {}".format(pod))
-        log.info("RUNNING: 'pod replace {}'".format(pod))
         sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace {}".format(pod))
-        log.info("WAITING FOR RECOVERY TO COMPLETE".format(pod))
-        sdk_plan.wait_for_completed_recovery(service_name=foldered_name)
 
-    log.info("WAITING FOR FAILED TASKS")
-    assert wait_for_failed_tasks() == 0, "There are failed tasks after JournalNode pods replacement"
+        # waiting for recovery to start first before it completes to avoid timing issues
+        sdk_plan.wait_for_in_progress_recovery(service_name=foldered_name, timeout_seconds=5 * 60)
+
+        # sdk_plan.wait_for_completed_recovery includes tracking of failed tasks and will
+        # terminate in case of a crash loop
+        sdk_plan.wait_for_completed_recovery(service_name=foldered_name, timeout_seconds=5 * 60)
