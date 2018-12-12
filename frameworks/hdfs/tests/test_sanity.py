@@ -398,3 +398,25 @@ def test_permanently_replace_journalnodes():
         sdk_recovery.check_permanent_recovery(
             config.PACKAGE_NAME, foldered_name, pod, recovery_timeout_s=25 * 60
         )
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_namenodes_acheive_quorum_after_journalnode_replace():
+    """
+    This test aims to check that namenodes recover after a journalnode failure.
+    It checks the fix to this issue works: https://jira.apache.org/jira/browse/HDFS-10659.
+    After the first Journal Node recovery, the second Journal Node pod replace triggers
+    crash looping of both replaced Journal Node pod and all NameNode pods.
+    """
+
+    pod_list = ["journal-0", "journal-1", "journal-0"]
+    for pod in pod_list:
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace {}".format(pod))
+
+        # waiting for recovery to start first before it completes to avoid timing issues
+        sdk_plan.wait_for_in_progress_recovery(service_name=foldered_name, timeout_seconds=5 * 60)
+
+        # sdk_plan.wait_for_completed_recovery includes tracking of failed tasks and will
+        # terminate in case of a crash loop
+        sdk_plan.wait_for_completed_recovery(service_name=foldered_name, timeout_seconds=5 * 60)
