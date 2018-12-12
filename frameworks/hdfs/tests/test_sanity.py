@@ -413,11 +413,18 @@ def test_namenodes_acheive_quorum_after_journalnode_replace():
                     wait_fixed=1000,
                     retry_on_result=lambda res: res == 0)
     def wait_for_failed_tasks():
-        return sdk_tasks.get_failed_task_count(service_name=foldered_name)
+        log.info("RUNNING sdk_tasks.get_failed_task_count(service_name=foldered_name)")
+        failed_tasks = sdk_tasks.get_failed_task_count(service_name=foldered_name)
+        log.info("FAILED TASKS COUNT: {}".format(failed_tasks))
+        return failed_tasks
 
     pod_list = ["journal-0", "journal-1"]
     for pod in pod_list:
-        sdk_recovery.check_permanent_recovery(
-            config.PACKAGE_NAME, foldered_name, pod, recovery_timeout_s=25 * 60
-        )
+        log.info("STARTING REPLACE FOR A POD: {}".format(pod))
+        log.info("RUNNING: 'pod replace {}'".format(pod))
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace {}".format(pod))
+        log.info("WAITING FOR RECOVERY TO COMPLETE".format(pod))
+        sdk_plan.wait_for_completed_recovery(service_name=foldered_name)
+
+    log.info("WAITING FOR FAILED TASKS")
     assert wait_for_failed_tasks() == 0, "There are failed tasks after JournalNode pods replacement"
