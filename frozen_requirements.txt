@@ -76,7 +76,7 @@ oauthlib==2.1.0
 pager==3.3
 paramiko==2.4.2
 pefile==2018.8.8
-pkginfo==1.2.1
+pkginfo==1.4.2
 pluggy==0.7.1
 pre-commit==1.11.2
 prettytable==0.7.2
