@@ -70,7 +70,7 @@ mccabe==0.6.1
 more-itertools==4.3.0
 msrest==0.6.2
 msrestazure==0.4.34
-nodeenv==1.3.2
+nodeenv==1.3.3
 oauth2client==3.0.0
 oauthlib==2.1.0
 pager==3.3
