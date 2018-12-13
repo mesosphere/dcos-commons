@@ -6,7 +6,7 @@ git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cb
 # - manually select the correct version of the dcos library to avoid a package_manager param count issue in the version declared by shakedown:
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc
 # - refrain from jumping to 1.5 since we're moving off shakedown anyway:
-dcos-shakedown==1.4.12
+dcos-shakedown==1.5.0
 
 toolz==0.9.0
 
