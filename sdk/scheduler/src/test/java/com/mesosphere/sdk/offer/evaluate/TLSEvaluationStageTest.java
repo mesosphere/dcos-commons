@@ -21,7 +21,7 @@ import org.bouncycastle.util.encoders.Hex;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -84,7 +84,7 @@ public class TLSEvaluationStageTest {
         Assert.assertTrue(outcome.isPassing());
 
         // Check that TLS update was invoked
-        verify(mockTLSArtifactsUpdater).update(Matchers.any(), Matchers.any(), Matchers.eq("test-tls"));
+        verify(mockTLSArtifactsUpdater).update(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.eq("test-tls"));
 
         Protos.ContainerInfo executorContainer =
                 podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getExecutor().getContainer();
@@ -112,7 +112,7 @@ public class TLSEvaluationStageTest {
         Assert.assertTrue(outcome.isPassing());
 
         // Check that TLS update was invoked
-        verify(mockTLSArtifactsUpdater).update(Matchers.any(), Matchers.any(), Matchers.eq("test-tls"));
+        verify(mockTLSArtifactsUpdater).update(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.eq("test-tls"));
 
         Protos.ContainerInfo executorContainer =
                 podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getExecutor().getContainer();
@@ -139,7 +139,7 @@ public class TLSEvaluationStageTest {
         Assert.assertTrue(outcome.isPassing());
 
         // Check that TLS update was invoked
-        verify(mockTLSArtifactsUpdater).update(Matchers.any(), Matchers.any(), Matchers.eq("test-tls"));
+        verify(mockTLSArtifactsUpdater).update(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.eq("test-tls"));
 
         Protos.ContainerInfo executorContainer =
                 podInfoBuilder.getTaskBuilder(TestConstants.TASK_NAME).getExecutor().getContainer();
@@ -152,7 +152,7 @@ public class TLSEvaluationStageTest {
     @Test
     public void testFailure() throws Exception {
         doThrow(new IOException("test")).when(mockTLSArtifactsUpdater)
-                .update(Matchers.any(), Matchers.any(), Matchers.any());
+                .update(ArgumentMatchers.any(), ArgumentMatchers.any(), ArgumentMatchers.any());
 
         ArrayList<TransportEncryptionSpec> transportEncryptionSpecs = new ArrayList<>();
         transportEncryptionSpecs.add(DefaultTransportEncryptionSpec.newBuilder()

@@ -21,7 +21,7 @@ function cleanup {
 }
 trap cleanup EXIT
 
-REPO_ROOT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+REPO_ROOT_DIR=${REPO_ROOT_DIR:="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"}
 WORK_DIR="/build" # where REPO_ROOT_DIR is mounted within the image
 
 # Find out what framework(s) are available.
@@ -88,7 +88,7 @@ function usage()
     echo "  --headless"
     echo "    Run docker command in headless mode, without attaching to stdin. Sometimes needed in CI."
     echo "  --package-registry"
-    echo "    Enables using a package registry to install packages. Requires \$PACKAGE_REGISTRY_STUB_URL."
+    echo "    Enables using a package registry to install packages. Works in 1.12.1 and above only."
     echo "  --dcos-files-path DIR"
     echo "    Sets the directory to look for .dcos files. If empty, uses stub universe urls to build .dcos file(s)."
     echo "  --gradle-cache $gradle_cache"
@@ -113,6 +113,9 @@ function usage()
     echo "    S3 bucket to use for testing."
     echo "  DOCKER_COMMAND=$docker_command"
     echo "    Command to be run within the docker image (e.g. 'DOCKER_COMMAND=bash' to just get a prompt)"
+    echo "  REPO_ROOT_DIR=${REPO_ROOT_DIR}"
+    echo "    Allows for overriding the location of the repository's root directory. Autodetected by default."
+    echo "    Must be an absolute path."
     echo "  PYTEST_ARGS"
     echo "    Additional arguments (other than -m or -k) to pass to pytest."
     echo "  TEST_SH_*"
@@ -206,7 +209,7 @@ esac
 shift # past argument or value
 done
 
-if [ -z "$framework" -a x"$interactive" != x"true" ]; then
+if [ -z "$framework" -a x"$interactive" != x"true" -a x"$DOCKER_COMMAND" == x"" ]; then
     # If FRAMEWORK_LIST only has one option, use that. Otherwise complain.
     if [ $(echo $FRAMEWORK_LIST | wc -w) == 1 ]; then
         framework=$FRAMEWORK_LIST
@@ -314,13 +317,6 @@ if [ -n "$pytest_m" ]; then
     PYTEST_ARGS="$PYTEST_ARGS-m \"$pytest_m\""
 fi
 
-if [ x"$package_registry" == x"true" ]; then
-    if [ -z "$PACKAGE_REGISTRY_STUB_URL" ]; then
-        echo "PACKAGE_REGISTRY_STUB_URL not found in environment. Exiting..."
-        exit 1
-    fi
-fi
-
 if [ -n "$dcos_files_path" ]; then
     volume_args="$volume_args -v ${dcos_files_path}:${dcos_files_path}"
 fi
@@ -351,7 +347,6 @@ DCOS_LOGIN_USERNAME=$DCOS_LOGIN_USERNAME
 DCOS_SSH_USERNAME=$ssh_user
 FRAMEWORK=$framework
 PACKAGE_REGISTRY_ENABLED=$package_registry
-PACKAGE_REGISTRY_STUB_URL=$PACKAGE_REGISTRY_STUB_URL
 PYTEST_ARGS=$PYTEST_ARGS
 S3_BUCKET=$S3_BUCKET
 SECURITY=$security

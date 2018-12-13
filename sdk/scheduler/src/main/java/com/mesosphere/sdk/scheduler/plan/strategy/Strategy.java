@@ -14,15 +14,18 @@ import java.util.Collection;
  */
 public interface Strategy<C extends Element> extends Interruptible {
 
-    /**
-     * Returns the candidate element(s), if any, which may have work performed against them.
-     *
-     * @param elements the elements to be examined for candidacy
-     * @param dirtyAssets any asset names which already have work in progress elsewhere, which should not be returned by
-     *     this call
-     * @return zero or more candidates for work to be performed
-     */
-    Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets);
+  /**
+   * Returns the candidate element(s), if any, which may have work performed against them.
+   *
+   * @param elements    the elements to be examined for candidacy
+   * @param dirtyAssets any asset names which already have work in progress elsewhere, which should not be returned by
+   *                    this call
+   * @return zero or more candidates for work to be performed
+   */
+  Collection<C> getCandidates(
+      Collection<C> elements,
+      Collection<PodInstanceRequirement> dirtyAssets
+  );
 
-    String getName();
+  String getName();
 }

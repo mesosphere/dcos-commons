@@ -25,8 +25,7 @@ import org.mockito.MockitoAnnotations;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.anyCollectionOf;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
@@ -106,7 +105,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         UninstallScheduler uninstallScheduler = getUninstallScheduler();
         Assert.assertEquals(ClientStatusResponse.launching(true), uninstallScheduler.getClientStatus());
         Assert.assertEquals(OfferResponse.Result.PROCESSED, uninstallScheduler.offers(Collections.emptyList()).result);
-        verify(mockSchedulerDriver, times(0)).acceptOffers(any(), anyCollectionOf(Protos.Offer.Operation.class), any());
+        verify(mockSchedulerDriver, times(0)).acceptOffers(any(), any(), any());
         verify(mockSchedulerDriver, times(0)).declineOffer(any(), any());
     }
 

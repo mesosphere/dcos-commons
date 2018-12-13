@@ -29,6 +29,9 @@ func CheckHTTPResponse(response *http.Response, err error) ([]byte, error) {
 		err = err.(*url.Error).Err
 	}
 	if err != nil {
+		if response == nil {
+			return nil, fmt.Errorf("Encountered an empty response, with error: %s, retry the operation again later", err)
+		}
 		switch err.(type) {
 		case x509.UnknownAuthorityError:
 			// custom suggestions for a certificate error:

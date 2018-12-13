@@ -1,0 +1,22 @@
+{
+  "extends": [
+    "config:base"
+  ],
+  "dockerfile": {
+    "fileMatch": ["(^|/)Dockerfile[^/]*$"]
+  },
+  "ignoreDeps": [
+    "azure-mgmt-network",
+    "azure-mgmt-resource",
+    "azure-monitor",
+    "azure-storage",
+    "keyring",
+    "msrestazure",
+    "oauth2client",
+    "PyInstaller"
+  ],
+  "ignorePaths": [
+    "frameworks/*/universe*/package.json"
+  ],
+  "renovateFork": true
+}

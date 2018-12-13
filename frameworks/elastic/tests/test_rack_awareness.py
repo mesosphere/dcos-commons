@@ -1,6 +1,7 @@
 import logging
-
 import pytest
+from toolz import get_in
+
 import sdk_fault_domain
 import sdk_install
 import sdk_utils
@@ -20,12 +21,12 @@ def test_zones_not_referenced_in_placement_constraints():
 
     for node_uid, node in nodes_info["nodes"].items():
         assert (
-            sdk_utils.get_in(
+            get_in(
                 ["settings", "cluster", "routing", "allocation", "awareness", "attributes"], node
             )
             is None
         )
-        assert sdk_utils.get_in(["attributes", "zone"], node) is None
+        assert get_in(["attributes", "zone"], node) is None
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -50,9 +51,9 @@ def test_zones_referenced_in_placement_constraints():
     nodes_info = config.get_elasticsearch_nodes_info(service_name=config.SERVICE_NAME)
 
     for node_uid, node in nodes_info["nodes"].items():
-        assert "zone" == sdk_utils.get_in(
+        assert "zone" == get_in(
             ["settings", "cluster", "routing", "allocation", "awareness", "attributes"], node
         )
-        assert sdk_fault_domain.is_valid_zone(sdk_utils.get_in(["attributes", "zone"], node))
+        assert sdk_fault_domain.is_valid_zone(get_in(["attributes", "zone"], node))
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)

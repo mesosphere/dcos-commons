@@ -110,6 +110,11 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validProfileMountVolume() throws Exception {
+        validateServiceSpec("valid-profile-mount-volume.yml", DcosConstants.DEFAULT_GPU_POLICY);
+    }
+
+    @Test
     public void validPortResourceEnvKey() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-envkey-ports.yml").getFile());
@@ -406,6 +411,34 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals("group/image", defaultServiceSpec.getPods().get(0).getImage().get());
     }
 
+    @Test
+    public void validTaskLabels() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-task-labels.yml").getFile());
+        DefaultServiceSpec defaultServiceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        PodSpec podSpec = defaultServiceSpec.getPods().get(0);
+        Assert.assertTrue("", Iterables.get(podSpec.getTasks(), 0).getTaskLabels().containsKey("label1"));
+        Assert.assertTrue("", Iterables.get(podSpec.getTasks(), 0).getTaskLabels()
+                          .get("label1").equals("label1-value"));
+        Assert.assertTrue("", Iterables.get(podSpec.getTasks(), 0).getTaskLabels().containsKey("label2"));
+        Assert.assertTrue("", Iterables.get(podSpec.getTasks(), 0).getTaskLabels()
+                          .get("label2").equals("path:/"));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidTaskLabelsFormat() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-task-labels-format.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidTaskLabelsBlank() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-task-labels-blank.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
     @Test(expected = IllegalArgumentException.class)
     public void invalidImageNull() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
@@ -432,7 +465,7 @@ public class DefaultServiceSpecTest {
                 .get("key1").equals("val1"));
         Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels().containsKey("key2"));
         Assert.assertTrue("", Iterables.get(podSpec.getNetworks(), 0).getLabels()
-                .get("key2").equals("val2"));
+                .get("key2").equals("val2a:val2b"));
     }
 
     @Test
@@ -461,13 +494,26 @@ public class DefaultServiceSpecTest {
         }
     }
 
-
     @Test(expected = IllegalArgumentException.class)
     public void invalidNetworks() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         // this service spec contains specifies an overlay network that doesn't support port mapping, but contains
         // port mapping requests
         File file = new File(classLoader.getResource("invalid-network.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidNetworkLabelsFormat() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-network-labels-format.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidNetworkLabelsBlank() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-network-labels-blank.yml").getFile());
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
@@ -620,14 +666,9 @@ public class DefaultServiceSpecTest {
 
     @Test
     public void testGoalStateDeserializesOldValues() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-minimal.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-
         ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
         DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
-                ((DefaultServiceSpec.ConfigFactory) DefaultServiceSpec.getConfigurationFactory(serviceSpec))
-                        .getGoalStateDeserializer();
+                new DefaultServiceSpec.ConfigFactory.GoalStateDeserializer();
 
         SimpleModule module = new SimpleModule();
         module.addDeserializer(GoalState.class, goalStateDeserializer);
@@ -643,21 +684,13 @@ public class DefaultServiceSpecTest {
     public void testGoalStateDeserializesNewValues() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-finished.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
-
-        ObjectMapper objectMapper = SerializationUtils.registerDefaultModules(new ObjectMapper());
-        DefaultServiceSpec.ConfigFactory.GoalStateDeserializer goalStateDeserializer =
-                ((DefaultServiceSpec.ConfigFactory) DefaultServiceSpec.getConfigurationFactory(serviceSpec))
-                        .getGoalStateDeserializer();
-
-        SimpleModule module = new SimpleModule();
-        module.addDeserializer(GoalState.class, goalStateDeserializer);
-        objectMapper.registerModule(module);
-
-        Assert.assertEquals(
-                GoalState.FINISHED, SerializationUtils.fromString("\"ONCE\"", GoalState.class, objectMapper));
-        Assert.assertEquals(
-                GoalState.FINISHED, SerializationUtils.fromString("\"FINISHED\"", GoalState.class, objectMapper));
+        try {
+            DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+            Assert.fail("expected exception");
+        } catch (IllegalArgumentException e) {
+            Assert.assertEquals(
+                    "Unsupported GoalState FINISHED in task meta-data-task, expected one of: [UNKNOWN, RUNNING, FINISH, ONCE]", e.getMessage());
+        }
     }
 
     @Test(expected = IllegalArgumentException.class)

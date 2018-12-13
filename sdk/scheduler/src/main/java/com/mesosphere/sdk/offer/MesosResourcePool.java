@@ -1,410 +1,451 @@
 package com.mesosphere.sdk.offer;
 
-import com.google.protobuf.TextFormat;
 import com.mesosphere.sdk.dcos.Capabilities;
+import com.mesosphere.sdk.specification.VolumeSpec;
+
+import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
 import org.apache.mesos.Protos.Value;
 import org.slf4j.Logger;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * A representation of the pool of resources available in a single {@link Offer}. Tracks the
  * consumption of the {@link Offer}'s resources.
  */
 public class MesosResourcePool {
-    private static final Logger LOGGER = LoggingUtils.getLogger(MesosResourcePool.class);
-    private final Offer offer;
+  private static final Logger LOGGER = LoggingUtils.getLogger(MesosResourcePool.class);
 
-    /**
-     * In practice this is always unreserved MOUNT volumes.
-     */
-    private Map<String, List<MesosResource>> unreservedAtomicPool;
+  private final Offer offer;
 
-    /**
-     * Maps resource IDs to Resources.
-     * c5a3e309-6388-4786-a63e-d6032416b719 --> RESOURCE-0
-     * 0b853332-90f1-47bf-88cd-1cdfe6a8f731 --> RESOURCE-1
-     */
-    private Map<String, MesosResource> dynamicallyReservedPoolByResourceId;
+  /**
+   * In practice this is always unreserved MOUNT volumes.
+   */
+  private Map<String, List<MesosResource>> unreservedAtomicPool;
 
-    /**
-     * Maps pre-reserved roles to maps of resource name and value.
-     *            "*" --> cpus: 4.0
-     *                     mem: 256
-     * "slave_public" --> cpus: 1.0
-     *                     mem: 128
-     */
-    private Map<String, Map<String, Value>> reservableMergedPoolByRole;
+  /**
+   * Maps resource IDs to Resources.
+   * c5a3e309-6388-4786-a63e-d6032416b719 --> RESOURCE-0
+   * 0b853332-90f1-47bf-88cd-1cdfe6a8f731 --> RESOURCE-1
+   */
+  private Map<String, MesosResource> dynamicallyReservedPoolByResourceId;
 
-    /**
-     * Creates a new pool of resources based on what's available in the provided {@link Offer}.
-     */
-    public MesosResourcePool(Offer offer, Optional<String> role) {
-        this.offer = offer;
-        final Collection<MesosResource> mesosResources = getMesosResources(offer, role);
-        this.unreservedAtomicPool = getUnreservedAtomicPool(mesosResources);
-        this.dynamicallyReservedPoolByResourceId = getDynamicallyReservedPool(mesosResources);
-        this.reservableMergedPoolByRole = getReservableMergedPool(mesosResources);
+  /**
+   * Maps pre-reserved roles to maps of resource name and value.
+   * "*" --> cpus: 4.0
+   * mem: 256
+   * "slave_public" --> cpus: 1.0
+   * mem: 128
+   */
+  private Map<String, Map<String, Value>> reservableMergedPoolByRole;
+
+  /**
+   * Creates a new pool of resources based on what's available in the provided {@link Offer}.
+   */
+  public MesosResourcePool(Offer offer, Optional<String> role) {
+    this.offer = offer;
+    final Collection<MesosResource> mesosResources = getMesosResources(offer, role);
+    this.unreservedAtomicPool = getUnreservedAtomicPool(mesosResources);
+    this.dynamicallyReservedPoolByResourceId = getDynamicallyReservedPool(mesosResources);
+    this.reservableMergedPoolByRole = getReservableMergedPool(mesosResources);
+  }
+
+  private static boolean sufficientValue(Value desired, Value available) {
+    if (desired == null) {
+      return true;
+    } else if (available == null) {
+      return false;
     }
 
-    /**
-     * Returns the underlying offer which this resource pool represents.
-     */
-    public Offer getOffer() {
-        return offer;
+    Value difference = ValueUtils.subtract(desired, available);
+    return ValueUtils.compare(difference, ValueUtils.getZero(desired.getType())) <= 0;
+  }
+
+  private static boolean matchAnyProfile(List<String> desired, Optional<String> actual) {
+    return actual.isPresent() ? desired.contains(actual.get()) : desired.isEmpty();
+  }
+
+  private static Collection<MesosResource> getMesosResources(Offer offer, Optional<String> role) {
+    Collection<MesosResource> mesosResources = new ArrayList<MesosResource>();
+    for (Resource resource : offer.getResourcesList()) {
+      if (consumableResource(role, resource)) {
+        mesosResources.add(new MesosResource(resource));
+      }
     }
 
-    /**
-     * Returns the unreserved resources which cannot be partially consumed from an Offer. For
-     * example, a MOUNT volume cannot be partially consumed, it's all-or-nothing.
-     */
-    public Map<String, List<MesosResource>> getUnreservedAtomicPool() {
-        return unreservedAtomicPool;
+    return mesosResources;
+  }
+
+  private static boolean consumableResource(Optional<String> podRole, Resource resource) {
+    if (!podRole.isPresent()
+        || !resource.hasAllocationInfo()
+        || !resource.getAllocationInfo().hasRole())
+    {
+      return true;
     }
 
-    /**
-     * Returns the resources which were dynamically reserved.
-     */
-    public Map<String, MesosResource> getDynamicallyReservedPoolByResourceId() {
-        return dynamicallyReservedPoolByResourceId;
+    String allocationRole = resource.getAllocationInfo().getRole();
+    return podRole.get().equals(allocationRole);
+  }
+
+  private static Map<String, List<MesosResource>> getUnreservedAtomicPool(
+      Collection<MesosResource> mesosResources)
+  {
+    Map<String, List<MesosResource>> pool = new HashMap<String, List<MesosResource>>();
+
+    for (MesosResource mesosResource : getUnreservedAtomicResources(mesosResources)) {
+      String name = mesosResource.getName();
+      List<MesosResource> resList = pool.get(name);
+
+      if (resList == null) {
+        resList = new ArrayList<>();
+      }
+
+      resList.add(mesosResource);
+      pool.put(name, resList);
     }
 
-    /**
-     * Returns the resources which are reservable.  These may have been pre-reserved (dynamically or statically) or
-     * never reserved.
-     */
-    public Map<String, Map<String, Value>> getReservableMergedPoolByRole() {
-        return reservableMergedPoolByRole;
+    return pool;
+  }
+
+  private static Map<String, MesosResource> getDynamicallyReservedPool(
+      Collection<MesosResource> mesosResources)
+  {
+    Map<String, MesosResource> reservedPool = new HashMap<String, MesosResource>();
+
+    for (MesosResource mesResource : mesosResources) {
+      if (mesResource.hasResourceId()) {
+        reservedPool.put(mesResource.getResourceId().get(), mesResource);
+      }
     }
 
-    public Map<String, Value> getUnreservedMergedPool() {
-        Map<String, Value> pool = reservableMergedPoolByRole.get(Constants.ANY_ROLE);
-        return pool == null ? Collections.emptyMap() : pool;
+    return reservedPool;
+  }
+
+  private static Map<String, Value> getResourcePool(Collection<MesosResource> mesosResources) {
+    Map<String, Value> pool = new HashMap<>();
+    for (MesosResource mesosResource : mesosResources) {
+      String name = mesosResource.getName();
+      Value currValue = pool.get(name);
+
+      if (currValue == null) {
+        currValue = ValueUtils.getZero(mesosResource.getType());
+      }
+
+      pool.put(name, ValueUtils.add(currValue, mesosResource.getValue()));
     }
 
-    /**
-     * Returns the reserved resource, if present.
-     */
-    public Optional<MesosResource> getReservedResourceById(String resourceId) {
-        return Optional.ofNullable(dynamicallyReservedPoolByResourceId.get(resourceId));
+    return pool;
+  }
+
+  private static Collection<MesosResource> getUnreservedAtomicResources(
+      Collection<MesosResource> mesosResources)
+  {
+    return getUnreservedResources(getAtomicResources(mesosResources));
+  }
+
+  private static Collection<MesosResource> getUnreservedResources(
+      Collection<MesosResource> mesosResources)
+  {
+    Collection<MesosResource> unreservedResources = new ArrayList<MesosResource>();
+
+    for (MesosResource mesosResource : mesosResources) {
+      if (!mesosResource.getResourceId().isPresent()) {
+        unreservedResources.add(mesosResource);
+      }
     }
 
-    public Optional<MesosResource> consumeReserved(String name, Value value, String resourceId) {
-        MesosResource mesosResource = dynamicallyReservedPoolByResourceId.get(resourceId);
+    return unreservedResources;
+  }
 
-        if (mesosResource != null) {
-            if (mesosResource.isAtomic()) {
-                if (sufficientValue(value, mesosResource.getValue())) {
-                    dynamicallyReservedPoolByResourceId.remove(resourceId);
-                } else {
-                    LOGGER.warn("Reserved atomic quantity of {} is insufficient: desired {}, reserved {}",
-                            name,
-                            TextFormat.shortDebugString(value),
-                            TextFormat.shortDebugString(mesosResource.getValue()));
-                    return Optional.empty();
-                }
-            } else {
-                Value availableValue = mesosResource.getValue();
-                if (ValueUtils.compare(availableValue, value) > 0) {
-                    // Update the value in pool with the remaining unclaimed resource amount
-                    Resource remaining = ResourceBuilder.fromExistingResource(mesosResource.getResource())
-                            .setValue(ValueUtils.subtract(availableValue, value))
-                            .build();
-                    dynamicallyReservedPoolByResourceId.put(resourceId, new MesosResource(remaining));
-                    // Return only the claimed resource amount from this reservation
-                } else {
-                    dynamicallyReservedPoolByResourceId.remove(resourceId);
-                }
-            }
+  private static Collection<MesosResource> getAtomicResources(
+      Collection<MesosResource> mesosResources)
+  {
+    Collection<MesosResource> atomicResources = new ArrayList<>();
+
+    for (MesosResource mesosResource : mesosResources) {
+      if (mesosResource.isAtomic()) {
+        atomicResources.add(mesosResource);
+      }
+    }
+
+    return atomicResources;
+  }
+
+  private static Collection<MesosResource> getMergedResources(
+      Collection<MesosResource> mesosResources)
+  {
+    Collection<MesosResource> mergedResources = new ArrayList<>();
+
+    for (MesosResource mesosResource : mesosResources) {
+      if (!mesosResource.isAtomic()) {
+        mergedResources.add(mesosResource);
+      }
+    }
+
+    return mergedResources;
+  }
+
+  /**
+   * Returns the underlying offer which this resource pool represents.
+   */
+  public Offer getOffer() {
+    return offer;
+  }
+
+  /**
+   * Returns the unreserved resources which cannot be partially consumed from an Offer. For
+   * example, a MOUNT volume cannot be partially consumed, it's all-or-nothing.
+   */
+  @SuppressWarnings("checkstyle:OverloadMethodsDeclarationOrder")
+  public Map<String, List<MesosResource>> getUnreservedAtomicPool() {
+    return unreservedAtomicPool;
+  }
+
+  /**
+   * Returns the resources which were dynamically reserved.
+   */
+  public Map<String, MesosResource> getDynamicallyReservedPoolByResourceId() {
+    return dynamicallyReservedPoolByResourceId;
+  }
+
+  /**
+   * Returns the resources which are reservable.  These may have been pre-reserved (dynamically or statically) or
+   * never reserved.
+   */
+  public Map<String, Map<String, Value>> getReservableMergedPoolByRole() {
+    return reservableMergedPoolByRole;
+  }
+
+  public Map<String, Value> getUnreservedMergedPool() {
+    Map<String, Value> pool = reservableMergedPoolByRole.get(Constants.ANY_ROLE);
+    return pool == null ? Collections.emptyMap() : pool;
+  }
+
+  /**
+   * Returns the reserved resource, if present.
+   */
+  public Optional<MesosResource> getReservedResourceById(String resourceId) {
+    return Optional.ofNullable(dynamicallyReservedPoolByResourceId.get(resourceId));
+  }
+
+  public Optional<MesosResource> consumeReserved(String name, Value value, String resourceId) {
+    MesosResource mesosResource = dynamicallyReservedPoolByResourceId.get(resourceId);
+
+    if (mesosResource != null) {
+      if (mesosResource.isAtomic()) {
+        if (sufficientValue(value, mesosResource.getValue())) {
+          dynamicallyReservedPoolByResourceId.remove(resourceId);
         } else {
-            LOGGER.warn("Failed to find reserved {} resource with ID: {}. Reserved resource IDs are: {}",
-                    name,
-                    resourceId,
-                    dynamicallyReservedPoolByResourceId.keySet());
+          LOGGER.warn("Reserved atomic quantity of {} is insufficient: desired {}, reserved {}",
+              name,
+              TextFormat.shortDebugString(value),
+              TextFormat.shortDebugString(mesosResource.getValue()));
+          return Optional.empty();
         }
-
-        return Optional.ofNullable(mesosResource);
-    }
-
-    public Optional<MesosResource> consumeAtomic(String resourceName, Value value) {
-        List<MesosResource> atomicResources = unreservedAtomicPool.get(resourceName);
-        List<MesosResource> filteredResources = new ArrayList<>();
-        Optional<MesosResource> sufficientResource = Optional.empty();
-
-        if (atomicResources != null) {
-            for (MesosResource atomicResource : atomicResources) {
-                if (!sufficientResource.isPresent() && sufficientValue(value, atomicResource.getValue())) {
-                    sufficientResource = Optional.of(atomicResource);
-                    // do NOT break: ensure filteredResources is fully populated
-                } else {
-                    filteredResources.add(atomicResource);
-                }
-            }
-        }
-
-        if (filteredResources.isEmpty()) {
-            unreservedAtomicPool.remove(resourceName);
+      } else {
+        Value availableValue = mesosResource.getValue();
+        if (ValueUtils.compare(availableValue, value) > 0) {
+          // Update the value in pool with the remaining unclaimed resource amount
+          Resource remaining = ResourceBuilder.fromExistingResource(mesosResource.getResource())
+              .setValue(ValueUtils.subtract(availableValue, value))
+              .build();
+          dynamicallyReservedPoolByResourceId.put(resourceId, new MesosResource(remaining));
+          // Return only the claimed resource amount from this reservation
         } else {
-            unreservedAtomicPool.put(resourceName, filteredResources);
+          dynamicallyReservedPoolByResourceId.remove(resourceId);
         }
-
-        if (!sufficientResource.isPresent()) {
-            if (atomicResources == null) {
-                LOGGER.info("Offer lacks any atomic resources named {}", resourceName);
-            } else {
-                LOGGER.info("Offered quantity in all {} instances of {} is insufficient: desired {}",
-                        atomicResources.size(),
-                        resourceName,
-                        value);
-            }
-        }
-
-        return sufficientResource;
+      }
+    } else {
+      LOGGER.warn("Failed to find reserved {} resource with ID: {}. Reserved resource IDs are: {}",
+          name,
+          resourceId,
+          dynamicallyReservedPoolByResourceId.keySet());
     }
 
-    public Optional<MesosResource> consumeReservableMerged(String name, Value desiredValue, String preReservedRole) {
-        Map<String, Value> pool = reservableMergedPoolByRole.get(preReservedRole);
-        if (pool == null) {
-            LOGGER.info("No unreserved resources available for role '{}'. Reservable roles are: {}",
-                    preReservedRole, reservableMergedPoolByRole.keySet());
-            return Optional.empty();
-        }
+    return Optional.ofNullable(mesosResource);
+  }
 
-        Value availableValue = pool.get(name);
+  public Optional<MesosResource> consumeAtomic(String resourceName, VolumeSpec spec) {
+    List<MesosResource> atomicResources = unreservedAtomicPool.get(resourceName);
+    List<MesosResource> filteredResources = new ArrayList<>();
+    Optional<MesosResource> sufficientResource = Optional.empty();
 
-        if (sufficientValue(desiredValue, availableValue)) {
-            pool.put(name, ValueUtils.subtract(availableValue, desiredValue));
-            reservableMergedPoolByRole.put(preReservedRole, pool);
+    if (atomicResources != null) {
+      for (MesosResource atomicResource : atomicResources) {
+        final Optional<Resource.DiskInfo.Source> diskSource =
+            ResourceUtils.getDiskSource(atomicResource.getResource());
+        final Optional<String> profile = diskSource.isPresent() && diskSource.get().hasProfile()
+            ? Optional.of(diskSource.get().getProfile()) : Optional.empty();
 
-            Resource.Builder builder = ResourceBuilder.fromUnreservedValue(name, desiredValue).build().toBuilder();
-            if (Capabilities.getInstance().supportsPreReservedResources() &&
-                    !preReservedRole.equals(Constants.ANY_ROLE)) {
-                builder.addReservations(
-                        Resource.ReservationInfo.newBuilder()
-                                .setRole(preReservedRole)
-                                .setType(Resource.ReservationInfo.Type.STATIC));
-            }
-
-            return Optional.of(new MesosResource(builder.build()));
+        if (!sufficientResource.isPresent() &&
+            sufficientValue(spec.getValue(), atomicResource.getValue()) &&
+            matchAnyProfile(spec.getProfiles(), profile))
+        {
+          sufficientResource = Optional.of(atomicResource);
+          // do NOT break: ensure filteredResources is fully populated
         } else {
-            if (availableValue == null) {
-                LOGGER.info("Offer lacks any unreserved {} resources for role {}", name, preReservedRole);
-            } else {
-                LOGGER.info("Offered quantity of {} for role {} is insufficient: desired {}, offered {}",
-                        name,
-                        preReservedRole,
-                        TextFormat.shortDebugString(desiredValue),
-                        TextFormat.shortDebugString(availableValue));
-            }
-            return Optional.empty();
+          filteredResources.add(atomicResource);
         }
+      }
     }
 
-    public void free(MesosResource mesosResource) {
-        LOGGER.info("Freeing resource: {}",  mesosResource.toString());
-        if (mesosResource.isAtomic()) {
-            freeAtomicResource(mesosResource);
-            return;
-        } else {
-            freeMergedResource(mesosResource);
-            return;
-        }
+    if (filteredResources.isEmpty()) {
+      unreservedAtomicPool.remove(resourceName);
+    } else {
+      unreservedAtomicPool.put(resourceName, filteredResources);
     }
 
-    private void freeMergedResource(MesosResource mesosResource) {
-        if (mesosResource.getResourceId().isPresent()) {
-            dynamicallyReservedPoolByResourceId.remove(mesosResource.getResourceId().get());
-            LOGGER.info("Freed resource: {}",
-                    !dynamicallyReservedPoolByResourceId.containsKey(mesosResource.getResourceId().get()));
+    if (!sufficientResource.isPresent()) {
+      if (atomicResources == null) {
+        LOGGER.info("Offer lacks any atomic resources named {}", resourceName);
+      } else {
+        String desired = TextFormat.shortDebugString(spec.getValue());
+        if (!spec.getProfiles().isEmpty()) {
+          desired += String.format(" (profiles: %s)", spec.getProfiles());
         }
-
-        String previousRole = mesosResource.getPreviousRole();
-        Map<String, Value> pool = reservableMergedPoolByRole.get(previousRole);
-        if (pool == null) {
-            pool = new HashMap<>();
-        }
-
-        Value currValue = pool.get(mesosResource.getName());
-        if (currValue == null) {
-            currValue = ValueUtils.getZero(mesosResource.getType());
-        }
-
-        Value updatedValue = ValueUtils.add(currValue, mesosResource.getValue());
-        pool.put(mesosResource.getName(), updatedValue);
-        reservableMergedPoolByRole.put(previousRole, pool);
+        LOGGER.info("Offered quantity in all {} instances of {} is insufficient: desired {}",
+            atomicResources.size(),
+            resourceName,
+            desired);
+      }
     }
 
-    @SuppressWarnings("deprecation")
-    private void freeAtomicResource(MesosResource mesosResource) {
-        Resource.Builder resBuilder = Resource.newBuilder(mesosResource.getResource());
-        resBuilder.clearReservation();
-        resBuilder.setRole(Constants.ANY_ROLE);
+    return sufficientResource;
+  }
 
-        if (resBuilder.hasDisk()) {
-            Resource.DiskInfo.Builder diskBuilder = Resource.DiskInfo.newBuilder(resBuilder.getDisk());
-            diskBuilder.clearPersistence();
-            diskBuilder.clearVolume();
-            resBuilder.setDisk(diskBuilder.build());
-        }
-
-        Resource releasedResource = resBuilder.build();
-
-        List<MesosResource> resList = unreservedAtomicPool.get(mesosResource.getName());
-        if (resList == null) {
-            resList = new ArrayList<MesosResource>();
-        }
-
-        resList.add(new MesosResource(releasedResource));
-        unreservedAtomicPool.put(mesosResource.getName(), resList);
+  public Optional<MesosResource> consumeReservableMerged(
+      String name,
+      Value desiredValue,
+      String preReservedRole)
+  {
+    Map<String, Value> pool = reservableMergedPoolByRole.get(preReservedRole);
+    if (pool == null) {
+      LOGGER.info("No unreserved resources available for role '{}'. Reservable roles are: {}",
+          preReservedRole, reservableMergedPoolByRole.keySet());
+      return Optional.empty();
     }
 
-    private static boolean sufficientValue(Value desired, Value available) {
-        if (desired == null) {
-            return true;
-        } else if (available == null) {
-            return false;
-        }
+    Value availableValue = pool.get(name);
 
-        Value difference = ValueUtils.subtract(desired, available);
-        return ValueUtils.compare(difference, ValueUtils.getZero(desired.getType())) <= 0;
+    if (sufficientValue(desiredValue, availableValue)) {
+      pool.put(name, ValueUtils.subtract(availableValue, desiredValue));
+      reservableMergedPoolByRole.put(preReservedRole, pool);
+
+      Resource.Builder builder =
+          ResourceBuilder.fromUnreservedValue(name, desiredValue).build().toBuilder();
+      if (Capabilities.getInstance().supportsPreReservedResources() &&
+          !preReservedRole.equals(Constants.ANY_ROLE))
+      {
+        builder.addReservations(
+            Resource.ReservationInfo.newBuilder()
+                .setRole(preReservedRole)
+                .setType(Resource.ReservationInfo.Type.STATIC));
+      }
+
+      return Optional.of(new MesosResource(builder.build()));
+    } else {
+      if (availableValue == null) {
+        LOGGER.info("Offer lacks any unreserved {} resources for role {}", name, preReservedRole);
+      } else {
+        LOGGER.info("Offered quantity of {} for role {} is insufficient: desired {}, offered {}",
+            name,
+            preReservedRole,
+            TextFormat.shortDebugString(desiredValue),
+            TextFormat.shortDebugString(availableValue));
+      }
+      return Optional.empty();
+    }
+  }
+
+  public void free(MesosResource mesosResource) {
+    LOGGER.info("Freeing resource: {}", mesosResource.toString());
+    if (mesosResource.isAtomic()) {
+      freeAtomicResource(mesosResource);
+      return;
+    } else {
+      freeMergedResource(mesosResource);
+      return;
+    }
+  }
+
+  private void freeMergedResource(MesosResource mesosResource) {
+    if (mesosResource.getResourceId().isPresent()) {
+      dynamicallyReservedPoolByResourceId.remove(mesosResource.getResourceId().get());
+      LOGGER.info("Freed resource: {}",
+          !dynamicallyReservedPoolByResourceId.containsKey(mesosResource.getResourceId().get()));
     }
 
-    private static Collection<MesosResource> getMesosResources(Offer offer, Optional<String> role) {
-        Collection<MesosResource> mesosResources = new ArrayList<MesosResource>();
-        for (Resource resource : offer.getResourcesList()) {
-            if (consumableResource(role, resource)) {
-                mesosResources.add(new MesosResource(resource));
-            }
-        }
-
-        return mesosResources;
+    String previousRole = mesosResource.getPreviousRole();
+    Map<String, Value> pool = reservableMergedPoolByRole.get(previousRole);
+    if (pool == null) {
+      pool = new HashMap<>();
     }
 
-    private static boolean consumableResource(Optional<String> podRole, Resource resource) {
-        if (!podRole.isPresent()
-                || !resource.hasAllocationInfo()
-                || !resource.getAllocationInfo().hasRole()) {
-            return true;
-        }
-
-        String allocationRole = resource.getAllocationInfo().getRole();
-        return podRole.get().equals(allocationRole);
+    Value currValue = pool.get(mesosResource.getName());
+    if (currValue == null) {
+      currValue = ValueUtils.getZero(mesosResource.getType());
     }
 
-    private static Map<String, List<MesosResource>> getUnreservedAtomicPool(
-            Collection<MesosResource> mesosResources) {
-        Map<String, List<MesosResource>> pool = new HashMap<String, List<MesosResource>>();
+    Value updatedValue = ValueUtils.add(currValue, mesosResource.getValue());
+    pool.put(mesosResource.getName(), updatedValue);
+    reservableMergedPoolByRole.put(previousRole, pool);
+  }
 
-        for (MesosResource mesosResource : getUnreservedAtomicResources(mesosResources)) {
-            String name = mesosResource.getName();
-            List<MesosResource> resList = pool.get(name);
+  @SuppressWarnings("deprecation")
+  private void freeAtomicResource(MesosResource mesosResource) {
+    Resource.Builder resBuilder = Resource.newBuilder(mesosResource.getResource());
+    resBuilder.clearReservation();
+    resBuilder.setRole(Constants.ANY_ROLE);
 
-            if (resList == null) {
-                resList = new ArrayList<MesosResource>();
-            }
-
-            resList.add(mesosResource);
-            pool.put(name, resList);
-        }
-
-        return pool;
+    if (resBuilder.hasDisk()) {
+      Resource.DiskInfo.Builder diskBuilder = Resource.DiskInfo.newBuilder(resBuilder.getDisk());
+      diskBuilder.clearPersistence();
+      diskBuilder.clearVolume();
+      resBuilder.setDisk(diskBuilder.build());
     }
 
-    private static Map<String, MesosResource> getDynamicallyReservedPool(
-            Collection<MesosResource> mesosResources) {
-        Map<String, MesosResource> reservedPool = new HashMap<String, MesosResource>();
+    Resource releasedResource = resBuilder.build();
 
-        for (MesosResource mesResource : mesosResources) {
-            if (mesResource.hasResourceId()) {
-                reservedPool.put(mesResource.getResourceId().get(), mesResource);
-            }
-        }
-
-        return reservedPool;
+    List<MesosResource> resList = unreservedAtomicPool.get(mesosResource.getName());
+    if (resList == null) {
+      resList = new ArrayList<>();
     }
 
-    private Map<String, Map<String, Value>> getReservableMergedPool(Collection<MesosResource> mesosResources) {
-        Map<String, List<MesosResource>> rolePool = new HashMap<>();
-        for (MesosResource mesosResource : getMergedResources(mesosResources)) {
-            if (!mesosResource.hasResourceId()) {
-                String role = mesosResource.getRole();
-                List<MesosResource> resources = rolePool.get(role);
-                if (resources == null) {
-                    resources = new ArrayList<>();
-                }
+    resList.add(new MesosResource(releasedResource));
+    unreservedAtomicPool.put(mesosResource.getName(), resList);
+  }
 
-                resources.add(mesosResource);
-                rolePool.put(role, resources);
-            }
+  private Map<String, Map<String, Value>> getReservableMergedPool(
+      Collection<MesosResource> mesosResources)
+  {
+    Map<String, List<MesosResource>> rolePool = new HashMap<>();
+    for (MesosResource mesosResource : getMergedResources(mesosResources)) {
+      if (!mesosResource.hasResourceId()) {
+        String role = mesosResource.getRole();
+        List<MesosResource> resources = rolePool.get(role);
+        if (resources == null) {
+          resources = new ArrayList<>();
         }
 
-        Map<String, Map<String, Value>> roleResourcePool = new HashMap<>();
-        for (Map.Entry<String, List<MesosResource>> entry : rolePool.entrySet()) {
-            roleResourcePool.put(entry.getKey(), getResourcePool(entry.getValue()));
-        }
-
-        return roleResourcePool;
+        resources.add(mesosResource);
+        rolePool.put(role, resources);
+      }
     }
 
-    private static Map<String, Value> getResourcePool(Collection<MesosResource> mesosResources) {
-        Map<String, Value> pool = new HashMap<>();
-        for (MesosResource mesosResource : mesosResources) {
-            String name = mesosResource.getName();
-            Value currValue = pool.get(name);
-
-            if (currValue == null) {
-                currValue = ValueUtils.getZero(mesosResource.getType());
-            }
-
-            pool.put(name, ValueUtils.add(currValue, mesosResource.getValue()));
-        }
-
-        return pool;
+    Map<String, Map<String, Value>> roleResourcePool = new HashMap<>();
+    for (Map.Entry<String, List<MesosResource>> entry : rolePool.entrySet()) {
+      roleResourcePool.put(entry.getKey(), getResourcePool(entry.getValue()));
     }
 
-    private static Collection<MesosResource> getUnreservedAtomicResources(
-            Collection<MesosResource> mesosResources) {
-        return getUnreservedResources(getAtomicResources(mesosResources));
-    }
-
-    private static Collection<MesosResource> getUnreservedResources(
-            Collection<MesosResource> mesosResources) {
-        Collection<MesosResource> unreservedResources = new ArrayList<MesosResource>();
-
-        for (MesosResource mesosResource : mesosResources) {
-            if (!mesosResource.getResourceId().isPresent()) {
-                unreservedResources.add(mesosResource);
-            }
-        }
-
-        return unreservedResources;
-    }
-
-    private static Collection<MesosResource> getAtomicResources(
-            Collection<MesosResource> mesosResources) {
-        Collection<MesosResource> atomicResources = new ArrayList<>();
-
-        for (MesosResource mesosResource : mesosResources) {
-            if (mesosResource.isAtomic()) {
-                atomicResources.add(mesosResource);
-            }
-        }
-
-        return atomicResources;
-    }
-
-    private static Collection<MesosResource> getMergedResources(
-            Collection<MesosResource> mesosResources) {
-        Collection<MesosResource> mergedResources = new ArrayList<>();
-
-        for (MesosResource mesosResource : mesosResources) {
-            if (!mesosResource.isAtomic()) {
-                mergedResources.add(mesosResource);
-            }
-        }
-
-        return mergedResources;
-    }
+    return roleResourcePool;
+  }
 }

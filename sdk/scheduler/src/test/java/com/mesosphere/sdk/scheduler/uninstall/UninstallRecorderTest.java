@@ -17,7 +17,7 @@ import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import java.util.Arrays;
@@ -64,7 +64,7 @@ public class UninstallRecorderTest {
 
     @Test
     public void testDestroyNotFound() throws Exception {
-        recorder.recordRecommendations(Collections.singletonList(new DestroyOfferRecommendation(offer, otherResource)));
+        recorder.recordDecommission(Collections.singletonList(new DestroyOfferRecommendation(offer, otherResource)));
         verify(mockStateStore, times(0)).storeTasks(any());
         // Step(s) still notified, even if no StateStore tasks had it:
         verify(mockStep).updateResourceStatus(Collections.singleton(ResourceUtils.getResourceId(otherResource).get()));
@@ -72,7 +72,7 @@ public class UninstallRecorderTest {
 
     @Test
     public void testUnreserveNotFound() throws Exception {
-        recorder.recordRecommendations(Collections.singletonList(new UnreserveOfferRecommendation(offer, otherResource)));
+        recorder.recordDecommission(Collections.singletonList(new UnreserveOfferRecommendation(offer, otherResource)));
         verify(mockStateStore, times(0)).storeTasks(any());
         // Step(s) still notified, even if no StateStore tasks had it:
         verify(mockStep).updateResourceStatus(Collections.singleton(ResourceUtils.getResourceId(otherResource).get()));
@@ -80,14 +80,14 @@ public class UninstallRecorderTest {
 
     @Test
     public void testDestroy() throws Exception {
-        recorder.recordRecommendations(Collections.singletonList(new DestroyOfferRecommendation(offer, taskResource)));
+        recorder.recordDecommission(Collections.singletonList(new DestroyOfferRecommendation(offer, taskResource)));
         verify(mockStateStore).storeTasks(Arrays.asList(emptyTaskA, emptyTaskB));
         verify(mockStep).updateResourceStatus(Collections.singleton(ResourceUtils.getResourceId(taskResource).get()));
     }
 
     @Test
     public void testUnreserve() throws Exception {
-        recorder.recordRecommendations(Collections.singletonList(new UnreserveOfferRecommendation(offer, taskResource)));
+        recorder.recordDecommission(Collections.singletonList(new UnreserveOfferRecommendation(offer, taskResource)));
         verify(mockStateStore).storeTasks(Arrays.asList(emptyTaskA, emptyTaskB));
         verify(mockStep).updateResourceStatus(Collections.singleton(ResourceUtils.getResourceId(taskResource).get()));
     }
@@ -97,7 +97,7 @@ public class UninstallRecorderTest {
         OfferRecommendation unsupportedOfferRecommendation =
                 new CreateOfferRecommendation(offer, ResourceTestUtils.getUnreservedCpus(1.0));
         // should just return without error
-        recorder.recordRecommendations(Collections.singletonList(unsupportedOfferRecommendation));
+        recorder.recordDecommission(Collections.singletonList(unsupportedOfferRecommendation));
         verifyZeroInteractions(mockStateStore);
         verifyZeroInteractions(mockStep);
     }

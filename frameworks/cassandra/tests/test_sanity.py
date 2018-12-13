@@ -1,4 +1,6 @@
 import pytest
+import logging
+
 import sdk_hosts
 import sdk_install
 import sdk_jobs
@@ -8,6 +10,9 @@ import sdk_plan
 import sdk_upgrade
 
 from tests import config
+
+
+log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -72,7 +77,6 @@ def test_repair_cleanup_plans_complete():
 
 
 @pytest.mark.sanity
-@pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics():
     expected_metrics = [

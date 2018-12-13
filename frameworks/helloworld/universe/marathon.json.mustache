@@ -16,6 +16,15 @@
     "DCOS_SERVICE_SCHEME": "http"
   },
   {{#service.service_account_secret}}
+  "container": {
+    "type": "MESOS",
+    "volumes": [
+      {
+        "containerPath": "secrets/service-account.json",
+        "secret": "serviceCredential"
+      }
+    ]
+  },
   "secrets": {
     "serviceCredential": {
       "source": "{{service.service_account_secret}}"
@@ -36,10 +45,14 @@
     "HELLO_GPUS": "{{hello.gpus}}",
     "HELLO_MEM": "{{hello.mem}}",
     "HELLO_DISK": "{{hello.disk}}",
+    {{#hello.volume_profile}}
+    "HELLO_VOLUME_PROFILE": "{{hello.volume_profile}}",
+    {{/hello.volume_profile}}
     "HELLO_PLACEMENT": "{{{hello.placement}}}",
     {{#hello.kill_grace_period}}
     "HELLO_KILL_GRACE_PERIOD": "{{hello.kill_grace_period}}",
     {{/hello.kill_grace_period}}
+    "HELLO_LABELS": "{{hello.labels}}",
     "WORLD_COUNT": "{{world.count}}",
     "WORLD_CPUS": "{{world.cpus}}",
     "WORLD_MEM": "{{world.mem}}",
@@ -57,8 +70,8 @@
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     {{#service.service_account_secret}}
-    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
-    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
+    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": "secrets/service-account.json",
+    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\",\"parameters\":[{\"key\":\"service_account_credential\",\"value\":\"file://secrets/service-account.json\"}]},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"service_account_credential\",\"value\":\"file://secrets/service-account.json\"},{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
@@ -89,9 +102,12 @@
     "KEYSTORE_APP_VERSION": "{{tls.keystore_app_version}}",
     "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}",
     "TEST_BOOLEAN": "{{service.test_boolean}}",
+    "TEST_PROFILE_VOLUME_COMMAND": "{{{service.test_profile_volume_command}}}",
     "SCENARIOS": "{{service.scenario}}",
     "ALLOW_REGION_AWARENESS": "{{service.allow_region_awareness}}",
-    "HELLO_PORT_ONE": "{{hello.port_one}}"
+    "HELLO_PORT_ONE": "{{hello.port_one}}",
+    "GLOG_v":"{{service.verbose_mesos_logging}}",
+    "TASKCFG_ALL_PACKAGE_VERSION_TO_FORCE_UPDATE": "{{package-version}}"
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },

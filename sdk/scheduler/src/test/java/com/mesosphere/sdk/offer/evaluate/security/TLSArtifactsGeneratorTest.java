@@ -15,7 +15,7 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Matchers;
+import org.mockito.ArgumentMatchers;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -90,10 +90,10 @@ public class TLSArtifactsGeneratorTest {
     @Test
     public void provisionWithChain() throws Exception {
         X509Certificate endEntityCert = createCertificate();
-        when(mockCAClient.sign(Matchers.<byte[]>any())).thenReturn(endEntityCert);
+        when(mockCAClient.sign(ArgumentMatchers.<byte[]>any())).thenReturn(endEntityCert);
 
         List<X509Certificate> chain = Arrays.asList(createCertificate(), createCertificate(), createCertificate());
-        when(mockCAClient.chainWithRootCert(Matchers.<X509Certificate>any())).thenReturn(chain);
+        when(mockCAClient.chainWithRootCert(ArgumentMatchers.<X509Certificate>any())).thenReturn(chain);
 
         Map<TLSArtifact, String> tlsArtifacts = tlsArtifactsGenerator.generate(certificateNamesGenerator);
         Assert.assertTrue(tlsArtifacts.get(TLSArtifact.CERTIFICATE).contains(PEMUtils.toPEM(endEntityCert)));
@@ -106,10 +106,10 @@ public class TLSArtifactsGeneratorTest {
     @Test
     public void provisionWithRootOnly() throws Exception {
         X509Certificate endEntityCert = createCertificate();
-        when(mockCAClient.sign(Matchers.<byte[]>any())).thenReturn(endEntityCert);
+        when(mockCAClient.sign(ArgumentMatchers.<byte[]>any())).thenReturn(endEntityCert);
 
         List<X509Certificate> chain = Arrays.asList(createCertificate());
-        when(mockCAClient.chainWithRootCert(Matchers.<X509Certificate>any())).thenReturn(chain);
+        when(mockCAClient.chainWithRootCert(ArgumentMatchers.<X509Certificate>any())).thenReturn(chain);
 
         Map<TLSArtifact, String> tlsArtifacts = tlsArtifactsGenerator.generate(certificateNamesGenerator);
         Assert.assertEquals(tlsArtifacts.get(TLSArtifact.CERTIFICATE), PEMUtils.toPEM(endEntityCert));

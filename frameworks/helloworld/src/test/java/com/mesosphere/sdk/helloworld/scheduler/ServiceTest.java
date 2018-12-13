@@ -307,7 +307,7 @@ public class ServiceTest {
 
         // Running, no readiness check is applicable:
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING).build());
-        String taskId = UUID.randomUUID().toString();
+        String taskId = CommonIdUtils.toTaskId("bogus", "taskid").getValue();
         ticks.add(Send.taskStatus("hello-0-server", Protos.TaskState.TASK_RUNNING)
                 .setTaskId(taskId)
                 .build());
@@ -389,17 +389,14 @@ public class ServiceTest {
         ticks.add(Send.taskStatus("world-0-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
         ticks.add(Send.taskStatus("world-1-server", Protos.TaskState.TASK_RUNNING).setReadinessCheckExitCode(0).build());
 
-        // An initial kill is sent early on for the decommissioned tasks:
-        ticks.add(Expect.taskNameKilled("world-0-server", 1));
-        ticks.add(Expect.taskNameKilled("world-1-server", 1));
-
         // Now, we expect there to be the following plan state:
         // - a deploy plan that's COMPLETE, with only hello-0 (empty world phase)
         // - a recovery plan that's COMPLETE
         // - a decommission plan that's PENDING with phases for world-1 and world-0 (in that order)
 
-        // When default executor is being used, three additional resources need to be unreserved.
-        int stepCount = 9;
+        // When default executor is being used, one additional resource needs to be unreserved (as configured within
+        // ServiceTestRunner).
+        int stepCount = 7;
 
         // Check initial plan state
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
@@ -413,7 +410,7 @@ public class ServiceTest {
         // Check plan state after an offer came through: world-1-server killed
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", stepCount - 1, 0, 1), new StepCount("world-0", stepCount, 0, 0))));
-        ticks.add(Expect.taskNameKilled("world-1-server", 2));
+        ticks.add(Expect.taskNameKilled("world-1-server", 1));
 
         // Offer world-0 resources and check that nothing happens (haven't gotten there yet):
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
@@ -440,7 +437,7 @@ public class ServiceTest {
         ticks.add(Send.offerBuilder("world").setPodIndexToReoffer(0).build());
         ticks.add(new ExpectDecommissionPlanProgress(Arrays.asList(
                 new StepCount("world-1", 0, 0, stepCount), new StepCount("world-0", 1, 0, stepCount - 1))));
-        ticks.add(Expect.taskNameKilled("world-0-server", 2));
+        ticks.add(Expect.taskNameKilled("world-0-server", 1));
         ticks.add(new ExpectEmptyResources(result.getPersister(), "world-0-server"));
 
         // Turn the crank once again to erase the world-0 stub:
@@ -857,7 +854,9 @@ public class ServiceTest {
                         .collect(Collectors.toMap(
                                 Step::getName,
                                 Step::getStatus,
-                                (u,v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
+                                (u, v) -> {
+                                    throw new IllegalStateException(String.format("Duplicate key %s", u));
+                                },
                                 TreeMap::new));
                 Assert.assertEquals(
                         String.format("Number of steps doesn't match expectation in %s: %s", stepCount, stepStatuses),
@@ -998,6 +997,10 @@ public class ServiceTest {
         schedulerEnvForExamples.put("custom_steps.yml", toMap(
                 "DEPLOY_STRATEGY", "serial",
                 "DEPLOY_STEPS", "[[first, second, third]]"));
+        schedulerEnvForExamples.put("pod-profile-mount-volume.yml", toMap(
+                "HELLO_VOLUME_PROFILE", "xfs"));
+        schedulerEnvForExamples.put("svc.yml", toMap(
+                "HELLO_LABELS", "label1:label-value1"));
 
         // Iterate over yml files in dist/examples/, run sanity check for each:
         File[] exampleFiles = ServiceTestRunner.getDistDir().listFiles();

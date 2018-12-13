@@ -9,6 +9,7 @@ import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.OfferUtils;
+import com.mesosphere.sdk.offer.StoreTaskInfoRecommendation;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.MesosEventClient.OfferResponse;
 import com.mesosphere.sdk.scheduler.MesosEventClient.ClientStatusResponse;
@@ -53,7 +54,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.mesosphere.sdk.dcos.DcosConstants.DEFAULT_GPU_POLICY;
-import static org.mockito.Matchers.any;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 /**
@@ -307,8 +308,8 @@ public class DefaultSchedulerTest {
         // Offer sufficient Resources and wait for its acceptance
         Protos.Offer offer1 = getSufficientOfferForTaskA();
         OfferResponse response = defaultScheduler.offers(Collections.singletonList(offer1));
-        Assert.assertEquals(8, response.recommendations.size());
-        Assert.assertEquals(offer1, response.recommendations.iterator().next().getOffer());
+        Assert.assertEquals(9, response.recommendations.size());
+        Assert.assertEquals(offer1.getId(), response.recommendations.iterator().next().getOfferId());
 
         Protos.TaskID launchedTaskId = getTaskId(response.recommendations);
 
@@ -333,7 +334,8 @@ public class DefaultSchedulerTest {
 
         Protos.Offer offerA = Protos.Offer.newBuilder(getSufficientOfferForTaskA())
                 .addAllResources(response.recommendations.stream()
-                        .map(rec -> rec.getOperation())
+                        .filter(rec -> rec.getOperation().isPresent())
+                        .map(rec -> rec.getOperation().get())
                         .filter(Protos.Offer.Operation::hasReserve)
                         .flatMap(operation -> operation.getReserve().getResourcesList().stream())
                         .collect(Collectors.toList()))
@@ -342,7 +344,8 @@ public class DefaultSchedulerTest {
                 .build();
         Protos.Offer offerB = Protos.Offer.newBuilder(getSufficientOfferForTaskB())
                 .addAllResources(response.recommendations.stream()
-                        .map(rec -> rec.getOperation())
+                        .filter(rec -> rec.getOperation().isPresent())
+                        .map(rec -> rec.getOperation().get())
                         .filter(Protos.Offer.Operation::hasReserve)
                         .flatMap(operation -> operation.getReserve().getResourcesList().stream())
                         .collect(Collectors.toList()))
@@ -351,7 +354,8 @@ public class DefaultSchedulerTest {
                 .build();
         Protos.Offer offerC = Protos.Offer.newBuilder(getSufficientOfferForTaskB())
                 .addAllResources(response.recommendations.stream()
-                        .map(rec -> rec.getOperation())
+                        .filter(rec -> rec.getOperation().isPresent())
+                        .map(rec -> rec.getOperation().get())
                         .filter(Protos.Offer.Operation::hasReserve)
                         .flatMap(operation -> operation.getReserve().getResourcesList().stream())
                         .collect(Collectors.toList()))
@@ -368,20 +372,26 @@ public class DefaultSchedulerTest {
         // Only offerA/offerB are consumed:
         Assert.assertEquals(Arrays.asList(offerC), OfferUtils.filterOutAcceptedOffers(offers, response.recommendations));
         Assert.assertEquals(new HashSet<>(Arrays.asList(offerA.getId(), offerB.getId())),
-                response.recommendations.stream().map(r -> r.getOffer().getId()).distinct().collect(Collectors.toSet()));
+                response.recommendations.stream().map(r -> r.getOfferId()).distinct().collect(Collectors.toSet()));
 
         // Three RESERVE, One CREATE, three RESERVE (for executor) and two LAUNCH_GROUP operations
         Assert.assertEquals(Arrays.asList(
+                // Executor:
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                // Task:
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.CREATE,
-                Protos.Offer.Operation.Type.RESERVE,
-                Protos.Offer.Operation.Type.RESERVE,
-                Protos.Offer.Operation.Type.RESERVE,
                 Protos.Offer.Operation.Type.LAUNCH_GROUP,
-                Protos.Offer.Operation.Type.LAUNCH_GROUP),
-                response.recommendations.stream().map(r -> r.getOperation().getType()).collect(Collectors.toList()));
+                null,
+                Protos.Offer.Operation.Type.LAUNCH_GROUP,
+                null),
+                response.recommendations.stream()
+                        .map(r -> r.getOperation().isPresent() ? r.getOperation().get().getType() : null)
+                        .collect(Collectors.toList()));
     }
 
     @Test
@@ -397,8 +407,22 @@ public class DefaultSchedulerTest {
         // Offer sufficient Resource and wait for its acceptance
         Protos.Offer offer1 = getSufficientOfferForTaskA();
         OfferResponse response = defaultScheduler.offers(Arrays.asList(offer1));
-        Assert.assertEquals(8, response.recommendations.size());
-        Assert.assertEquals(offer1, response.recommendations.iterator().next().getOffer());
+        Assert.assertEquals(Arrays.asList(
+                // Executor:
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                // Task:
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.CREATE,
+                Offer.Operation.Type.LAUNCH_GROUP,
+                null),
+                response.recommendations.stream()
+                        .map(rec -> rec.getOperation().isPresent() ? rec.getOperation().get().getType() : null)
+                        .collect(Collectors.toList()));
+        Assert.assertEquals(offer1.getId(), response.recommendations.iterator().next().getOfferId());
         Protos.TaskID launchedTaskId = getTaskId(response.recommendations);
 
         // Send TASK_RUNNING status after the task is Starting (Mesos has been sent Launch)
@@ -466,9 +490,11 @@ public class DefaultSchedulerTest {
         Protos.Offer expectedOffer = OfferTestUtils.getCompleteOffer(expectedResources);
         response = defaultScheduler.offers(Arrays.asList(expectedOffer));
         Assert.assertEquals(OfferResponse.Result.PROCESSED, response.result);
-        Assert.assertEquals(Arrays.asList(Protos.Offer.Operation.Type.RESERVE, Protos.Offer.Operation.Type.LAUNCH_GROUP),
-                response.recommendations.stream().map(r -> r.getOperation().getType()).collect(Collectors.toList()));
-        Assert.assertEquals(expectedOffer, response.recommendations.iterator().next().getOffer());
+        Assert.assertEquals(Arrays.asList(Protos.Offer.Operation.Type.RESERVE, Protos.Offer.Operation.Type.LAUNCH_GROUP, null),
+                response.recommendations.stream()
+                        .map(r -> r.getOperation().isPresent() ? r.getOperation().get().getType() : null)
+                        .collect(Collectors.toList()));
+        Assert.assertEquals(expectedOffer.getId(), response.recommendations.iterator().next().getOfferId());
         Assert.assertTrue(stepTaskA0.isStarting());
         Assert.assertEquals(0, getRecoveryPlan().getChildren().size());
 
@@ -500,11 +526,11 @@ public class DefaultSchedulerTest {
 
     private static List<Protos.Resource> getExpectedResources(Collection<OfferRecommendation> operations) {
         for (OfferRecommendation operation : operations) {
-            if (operation.getOperation().getType().equals(Offer.Operation.Type.LAUNCH_GROUP)) {
+            if (operation.getOperation().get().getType().equals(Offer.Operation.Type.LAUNCH_GROUP)) {
                 return Stream.concat(
-                                operation.getOperation().getLaunchGroup().getTaskGroup().getTasksList().stream()
+                                operation.getOperation().get().getLaunchGroup().getTaskGroup().getTasksList().stream()
                                     .flatMap(taskInfo -> taskInfo.getResourcesList().stream()),
-                                operation.getOperation().getLaunchGroup().getExecutor().getResourcesList().stream())
+                                operation.getOperation().get().getLaunchGroup().getExecutor().getResourcesList().stream())
                         .collect(Collectors.toList());
             }
         }
@@ -729,26 +755,15 @@ public class DefaultSchedulerTest {
     public void testLaunchTransient() throws Exception {
         Protos.Resource resource = ResourceTestUtils.getUnreservedCpus(3);
         Offer offer = OfferTestUtils.getCompleteOffer(resource);
-        Protos.TaskInfo.Builder taskInfoBuilder = TaskTestUtils.getTaskInfo(resource).toBuilder();
+        Protos.TaskInfo taskInfo = TaskTestUtils.getTaskInfo(resource);
+        Protos.ExecutorInfo execInfo = Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build();
 
-        OfferRecommendation recommendationToLaunch =
-                new LaunchOfferRecommendation(
-                        offer,
-                        taskInfoBuilder.build(),
-                        Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        true);
+        OfferRecommendation recommendationToLaunch = new LaunchOfferRecommendation(offer, taskInfo, execInfo);
         List<OfferRecommendation> allRecommendations = Arrays.asList(
-                new LaunchOfferRecommendation(
-                        offer,
-                        taskInfoBuilder.build(),
-                        Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        false),
+                new StoreTaskInfoRecommendation(offer, taskInfo, execInfo),
                 recommendationToLaunch,
-                new LaunchOfferRecommendation(
-                        offer,
-                        taskInfoBuilder.build(),
-                        Protos.ExecutorInfo.newBuilder().setExecutorId(TestConstants.EXECUTOR_ID).build(),
-                        false));
+                new StoreTaskInfoRecommendation(offer, taskInfo, execInfo),
+                new StoreTaskInfoRecommendation(offer, taskInfo, execInfo));
 
         PlanScheduler mockPlanScheduler = mock(PlanScheduler.class);
         when(mockPlanScheduler.resourceOffers(any(), any())).thenReturn(allRecommendations);
@@ -763,30 +778,25 @@ public class DefaultSchedulerTest {
                 Optional.of(mockDecommissionRecorder),
                 Collections.emptyList(),
                 Collections.emptyList()).recommendations;
-        // Only recommendationToLaunch should have been returned. The others should be filtered due to !shouldLaunch():
-        Assert.assertEquals(1, recommendations.size());
-        Assert.assertEquals(recommendationToLaunch, recommendations.iterator().next());
+        Assert.assertEquals(Arrays.asList(
+                null,
+                Offer.Operation.Type.LAUNCH_GROUP,
+                null,
+                null),
+                recommendations.stream()
+                        .map(rec -> rec.getOperation().isPresent() ? rec.getOperation().get().getType() : null)
+                        .collect(Collectors.toList()));
+        Assert.assertEquals(allRecommendations, recommendations);
 
         // Meanwhile, ALL of the recommendations (including the two with launch=false) should have been passed to the recorders:
         verify(mockLaunchRecorder).record(allRecommendations);
-        verify(mockDecommissionRecorder).recordRecommendations(allRecommendations);
-    }
-
-    private static int countOperationType(
-            Protos.Offer.Operation.Type operationType, Collection<OfferRecommendation> operations) {
-        int count = 0;
-        for (OfferRecommendation operation : operations) {
-            if (operation.getOperation().getType().equals(operationType)) {
-                count++;
-            }
-        }
-        return count;
+        verify(mockDecommissionRecorder).recordDecommission(allRecommendations);
     }
 
     private static Protos.TaskInfo getTask(Collection<OfferRecommendation> operations) {
         for (OfferRecommendation operation : operations) {
-            if (operation.getOperation().getType().equals(Offer.Operation.Type.LAUNCH_GROUP)) {
-                return operation.getOperation().getLaunchGroup().getTaskGroup().getTasks(0);
+            if (operation.getOperation().get().getType().equals(Offer.Operation.Type.LAUNCH_GROUP)) {
+                return operation.getOperation().get().getLaunchGroup().getTaskGroup().getTasks(0);
             }
         }
 
@@ -860,14 +870,26 @@ public class DefaultSchedulerTest {
         // Offer sufficient Resource and wait for its acceptance
         OfferResponse response = defaultScheduler.offers(Collections.singletonList(offer));
         for (OfferRecommendation rec : response.recommendations) {
-            Assert.assertEquals(offer, rec.getOffer());
+            Assert.assertEquals(offer.getId(), rec.getOfferId());
+            Assert.assertEquals(offer.getSlaveId(), rec.getAgentId());
         }
 
-        // Verify operations:
-        Assert.assertEquals(8, response.recommendations.size());
-        Assert.assertEquals(6, countOperationType(Protos.Offer.Operation.Type.RESERVE, response.recommendations));
-        Assert.assertEquals(1, countOperationType(Protos.Offer.Operation.Type.CREATE, response.recommendations));
-        Assert.assertEquals(1, countOperationType(Offer.Operation.Type.LAUNCH_GROUP, response.recommendations));
+        // Verify operations (the 9th recommendation lacks an operation):
+        Assert.assertEquals(Arrays.asList(
+                // Executor:
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                // Task:
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.RESERVE,
+                Protos.Offer.Operation.Type.CREATE,
+                Offer.Operation.Type.LAUNCH_GROUP,
+                null),
+                response.recommendations.stream()
+                        .map(rec -> rec.getOperation().isPresent() ? rec.getOperation().get().getType() : null)
+                        .collect(Collectors.toList()));
         Assert.assertTrue(step.isStarting());
 
         // Sent TASK_RUNNING status

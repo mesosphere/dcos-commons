@@ -58,9 +58,7 @@ def pre_test_setup():
 def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(
-        sdk_networks.get_endpoint_string(
-            config.PACKAGE_NAME, foldered_name, "core-site.xml"
-        )
+        sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "core-site.xml")
     )
     check_properties(
         core_site,
@@ -68,9 +66,7 @@ def test_endpoints():
     )
 
     hdfs_site = etree.fromstring(
-        sdk_networks.get_endpoint_string(
-            config.PACKAGE_NAME, foldered_name, "hdfs-site.xml"
-        )
+        sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "hdfs-site.xml")
     )
     expect = {
         "dfs.namenode.shared.edits.dir": "qjournal://{}/hdfs".format(
@@ -163,6 +159,7 @@ def test_kill_scheduler():
 
     # scheduler should be restarted, but service tasks should be left as-is:
     sdk_tasks.check_tasks_updated("marathon", scheduler_task_prefix, scheduler_ids)
+    sdk_tasks.wait_for_active_framework(foldered_name)
     sdk_tasks.check_tasks_not_updated(foldered_name, "", task_ids)
     config.check_healthy(service_name=foldered_name)
 
@@ -356,7 +353,6 @@ def test_modify_app_config_rollback():
 
 
 @pytest.mark.sanity
-@pytest.mark.metrics
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics():
     expected_metrics = [
@@ -402,3 +398,25 @@ def test_permanently_replace_journalnodes():
         sdk_recovery.check_permanent_recovery(
             config.PACKAGE_NAME, foldered_name, pod, recovery_timeout_s=25 * 60
         )
+
+
+@pytest.mark.sanity
+@pytest.mark.recovery
+def test_namenodes_acheive_quorum_after_journalnode_replace():
+    """
+    This test aims to check that namenodes recover after a journalnode failure.
+    It checks the fix to this issue works: https://jira.apache.org/jira/browse/HDFS-10659.
+    After the first Journal Node recovery, the second Journal Node pod replace triggers
+    crash looping of both replaced Journal Node pod and all NameNode pods.
+    """
+
+    pod_list = ["journal-0", "journal-1", "journal-0"]
+    for pod in pod_list:
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace {}".format(pod))
+
+        # waiting for recovery to start first before it completes to avoid timing issues
+        sdk_plan.wait_for_in_progress_recovery(service_name=foldered_name, timeout_seconds=5 * 60)
+
+        # sdk_plan.wait_for_completed_recovery includes tracking of failed tasks and will
+        # terminate in case of a crash loop
+        sdk_plan.wait_for_completed_recovery(service_name=foldered_name, timeout_seconds=5 * 60)

@@ -14,6 +14,7 @@ import sdk_utils
 
 AUTOIP_HOST_SUFFIX = "autoip.dcos.thisdcos.directory"
 VIP_HOST_SUFFIX = "l4lb.thisdcos.directory"
+MARATHON_HOST_PREFIX = "marathon"
 
 
 def autoip_host(service_name, task_name, port=-1):
@@ -33,6 +34,19 @@ def custom_host(service_name, task_name, custom_domain, port=-1):
 def vip_host(service_name, vip_name, port=-1):
     """Returns the hostname of a specified service VIP, with handling of foldered services."""
     return _to_host(_safe_name(vip_name), _safe_name(service_name), VIP_HOST_SUFFIX, port)
+
+
+def scheduler_vip_host(service_name, vip_name, port=-1):
+    """Returns the scheduler hostname of a specified service VIP, with handling of foldered services.
+
+    e.g.: scheduler_vip_host("cassandra", "api") == "api.cassandra.marathon.l4lb.thisdcos.directory"
+    """
+    return _to_host(
+        _safe_name(vip_name),
+        _safe_name(service_name),
+        "{}.{}".format(MARATHON_HOST_PREFIX, VIP_HOST_SUFFIX),
+        port,
+    )
 
 
 def _safe_name(name):

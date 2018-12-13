@@ -118,8 +118,10 @@ ext {
     bouncyCastleVer = "1.57"
     dropWizardMetricsVer = "3.2.5"
 }
+
 dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-jdk8:${jacksonVer}"
+    compile "com.fasterxml.jackson.datatype:jackson-datatype-json-org:${jacksonVer}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
     compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
     compile 'com.hubspot.jackson:jackson-datatype-protobuf:0.9.9-preJackson2.7-proto3'
@@ -145,7 +147,7 @@ dependencies {
     compile "javax.el:javax.el-api:${elVer}"
     compile "org.glassfish.web:javax.el:${elVer}"
     compile 'com.mesosphere:mesos-http-adapter:0.4.1'
-    compile 'org.apache.mesos:mesos:1.4.0-rc1'
+    compile 'org.apache.mesos:mesos:1.5.0' // This is the Mesos version used in DC/OS 1.11.
     compile('com.auth0:java-jwt:3.2.0') {
         // JWT package comes with jackson version 2.8.4 which doesn't work properly with
         // scheduler specification classes.
@@ -166,7 +168,7 @@ dependencies {
 
     testCompile 'org.hamcrest:hamcrest-all:1.3' // note: must be above junit
     testCompile 'junit:junit:4.12'
-    testCompile 'org.mockito:mockito-all:1.10.19'
+    testCompile 'org.mockito:mockito-core:2.10.0'
     testCompile "org.apache.curator:curator-test:${curatorVer}"
 }
 

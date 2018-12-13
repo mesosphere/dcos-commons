@@ -1,8 +1,8 @@
 package com.mesosphere.sdk.storage;
 
-import java.io.IOException;
-
 import com.mesosphere.sdk.storage.StorageError.Reason;
+
+import java.io.IOException;
 
 /**
  * Exception that indicates that there was an issue with storing or accessing values in the persister.
@@ -11,33 +11,33 @@ import com.mesosphere.sdk.storage.StorageError.Reason;
  */
 public class PersisterException extends IOException {
 
-    private final Reason reason;
+  private final Reason reason;
 
-    public PersisterException(Reason reason, Throwable e) {
-        super(e);
-        this.reason = reason;
-    }
+  public PersisterException(Reason reason, Throwable e) {
+    super(e);
+    this.reason = reason;
+  }
 
-    public PersisterException(Reason reason, String message) {
-        super(message);
-        this.reason = reason;
-    }
+  public PersisterException(Reason reason, String message) {
+    super(message);
+    this.reason = reason;
+  }
 
-    public PersisterException(Reason reason, String message, Throwable cause) {
-        super(message, cause);
-        this.reason = reason;
-    }
+  public PersisterException(Reason reason, String message, Throwable cause) {
+    super(message, cause);
+    this.reason = reason;
+  }
 
-    /**
-     * Returns the machine-parseable reason for this exception. Primarily used for debugging/logging purposes and for
-     * delineating different error cases in REST APIs.
-     */
-    public Reason getReason() {
-        return reason;
-    }
+  /**
+   * Returns the machine-parseable reason for this exception. Primarily used for debugging/logging purposes and for
+   * delineating different error cases in REST APIs.
+   */
+  public Reason getReason() {
+    return reason;
+  }
 
-    @Override
-    public String getMessage() {
-        return String.format("%s (reason: %s)", super.getMessage(), reason);
-    }
+  @Override
+  public String getMessage() {
+    return String.format("%s (reason: %s)", super.getMessage(), reason);
+  }
 }
