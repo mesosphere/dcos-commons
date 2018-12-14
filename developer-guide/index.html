@@ -791,7 +791,7 @@
     <p><code class="highlighter-rouge">marathon.json.mustache</code> - A mustache-templated file that provides a Marathon application definition.  Its mustache elements are rendered by the values present in the config.json and resource.json files.</p>
   </li>
   <li>
-    <p><code class="highlighter-rouge">resource.json</code> - A list of URIs of all downloaded elements. Any artifacts needed by your service <em>must</em> be listed here, or else your service will fail to install to airgapped clusters. When an airgapped cluster installs your package, only the files listed here will be available. This list contains some items required in order for the service to run, such as <code class="highlighter-rouge">bootstrap.zip</code> (bootstrap utility described elsewhere in this guide) and <code class="highlighter-rouge">executor.zip</code> (custom executor for DC/OS 1.9 compatibility).</p>
+    <p><code class="highlighter-rouge">resource.json</code> - A list of URIs of all downloaded elements. Any artifacts needed by your service <em>must</em> be listed here, or else your service will fail to install to airgapped clusters. When an airgapped cluster installs your package, only the files listed here will be available. This list contains some items required in order for the service to run along with <code class="highlighter-rouge">bootstrap.zip</code> (bootstrap utility described elsewhere in this guide).</p>
   </li>
   <li>
     <p><code class="highlighter-rouge">command.json</code> - This file contains elements specific to a CLI for your service if you want to provide one.</p>
