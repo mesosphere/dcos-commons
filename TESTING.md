@@ -130,3 +130,10 @@ Running
 ./test.sh --help
 ```
 Will show all the options that are available for the `test.sh` script.
+
+#### Experimental Commands
+
+Remote debugging is supported in `helloworld` framework. This is ONLY for developing purposes. You can launch the `helloworld` framework with debugging as using the `debug` section of config.json. Once the marathon app for scheduler is ready, bind to the remote port using
+`ssh -L ${DEBUG_PORT:-6242}:${CUSTOM_SERVICE_NAME:-"hello-world"}.marathon.mesos:${DEBUG_PORT:-6242} -N core@${MASTER_IP}`
+
+SDK prints GIT SHA of its build at bootstrap and that can be used to checkout the current codebase. Connect to the above debug server and you should be able to remotely debug the scheduler.
