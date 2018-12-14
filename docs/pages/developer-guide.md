@@ -526,7 +526,7 @@ For a fully detailed explanation of service packaging [see here](https://dcos.io
 
 * `marathon.json.mustache` - A mustache-templated file that provides a Marathon application definition.  Its mustache elements are rendered by the values present in the config.json and resource.json files.
 
-* `resource.json` - A list of URIs of all downloaded elements. Any artifacts needed by your service _must_ be listed here, or else your service will fail to install to airgapped clusters. When an airgapped cluster installs your package, only the files listed here will be available. This list contains some items required in order for the service to run, such as `bootstrap.zip` (bootstrap utility described elsewhere in this guide) and `executor.zip` (custom executor for DC/OS 1.9 compatibility).
+* `resource.json` - A list of URIs of all downloaded elements. Any artifacts needed by your service _must_ be listed here, or else your service will fail to install to airgapped clusters. When an airgapped cluster installs your package, only the files listed here will be available. This list contains some items required in order for the service to run along with `bootstrap.zip` (bootstrap utility described elsewhere in this guide).
 
 * `command.json` - This file contains elements specific to a CLI for your service if you want to provide one.
 

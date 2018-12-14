@@ -7,8 +7,8 @@ REPO_ROOT_DIR=$(dirname $(dirname $FRAMEWORK_DIR))
 # grab TEMPLATE_x vars for use in universe template:
 source $FRAMEWORK_DIR/versions.sh
 
-# Build SDK artifacts (executor, clis, bootstrap) to be included in our release, but skip SDK tests
-# since since that's not in our scope. Projects that aren't colocated in dcos-commons should skip
+# Build SDK artifacts (clis, bootstrap) to be included in our release, but skip SDK tests
+# since that's not in our scope. Projects that aren't colocated in dcos-commons should skip
 # this step, and should omit the "REPO_ROOT_DIR" artifacts listed below.
 $REPO_ROOT_DIR/build.sh -b
 

@@ -5,10 +5,8 @@ This framework is built using the [DC/OS Commons SDK](https://github.com/mesosph
 The parts of the SDK consumed consist of:
 * The SDK Java libraries including:
     * scheduler libraries
-    * executor libraries
     * testing libraries
-* SDK artefacts including:
-    * The custom executor for use on DC/OS 1.9 clusters
+* SDK artifacts including:
     * The `bootstrap` utility
 * CLI binaries for the three supported platforms
 * Build tooling
@@ -24,7 +22,6 @@ Check that `build.gradle` in the project root contains the following dependencie
 ```
 dependencies {
     compile "mesosphere:scheduler:${dcosSDKVer}"
-    compile "mesosphere:executor:${dcosSDKVer}"
     testCompile "mesosphere:testing:${dcosSDKVer}"
 }
 ```
@@ -38,7 +35,6 @@ ext {
 
 Older versions of `build.gradle` contained the following dependencies and no entry in the `ext` specification:
 * `compile "mesosphere:scheduler:<CURRENT_SDK_VERSION>"`
-* `compile "mesosphere:executor:<CURRENT_SDK_VERSION>"`
 * `testCompile "mesosphere:testing:<CURRENT_SDK_VERSION>"`
 
 Although this is supported in the current upgrade path, it is recommended that hese are changed to match the dependencies at the start of this section as this will result in a single line diff in the `build.gradle` file on update.
@@ -51,7 +47,6 @@ In order to facilitate upgrades, the `universe/resource.json` file should contai
 "uris": {
     "...": "...",
     "bootstrap-zip": "https://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/bootstrap.zip",
-    "executor-zip": "http://downloads.mesosphere.com/dcos-commons/artifacts/{{dcos-sdk-version}}/executor.zip",
     "...": "..."
 }
 ```
