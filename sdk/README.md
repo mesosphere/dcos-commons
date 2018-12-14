@@ -2,10 +2,9 @@
 
 This directory contains most of the SDK bits that would be used in a running service. The contents of this directory are briefly described below.
 
-## scheduler/, common/
+## scheduler/
 
-- `scheduler/`: The main SDK Scheduler code. This is the "service manager" for SDK-based services, which handles keeping the service itself running.
-- `common/`: A Java library containing a small amount of code that's common between `scheduler/` and `executor/`.
+The main SDK Scheduler code. This is the "service manager" for SDK-based services, which handles keeping the service itself running.
 
 ## testing/
 

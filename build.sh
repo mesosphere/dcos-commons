@@ -2,7 +2,7 @@
 set -e
 
 usage() {
-    # This script does a full build/test of the SDK's own artifacts: bootstrap, executor, and default CLI
+    # This script does a full build/test of the SDK's own artifacts: bootstrap and default CLI
     # This does not upload the artifacts, instead see test.sh or frameworks/*/build.sh.
     # This script (and test.sh) are executed by CI upon pull requests to the repository, or may be run locally by developers.
     echo "Syntax: build.sh [options]"
