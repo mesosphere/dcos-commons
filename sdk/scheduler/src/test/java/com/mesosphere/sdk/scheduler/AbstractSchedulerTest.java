@@ -10,8 +10,8 @@ import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.MemPersister;
-import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
+import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
@@ -49,8 +49,7 @@ public class AbstractSchedulerTest {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
 
-        Persister persister = new MemPersister();
-        stateStore = new StateStore(persister);
+        stateStore = new StateStore(MemPersister.newBuilder().build());
     }
 
     @Test
@@ -96,7 +95,13 @@ public class AbstractSchedulerTest {
     private class TestScheduler extends AbstractScheduler {
 
         protected TestScheduler(StateStore stateStore) {
-            super(mockServiceSpec, stateStore, null, Optional.empty(), Optional.empty());
+            super(
+                    mockServiceSpec,
+                    SchedulerConfigTestUtils.getTestSchedulerConfig(),
+                    stateStore,
+                    null,
+                    Optional.empty(),
+                    Optional.empty());
             when(mockPlanCoordinator.getPlanManagers()).thenReturn(Collections.emptyList());
             when(mockPlanCoordinator.getCandidates()).thenReturn(Collections.emptyList());
         }
@@ -132,8 +137,8 @@ public class AbstractSchedulerTest {
         }
 
         @Override
-        public ClientStatusResponse getClientStatus() {
-            return ClientStatusResponse.running();
+        protected ClientStatusResponse getStatus() {
+            return ClientStatusResponse.launching(false);
         }
 
         @Override
@@ -143,7 +148,7 @@ public class AbstractSchedulerTest {
 
         @Override
         protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
-            String taskName = StateStoreUtils.getTaskName(stateStore, status);
+            String taskName = StateStoreUtils.fetchTaskInfo(stateStore, status).getName();
             stateStore.storeStatus(taskName, status);
         }
 

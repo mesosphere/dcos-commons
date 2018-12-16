@@ -10,5 +10,13 @@ import java.util.Collection;
  * with a custom implementation that addresses applicaiton specific failure recovery mechanisms.
  */
 public interface RecoveryPlanOverriderFactory {
-    RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans);
+
+  /**
+   * Returns a new {@link RecoveryPlanOverrider} which will be queried for custom overridden phases when task recovery
+   * occurs.
+   *
+   * @param stateStore the state store being used by the service
+   * @param plans      all plans being used by the service, as of the time that the service is being initialized
+   */
+  RecoveryPlanOverrider create(StateStore stateStore, Collection<Plan> plans);
 }

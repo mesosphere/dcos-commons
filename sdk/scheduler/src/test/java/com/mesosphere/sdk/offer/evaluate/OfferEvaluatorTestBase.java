@@ -1,17 +1,12 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.*;
-import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
-import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
-import com.mesosphere.sdk.testutils.OfferTestUtils;
-import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
-import com.mesosphere.sdk.testutils.TestConstants;
+import com.mesosphere.sdk.testutils.*;
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Resource;
 import org.junit.Before;
@@ -28,7 +23,6 @@ import java.util.UUID;
  * A base class for use in writing offer evaluation tests.
  */
 public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
-    protected static final SchedulerConfig SCHEDULER_CONFIG = SchedulerConfigTestUtils.getTestSchedulerConfig();
 
     protected FrameworkStore frameworkStore;
     protected StateStore stateStore;
@@ -38,7 +32,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
     @Before
     public void beforeEach() throws Exception {
         MockitoAnnotations.initMocks(this);
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         frameworkStore = new FrameworkStore(persister);
         frameworkStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
         stateStore = new StateStore(persister);
@@ -49,13 +43,9 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 Optional.empty(),
                 TestConstants.SERVICE_NAME,
                 targetConfig,
-                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
-                SCHEDULER_CONFIG,
+                PodTestUtils.getTemplateUrlFactory(),
+                SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.empty());
-    }
-
-    protected static String getFirstResourceId(List<Resource> resources) {
-        return ResourceUtils.getResourceId(resources.get(0)).get();
     }
 
     protected List<Resource> recordLaunchWithCompleteOfferedResources(
@@ -91,22 +81,22 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         List<Resource> reservedResources = new ArrayList<>();
         for (OfferRecommendation recommendation : recommendations) {
             if (recommendation instanceof ReserveOfferRecommendation) {
-                reservedResources.addAll(recommendation.getOperation().getReserve().getResourcesList());
-            } else if (recommendation instanceof LaunchOfferRecommendation) {
+                reservedResources.addAll(recommendation.getOperation().get().getReserve().getResourcesList());
+            } else if (recommendation instanceof StoreTaskInfoRecommendation) {
                 // DO NOT extract the TaskInfo from the Launch Operation. That version has a packed CommandInfo.
                 stateStore.storeTasks(Arrays.asList(
-                        ((LaunchOfferRecommendation) recommendation).getStoreableTaskInfo()));
+                        ((StoreTaskInfoRecommendation) recommendation).getStateStoreTaskInfo()));
             }
         }
 
         return reservedResources;
     }
 
-    protected String getResourceId(Resource resource) {
+    protected static String getResourceId(Resource resource) {
         return ResourceUtils.getResourceId(resource).get();
     }
 
-    protected String getPrincipal(Resource resource) {
+    protected static String getPrincipal(Resource resource) {
         return ResourceUtils.getPrincipal(resource).get();
     }
 }

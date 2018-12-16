@@ -11,9 +11,9 @@ import java.util.Optional;
  */
 @JsonDeserialize(as = DefaultDiscoverySpec.class)
 public interface DiscoverySpec {
-    @JsonProperty("prefix")
-    Optional<String> getPrefix();
+  @JsonProperty("prefix")
+  Optional<String> getPrefix();
 
-    @JsonProperty("visibility")
-    Optional<Protos.DiscoveryInfo.Visibility> getVisibility();
+  @JsonProperty("visibility")
+  Optional<Protos.DiscoveryInfo.Visibility> getVisibility();
 }

@@ -147,22 +147,21 @@ AWS_SECRET_ACCESS_KEY=devKeySecret \
 S3_BUCKET=devBucket \
 S3_DIR_PATH=dcosArtifacts/dev \
 ./build_package.sh \
-    kafka \
-    /path/to/dcos-commons/frameworks/kafka
-    -a kafka/scheduler.zip \
-    -a kafka/executor.zip \
-    -a kafka/cli/dcos-service-cli.exe \
-    -a kafka/cli/dcos-service-cli-dawin \
-    -a kafka/cli/dcos-service-cli-linux
+    helloworld \
+    /path/to/dcos-commons/frameworks/helloworld
+    -a helloworld/scheduler.zip \
+    -a helloworld/cli/dcos-service-cli.exe \
+    -a helloworld/cli/dcos-service-cli-dawin \
+    -a helloworld/cli/dcos-service-cli-linux
     aws
 [...]
 ---
 Built and uploaded stub universe:
-http://devBucket.s3.amazonaws.com/dcosArtifacts/dev/kafka/20160818-094133-hrjUfhcmQoznFVGP/stub-universe-kafka.zip
+http://devBucket.s3.amazonaws.com/dcosArtifacts/dev/helloworld/20160818-094133-hrjUfhcmQoznFVGP/stub-universe-helloworld.zip
 
 $ dcos package repo add --index=0 foo \
-http://devBucket.s3.amazonaws.com/dcosArtifacts/dev/kafka/20160818-094133-hrjUfhcmQoznFVGP/stub-universe-kafka.zip
-$ dcos package install kafka
+http://devBucket.s3.amazonaws.com/dcosArtifacts/dev/helloworld/20160818-094133-hrjUfhcmQoznFVGP/stub-universe-helloworld.zip
+$ dcos package install helloworld
 [... normal usage from here ...]
 ```
 
@@ -220,7 +219,6 @@ $ GITHUB_USER=yourGithubUsername \
 GITHUB_TOKEN=yourGithubAuthToken \
 AWS_ACCESS_KEY_ID=yourAwsKeyId \
 AWS_SECRET_ACCESS_KEY=yourAwsKeySecret \
-MIN_DCOS_RELEASE_VERSION=1.7 \
 S3_RELEASE_BUCKET=your-release-bucket.example.com \
 HTTP_RELEASE_SERVER=https://your-release-web.example.com \
 RELEASE_DIR_PATH=dcos/release \
@@ -246,7 +244,6 @@ This tool requires the following environment variables in order to upload the re
 
 The following are optional:
 
-- `MIN_DCOS_RELEASE_VERSION` (default: 1.7): The value of `minDcosReleaseVersion` to use for the released package, or `0` to set no value. See [universe documentation](https://github.com/mesosphere/universe) for more details on this value.
 - `S3_RELEASE_BUCKET` (default: `downloads.mesosphere.io`): The S3 bucket to upload the release artifacts into.
 - `HTTP_RELEASE_SERVER` (default: `https://downloads.mesosphere.com`): The HTTP base URL for paths within the above bucket.
 - `RELEASE_DIR_PATH` (default: `<package-name>/assets`): The path prefix within `S3_RELEASE_BUCKET` and `HTTP_RELEASE_SERVER` to place the release artifacts. Artifacts will be stored in a `<package-version>` subdirectory within this path.
@@ -314,15 +311,3 @@ $ ./print_package_tag.py spark
 #### Environment variables
 
 As described above, any `TEMPLATE_<SOME_PARAM>` values will automatically be inserted into template slots named `{{some-param}}`. No other environment variables are needed.
-
-#### Enable Mount Volumes Script
-```bash
-$ virtualenv -p `which python3` py3env
-$ source py3env/bin/activate
-$ pip3 install fabric3
-$ pip3 install boto3
-$ export AWS_SECRET_ACCESS_KEY=SeCrEt_KeY
-$ export AWS_ACCESS_KEY_ID=AcCeSs_Id
-$ export STACK_ID=arn:aws:cloudformation:us-west-1:273854.....
-$ ./tools/enable_mount_volumes.py
-```

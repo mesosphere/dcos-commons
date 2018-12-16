@@ -8,17 +8,18 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
  */
 @JsonDeserialize(as = DefaultTransportEncryptionSpec.class)
 public interface TransportEncryptionSpec {
-    @JsonProperty("name")
-    String getName();
+  @JsonProperty("name")
+  String getName();
 
-    @JsonProperty("type")
-    Type getType();
+  @JsonProperty("type")
+  Type getType();
 
-    /**
-     * The allowed formats of TLS certificate format.
-     */
-    enum Type {
-        TLS, // TODO(mh): Rename to PEM ?
-        KEYSTORE
-    }
+  /**
+   * The allowed formats of TLS certificate format.
+   */
+  enum Type {
+    // TODO(mh): Rename to PEM ?
+    TLS,
+    KEYSTORE
+  }
 }

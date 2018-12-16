@@ -4,8 +4,8 @@ set -e
 FRAMEWORK_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 REPO_ROOT_DIR=$(dirname $(dirname $FRAMEWORK_DIR))
 
-# Build SDK artifacts (executor, clis, bootstrap) to be included in our release, but skip SDK tests
-# since since that's not in our scope. Projects that aren't colocated in dcos-commons should skip
+# Build SDK artifacts (clis, bootstrap) to be included in our release, but skip SDK tests
+# since that's not in our scope. Projects that aren't colocated in dcos-commons should skip
 # this step, and should omit the "REPO_ROOT_DIR" artifacts listed below.
 $REPO_ROOT_DIR/build.sh -b
 

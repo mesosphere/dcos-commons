@@ -1,20 +1,23 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.MesosResourcePool;
+import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirementTestUtils;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
+import com.mesosphere.sdk.testutils.PodTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import org.apache.mesos.Protos;
+import org.apache.mesos.Protos.Resource;
 import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -53,7 +56,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                                 podInstanceRequirement,
                                 TestConstants.SERVICE_NAME,
                                 UUID.randomUUID(),
-                                ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                                PodTestUtils.getTemplateUrlFactory(),
                                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                                 stateStore.fetchTasks(),
                                 frameworkStore.fetchFrameworkId().get(),
@@ -94,7 +97,7 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
                         podInstanceRequirement,
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                        PodTestUtils.getTemplateUrlFactory(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         stateStore.fetchTasks(),
                         frameworkStore.fetchFrameworkId().get(),
@@ -107,5 +110,9 @@ public class ExecutorEvaluationStageTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(
                 taskInfo.getExecutor().getExecutorId(),
                 launchExecutorId);
+    }
+
+    private static String getFirstResourceId(List<Resource> resources) {
+        return ResourceUtils.getResourceId(resources.get(0)).get();
     }
 }

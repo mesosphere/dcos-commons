@@ -1,238 +1,162 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE module PUBLIC
-        "-//Puppy Crawl//DTD Check Configuration 1.3//EN"
-        "http://www.puppycrawl.com/dtds/configuration_1_3.dtd">
+        "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
+        "https://checkstyle.org/dtds/configuration_1_3.dtd">
 
 <!-- This is a checkstyle configuration file. For descriptions of
 what the following rules do, please see the checkstyle configuration
 page at http://checkstyle.sourceforge.net/config.html -->
 
 <module name="Checker">
+    <property name="charset" value="UTF-8"/>
+    <property name="severity" value="error"/>
 
+    <module name="SuppressWarningsFilter"/>
 
-    <module name="FileTabCharacter">
-        <!-- Checks that there are no tab characters in the file.
-        -->
+    <module name="SuppressionFilter">
+        <property name="file" value="${config_loc}/suppressions.xml"/>
     </module>
 
+    <!--http://checkstyle.sourceforge.net/config_whitespace.html-->
+    <module name="FileTabCharacter">
+        <property name="eachLine" value="true"/>
+    </module>
+
+    <!--http://checkstyle.sourceforge.net/config_misc.html#NewlineAtEndOfFile-->
     <module name="NewlineAtEndOfFile"/>
 
+    <!--http://checkstyle.sourceforge.net/config_regexp.html-->
     <module name="RegexpSingleline">
-        <!-- Checks that FIXME is not used in comments.  TODO is preferred.
-        -->
+        <!--Checks that FIXME is not used in comments. TODO is preferred.-->
         <property name="format" value="((//.*)|(\*.*))FIXME"/>
-        <property name="message" value='TODO is preferred to FIXME.  e.g. "TODO (johndoe): Refactor when v2 is released."'/>
+        <property name="message"
+                  value='TODO is preferred to FIXME.  e.g. "TODO (johndoe): Refactor when v2 is released."'/>
     </module>
 
     <module name="RegexpSingleline">
-        <!-- Checks that TODOs are named.  (Actually, just that they are followed
-             by an open paren.)
-        -->
+        <!--Checks that TODOs are named. (Actually, just that they are followed by an open paren.)-->
         <property name="format" value="((//.*)|(\*.*))TODO [^(]"/>
-        <property name="message" value='All TODOs should be named.  e.g. "TODO (johndoe): Refactor when v2 is released."'/>
+        <property name="message"
+                  value='All TODOs should be named.  e.g. "TODO (johndoe): Refactor when v2 is released."'/>
     </module>
+
+    <!--Enable if/when we decide all our files can be camelcase only-->
+    <!--<module name="RegexpOnFilename">-->
+        <!--<property name="fileNamePattern" value="^([A-Z]+[a-z0-9]+\.?)+$"/>-->
+        <!--<property name="match" value="false"/>-->
+        <!--<property name="ignoreFileNameExtensions" value="true"/>-->
+    <!--</module>-->
+
+    <module name="RegexpOnFilename">
+        <property name="folderPattern" value="[\\/](src|dist)[\\/]"/>
+        <property name="fileNamePattern" value="\.(java|xml|yml)$"/>
+        <property name="match" value="false"/>
+    </module>
+
+    <!--http://checkstyle.sourceforge.net/config_sizes.html-->
+    <module name="FileLength"/>
 
     <!-- All Java AST specific tests live under TreeWalker module. -->
     <module name="TreeWalker">
 
-        <!--
-
-        IMPORT CHECKS
-
-        -->
-
-        <module name="RedundantImport">
-            <!-- Checks for redundant import statements. -->
-            <property name="severity" value="error"/>
+        <!--http://checkstyle.sourceforge.net/config_annotation.html-->
+        <module name="AnnotationLocation">
+            <property name="tokens" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF"/>
         </module>
-
-        <!-- add in to manage order of imports-->
-        <!--<module name="ImportOrder">-->
-        <!--&lt;!&ndash; Checks for out of order import statements. &ndash;&gt;-->
-
-        <!--<property name="severity" value="warning"/>-->
-        <!--<property name="groups" value="com.apache,junit,net,org,java,javax"/>-->
-        <!--&lt;!&ndash; This ensures that static imports go first. &ndash;&gt;-->
-        <!--<property name="option" value="top"/>-->
-        <!--<property name="tokens" value="STATIC_IMPORT, IMPORT"/>-->
-        <!--</module>-->
-
-        <!--
-
-        JAVADOC CHECKS
-
-        -->
-
-        <!-- Checks for Javadoc comments.                     -->
-        <!-- See http://checkstyle.sf.net/config_javadoc.html -->
-        <module name="JavadocMethod">
-            <property name="scope" value="protected"/>
-            <property name="severity" value="warning"/>
-            <property name="allowMissingJavadoc" value="true"/>
-            <property name="allowMissingParamTags" value="true"/>
-            <property name="allowMissingReturnTag" value="true"/>
-            <property name="allowMissingThrowsTags" value="true"/>
-            <property name="allowThrowsTagsForSubclasses" value="true"/>
-            <property name="allowUndeclaredRTE" value="true"/>
-        </module>
-
-        <module name="JavadocType">
-            <property name="scope" value="protected"/>
-            <property name="severity" value="error"/>
-        </module>
-
-        <module name="JavadocStyle">
-        <property name="severity" value="warning"/>
-        </module>
-
-        <!--
-
-        NAMING CHECKS
-
-        -->
-
-        <!-- Item 38 - Adhere to generally accepted naming conventions -->
-
-        <module name="PackageName">
-            <!-- Validates identifiers for package names against the
-              supplied expression. -->
-            <!-- Here the default checkstyle rule restricts package name parts to
-              seven characters, this is not in line with common practice at Google.
-            -->
-            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]{1,})*$"/>
-            <property name="severity" value="warning"/>
-        </module>
-
-        <module name="TypeNameCheck">
-            <!-- Validates static, final fields against the
-            expression "^[A-Z][a-zA-Z0-9]*$". -->
-            <metadata name="altname" value="TypeName"/>
-            <property name="severity" value="warning"/>
-        </module>
-
-        <module name="ConstantNameCheck">
-            <!-- Validates non-private, static, final fields against the supplied
-            public/package final fields "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$". -->
-            <metadata name="altname" value="ConstantName"/>
-            <property name="applyToPublic" value="true"/>
-            <property name="applyToProtected" value="true"/>
-            <property name="applyToPackage" value="true"/>
-            <property name="applyToPrivate" value="false"/>
-            <property name="format" value="^([A-Z][A-Z0-9]*(_[A-Z0-9]+)*|FLAG_.*)$"/>
-            <message key="name.invalidPattern"
-                     value="Variable ''{0}'' should be in ALL_CAPS (if it is a constant) or be private (otherwise)."/>
-            <property name="severity" value="warning"/>
-        </module>
-
-        <module name="StaticVariableNameCheck">
-            <!-- Validates static, non-final fields against the supplied
-            expression "^[a-z][a-zA-Z0-9]*_?$". -->
-            <metadata name="altname" value="StaticVariableName"/>
-            <property name="applyToPublic" value="true"/>
-            <property name="applyToProtected" value="true"/>
-            <property name="applyToPackage" value="true"/>
-            <property name="applyToPrivate" value="true"/>
-            <property name="format" value="^[a-z][a-zA-Z0-9]*_?$"/>
-            <property name="severity" value="warning"/>
-        </module>
-
-        <module name="MemberNameCheck">
-            <!-- Validates non-static members against the supplied expression. -->
-            <metadata name="altname" value="MemberName"/>
-            <property name="applyToPublic" value="true"/>
-            <property name="applyToProtected" value="true"/>
-            <property name="applyToPackage" value="true"/>
-            <property name="applyToPrivate" value="true"/>
-            <property name="format" value="^[a-z][a-zA-Z0-9]*$"/>
-            <property name="severity" value="warning"/>
-        </module>
-
-        <module name="MethodNameCheck">
-            <!-- Validates identifiers for method names. -->
-            <metadata name="altname" value="MethodName"/>
-            <property name="format" value="^[a-z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*$"/>
-            <property name="severity" value="warning"/>
-        </module>
-
-        <module name="ParameterName">
-            <!-- Validates identifiers for method parameters against the
-              expression "^[a-z][a-zA-Z0-9]*$". -->
-            <property name="severity" value="warning"/>
-        </module>
-
-        <module name="LocalFinalVariableName">
-            <!-- Validates identifiers for local final variables against the
-              expression "^[a-z][a-zA-Z0-9]*$". -->
-            <property name="severity" value="warning"/>
-        </module>
-
-        <module name="LocalVariableName">
-            <!-- Validates identifiers for local variables against the
-              expression "^[a-z][a-zA-Z0-9]*$". -->
-            <property name="severity" value="warning"/>
+        <module name="AnnotationLocation">
+            <property name="tokens" value="VARIABLE_DEF"/>
+            <property name="allowSamelineMultipleAnnotations" value="true"/>
         </module>
 
 
-        <!--
-
-        LENGTH and CODING CHECKS
-
-        -->
-
-        <module name="LineLength">
-            <!-- Checks if a line is too long. -->
-            <property name="max" value="${com.puppycrawl.tools.checkstyle.checks.sizes.LineLength.max}" default="120"/>
-            <property name="severity" value="error"/>
-
-            <!--
-              The default ignore pattern exempts the following elements:
-                - import statements
-                - long URLs inside comments
-            -->
-
-            <property name="ignorePattern"
-                      value="${com.puppycrawl.tools.checkstyle.checks.sizes.LineLength.ignorePattern}"
-                      default="^(package .*;\s*)|(import .*;\s*)|( *\* *https?://.*)$"/>
+        <!--http://checkstyle.sourceforge.net/config_blocks.html-->
+        <module name="AvoidNestedBlocks">
+            <property name="allowInSwitchCase" value="true"/>
         </module>
-
+        <module name="EmptyBlock">
+            <property name="option" value="TEXT"/>
+            <property name="tokens" value="LITERAL_TRY, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_SWITCH"/>
+        </module>
+        <module name="EmptyCatchBlock">
+            <property name="exceptionVariableName" value="expected|ignore"/>
+        </module>
         <module name="LeftCurly">
-            <!-- Checks for placement of the left curly brace ('{'). -->
-            <property name="severity" value="warning"/>
+            <property name="option" value="nlow"/>
         </module>
-
-        <module name="RightCurly">
-            <!-- Checks right curlies on CATCH, ELSE, and TRY blocks are on
-            the same line. e.g., the following example is fine:
-            <pre>
-              if {
-                ...
-              } else
-            </pre>
-            -->
-            <!-- This next example is not fine:
-            <pre>
-              if {
-                ...
-              }
-              else
-            </pre>
-            -->
-            <property name="option" value="same"/>
-            <property name="severity" value="warning"/>
-        </module>
-
-        <!-- Checks for braces around if and else blocks -->
         <module name="NeedBraces">
-            <property name="severity" value="warning"/>
-            <!--<property name="tokens" value="LITERAL_IF, LITERAL_ELSE, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO"/>-->
             <property name="tokens" value="LITERAL_ELSE, LITERAL_FOR, LITERAL_WHILE, LITERAL_DO"/>
         </module>
-
-        <module name="UpperEll">
-            <!-- Checks that long constants are defined with an upper ell.-->
-            <property name="severity" value="error"/>
+        <module name="RightCurly">
+            <property name="option" value="same"/>
+            <property name="tokens"
+                      value="LITERAL_TRY, LITERAL_CATCH, LITERAL_FINALLY, LITERAL_IF, LITERAL_ELSE, LITERAL_DO"/>
+        </module>
+        <module name="RightCurly">
+            <property name="option" value="alone"/>
+            <property name="tokens"
+                      value="CLASS_DEF, METHOD_DEF, CTOR_DEF, LITERAL_FOR, LITERAL_WHILE, STATIC_INIT, INSTANCE_INIT"/>
         </module>
 
+
+        <!--http://checkstyle.sourceforge.net/config_design.html-->
+        <!--<module name="DesignForExtension"/>-->
+        <module name="FinalClass"/>
+        <module name="HideUtilityClassConstructor"/>
+        <module name="InnerTypeLast"/>
+        <module name="InterfaceIsType"/>
+        <module name="MutableException"/>
+        <module name="OneTopLevelClass"/>
+        <module name="ThrowsCount">
+            <property name="max" value="1"/>
+            <property name="ignorePrivateMethods" value="false"/>
+        </module>
+        <module name="VisibilityModifier">
+            <!--TODO(takirala): Make this more stringent-->
+            <property name="packageAllowed" value="true"/>
+            <property name="protectedAllowed" value="true"/>
+            <property name="allowPublicFinalFields" value="true"/>
+            <property name="allowPublicImmutableFields" value="true"/>
+        </module>
+
+
+        <!--http://checkstyle.sourceforge.net/config_filters.html-->
+        <module name="SuppressionCommentFilter">
+            <property name="offCommentFormat" value="CHECKSTYLE:OFF (\w+)"/>
+            <property name="onCommentFormat" value="CHECKSTYLE:ON (\w+)"/>
+            <property name="checkFormat" value="$1"/>
+        </module>
+        <module name="SuppressWithNearbyCommentFilter">
+            <!-- Syntax is "SUPPRESS CHECKSTYLE name" -->
+            <property name="commentFormat" value="SUPPRESS CHECKSTYLE (\w+)"/>
+            <property name="checkFormat" value="$1"/>
+            <property name="influenceFormat" value="1"/>
+        </module>
+        <module name="SuppressWithNearbyCommentFilter">
+            <property name="commentFormat"
+                      value="CHECKSTYLE IGNORE (\w+) FOR NEXT (\d+) LINES"/>
+            <property name="checkFormat" value="$1"/>
+            <property name="influenceFormat" value="$2"/>
+        </module>
+        <module name="SuppressWithNearbyCommentFilter">
+            <property name="commentFormat" value="OK to catch (\w+) here"/>
+            <property name="checkFormat" value="IllegalCatchCheck"/>
+            <property name="messageFormat" value="$1"/>
+            <property name="influenceFormat" value="-1"/>
+        </module>
+        <module name="SuppressWarningsHolder" />
+
+
+        <!--http://checkstyle.sourceforge.net/config_coding.html-->
+        <module name="ArrayTrailingComma"/>
+        <module name="CovariantEquals"/>
+        <module name="DeclarationOrder"/>
+        <module name="DefaultComesLast"/>
+        <module name="EmptyStatement"/>
+        <module name="EqualsAvoidNull"/>
+        <module name="EqualsHashCode"/>
+        <module name="ExplicitInitialization">
+            <property name="onlyObjectReferences" value="true"/>
+        </module>
         <module name="FallThrough">
             <!-- Warn about falling through to the next case statement.  Similar to
             javac -Xlint:fallthrough, but the check is suppressed if a single-line comment
@@ -240,32 +164,361 @@ page at http://checkstyle.sourceforge.net/config.html -->
             some other variants which we don't publicized to promote consistency).
             -->
             <property name="reliefPattern"
-                      value="fall through|Fall through|fallthru|Fallthru|falls through|Falls through|fallthrough|Fallthrough|No break|NO break|no break|continue on"/>
-            <property name="severity" value="error"/>
+                      value="fall through|Fall through|fallthru|Fallthru|falls through|Falls through|
+                      fallthrough|Fallthrough|No break|NO break|no break|continue on"/>
+        </module>
+        <!--<module name="FinalLocalVariable">-->
+            <!--<property name="validateEnhancedForLoopVariable" value="true"/>-->
+        <!--</module>-->
+        <module name="HiddenField">
+            <property name="ignoreConstructorParameter" value="true"/>
+            <property name="ignoreSetter" value="true"/>
+            <property name="setterCanReturnItsClass" value="true"/>
+        </module>
+        <module name="IllegalCatch"/>
+        <module name="IllegalThrows"/>
+        <module name="InnerAssignment"/>
+        <module name="MagicNumber">
+            <property name="ignoreNumbers" value="-1, 0, 1, 2, 3, 8, 9, 10, 11, 12, 13, 14, 31, 63, 64, 120, 1024"/>
+        </module>
+        <module name="MissingSwitchDefault"/>
+        <module name="ModifiedControlVariable">
+            <property name="skipEnhancedForLoopVariable" value="true"/>
+        </module>
+        <module name="MultipleStringLiterals">
+            <property name="ignoreStringsRegexp" value='^(("")|(", ")|(",")|("s")|(^http.*))$'/>
+        </module>
+        <module name="MultipleVariableDeclarations"/>
+        <module name="NestedForDepth"/>
+        <module name="NestedIfDepth">
+            <property name="max" value="3"/>
+        </module>
+        <module name="NestedTryDepth">
+            <property name="max" value="3"/>
+        </module>
+        <module name="NoClone"/>
+        <module name="NoFinalizer"/>
+        <module name="OneStatementPerLine"/>
+        <module name="OverloadMethodsDeclarationOrder"/>
+        <module name="PackageDeclaration"/>
+        <module name="ParameterAssignment"/>
+        <module name="RequireThis"/>
+        <module name="ReturnCount">
+            <property name="max" value="7"/>
+            <property name="maxForVoid" value="2"/>
+        </module>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="StringLiteralEquality"/>
+        <module name="SuperClone"/>
+        <module name="SuperFinalize"/>
+        <module name="UnnecessaryParentheses"/>
+        <module name="VariableDeclarationUsageDistance"/>
+
+
+        <!--http://checkstyle.sourceforge.net/config_header.html-->
+        <!--
+        We do not have any header currently
+        We need a shared draft / template that can be used in all projects before we enable this section.
+        -->
+
+
+        <!--http://checkstyle.sourceforge.net/config_imports.html-->
+        <module name="AvoidStarImport"/>
+        <module name="AvoidStaticImport"/>
+        <module name="ImportOrder">
+            <property name="groups" value="com.mesosphere,*,javax,java"/>
+            <property name="ordered" value="true"/>
+            <property name="separated" value="true"/>
+            <property name="option" value="bottom"/>
+            <property name="sortStaticImportsAlphabetically" value="true"/>
+        </module>
+        <module name="CustomImportOrder">
+            <property name="customImportOrderRules"
+                      value="SAME_PACKAGE(2)###THIRD_PARTY_PACKAGE###SPECIAL_IMPORTS###STANDARD_JAVA_PACKAGE###STATIC"/>
+            <property name="specialImportsRegExp" value="^javax\."/>
+            <property name="standardPackageRegExp" value="^java\."/>
+            <property name="sortImportsInGroupAlphabetically" value="true"/>
+            <property name="separateLineBetweenGroups" value="true"/>
+        </module>
+        <module name="IllegalImport"/>
+        <module name="RedundantImport"/>
+        <module name="UnusedImports"/>
+
+
+        <!--http://checkstyle.sourceforge.net/config_javadoc.html-->
+        <module name="AtclauseOrder">
+            <property name="tagOrder" value="@param, @return, @throws, @deprecated"/>
+            <property name="target" value="CLASS_DEF, INTERFACE_DEF, ENUM_DEF, METHOD_DEF, CTOR_DEF, VARIABLE_DEF"/>
+        </module>
+        <module name="JavadocMethod">
+            <property name="scope" value="protected"/>
+            <property name="allowMissingJavadoc" value="true"/>
+            <property name="allowMissingParamTags" value="true"/>
+            <property name="allowMissingReturnTag" value="true"/>
+            <property name="allowMissingThrowsTags" value="true"/>
+            <property name="allowThrowsTagsForSubclasses" value="true"/>
+            <property name="allowUndeclaredRTE" value="true"/>
+        </module>
+        <module name="JavadocType">
+            <property name="scope" value="protected"/>
+        </module>
+        <module name="JavadocStyle"/>
+
+
+        <!--http://checkstyle.sourceforge.net/config_metrics.html-->
+        <module name="CyclomaticComplexity">
+            <!--TODO(takirala): We should have a lower value for this for better readability-->
+            <property name="max" value="17"/>
         </module>
 
 
-        <!--
-
-        MODIFIERS CHECKS
-
-        -->
-
-        <module name="ModifierOrder">
-            <!-- Warn if modifier order is inconsistent with JLS3 8.1.1, 8.3.1, and
-                 8.4.3.  The prescribed order is:
-                 public, protected, private, abstract, static, final, transient, volatile,
-                 synchronized, native, strictfp
-              -->
+        <!--http://checkstyle.sourceforge.net/config_misc.html-->
+        <module name="ArrayTypeStyle"/>
+        <module name="AvoidEscapedUnicodeCharacters"/>
+        <module name="CommentsIndentation"/>
+        <module name="Indentation">
+            <property name="basicOffset" value="2"/>
+            <property name="braceAdjustment" value="0"/>
+            <property name="caseIndent" value="2"/>
+            <property name="throwsIndent" value="4"/>
+            <property name="lineWrappingIndentation" value="4"/>
+            <property name="arrayInitIndent" value="2"/>
+        </module>
+        <module name="OuterTypeFilename"/>
+        <module name="TrailingComment">
+            <property name="legalComment" value=".*CHECKSTYLE.*"/>
+        </module>
+        <module name="UncommentedMain">
+            <property name="excludedClasses" value="\.Main$"/>
+        </module>
+        <module name="UpperEll">
+            <!-- Checks that long constants are defined with an upper ell.-->
         </module>
 
 
-        <!--
-
-        WHITESPACE CHECKS
-
+        <!--http://checkstyle.sourceforge.net/config_modifier.html-->
+        <!--We should always prefer this and not use RedundantModifier-->
+        <!--<module name="InterfaceMemberImpliedModifier"/>-->
+        <!-- Warn if modifier order is inconsistent with JLS3 8.1.1, 8.3.1, and 8.4.3. The prescribed order is:
+             public,
+             protected,
+             private,
+             abstract,
+             static,
+             final,
+             transient,
+             volatile,
+             synchronized,
+             native,
+             strictfp
         -->
+        <module name="ModifierOrder"/>
 
+
+        <!--http://checkstyle.sourceforge.net/config_naming.html-->
+        <module name="AbbreviationAsWordInName">
+            <property name="ignoreFinal" value="false"/>
+            <property name="allowedAbbreviations" value="YAML,HTTP"/>
+        </module>
+        <!--TODO(takirala): crosscheck SDK consumers and enable this check-->
+        <!--<module name="AbstractClassName"/>-->
+        <module name="CatchParameterName">
+            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+            <message key="name.invalidPattern"
+                     value="Catch parameter name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="ClassTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern"
+                     value="Class type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="ConstantName">
+            <!-- Validates non-private, static, final fields against the supplied
+            public/package final fields "^[A-Z][A-Z0-9]*(_[A-Z0-9]+)*$". -->
+            <metadata name="altname" value="ConstantNameCheck"/>
+            <property name="applyToPublic" value="true"/>
+            <property name="applyToProtected" value="true"/>
+            <property name="applyToPackage" value="true"/>
+            <property name="applyToPrivate" value="false"/>
+            <property name="format" value="^([A-Z][A-Z0-9]*(_[A-Z0-9]+)*|FLAG_.*)$"/>
+            <message key="name.invalidPattern"
+                     value="Variable ''{0}'' should be in ALL_CAPS (if it is a constant) or be private (otherwise)."/>
+        </module>
+        <module name="InterfaceTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern"
+                     value="Interface type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="MethodTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern"
+                     value="Method type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="LambdaParameterName">
+            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+            <message key="name.invalidPattern"
+                     value="Lambda parameter name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="LocalVariableName">
+            <property name="tokens" value="VARIABLE_DEF"/>
+            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+            <property name="allowOneCharVarInForLoop" value="true"/>
+            <message key="name.invalidPattern"
+                     value="Local variable name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="MemberName">
+            <!-- Validates non-static members against the supplied expression. -->
+            <property name="applyToPublic" value="true"/>
+            <property name="applyToProtected" value="true"/>
+            <property name="applyToPackage" value="true"/>
+            <property name="applyToPrivate" value="true"/>
+            <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9]*$"/>
+            <message key="name.invalidPattern"
+                     value="Member name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="MethodName">
+            <property name="format" value="^[a-z][a-zA-Z0-9]*(_[a-zA-Z0-9]+)*$"/>
+            <message key="name.invalidPattern"
+                     value="Method name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="MethodTypeParameterName">
+            <property name="format" value="(^[A-Z][0-9]?)$|([A-Z][a-zA-Z0-9]*[T]$)"/>
+            <message key="name.invalidPattern"
+                     value="Method type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="PackageName">
+            <!--
+            Validates identifiers for package names against the supplied expression.
+            Here the default checkstyle rule restricts package name parts to
+            seven characters, this is not in line with common practice at Google.
+            -->
+            <property name="format" value="^[a-z]+(\.[a-z][a-z0-9]{1,})*$"/>
+            <message key="name.invalidPattern"
+                     value="Package name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="ParameterName">
+            <property name="format" value="^[a-z]([a-z0-9][a-zA-Z0-9]*)?$"/>
+            <message key="name.invalidPattern"
+                     value="Parameter name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+        <module name="StaticVariableName">
+            <!-- Validates static, non-final fields against the supplied
+            expression "^[a-z][a-zA-Z0-9]*_?$". -->
+            <metadata name="altname" value="StaticVariableNameCheck"/>
+            <property name="applyToPublic" value="true"/>
+            <property name="applyToProtected" value="true"/>
+            <property name="applyToPackage" value="true"/>
+            <property name="applyToPrivate" value="true"/>
+            <property name="format" value="^[a-z][a-zA-Z0-9]*_?$"/>
+        </module>
+        <module name="TypeName">
+            <message key="name.invalidPattern"
+                     value="Type name ''{0}'' must match pattern ''{1}''."/>
+        </module>
+
+
+        <!--http://checkstyle.sourceforge.net/config_regexp.html-->
+        <module name="RegexpSinglelineJava">
+            <property name="format" value="System\.out\.print"/>
+            <property name="ignoreComments" value="true"/>
+        </module>
+        <module name="RegexpSinglelineJava">
+            <!--No trailing whitespace at the end of a line-->
+            <property name="format" value="\s+$"/>
+        </module>
+
+
+        <!--http://checkstyle.sourceforge.net/config_sizes.html-->
+        <module name="AnonInnerLength"/>
+        <module name="ExecutableStatementCount">
+            <property name="max" value="42"/>
+        </module>
+        <module name="LineLength">
+            <property name="max" value="100"/>
+            <!--TODO(takirala): We should not ignore line length for javadoc & comments-->
+            <property name="ignorePattern"
+                      value="^(package .*;\s*)|(import .*;\s*)|( *\* *https?://.*)|(@.*)|(\* .*)|(\/\/ .*)$"/>
+        </module>
+        <module name="MethodCount">
+            <property name="maxPublic" value="16"/>
+            <property name="maxTotal" value="50"/>
+        </module>
+        <module name="MethodLength">
+            <property name="tokens" value="METHOD_DEF"/>
+            <!--TODO(takirala): We should have a lower value for this for better readability-->
+            <property name="max" value="180"/>
+        </module>
+        <module name="OuterTypeNumber"/>
+        <module name="ParameterNumber">
+            <property name="max" value="10"/>
+            <property name="ignoreOverriddenMethods" value="true"/>
+        </module>
+
+
+        <!--http://checkstyle.sourceforge.net/config_whitespace.html-->
+        <module name="EmptyForInitializerPad"/>
+        <module name="EmptyForIteratorPad"/>
+        <module name="EmptyLineSeparator">
+            <property name="allowMultipleEmptyLinesInsideClassMembers" value="false"/>
+        </module>
+        <module name="GenericWhitespace"/>
+        <module name="MethodParamPad">
+            <property name="allowLineBreaks" value="true"/>
+        </module>
+        <module name="NoLineWrap"/>
+        <module name="NoWhitespaceAfter">
+            <!-- Checks that there is no whitespace after various unary operators.
+                 Linebreaks are allowed.
+            -->
+            <property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS"/>
+            <property name="allowLineBreaks" value="true"/>
+        </module>
+        <module name="NoWhitespaceBefore">
+            <!-- Checks that there is no whitespace before various unary operators.
+                 Linebreaks are allowed.
+            -->
+            <property name="tokens" value="SEMI, DOT, POST_DEC, POST_INC"/>
+            <property name="allowLineBreaks" value="true"/>
+        </module>
+        <module name="ParenPad"/>
+        <module name="SeparatorWrap">
+            <property name="id" value="SeparatorWrapDot"/>
+            <property name="tokens" value="DOT"/>
+            <property name="option" value="nl"/>
+        </module>
+        <module name="SeparatorWrap">
+            <property name="id" value="SeparatorWrapComma"/>
+            <property name="tokens" value="COMMA"/>
+            <property name="option" value="EOL"/>
+        </module>
+        <module name="SeparatorWrap">
+            <!-- ELLIPSIS is EOL until https://github.com/google/styleguide/issues/258 -->
+            <property name="id" value="SeparatorWrapEllipsis"/>
+            <property name="tokens" value="ELLIPSIS"/>
+            <property name="option" value="EOL"/>
+        </module>
+        <module name="SeparatorWrap">
+            <!-- ARRAY_DECLARATOR is EOL until https://github.com/google/styleguide/issues/259 -->
+            <property name="id" value="SeparatorWrapArrayDeclarator"/>
+            <property name="tokens" value="ARRAY_DECLARATOR"/>
+            <property name="option" value="EOL"/>
+        </module>
+        <module name="SeparatorWrap">
+            <property name="id" value="SeparatorWrapMethodRef"/>
+            <property name="tokens" value="METHOD_REF"/>
+            <property name="option" value="nl"/>
+        </module>
+        <module name="SingleSpaceSeparator">
+            <property name="validateComments" value="true"/>
+        </module>
+        <module name="TypecastParenPad"/>
+        <module name="WhitespaceAfter">
+            <!-- Checks that commas, semicolons and typecasts are followed by
+                 whitespace.
+            -->
+            <property name="tokens" value="COMMA, SEMI, TYPECAST"/>
+        </module>
         <module name="WhitespaceAround">
             <!-- Checks that various tokens are surrounded by whitespace.
                  This includes most binary operators and keywords followed
@@ -278,40 +531,6 @@ page at http://checkstyle.sourceforge.net/config.html -->
         LITERAL_SYNCHRONIZED, LITERAL_TRY, LITERAL_WHILE, LOR, LT, MINUS,
         MINUS_ASSIGN, MOD, MOD_ASSIGN, NOT_EQUAL, PLUS, PLUS_ASSIGN, QUESTION,
         SL, SL_ASSIGN, SR_ASSIGN, STAR, STAR_ASSIGN"/>
-            <property name="severity" value="error"/>
         </module>
-
-        <module name="WhitespaceAfter">
-            <!-- Checks that commas, semicolons and typecasts are followed by
-                 whitespace.
-            -->
-            <property name="tokens" value="COMMA, SEMI, TYPECAST"/>
-        </module>
-
-        <module name="NoWhitespaceAfter">
-            <!-- Checks that there is no whitespace after various unary operators.
-                 Linebreaks are allowed.
-            -->
-            <property name="tokens" value="BNOT, DEC, DOT, INC, LNOT, UNARY_MINUS, UNARY_PLUS"/>
-            <property name="allowLineBreaks" value="true"/>
-            <property name="severity" value="error"/>
-        </module>
-
-        <module name="NoWhitespaceBefore">
-            <!-- Checks that there is no whitespace before various unary operators.
-                 Linebreaks are allowed.
-            -->
-            <property name="tokens" value="SEMI, DOT, POST_DEC, POST_INC"/>
-            <property name="allowLineBreaks" value="true"/>
-            <property name="severity" value="error"/>
-        </module>
-
-        <module name="ParenPad">
-            <!-- Checks that there is no whitespace before close parens or after
-                 open parens.
-            -->
-            <property name="severity" value="warning"/>
-        </module>
-
     </module>
 </module>

@@ -1,8 +1,9 @@
 package com.mesosphere.sdk.config.validate;
 
-import java.util.*;
-
 import com.mesosphere.sdk.config.Configuration;
+
+import java.util.Collection;
+import java.util.Optional;
 
 /**
  * The {@code ConfigurationValidation} interface should be implemented by any class which intends to
@@ -12,19 +13,22 @@ import com.mesosphere.sdk.config.Configuration;
  */
 public interface ConfigValidator<C extends Configuration> {
 
-    /**
-     * Returns {@code List} of {@code ConfigurationValidationError}s for the newly supplied
-     * {@code Configuration} object.
-     *
-     * A validation can validate a newConfig in following ways:
-     * 1. Validate newConfig parameters against the oldConfig paramater.
-     * Ex: If DiskType was ROOT in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig.
-     * 2. Validate just newConfig parameter(s). Ex: CPU value > 0
-     *
-     * @param oldConfig Currently persisted Configuration, or an empty {@code Optional} if none is available
-     *     (first launch of service)
-     * @param newConfig Proposed new Configuration
-     * @return List of errors, or an empty list if validation passed
-     */
-    Collection<ConfigValidationError> validate(Optional<C> oldConfig, C newConfig);
+  /**
+   * Returns {@code List} of {@code ConfigurationValidationError}s for the newly supplied
+   * {@code Configuration} object.
+   * <p>
+   * A validation can validate a newConfig in following ways:
+   * <ol>
+   * <li> Validate newConfig parameters against the oldConfig parameter. Ex: If DiskType was ROOT
+   * in oldConfig, then it cannot be changed to, ex: MOUNT, in the newConfig. </li>
+   * <li> Validate just newConfig parameter(s). Ex: CPU value > 0 </li>
+   * </ol>
+   * </p>
+   *
+   * @param oldConfig Currently persisted Configuration, or an empty {@code Optional} if none is
+   *                  available (first launch of service)
+   * @param newConfig Proposed new Configuration
+   * @return List of errors, or an empty list if validation passed
+   */
+  Collection<ConfigValidationError> validate(Optional<C> oldConfig, C newConfig);
 }

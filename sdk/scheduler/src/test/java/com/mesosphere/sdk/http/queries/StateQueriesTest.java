@@ -1,10 +1,11 @@
 package com.mesosphere.sdk.http.queries;
 
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.taskdata.EnvConstants;
-import com.mesosphere.sdk.state.StateStoreUtilsTest;
 import com.mesosphere.sdk.storage.*;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.apache.mesos.Protos.*;
+
+import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
@@ -52,7 +53,7 @@ public class StateQueriesTest {
 
     @Test
     public void testGetFrameworkId() {
-        FrameworkID id = FrameworkID.newBuilder().setValue("aoeu-asdf").build();
+        Protos.FrameworkID id = Protos.FrameworkID.newBuilder().setValue("aoeu-asdf").build();
         when(mockFrameworkStore.fetchFrameworkId()).thenReturn(Optional.of(id));
         Response response = StateQueries.getFrameworkId(mockFrameworkStore);
         assertEquals(200, response.getStatus());
@@ -152,12 +153,11 @@ public class StateQueriesTest {
     @Test
     public void testPutAndGetFile() throws IOException {
         InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
-        when(formDataContentDisposition.getFileName()).thenReturn(FILE_NAME);
         when(formDataContentDisposition.getSize()).thenReturn((long)FILE_CONTENT.length());
         when(mockStateStore.fetchProperty(StateQueries.FILE_NAME_PREFIX + FILE_NAME))
                 .thenReturn(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
 
-        Response response = StateQueries.putFile(mockStateStore,inputStream, formDataContentDisposition);
+        Response response = StateQueries.putFile(mockStateStore, FILE_NAME, inputStream, formDataContentDisposition);
         assertEquals(200, response.getStatus());
         response = StateQueries.getFile(mockStateStore, FILE_NAME);
         assertEquals(200, response.getStatus());
@@ -169,28 +169,18 @@ public class StateQueriesTest {
         int fileSize = StateQueries.FILE_SIZE_LIMIT / FILE_CONTENT.length() * 100;
         String input = String.join("", Collections.nCopies(fileSize, FILE_CONTENT));
         InputStream inputStream = new ByteArrayInputStream(input.getBytes(StateQueries.FILE_ENCODING));
-        when(formDataContentDisposition.getFileName()).thenReturn(FILE_NAME);
         when(formDataContentDisposition.getSize()).thenReturn(((long)fileSize));
         when(mockStateStore.fetchProperty(StateQueries.FILE_NAME_PREFIX + FILE_NAME))
                 .thenReturn(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
 
-        Response response = StateQueries.putFile(mockStateStore, inputStream, formDataContentDisposition);
+        Response response = StateQueries.putFile(mockStateStore, FILE_NAME, inputStream, formDataContentDisposition);
         assertEquals(400, response.getStatus());
         assertEquals("Stream exceeds 1024 byte size limit", response.getEntity());
     }
 
     @Test
-    public void testNoFileUpload() throws IOException {
-        when(formDataContentDisposition.getFileName()).thenReturn(null);
-        Response response = StateQueries.putFile(null, null, formDataContentDisposition);
-        assertEquals(400, response.getStatus());
-        assertEquals(StateQueries.NO_FILENAME_ERROR_MESSAGE, response.getEntity());
-    }
-
-    @Test
     public void testFailedUpload() throws IOException {
         InputStream inputStream = new ByteArrayInputStream(FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
-        when(formDataContentDisposition.getFileName()).thenReturn(FILE_NAME);
         when(formDataContentDisposition.getSize()).thenReturn(
                 (long)FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING).length);
         doThrow(new StateStoreException(new PersisterException(Reason.STORAGE_ERROR, "Failed to store")))
@@ -198,13 +188,13 @@ public class StateQueriesTest {
                         StateQueries.FILE_NAME_PREFIX + FILE_NAME,
                         FILE_CONTENT.getBytes(StateQueries.FILE_ENCODING));
 
-        Response response = StateQueries.putFile(mockStateStore, inputStream, formDataContentDisposition);
+        Response response = StateQueries.putFile(mockStateStore, FILE_NAME, inputStream, formDataContentDisposition);
         assertEquals(500, response.getStatus());
     }
 
     @Test
     public void testGettingTasksZones() {
-        TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
+        Protos.TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
         when(mockStateStore.fetchTaskNames()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
         when(mockStateStore.fetchTask(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskInfo));
         Response response = StateQueries.getTaskNamesToZones(mockStateStore);
@@ -219,7 +209,7 @@ public class StateQueriesTest {
 
     @Test
     public void testGettingSpecificTaskZone() {
-        TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
+        Protos.TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
         when(mockStateStore.fetchTaskNames()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
         when(mockStateStore.fetchTask(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskInfo));
         Response response = StateQueries.getTaskNameToZone(mockStateStore, TestConstants.TASK_NAME);
@@ -228,8 +218,8 @@ public class StateQueriesTest {
 
     @Test
     public void testGettingSpecificTaskZoneWithIP() {
-        TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
-        TaskStatus taskStatus = createTaskStatusWithIP(taskInfo, TestConstants.IP_ADDRESS);
+        Protos.TaskInfo taskInfo = createTaskInfoWithZone(TestConstants.TASK_NAME, TestConstants.ZONE);
+        Protos.TaskStatus taskStatus = createTaskStatusWithIP(taskInfo, TestConstants.IP_ADDRESS);
 
         when(mockStateStore.fetchTaskNames()).thenReturn(Arrays.asList(TestConstants.TASK_NAME));
         when(mockStateStore.fetchTask(TestConstants.TASK_NAME)).thenReturn(Optional.of(taskInfo));
@@ -242,34 +232,33 @@ public class StateQueriesTest {
         assertEquals(response.getEntity(), TestConstants.ZONE);
     }
 
-    private static TaskStatus createTaskStatusWithIP(TaskInfo taskInfo, String ipAddress) {
-        final TaskStatus taskStatus = StateStoreUtilsTest.newTaskStatus(taskInfo, TaskState.TASK_UNKNOWN);
-        return TaskStatus.newBuilder(taskStatus)
-                .setContainerStatus(ContainerStatus.newBuilder()
-                        .addNetworkInfos(
-                                NetworkInfo.newBuilder().addIpAddresses(
-                                        NetworkInfo.IPAddress.newBuilder()
-                                                .setIpAddress(ipAddress)
-                                        .build()
-                                ).build()
-                        )
-                ).build();
+    private static Protos.TaskStatus createTaskStatusWithIP(Protos.TaskInfo taskInfo, String ipAddress) {
+        return Protos.TaskStatus.newBuilder()
+                .setTaskId(taskInfo.getTaskId())
+                .setState(Protos.TaskState.TASK_UNKNOWN)
+                .setContainerStatus(Protos.ContainerStatus.newBuilder()
+                        .addNetworkInfos(Protos.NetworkInfo.newBuilder()
+                                .addIpAddresses(Protos.NetworkInfo.IPAddress.newBuilder()
+                                        .setIpAddress(ipAddress))))
+                .build();
     }
 
-    private static TaskInfo createTaskInfoWithZone(String taskName, String zone) {
-        return TaskInfo.newBuilder(StateStoreUtilsTest.createTask(taskName))
-                .setCommand(
-                        CommandInfo.newBuilder()
-                        .setEnvironment(
-                                Environment.newBuilder()
-                                .addVariables(
-                                        Environment.Variable.newBuilder()
+    private static Protos.TaskInfo createTaskInfoWithZone(String taskName, String zone) {
+        return Protos.TaskInfo.newBuilder(createTask(taskName))
+                .setCommand(Protos.CommandInfo.newBuilder()
+                        .setEnvironment(Protos.Environment.newBuilder()
+                                .addVariables(Protos.Environment.Variable.newBuilder()
                                         .setName(EnvConstants.ZONE_TASKENV)
-                                        .setValue(zone)
-                                        .build()
-                                ).build()
-                        ).build()
-                ).build();
+                                        .setValue(zone))))
+                .build();
+    }
+
+    public static Protos.TaskInfo createTask(String taskName) {
+        return Protos.TaskInfo.newBuilder()
+                .setName(taskName)
+                .setTaskId(CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName))
+                .setSlaveId(Protos.SlaveID.newBuilder().setValue("ignored")) // proto field required
+                .build();
     }
 
     private static void validateCommandResult(Response response, String commandName) {

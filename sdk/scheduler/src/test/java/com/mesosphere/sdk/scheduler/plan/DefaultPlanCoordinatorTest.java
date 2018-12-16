@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.specification.*;
@@ -88,7 +87,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                 .zookeeperConnection("foo.bar.com")
                 .pods(Arrays.asList(podA))
                 .build();
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
 
         FrameworkStore frameworkStore = new FrameworkStore(persister);
         frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
@@ -104,7 +103,7 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                         Optional.empty(),
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
-                        ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                        PodTestUtils.getTemplateUrlFactory(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Optional.empty()),
                 stateStore,
@@ -323,9 +322,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
 
     private static Collection<Protos.OfferID> getDistinctOfferIds(Collection<OfferRecommendation> recs) {
         // Each offer produces several OfferRecommendations, one per resource to reserve. Trim that down.
-        return recs.stream()
-                .map(rec -> rec.getOffer().getId())
-                .distinct()
-                .collect(Collectors.toList());
+        return recs.stream().map(rec -> rec.getOfferId()).distinct().collect(Collectors.toList());
     }
 }

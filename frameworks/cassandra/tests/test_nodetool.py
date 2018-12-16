@@ -1,6 +1,7 @@
 import pytest
 from tests import nodetool
 
+
 @pytest.mark.sanity
 def test_status_parsing():
     status = """Datacenter: datacenter1
@@ -18,10 +19,10 @@ UN  10.0.1.28   83.78 KB   256          69.3%             a553b89d-51e1-4d85-81b
     assert len(nodes) == 3
 
     test_node = nodes[1]
-    assert test_node.get_status() == 'UN'
-    assert test_node.get_address() == '10.0.1.252'
-    assert test_node.get_load() == '75.78 KB'
-    assert test_node.get_tokens() == '256'
-    assert test_node.get_owns() == '67.8%'
-    assert test_node.get_host_id() == 'e848371e-ac01-454a-bb70-f51ed96293a6'
-    assert test_node.get_rack() == 'us-west-2c'
+    assert test_node.get_status() == "UN"
+    assert test_node.get_address() == "10.0.1.252"
+    assert test_node.get_load() == "75.78 KB"
+    assert test_node.get_tokens() == "256"
+    assert test_node.get_owns() == "67.8%"
+    assert test_node.get_host_id() == "e848371e-ac01-454a-bb70-f51ed96293a6"
+    assert test_node.get_rack() == "us-west-2c"

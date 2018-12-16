@@ -24,8 +24,8 @@ import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 
-import static org.mockito.Matchers.any;
-import static org.mockito.Matchers.eq;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
@@ -63,14 +63,14 @@ public class FrameworkSchedulerTest extends DefaultCapabilitiesTestSuite {
     public void testReregister() throws PersisterException {
         scheduler.registered(mockSchedulerDriver, TestConstants.FRAMEWORK_ID, MASTER_INFO);
         verify(mockFrameworkStore).storeFrameworkId(TestConstants.FRAMEWORK_ID);
-        Assert.assertEquals(mockSchedulerDriver, Driver.getDriver().get());
+        Assert.assertEquals(mockSchedulerDriver, Driver.getInstance());
         verifyDomainIsSet(MASTER_INFO.getDomain());
         verify(mockMesosEventClient).registered(false);
         verify(mockOfferProcessor).start();
 
         // Call should be treated as a re-registration:
         scheduler.registered(mockSchedulerDriver2, TestConstants.FRAMEWORK_ID, MASTER_INFO2);
-        Assert.assertEquals(mockSchedulerDriver2, Driver.getDriver().get());
+        Assert.assertEquals(mockSchedulerDriver2, Driver.getInstance());
         verifyDomainIsSet(MASTER_INFO2.getDomain());
         verify(mockMesosEventClient).registered(true);
 

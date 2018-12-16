@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+
 import java.util.Optional;
 
 /**
@@ -10,13 +11,13 @@ import java.util.Optional;
 @JsonDeserialize(as = DefaultSecretSpec.class)
 public interface SecretSpec {
 
-    @JsonProperty("secret")
-    String getSecretPath();
+  @JsonProperty("secret")
+  String getSecretPath();
 
-    @JsonProperty("env-key")
-    Optional<String> getEnvKey();
+  @JsonProperty("env-key")
+  Optional<String> getEnvKey();
 
-    @JsonProperty("file")
-    Optional<String> getFilePath();
+  @JsonProperty("file")
+  Optional<String> getFilePath();
 
 }

@@ -5,7 +5,6 @@ import org.apache.mesos.Protos;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterUtils;
-
 import org.junit.*;
 
 import static org.junit.Assert.*;
@@ -22,7 +21,7 @@ public class FrameworkStoreTest {
 
     @Before
     public void beforeEach() throws Exception {
-        persister = new MemPersister();
+        persister = MemPersister.newBuilder().build();
         store = new FrameworkStore(persister);
     }
 
@@ -66,7 +65,7 @@ public class FrameworkStoreTest {
         store.storeFrameworkId(FRAMEWORK_ID);
         assertEquals(1, PersisterUtils.getAllKeys(persister).size());
 
-        PersisterUtils.clearAllData(store.getPersister());
+        PersisterUtils.clearAllData(persister);
 
         // Verify nothing is left under the root.
         assertTrue(PersisterUtils.getAllKeys(persister).isEmpty());

@@ -10,12 +10,12 @@ import java.util.Collection;
  */
 @JsonDeserialize(as = DefaultResourceSet.class)
 public interface ResourceSet {
-    @JsonProperty("id")
-    String getId();
+  @JsonProperty("id")
+  String getId();
 
-    @JsonProperty("resource-specifications")
-    Collection<ResourceSpec> getResources();
+  @JsonProperty("resource-specifications")
+  Collection<ResourceSpec> getResources();
 
-    @JsonProperty("volume-specifications")
-    Collection<VolumeSpec> getVolumes();
+  @JsonProperty("volume-specifications")
+  Collection<VolumeSpec> getVolumes();
 }

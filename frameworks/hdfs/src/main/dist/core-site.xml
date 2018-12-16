@@ -535,7 +535,7 @@
     <property>
         <name>hadoop.security.auth_to_local</name>
         <value>
-            {{DECODED_AUTH_TO_LOCAL}}
+            {{{DECODED_AUTH_TO_LOCAL}}}
         </value>
     </property>
 

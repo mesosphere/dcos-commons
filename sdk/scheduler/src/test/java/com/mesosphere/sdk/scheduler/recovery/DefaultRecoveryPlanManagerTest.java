@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.scheduler.recovery;
 
-import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
@@ -85,7 +84,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
         failureMonitor = spy(new TestingFailureMonitor());
         launchConstrainer = spy(new TestingLaunchConstrainer());
-        Persister persister = new MemPersister();
+        Persister persister = MemPersister.newBuilder().build();
         frameworkStore = new FrameworkStore(persister);
         stateStore = new StateStore(persister);
 
@@ -122,7 +121,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         Optional.empty(),
                         serviceSpec.getName(),
                         configTarget,
-                        ArtifactResource.getUrlFactory(TestConstants.SERVICE_NAME),
+                        PodTestUtils.getTemplateUrlFactory(),
                         SchedulerConfigTestUtils.getTestSchedulerConfig(),
                         Optional.empty()),
                 stateStore,
@@ -407,6 +406,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     }
 
     private static Collection<Protos.OfferID> distinctOffers(Collection<OfferRecommendation> recs) {
-        return recs.stream().map(rec -> rec.getOffer().getId()).distinct().collect(Collectors.toList());
+        return recs.stream().map(rec -> rec.getOfferId()).distinct().collect(Collectors.toList());
     }
 }
