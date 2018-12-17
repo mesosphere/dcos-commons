@@ -24,6 +24,7 @@ log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
 SSH_USERNAME = os.environ.get("DCOS_SSH_USERNAME", "core")
+SSH_KEY_FILE = os.environ.get("DCOS_SSH_KEY_FILE", "")
 
 # Silence this warning. We expect certs to be self-signed:
 # /usr/local/lib/python3.6/dist-packages/urllib3/connectionpool.py:857:
@@ -110,9 +111,14 @@ def cluster_request(
 
     def _cluster_request():
         start = time.time()
-        response = requests.request(
-            method, url, auth=auth, verify=False, timeout=timeout_seconds, **kwargs
-        )
+
+        # check if we have verify key already exists.
+        if kwargs is not None and kwargs.get('verify') is not None:
+            kwargs['verify'] = False
+            response = requests.request(method, url, auth=auth, timeout=timeout_seconds, **kwargs)
+        else:
+            response = requests.request(method, url, auth=auth, verify=False, timeout=timeout_seconds, **kwargs)
+
         end = time.time()
 
         log_msg = "(HTTP {}) {}".format(method.upper(), cluster_path)
@@ -360,14 +366,28 @@ def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: b
         ]
     )
 
+    direct_args = " ".join(
+        [
+            common_args,
+            # -i <identity_file>: The identity file to use for login
+            "-i {}".format(SSH_KEY_FILE) if SSH_KEY_FILE else "",
+        ]
+    )
+
+    nested_args = " ".join(
+        [
+            common_args
+        ]
+    )
+
     if os.environ.get("DCOS_SSH_DIRECT", ""):
         # Direct SSH access to the node:
-        ssh_cmd = 'ssh {} {} -- "{}"'.format(common_args, host, cmd)
+        ssh_cmd = 'ssh {} {} -- "{}"'.format(direct_args, host, cmd)
     else:
         # Nested SSH call via the proxy node. Be careful to nest quotes to match, and escape any
         # command-internal double quotes as well:
         ssh_cmd = 'ssh {} {} -- "ssh {} {} -- \\"{}\\""'.format(
-            common_args, _external_cluster_host(), common_args, host, cmd.replace('"', '\\\\\\"')
+            direct_args, _external_cluster_host(), nested_args, host, cmd.replace('"', '\\\\\\"')
         )
     log.info("SSH command: {}".format(ssh_cmd))
     rc, stdout, stderr = _run_cmd(ssh_cmd, print_output, check, timeout_seconds=timeout_seconds)
@@ -392,6 +412,8 @@ def _scp(
             # -oConnectTimeout=#: Limit the duration for the connection to be created.
             #                     We also configure a timeout for the command itself to run once connected, see below.
             "-oConnectTimeout={}".format(timeout_seconds),
+            # -i <identity_file>: The identity file to use for login
+            "-i {}".format(SSH_KEY_FILE) if SSH_KEY_FILE else "",
         ]
     )
 
@@ -404,7 +426,9 @@ def _scp(
         # -q: Don't show banner, if any is configured, and suppress other warning/diagnostic messages.
         #     In particular, avoid messages that may mess up stdout/stderr output.
         # -l <user>: Username to log in as (depends on cluster OS, default to CoreOS)
-        proxy_arg = ' -oProxyCommand="ssh {} -A -q -l {} {}:22 {}"'.format(
+        # -W <host:port>: Requests that standard input and output on the client
+        #                 be forwarded to host on port over the secure channel.
+        proxy_arg = ' -oProxyCommand="ssh {} -A -q -l {} -W {}:22 {}"'.format(
             common_args, SSH_USERNAME, host, _external_cluster_host()
         )
 
@@ -434,7 +458,7 @@ def _internal_leader_host():
     return leader_hosts[0]["ip"]
 
 
-def marathon_task_exec(task_name: str, cmd: str) -> tuple:
+def marathon_task_exec(task_name: str, cmd: str, print_output=True) -> tuple:
     """
     Invokes the given command on the named Marathon task via `dcos task exec`.
     : param task_name: Name of task to run 'cmd' on.
@@ -445,7 +469,7 @@ def marathon_task_exec(task_name: str, cmd: str) -> tuple:
               To check for errors in underlying commands, check stderr.
     """
     # Marathon TaskIDs are of the form "<name>.<uuid>"
-    return _task_exec(task_name, cmd)
+    return _task_exec(task_name, cmd, print_output=print_output)
 
 
 def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
@@ -475,18 +499,18 @@ def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
     return rc, stdout, stderr
 
 
-def _task_exec(task_id_prefix: str, cmd: str) -> tuple:
+def _task_exec(task_id_prefix: str, cmd: str, print_output=True) -> tuple:
     if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
         # On 1.9 task exec is run relative to the host filesystem, not the container filesystem
         full_cmd = os.path.join(get_task_sandbox_path(task_id_prefix), cmd)
 
         if cmd.startswith("./bootstrap"):
-            # On 1.9 we also need to set LIB_PROCESS_IP for bootstrap
+            # On 1.9 we also need to set LIBPROCESS_IP for bootstrap
             full_cmd = 'bash -c "LIBPROCESS_IP=0.0.0.0 {}"'.format(full_cmd)
     else:
         full_cmd = cmd
 
-    return run_cli("task exec {} {}".format(task_id_prefix, cmd))
+    return run_cli("task exec {} {}".format(task_id_prefix, cmd), print_output=print_output)
 
 
 def resolve_hosts(marathon_task_name: str, hosts: list, bootstrap_cmd: str = "./bootstrap") -> bool:
@@ -562,3 +586,9 @@ def _get_task_info(task_id_prefix: str) -> dict:
         ",".join([t.get("id", "NO-ID") for t in tasks]),
     )
     return {}
+
+
+def get_bash_command(cmd: str, environment: str) -> str:
+    env_str = "{} && ".format(environment) if environment else ""
+
+    return 'bash -c "{}{}"'.format(env_str, cmd)

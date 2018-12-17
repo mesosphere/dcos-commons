@@ -5,22 +5,24 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Raw YAML discovery info.
  */
-public class RawDiscovery {
-    private final String prefix;
-    private final String visibility;
+public final class RawDiscovery {
+  private final String prefix;
 
-    private RawDiscovery(
-            @JsonProperty("prefix") String prefix,
-            @JsonProperty("visibility") String visibility) {
-        this.prefix = prefix;
-        this.visibility = visibility;
-    }
+  private final String visibility;
 
-    public String getPrefix() {
-        return prefix;
-    }
+  private RawDiscovery(
+      @JsonProperty("prefix") String prefix,
+      @JsonProperty("visibility") String visibility)
+  {
+    this.prefix = prefix;
+    this.visibility = visibility;
+  }
 
-    public String getVisibility() {
-        return visibility;
-    }
+  public String getPrefix() {
+    return prefix;
+  }
+
+  public String getVisibility() {
+    return visibility;
+  }
 }

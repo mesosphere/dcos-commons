@@ -175,7 +175,7 @@ public class NamedVIPEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 ? Collections.singleton(network.get()) : Collections.emptyList();
         return new NamedVIPEvaluationStage(
                 getNamedVIPSpec(taskPort, networks),
-                TestConstants.TASK_NAME,
+                Collections.singleton(TestConstants.TASK_NAME),
                 resourceId,
                 Optional.empty());
     }

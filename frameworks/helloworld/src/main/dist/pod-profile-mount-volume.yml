@@ -1,0 +1,56 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    volume:
+      path: pod-container-path
+      profiles: [{{HELLO_VOLUME_PROFILE}}]
+      type: MOUNT
+      size: {{HELLO_DISK}}
+    tasks:
+      profile:
+        goal: RUNNING
+        essential: false
+        cmd: |
+               set -e -x
+               if [ -n "{{{TEST_PROFILE_VOLUME_COMMAND}}}" ]; then
+                   {{{TEST_PROFILE_VOLUME_COMMAND}}} pod-container-path
+                   {{{TEST_PROFILE_VOLUME_COMMAND}}} profile-container-path
+               fi
+               echo profile >> pod-container-path/output
+               echo profile >> profile-container-path/output
+               sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+          VOLUME_PROFILE: {{HELLO_VOLUME_PROFILE}}
+        volume:
+          path: profile-container-path
+          profiles: [{{HELLO_VOLUME_PROFILE}}]
+          type: MOUNT
+          size: {{HELLO_DISK}}
+      noprofile:
+        goal: RUNNING
+        essential: false
+        cmd: |
+               set -e -x
+               if [ -n "{{{TEST_PROFILE_VOLUME_COMMAND}}}" ]; then
+                   {{{TEST_PROFILE_VOLUME_COMMAND}}} pod-container-path
+                   ! {{{TEST_PROFILE_VOLUME_COMMAND}}} noprofile-container-path
+               fi
+               echo noprofile >> pod-container-path/output
+               echo noprofile >> noprofile-container-path/output
+               sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+          VOLUME_PROFILE: {{HELLO_VOLUME_PROFILE}}
+        volume:
+          path: noprofile-container-path
+          type: MOUNT
+          size: {{HELLO_DISK}}

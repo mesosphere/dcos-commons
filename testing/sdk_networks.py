@@ -49,11 +49,11 @@ def get_endpoint(package_name: str, service_name: str, endpoint_name: str) -> ty
         "10.0.1.0:1025"
       ],
       "dns": [
-        "kafka-0-broker.kafka.autoip.dcos.thisdcos.directory:1025",
-        "kafka-1-broker.kafka.autoip.dcos.thisdcos.directory:1025",
-        "kafka-2-broker.kafka.autoip.dcos.thisdcos.directory:1025"
+        "pod-0-task.service.autoip.dcos.thisdcos.directory:1025",
+        "pod-1-task.service.autoip.dcos.thisdcos.directory:1025",
+        "pod-2-task.service.autoip.dcos.thisdcos.directory:1025"
       ],
-      "vip": "broker.kafka.l4lb.thisdcos.directory:9092"
+      "vip": "task.service.l4lb.thisdcos.directory:9092"
     }
     """
     # Catch if an empty string is passed in. Technically the command would succeed and return a list of endpoint names,

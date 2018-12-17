@@ -12,45 +12,48 @@ import javax.ws.rs.core.Response;
 @Path("/v1/plan")
 public class DeprecatedPlanResource {
 
-    private static final String PLAN = "deploy";
+  private static final String PLAN = "deploy";
 
-    private final PlansResource plans;
+  private final PlansResource plans;
 
-    public DeprecatedPlanResource(PlansResource plans) {
-        this.plans = plans;
-    }
+  public DeprecatedPlanResource(PlansResource plans) {
+    this.plans = plans;
+  }
 
-    @GET
-    @Deprecated
-    public Response get() {
-        return plans.get(PLAN);
-    }
+  @GET
+  @Deprecated
+  public Response get() {
+    return plans.get(PLAN);
+  }
 
-    @POST
-    @Deprecated
-    @Path("continue")
-    public Response continuePlan() {
-        return plans.continuePlan(PLAN, null);
-    }
+  @POST
+  @Deprecated
+  @Path("continue")
+  public Response continuePlan() {
+    return plans.continuePlan(PLAN, null);
+  }
 
-    @POST
-    @Deprecated
-    @Path("interrupt")
-    public Response interrupt() {
-        return plans.interrupt(PLAN, null);
-    }
+  @POST
+  @Deprecated
+  @Path("interrupt")
+  public Response interrupt() {
+    return plans.interrupt(PLAN, null);
+  }
 
-    @POST
-    @Deprecated
-    @Path("forceComplete")
-    public Response forceComplete(@QueryParam("phase") String phaseId, @QueryParam("step") String stepId) {
-        return plans.forceComplete(PLAN, phaseId, stepId);
-    }
+  @POST
+  @Deprecated
+  @Path("forceComplete")
+  public Response forceComplete(
+      @QueryParam("phase") String phaseId,
+      @QueryParam("step") String stepId)
+  {
+    return plans.forceComplete(PLAN, phaseId, stepId);
+  }
 
-    @POST
-    @Deprecated
-    @Path("restart")
-    public Response restart(@QueryParam("phase") String phaseId, @QueryParam("step") String stepId) {
-        return plans.restart(PLAN, phaseId, stepId);
-    }
+  @POST
+  @Deprecated
+  @Path("restart")
+  public Response restart(@QueryParam("phase") String phaseId, @QueryParam("step") String stepId) {
+    return plans.restart(PLAN, phaseId, stepId);
+  }
 }

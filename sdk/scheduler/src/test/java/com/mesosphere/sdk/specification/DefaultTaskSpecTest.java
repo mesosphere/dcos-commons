@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
@@ -31,9 +32,8 @@ public class DefaultTaskSpecTest {
                                 TestConstants.ROLE,
                                 TestConstants.PRE_RESERVED_ROLE,
                                 TestConstants.PRINCIPAL))
-                        .volumes(Collections.singleton(new DefaultVolumeSpec(
+                        .volumes(Collections.singleton(DefaultVolumeSpec.createRootVolume(
                                 100,
-                                VolumeSpec.Type.ROOT,
                                 TestConstants.CONTAINER_PATH,
                                 TestConstants.ROLE,
                                 TestConstants.PRE_RESERVED_ROLE,
@@ -61,6 +61,7 @@ public class DefaultTaskSpecTest {
                         .visibility(Protos.DiscoveryInfo.Visibility.CLUSTER)
                         .build())
                 .taskKillGracePeriodSeconds(DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT)
+                .taskLabels(TestConstants.LABELS)
                 .build();
 
         DefaultTaskSpec clone = DefaultTaskSpec.newBuilder(original).build();

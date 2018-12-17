@@ -3,6 +3,9 @@ package com.mesosphere.sdk.offer;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
+
+import java.util.Optional;
+
 import org.apache.mesos.Protos;
 import org.junit.Assert;
 import org.junit.Test;
@@ -18,7 +21,7 @@ public class UnreserveOfferRecommendationTest extends DefaultCapabilitiesTestSui
         Protos.Offer offer = OfferTestUtils.getOffer(resource);
 
         UnreserveOfferRecommendation unreserveOfferRecommendation = new UnreserveOfferRecommendation(offer, resource);
-        Protos.Offer.Operation operation = unreserveOfferRecommendation.getOperation();
+        Protos.Offer.Operation operation = unreserveOfferRecommendation.getOperation().get();
         Assert.assertEquals(1, operation.getUnreserve().getResourcesCount());
 
         Protos.Resource opResource = operation.getUnreserve().getResources(0);
@@ -32,11 +35,11 @@ public class UnreserveOfferRecommendationTest extends DefaultCapabilitiesTestSui
 
     @Test
     public void testUnreserveMountDisk() {
-        Protos.Resource resource = ResourceTestUtils.getReservedMountVolume(1);
+        Protos.Resource resource = ResourceTestUtils.getReservedMountVolume(1, Optional.empty());
         Protos.Offer offer = OfferTestUtils.getOffer(resource);
 
         UnreserveOfferRecommendation unreserveOfferRecommendation = new UnreserveOfferRecommendation(offer, resource);
-        Protos.Offer.Operation operation = unreserveOfferRecommendation.getOperation();
+        Protos.Offer.Operation operation = unreserveOfferRecommendation.getOperation().get();
         Assert.assertEquals(1, operation.getUnreserve().getResourcesCount());
 
         Protos.Resource opResource = operation.getUnreserve().getResources(0);

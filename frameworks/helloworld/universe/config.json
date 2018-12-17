@@ -58,6 +58,11 @@
           "type": "boolean",
           "default": true
         },
+        "test_profile_volume_command": {
+          "description": "A shell command to test if a given path is on a profile volume, or empty for no test",
+          "type": "string",
+          "default": ""
+        },
         "scenario": {
           "description": "A comma-separated list of SDK customization scenarios to perform on the service(s)",
           "type": "string",
@@ -85,6 +90,7 @@
             "pause",
             "plan",
             "pod-mount-volume",
+            "pod-profile-mount-volume",
             "pre-reserved",
             "pre-reserved-sidecar",
             "secrets",
@@ -97,6 +103,7 @@
             "uri",
             "web-url",
             "non_recoverable_state",
+            "crash-loop",
             ""
           ],
           "default": "svc"
@@ -128,8 +135,36 @@
           },
           "description": "Placement constraint for the hello-world scheduler",
           "default": []
+        },
+        "verbose_mesos_logging": {
+          "description": "Sets the value of GLOG_v env-var used by Mesos. Enabled by default, set to 0 to disable.",
+          "type": "integer",
+          "enum": [0, 1],
+          "default": 1
         }
       }
+    },
+    "debug" : {
+      "description": "Config to start the scheduler with remote debug options enabled. THIS SHOULD NOT HAVE ANY DEFAULTS",
+      "type": "object",
+      "properties" : {
+        "suspend": {
+          "description": "Suspend the JVM until a debugger is attached",
+          "type": "string",
+          "enum":[
+            "y",
+            "n"
+          ]
+        },
+        "address": {
+          "description": "Interface to listen. This is a string to support *:6242 style to bind to all interfaces",
+          "type": "string"
+        }
+      },
+      "required": [
+        "suspend",
+        "address"
+      ]
     },
     "hello": {
       "description": "Hello pod configuration properties",
@@ -154,6 +189,11 @@
           "description": "Hello pod persistent disk requirements (in MB)",
           "type": "integer",
           "default": 25
+        },
+        "volume_profile": {
+          "description": "Hello pod persistent volume profile requirements",
+          "type": "string",
+          "default": ""
         },
         "count": {
           "description": "Number of Hello pods to run",
@@ -187,6 +227,11 @@
           "description": "any arbitrary port can be used",
           "type": "integer",
           "default": 1729
+        },
+        "labels": {
+          "description": "labels",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [

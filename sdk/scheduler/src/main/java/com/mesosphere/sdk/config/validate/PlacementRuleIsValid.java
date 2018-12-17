@@ -18,38 +18,45 @@ import java.util.stream.Collectors;
  * A {@link ConfigValidator} that checks for valid placement constraints.
  */
 public class PlacementRuleIsValid implements ConfigValidator<ServiceSpec> {
-    @Override
-    public Collection<ConfigValidationError> validate(Optional<ServiceSpec> oldConfig, ServiceSpec newConfig) {
-        List<PodSpec> podSpecs = newConfig.getPods().stream()
-                .filter(podSpec -> podSpec.getPlacementRule().isPresent())
-                .collect(Collectors.toList());
+  @Override
+  public Collection<ConfigValidationError> validate(
+      Optional<ServiceSpec> oldConfig,
+      ServiceSpec newConfig)
+  {
+    List<PodSpec> podSpecs = newConfig.getPods().stream()
+        .filter(podSpec -> podSpec.getPlacementRule().isPresent())
+        .collect(Collectors.toList());
 
-        List<ConfigValidationError> errors = new ArrayList<>();
-        for (final PodSpec podSpec : podSpecs) {
-            PlacementRule placementRule = podSpec.getPlacementRule().get();
+    List<ConfigValidationError> errors = new ArrayList<>();
+    for (final PodSpec podSpec : podSpecs) {
+      PlacementRule placementRule = podSpec.getPlacementRule().get();
 
-            if (!isValid(placementRule)) {
-                String errMsg = String.format(
-                        "The PlacementRule for PodSpec '%s' had invalid constraints",
-                        podSpec.getType());
-                errors.add(ConfigValidationError.valueError("PlacementRule", placementRule.toString(), errMsg));
-            }
-        }
-
-        return errors;
+      if (!isValid(placementRule)) {
+        String errMsg = String.format(
+            "The PlacementRule for PodSpec '%s' had invalid constraints",
+            podSpec.getType());
+        errors.add(ConfigValidationError.valueError(
+            "PlacementRule",
+            placementRule.toString(),
+            errMsg
+        ));
+      }
     }
 
-    /**
-     * A placement rule is valid none of its children are invalid and it is valid.
-     */
-    private boolean isValid(final PlacementRule rule) {
-        if (rule instanceof OrRule) {
-            return ((OrRule) rule).getRules().stream().allMatch(r -> isValid(r));
-        } else if (rule instanceof AndRule) {
-            return ((AndRule) rule).getRules().stream().allMatch(r -> isValid(r));
-        } else {
-            return !(rule instanceof InvalidPlacementRule);
-        }
+    return errors;
+  }
+
+  /**
+   * A placement rule is valid none of its children are invalid and it is valid.
+   */
+  private boolean isValid(final PlacementRule rule) {
+    if (rule instanceof OrRule) {
+      return ((OrRule) rule).getRules().stream().allMatch(this::isValid);
+    } else if (rule instanceof AndRule) {
+      return ((AndRule) rule).getRules().stream().allMatch(this::isValid);
+    } else {
+      return !(rule instanceof InvalidPlacementRule);
     }
+  }
 
 }

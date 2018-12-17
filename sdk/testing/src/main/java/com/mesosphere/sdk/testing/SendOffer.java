@@ -1,7 +1,6 @@
 package com.mesosphere.sdk.testing;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,14 +21,6 @@ import com.mesosphere.sdk.specification.VolumeSpec;
  * test.
  */
 public class SendOffer implements Send {
-
-    /**
-     * Default executors have an additional overhead of 0.1 CPU, 32MB RAM, and 256MB disk.
-     */
-    private static final List<Protos.Resource> DEFAULT_EXECUTOR_RESOURCES = Arrays.asList(
-            toUnreservedResource(Constants.CPUS_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_CPUS), false),
-            toUnreservedResource(Constants.MEMORY_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_MEMORY), false),
-            toUnreservedResource(Constants.DISK_RESOURCE_TYPE, scalar(Constants.DEFAULT_EXECUTOR_DISK), false));
 
     private final String podType;
     private final Optional<String> podToReuse;
@@ -173,7 +164,8 @@ public class SendOffer implements Send {
         // Note that if custom executors are being exercised, these marginal resources are not used and are effectively
         // just ignored.
         if (!podToReuse.isPresent()) {
-            offerBuilder.addAllResources(DEFAULT_EXECUTOR_RESOURCES);
+            offerBuilder.addResources(
+                    toUnreservedResource(Constants.CPUS_RESOURCE_TYPE, ServiceTestRunner.EXECUTOR_CPUS, false));
         }
 
         return offerBuilder.build();
@@ -213,12 +205,5 @@ public class SendOffer implements Send {
         }
 
         return resourceBuilder.build();
-    }
-
-    private static Protos.Value scalar(double val) {
-        Protos.Value.Builder builder = Protos.Value.newBuilder()
-                .setType(Protos.Value.Type.SCALAR);
-        builder.getScalarBuilder().setValue(val);
-        return builder.build();
     }
 }

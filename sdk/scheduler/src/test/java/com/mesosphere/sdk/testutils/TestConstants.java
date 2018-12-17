@@ -4,6 +4,9 @@ import org.apache.mesos.Protos;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 
+import java.util.Map;
+import java.util.HashMap;
+
 /**
  * This class encapsulates constants for tests.
  */
@@ -41,8 +44,15 @@ public class TestConstants {
     public static final Integer PORT_API_VALUE = 8080;
     public static final String HAS_DYNAMIC_PORT_ASSIGNMENT_LABEL = "has-dynamic-port-assignment";
     public static final String HAS_VIP_LABEL = "hasvip";
-    public static final String MOUNT_SOURCE_ROOT = "/mnt/source";
+    public static final Protos.Resource.DiskInfo.Source MOUNT_DISK_SOURCE =
+            Protos.Resource.DiskInfo.Source.newBuilder()
+                    .setType(Protos.Resource.DiskInfo.Source.Type.MOUNT)
+                    .setMount(Protos.Resource.DiskInfo.Source.Mount.newBuilder().setRoot("/mnt/source"))
+                    .build();
     public static final String IP_ADDRESS = "localhost";
+    public static final Map<String, String> LABELS = getDefaultLabels();
+
+
 
     // CNI port mapping constants
     public static final int HOST_PORT = 4040;
@@ -103,5 +113,11 @@ public class TestConstants {
                         .setZone(Protos.DomainInfo.FaultDomain.ZoneInfo.newBuilder().setName(TestConstants.ZONE))
                         .setRegion(Protos.DomainInfo.FaultDomain.RegionInfo.newBuilder().setName(region)))
                 .build();
+    }
+
+    private static final Map<String, String> getDefaultLabels() {
+        Map<String, String> labels = new HashMap<String, String>();
+        labels.put("label1", "label1-value");
+        return labels;
     }
 }

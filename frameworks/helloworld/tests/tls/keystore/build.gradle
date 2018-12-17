@@ -1,41 +1,13 @@
+plugins {
+  id "com.github.johnrengelman.shadow" version "2.0.4"
+  id 'application'
+}
+
 group 'com.mesosphere.sdk'
 version '0.1-SNAPSHOT'
 
-buildscript {
-    repositories {
-        jcenter()
-        mavenLocal()
-        mavenCentral()
-        maven {
-            url 'http://downloads.mesosphere.com/maven/'
-        }
-        maven {
-            url 'http://downloads.mesosphere.com/maven-snapshot/'
-        }
-    }
-    dependencies {
-        classpath "com.github.jengelman.gradle.plugins:shadow:2.0.1"
-    }
-}
-
-apply plugin: "com.github.johnrengelman.shadow"
-apply plugin: 'java'
-apply plugin: 'application'
-
 ext {
     dropwizardVer = '1.1.2'
-}
-
-repositories {
-    jcenter()
-    mavenLocal()
-    mavenCentral()
-    maven {
-        url 'http://downloads.mesosphere.com/maven/'
-    }
-    maven {
-        url 'http://downloads.mesosphere.com/maven-snapshot/'
-    }
 }
 
 dependencies {

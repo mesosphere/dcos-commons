@@ -1,9 +1,12 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.specification.DefaultVolumeSpec;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.testutils.DefaultCapabilitiesTestSuite;
 import com.mesosphere.sdk.testutils.OfferTestUtils;
 import com.mesosphere.sdk.testutils.ResourceTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
+
 import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.Offer;
 import org.apache.mesos.Protos.Resource;
@@ -11,6 +14,7 @@ import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
@@ -26,7 +30,7 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testCreateSingleUnreservedAtomicPool() {
-        Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedMountVolume(1000));
+        Offer offer = OfferTestUtils.getOffer(ResourceTestUtils.getUnreservedMountVolume(1000, Optional.empty()));
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 
         Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
@@ -35,7 +39,7 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testCreateSingleReservedAtomicPool() {
-        Resource resource = ResourceTestUtils.getReservedMountVolume(1000);
+        Resource resource = ResourceTestUtils.getReservedMountVolume(1000, Optional.empty());
         Offer offer = OfferTestUtils.getOffer(resource);
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         String resourceId = new MesosResource(resource).getResourceId().get();
@@ -47,7 +51,7 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testMultipleUnreservedAtomicPool() {
-        Resource resource = ResourceTestUtils.getUnreservedMountVolume(1000);
+        Resource resource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.empty());
         Offer offer = OfferTestUtils.getOffer(Arrays.asList(resource, resource));
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 
@@ -57,15 +61,91 @@ public class MesosResourcePoolTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testConsumeUnreservedAtomicResource() {
-        Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000);
-        Protos.Value resourceValue = ValueUtils.getValue(offerResource);
+        Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.empty());
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
+                ValueUtils.getValue(offerResource).getScalar().getValue(),
+                TestConstants.CONTAINER_PATH,
+                Collections.emptyList(),
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL);
         Offer offer = OfferTestUtils.getOffer(offerResource);
         MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
 
         Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
-        MesosResource resourceToConsume = pool.consumeAtomic(offerResource.getName(), resourceValue).get();
+        MesosResource resourceToConsume = pool.consumeAtomic(offerResource.getName(), spec).get();
         Assert.assertEquals(offerResource, resourceToConsume.getResource());
         Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
+    }
+
+    @Test
+    public void testConsumeUnreservedAtomicResourceMatchedProfile() {
+        Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.of("bar"));
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
+                ValueUtils.getValue(offerResource).getScalar().getValue(),
+                TestConstants.CONTAINER_PATH,
+                Arrays.asList("foo", "bar"),
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL);
+        Offer offer = OfferTestUtils.getOffer(offerResource);
+        MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+
+        Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
+        MesosResource resourceToConsume = pool.consumeAtomic(offerResource.getName(), spec).get();
+        Assert.assertEquals(offerResource, resourceToConsume.getResource());
+        Assert.assertEquals(0, pool.getUnreservedAtomicPool().size());
+    }
+
+    @Test
+    public void testConsumeUnreservedAtomicResourceUnmatchedProfile1() {
+        Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.of("bar"));
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
+                ValueUtils.getValue(offerResource).getScalar().getValue(),
+                TestConstants.CONTAINER_PATH,
+                Arrays.asList("foo"),
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL);
+        Offer offer = OfferTestUtils.getOffer(offerResource);
+        MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+
+        Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
+        Assert.assertFalse(pool.consumeAtomic(offerResource.getName(), spec).isPresent());
+    }
+
+    @Test
+    public void testConsumeUnreservedAtomicResourceUnmatchedProfile2() {
+        Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.empty());
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
+                ValueUtils.getValue(offerResource).getScalar().getValue(),
+                TestConstants.CONTAINER_PATH,
+                Arrays.asList("foo", "bar"),
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL);
+        Offer offer = OfferTestUtils.getOffer(offerResource);
+        MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+
+        Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
+        Assert.assertFalse(pool.consumeAtomic(offerResource.getName(), spec).isPresent());
+    }
+
+    @Test
+    public void testConsumeUnreservedAtomicResourceUnmatchedProfile3() {
+        Resource offerResource = ResourceTestUtils.getUnreservedMountVolume(1000, Optional.of("bar"));
+        VolumeSpec spec = DefaultVolumeSpec.createMountVolume(
+                ValueUtils.getValue(offerResource).getScalar().getValue(),
+                TestConstants.CONTAINER_PATH,
+                Collections.emptyList(),
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL);
+        Offer offer = OfferTestUtils.getOffer(offerResource);
+        MesosResourcePool pool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
+
+        Assert.assertEquals(1, pool.getUnreservedAtomicPool().size());
+        Assert.assertFalse(pool.consumeAtomic(offerResource.getName(), spec).isPresent());
     }
 
     @Test

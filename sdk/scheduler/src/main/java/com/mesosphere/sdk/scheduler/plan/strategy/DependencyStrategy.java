@@ -12,20 +12,23 @@ import java.util.Collection;
  * @param <C> is the type of {@link Element}s to which the Strategy applies.
  */
 public class DependencyStrategy<C extends Element> extends InterruptibleStrategy<C> {
-    private final DependencyStrategyHelper<C> helper;
+  private final DependencyStrategyHelper<C> helper;
 
-    public DependencyStrategy(DependencyStrategyHelper<C> helper) {
-        this.helper = helper;
-    }
+  public DependencyStrategy(DependencyStrategyHelper<C> helper) {
+    this.helper = helper;
+  }
 
-    @Override
-    public Collection<C> getCandidates(Collection<C> elements, Collection<PodInstanceRequirement> dirtyAssets) {
-        // Fixed prerequites as defined in the provided helper:
-        return helper.getCandidates(isInterrupted(), dirtyAssets);
-    }
+  @Override
+  public Collection<C> getCandidates(
+      Collection<C> elements,
+      Collection<PodInstanceRequirement> dirtyAssets)
+  {
+    // Fixed prerequisites as defined in the provided helper:
+    return helper.getCandidates(isInterrupted(), dirtyAssets);
+  }
 
-    @Override
-    public String getName() {
-        return "dependency";
-    }
+  @Override
+  public String getName() {
+    return "dependency";
+  }
 }

@@ -9,6 +9,6 @@ import java.io.IOException;
  */
 public interface TokenProvider {
 
-    public DecodedJWT getToken() throws IOException;
+  DecodedJWT getToken() throws IOException;
 
 }

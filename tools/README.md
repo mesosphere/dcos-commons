@@ -147,22 +147,21 @@ AWS_SECRET_ACCESS_KEY=devKeySecret \
 S3_BUCKET=devBucket \
 S3_DIR_PATH=dcosArtifacts/dev \
 ./build_package.sh \
-    kafka \
-    /path/to/dcos-commons/frameworks/kafka
-    -a kafka/scheduler.zip \
-    -a kafka/executor.zip \
-    -a kafka/cli/dcos-service-cli.exe \
-    -a kafka/cli/dcos-service-cli-dawin \
-    -a kafka/cli/dcos-service-cli-linux
+    helloworld \
+    /path/to/dcos-commons/frameworks/helloworld
+    -a helloworld/scheduler.zip \
+    -a helloworld/cli/dcos-service-cli.exe \
+    -a helloworld/cli/dcos-service-cli-dawin \
+    -a helloworld/cli/dcos-service-cli-linux
     aws
 [...]
 ---
 Built and uploaded stub universe:
-http://devBucket.s3.amazonaws.com/dcosArtifacts/dev/kafka/20160818-094133-hrjUfhcmQoznFVGP/stub-universe-kafka.zip
+http://devBucket.s3.amazonaws.com/dcosArtifacts/dev/helloworld/20160818-094133-hrjUfhcmQoznFVGP/stub-universe-helloworld.zip
 
 $ dcos package repo add --index=0 foo \
-http://devBucket.s3.amazonaws.com/dcosArtifacts/dev/kafka/20160818-094133-hrjUfhcmQoznFVGP/stub-universe-kafka.zip
-$ dcos package install kafka
+http://devBucket.s3.amazonaws.com/dcosArtifacts/dev/helloworld/20160818-094133-hrjUfhcmQoznFVGP/stub-universe-helloworld.zip
+$ dcos package install helloworld
 [... normal usage from here ...]
 ```
 
