@@ -1,0 +1,1 @@
+../dist/java-dns-ttl.sh
