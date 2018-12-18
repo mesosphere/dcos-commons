@@ -56,7 +56,7 @@ google-auth==1.6.1
 google-auth-httplib2==0.0.3
 httplib2==0.12.0
 identify==1.1.7
-idna==2.7
+idna==2.8
 isodate==0.6.0
 isort==4.3.4
 jeepney==0.4
@@ -85,7 +85,7 @@ pyasn1==0.4.4
 pyasn1-modules==0.2.2
 pycodestyle==2.4.0
 pycparser==2.19
-pycryptodome==3.7.2
+pycryptodome==3.7.0
 pyflakes==1.6.0
 Pygments==2.2.0
 pygobject==3.26.1
