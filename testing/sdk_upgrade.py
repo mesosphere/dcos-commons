@@ -49,7 +49,8 @@ def test_upgrade(
 
     universe_version = None
     try:
-        # Move the Universe repo to the top of the repo list so that we can first install the release version.
+        # Move the Universe repo to the top of the repo list so that we can first install the
+        # release version.
         sdk_repository.remove_repo("Universe")
         assert sdk_repository.add_repo("Universe", universe_url, 0)
         log.info(
@@ -71,7 +72,8 @@ def test_upgrade(
         )
     finally:
         if universe_version:
-            # Return the Universe repo back to the bottom of the repo list so that we can upgrade to the build version.
+            # Return the Universe repo back to the bottom of the repo list so that we can upgrade to
+            # the build version.
             sdk_repository.remove_repo("Universe")
             assert sdk_repository.add_repo("Universe", universe_url)
             log.info(
@@ -94,8 +96,8 @@ def test_upgrade(
 
 
 # In the soak cluster, we assume that the Universe version of the framework is already installed.
-# Also, we assume that the Universe is the default repo (at --index=0) and the stub repos are already in place,
-# so we don't need to add or remove any repos.
+# Also, we assume that the Universe is the default repo (at --index=0) and the stub repos are
+# already in place, so we don't need to add or remove any repos.
 #
 # (1) Upgrades to test version of framework.
 # (2) Downgrades to Universe version.
@@ -215,7 +217,8 @@ def _update_service_with_cli(
     sdk_cmd.svc_cli(package_name, service_name, " ".join(update_cmd), check=True)
     if to_package_version:
         # we must manually upgrade the package CLI because it's not done automatically in this flow
-        # (and why should it? that'd imply the package CLI replacing itself via a call to the main CLI...)
+        # (and why should it? that'd imply the package CLI replacing itself via a call to the main
+        # CLI...)
         sdk_cmd.run_cli(
             "package install --yes --cli --package-version={} {}".format(
                 to_package_version, package_name

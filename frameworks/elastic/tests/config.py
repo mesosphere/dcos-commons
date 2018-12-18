@@ -27,7 +27,7 @@ XPACK_PLUGIN_NAME = "x-pack"
 # - ingest: 0
 # - coordinator: 1
 DEFAULT_TASK_COUNT = 6
-# TODO: add and use throughout a method to determine expected task count based on options .
+# TODO: add and use throughout a method to determine expected task count based on options.
 #       the method should provide for use cases:
 #         * total count, ie 6
 #         * count for a specific type, ie 3
@@ -123,11 +123,12 @@ def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAU
 )
 def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
     task_sandbox = sdk_cmd.get_task_sandbox_path(service_name)
-    # Environment variables aren't available on DC/OS 1.9 so we manually inject
-    # MESOS_SANDBOX (and can't use ELASTIC_VERSION).
+    # Environment variables aren't available on DC/OS 1.9 so we manually inject MESOS_SANDBOX (and
+    # can't use ELASTIC_VERSION).
     #
-    # TODO(mpereira): improve this by making task environment variables
-    # available in task_exec commands on 1.9.
+    # TODO(mpereira): improve this by making task environment variables available in task_exec
+    # commands on 1.9.
+    #
     # Ticket: https://jira.mesosphere.com/browse/INFINITY-3360
     cmd = "bash -c 'KIBANA_DIRECTORY=$(ls -d {}/kibana-*-linux-x86_64); $KIBANA_DIRECTORY/bin/kibana-plugin list'".format(
         task_sandbox
@@ -259,8 +260,9 @@ def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
     return _curl_query(service_name, "GET", "_nodes")
 
 
-# Here we only retry if the command itself failed, or if the data couldn't be parsed as JSON when return_json=True.
-# Upstream callers may want to have their own retry loop against the content of the returned data (e.g. expected field is missing).
+# Here we only retry if the command itself failed, or if the data couldn't be parsed as JSON when
+# return_json=True. Upstream callers may want to have their own retry loop against the content of
+# the returned data (e.g. expected field is missing).
 @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: res is None)
 def _curl_query(
     service_name, method, endpoint, json_data=None, role="master", https=False, return_json=True
@@ -297,9 +299,11 @@ def _curl_query(
 
 
 def _master_zero_http_port(service_name):
-    '''Returns a master node hostname+port endpoint that can be queried from within the cluster.
-    We cannot cache this value because while the hostnames remain static, the ports are dynamic and may change if the master is replaced.
-    '''
+    """Returns a master node hostname+port endpoint that can be queried from within the cluster. We
+    cannot cache this value because while the hostnames remain static, the ports are dynamic and may
+    change if the master is replaced.
+
+    """
     dns = sdk_networks.get_endpoint(PACKAGE_NAME, service_name, "master-http")["dns"]
     # 'dns' array will look something like this in CCM: [
     #   "master-0-node.[svcname].[...autoip...]:1027",
