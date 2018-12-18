@@ -47,12 +47,13 @@ pods:
           size: {{MASTER_NODE_DISK}}
         cmd: |
           set -e
-          
+
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
           ./java-dns-ttl.sh
           ./install-plugins.sh
           ./setup-java-policy.sh
           ./bootstrap
+
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
           DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
@@ -130,11 +131,13 @@ pods:
           size: {{DATA_NODE_DISK}}
         cmd: |
           set -e
+
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
           ./java-dns-ttl.sh
           ./install-plugins.sh
           ./setup-java-policy.sh
           ./bootstrap
+
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
@@ -210,11 +213,13 @@ pods:
           size: {{INGEST_NODE_DISK}}
         cmd: |
           set -e
+
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
           ./java-dns-ttl.sh
           ./install-plugins.sh
           ./setup-java-policy.sh
           ./bootstrap
+
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
@@ -290,11 +295,13 @@ pods:
           size: {{COORDINATOR_NODE_DISK}}
         cmd: |
           set -e
+
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
           ./java-dns-ttl.sh
           ./install-plugins.sh
           ./setup-java-policy.sh
           ./bootstrap
+
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
