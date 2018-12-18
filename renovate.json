@@ -1,4 +1,7 @@
 {
+  "assignees" : [
+    "takirala"
+  ],  
   "extends": [
     "config:base"
   ],
@@ -18,5 +21,6 @@
   "ignorePaths": [
     "frameworks/*/universe*/package.json"
   ],
-  "renovateFork": true
+  "renovateFork": true,
+  "rebaseStalePrs": false
 }
