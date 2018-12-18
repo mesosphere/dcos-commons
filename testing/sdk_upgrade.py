@@ -202,21 +202,29 @@ def _update_service_with_cli(
     package_name, service_name, to_package_version=None, additional_options=None
 ):
     update_cmd = ["update", "start"]
+
     if to_package_version:
         ensure_cli_supports_service_version_upgrade()
         update_cmd.append("--package-version={}".format(to_package_version))
         log.info("Using CLI to upgrade %s to version [%s]", service_name, to_package_version)
     else:
         log.info("Using CLI to update %s", service_name)
+
     if additional_options:
         ensure_cli_supports_service_options_update()
         options_file = tempfile.NamedTemporaryFile("w")
         json.dump(additional_options, options_file)
         options_file.flush()  # ensure json content is available for the CLI to read below
         update_cmd.append("--options={}".format(options_file.name))
-    sdk_cmd.svc_cli(package_name, service_name, " ".join(update_cmd), check=True)
+
+    rc, _, _ = sdk_cmd.svc_cli(package_name, service_name, " ".join(update_cmd))
+    if rc != 0:
+        # Since `sdk_cmd.svc_cli` should already have output error details, so we just raise an
+        # exception.
+        raise Exception("{} update failed".format(service_name))
+
     if to_package_version:
-        # we must manually upgrade the package CLI because it's not done automatically in this flow
+        # We must manually upgrade the package CLI because it's not done automatically in this flow
         # (and why should it? that'd imply the package CLI replacing itself via a call to the main
         # CLI...)
         sdk_cmd.run_cli(
