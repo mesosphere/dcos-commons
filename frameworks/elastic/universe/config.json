@@ -354,8 +354,8 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "xpack_enabled": {
-          "description": "Whether or not to enable the commercial X-Pack plugin from Elastic",
+        "xpack_security_enabled": {
+          "description": "Set it to true to enable X-Pack security on all nodes. Defaults to false",
           "type": "boolean",
           "default": false
         },
@@ -857,6 +857,11 @@
           "description": "The cache is managed at the node level, and has a default maximum size of 1% of the heap. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
+        },
+        "xpack_enabled": {
+          "description": "[DEPRECATED] X-Pack is enabled by default on Elastic 6.3+. Changing this setting has no effect.",
+          "type": "boolean",
+          "default": true
         },
         "http_content_type_required": {
           "description": "[DEPRECATED] Starting from Elasticseach 6.0, this setting is no longer configurable and defaults to true. Changing this setting has no effect.",

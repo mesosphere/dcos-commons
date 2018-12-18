@@ -74,7 +74,7 @@ def kibana_application(elastic_service):
             expected_running_tasks=0,
             additional_options={
                 "kibana": {
-                    "xpack_enabled": True,
+                    "elasticsearch_xpack_security_enabled": True,
                     "elasticsearch_tls": True,
                     "elasticsearch_url": elasticsearch_url,
                 }
