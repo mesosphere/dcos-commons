@@ -38,7 +38,7 @@ botocore==1.12.67
 cached-property==1.5.1
 cachetools==2.1.0
 Cerberus==1.2
-certifi==2018.10.15
+certifi==2018.11.29
 cffi==1.11.5
 cfgv==1.1.0
 chardet==3.0.4
