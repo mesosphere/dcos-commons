@@ -38,7 +38,7 @@ botocore==1.12.64
 cached-property==1.5.1
 cachetools==2.1.0
 Cerberus==1.2
-certifi==2018.10.15
+certifi==2018.11.29
 cffi==1.11.5
 cfgv==1.1.0
 chardet==3.0.4
@@ -85,7 +85,7 @@ pyasn1==0.4.4
 pyasn1-modules==0.2.2
 pycodestyle==2.3.1
 pycparser==2.19
-pycryptodome==3.7.2
+pycryptodome==3.7.0
 pyflakes==1.6.0
 Pygments==2.2.0
 pygobject==3.26.1
