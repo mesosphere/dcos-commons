@@ -1,13 +1,15 @@
 import logging
 
+from toolz import get_in
 import pytest
+
 import sdk_cmd
 import sdk_hosts
 import sdk_install
-import sdk_marathon
 import sdk_metrics
 import sdk_networks
 import sdk_plan
+import sdk_service
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
@@ -66,26 +68,27 @@ def default_populated_index():
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_pod_replace_then_immediate_config_update():
-    plugin_name = "analysis-phonetic"
-
-    cfg = sdk_marathon.get_config(foldered_name)
-    cfg["env"]["TASKCFG_ALL_ELASTICSEARCH_PLUGINS"] = plugin_name
-    cfg["env"]["UPDATE_STRATEGY"] = "parallel"
-
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace data-0")
 
-    # issue config update immediately
-    sdk_marathon.update_app(cfg)
+    plugins = "analysis-phonetic"
 
-    # ensure all nodes, especially data-0, get launched with the updated config
-    config.check_elasticsearch_plugin_installed(plugin_name, service_name=foldered_name)
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        foldered_name,
+        {"service": {"update_strategy": "parallel"}, "elasticsearch": {"plugins": plugins}},
+        current_expected_task_count,
+    )
+
+    # Ensure all nodes, especially data-0, get launched with the updated config.
+    config.check_elasticsearch_plugin_installed(plugins, service_name=foldered_name)
     sdk_plan.wait_for_completed_deployment(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.sanity
 def test_endpoints():
-    # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
+    # Check that we can reach the scheduler via admin router, and that returned endpoints are
+    # sanitized.
     for endpoint in config.ENDPOINT_TYPES:
         endpoints = sdk_networks.get_endpoint(config.PACKAGE_NAME, foldered_name, endpoint)
         host = endpoint.split("-")[0]  # 'coordinator-http' => 'coordinator'
@@ -145,33 +148,50 @@ def test_metrics():
 
 @pytest.mark.sanity
 def test_custom_yaml_base64():
-    # apply this custom YAML block as a base64-encoded string:
+    # Apply this custom YAML block as a base64-encoded string:
+
     # cluster:
     #   routing:
     #     allocation:
     #       node_initial_primaries_recoveries: 3
+
     # The default value is 4. We're just testing to make sure the YAML formatting survived intact and the setting
     # got updated in the config.
-    base64_str = "Y2x1c3RlcjoNCiAgcm91dGluZzoNCiAgICBhbGxvY2F0aW9uOg0KIC" "AgICAgbm9kZV9pbml0aWFsX3ByaW1hcmllc19yZWNvdmVyaWVzOiAz"
+    base64_elasticsearch_yml = "Y2x1c3RlcjoNCiAgcm91dGluZzoNCiAgICBhbGxvY2F0aW9uOg0KICAgICAgbm9kZV9pbml0aWFsX3ByaW1hcmllc19yZWNvdmVyaWVzOiAz"
 
-    config.update_app(
-        foldered_name, {"CUSTOM_YAML_BLOCK_BASE64": base64_str}, current_expected_task_count
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        foldered_name,
+        {"elasticsearch": {"custom_elasticsearch_yml": base64_elasticsearch_yml}},
+        current_expected_task_count,
     )
+
     config.check_custom_elasticsearch_cluster_setting(service_name=foldered_name)
-    sdk_plan.wait_for_completed_deployment(foldered_name)
-    sdk_plan.wait_for_completed_recovery(foldered_name)
 
 
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
-def test_xpack_toggle_with_kibana(default_populated_index):
-    log.info("\n***** Verify X-Pack disabled by default in elasticsearch")
+def test_security_toggle_with_kibana(default_populated_index):
+    # Verify that commercial APIs are disabled by default in Elasticsearch.
     config.verify_commercial_api_status(False, service_name=foldered_name)
 
-    log.info("\n***** Test kibana with X-Pack disabled...")
+    # Write some data with security disabled, enabled security, and afterwards verify that we can
+    # still read what we wrote.
+    document_security_disabled_id = 1
+    document_security_disabled_fields = {"name": "Elasticsearch", "role": "search engine"}
+    config.create_document(
+        config.DEFAULT_INDEX_NAME,
+        config.DEFAULT_INDEX_TYPE,
+        document_security_disabled_id,
+        document_security_disabled_fields,
+        service_name=foldered_name,
+    )
+
+    # Verify that basic license is enabled by default.
+    config.verify_xpack_license("basic", service_name=foldered_name)
+
+    # Install Kibana.
     elasticsearch_url = "http://" + sdk_hosts.vip_host(foldered_name, "coordinator", 9200)
-    # It can take several minutes for kibana's health check to start passing once it's running.
-    # Therefore we use a 30m timeout instead of the 15m default.
     sdk_install.install(
         config.KIBANA_PACKAGE_NAME,
         config.KIBANA_PACKAGE_NAME,
@@ -181,68 +201,127 @@ def test_xpack_toggle_with_kibana(default_populated_index):
         wait_for_deployment=False,
         insert_strict_options=False,
     )
+
+    # Verify that it works.
     config.check_kibana_adminrouter_integration("service/{}/".format(config.KIBANA_PACKAGE_NAME))
-    log.info("Uninstall kibana with X-Pack disabled")
+
+    # Uninstall it.
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
-    log.info(
-        "\n***** Set/verify X-Pack enabled in elasticsearch. Requires parallel upgrade strategy for full restart."
+    # Enable Elasticsearch security.
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        foldered_name,
+        {
+            "elasticsearch": {"xpack_security_enabled": True},
+            "service": {"update_strategy": "parallel"},
+        },
+        current_expected_task_count,
     )
-    config.set_xpack(True, service_name=foldered_name)
-    config.check_elasticsearch_plugin_installed(
-        config.XPACK_PLUGIN_NAME, service_name=foldered_name
-    )
-    config.verify_commercial_api_status(True, service_name=foldered_name)
-    config.verify_xpack_license(service_name=foldered_name)
 
-    log.info(
-        "\n***** Write some data while enabled, disable X-Pack, and verify we can still read what we wrote."
+    # This should still be disabled.
+    config.verify_commercial_api_status(False, service_name=foldered_name)
+
+    # Start trial license.
+    config.start_trial_license(service_name=foldered_name)
+
+    # Set up passwords. Basic HTTP credentials will have to be used in HTTP requests to
+    # Elasticsearch from now on.
+    passwords = config.setup_passwords(foldered_name)
+
+    # Verify trial license is working.
+    config.verify_xpack_license(
+        "trial",
+        service_name=foldered_name,
+        http_user=config.DEFAULT_ELASTICSEARCH_USER,
+        http_password=passwords["elastic"],
     )
+    config.verify_commercial_api_status(
+        True,
+        service_name=foldered_name,
+        http_user=config.DEFAULT_ELASTICSEARCH_USER,
+        http_password=passwords["elastic"],
+    )
+
+    # Write some data with security enabled, disable security, and afterwards verify that we can
+    # still read what we wrote.
+    document_security_enabled_id = 2
+    document_security_enabled_fields = {"name": "X-Pack", "role": "commercial plugin"}
     config.create_document(
         config.DEFAULT_INDEX_NAME,
         config.DEFAULT_INDEX_TYPE,
-        2,
-        {"name": "X-Pack", "role": "commercial plugin"},
+        document_security_enabled_id,
+        document_security_enabled_fields,
         service_name=foldered_name,
+        http_user=config.DEFAULT_ELASTICSEARCH_USER,
+        http_password=passwords["elastic"],
     )
 
-    log.info("\n***** Test kibana with X-Pack enabled...")
-    log.info(
-        "\n***** Installing Kibana w/X-Pack can exceed default 15 minutes for Marathon "
-        "deployment to complete due to a configured HTTP health check. (typical: 12 minutes)"
-    )
+    # Install Kibana with security enabled.
     sdk_install.install(
         config.KIBANA_PACKAGE_NAME,
         config.KIBANA_PACKAGE_NAME,
         0,
-        {"kibana": {"elasticsearch_url": elasticsearch_url, "xpack_enabled": True}},
+        {
+            "kibana": {
+                "elasticsearch_url": elasticsearch_url,
+                "elasticsearch_xpack_security_enabled": True,
+                "user": config.DEFAULT_KIBANA_USER,
+                "password": passwords["kibana"],
+            }
+        },
         timeout_seconds=config.KIBANA_DEFAULT_TIMEOUT,
         wait_for_deployment=False,
         insert_strict_options=False,
     )
-    config.check_kibana_plugin_installed(
-        config.XPACK_PLUGIN_NAME, service_name=config.KIBANA_PACKAGE_NAME
-    )
+
+    # Verify that it works. Notice that with security enabled, one has to access
+    # /service/kibana/login instead of /service/kibana.
     config.check_kibana_adminrouter_integration(
         "service/{}/login".format(config.KIBANA_PACKAGE_NAME)
     )
-    log.info("\n***** Uninstall kibana with X-Pack enabled")
+
+    # Uninstall it.
     sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
 
-    log.info("\n***** Disable X-Pack in elasticsearch.")
-    config.set_xpack(False, service_name=foldered_name)
-    log.info("\n***** Verify we can still read what we wrote when X-Pack was enabled.")
-    config.verify_commercial_api_status(False, service_name=foldered_name)
-    doc = config.get_document(
-        config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 2, service_name=foldered_name
+    # Disable Elastic security.
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        foldered_name,
+        {
+            "elasticsearch": {"xpack_security_enabled": False},
+            "service": {"update_strategy": "parallel"},
+        },
+        current_expected_task_count,
     )
-    assert doc["_source"]["name"] == "X-Pack"
 
-    # reset upgrade strategy to serial
-    config.update_app(foldered_name, {"UPDATE_STRATEGY": "serial"}, current_expected_task_count)
+    # Verify we can read what was written before toggling security, without basic HTTP credentials.
+    document_security_disabled = config.get_document(
+        config.DEFAULT_INDEX_NAME,
+        config.DEFAULT_INDEX_TYPE,
+        document_security_disabled_id,
+        service_name=foldered_name,
+    )
+    assert (
+        document_security_disabled["_source"]["name"] == document_security_disabled_fields["name"]
+    )
 
-    sdk_plan.wait_for_completed_deployment(foldered_name)
-    sdk_plan.wait_for_completed_recovery(foldered_name)
+    # Verify we can read what was written when security was enabled, without basic HTTP credentials.
+    document_security_enabled = config.get_document(
+        config.DEFAULT_INDEX_NAME,
+        config.DEFAULT_INDEX_TYPE,
+        document_security_enabled_id,
+        service_name=foldered_name,
+    )
+    assert document_security_enabled["_source"]["name"] == document_security_enabled_fields["name"]
+
+    # Set update_strategy back to serial.
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        foldered_name,
+        {"service": {"update_strategy": "serial"}},
+        current_expected_task_count,
+    )
 
 
 @pytest.mark.recovery
@@ -289,8 +368,9 @@ def test_master_reelection():
 @pytest.mark.recovery
 @pytest.mark.sanity
 def test_master_node_replace():
-    # Ideally, the pod will get placed on a different agent. This test will verify that the remaining two masters
-    # find the replaced master at its new IP address. This requires a reasonably low TTL for Java DNS lookups.
+    # Ideally, the pod will get placed on a different agent. This test will verify that the
+    # remaining two masters find the replaced master at its new IP address. This requires a
+    # reasonably low TTL for Java DNS lookups.
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace master-0")
     sdk_plan.wait_for_in_progress_recovery(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
@@ -314,41 +394,66 @@ def test_coordinator_node_replace():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-@pytest.mark.timeout(60 * 60)
+@pytest.mark.timeout(15 * 60)
 def test_plugin_install_and_uninstall(default_populated_index):
-    plugin_name = "analysis-icu"
-    config.update_app(
+    plugins = "analysis-icu"
+
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
         foldered_name,
-        {"TASKCFG_ALL_ELASTICSEARCH_PLUGINS": plugin_name},
+        {"elasticsearch": {"plugins": plugins}},
         current_expected_task_count,
     )
-    config.check_elasticsearch_plugin_installed(plugin_name, service_name=foldered_name)
 
-    config.update_app(
-        foldered_name, {"TASKCFG_ALL_ELASTICSEARCH_PLUGINS": ""}, current_expected_task_count
+    config.check_elasticsearch_plugin_installed(plugins, service_name=foldered_name)
+
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        foldered_name,
+        {"elasticsearch": {"plugins": ""}},
+        current_expected_task_count,
     )
-    config.check_elasticsearch_plugin_uninstalled(plugin_name, service_name=foldered_name)
-    sdk_plan.wait_for_completed_deployment(foldered_name)
-    sdk_plan.wait_for_completed_recovery(foldered_name)
+
+    config.check_elasticsearch_plugin_uninstalled(plugins, service_name=foldered_name)
 
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_bump_node_counts():
-    # bump ingest and coordinator, but NOT data, which is bumped in the following test.
-    # we want to avoid adding two data nodes because the cluster sometimes won't have enough room for it
-    marathon_config = sdk_marathon.get_config(foldered_name)
-    ingest_nodes = int(marathon_config["env"]["INGEST_NODE_COUNT"])
-    marathon_config["env"]["INGEST_NODE_COUNT"] = str(ingest_nodes + 1)
-    coordinator_nodes = int(marathon_config["env"]["COORDINATOR_NODE_COUNT"])
-    marathon_config["env"]["COORDINATOR_NODE_COUNT"] = str(coordinator_nodes + 1)
-    sdk_marathon.update_app(marathon_config)
-    sdk_plan.wait_for_completed_deployment(foldered_name)
+def test_add_ingest_and_coordinator_nodes_does_not_restart_master_or_data_nodes():
+    initial_master_task_ids = sdk_tasks.get_task_ids(foldered_name, "master")
+    initial_data_task_ids = sdk_tasks.get_task_ids(foldered_name, "data")
+
+    # Get service configuration.
+    _, svc_config, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, "describe", parse_json=True
+    )
+
+    ingest_nodes_count = get_in(["ingest_nodes", "count"], svc_config)
+    coordinator_nodes_count = get_in(["coordinator_nodes", "count"], svc_config)
+
     global current_expected_task_count
+
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        foldered_name,
+        {
+            "ingest_nodes": {"count": ingest_nodes_count + 1},
+            "coordinator_nodes": {"count": coordinator_nodes_count + 1},
+        },
+        current_expected_task_count,
+        # As of 2018-12-14, sdk_upgrade's `wait_for_deployment` has different behavior than
+        # sdk_install's (which is what we wanted here), so don't use it. Check manually afterwards
+        # with `sdk_tasks.check_running`.
+        wait_for_deployment=False,
+    )
+
+    # Should be running 2 tasks more.
     current_expected_task_count += 2
     sdk_tasks.check_running(foldered_name, current_expected_task_count)
-    sdk_plan.wait_for_completed_deployment(foldered_name)
-    sdk_plan.wait_for_completed_recovery(foldered_name)
+    # Master nodes should not restart.
+    sdk_tasks.check_tasks_not_updated(foldered_name, "master", initial_master_task_ids)
+    # Data nodes should not restart.
+    sdk_tasks.check_tasks_not_updated(foldered_name, "data", initial_data_task_ids)
 
 
 @pytest.mark.recovery
@@ -357,16 +462,186 @@ def test_adding_data_node_only_restarts_masters():
     initial_master_task_ids = sdk_tasks.get_task_ids(foldered_name, "master")
     initial_data_task_ids = sdk_tasks.get_task_ids(foldered_name, "data")
     initial_coordinator_task_ids = sdk_tasks.get_task_ids(foldered_name, "coordinator")
-    marathon_config = sdk_marathon.get_config(foldered_name)
-    data_nodes = int(marathon_config["env"]["DATA_NODE_COUNT"])
-    marathon_config["env"]["DATA_NODE_COUNT"] = str(data_nodes + 1)
-    sdk_marathon.update_app(marathon_config)
-    sdk_plan.wait_for_completed_deployment(foldered_name)
+
+    # Get service configuration.
+    _, svc_config, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME, foldered_name, "describe", parse_json=True
+    )
+
+    data_nodes_count = get_in(["data_nodes", "count"], svc_config)
+
     global current_expected_task_count
+
+    # Increase the data nodes count by 1.
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        foldered_name,
+        {"data_nodes": {"count": data_nodes_count + 1}},
+        current_expected_task_count,
+        # As of 2018-12-14, sdk_upgrade's `wait_for_deployment` has different behavior than
+        # sdk_install's (which is what we wanted here), so don't use it. Check manually afterwards
+        # with `sdk_tasks.check_running`.
+        wait_for_deployment=False,
+    )
+
+    sdk_plan.wait_for_kicked_off_deployment(foldered_name)
+    sdk_plan.wait_for_completed_deployment(foldered_name)
+
+    _, new_data_pod_info, _ = sdk_cmd.svc_cli(
+        config.PACKAGE_NAME,
+        foldered_name,
+        "pod info data-{}".format(data_nodes_count),
+        parse_json=True,
+    )
+
+    # Get task ID for new data node task.
+    new_data_task_id = get_in([0, "info", "taskId", "value"], new_data_pod_info)
+
+    # Should be running 1 task more.
     current_expected_task_count += 1
     sdk_tasks.check_running(foldered_name, current_expected_task_count)
+    # Master nodes should restart.
     sdk_tasks.check_tasks_updated(foldered_name, "master", initial_master_task_ids)
-    sdk_tasks.check_tasks_not_updated(foldered_name, "data", initial_data_task_ids)
+    # Data node tasks should be the initial ones plus the new one.
+    sdk_tasks.check_tasks_not_updated(
+        foldered_name, "data", initial_data_task_ids + [new_data_task_id]
+    )
+    # Coordinator tasks should not restart.
     sdk_tasks.check_tasks_not_updated(foldered_name, "coordinator", initial_coordinator_task_ids)
-    sdk_plan.wait_for_completed_deployment(foldered_name)
-    sdk_plan.wait_for_completed_recovery(foldered_name)
+
+
+# TODO(mpereira): it is safe to remove this test after the 6.x release.
+@pytest.mark.sanity
+@pytest.mark.timeout(20 * 60)
+def test_xpack_upgrade_matrix():
+    log.info("X-Pack from 'enabled' to 'enabled'")
+    sdk_upgrade.test_upgrade(
+        config.PACKAGE_NAME,
+        foldered_name,
+        config.DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": True}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_enabled": True},
+        },
+    )
+
+    config.wait_for_expected_nodes_to_exist(
+        service_name=foldered_name, task_count=current_expected_task_count
+    )
+
+    log.info("X-Pack from 'enabled' to 'disabled'")
+    sdk_upgrade.test_upgrade(
+        config.PACKAGE_NAME,
+        foldered_name,
+        config.DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": True}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_enabled": False},
+        },
+    )
+
+    config.wait_for_expected_nodes_to_exist(
+        service_name=foldered_name, task_count=current_expected_task_count
+    )
+
+    log.info("X-Pack from 'disabled' to 'disabled'")
+    sdk_upgrade.test_upgrade(
+        config.PACKAGE_NAME,
+        foldered_name,
+        config.DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": False}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_enabled": False},
+        },
+    )
+
+    config.wait_for_expected_nodes_to_exist(
+        service_name=foldered_name, task_count=current_expected_task_count
+    )
+
+    log.info("X-Pack from 'disabled' to 'enabled'")
+    sdk_upgrade.test_upgrade(
+        config.PACKAGE_NAME,
+        foldered_name,
+        config.DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": False}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_enabled": True},
+        },
+    )
+
+    config.wait_for_expected_nodes_to_exist(
+        service_name=foldered_name, task_count=current_expected_task_count
+    )
+
+
+@pytest.mark.sanity
+@pytest.mark.timeout(60 * 60)
+def test_xpack_security_enabled_upgrade_matrix():
+    log.info("From X-Pack 'enabled' to X-Pack security 'enabled'")
+    sdk_upgrade.test_upgrade(
+        config.PACKAGE_NAME,
+        foldered_name,
+        config.DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": True}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_security_enabled": True},
+        },
+    )
+
+    config.wait_for_expected_nodes_to_exist(
+        service_name=foldered_name, task_count=current_expected_task_count
+    )
+
+    log.info("From X-Pack 'enabled' to X-Pack security 'disabled'")
+    sdk_upgrade.test_upgrade(
+        config.PACKAGE_NAME,
+        foldered_name,
+        config.DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": True}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_security_enabled": False},
+        },
+    )
+
+    config.wait_for_expected_nodes_to_exist(
+        service_name=foldered_name, task_count=current_expected_task_count
+    )
+
+    log.info("From X-Pack 'disabled' to X-Pack security 'disabled'")
+    sdk_upgrade.test_upgrade(
+        config.PACKAGE_NAME,
+        foldered_name,
+        config.DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": False}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_security_enabled": False},
+        },
+    )
+
+    config.wait_for_expected_nodes_to_exist(
+        service_name=foldered_name, task_count=current_expected_task_count
+    )
+
+    log.info("From X-Pack 'disabled' to X-Pack security 'enabled'")
+    sdk_upgrade.test_upgrade(
+        config.PACKAGE_NAME,
+        foldered_name,
+        config.DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": False}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_security_enabled": True},
+        },
+    )
+
+    config.wait_for_expected_nodes_to_exist(
+        service_name=foldered_name, task_count=current_expected_task_count
+    )

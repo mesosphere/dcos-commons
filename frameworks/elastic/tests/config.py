@@ -1,5 +1,6 @@
 import json
 import logging
+import re
 import retrying
 
 import sdk_cmd
@@ -15,11 +16,14 @@ log = logging.getLogger(__name__)
 PACKAGE_NAME = "elastic"
 SERVICE_NAME = "elastic"
 
+DEFAULT_ELASTICSEARCH_USER = "elastic"
+DEFAULT_ELASTICSEARCH_PASSWORD = "changeme"
+DEFAULT_KIBANA_USER = "kibana"
+DEFAULT_KIBANA_PASSWORD = "changeme"
+
 KIBANA_PACKAGE_NAME = "kibana"
 KIBANA_SERVICE_NAME = "kibana"
-KIBANA_DEFAULT_TIMEOUT = 30 * 60
-
-XPACK_PLUGIN_NAME = "x-pack"
+KIBANA_DEFAULT_TIMEOUT = 5 * 60
 
 # sum of default pod counts, with one task each:
 # - master: 3
@@ -71,7 +75,7 @@ DEFAULT_SETTINGS_MAPPINGS = {
     retry_on_result=lambda res: not res,
 )
 def check_kibana_adminrouter_integration(path):
-    curl_cmd = 'curl -I -k -H "Authorization: token={}" -s {}/{}'.format(
+    curl_cmd = 'curl -L -I -k -H "Authorization: token={}" -s {}/{}'.format(
         sdk_utils.dcos_token(), sdk_utils.dcos_url().rstrip("/"), path.lstrip("/")
     )
     rc, stdout, _ = sdk_cmd.master_ssh(curl_cmd)
@@ -81,8 +85,16 @@ def check_kibana_adminrouter_integration(path):
 @retrying.retry(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
-def check_elasticsearch_index_health(index_name, color, service_name=SERVICE_NAME):
-    result = _curl_query(service_name, "GET", "_cluster/health/{}".format(index_name))
+def check_elasticsearch_index_health(
+    index_name, color, service_name=SERVICE_NAME, http_user=None, http_password=None
+):
+    result = _curl_query(
+        service_name,
+        "GET",
+        "_cluster/health/{}?pretty".format(index_name),
+        http_user=http_user,
+        http_password=http_password,
+    )
     return result and result["status"] == color
 
 
@@ -168,46 +180,79 @@ def get_elasticsearch_master(service_name=SERVICE_NAME):
     return False
 
 
-@retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
-def verify_commercial_api_status(is_enabled, service_name=SERVICE_NAME):
+@retrying.retry(wait_fixed=1000, stop_max_delay=30 * 1000, retry_on_result=lambda res: not res)
+def verify_graph_explore_endpoint(
+    is_expected_to_be_enabled, service_name=SERVICE_NAME, http_user=None, http_password=None
+):
+    index_name = "graph_index"
+
+    create_index(
+        index_name,
+        DEFAULT_SETTINGS_MAPPINGS,
+        service_name=service_name,
+        http_user=http_user,
+        http_password=http_password,
+    )
+
     query = {
         "query": {"match": {"name": "*"}},
         "vertices": [{"field": "name"}],
         "connections": {"vertices": [{"field": "role"}]},
     }
 
-    # The graph endpoint doesn't exist without X-Pack installed.
-    # In that case Elasticsearch returns a plain text error:
-    # "No handler found for uri [/INDEX_NAME/_xpack/graph/explore] and method [POST]"
-    response = _curl_query(
-        service_name,
-        "POST",
-        "{}/_xpack/_graph/_explore".format(DEFAULT_INDEX_NAME),
-        json_data=query,
-        return_json=is_enabled,
+    response = explore_graph(
+        service_name, index_name, query, http_user=http_user, http_password=http_password
     )
-    if is_enabled:
-        return is_graph_endpoint_active(response)
-    else:
-        return "No handler found" in response
+
+    delete_index(
+        index_name, service_name=service_name, http_user=http_user, http_password=http_password
+    )
+
+    return is_expected_to_be_enabled == is_graph_explore_endpoint_active(response)
 
 
-# The graph endpoint response looks something like:
-# {
-#   "took": 200,
-#   "timed_out": false,
-#   "failures": [],
-#   "vertices": [],
-#   "connections": []
-# }
-def is_graph_endpoint_active(response):
-    return isinstance(response["vertices"], list) and isinstance(response["connections"], list)
+def verify_commercial_api_status(
+    is_expected_to_be_enabled, service_name=SERVICE_NAME, http_user=None, http_password=None
+):
+    return verify_graph_explore_endpoint(
+        is_expected_to_be_enabled, service_name, http_user=http_user, http_password=http_password
+    )
 
 
-def set_xpack(is_enabled, service_name=SERVICE_NAME):
-    # Toggling X-Pack requires full cluster restart, not a rolling restart
-    options = {"TASKCFG_ALL_XPACK_ENABLED": str(is_enabled).lower(), "UPDATE_STRATEGY": "parallel"}
-    update_app(service_name, options, DEFAULT_TASK_COUNT)
+# On Elastic 6.x, the "Graph Explore API" is available when the Elasticsearch cluster is configured
+# with a "trial" X-Pack license. When configured with a "basic" license (the default) the API will
+# respond with an HTTP 403.
+#
+# A "Graph Explore API" response will look something like:
+#   1. With a "trial" license:
+#   {
+#     "took": 183,
+#     "timed_out": false,
+#     "failures": [],
+#     "vertices": [...],
+#     "connections": [...]
+#   }
+#
+#   2. With a "basic" license:
+#   {
+#     "error": {
+#       "root_cause": [
+#         {
+#           "type": "security_exception",
+#           "reason": "current license is non-compliant for [graph]",
+#           "license.expired.feature": "graph"
+#         }
+#       ],
+#       "type": "security_exception",
+#       "reason": "current license is non-compliant for [graph]",
+#       "license.expired.feature": "graph"
+#     },
+#     "status": 403
+#   }
+def is_graph_explore_endpoint_active(response):
+    return isinstance(response.get("vertices"), list) and isinstance(
+        response.get("connections"), list
+    )
 
 
 def update_app(service_name, options, expected_task_count):
@@ -218,41 +263,142 @@ def update_app(service_name, options, expected_task_count):
     sdk_tasks.check_running(service_name, expected_task_count)
 
 
+def get_xpack_license(service_name=SERVICE_NAME, http_user=None, http_password=None):
+    return _curl_query(
+        service_name, "GET", "_xpack/license", http_user=http_user, http_password=http_password
+    )
+
+
 @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
-def verify_xpack_license(service_name=SERVICE_NAME):
-    xpack_license = _curl_query(service_name, "GET", "_xpack/license")
-    if "license" not in xpack_license:
-        log.warning("Missing 'license' key in _xpack/license response: {}".format(xpack_license))
+def verify_xpack_license(
+    license_type, service_name=SERVICE_NAME, http_user=None, http_password=None
+):
+    response = get_xpack_license(service_name, http_user=http_user, http_password=http_password)
+
+    if "license" not in response:
+        log.warning("Missing 'license' key in _xpack/license response: {}".format(response))
         return False  # retry
-    assert xpack_license["license"]["status"] == "active"
+
+    assert response["license"]["status"] == "active"
+    assert response["license"]["type"] == license_type
+
     return True  # done
+
+
+@retrying.retry(
+    wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda return_value: not return_value
+)
+def setup_passwords(service_name=SERVICE_NAME, task_name="master-0-node"):
+    cmd = "\n".join(
+        [
+            "set -x",
+            "export JAVA_HOME=$(ls -d ${MESOS_SANDBOX}/jdk*/jre/)",
+            "ELASTICSEARCH_PATH=$(ls -d ${MESOS_SANDBOX}/elasticsearch-*/)",
+            "${ELASTICSEARCH_PATH}/bin/elasticsearch-setup-passwords auto --batch --verbose",
+        ]
+    )
+    full_cmd = "bash -c '{}'".format(cmd)
+    _, stdout, _ = sdk_cmd.service_task_exec(service_name, task_name, full_cmd)
+
+    elastic_password = re.search("PASSWORD elastic = (.*)", stdout).group(1)
+    kibana_password = re.search("PASSWORD kibana = (.*)", stdout).group(1)
+
+    if not elastic_password or not kibana_password:
+        # Retry.
+        return False
+
+    return {"elastic": elastic_password, "kibana": kibana_password}
+
+
+def explore_graph(
+    service_name=SERVICE_NAME,
+    index_name=DEFAULT_INDEX_NAME,
+    query={},
+    http_user=None,
+    http_password=None,
+):
+    return _curl_query(
+        service_name,
+        "POST",
+        "{}/_xpack/_graph/_explore".format(index_name),
+        json_data=query,
+        http_user=http_user,
+        http_password=http_password,
+    )
+
+
+def start_trial_license(service_name=SERVICE_NAME):
+    return _curl_query(service_name, "POST", "_xpack/license/start_trial?acknowledge=true")
 
 
 def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
     return _curl_query(service_name, "GET", "{}/_stats".format(index_name))
 
 
-def create_index(index_name, params, service_name=SERVICE_NAME, https=False):
-    return _curl_query(service_name, "PUT", index_name, json_data=params, https=https)
+def create_index(
+    index_name, params, service_name=SERVICE_NAME, https=False, http_user=None, http_password=None
+):
+    return _curl_query(
+        service_name,
+        "PUT",
+        index_name,
+        json_data=params,
+        https=https,
+        http_user=http_user,
+        http_password=http_password,
+    )
 
 
-def delete_index(index_name, service_name=SERVICE_NAME, https=False):
-    return _curl_query(service_name, "DELETE", index_name, https=https)
+def delete_index(
+    index_name, service_name=SERVICE_NAME, https=False, http_user=None, http_password=None
+):
+    return _curl_query(
+        service_name,
+        "DELETE",
+        index_name,
+        https=https,
+        http_user=http_user,
+        http_password=http_password,
+    )
 
 
-def create_document(index_name, index_type, doc_id, params, service_name=SERVICE_NAME, https=False):
+def create_document(
+    index_name,
+    index_type,
+    doc_id,
+    params,
+    service_name=SERVICE_NAME,
+    https=False,
+    http_user=None,
+    http_password=None,
+):
     return _curl_query(
         service_name,
         "PUT",
         "{}/{}/{}?refresh=wait_for".format(index_name, index_type, doc_id),
         json_data=params,
         https=https,
+        http_user=http_user,
+        http_password=http_password,
     )
 
 
-def get_document(index_name, index_type, doc_id, service_name=SERVICE_NAME, https=False):
+def get_document(
+    index_name,
+    index_type,
+    doc_id,
+    service_name=SERVICE_NAME,
+    https=False,
+    http_user=None,
+    http_password=None,
+):
     return _curl_query(
-        service_name, "GET", "{}/{}/{}".format(index_name, index_type, doc_id), https=https
+        service_name,
+        "GET",
+        "{}/{}/{}".format(index_name, index_type, doc_id),
+        https=https,
+        http_user=http_user,
+        http_password=http_password,
     )
 
 
@@ -265,17 +411,40 @@ def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
 # the returned data (e.g. expected field is missing).
 @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: res is None)
 def _curl_query(
-    service_name, method, endpoint, json_data=None, role="master", https=False, return_json=True
+    service_name,
+    method,
+    endpoint,
+    json_data=None,
+    role="master",
+    https=False,
+    return_json=True,
+    http_user=DEFAULT_ELASTICSEARCH_USER,
+    http_password=DEFAULT_ELASTICSEARCH_PASSWORD,
 ):
     protocol = "https" if https else "http"
+
+    if http_password and not http_user:
+        raise Exception(
+            "HTTP authentication won't work with just a password. Needs at least user, or both user AND password"
+        )
+
+    credentials = ""
+    if http_user:
+        credentials = "-u {}".format(http_user)
+    if http_password:
+        credentials = "{}:{}".format(credentials, http_password)
+
     host = sdk_hosts.autoip_host(
         service_name, "{}-0-node".format(role), _master_zero_http_port(service_name)
     )
-    curl_cmd = "/opt/mesosphere/bin/curl -sS -u elastic:changeme -X{} '{}://{}/{}'".format(
-        method, protocol, host, endpoint
+
+    curl_cmd = "/opt/mesosphere/bin/curl -sS {} -X{} '{}://{}/{}'".format(
+        credentials, method, protocol, host, endpoint
     )
+
     if json_data:
         curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
+
     task_name = "master-0-node"
     exit_code, stdout, stderr = sdk_cmd.service_task_exec(service_name, task_name, curl_cmd)
 
