@@ -29,7 +29,7 @@ cluster.routing.allocation.awareness.attributes: zone
 {{#MASTER_ENABLED}}
 gateway.expected_master_nodes: 3
 gateway.expected_data_nodes: {{DATA_NODE_COUNT}}
-gateway.recover_after_master_nodes: 3
+gateway.recover_after_master_nodes: 2
 gateway.recover_after_data_nodes: {{DATA_NODE_COUNT}}
 gateway.recover_after_time: {{GATEWAY_RECOVER_AFTER_TIME}}
 node.master: true
