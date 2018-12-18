@@ -1,7 +1,7 @@
 {
-  "assignees" : [
+  "assignees": [
     "takirala"
-  ],  
+  ],
   "extends": [
     "config:base"
   ],
@@ -21,6 +21,13 @@
   "ignorePaths": [
     "frameworks/*/universe*/package.json"
   ],
+  "rebaseStalePrs": false,
   "renovateFork": true,
-  "rebaseStalePrs": false
+  "reviewers": [
+    "kvish",
+    "takirala"
+  ],
+  "schedule": [
+    "on saturday"
+  ]
 }
