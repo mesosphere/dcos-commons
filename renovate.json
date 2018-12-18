@@ -1,4 +1,7 @@
 {
+  "assignees" : [
+    "takirala"
+  ],  
   "extends": [
     "config:base"
   ],
