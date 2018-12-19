@@ -41,6 +41,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 frameworkStore,
                 stateStore,
                 Optional.empty(),
+                Optional.empty(),
                 TestConstants.SERVICE_NAME,
                 targetConfig,
                 PodTestUtils.getTemplateUrlFactory(),

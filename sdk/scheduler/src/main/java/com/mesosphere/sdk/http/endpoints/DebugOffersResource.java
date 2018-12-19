@@ -1,7 +1,7 @@
 package com.mesosphere.sdk.http.endpoints;
 
 
-import com.mesosphere.sdk.debug.OfferOutcomeTracker;
+import com.mesosphere.sdk.debug.OfferOutcomeTrackerV2;
 
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
@@ -12,8 +12,8 @@ import javax.ws.rs.core.Response;
  */
 @Path("/v2/debug")
 public class DebugOffersResource {
-  private final OfferOutcomeTracker offersTracker;
-  public DebugOffersResource(OfferOutcomeTracker statusesTracker) {
+  private final OfferOutcomeTrackerV2 offersTracker;
+  public DebugOffersResource(OfferOutcomeTrackerV2 statusesTracker) {
     this.offersTracker = statusesTracker;
   }
   /**

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.debug.OfferOutcomeTrackerV2;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.LoggingUtils;
@@ -73,6 +74,8 @@ public class OfferEvaluator {
 
   private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
 
+  private final Optional<OfferOutcomeTrackerV2> offerOutcomeTrackerV2;
+
   private final String serviceName;
 
   private final UUID targetConfigId;
@@ -87,6 +90,7 @@ public class OfferEvaluator {
       FrameworkStore frameworkStore,
       StateStore stateStore,
       Optional<OfferOutcomeTracker> offerOutcomeTracker,
+      Optional<OfferOutcomeTrackerV2> offerOutcomeTrackerV2,
       String serviceName,
       UUID targetConfigId,
       ArtifactQueries.TemplateUrlFactory templateUrlFactory,
@@ -102,6 +106,7 @@ public class OfferEvaluator {
     this.templateUrlFactory = templateUrlFactory;
     this.schedulerConfig = schedulerConfig;
     this.resourceNamespace = resourceNamespace;
+    this.offerOutcomeTrackerV2 = offerOutcomeTrackerV2;
   }
 
   public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
@@ -154,6 +159,8 @@ public class OfferEvaluator {
         outcomes.add(outcome);
         if (!outcome.isPassing()) {
           failedOutcomeCount++;
+          offerOutcomeTrackerV2.ifPresent(
+              tracker -> tracker.getSummary().addFailure(outcome.getSource(), resourcePool.getOffer().getSlaveId().getValue()));
         }
       }
 
@@ -182,6 +189,14 @@ public class OfferEvaluator {
               offer,
               outcomeDetails.toString()));
         }
+        if(offerOutcomeTrackerV2.isPresent()) {
+          offerOutcomeTrackerV2.get().getSummary().incrementFalureCount();
+          offerOutcomeTrackerV2.get().getSummary().addOffer(new OfferOutcomeTrackerV2.OfferOutcomeV2(
+              podInstanceRequirement.getName(),
+              false,
+              offer.toString(),
+              outcomeDetails.toString()));
+        }
       } else {
         List<OfferRecommendation> recommendations = outcomes.stream()
             .map(outcome -> outcome.getOfferRecommendations())
@@ -199,6 +214,15 @@ public class OfferEvaluator {
               podInstanceRequirement.getName(),
               true,
               offer,
+              outcomeDetails.toString()));
+        }
+
+        if(offerOutcomeTrackerV2.isPresent()) {
+          offerOutcomeTrackerV2.get().getSummary().incrementAcceptedCount();
+          offerOutcomeTrackerV2.get().getSummary().addOffer(new OfferOutcomeTrackerV2.OfferOutcomeV2(
+              podInstanceRequirement.getName(),
+              true,
+              offer.toString(),
               outcomeDetails.toString()));
         }
 
