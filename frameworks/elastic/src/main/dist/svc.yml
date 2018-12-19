@@ -46,13 +46,19 @@ pods:
           type: {{MASTER_NODE_DISK_TYPE}}
           size: {{MASTER_NODE_DISK}}
         cmd: |
-          set -e
+          set -ex
 
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          ./java-dns-ttl.sh
-          ./install-plugins.sh
-          ./setup-java-policy.sh
+
+          mkdir scripts
+
           ./bootstrap
+
+          chmod -R +x scripts
+
+          ./scripts/java-dns-ttl.sh
+          ./scripts/install-plugins.sh
+          ./scripts/setup-java-policy.sh
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
@@ -65,18 +71,18 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
-          elasticsearch_yml:
+          elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
-          install_plugins_sh:
+          install-plugins.sh:
             template: install-plugins.sh
-            dest: install-plugins.sh
-          java_dns_ttl_sh:
+            dest: scripts/install-plugins.sh
+          java-dns-ttl.sh:
             template: java-dns-ttl.sh
-            dest: java-dns-ttl.sh
-          setup_java_policy_sh:
+            dest: scripts/java-dns-ttl.sh
+          setup-java-policy.sh:
             template: setup-java-policy.sh
-            dest: setup-java-policy.sh
+            dest: scripts/setup-java-policy.sh
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
@@ -130,13 +136,19 @@ pods:
           type: {{DATA_NODE_DISK_TYPE}}
           size: {{DATA_NODE_DISK}}
         cmd: |
-          set -e
+          set -ex
 
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          ./java-dns-ttl.sh
-          ./install-plugins.sh
-          ./setup-java-policy.sh
+
+          mkdir scripts
+
           ./bootstrap
+
+          chmod -R +x scripts
+
+          ./scripts/java-dns-ttl.sh
+          ./scripts/install-plugins.sh
+          ./scripts/setup-java-policy.sh
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
@@ -147,18 +159,18 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
-          elasticsearch_yml:
+          elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
-          install_plugins_sh:
+          install-plugins.sh:
             template: install-plugins.sh
-            dest: install-plugins.sh
-          java_dns_ttl_sh:
+            dest: scripts/install-plugins.sh
+          java-dns-ttl.sh:
             template: java-dns-ttl.sh
-            dest: java-dns-ttl.sh
-          setup_java_policy_sh:
+            dest: scripts/java-dns-ttl.sh
+          setup-java-policy.sh:
             template: setup-java-policy.sh
-            dest: setup-java-policy.sh
+            dest: scripts/setup-java-policy.sh
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
@@ -212,13 +224,19 @@ pods:
           type: {{INGEST_NODE_DISK_TYPE}}
           size: {{INGEST_NODE_DISK}}
         cmd: |
-          set -e
+          set -ex
 
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          ./java-dns-ttl.sh
-          ./install-plugins.sh
-          ./setup-java-policy.sh
+
+          mkdir scripts
+
           ./bootstrap
+
+          chmod -R +x scripts
+
+          ./scripts/java-dns-ttl.sh
+          ./scripts/install-plugins.sh
+          ./scripts/setup-java-policy.sh
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
@@ -229,18 +247,18 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
-          elasticsearch_yml:
+          elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
-          install_plugins_sh:
+          install-plugins.sh:
             template: install-plugins.sh
-            dest: install-plugins.sh
-          java_dns_ttl_sh:
+            dest: scripts/install-plugins.sh
+          java-dns-ttl.sh:
             template: java-dns-ttl.sh
-            dest: java-dns-ttl.sh
-          setup_java_policy_sh:
+            dest: scripts/java-dns-ttl.sh
+          setup-java-policy.sh:
             template: setup-java-policy.sh
-            dest: setup-java-policy.sh
+            dest: scripts/setup-java-policy.sh
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
@@ -294,13 +312,19 @@ pods:
           type: {{COORDINATOR_NODE_DISK_TYPE}}
           size: {{COORDINATOR_NODE_DISK}}
         cmd: |
-          set -e
+          set -ex
 
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          ./java-dns-ttl.sh
-          ./install-plugins.sh
-          ./setup-java-policy.sh
+
+          mkdir scripts
+
           ./bootstrap
+
+          chmod -R +x scripts
+
+          ./scripts/java-dns-ttl.sh
+          ./scripts/install-plugins.sh
+          ./scripts/setup-java-policy.sh
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
@@ -311,18 +335,18 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
-          elasticsearch_yml:
+          elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
-          install_plugins_sh:
+          install-plugins.sh:
             template: install-plugins.sh
-            dest: install-plugins.sh
-          java_dns_ttl_sh:
+            dest: scripts/install-plugins.sh
+          java-dns-ttl.sh:
             template: java-dns-ttl.sh
-            dest: java-dns-ttl.sh
-          setup_java_policy_sh:
+            dest: scripts/java-dns-ttl.sh
+          setup-java-policy.sh:
             template: setup-java-policy.sh
-            dest: setup-java-policy.sh
+            dest: scripts/setup-java-policy.sh
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: 5
