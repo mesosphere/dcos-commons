@@ -510,10 +510,17 @@ def test_adding_data_node_only_restarts_masters():
     sdk_tasks.check_tasks_not_updated(foldered_name, "coordinator", initial_coordinator_task_ids)
 
 
+# NOTE: this test should be at the end of this module.
 # TODO(mpereira): it is safe to remove this test after the 6.x release.
 @pytest.mark.sanity
 @pytest.mark.timeout(20 * 60)
 def test_xpack_update_matrix():
+    # Since this test uninstalls the Elastic service that is shared between all previous tests,
+    # reset the number of expected tasks to the default value. This is checked before all tests
+    # by the `pre_test_setup` fixture.
+    global current_expected_task_count
+    current_expected_task_count = config.DEFAULT_TASK_COUNT
+
     log.info("Updating X-Pack from 'enabled' to 'enabled'")
     config.test_xpack_enabled_update(foldered_name, True, True)
 
@@ -527,11 +534,18 @@ def test_xpack_update_matrix():
     config.test_xpack_enabled_update(foldered_name, False, False)
 
 
+# NOTE: this test should be at the end of this module.
 # TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
 # release.
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
 def test_xpack_security_enabled_update_matrix():
+    # Since this test uninstalls the Elastic service that is shared between all previous tests,
+    # reset the number of expected tasks to the default value. This is checked before all tests
+    # by the `pre_test_setup` fixture.
+    global current_expected_task_count
+    current_expected_task_count = config.DEFAULT_TASK_COUNT
+
     log.info("Updating from X-Pack 'enabled' to X-Pack security 'enabled'")
     config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, True, True)
 
