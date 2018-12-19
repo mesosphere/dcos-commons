@@ -159,8 +159,6 @@ public class OfferEvaluator {
         outcomes.add(outcome);
         if (!outcome.isPassing()) {
           failedOutcomeCount++;
-          offerOutcomeTrackerV2.ifPresent(
-              tracker -> tracker.getSummary().addFailure(outcome.getSource(), resourcePool.getOffer().getSlaveId().getValue()));
         }
       }
 
@@ -189,13 +187,20 @@ public class OfferEvaluator {
               offer,
               outcomeDetails.toString()));
         }
-        if(offerOutcomeTrackerV2.isPresent()) {
-          offerOutcomeTrackerV2.get().getSummary().incrementFalureCount();
+        if (offerOutcomeTrackerV2.isPresent()) {
           offerOutcomeTrackerV2.get().getSummary().addOffer(new OfferOutcomeTrackerV2.OfferOutcomeV2(
               podInstanceRequirement.getName(),
               false,
               offer.toString(),
               outcomeDetails.toString()));
+          offerOutcomeTrackerV2.get().getSummary().addFailureAgent(
+              offer.getSlaveId().getValue());
+          for (EvaluationOutcome outcome : outcomes) {
+            if (!outcome.isPassing()) {
+              offerOutcomeTrackerV2.get().getSummary().addFailureReason(
+                  outcome.getSource());
+            }
+          }
         }
       } else {
         List<OfferRecommendation> recommendations = outcomes.stream()
@@ -217,8 +222,7 @@ public class OfferEvaluator {
               outcomeDetails.toString()));
         }
 
-        if(offerOutcomeTrackerV2.isPresent()) {
-          offerOutcomeTrackerV2.get().getSummary().incrementAcceptedCount();
+        if (offerOutcomeTrackerV2.isPresent()) {
           offerOutcomeTrackerV2.get().getSummary().addOffer(new OfferOutcomeTrackerV2.OfferOutcomeV2(
               podInstanceRequirement.getName(),
               true,

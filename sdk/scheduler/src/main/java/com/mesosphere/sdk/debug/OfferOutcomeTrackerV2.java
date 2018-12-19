@@ -1,11 +1,12 @@
 package com.mesosphere.sdk.debug;
 
+import com.mesosphere.sdk.http.ResponseUtils;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
 import com.google.common.collect.EvictingQueue;
-import com.mesosphere.sdk.http.ResponseUtils;
 import org.apache.commons.collections.map.HashedMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -16,6 +17,10 @@ import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * OfferOutcomeTrackerV2 is the backend of DebugOffersResource.
+ * It aggregates  a summary of offerOutcome information
+ */
 public class OfferOutcomeTrackerV2 implements DebugEndpoint {
 
   private OfferOutcomeSummary summary = new OfferOutcomeSummary();
@@ -43,31 +48,36 @@ public class OfferOutcomeTrackerV2 implements DebugEndpoint {
   /**
    * Encapsulates the outcome of an summary of current offer evaluation.
    */
-  public class OfferOutcomeSummary {
+  public static class OfferOutcomeSummary {
+
+    private static final int DEFAULT_CAPACITY = 100;
+
     private int acceptedCount;
 
     private int rejectedCount;
 
     @JsonIgnore
-    private static final int DEFAULT_CAPACITY = 100;
-
-    @JsonIgnore
     private EvictingQueue<OfferOutcomeV2> outcomes;
 
-    private Map<String, Integer> failureCounts;
+    private Map<String, Integer> failureReasons;
 
-    private Map<String, Integer> agentCounts;
+    private Map<String, Integer> rejectedAgents;
 
     public OfferOutcomeSummary() {
       this.acceptedCount = 0;
       this.rejectedCount = 0;
       this.outcomes = EvictingQueue.create(DEFAULT_CAPACITY);
-      this.failureCounts = new HashMap();
-      this.agentCounts = new HashedMap();
+      this.failureReasons = new HashMap();
+      this.rejectedAgents = new HashedMap();
     }
 
     public void addOffer(OfferOutcomeV2 offerOutcome) {
       this.outcomes.add(offerOutcome);
+      if (offerOutcome.pass()) {
+        this.acceptedCount++;
+      } else {
+        this.rejectedCount++;
+      }
     }
 
     public int getAcceptedCount() {
@@ -78,37 +88,34 @@ public class OfferOutcomeTrackerV2 implements DebugEndpoint {
       return this.rejectedCount;
     }
 
-    public Map<String, Integer> getFailureMap() {
-      return this.failureCounts;
+    public Map<String, Integer> getFailureReasons() {
+      return this.failureReasons;
     }
 
-    public void incrementAcceptedCount() {
-      this.acceptedCount++;
+    public Map<String, Integer> getRejectedAgents() {
+      return this.rejectedAgents;
     }
 
-    public void incrementFalureCount() {
-      this.rejectedCount++;
-    }
-
-    public void addFailure(String failureReason, String agentId) {
-      if (this.failureCounts.containsKey(failureReason)) {
-        int oldVal = this.failureCounts.get(failureReason);
-        this.failureCounts.put(failureReason, ++oldVal);
+    public void addFailureReason(String failureReason) {
+      if (this.failureReasons.containsKey(failureReason)) {
+        int oldVal = this.failureReasons.get(failureReason);
+        this.failureReasons.put(failureReason, ++oldVal);
       } else {
-        this.failureCounts.put(failureReason, 1);
+        this.failureReasons.put(failureReason, 1);
       }
+    }
 
-      if (this.agentCounts.containsKey(agentId)) {
-        int oldVal = this.agentCounts.get(agentId);
-        this.agentCounts.put(agentId, ++oldVal);
+    public void addFailureAgent(String agentId) {
+      if (this.rejectedAgents.containsKey(agentId)) {
+        int oldVal = this.rejectedAgents.get(agentId);
+        this.rejectedAgents.put(agentId, ++oldVal);
       } else {
-        this.agentCounts.put(agentId, 1);
+        this.rejectedAgents.put(agentId, 1);
       }
-
     }
 
     public JSONArray toJson() {
-       JSONArray displayOutcomes = new JSONArray();
+      JSONArray displayOutcomes = new JSONArray();
       this.outcomes.forEach(offerOutcome -> {
         JSONObject outcome = new JSONObject();
         outcome.put("timestamp", offerOutcome.getTimestamp())

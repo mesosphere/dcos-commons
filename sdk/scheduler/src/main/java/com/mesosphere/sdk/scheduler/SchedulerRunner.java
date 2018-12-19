@@ -28,7 +28,7 @@ public final class SchedulerRunner implements Runnable {
   /**
    * Builds a new instance using a {@link RawServiceSpec} representing the raw object model of a YAML service
    * specification file.
-   *
+   *t
    * @param rawServiceSpec    the object model of a YAML service specification file
    * @param schedulerConfig   the scheduler configuration to use (usually based on process environment)
    * @param configTemplateDir the directory where any configuration templates are located (usually the parent
