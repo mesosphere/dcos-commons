@@ -11,6 +11,7 @@ from tests import config
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.portworx_cleanup()
         # The sdk_install installs portworx framework and CLI commands for portworx
         sdk_install.install(
             config.PACKAGE_NAME,
@@ -30,7 +31,6 @@ def test_verify_install():
 # Upgrade portworx framework from released version
 @pytest.mark.sanity
 def test_upgrade_framework():
-    #sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
     sdk_upgrade.test_upgrade(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
@@ -45,6 +45,6 @@ def test_uninstall_package():
 # Do post uninstall cleanup
 @pytest.mark.sanity
 def test_post_uninstall_cleanup():
-    assert sdk_install.portworx_cleanup() == 0
-
-
+    if sdk_install.portworx_cleanup() != 0:
+        info.log("Portworx specific cleanup failed.")
+        raise
