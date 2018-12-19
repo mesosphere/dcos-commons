@@ -515,16 +515,16 @@ def test_adding_data_node_only_restarts_masters():
 @pytest.mark.timeout(20 * 60)
 def test_xpack_update_matrix():
     log.info("Updating X-Pack from 'enabled' to 'enabled'")
-    config.test_xpack_enabled_update(foldered_name, current_expected_task_count, True, True)
+    config.test_xpack_enabled_update(foldered_name, True, True)
 
     log.info("Updating X-Pack from 'enabled' to 'disabled'")
-    config.test_xpack_enabled_update(foldered_name, current_expected_task_count, True, False)
+    config.test_xpack_enabled_update(foldered_name, True, False)
 
     log.info("Updating X-Pack from 'disabled' to 'enabled'")
-    config.test_xpack_enabled_update(foldered_name, current_expected_task_count, False, True)
+    config.test_xpack_enabled_update(foldered_name, False, True)
 
     log.info("Updating X-Pack from 'disabled' to 'disabled'")
-    config.test_xpack_enabled_update(foldered_name, current_expected_task_count, False, False)
+    config.test_xpack_enabled_update(foldered_name, False, False)
 
 
 # TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
@@ -533,21 +533,13 @@ def test_xpack_update_matrix():
 @pytest.mark.timeout(60 * 60)
 def test_xpack_security_enabled_update_matrix():
     log.info("Updating from X-Pack 'enabled' to X-Pack security 'enabled'")
-    config.test_update_from_xpack_enabled_to_xpack_security_enabled(
-        foldered_name, current_expected_task_count, True, True
-    )
+    config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, True, True)
 
     log.info("Updating from X-Pack 'enabled' to X-Pack security 'disabled'")
-    config.test_update_from_xpack_enabled_to_xpack_security_enabled(
-        foldered_name, current_expected_task_count, True, False
-    )
+    config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, True, False)
 
     log.info("Updating from X-Pack 'disabled' to X-Pack security 'enabled'")
-    config.test_update_from_xpack_enabled_to_xpack_security_enabled(
-        foldered_name, current_expected_task_count, False, True
-    )
+    config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, False, True)
 
     log.info("Updating from X-Pack 'disabled' to X-Pack security 'disabled'")
-    config.test_update_from_xpack_enabled_to_xpack_security_enabled(
-        foldered_name, current_expected_task_count, False, False
-    )
+    config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, False, False)

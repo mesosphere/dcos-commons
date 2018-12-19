@@ -469,9 +469,7 @@ def _curl_query(
 
 
 # TODO(mpereira): it is safe to remove this test after the 6.x release.
-def test_xpack_enabled_update(
-    service_name, expected_running_tasks, from_xpack_enabled, to_xpack_enabled
-):
+def test_xpack_enabled_update(service_name, from_xpack_enabled, to_xpack_enabled):
     sdk_upgrade.test_upgrade(
         PACKAGE_NAME,
         service_name,
@@ -483,13 +481,13 @@ def test_xpack_enabled_update(
         },
     )
 
-    wait_for_expected_nodes_to_exist(service_name=service_name, task_count=expected_running_tasks)
+    wait_for_expected_nodes_to_exist(service_name=service_name, task_count=DEFAULT_TASK_COUNT)
 
 
 # TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
 # release.
 def test_update_from_xpack_enabled_to_xpack_security_enabled(
-    service_name, expected_running_tasks, xpack_enabled, xpack_security_enabled
+    service_name, xpack_enabled, xpack_security_enabled
 ):
     sdk_upgrade.test_upgrade(
         PACKAGE_NAME,
@@ -502,7 +500,7 @@ def test_update_from_xpack_enabled_to_xpack_security_enabled(
         },
     )
 
-    wait_for_expected_nodes_to_exist(service_name=service_name, task_count=expected_running_tasks)
+    wait_for_expected_nodes_to_exist(service_name=service_name, task_count=DEFAULT_TASK_COUNT)
 
 
 def _master_zero_http_port(service_name):
