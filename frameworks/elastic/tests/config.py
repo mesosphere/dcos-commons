@@ -9,6 +9,7 @@ import sdk_marathon
 import sdk_networks
 import sdk_plan
 import sdk_tasks
+import sdk_upgrade
 import sdk_utils
 
 log = logging.getLogger(__name__)
@@ -465,6 +466,43 @@ def _curl_query(
     except Exception:
         log.warning(build_errmsg("Failed to parse stdout as JSON, retrying or giving up."))
         return None
+
+
+# TODO(mpereira): it is safe to remove this test after the 6.x release.
+def test_xpack_enabled_update(
+    service_name, expected_running_tasks, from_xpack_enabled, to_xpack_enabled
+):
+    sdk_upgrade.test_upgrade(
+        PACKAGE_NAME,
+        service_name,
+        DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": from_xpack_enabled}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_enabled": to_xpack_enabled},
+        },
+    )
+
+    wait_for_expected_nodes_to_exist(service_name=service_name, task_count=expected_running_tasks)
+
+
+# TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
+# release.
+def test_update_from_xpack_enabled_to_xpack_security_enabled(
+    service_name, expected_running_tasks, xpack_enabled, xpack_security_enabled
+):
+    sdk_upgrade.test_upgrade(
+        PACKAGE_NAME,
+        service_name,
+        DEFAULT_TASK_COUNT,
+        additional_options={"elasticsearch": {"xpack_enabled": xpack_enabled}},
+        test_version_additional_options={
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {"xpack_security_enabled": xpack_security_enabled},
+        },
+    )
+
+    wait_for_expected_nodes_to_exist(service_name=service_name, task_count=expected_running_tasks)
 
 
 def _master_zero_http_port(service_name):

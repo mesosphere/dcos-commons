@@ -513,135 +513,41 @@ def test_adding_data_node_only_restarts_masters():
 # TODO(mpereira): it is safe to remove this test after the 6.x release.
 @pytest.mark.sanity
 @pytest.mark.timeout(20 * 60)
-def test_xpack_upgrade_matrix():
-    log.info("X-Pack from 'enabled' to 'enabled'")
-    sdk_upgrade.test_upgrade(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": True}},
-        test_version_additional_options={
-            "service": {"update_strategy": "parallel"},
-            "elasticsearch": {"xpack_enabled": True},
-        },
-    )
+def test_xpack_update_matrix():
+    log.info("Updating X-Pack from 'enabled' to 'enabled'")
+    config.test_xpack_enabled_update(foldered_name, current_expected_task_count, True, True)
 
-    config.wait_for_expected_nodes_to_exist(
-        service_name=foldered_name, task_count=current_expected_task_count
-    )
+    log.info("Updating X-Pack from 'enabled' to 'disabled'")
+    config.test_xpack_enabled_update(foldered_name, current_expected_task_count, True, False)
 
-    log.info("X-Pack from 'enabled' to 'disabled'")
-    sdk_upgrade.test_upgrade(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": True}},
-        test_version_additional_options={
-            "service": {"update_strategy": "parallel"},
-            "elasticsearch": {"xpack_enabled": False},
-        },
-    )
+    log.info("Updating X-Pack from 'disabled' to 'enabled'")
+    config.test_xpack_enabled_update(foldered_name, current_expected_task_count, False, True)
 
-    config.wait_for_expected_nodes_to_exist(
-        service_name=foldered_name, task_count=current_expected_task_count
-    )
-
-    log.info("X-Pack from 'disabled' to 'disabled'")
-    sdk_upgrade.test_upgrade(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": False}},
-        test_version_additional_options={
-            "service": {"update_strategy": "parallel"},
-            "elasticsearch": {"xpack_enabled": False},
-        },
-    )
-
-    config.wait_for_expected_nodes_to_exist(
-        service_name=foldered_name, task_count=current_expected_task_count
-    )
-
-    log.info("X-Pack from 'disabled' to 'enabled'")
-    sdk_upgrade.test_upgrade(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": False}},
-        test_version_additional_options={
-            "service": {"update_strategy": "parallel"},
-            "elasticsearch": {"xpack_enabled": True},
-        },
-    )
-
-    config.wait_for_expected_nodes_to_exist(
-        service_name=foldered_name, task_count=current_expected_task_count
-    )
+    log.info("Updating X-Pack from 'disabled' to 'disabled'")
+    config.test_xpack_enabled_update(foldered_name, current_expected_task_count, False, False)
 
 
+# TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
+# release.
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
-def test_xpack_security_enabled_upgrade_matrix():
-    log.info("From X-Pack 'enabled' to X-Pack security 'enabled'")
-    sdk_upgrade.test_upgrade(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": True}},
-        test_version_additional_options={
-            "service": {"update_strategy": "parallel"},
-            "elasticsearch": {"xpack_security_enabled": True},
-        },
+def test_xpack_security_enabled_update_matrix():
+    log.info("Updating from X-Pack 'enabled' to X-Pack security 'enabled'")
+    config.test_update_from_xpack_enabled_to_xpack_security_enabled(
+        foldered_name, current_expected_task_count, True, True
     )
 
-    config.wait_for_expected_nodes_to_exist(
-        service_name=foldered_name, task_count=current_expected_task_count
+    log.info("Updating from X-Pack 'enabled' to X-Pack security 'disabled'")
+    config.test_update_from_xpack_enabled_to_xpack_security_enabled(
+        foldered_name, current_expected_task_count, True, False
     )
 
-    log.info("From X-Pack 'enabled' to X-Pack security 'disabled'")
-    sdk_upgrade.test_upgrade(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": True}},
-        test_version_additional_options={
-            "service": {"update_strategy": "parallel"},
-            "elasticsearch": {"xpack_security_enabled": False},
-        },
+    log.info("Updating from X-Pack 'disabled' to X-Pack security 'enabled'")
+    config.test_update_from_xpack_enabled_to_xpack_security_enabled(
+        foldered_name, current_expected_task_count, False, True
     )
 
-    config.wait_for_expected_nodes_to_exist(
-        service_name=foldered_name, task_count=current_expected_task_count
-    )
-
-    log.info("From X-Pack 'disabled' to X-Pack security 'disabled'")
-    sdk_upgrade.test_upgrade(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": False}},
-        test_version_additional_options={
-            "service": {"update_strategy": "parallel"},
-            "elasticsearch": {"xpack_security_enabled": False},
-        },
-    )
-
-    config.wait_for_expected_nodes_to_exist(
-        service_name=foldered_name, task_count=current_expected_task_count
-    )
-
-    log.info("From X-Pack 'disabled' to X-Pack security 'enabled'")
-    sdk_upgrade.test_upgrade(
-        config.PACKAGE_NAME,
-        foldered_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": False}},
-        test_version_additional_options={
-            "service": {"update_strategy": "parallel"},
-            "elasticsearch": {"xpack_security_enabled": True},
-        },
-    )
-
-    config.wait_for_expected_nodes_to_exist(
-        service_name=foldered_name, task_count=current_expected_task_count
+    log.info("Updating from X-Pack 'disabled' to X-Pack security 'disabled'")
+    config.test_update_from_xpack_enabled_to_xpack_security_enabled(
+        foldered_name, current_expected_task_count, False, False
     )
