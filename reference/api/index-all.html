@@ -140,7 +140,13 @@
 <dd>
 <div class="block">Sets the step to an <code>ERROR</code> state with the provided error message.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#addFailureAgent-java.lang.String-">addFailureAgent(String)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#addFailureReason-java.lang.String-">addFailureReason(String)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#addMountVolume-java.lang.Double-java.lang.String-java.util.List-">addMountVolume(Double, String, List&lt;String&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#addOffer-com.mesosphere.sdk.debug.OfferOutcomeTrackerV2.OfferOutcomeV2-">addOffer(OfferOutcomeTrackerV2.OfferOutcomeV2)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/TaskStatusesTracker.PlanResponse.html#addPhase-com.mesosphere.sdk.debug.TaskStatusesTracker.PhaseResponse-">addPhase(TaskStatusesTracker.PhaseResponse)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/TaskStatusesTracker.PlanResponse.html" title="class in com.mesosphere.sdk.debug">TaskStatusesTracker.PlanResponse</a></dt>
 <dd>&nbsp;</dd>
@@ -1020,12 +1026,24 @@
 <dd>
 <div class="block">Interface for all debug endpoints.</div>
 </dd>
+<dt><a href="com/mesosphere/sdk/http/endpoints/DebugOffersResource.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">DebugOffersResource</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
+<dd>
+<div class="block">A read-only API for Offers.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/DebugOffersResource.html#DebugOffersResource-com.mesosphere.sdk.debug.OfferOutcomeTrackerV2-">DebugOffersResource(OfferOutcomeTrackerV2)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/DebugOffersResource.html" title="class in com.mesosphere.sdk.http.endpoints">DebugOffersResource</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/http/endpoints/DebugResource.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">DebugResource</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
 <dd>
-<div class="block">A read-only API for accessing the most recently processed offers.</div>
+<div class="block"><span class="deprecatedLabel">Deprecated.</span>
+<div class="block"><span class="deprecationComment">in favor of @DebugOffersResource at v2/debug/offers
+ A read-only API for accessing the most recently processed offers. It does _not_ return any information
+ about offers that were declined but never evaluated.</span></div>
+</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/DebugResource.html#DebugResource-com.mesosphere.sdk.offer.history.OfferOutcomeTracker-">DebugResource(OfferOutcomeTracker)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/DebugResource.html" title="class in com.mesosphere.sdk.http.endpoints">DebugResource</a></dt>
-<dd>&nbsp;</dd>
+<dd>
+<div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
+&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/metrics/Metrics.html#DECLINE_LONG">DECLINE_LONG</a></span> - Static variable in class com.mesosphere.sdk.metrics.<a href="com/mesosphere/sdk/metrics/Metrics.html" title="class in com.mesosphere.sdk.metrics">Metrics</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/metrics/Metrics.html#DECLINE_SHORT">DECLINE_SHORT</a></span> - Static variable in class com.mesosphere.sdk.metrics.<a href="com/mesosphere/sdk/metrics/Metrics.html" title="class in com.mesosphere.sdk.metrics">Metrics</a></dt>
@@ -2182,6 +2200,8 @@
 <dd>
 <div class="block">Returns all launch operations where the specified pod was launched, in chronological order.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#getAcceptedCount--">getAcceptedCount()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/PlansTracker.SerializePlansTracker.html#getActivePlans--">getActivePlans()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/PlansTracker.SerializePlansTracker.html" title="class in com.mesosphere.sdk.debug">PlansTracker.SerializePlansTracker</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html#getAgentId--">getAgentId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/CreateOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">CreateOfferRecommendation</a></dt>
@@ -2677,6 +2697,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">getExistingExecutorVolume(VolumeSpec, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;Protos.ResourceProviderID&gt;, Optional&lt;Protos.Resource.DiskInfo.Source&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#getFailureReasons--">getFailureReasons()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html#getField-java.lang.String-">getField(String)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementUtils.html" title="class in com.mesosphere.sdk.offer.evaluate.placement">PlacementUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/MultiStateResource.html#getFile-java.lang.String-java.lang.String-">getFile(String, String)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/MultiStateResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiStateResource</a></dt>
@@ -2897,6 +2919,8 @@
 <dd>
 <div class="block">Called to retun JSON response of requested endpoint.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.html#getJson-java.lang.String-java.lang.String-java.lang.String-boolean-">getJson(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/PlansTracker.html#getJson-java.lang.String-java.lang.String-java.lang.String-boolean-">getJson(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/PlansTracker.html" title="class in com.mesosphere.sdk.debug">PlansTracker</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/TaskStatusesTracker.html#getJson-java.lang.String-java.lang.String-java.lang.String-boolean-">getJson(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/TaskStatusesTracker.html" title="class in com.mesosphere.sdk.debug">TaskStatusesTracker</a></dt>
@@ -3179,6 +3203,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getNew-com.mesosphere.sdk.specification.VolumeSpec-java.util.Collection-java.util.Optional-">getNew(VolumeSpec, Collection&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeV2</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/MesosResourcePool.html#getOffer--">getOffer()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer">MesosResourcePool</a></dt>
@@ -3207,8 +3233,13 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html#getOfferId--">getOfferId()</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer">UnreserveOfferRecommendation</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/DebugOffersResource.html#getOfferOutcomes-java.lang.String-java.lang.String-java.lang.String-boolean-">getOfferOutcomes(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/DebugOffersResource.html" title="class in com.mesosphere.sdk.http.endpoints">DebugOffersResource</a></dt>
+<dd>
+<div class="block">Renders the offer summary.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/DebugResource.html#getOfferOutcomes-boolean-">getOfferOutcomes(boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/DebugResource.html" title="class in com.mesosphere.sdk.http.endpoints">DebugResource</a></dt>
 <dd>
+<div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 <div class="block">Renders the current set of offer outcomes as an HTML table.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/PlansDebugResource.html#getOfferOutcomes-java.lang.String-java.lang.String-java.lang.String-boolean-">getOfferOutcomes(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/PlansDebugResource.html" title="class in com.mesosphere.sdk.http.endpoints">PlansDebugResource</a></dt>
@@ -3279,7 +3310,11 @@
 <dd>
 <div class="block">Returns the requested label value, or throws an exception if the value was not found.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html#getOutcomeDetails--">getOutcomeDetails()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeV2</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#getOutcomeDetails--">getOutcomeDetails()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#getOutcomes-com.mesosphere.sdk.offer.evaluate.EvaluationOutcome-java.util.List-">getOutcomes(EvaluationOutcome, List&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/storage/PersisterUtils.html#getParentPaths-java.lang.String-">getParentPaths(String)</a></span> - Static method in class com.mesosphere.sdk.storage.<a href="com/mesosphere/sdk/storage/PersisterUtils.html" title="class in com.mesosphere.sdk.storage">PersisterUtils</a></dt>
 <dd>
@@ -3447,6 +3482,8 @@
 <div class="block">Returns the definition of the pod instance to be created.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html#getPodInstance-Protos.TaskInfo-">getPodInstance(Protos.TaskInfo)</a></span> - Method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/PersistentLaunchRecorder.html" title="class in com.mesosphere.sdk.state">PersistentLaunchRecorder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html#getPodInstanceName--">getPodInstanceName()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeV2</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#getPodInstanceName--">getPodInstanceName()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
 <dd>&nbsp;</dd>
@@ -3647,6 +3684,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ServiceSpec.html#getRegion--">getRegion()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/metrics/Metrics.html#getRegistry--">getRegistry()</a></span> - Static method in class com.mesosphere.sdk.metrics.<a href="com/mesosphere/sdk/metrics/Metrics.html" title="class in com.mesosphere.sdk.metrics">Metrics</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#getRejectedAgents--">getRejectedAgents()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#getRejectedCount--">getRejectedCount()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ConfigFileSpec.html#getRelativePath--">getRelativePath()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ConfigFileSpec.html" title="interface in com.mesosphere.sdk.specification">ConfigFileSpec</a></dt>
 <dd>
@@ -4006,6 +4047,8 @@
 <dd>
 <div class="block">Returns a Subject for service certificate.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.html#getSummary--">getSummary()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/ConfigResource.html#getTarget--">getTarget()</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/ConfigResource.html" title="class in com.mesosphere.sdk.http.endpoints">ConfigResource</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/MultiConfigResource.html#getTarget-java.lang.String-">getTarget(String)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/MultiConfigResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiConfigResource</a></dt>
@@ -4204,6 +4247,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/DebugResource.html#getThreads--">getThreads()</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/DebugResource.html" title="class in com.mesosphere.sdk.http.endpoints">DebugResource</a></dt>
 <dd>
+<div class="block"><span class="deprecatedLabel">Deprecated.</span></div>
 <div class="block">Renders the current threads and thread state of the scheduler.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html#getTimeout--">getTimeout()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultHealthCheckSpec.html" title="class in com.mesosphere.sdk.specification">DefaultHealthCheckSpec</a></dt>
@@ -4213,6 +4257,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/ReadinessCheckSpec.html#getTimeout--">getTimeout()</a></span> - Method in interface com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification">ReadinessCheckSpec</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html#getTimeout--">getTimeout()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html" title="class in com.mesosphere.sdk.specification.yaml">RawReadinessCheck</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html#getTimestamp--">getTimestamp()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeV2</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#getTimestamp--">getTimestamp()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
 <dd>&nbsp;</dd>
@@ -5825,13 +5871,15 @@
 <dd>
 <div class="block">The OfferEvaluator processes <code>Protos.Offer</code>s and produces <a href="com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer"><code>OfferRecommendation</code></a>s.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#OfferEvaluator-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-java.util.Optional-java.lang.String-java.util.UUID-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">OfferEvaluator(FrameworkStore, StateStore, Optional&lt;OfferOutcomeTracker&gt;, String, UUID, ArtifactQueries.TemplateUrlFactory, SchedulerConfig, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html#OfferEvaluator-com.mesosphere.sdk.state.FrameworkStore-com.mesosphere.sdk.state.StateStore-java.util.Optional-java.util.Optional-java.lang.String-java.util.UUID-com.mesosphere.sdk.http.queries.ArtifactQueries.TemplateUrlFactory-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-">OfferEvaluator(FrameworkStore, StateStore, Optional&lt;OfferOutcomeTracker&gt;, Optional&lt;OfferOutcomeTrackerV2&gt;, String, UUID, ArtifactQueries.TemplateUrlFactory, SchedulerConfig, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluator.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluator</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history"><span class="typeNameLink">OfferOutcome</span></a> - Class in <a href="com/mesosphere/sdk/offer/history/package-summary.html">com.mesosphere.sdk.offer.history</a></dt>
 <dd>
 <div class="block">Encapsulates the outcome of an offer evaluation in OfferEvaluator.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcome.html#OfferOutcome-java.lang.String-boolean-Protos.Offer-java.lang.String-">OfferOutcome(String, boolean, Protos.Offer, String)</a></span> - Constructor for class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcome.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcome</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#OfferOutcomeSummary--">OfferOutcomeSummary()</a></span> - Constructor for class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history"><span class="typeNameLink">OfferOutcomeTracker</span></a> - Class in <a href="com/mesosphere/sdk/offer/history/package-summary.html">com.mesosphere.sdk.offer.history</a></dt>
 <dd>
@@ -5840,6 +5888,22 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#OfferOutcomeTracker--">OfferOutcomeTracker()</a></span> - Constructor for class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#OfferOutcomeTracker-int-">OfferOutcomeTracker(int)</a></span> - Constructor for class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.html" title="class in com.mesosphere.sdk.debug"><span class="typeNameLink">OfferOutcomeTrackerV2</span></a> - Class in <a href="com/mesosphere/sdk/debug/package-summary.html">com.mesosphere.sdk.debug</a></dt>
+<dd>
+<div class="block">OfferOutcomeTrackerV2 is the backend of DebugOffersResource.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.html#OfferOutcomeTrackerV2--">OfferOutcomeTrackerV2()</a></span> - Constructor for class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug"><span class="typeNameLink">OfferOutcomeTrackerV2.OfferOutcomeSummary</span></a> - Class in <a href="com/mesosphere/sdk/debug/package-summary.html">com.mesosphere.sdk.debug</a></dt>
+<dd>
+<div class="block">Encapsulates the outcome of an summary of current offer evaluation.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html" title="class in com.mesosphere.sdk.debug"><span class="typeNameLink">OfferOutcomeTrackerV2.OfferOutcomeV2</span></a> - Class in <a href="com/mesosphere/sdk/debug/package-summary.html">com.mesosphere.sdk.debug</a></dt>
+<dd>
+<div class="block">Encapsulates the outcome of an offer evaluation in OfferEvaluator.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html#OfferOutcomeV2-java.lang.String-boolean-java.lang.String-java.util.List-">OfferOutcomeV2(String, boolean, String, List&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeV2</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/framework/OfferProcessor.html" title="class in com.mesosphere.sdk.framework"><span class="typeNameLink">OfferProcessor</span></a> - Class in <a href="com/mesosphere/sdk/framework/package-summary.html">com.mesosphere.sdk.framework</a></dt>
 <dd>
@@ -5965,6 +6029,8 @@
 <dd>
 <div class="block">Parses a JSON list payload in the form of a string, returning the corresponding Java list.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html#pass--">pass()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeV2</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html#pass-java.lang.Object-java.lang.String-java.lang.Object...-">pass(Object, String, Object...)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate">EvaluationOutcome</a></dt>
 <dd>
 <div class="block">Returns a new passing outcome object with the provided descriptive reason.</div>
@@ -8472,6 +8538,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#toHtml--">toHtml()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html#toInt--">toInt()</a></span> - Method in enum com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/SchemaVersionStore.SchemaVersion.html" title="enum in com.mesosphere.sdk.state">SchemaVersionStore.SchemaVersion</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#toJson--">toJson()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html#toJson--">toJson()</a></span> - Method in class com.mesosphere.sdk.offer.history.<a href="com/mesosphere/sdk/offer/history/OfferOutcomeTracker.html" title="class in com.mesosphere.sdk.offer.history">OfferOutcomeTracker</a></dt>
 <dd>&nbsp;</dd>
