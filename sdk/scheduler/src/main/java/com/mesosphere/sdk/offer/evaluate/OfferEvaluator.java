@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.debug.OfferOutcomeTrackerV2;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.LoggingUtils;
@@ -73,6 +74,8 @@ public class OfferEvaluator {
 
   private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
 
+  private final Optional<OfferOutcomeTrackerV2> offerOutcomeTrackerV2;
+
   private final String serviceName;
 
   private final UUID targetConfigId;
@@ -87,6 +90,7 @@ public class OfferEvaluator {
       FrameworkStore frameworkStore,
       StateStore stateStore,
       Optional<OfferOutcomeTracker> offerOutcomeTracker,
+      Optional<OfferOutcomeTrackerV2> offerOutcomeTrackerV2,
       String serviceName,
       UUID targetConfigId,
       ArtifactQueries.TemplateUrlFactory templateUrlFactory,
@@ -102,6 +106,7 @@ public class OfferEvaluator {
     this.templateUrlFactory = templateUrlFactory;
     this.schedulerConfig = schedulerConfig;
     this.resourceNamespace = resourceNamespace;
+    this.offerOutcomeTrackerV2 = offerOutcomeTrackerV2;
   }
 
   public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
@@ -158,7 +163,9 @@ public class OfferEvaluator {
       }
 
       StringBuilder outcomeDetails = new StringBuilder();
+      List<String> outcomeReasons = new ArrayList<String>();
       for (EvaluationOutcome outcome : outcomes) {
+        getOutcomes(outcome, outcomeReasons);
         logOutcome(outcomeDetails, outcome, "");
       }
       if (outcomeDetails.length() != 0) {
@@ -182,6 +189,21 @@ public class OfferEvaluator {
               offer,
               outcomeDetails.toString()));
         }
+        if (offerOutcomeTrackerV2.isPresent()) {
+          offerOutcomeTrackerV2.get().getSummary().addOffer(new OfferOutcomeTrackerV2.OfferOutcomeV2(
+              podInstanceRequirement.getName(),
+              false,
+              offer.toString(),
+              outcomeReasons));
+          offerOutcomeTrackerV2.get().getSummary().addFailureAgent(
+              offer.getSlaveId().getValue());
+          for (EvaluationOutcome outcome : outcomes) {
+            if (!outcome.isPassing()) {
+              offerOutcomeTrackerV2.get().getSummary().addFailureReason(
+                  outcome.getSource());
+            }
+          }
+        }
       } else {
         List<OfferRecommendation> recommendations = outcomes.stream()
             .map(outcome -> outcome.getOfferRecommendations())
@@ -200,6 +222,14 @@ public class OfferEvaluator {
               true,
               offer,
               outcomeDetails.toString()));
+        }
+
+        if (offerOutcomeTrackerV2.isPresent()) {
+          offerOutcomeTrackerV2.get().getSummary().addOffer(new OfferOutcomeTrackerV2.OfferOutcomeV2(
+              podInstanceRequirement.getName(),
+              true,
+              offer.toString(),
+              outcomeReasons));
         }
 
         return recommendations;
@@ -320,6 +350,13 @@ public class OfferEvaluator {
         return true;
       default:
         return false;
+    }
+  }
+
+  static void getOutcomes(EvaluationOutcome outcome, List<String> outcomeReasons) {
+    for (EvaluationOutcome child: outcome.getChildren()) {
+      String prefix = child.isPassing() ? "PASS" : "FAIL";
+      outcomeReasons.add(prefix + ": " + child.getReason());
     }
   }
 

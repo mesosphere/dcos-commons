@@ -16,6 +16,7 @@ import javax.ws.rs.core.StreamingOutput;
 import java.lang.management.ManagementFactory;
 
 /**
+ * @deprecated in favor of @DebugOffersResource at v2/debug/offers
  * A read-only API for accessing the most recently processed offers. It does _not_ return any information
  * about offers that were declined but never evaluated.
  */

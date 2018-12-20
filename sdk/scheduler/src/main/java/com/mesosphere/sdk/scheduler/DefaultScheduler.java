@@ -1,10 +1,12 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.debug.OfferOutcomeTrackerV2;
 import com.mesosphere.sdk.debug.PlansTracker;
 import com.mesosphere.sdk.debug.TaskStatusesTracker;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.http.endpoints.ConfigResource;
+import com.mesosphere.sdk.http.endpoints.DebugOffersResource;
 import com.mesosphere.sdk.http.endpoints.DebugResource;
 import com.mesosphere.sdk.http.endpoints.DeprecatedPlanResource;
 import com.mesosphere.sdk.http.endpoints.EndpointsResource;
@@ -103,6 +105,8 @@ public class DefaultScheduler extends AbstractScheduler {
 
   private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
 
+  private final Optional<OfferOutcomeTrackerV2> offerOutcomeTrackerV2;
+
   private final Optional<PlansTracker> plansTracker;
 
   private final Optional<TaskStatusesTracker> statusesTracker;
@@ -184,6 +188,7 @@ public class DefaultScheduler extends AbstractScheduler {
     // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
     // reduce memory consumption.
     this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
+    this.offerOutcomeTrackerV2 = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTrackerV2());
     this.statusesTracker = Optional.of(new TaskStatusesTracker(getPlanCoordinator(), stateStore));
 
     this.planScheduler = new PlanScheduler(
@@ -191,6 +196,7 @@ public class DefaultScheduler extends AbstractScheduler {
             frameworkStore,
             stateStore,
             offerOutcomeTracker,
+            offerOutcomeTrackerV2,
             serviceSpec.getName(),
             configStore.getTargetConfig(),
             templateUrlFactory,
@@ -220,6 +226,7 @@ public class DefaultScheduler extends AbstractScheduler {
     resources.add(new HealthResource(planCoordinator, schedulerConfig));
     resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
     resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
+    offerOutcomeTrackerV2.ifPresent(x -> resources.add(new DebugOffersResource(x)));
     offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
     plansTracker.ifPresent(x -> resources.add(new PlansDebugResource(x)));
     statusesTracker.ifPresent(x -> resources.add(new TaskStatusesResource(x)));
