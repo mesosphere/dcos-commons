@@ -3,13 +3,15 @@ package com.mesosphere.sdk.debug;
 import org.apache.mesos.Protos;
 import org.junit.Test;
 
+import java.util.Collections;
+
 public class OfferOutcomeTrackerV2Test {
 
   private OfferOutcomeTrackerV2.OfferOutcomeV2 generateTestOutcome(boolean pass) {
     return new OfferOutcomeTrackerV2.OfferOutcomeV2("instance-name",
         pass,
         Protos.Offer.getDefaultInstance().toString(),
-        "an outcome");
+        Collections.emptyList());
   }
 
   @Test

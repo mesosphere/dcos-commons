@@ -15,6 +15,7 @@ import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.Response;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -131,13 +132,13 @@ public class OfferOutcomeTrackerV2 implements DebugEndpoint {
 
     private final String offer;
 
-    private final String outcomeDetails;
+    private final List<String> outcomeDetails;
 
     public OfferOutcomeV2(
         String podInstanceName,
         boolean pass,
         String offer,
-        String outcomeDetails)
+        List<String> outcomeDetails)
     {
       this.timestamp = System.currentTimeMillis();
       this.podInstanceName = podInstanceName;
@@ -158,7 +159,7 @@ public class OfferOutcomeTrackerV2 implements DebugEndpoint {
       return offer;
     }
 
-    public String getOutcomeDetails() {
+    public List<String> getOutcomeDetails() {
       return outcomeDetails;
     }
 

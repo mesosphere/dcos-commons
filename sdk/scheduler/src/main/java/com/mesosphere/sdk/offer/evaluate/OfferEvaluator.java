@@ -163,7 +163,9 @@ public class OfferEvaluator {
       }
 
       StringBuilder outcomeDetails = new StringBuilder();
+      List<String> outcomeReasons = new ArrayList<String>();
       for (EvaluationOutcome outcome : outcomes) {
+        getOutcomes(outcome, outcomeReasons);
         logOutcome(outcomeDetails, outcome, "");
       }
       if (outcomeDetails.length() != 0) {
@@ -192,7 +194,7 @@ public class OfferEvaluator {
               podInstanceRequirement.getName(),
               false,
               offer.toString(),
-              outcomeDetails.toString()));
+              outcomeReasons));
           offerOutcomeTrackerV2.get().getSummary().addFailureAgent(
               offer.getSlaveId().getValue());
           for (EvaluationOutcome outcome : outcomes) {
@@ -227,7 +229,7 @@ public class OfferEvaluator {
               podInstanceRequirement.getName(),
               true,
               offer.toString(),
-              outcomeDetails.toString()));
+              outcomeReasons));
         }
 
         return recommendations;
@@ -348,6 +350,13 @@ public class OfferEvaluator {
         return true;
       default:
         return false;
+    }
+  }
+
+  static void getOutcomes(EvaluationOutcome outcome, List<String> outcomeReasons) {
+    for (EvaluationOutcome child: outcome.getChildren()) {
+      String prefix = child.isPassing() ? "PASS" : "FAIL";
+      outcomeReasons.add(prefix + ": " + child.getReason());
     }
   }
 
