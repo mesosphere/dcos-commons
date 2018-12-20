@@ -97,21 +97,11 @@ public class OfferOutcomeTrackerV2 implements DebugEndpoint {
     }
 
     public void addFailureReason(String failureReason) {
-      if (this.failureReasons.containsKey(failureReason)) {
-        int oldVal = this.failureReasons.get(failureReason);
-        this.failureReasons.put(failureReason, ++oldVal);
-      } else {
-        this.failureReasons.put(failureReason, 1);
-      }
+      failureReasons.compute(failureReason, (k, v) -> v == null ? 1 : v + 1);
     }
 
     public void addFailureAgent(String agentId) {
-      if (this.rejectedAgents.containsKey(agentId)) {
-        int oldVal = this.rejectedAgents.get(agentId);
-        this.rejectedAgents.put(agentId, ++oldVal);
-      } else {
-        this.rejectedAgents.put(agentId, 1);
-      }
+      rejectedAgents.compute(agentId, (k, v) -> v == null ? 1 : v + 1);
     }
 
     public JSONArray toJson() {
