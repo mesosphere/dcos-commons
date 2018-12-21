@@ -115,6 +115,9 @@ def test_crud_over_tls(elastic_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
+@pytest.mark.skip(
+    message="Kibana 6.3 with TLS enabled is not working due Admin Router request header. Details in https://jira.mesosphere.com/browse/DCOS-43386"
+)
 def test_kibana_tls(kibana_application):
     config.check_kibana_adminrouter_integration(
         "service/{}/login".format(config.KIBANA_SERVICE_NAME)
