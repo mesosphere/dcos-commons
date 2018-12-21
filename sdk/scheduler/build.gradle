@@ -147,7 +147,7 @@ dependencies {
     compile "javax.el:javax.el-api:${elVer}"
     compile "org.glassfish.web:javax.el:${elVer}"
     compile 'com.mesosphere:mesos-http-adapter:0.4.1'
-    compile 'org.apache.mesos:mesos:1.5.0' // This is the Mesos version used in DC/OS 1.11.
+    compile 'org.apache.mesos:mesos:1.7.1' // This is the Mesos version used in DC/OS 1.12.1.
     compile('com.auth0:java-jwt:3.2.0') {
         // JWT package comes with jackson version 2.8.4 which doesn't work properly with
         // scheduler specification classes.
