@@ -100,7 +100,6 @@ http.cors.allow-credentials: {{HTTP_CORS_ALLOW_CREDENTIALS}}
 http.detailed_errors.enabled: {{HTTP_DETAILED_ERRORS_ENABLED}}
 http.pipelining: {{HTTP_PIPELINING}}
 http.pipelining.max_events: {{HTTP_PIPELINING_MAX_EVENTS}}
-http.content_type.required: {{HTTP_CONTENT_TYPE_REQUIRED}}
 {{#THREAD_POOL_SEARCH_SIZE}}
 thread_pool.search.size: {{THREAD_POOL_SEARCH_SIZE}}
 {{/THREAD_POOL_SEARCH_SIZE}}
