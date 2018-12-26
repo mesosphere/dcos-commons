@@ -52,7 +52,7 @@ pods:
 
                 ./bootstrap
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-                ARGS='-f'
+                ARGS='-R -f'
 
                 if [ -n "$STATSD_UDP_HOST" ]; then
                     ARGS="$ARGS -Dcassandra.metricsReporterConfigFile=metrics-reporter-config.yaml"

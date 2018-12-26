@@ -17,7 +17,7 @@ PACKAGE_NAME = "cassandra"
 SERVICE_NAME = os.environ.get("SOAK_SERVICE_NAME") or "cassandra"
 
 DEFAULT_TASK_COUNT = 3
-DEFAULT_CASSANDRA_TIMEOUT = 1000
+DEFAULT_CASSANDRA_TIMEOUT = 800
 # Soak artifact scripts may override the service name to test
 
 DEFAULT_NODE_ADDRESS = os.getenv(
@@ -84,7 +84,7 @@ def _get_test_job(
         "id": "test.cassandra." + name,
         "run": {
             "cmd": " && ".join(commands),
-            "docker": {"image": "cassandra:3.0.13"},
+            "docker": {"image": "cassandra:3.11.1"},
             "cpus": 1,
             "mem": 512,
             "disk": 100,
