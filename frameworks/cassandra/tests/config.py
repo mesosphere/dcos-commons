@@ -17,7 +17,7 @@ PACKAGE_NAME = "cassandra"
 SERVICE_NAME = os.environ.get("SOAK_SERVICE_NAME") or "cassandra"
 
 DEFAULT_TASK_COUNT = 3
-DEFAULT_CASSANDRA_TIMEOUT = 800
+DEFAULT_CASSANDRA_TIMEOUT = 1000
 # Soak artifact scripts may override the service name to test
 
 DEFAULT_NODE_ADDRESS = os.getenv(
