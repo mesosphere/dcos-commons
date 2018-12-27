@@ -257,9 +257,9 @@ def is_graph_explore_endpoint_active(response):
 
 
 def verify_document(service_name, document_id, document_fields, http_user=None, http_password=None):
-    document = config.get_document(
-        config.DEFAULT_INDEX_NAME,
-        config.DEFAULT_INDEX_TYPE,
+    document = get_document(
+        DEFAULT_INDEX_NAME,
+        DEFAULT_INDEX_TYPE,
         document_id,
         service_name=service_name,
         http_user=http_user,
