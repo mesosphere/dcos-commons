@@ -256,6 +256,18 @@ def is_graph_explore_endpoint_active(response):
     )
 
 
+def verify_document(service_name, document_id, document_fields, http_user=None, http_password=None):
+    document = config.get_document(
+        config.DEFAULT_INDEX_NAME,
+        config.DEFAULT_INDEX_TYPE,
+        document_id,
+        service_name=service_name,
+        http_user=http_user,
+        http_password=http_password,
+    )
+    assert document["_source"]["name"] == document_fields["name"]
+
+
 def update_app(service_name, options, expected_task_count):
     config = sdk_marathon.get_config(service_name)
     config["env"].update(options)

@@ -69,6 +69,14 @@ def add_repo(repo_name, repo_url, index=None) -> bool:
     return rc == 0
 
 
+def remove_stub_universe_urls(stub_universe_urls) -> None:
+    _, current_universes, _ = sdk_cmd.run_cli("package repo list --json")
+    for repo in json.loads(current_universes)["repositories"]:
+        if repo["uri"] in stub_universe_urls:
+            log.info("Removing stub URL: {}".format(repo["uri"]))
+            assert remove_repo(repo["name"])
+
+
 def add_stub_universe_urls(stub_universe_urls: list) -> dict:
     stub_urls = {}
 
