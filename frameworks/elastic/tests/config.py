@@ -322,7 +322,7 @@ def explore_graph(
         service_name,
         "POST",
         "{}/_xpack/_graph/_explore".format(index_name),
-        json_data=query,
+        json_body=query,
         http_user=http_user,
         http_password=http_password,
     )
@@ -343,7 +343,7 @@ def create_index(
         service_name,
         "PUT",
         index_name,
-        json_data=params,
+        json_body=params,
         https=https,
         http_user=http_user,
         http_password=http_password,
@@ -377,7 +377,7 @@ def create_document(
         service_name,
         "PUT",
         "{}/{}/{}?refresh=wait_for".format(index_name, index_type, doc_id),
-        json_data=params,
+        json_body=params,
         https=https,
         http_user=http_user,
         http_password=http_password,
@@ -415,8 +415,8 @@ def _curl_query(
     service_name,
     method,
     endpoint,
-    json_data=None,
     role="master",
+    json_body=None,
     https=False,
     return_json=True,
     http_user=DEFAULT_ELASTICSEARCH_USER,
@@ -443,8 +443,8 @@ def _curl_query(
         credentials, method, protocol, host, endpoint
     )
 
-    if json_data:
-        curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_data))
+    if json_body:
+        curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_body))
 
     task_name = "master-0-node"
     exit_code, stdout, stderr = sdk_cmd.service_task_exec(service_name, task_name, curl_cmd)
