@@ -79,6 +79,7 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
     _, current_universes, _ = sdk_cmd.run_cli("package repo list --json")
     for repo in json.loads(current_universes)["repositories"]:
         if repo["uri"] in stub_universe_urls:
+            stub_urls.add(repo)
             log.info("Removing duplicate stub URL: {}".format(repo["uri"]))
             assert remove_repo(repo["name"])
 
