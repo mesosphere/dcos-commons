@@ -415,8 +415,8 @@ def _curl_query(
     service_name,
     method,
     endpoint,
-    role="master",
     json_body=None,
+    task="master-0-node",
     https=False,
     return_json=True,
     http_user=DEFAULT_ELASTICSEARCH_USER,
@@ -435,9 +435,7 @@ def _curl_query(
     if http_password:
         credentials = "{}:{}".format(credentials, http_password)
 
-    host = sdk_hosts.autoip_host(
-        service_name, "{}-0-node".format(role), _master_zero_http_port(service_name)
-    )
+    host = sdk_hosts.autoip_host(service_name, task, _master_zero_http_port(service_name))
 
     curl_cmd = "/opt/mesosphere/bin/curl -sS {} -X{} '{}://{}/{}'".format(
         credentials, method, protocol, host, endpoint
