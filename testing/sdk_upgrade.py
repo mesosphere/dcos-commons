@@ -8,7 +8,6 @@ import json
 import logging
 import retrying
 import tempfile
-import traceback
 
 import sdk_cmd
 import sdk_install
@@ -36,29 +35,19 @@ def test_upgrade(
     timeout_seconds=TIMEOUT_SECONDS,
     wait_for_deployment=True,
 ):
-    # allow providing different options dicts to the universe version vs the test version:
-    if test_version_additional_options is None:
-        test_version_additional_options = additional_options
+    # Allow providing different options dicts to the universe version vs the test version.
+    test_version_additional_options = test_version_additional_options or additional_options
 
     sdk_install.uninstall(package_name, service_name)
-
-    test_version = _get_pkg_version(package_name)
-    log.info("Found test version: {}".format(test_version))
-
-    universe_url = _get_universe_url()
 
     universe_version = None
     try:
         # Move the Universe repo to the top of the repo list so that we can first install the
         # release version.
-        sdk_repository.remove_repo("Universe")
-        assert sdk_repository.add_repo("Universe", universe_url, 0)
-        log.info(
-            "Waiting for Universe release version of {} to appear: version != {}".format(
-                package_name, test_version
-            )
+        test_version, universe_version = sdk_repository.move_universe_repo(
+            package_name, universe_repo_index=0
         )
-        universe_version = _wait_for_new_package_version(package_name, test_version)
+        log.info("Found test version: {}".format(test_version))
 
         log.info("Installing Universe version: {}={}".format(package_name, universe_version))
         sdk_install.install(
@@ -74,14 +63,7 @@ def test_upgrade(
         if universe_version:
             # Return the Universe repo back to the bottom of the repo list so that we can upgrade to
             # the build version.
-            sdk_repository.remove_repo("Universe")
-            assert sdk_repository.add_repo("Universe", universe_url)
-            log.info(
-                "Waiting for test build version of {} to appear: version != {}".format(
-                    package_name, universe_version
-                )
-            )
-            _wait_for_new_package_version(package_name, universe_version)
+            universe_version, test_version = sdk_repository.move_universe_repo(package_name)
 
     log.info("Upgrading {}: {} => {}".format(package_name, universe_version, test_version))
     update_or_upgrade_or_downgrade(
@@ -123,7 +105,7 @@ def soak_upgrade_downgrade(
     )
 
     # Default Universe is at --index=0
-    version = _get_pkg_version(package_name)
+    version = sdk_repository._get_pkg_version(package_name)
     log.info("Downgrading to Universe version: {} {}".format(package_name, version))
     update_or_upgrade_or_downgrade(
         package_name,
@@ -134,16 +116,6 @@ def soak_upgrade_downgrade(
         wait_for_deployment,
         timeout_seconds,
     )
-
-
-def _get_universe_url():
-    _, stdout, _ = sdk_cmd.run_cli("package repo list --json")
-    repositories = json.loads(stdout)["repositories"]
-    for repo in repositories:
-        if repo["name"] == "Universe":
-            log.info("Found Universe URL: {}".format(repo["uri"]))
-            return repo["uri"]
-    assert False, "Unable to find 'Universe' in list of repos: {}".format(repositories)
 
 
 @retrying.retry(
@@ -252,43 +224,6 @@ def _wait_for_deployment(package_name, service_name, initial_config, task_ids, t
         )
     )
     sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
-
-
-@retrying.retry(
-    wait_fixed=1000, stop_max_delay=10 * 1000, retry_on_result=lambda result: result is None
-)
-def _get_pkg_version(package_name):
-    cmd = "package describe {}".format(package_name)
-    # Only log stdout/stderr if there's actually an error.
-    rc, stdout, stderr = sdk_cmd.run_cli(cmd, print_output=False)
-    if rc != 0:
-        log.warning('Failed to run "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
-        return None
-    try:
-        describe = json.loads(stdout)
-        # New location (either 1.10+ or 1.11+):
-        version = describe.get("package", {}).get("version", None)
-        if version is None:
-            # Old location (until 1.9 or until 1.10):
-            version = describe["version"]
-        return version
-    except Exception:
-        log.warning(
-            'Failed to extract package version from "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(
-                cmd, stdout, stderr
-            )
-        )
-        log.warning(traceback.format_exc())
-        return None
-
-
-@retrying.retry(
-    wait_fixed=1000, stop_max_delay=60 * 1000, retry_on_result=lambda result: result is None
-)
-def _wait_for_new_package_version(package_name, prev_version):
-    cur_version = _get_pkg_version(package_name)
-    log.info("Current version of {} is: {}".format(package_name, cur_version))
-    return cur_version if cur_version != prev_version else None
 
 
 def is_cli_supports_service_version_upgrade():
