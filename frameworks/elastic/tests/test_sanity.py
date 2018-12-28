@@ -536,8 +536,6 @@ def test_xpack_update_matrix():
 
 
 # NOTE: this test should be at the end of this module.
-# TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
-# release.
 @pytest.mark.sanity
 @pytest.mark.timeout(15 * 60)
 def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
@@ -550,18 +548,22 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
     # This test needs to run some code in between the Universe version installation and the stub Universe
     # upgrade, so it cannot use `sdk_upgrade.test_upgrade`.
     log.info("Updating from X-Pack 'enabled' to X-Pack security 'enabled'")
+    http_user = config.DEFAULT_ELASTICSEARCH_USER
+    http_password = config.DEFAULT_ELASTICSEARCH_PASSWORD
+    package_name = config.PACKAGE_NAME
 
-    sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+    sdk_install.uninstall(package_name, foldered_name)
 
-    repos = sdk_repository.get_repos()
-    sdk_repository.remove_stub_universe_urls(repos)
+    # Move Universe repo to the top of the repo list so that we can first install the Universe
+    # version.
+    _, universe_version = sdk_repository.move_universe_repo(package_name, universe_repo_index=0)
 
     sdk_install.install(
-        config.PACKAGE_NAME,
+        package_name,
         foldered_name,
         expected_running_tasks=current_expected_task_count,
         additional_options={"elasticsearch": {"xpack_enabled": True}},
-        package_version=None,
+        package_version=universe_version,
     )
 
     document_es_5_id = 1
@@ -572,8 +574,8 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
         document_es_5_id,
         document_es_5_fields,
         service_name=foldered_name,
-        http_user=config.DEFAULT_ELASTICSEARCH_USER,
-        http_password=config.DEFAULT_ELASTICSEARCH_PASSWORD,
+        http_user=http_user,
+        http_password=http_password,
     )
 
     # This is the first crucial step when upgrading from "X-Pack enabled" on ES5 to "X-Pack security
@@ -583,20 +585,22 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
     config._curl_query(
         foldered_name,
         "POST",
-        "_xpack/security/user/{}/_password".format(config.DEFAULT_ELASTICSEARCH_USER),
-        json_body={"password": config.DEFAULT_ELASTICSEARCH_PASSWORD},
-        http_user=config.DEFAULT_ELASTICSEARCH_USER,
-        http_password=config.DEFAULT_ELASTICSEARCH_PASSWORD,
+        "_xpack/security/user/{}/_password".format(http_user),
+        json_body={"password": http_password},
+        http_user=http_user,
+        http_password=http_password,
     )
 
-    stub_urls = sdk_repository.add_stub_universe_urls(repos)
+    # Move Universe repo back to the bottom of the repo list so that we can upgrade to the version
+    # under test.
+    _, test_version = sdk_repository.move_universe_repo(package_name)
 
     # First we upgrade to "X-Pack security enabled" set to false on ES6, so that we can use the
     # X-Pack migration assistance and upgrade APIs.
     sdk_upgrade.update_or_upgrade_or_downgrade(
-        config.PACKAGE_NAME,
+        package_name,
         foldered_name,
-        "stub-universe",
+        test_version,
         {
             "service": {"update_strategy": "parallel"},
             "elasticsearch": {"xpack_security_enabled": False},
@@ -619,14 +623,14 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
 
     # This is the second crucial step when upgrading from "X-Pack enabled" on ES5 to "X-Pack
     # security enabled" on ES6. The ".security" index (along with any others returned by the
-    # "assistance" API) needs to be upgraded
+    # "assistance" API) needs to be upgraded.
     for index in response["indices"]:
         config._curl_query(
             foldered_name,
             "POST",
             "_xpack/migration/upgrade/{}?pretty".format(index),
-            http_user=config.DEFAULT_ELASTICSEARCH_USER,
-            http_password=config.DEFAULT_ELASTICSEARCH_PASSWORD,
+            http_user=http_user,
+            http_password=http_password,
         )
 
     document_es_6_security_disabled_id = 2
@@ -640,13 +644,13 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
         document_es_6_security_disabled_id,
         document_es_6_security_disabled_fields,
         service_name=foldered_name,
-        http_user=config.DEFAULT_ELASTICSEARCH_USER,
-        http_password=config.DEFAULT_ELASTICSEARCH_PASSWORD,
+        http_user=http_user,
+        http_password=http_password,
     )
 
     # After upgrading the indices, we're now safe to enable X-Pack security.
     sdk_service.update_configuration(
-        config.PACKAGE_NAME,
+        package_name,
         foldered_name,
         {"elasticsearch": {"xpack_security_enabled": True}},
         current_expected_task_count,
@@ -663,21 +667,34 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
         document_es_6_security_enabled_id,
         document_es_6_security_enabled_fields,
         service_name=foldered_name,
-        http_user=config.DEFAULT_ELASTICSEARCH_USER,
-        http_password=config.DEFAULT_ELASTICSEARCH_PASSWORD,
+        http_user=http_user,
+        http_password=http_password,
     )
 
-    # Verify documents;
-    config.verify_document(foldered_name, document_es_5_id, document_es_5_fields)
+    # Make sure that documents were created and are accessible.
     config.verify_document(
-        foldered_name, document_es_6_security_disabled_id, document_es_6_security_disabled_fields
+        foldered_name,
+        document_es_5_id,
+        document_es_5_fields,
+        http_user=http_user,
+        http_password=http_password,
     )
     config.verify_document(
-        foldered_name, document_es_6_security_enabled_id, document_es_6_security_enabled_fields
+        foldered_name,
+        document_es_6_security_disabled_id,
+        document_es_6_security_disabled_fields,
+        http_user=http_user,
+        http_password=http_password,
+    )
+    config.verify_document(
+        foldered_name,
+        document_es_6_security_enabled_id,
+        document_es_6_security_enabled_fields,
+        http_user=http_user,
+        http_password=http_password,
     )
 
-    sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-    sdk_repository.remove_universe_repos(stub_urls)
+    sdk_install.uninstall(package_name, foldered_name)
 
 
 # NOTE: this test should be at the end of this module.
