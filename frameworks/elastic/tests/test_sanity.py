@@ -694,8 +694,6 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
         http_password=http_password,
     )
 
-    sdk_install.uninstall(package_name, foldered_name)
-
 
 # NOTE: this test should be at the end of this module.
 # TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
