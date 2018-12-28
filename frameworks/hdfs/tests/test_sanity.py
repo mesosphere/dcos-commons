@@ -398,4 +398,3 @@ def test_permanently_replace_journalnodes():
         sdk_recovery.check_permanent_recovery(
             config.PACKAGE_NAME, foldered_name, pod, recovery_timeout_s=25 * 60
         )
-
