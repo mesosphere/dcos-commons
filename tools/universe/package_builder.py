@@ -172,7 +172,7 @@ class UniversePackageBuilder(object):
             "package-build-time-epoch-ms": str(int(round(now * 1000))),
             "package-build-time-str": time.strftime("%a %b %d %Y %H:%M:%S +0000", time.gmtime(now)),
             "upgrades-from": self._get_upgrades_from(),
-            "Fdowngrades-to": self._get_downgrades_to(),
+            "downgrades-to": self._get_downgrades_to(),
             "artifact-dir": self._upload_dir_uri,
             "documentation-path": self._get_documentation_path(),
             "issues-path": self._get_issues_path(),
