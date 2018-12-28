@@ -8,6 +8,7 @@
         "name": {
           "description": "The name of the service instance",
           "type": "string",
+          "pattern": "^(\\/?((\\.\\.)|(([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])\\.)*([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9]))?($|\\/))+$",
           "default": "hdfs"
         },
         "user": {
