@@ -35,6 +35,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.smoke
+@pytest.mark.dcos_min_version("1.10")
 def test_install():
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
@@ -52,6 +53,7 @@ def test_mesos_v0_api():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
+@pytest.mark.dcos_min_version('1.10')
 def test_bump_hello_cpus():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
@@ -73,6 +75,7 @@ def test_bump_hello_cpus():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
+@pytest.mark.dcos_min_version("1.10")
 def test_bump_world_cpus():
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)

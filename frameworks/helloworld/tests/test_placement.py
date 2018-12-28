@@ -67,7 +67,7 @@ def fault_domain_vars_are_present(pod_instance):
     return region != 'NO_REGION' and zone != 'NO_ZONE' and len(region) > 0 and len(zone) > 0
 
 
-@pytest.mark.dcos_min_version('1.9')
+@pytest.mark.dcos_min_version('1.10')
 @pytest.mark.smoke
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
