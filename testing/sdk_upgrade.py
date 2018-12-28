@@ -188,6 +188,7 @@ def _update_service_with_cli(
         json.dump(additional_options, options_file)
         options_file.flush()  # ensure json content is available for the CLI to read below
         update_cmd.append("--options={}".format(options_file.name))
+        log.info("Will update '%s' with options: %s", service_name, additional_options)
 
     rc, _, _ = sdk_cmd.svc_cli(package_name, service_name, " ".join(update_cmd))
     if rc != 0:
@@ -208,6 +209,9 @@ def _update_service_with_cli(
 
 def _wait_for_deployment(package_name, service_name, initial_config, task_ids, timeout_seconds):
     updated_config = get_config(package_name, service_name)
+
+    log.info("Config before update: %s", initial_config)
+    log.info("Config after update: %s", updated_config)
 
     if updated_config == initial_config:
         log.info("No config change detected. Tasks should not be restarted")
