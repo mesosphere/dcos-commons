@@ -656,7 +656,7 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
         current_expected_task_count,
     )
 
-    document_es_6_security_enabled_id = 2
+    document_es_6_security_enabled_id = 3
     document_es_6_security_enabled_fields = {
         "name": "Elasticsearch 6: X-Pack security enabled",
         "role": "search engine",
