@@ -165,7 +165,7 @@ public class OfferEvaluator {
       StringBuilder outcomeDetails = new StringBuilder();
       List<String> outcomeReasons = new ArrayList<String>();
       for (EvaluationOutcome outcome : outcomes) {
-        getOutcomes(outcome, outcomeReasons);
+        getOutcomes(outcomeReasons, outcome);
         logOutcome(outcomeDetails, outcome, "");
       }
       if (outcomeDetails.length() != 0) {
@@ -353,10 +353,12 @@ public class OfferEvaluator {
     }
   }
 
-  static void getOutcomes(EvaluationOutcome outcome, List<String> outcomeReasons) {
+  static void getOutcomes(List<String> outcomeReasons, EvaluationOutcome outcome) {
+    String prefix = outcome.isPassing() ? "PASS" : "FAIL";
+    outcomeReasons.add(String.format("%s(%s):%s", prefix, outcome.getSource(),
+        outcome.getReason()));
     for (EvaluationOutcome child: outcome.getChildren()) {
-      String prefix = child.isPassing() ? "PASS" : "FAIL";
-      outcomeReasons.add(prefix + ": " + child.getReason());
+      getOutcomes(outcomeReasons, child);
     }
   }
 
