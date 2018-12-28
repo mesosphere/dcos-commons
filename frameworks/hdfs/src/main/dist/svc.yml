@@ -45,7 +45,7 @@ pods:
         cmd: |
           set -e
           echo "Creating version directory in the journal-data persistent volume"
-          mkdir -p journal-data/hdfs/current/paxos
+          mkdir -p journal-data/hdfs/current
           echo "Fetching VERSION file"
           curl ${SCHEDULER_API_HOSTNAME}:${SCHEDULER_API_PORT}/v1/state/files/VERSION > journal-data/hdfs/current/VERSION
           echo "VERSION has the following content:"
