@@ -18,7 +18,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 _jre_url = "https://downloads.mesosphere.com/java/server-jre-8u192-linux-x64.tar.gz"
 _libmesos_bundle_url = (
-    "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.12.0.tar.gz"
+    "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.11.0.tar.gz"
 )
 _dcos_sdk_version = "0.41.0-SNAPSHOT"
 
