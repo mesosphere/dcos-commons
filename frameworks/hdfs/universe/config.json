@@ -6,7 +6,7 @@
       "description": "DC/OS service configuration properties",
       "properties": {
         "name": {
-          "description": "The name of the service instance",
+          "description": "Unique name for the service instance consisting of a series of words separated by slashes. Each word must be at least 1 alphanumeric character and may only contain digits (`0-9`), dashes (`-`), dots (`.`), and lowercase letters (`a-z`). The word may not begin or end with a dash",
           "type": "string",
           "pattern": "^(\\/?((\\.\\.)|(([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])\\.)*([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9]))?($|\\/))+$",
           "default": "hdfs"
