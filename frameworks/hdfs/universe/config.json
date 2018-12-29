@@ -1662,6 +1662,11 @@
           "description": "The default implementation of Hash. Currently this can take one of the two values: 'murmur' to select MurmurHash and 'jenkins' to select JenkinsHash.",
           "default": "murmur"
         },
+        "ipc_maximum_data_length": {
+          "type": "string",
+          "description": "Defines the maximum length or rpc calls for data node reports to the name node.",
+          "default": "67108864"
+        },
         "ipc_client_idlethreshold": {
           "type": "string",
           "description": "Defines the threshold number of connections after which connections will be inspected for idleness.",
