@@ -1,0 +1,1 @@
+../dist/setup-java-policy.sh

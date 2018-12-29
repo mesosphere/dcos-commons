@@ -1,0 +1,1 @@
+../dist/install-plugins.sh

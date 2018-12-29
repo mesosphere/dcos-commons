@@ -6,7 +6,7 @@
   "name": "kibana",
   "version": "{{package-version}}",
   "maintainer": "support@mesosphere.io",
-  "description": "Kibana 5, and optionally X-Pack",
+  "description": "Kibana 6, and X-Pack",
   "selected": true,
   "framework": true,
   "tags": ["elastic", "elasticsearch", "kibana", "x-pack"],

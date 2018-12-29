@@ -6,7 +6,7 @@ SHOULD ALSO BE APPLIED TO sdk_cmd IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 import functools
-import json as jsonlib
+import json
 import os
 import logging
 import requests
@@ -113,11 +113,13 @@ def cluster_request(
         start = time.time()
 
         # check if we have verify key already exists.
-        if kwargs is not None and kwargs.get('verify') is not None:
-            kwargs['verify'] = False
+        if kwargs is not None and kwargs.get("verify") is not None:
+            kwargs["verify"] = False
             response = requests.request(method, url, auth=auth, timeout=timeout_seconds, **kwargs)
         else:
-            response = requests.request(method, url, auth=auth, verify=False, timeout=timeout_seconds, **kwargs)
+            response = requests.request(
+                method, url, auth=auth, verify=False, timeout=timeout_seconds, **kwargs
+            )
 
         end = time.time()
 
@@ -156,12 +158,22 @@ def cluster_request(
         return _cluster_request()
 
 
-def svc_cli(package_name, service_name, service_cmd, print_output=True, check=False):
-    return run_cli(
+def svc_cli(
+    package_name, service_name, service_cmd, print_output=True, parse_json=False, check=False
+):
+    rc, stdout, stderr = run_cli(
         "{} --name={} {}".format(package_name, service_name, service_cmd),
         print_output=print_output,
         check=check,
     )
+
+    if parse_json:
+        try:
+            stdout = json.loads(stdout)
+        except json.JSONDecodeError:
+            log.exception("Failed to parse JSON")
+
+    return rc, stdout, stderr
 
 
 def _get_json_output(cmd, print_output=True, check=False):
@@ -171,7 +183,7 @@ def _get_json_output(cmd, print_output=True, check=False):
         log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)
 
     try:
-        json_stdout = jsonlib.loads(stdout)
+        json_stdout = json.loads(stdout)
     except Exception as e:
         log.warning("Error converting stdout to json:\n%s", stdout)
         raise e
@@ -575,7 +587,7 @@ def _get_task_info(task_id_prefix: str) -> dict:
         log.warning("No data returned for tasks matching id '%s'", task_id_prefix)
         return {}
 
-    tasks = jsonlib.loads(raw_tasks)
+    tasks = json.loads(raw_tasks)
     for task in tasks:
         if task.get("id", "").startswith(task_id_prefix):
             log.info("Matched on 'id': ")

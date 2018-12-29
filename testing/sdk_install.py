@@ -123,6 +123,15 @@ def install(
     else:
         options = additional_options
 
+    options = sdk_utils.merge_dictionaries(
+        {
+            "service": {
+                "name": service_name
+            },
+        },
+        options,
+    )
+
     # 1. Install package, wait for tasks, wait for marathon deployment
     _retried_install_impl(
         package_name,
