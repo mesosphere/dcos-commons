@@ -4,7 +4,7 @@
   "mem": 1024,
   "instances": 1,
   "user": "{{service.user}}",
-  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError {{#debug}}-agentlib:jdwp=transport=dt_socket,server=y,suspend={{debug.suspend}},address={{debug.address}}{{/debug}}\" && ./bootstrap -resolve=false -template=false && ./hello-world-scheduler/bin/helloworld {{service.yaml}} {{service.yamls}}",
+  "cmd": "export LD_LIBRARY_PATH=$MESOS_SANDBOX/libmesos-bundle/lib:$LD_LIBRARY_PATH; export MESOS_NATIVE_JAVA_LIBRARY=$(ls $MESOS_SANDBOX/libmesos-bundle/lib/libmesos-*.so); export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/); export JAVA_HOME=${JAVA_HOME%/}; export PATH=$(ls -d $JAVA_HOME/bin):$PATH && export JAVA_OPTS=\"-Xms256M -Xmx512M -XX:-HeapDumpOnOutOfMemoryError {{#debug.address}}-agentlib:jdwp=transport=dt_socket,server=y,suspend={{debug.suspend}},address={{debug.address}}{{/debug.address}}\" && ./bootstrap -resolve=false -template=false && ./hello-world-scheduler/bin/helloworld {{service.yaml}} {{service.yamls}}",
   "constraints": {{service.constraints}},
   "labels": {
     "DCOS_COMMONS_API_VERSION": "v1",
