@@ -91,7 +91,11 @@
     "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}",
     "TEST_BOOLEAN": "{{service.test_boolean}}",
     "SCENARIO": "{{service.scenario}}",
-    "ALLOW_REGION_AWARENESS": "{{service.allow_region_awareness}}"
+    "ALLOW_REGION_AWARENESS": "{{service.allow_region_awareness}}",
+
+    "WORLD_READINESS_CHECK_INTERVAL": "{{world.readiness_check.interval}}",
+    "WORLD_READINESS_CHECK_DELAY": "{{world.readiness_check.delay}}",
+    "WORLD_READINESS_CHECK_TIMEOUT": "{{world.readiness_check.timeout}}"
   },
   "uris": [
     "{{resource.assets.uris.bootstrap-zip}}",

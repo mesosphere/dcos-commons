@@ -69,7 +69,7 @@ pods:
           # so send the error to /dev/null, BUT also zero-left-pad the variable BYTES to ensure that it is zero
           # on empty for comparison sake.
           cmd: BYTES="$(wc -c world-container-path2/output 2>/dev/null| awk '{print $1;}')" && [ 0$BYTES -gt 0 ]
-          interval: 5
-          delay: 0
-          timeout: 10
+          interval: {{WORLD_READINESS_CHECK_INTERVAL}}
+          delay: {{WORLD_READINESS_CHECK_DELAY}}
+          timeout: {{WORLD_READINESS_CHECK_TIMEOUT}}
         kill-grace-period: {{WORLD_KILL_GRACE_PERIOD}}
