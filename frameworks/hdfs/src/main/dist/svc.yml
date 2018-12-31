@@ -129,9 +129,9 @@ pods:
               # give it a chance to roll completely and start a new edits segment
               sleep 30
             fi
-          delay: 30
-          interval: 30
-          timeout: 60
+          delay: {{JOURNAL_NODE_READINESS_CHECK_DELAY}}
+          interval: {{JOURNAL_NODE_READINESS_CHECK_INTERVAL}}
+          timeout: {{JOURNAL_NODE_READINESS_CHECK_TIMEOUT}}
         {{/JOURNAL_READINESS_CHECK_ENABLED}}
         {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
@@ -219,9 +219,9 @@ pods:
             KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM
             {{/SECURITY_KERBEROS_ENABLED}}
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME
-          interval: 5
-          delay: 0
-          timeout: 180
+          interval: {{NAME_NODE_READINESS_CHECK_INTERVAL}}
+          delay: {{NAME_NODE_READINESS_CHECK_DELAY}}
+          timeout: {{NAME_NODE_READINESS_CHECK_TIMEOUT}}
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
@@ -494,9 +494,9 @@ pods:
             export TASK_IP=$(./bootstrap --get-task-ip)
             MATCH="$(./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -report | grep $TASK_IP | wc -l)"
             [[ $MATCH -ge 1 ]]
-          interval: 10
-          delay: 120
-          timeout: 60
+          interval: {{DATA_NODE_READINESS_CHECK_INTERVAL}}
+          delay: {{DATA_NODE_READINESS_CHECK_DELAY}}
+          timeout: {{DATA_NODE_READINESS_CHECK_TIMEOUT}}
         {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node

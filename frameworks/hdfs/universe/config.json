@@ -169,6 +169,27 @@
           "type": "boolean",
           "default": true
         },
+        "readiness_check" : {
+          "description" : "Readiness check settings",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 30
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 30
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 60
+            }
+          }
+        },
         "lagging_tx_count": {
           "description": "The number of transactions that this JournalNode is lagging",
           "type": "string",
@@ -541,6 +562,27 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 5
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 180
+            }
+          }
         }
       },
       "required": [
@@ -789,6 +831,27 @@
           "type": "string",
           "description": "JVM options to specify when running the data node. This overrides HADOOP_HEAPSIZE Xmx value for the data nodes.",
           "default": ""
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 10
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 120
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 60
+            }
+          }
         }
       },
       "required": [
