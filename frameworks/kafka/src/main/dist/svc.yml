@@ -140,9 +140,9 @@ pods:
             fi
             echo "Required log line found. Broker is ready."
             exit 0
-          interval: 5
-          delay: 0
-          timeout: 10
+          interval: {{READINESS_CHECK_INTERVAL}}
+          delay: {{READINESS_CHECK_DELAY}}
+          timeout: {{READINESS_CHECK_TIMEOUT}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: broker
