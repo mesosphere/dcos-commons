@@ -107,7 +107,11 @@
     "ALLOW_REGION_AWARENESS": "{{service.allow_region_awareness}}",
     "HELLO_PORT_ONE": "{{hello.port_one}}",
     "GLOG_v":"{{service.verbose_mesos_logging}}",
-    "TASKCFG_ALL_PACKAGE_VERSION_TO_FORCE_UPDATE": "{{package-version}}"
+    "TASKCFG_ALL_PACKAGE_VERSION_TO_FORCE_UPDATE": "{{package-version}}",
+
+    "WORLD_READINESS_CHECK_INTERVAL": "{{world.readiness_check.interval}}",
+    "WORLD_READINESS_CHECK_DELAY": "{{world.readiness_check.delay}}",
+    "WORLD_READINESS_CHECK_TIMEOUT": "{{world.readiness_check.timeout}}"
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },
