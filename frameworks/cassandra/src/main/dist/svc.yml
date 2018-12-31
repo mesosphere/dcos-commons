@@ -77,9 +77,9 @@ pods:
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 export TASK_IP=$(./bootstrap --get-task-ip) &&
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
-          interval: 5
-          delay: 0
-          timeout: 60
+          interval: {{READINESS_CHECK_INTERVAL}}
+          delay: {{READINESS_CHECK_DELAY}}
+          timeout: {{READINESS_CHECK_TIMEOUT}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
