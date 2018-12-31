@@ -158,6 +158,27 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 60
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 20
+            }
+          }
         }
       },
       "required": [
@@ -218,6 +239,27 @@
           "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
+          }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 60
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 20
+            }
           }
         }
       },
@@ -280,6 +322,27 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 60
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 20
+            }
+          }
         }
       },
       "required": [
@@ -340,6 +403,27 @@
           "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
+          }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 60
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 20
+            }
           }
         }
       },

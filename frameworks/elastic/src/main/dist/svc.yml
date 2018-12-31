@@ -85,9 +85,9 @@ pods:
             dest: scripts/setup-java-policy.sh
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
-          interval: 5
-          delay: 0
-          timeout: 10
+          interval: {{MASTER_NODE_READINESS_CHECK_INTERVAL}}
+          delay: {{MASTER_NODE_READINESS_CHECK_DELAY}}
+          timeout: {{MASTER_NODE_READINESS_CHECK_TIMEOUT}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
@@ -173,9 +173,9 @@ pods:
             dest: scripts/setup-java-policy.sh
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
-          interval: 5
-          delay: 0
-          timeout: 10
+          interval: {{DATA_NODE_READINESS_CHECK_INTERVAL}}
+          delay: {{DATA_NODE_READINESS_CHECK_DELAY}}
+          timeout: {{DATA_NODE_READINESS_CHECK_TIMEOUT}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
@@ -261,9 +261,9 @@ pods:
             dest: scripts/setup-java-policy.sh
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
-          interval: 5
-          delay: 0
-          timeout: 10
+          interval: {{INGEST_NODE_READINESS_CHECK_INTERVAL}}
+          delay: {{INGEST_NODE_READINESS_CHECK_DELAY}}
+          timeout: {{INGEST_NODE_READINESS_CHECK_TIMEOUT}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
@@ -349,9 +349,9 @@ pods:
             dest: scripts/setup-java-policy.sh
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
-          interval: 5
-          delay: 0
-          timeout: 10
+          interval: {{COORDINATOR_NODE_READINESS_CHECK_INTERVAL}}
+          delay: {{COORDINATOR_NODE_READINESS_CHECK_DELAY}}
+          timeout: {{COORDINATOR_NODE_READINESS_CHECK_TIMEOUT}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
