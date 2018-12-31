@@ -324,7 +324,10 @@
     {{#elasticsearch.indices_requests_cache_size}}
     "TASKCFG_ALL_INDICES_REQUESTS_CACHE_SIZE": "{{elasticsearch.indices_requests_cache_size}}",
     {{/elasticsearch.indices_requests_cache_size}}
-    "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}"
+    "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}",
+    "READINESS_CHECK_INTERVAL": "{{service.readiness_check.interval}}",
+    "READINESS_CHECK_DELAY": "{{service.readiness_check.delay}}",
+    "READINESS_CHECK_TIMEOUT": "{{service.readiness_check.timeout}}"
   },
   "uris": [
     "{{resource.assets.uris.bootstrap-zip}}",

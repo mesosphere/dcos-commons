@@ -74,9 +74,9 @@ pods:
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
-          interval: 5
-          delay: 0
-          timeout: 10
+          interval: {{READINESS_CHECK_INTERVAL}}
+          delay: {{READINESS_CHECK_DELAY}}
+          timeout: {{READINESS_CHECK_TIMEOUT}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
