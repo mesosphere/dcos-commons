@@ -18,6 +18,7 @@ import os
 from security import transport_encryption
 
 from tests import config
+from tests import px_utils
 
 log = logging.getLogger(__name__)
 
@@ -79,6 +80,9 @@ def portworx_service(service_account):
 
         # Wait for service health check to pass
         shakedown.service_healthy(config.SERVICE_NAME)
+        px_status = px_utils.check_px_status()
+        if 2 != px_status:
+            log.info("PORTWORX: Px service status is: {}".format(px_status))
 
         yield {**options, **{"package_name": config.PACKAGE_NAME}}
     finally:
@@ -95,6 +99,16 @@ def test_update_node_count():
         }
 
     update_service(update_options)
+    px_status = px_utils.check_px_status() 
+    if 2 != px_status:
+        log.info("PORTWORX: Update node count failed px service status: {}".format(px_status))
+        raise
+
+    px_node_count = px_utils.get_px_node_count()
+    if 3 != px_node_count:
+        log.info("PORTWORX: Failed to update node count  to 3, node count is: {}".format(px_node_count))
+        raise
+
 
 @pytest.mark.sanity
 def test_update_px_image():
@@ -107,6 +121,9 @@ def test_update_px_image():
         }
 
     update_service(update_options)
+    px_status = px_utils.check_px_status() 
+    if 2 != px_status:
+        log.info("PORTWORX: Update Px image failed px service status: {}".format(px_status))
 
 @pytest.mark.sanity
 def test_update_enable_lighthouse():
