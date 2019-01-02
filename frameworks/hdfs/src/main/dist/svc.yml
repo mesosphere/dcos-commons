@@ -265,7 +265,7 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
-          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -format
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -format -nonInteractive
         resource-set: name-resources
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
