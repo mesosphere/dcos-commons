@@ -35,7 +35,7 @@ import java.util.stream.IntStream;
  */
 public class PortEvaluationStage implements OfferEvaluationStage {
 
-  private final Logger logger;
+  private static final Logger logger = LoggingUtils.getLogger(PortEvaluationStage.class);
 
   private final PortSpec portSpec;
 
@@ -53,7 +53,6 @@ public class PortEvaluationStage implements OfferEvaluationStage {
       Optional<String> resourceId,
       Optional<String> resourceNamespace)
   {
-    this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
     this.portSpec = portSpec;
     this.taskName = taskName;
     this.resourceId = resourceId;
@@ -64,6 +63,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
   private static Optional<Integer> selectDynamicPort(
       MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder)
   {
+    logger.info("Deepak: Came in selectDynamicPort");
     Set<Integer> consumedPorts = new HashSet<>();
 
     // We don't want to accidentally dynamically consume a port that's explicitly claimed elsewhere
@@ -92,6 +92,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         mesosResourcePool.getUnreservedMergedPool().get(Constants.PORTS_RESOURCE_TYPE);
     Optional<Integer> dynamicPort = Optional.empty();
     if (availablePorts != null) {
+      logger.info("Deepak: availablePorts is not null");
       dynamicPort = availablePorts
           .getRanges()
           .getRangeList()
@@ -101,6 +102,11 @@ public class PortEvaluationStage implements OfferEvaluationStage {
           .findFirst();
     }
 
+    if (dynamicPort.isPresent()) {
+        logger.info("Deepak: Allocated dynamic Port: {}", dynamicPort.get());
+    } else {
+        logger.info("Deepak: dynamic Port is empty");
+    }
     return dynamicPort;
   }
 
@@ -155,6 +161,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         logger.info("Using previously reserved dynamic port: {}", assignedPort);
       } else {
         // Choose a new port value.
+        logger.info("Deepak: Came to selected dynamicPort, useHostPorts {}", useHostPorts);
         Optional<Integer> dynamicPort = useHostPorts ?
             selectDynamicPort(mesosResourcePool, podInfoBuilder) :
             selectOverlayPort(podInfoBuilder);
@@ -182,6 +189,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         .setBegin(assignedPort)
         .setEnd(assignedPort);
     PortSpec updatedPortSpec = PortSpec.withValue(portSpec, valueBuilder.build());
+    logger.info("Deepak: Updated port spec");
 
     if (useHostPorts) {
       OfferEvaluationUtils.ReserveEvaluationOutcome reserveEvaluationOutcome =
@@ -195,6 +203,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
           );
       EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
       if (!evaluationOutcome.isPassing()) {
+        logger.info("Deepak: Offer evaluation failed");
         return evaluationOutcome;
       }
 

@@ -226,7 +226,20 @@ public class MesosResourcePool {
   }
 
   public Map<String, Value> getUnreservedMergedPool() {
-    Map<String, Value> pool = reservableMergedPoolByRole.get(Constants.ANY_ROLE);
+    Map<String, Value> pool = reservableMergedPoolByRole.get("slave_public");
+    if (pool == null) {
+       LOGGER.info("Deepak: reservableMergedPoolByRole is empty");
+       for (Map.Entry<String, Map<String, Value>> roles : reservableMergedPoolByRole.entrySet()) {
+           LOGGER.info("Deepak: Role {}", roles.getKey());
+           for (Map.Entry<String, Value> entry: roles.getValue().entrySet()) {
+               LOGGER.info("Deepak: resource: {}, Value {}", entry.getKey(), TextFormat.shortDebugString(entry.getValue()));
+           }
+       } 
+    } else {
+       for (Map.Entry<String, Value> entry : pool.entrySet()) {
+           LOGGER.info("Deepak: resource: {}, Value {}", entry.getKey(), TextFormat.shortDebugString(entry.getValue()));
+       }
+    }  
     return pool == null ? Collections.emptyMap() : pool;
   }
 
