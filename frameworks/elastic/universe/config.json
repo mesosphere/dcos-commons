@@ -160,13 +160,13 @@
           }
         },
         "readiness_check" : {
-          "description" : "Readiness check settings",
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
               "type": "integer",
               "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
-              "default": 60
+              "default": 5
             },
             "delay": {
               "type": "integer",
@@ -176,7 +176,7 @@
             "timeout": {
               "type": "integer",
               "description": "An amount of time in seconds to wait for a readiness check to succeed.",
-              "default": 20
+              "default": 10
             }
           }
         }
@@ -242,13 +242,13 @@
           }
         },
         "readiness_check" : {
-          "description" : "Readiness check settings",
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
               "type": "integer",
               "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
-              "default": 60
+              "default": 5
             },
             "delay": {
               "type": "integer",
@@ -258,7 +258,7 @@
             "timeout": {
               "type": "integer",
               "description": "An amount of time in seconds to wait for a readiness check to succeed.",
-              "default": 20
+              "default": 10
             }
           }
         }
@@ -324,13 +324,13 @@
           }
         },
         "readiness_check" : {
-          "description" : "Readiness check settings",
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
               "type": "integer",
               "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
-              "default": 60
+              "default": 5
             },
             "delay": {
               "type": "integer",
@@ -340,7 +340,7 @@
             "timeout": {
               "type": "integer",
               "description": "An amount of time in seconds to wait for a readiness check to succeed.",
-              "default": 20
+              "default": 10
             }
           }
         }
@@ -406,13 +406,13 @@
           }
         },
         "readiness_check" : {
-          "description" : "Readiness check settings",
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
               "type": "integer",
               "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
-              "default": 60
+              "default": 5
             },
             "delay": {
               "type": "integer",
@@ -422,7 +422,7 @@
             "timeout": {
               "type": "integer",
               "description": "An amount of time in seconds to wait for a readiness check to succeed.",
-              "default": 20
+              "default": 10
             }
           }
         }
