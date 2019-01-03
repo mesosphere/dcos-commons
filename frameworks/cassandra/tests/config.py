@@ -44,7 +44,7 @@ def _get_cqlsh_tls_rc_config(node_address, node_port, certfile="/mnt/mesos/sandb
         """
         [cql]
         ; Substitute for the version of Cassandra you are connecting to.
-        version = 3.4.0
+        version = 3.4.4
 
         [connection]
         hostname = {hostname}
