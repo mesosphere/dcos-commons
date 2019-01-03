@@ -170,7 +170,7 @@
           "default": true
         },
         "readiness_check" : {
-          "description" : "Readiness check settings",
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -564,7 +564,7 @@
           }
         },
         "readiness_check" : {
-          "description" : "Readiness check settings",
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -833,7 +833,7 @@
           "default": ""
         },
         "readiness_check" : {
-          "description" : "Readiness check settings",
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
