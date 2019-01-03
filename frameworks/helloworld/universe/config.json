@@ -154,17 +154,14 @@
           "enum":[
             "y",
             "n"
-          ]
+          ],
+          "default": "n"
         },
         "address": {
           "description": "Interface to listen. This is a string to support *:6242 style to bind to all interfaces",
           "type": "string"
         }
-      },
-      "required": [
-        "suspend",
-        "address"
-      ]
+      }
     },
     "hello": {
       "description": "Hello pod configuration properties",
