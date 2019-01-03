@@ -176,17 +176,20 @@
             "interval": {
               "type": "integer",
               "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
-              "default": 30
+              "default": 30,
+              "minimum": 30
             },
             "delay": {
               "type": "integer",
               "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
-              "default": 30
+              "default": 30,
+              "minimum": 30
             },
             "timeout": {
               "type": "integer",
               "description": "An amount of time in seconds to wait for a readiness check to succeed.",
-              "default": 60
+              "default": 60,
+              "minimum": 60
             }
           }
         },
@@ -570,17 +573,20 @@
             "interval": {
               "type": "integer",
               "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
-              "default": 5
+              "default": 5,
+              "minimum": 5
             },
             "delay": {
               "type": "integer",
               "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
-              "default": 0
+              "default": 0,
+              "minimum": 0
             },
             "timeout": {
               "type": "integer",
               "description": "An amount of time in seconds to wait for a readiness check to succeed.",
-              "default": 180
+              "default": 180,
+              "minimum": 180
             }
           }
         }
@@ -839,17 +845,20 @@
             "interval": {
               "type": "integer",
               "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
-              "default": 10
+              "default": 10,
+              "minimum": 10
             },
             "delay": {
               "type": "integer",
               "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
-              "default": 120
+              "default": 120,
+              "minimum": 120
             },
             "timeout": {
               "type": "integer",
               "description": "An amount of time in seconds to wait for a readiness check to succeed.",
-              "default": 60
+              "default": 60,
+              "minimum": 60
             }
           }
         }
