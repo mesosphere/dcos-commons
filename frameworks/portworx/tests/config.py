@@ -21,17 +21,21 @@ def get_random_string(char_count = 8):
 # Portworx service specific configurations
 PACKAGE_NAME = 'portworx'
 SERVICE_NAME = 'portworx'
+PX_AGENT_USER = "vagrant"
 PX_CLEANUP_SCRIPT_PATH = 'frameworks/portworx/scripts/px_dcos_cleanup.sh'
 PX_TIMEOUT = 5 * 60 # 5 minutes timeout for portworx operations.
+
 DEFAULT_TASK_COUNT = 1
 
+PX_IMAGE = os.environ['PX_IMAGE']
 PX_KVDB_SERVER = os.environ['KVDB']
-
+PX_OPTIONS = "-a -x mesos -d enp0s8 -m enp0s8"
 PX_CLUSTER_NAME = "portworx-dcos-" + get_random_string() 
 
-PX_NODE_OPTIONS = { "node": { "portworx_options": "-a -x mesos -d enp0s8 -m enp0s8",
+PX_NODE_OPTIONS = { "node": { "portworx_options": PX_OPTIONS,
                             "kvdb_servers": PX_KVDB_SERVER,
                             "count": DEFAULT_TASK_COUNT,
+                            "portworx_image": PX_IMAGE,
                             "portworx_cluster": PX_CLUSTER_NAME,
                   } }
 
