@@ -158,6 +158,30 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 5,
+              "minimum": 5
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0,
+              "minimum": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 10,
+              "minimum": 10
+            }
+          }
         }
       },
       "required": [
@@ -218,6 +242,30 @@
           "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
+          }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 5,
+              "minimum": 5
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0,
+              "minimum": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 10,
+              "minimum": 10
+            }
           }
         }
       },
@@ -280,6 +328,30 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 5,
+              "minimum": 5
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0,
+              "minimum": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 10,
+              "minimum": 10
+            }
+          }
         }
       },
       "required": [
@@ -340,6 +412,30 @@
           "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
+          }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 5,
+              "minimum": 5
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0,
+              "minimum": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 10,
+              "minimum": 10
+            }
           }
         }
       },

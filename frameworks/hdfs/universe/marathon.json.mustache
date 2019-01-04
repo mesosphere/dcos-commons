@@ -92,11 +92,22 @@
     {{#journal_node.enable_readiness_check}}
     "JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",
     "TASKCFG_ALL_JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",
+    "JOURNAL_NODE_READINESS_CHECK_DELAY": "{{journal_node.readiness_check.delay}}",
+    "JOURNAL_NODE_READINESS_CHECK_INTERVAL": "{{journal_node.readiness_check.interval}}",
+    "JOURNAL_NODE_READINESS_CHECK_TIMEOUT": "{{journal_node.readiness_check.timeout}}",
     {{/journal_node.enable_readiness_check}}
 
     "JOURNAL_NODE_PLACEMENT": "{{{journal_node.placement}}}",
     "NAME_NODE_PLACEMENT": "{{{name_node.placement}}}",
     "DATA_NODE_PLACEMENT": "{{{data_node.placement}}}",
+
+    "NAME_NODE_READINESS_CHECK_DELAY": "{{name_node.readiness_check.delay}}",
+    "NAME_NODE_READINESS_CHECK_INTERVAL": "{{name_node.readiness_check.interval}}",
+    "NAME_NODE_READINESS_CHECK_TIMEOUT": "{{name_node.readiness_check.timeout}}",
+
+    "DATA_NODE_READINESS_CHECK_DELAY": "{{data_node.readiness_check.delay}}",
+    "DATA_NODE_READINESS_CHECK_INTERVAL": "{{data_node.readiness_check.interval}}",
+    "DATA_NODE_READINESS_CHECK_TIMEOUT": "{{data_node.readiness_check.timeout}}",
 
     {{#service.security.kerberos.enabled}}
     "SECURITY_KERBEROS_KEYTAB_SECRET": "{{service.security.kerberos.keytab_secret}}",

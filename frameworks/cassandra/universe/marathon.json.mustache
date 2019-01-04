@@ -169,7 +169,11 @@
     "CASSANDRA_URI": "{{resource.assets.uris.cassandra-tar-gz}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
-    "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}"
+    "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}",
+
+    "READINESS_CHECK_INTERVAL": "{{service.readiness_check.interval}}",
+    "READINESS_CHECK_DELAY": "{{service.readiness_check.delay}}",
+    "READINESS_CHECK_TIMEOUT": "{{service.readiness_check.timeout}}"
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },

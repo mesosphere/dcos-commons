@@ -328,7 +328,23 @@
     {{#elasticsearch.indices_requests_cache_size}}
     "TASKCFG_ALL_INDICES_REQUESTS_CACHE_SIZE": "{{elasticsearch.indices_requests_cache_size}}",
     {{/elasticsearch.indices_requests_cache_size}}
-    "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}"
+    "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}",
+
+    "MASTER_NODE_READINESS_CHECK_INTERVAL": "{{master_nodes.readiness_check.interval}}",
+    "MASTER_NODE_READINESS_CHECK_DELAY": "{{master_nodes.readiness_check.delay}}",
+    "MASTER_NODE_READINESS_CHECK_TIMEOUT": "{{master_nodes.readiness_check.timeout}}",
+
+    "DATA_NODE_READINESS_CHECK_INTERVAL": "{{data_nodes.readiness_check.interval}}",
+    "DATA_NODE_READINESS_CHECK_DELAY": "{{data_nodes.readiness_check.delay}}",
+    "DATA_NODE_READINESS_CHECK_TIMEOUT": "{{data_nodes.readiness_check.timeout}}",
+
+    "INGEST_NODE_READINESS_CHECK_INTERVAL": "{{ingest_nodes.readiness_check.interval}}",
+    "INGEST_NODE_READINESS_CHECK_DELAY": "{{ingest_nodes.readiness_check.delay}}",
+    "INGEST_NODE_READINESS_CHECK_TIMEOUT": "{{ingest_nodes.readiness_check.timeout}}",
+
+    "COORDINATOR_NODE_READINESS_CHECK_INTERVAL": "{{coordinator_nodes.readiness_check.interval}}",
+    "COORDINATOR_NODE_READINESS_CHECK_DELAY": "{{coordinator_nodes.readiness_check.delay}}",
+    "COORDINATOR_NODE_READINESS_CHECK_TIMEOUT": "{{coordinator_nodes.readiness_check.timeout}}"
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },
