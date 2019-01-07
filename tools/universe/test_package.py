@@ -1,6 +1,6 @@
 from .package import Package
 from .package import Version
-
+import re
 
 def test_version_comparison():
     assert Version(0, "1.2.4") < Version(10, "1.2.4")
@@ -61,3 +61,10 @@ def test_elastic_ordering():
 
     assert p0 < p1
     assert p7 > p0
+
+def test_package_name_follows_stub_universe_convention():
+    pattern = re.compile("^(\\/?((\\.\\.)|(([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])\\.)*([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9]))?($|\\/))+$")
+    assert pattern.match("-cassandra") == False
+    assert pattern.match("cassandra-") == False
+    assert pattern.match("$cassandra") == False
+    assert pattern.match("cassandra") == True
