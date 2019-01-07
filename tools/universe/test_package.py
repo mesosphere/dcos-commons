@@ -64,7 +64,7 @@ def test_elastic_ordering():
 
 def test_package_name_follows_stub_universe_convention():
     pattern = re.compile("^(\\/?((\\.\\.)|(([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])\\.)*([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9]))?($|\\/))+$")
-    assert pattern.match("-cassandra") == False
-    assert pattern.match("cassandra-") == False
-    assert pattern.match("$cassandra") == False
-    assert pattern.match("cassandra") == True
+    assert pattern.match("-cassandra") is False
+    assert pattern.match("cassandra-") is False
+    assert pattern.match("$cassandra") is False
+    assert pattern.match("cassandra") is True
