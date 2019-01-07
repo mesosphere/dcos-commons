@@ -61,4 +61,3 @@ def test_elastic_ordering():
 
     assert p0 < p1
     assert p7 > p0
-
