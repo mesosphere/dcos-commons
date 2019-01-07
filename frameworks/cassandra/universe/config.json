@@ -461,12 +461,57 @@
         "roles_update_interval_in_ms": {
           "type": "integer",
           "description": "The refresh interval for the roles cache",
-          "default": 1000
+          "default": 2000
         },
         "permissions_update_interval_in_ms": {
           "type": "integer",
           "description": "The refresh interval for the permissions cache",
-          "default": 1000
+          "default": 2000
+        },
+        "credentials_validity_in_ms": {
+          "type": "integer",
+          "description": "Validity period for credentials cache",
+          "default": 2000
+        },
+        "credentials_update_interval_in_ms": {
+          "type": "integer",
+          "description": "Refresh interval for credentials cache",
+          "default": 2000
+        },
+        "cdc_enabled": {
+          "type": "boolean",
+          "description": "Enable / disable CDC functionality on a per-node",
+          "default": false
+        },
+        "cdc_raw_directory": {
+          "type": "string",
+          "description": "CommitLogSegments are moved to this directory on flush if cdc_enabled",
+          "default": "/var/lib/cassandra/cdc_raw"
+        },
+        "cdc_total_space_in_mb": {
+          "type": "integer",
+          "description": "Total space to use for change-data-capture logs on disk",
+          "default": 4096
+        },
+        "cdc_free_space_check_interval_ms": {
+          "type": "integer",
+          "description": "When we hit our cdc_raw limit and the CDCCompactor is either running behind or experiencing backpressure, we check at the following interval to see if and new space for cdc-tracked tables has been made available",
+          "default": 250
+        },
+        "streaming_keep_alive_period_in_secs": {
+          "type": "integer",
+          "description": "node will send a keep-alive message periodically with this period",
+          "default": 300
+        },
+        "slow_query_log_timeout_in_ms": {
+          "type": "integer",
+          "description": "How long before a node logs slow queries. Select queries that take longer than this timeout to execute, will generate an aggregated log message, so that slow queries can be identified. Set this value to zero to disable slow query logging.",
+          "default": 500
+        },
+        "column_index_cache_size_in_kb": {
+          "type": "integer",
+          "description": "size of the serialized index information",
+          "default": 2
         },
         "key_cache_keys_to_save": {
           "type": "integer",
@@ -506,7 +551,7 @@
         "memtable_flush_writers": {
           "type": "integer",
           "description": "The number of memtable flush writer threads",
-          "default": 8
+          "default": 2
         },
         "listen_on_broadcast_address": {
           "type": "boolean",
@@ -573,11 +618,6 @@
           "description": "The maximum throughput of all streaming file transfers between datacenters",
           "default": 200
         },
-        "streaming_socket_timeout_in_ms": {
-          "type": "integer",
-          "description": "The socket timeout for streaming operations",
-          "default": 86400000
-        },
         "phi_convict_threshold": {
           "type": "integer",
           "description": "The sensitivity of the failure detector on an exponential scale",
@@ -601,7 +641,7 @@
         "otc_coalescing_strategy": {
           "type": "string",
           "description": "The strategy to use for coalescing network messages",
-          "default": "TIMEHORIZON"
+          "default": "DISABLED"
         },
         "disk_failure_policy": {
           "type": "string",
@@ -669,6 +709,15 @@
         "auto_snapshot",
         "roles_update_interval_in_ms",
         "permissions_update_interval_in_ms",
+        "credentials_validity_in_ms",
+        "credentials_update_interval_in_ms",
+        "cdc_enabled",
+        "cdc_raw_directory",
+        "cdc_total_space_in_mb",
+        "column_index_cache_size_in_kb",
+        "cdc_free_space_check_interval_ms",
+        "streaming_keep_alive_period_in_secs",
+        "slow_query_log_timeout_in_ms",
         "key_cache_keys_to_save",
         "row_cache_keys_to_save",
         "counter_cache_keys_to_save",
@@ -690,7 +739,6 @@
         "concurrent_compactors",
         "stream_throughput_outbound_megabits_per_sec",
         "inter_dc_stream_throughput_outbound_megabits_per_sec",
-        "streaming_socket_timeout_in_ms",
         "phi_convict_threshold",
         "buffer_pool_use_heap_if_exhausted",
         "disk_optimization_strategy",
@@ -700,3 +748,4 @@
     }
   }
 }
+
