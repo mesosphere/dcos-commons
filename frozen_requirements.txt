@@ -88,7 +88,7 @@ pyasn1-modules==0.2.2
 pycodestyle==2.4.0
 pycparser==2.19
 pycryptodome==3.7.0
-pyflakes==1.6.0
+pyflakes==2.0.0
 Pygments==2.2.0
 pygobject==3.26.1
 PyInstaller==3.3
