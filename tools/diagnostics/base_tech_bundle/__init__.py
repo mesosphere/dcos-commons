@@ -21,6 +21,7 @@ BASE_TECH_BUNDLE = {
     "beta-hdfs": HdfsBundle,
     "beta-kafka": KafkaBundle,
     "cassandra": CassandraBundle,
+    "confluent-kafka": KafkaBundle,
     "elastic": ElasticBundle,
     "hdfs": HdfsBundle,
     "kafka": KafkaBundle,
