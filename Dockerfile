@@ -4,7 +4,7 @@
 # not be updating this dependency.  See
 # https://mesosphere.slack.com/archives/C4E91G0CX/p1541505296001800 for more
 # background.
-FROM mesosphere/dcos-commons-base@sha256:2aaf8f7398bd6f2fc02c6388e566aafd3a2ad05c0fb8162702aab7aecd263957
+FROM mesosphere/dcos-commons-base@sha256:e9f67d72aa1431f4a15544981285f028decc7507538f8e5aa8b0888a94d820c0
 
 ENV GO_VERSION=1.10.2
 ENV PATH=$PATH:/usr/local/go/bin
