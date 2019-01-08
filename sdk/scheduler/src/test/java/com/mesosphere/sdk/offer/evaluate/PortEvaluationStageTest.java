@@ -62,7 +62,6 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 .build();
         PodSpec podSpec =
                 DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec)).build();
-
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
 
         return PodInstanceRequirement.newBuilder(podInstance, Arrays.asList(TestConstants.TASK_NAME)).build();

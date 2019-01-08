@@ -704,6 +704,7 @@ public class OfferEvaluator {
           taskInfoNames, resourceSet.getId());
       return Collections.emptyList();
     }
+
     TaskResourceMapper taskResourceMapper =
         new TaskResourceMapper(taskSpecNamesInResourceSet, resourceSet, taskInfo.get(), resourceNamespace);
 

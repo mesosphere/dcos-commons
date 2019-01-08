@@ -216,10 +216,7 @@ class TaskResourceMapper {
   {
     if (resourceSpec instanceof NamedVIPSpec) {
       return new NamedVIPEvaluationStage(
-          (NamedVIPSpec) resourceSpec,
-          taskSpecNames,
-          resourceId,
-          resourceNamespace);
+          (NamedVIPSpec) resourceSpec, taskSpecNames, resourceId, resourceNamespace);
     } else if (resourceSpec instanceof PortSpec) {
       return new PortEvaluationStage(
           (PortSpec) resourceSpec,
