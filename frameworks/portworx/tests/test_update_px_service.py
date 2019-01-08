@@ -59,6 +59,7 @@ def portworx_service(service_account):
     A pytest fixture that installs the portworx service.
     On teardown, the service is uninstalled.
     """
+    
     options = {
         "service": {
             "name": config.SERVICE_NAME,
@@ -70,6 +71,8 @@ def portworx_service(service_account):
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
+    px_cluster_name = "portworx-dcos-" + config.get_random_string(12)
+    config.PX_NODE_OPTIONS["node"]["portworx_cluster"] = px_cluster_name
     try:
         sdk_install.install(
             config.PACKAGE_NAME,
@@ -100,9 +103,7 @@ def test_update_node_count():
 
     update_service(update_options)
     px_status = px_utils.check_px_status() 
-    if 2 != px_status:
-        log.info("PORTWORX: Update node count failed px service status: {}".format(px_status))
-        raise
+    assert px_status == 2, "PORTWORX: Update node count failed px service status: {}".format(px_status)
 
     px_node_count = px_utils.get_px_node_count()
     if 3 != px_node_count:
@@ -122,8 +123,7 @@ def test_update_px_image():
 
     update_service(update_options)
     px_status = px_utils.check_px_status() 
-    if 2 != px_status:
-        log.info("PORTWORX: Update Px image failed px service status: {}".format(px_status))
+    assert px_status == 2, "PORTWORX: Update Px image failed px service status: {}".format(px_status)
 
 @pytest.mark.sanity
 def test_update_enable_lighthouse():
@@ -147,7 +147,6 @@ def test_update_disable_lighthouse():
 
     update_service(update_options, False)
 
-@pytest.mark.sanity
 def test_update_enable_etcd():
     portworx_service()
     update_options = {
@@ -158,7 +157,6 @@ def test_update_enable_etcd():
 
     update_service(update_options)
 
-@pytest.mark.sanity
 def test_update_disable_etcd():
     portworx_service()
     update_options = {

@@ -23,14 +23,14 @@ PACKAGE_NAME = 'portworx'
 SERVICE_NAME = 'portworx'
 PX_AGENT_USER = "vagrant"
 PX_CLEANUP_SCRIPT_PATH = 'frameworks/portworx/scripts/px_dcos_cleanup.sh'
-PX_TIMEOUT = 5 * 60 # 5 minutes timeout for portworx operations.
+PX_TIMEOUT = 10 * 60 # 10 minutes timeout for portworx operations.
 
 DEFAULT_TASK_COUNT = 1
 
 PX_IMAGE = os.environ['PX_IMAGE']
 PX_KVDB_SERVER = os.environ['KVDB']
 PX_OPTIONS = "-a -x mesos -d enp0s8 -m enp0s8"
-PX_CLUSTER_NAME = "portworx-dcos-" + get_random_string() 
+PX_CLUSTER_NAME = "portworx-dcos-" + get_random_string(16) 
 
 PX_NODE_OPTIONS = { "node": { "portworx_options": PX_OPTIONS,
                             "kvdb_servers": PX_KVDB_SERVER,
