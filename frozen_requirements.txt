@@ -81,7 +81,7 @@ pefile==2018.8.8
 pkginfo==1.4.2
 pluggy==0.8.0
 pre-commit==1.12.0
-prettytable==0.7.2
+prettytable==7
 py==1.7.0
 pyasn1==0.4.4
 pyasn1-modules==0.2.2
