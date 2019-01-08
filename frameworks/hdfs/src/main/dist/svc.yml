@@ -12,8 +12,8 @@ pods:
       - {{BOOTSTRAP_URI}}
     rlimits:
       RLIMIT_NOFILE:
-        soft: {{JOURNAL_NODE_RLIMITS_NOFILE_SOFT}}
-        hard: {{JOURNAL_NODE_RLIMITS_NOFILE_HARD}}
+        soft: {{JOURNAL_NODE_RLIMIT_NOFILE_SOFT}}
+        hard: {{JOURNAL_NODE_RLIMIT_NOFILE_HARD}}
     {{#SECURITY_KERBEROS_ENABLED}}
     secrets:
       keytab:
@@ -152,8 +152,8 @@ pods:
       - {{ZONE_RESOLVER}}
     rlimits:
       RLIMIT_NOFILE:
-        soft: {{NAME_NODE_RLIMITS_NOFILE_SOFT}}
-        hard: {{NAME_NODE_RLIMITS_NOFILE_HARD}}
+        soft: {{NAME_NODE_RLIMIT_NOFILE_SOFT}}
+        hard: {{NAME_NODE_RLIMIT_NOFILE_HARD}}
     {{#SECURITY_KERBEROS_ENABLED}}
     secrets:
       keytab:
@@ -423,8 +423,8 @@ pods:
       - {{BOOTSTRAP_URI}}
     rlimits:
       RLIMIT_NOFILE:
-        soft: {{DATA_NODE_RLIMITS_NOFILE_SOFT}}
-        hard: {{DATA_NODE_RLIMITS_NOFILE_HARD}}
+        soft: {{DATA_NODE_RLIMIT_NOFILE_SOFT}}
+        hard: {{DATA_NODE_RLIMIT_NOFILE_HARD}}
     {{#SECURITY_KERBEROS_ENABLED}}
     secrets:
       keytab:

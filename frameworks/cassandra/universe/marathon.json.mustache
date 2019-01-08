@@ -175,8 +175,8 @@
     "READINESS_CHECK_DELAY": "{{service.readiness_check.delay}}",
     "READINESS_CHECK_TIMEOUT": "{{service.readiness_check.timeout}}",
 
-    "RLIMITS_NOFILE_SOFT": "{{service.rlimits.rlimit_nofile.soft}}",
-    "RLIMITS_NOFILE_HARD": "{{service.rlimits.rlimit_nofile.hard}}"
+    "RLIMIT_NOFILE_SOFT": "{{service.rlimits.rlimit_nofile.soft}}",
+    "RLIMIT_NOFILE_HARD": "{{service.rlimits.rlimit_nofile.hard}}"
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },

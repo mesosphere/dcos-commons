@@ -23,8 +23,8 @@ pods:
       - {{BOOTSTRAP_URI}}
     rlimits:
       RLIMIT_NOFILE:
-        soft: {{RLIMITS_NOFILE_SOFT}}
-        hard: {{RLIMITS_NOFILE_HARD}}
+        soft: {{RLIMIT_NOFILE_SOFT}}
+        hard: {{RLIMIT_NOFILE_HARD}}
     resource-sets:
       server-resources:
         cpus: {{CASSANDRA_CPUS}}

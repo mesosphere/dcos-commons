@@ -18,8 +18,8 @@ pods:
       - {{STATSD_URI}}
     rlimits:
       RLIMIT_NOFILE:
-        soft: {{MASTER_NODE_RLIMITS_NOFILE_SOFT}}
-        hard: {{MASTER_NODE_RLIMITS_NOFILE_HARD}}
+        soft: {{MASTER_NODE_RLIMIT_NOFILE_SOFT}}
+        hard: {{MASTER_NODE_RLIMIT_NOFILE_HARD}}
     placement: '{{{MASTER_NODE_PLACEMENT}}}'
     tasks:
       node:
@@ -108,8 +108,8 @@ pods:
       - {{STATSD_URI}}
     rlimits:
       RLIMIT_NOFILE:
-        soft: {{DATA_NODE_RLIMITS_NOFILE_SOFT}}
-        hard: {{DATA_NODE_RLIMITS_NOFILE_HARD}}
+        soft: {{DATA_NODE_RLIMIT_NOFILE_SOFT}}
+        hard: {{DATA_NODE_RLIMIT_NOFILE_HARD}}
     placement: '{{{DATA_NODE_PLACEMENT}}}'
     tasks:
       node:
@@ -196,8 +196,8 @@ pods:
       - {{STATSD_URI}}
     rlimits:
       RLIMIT_NOFILE:
-        soft: {{INGEST_NODE_RLIMITS_NOFILE_SOFT}}
-        hard: {{INGEST_NODE_RLIMITS_NOFILE_HARD}}
+        soft: {{INGEST_NODE_RLIMIT_NOFILE_SOFT}}
+        hard: {{INGEST_NODE_RLIMIT_NOFILE_HARD}}
     placement: '{{{INGEST_NODE_PLACEMENT}}}'
     tasks:
       node:
@@ -284,8 +284,8 @@ pods:
       - {{STATSD_URI}}
     rlimits:
       RLIMIT_NOFILE:
-        soft: {{COORDINATOR_NODE_RLIMITS_NOFILE_SOFT}}
-        hard: {{COORDINATOR_NODE_RLIMITS_NOFILE_HARD}}
+        soft: {{COORDINATOR_NODE_RLIMIT_NOFILE_SOFT}}
+        hard: {{COORDINATOR_NODE_RLIMIT_NOFILE_HARD}}
     placement: '{{{COORDINATOR_NODE_PLACEMENT}}}'
     tasks:
       node:
