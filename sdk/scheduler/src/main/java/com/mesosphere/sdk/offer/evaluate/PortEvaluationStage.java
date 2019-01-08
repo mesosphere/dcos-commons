@@ -80,8 +80,9 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         logger.info("Using previously reserved dynamic port: {}", assignedPort);
       } else {
         // Choose a new port value.
+        String preReservedRole = podInfoBuilder.getPodInstance().getPod().getPreReservedRole();
         Optional<Integer> dynamicPort = useHostPorts ?
-            selectDynamicPort(mesosResourcePool, podInfoBuilder) :
+            selectDynamicPort(mesosResourcePool, podInfoBuilder, preReservedRole) :
             selectOverlayPort(podInfoBuilder);
         if (!dynamicPort.isPresent()) {
           return EvaluationOutcome.fail(
@@ -231,7 +232,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
   }
 
   private static Optional<Integer> selectDynamicPort(
-      MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder)
+      MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder, String preReservedRole)
   {
     Set<Integer> consumedPorts = new HashSet<>();
 
@@ -256,8 +257,9 @@ public class PortEvaluationStage implements OfferEvaluationStage {
       consumedPorts.addAll(getPortsInResource(resourceBuilder.build()));
     }
 
-    Protos.Value availablePorts =
-        mesosResourcePool.getUnreservedMergedPool().get(Constants.PORTS_RESOURCE_TYPE);
+    Protos.Value availablePorts = mesosResourcePool
+            .getUnreservedMergedPoolByRole(preReservedRole)
+            .get(Constants.PORTS_RESOURCE_TYPE);
     Optional<Integer> dynamicPort = Optional.empty();
     if (availablePorts != null) {
       dynamicPort = availablePorts.getRanges().getRangeList().stream()
