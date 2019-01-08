@@ -21,6 +21,10 @@ pods:
       - {{CASSANDRA_OPENSSL_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: {{RLIMITS_NOFILE_SOFT}}
+        hard: {{RLIMITS_NOFILE_HARD}}
     resource-sets:
       server-resources:
         cpus: {{CASSANDRA_CPUS}}
