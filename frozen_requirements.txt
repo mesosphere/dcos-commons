@@ -108,7 +108,7 @@ s3transfer==0.1.13
 scp==0.13.0
 SecretStorage==3.1.0
 six==1.11.0
-sseclient==0.0.14
+sseclient==0.0.22
 teamcity-messages==1.21
 toml==0.10.0
 toolz==0.9.0
