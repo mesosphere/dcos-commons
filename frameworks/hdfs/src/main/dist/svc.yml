@@ -10,6 +10,10 @@ pods:
       - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: {{JOURNAL_NODE_RLIMITS_NOFILE_SOFT}}
+        hard: {{JOURNAL_NODE_RLIMITS_NOFILE_HARD}}
     {{#SECURITY_KERBEROS_ENABLED}}
     secrets:
       keytab:
@@ -146,6 +150,10 @@ pods:
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{ZONE_RESOLVER}}
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: {{NAME_NODE_RLIMITS_NOFILE_SOFT}}
+        hard: {{NAME_NODE_RLIMITS_NOFILE_HARD}}
     {{#SECURITY_KERBEROS_ENABLED}}
     secrets:
       keytab:
@@ -413,6 +421,10 @@ pods:
       - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: {{DATA_NODE_RLIMITS_NOFILE_SOFT}}
+        hard: {{DATA_NODE_RLIMITS_NOFILE_HARD}}
     {{#SECURITY_KERBEROS_ENABLED}}
     secrets:
       keytab:
