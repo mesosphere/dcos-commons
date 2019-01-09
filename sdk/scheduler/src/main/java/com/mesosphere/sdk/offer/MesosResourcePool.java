@@ -230,6 +230,11 @@ public class MesosResourcePool {
     return pool == null ? Collections.emptyMap() : pool;
   }
 
+  public Map<String, Value> getUnreservedMergedPoolByRole(String preReservedRole) {
+    Map<String, Value> pool = reservableMergedPoolByRole.get(preReservedRole);
+    return pool == null ? Collections.emptyMap() : pool;
+  }
+
   /**
    * Returns the reserved resource, if present.
    */

@@ -136,6 +136,15 @@ public class ResourceTestUtils {
         return getUnreservedResource(Constants.PORTS_RESOURCE_TYPE, builder.build(), Constants.ANY_ROLE);
     }
 
+    public static Protos.Resource getPrereservedPort(long begin, long end, String preReservedRole) {
+        Protos.Value.Builder builder = Protos.Value.newBuilder()
+            .setType(Protos.Value.Type.RANGES);
+        builder.getRangesBuilder().addRangeBuilder()
+            .setBegin(begin)
+            .setEnd(end);
+        return getUnreservedResource(Constants.PORTS_RESOURCE_TYPE, builder.build(), preReservedRole);
+    }
+
     @SuppressWarnings("deprecation") // for Resource.setRole()
     private static Protos.Resource.Builder addReservation(
             Protos.Resource.Builder builder, String resourceId) {
