@@ -210,6 +210,30 @@
           "type": "string",
           "description": "JVM options to specify when running the journal node. This overrides HADOOP_HEAPSIZE Xmx value for the journal nodes.",
           "default": ""
+        },
+        "rlimits": {
+          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "rlimit_nofile": {
+              "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 128000,
+                  "minimum": 128000
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 128000,
+                  "minimum": 128000
+                }
+              }
+            }
+          }
         }
       },
       "required": [
@@ -589,6 +613,30 @@
               "minimum": 180
             }
           }
+        },
+        "rlimits": {
+          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "rlimit_nofile": {
+              "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 128000,
+                  "minimum": 128000
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 128000,
+                  "minimum": 128000
+                }
+              }
+            }
+          }
         }
       },
       "required": [
@@ -859,6 +907,30 @@
               "description": "An amount of time in seconds to wait for a readiness check to succeed.",
               "default": 60,
               "minimum": 60
+            }
+          }
+        },
+        "rlimits": {
+          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "rlimit_nofile": {
+              "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 128000,
+                  "minimum": 128000
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 128000,
+                  "minimum": 128000
+                }
+              }
             }
           }
         }

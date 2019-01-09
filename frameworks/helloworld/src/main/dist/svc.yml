@@ -6,6 +6,10 @@ pods:
   hello:
     count: {{HELLO_COUNT}}
     placement: '{{{HELLO_PLACEMENT}}}'
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: {{HELLO_RLIMIT_NOFILE_SOFT}}
+        hard: {{HELLO_RLIMIT_NOFILE_HARD}}
     tasks:
       server:
         goal: RUNNING
@@ -30,6 +34,10 @@ pods:
     count: {{WORLD_COUNT}}
     allow-decommission: true
     placement: '{{{WORLD_PLACEMENT}}}'
+    rlimits:
+      RLIMIT_NOFILE:
+        soft: {{WORLD_RLIMIT_NOFILE_SOFT}}
+        hard: {{WORLD_RLIMIT_NOFILE_HARD}}
     tasks:
       server:
         goal: RUNNING
