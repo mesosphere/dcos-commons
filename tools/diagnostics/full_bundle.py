@@ -30,14 +30,14 @@ def get_dcos_services() -> (bool, str):
         return (True, stdout)
 
 
-def is_service_named(service_name: str, service: dict) -> bool:
+def is_service_named(sdk_service_name: str, dcos_service_name: dict) -> bool:
     """Handles a case where DC/OS service names sometimes don't contain the first slash.
     e.g.: |     SDK service name     |   DC/OS service name    |
           |--------------------------+-------------------------|
           | /data-services/cassandra | data-services/cassandra |
           | /production/cassandra    | /production/cassandra   |
     """
-    return service.get("name") in [service_name, service_name.lstrip("/")]
+    return dcos_service_name in [sdk_service_name, sdk_service_name.lstrip("/")]
 
 
 def is_service_active(service: dict) -> bool:
@@ -45,11 +45,11 @@ def is_service_active(service: dict) -> bool:
 
 
 def services_with_name(service_name: str, services: List[dict]) -> List[dict]:
-    return [s for s in services if is_service_named(service_name, s)]
+    return [s for s in services if is_service_named(service_name, s.get("name"))]
 
 
 def active_services_with_name(service_name: str, services: List[dict]) -> List[dict]:
-    return [s for s in services if is_service_named(service_name, s) and is_service_active(s)]
+    return [s for s in services if is_service_named(service_name, s.get("name")) and is_service_active(s)]
 
 
 def is_service_scheduler_task(package_name: str, service_name: str, task: dict) -> bool:
@@ -60,7 +60,7 @@ def is_service_scheduler_task(package_name: str, service_name: str, task: dict) 
     dcos_service_name = next(
         iter([l.get("value") for l in labels if l.get("key") == "DCOS_SERVICE_NAME"]), ""
     )
-    return dcos_package_name == package_name and dcos_service_name == service_name
+    return dcos_package_name == package_name and is_service_named(service_name, dcos_service_name)
 
 
 def directory_date_string() -> str:
@@ -118,7 +118,7 @@ class FullBundle(Bundle):
 
         # An SDK service might have multiple DC/OS service entries. We expect that at most one is
         # "active".
-        services = [s for s in all_services if is_service_named(self.service_name, s)]
+        services = [s for s in all_services if is_service_named(self.service_name, s.get("name"))]
         # TODO: handle inactive services too.
         active_services = [s for s in services if is_service_active(s)]
 
@@ -131,7 +131,7 @@ class FullBundle(Bundle):
 
         active_service = active_services[0]
 
-        marathon_services = [s for s in all_services if is_service_named("marathon", s)]
+        marathon_services = [s for s in all_services if is_service_named("marathon", s.get("name"))]
         # TODO: handle the possibility of having no active Marathon services?
         if len(marathon_services) > 1:
             log.warn("More than one marathon services: %s", len(marathon_services))
