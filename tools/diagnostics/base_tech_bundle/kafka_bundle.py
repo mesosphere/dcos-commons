@@ -24,4 +24,4 @@ class KafkaBundle(BaseTechBundle):
                 "Could not get broker list\nstdout: '%s'\nstderr: '%s'", stdout, stderr
             )
         else:
-            self.write_file("broker-list.json", stdout)
+            self.write_file("service_broker_list.json", stdout)
