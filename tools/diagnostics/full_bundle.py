@@ -30,7 +30,7 @@ def get_dcos_services() -> (bool, str):
         return (True, stdout)
 
 
-def is_service_named(sdk_service_name: str, dcos_service_name: dict) -> bool:
+def is_service_named(sdk_service_name: str, dcos_service_name: str) -> bool:
     """Handles a case where DC/OS service names sometimes don't contain the first slash.
     e.g.: |     SDK service name     |   DC/OS service name    |
           |--------------------------+-------------------------|
