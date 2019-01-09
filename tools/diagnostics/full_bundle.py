@@ -150,6 +150,11 @@ class FullBundle(Bundle):
             for t in active_marathon_service.get("tasks", [])
             if is_service_scheduler_task(self.package_name, self.service_name, t)
         ]
+        if len(scheduler_tasks) == 0:
+            log.warn(
+                "Could not find scheduler tasks for '%s'. Please check the 'dcos_services.json' file.",
+                self.service_name,
+            )
 
         ServiceBundle(
             self.package_name,
