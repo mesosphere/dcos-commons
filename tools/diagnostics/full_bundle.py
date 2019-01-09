@@ -49,7 +49,11 @@ def services_with_name(service_name: str, services: List[dict]) -> List[dict]:
 
 
 def active_services_with_name(service_name: str, services: List[dict]) -> List[dict]:
-    return [s for s in services if is_service_named(service_name, s.get("name")) and is_service_active(s)]
+    return [
+        s
+        for s in services
+        if is_service_named(service_name, s.get("name")) and is_service_active(s)
+    ]
 
 
 def is_service_scheduler_task(package_name: str, service_name: str, task: dict) -> bool:
