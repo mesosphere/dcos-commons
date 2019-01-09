@@ -151,6 +151,9 @@ def run_raw_cli(cmd, print_output=True):
 
     return result.returncode, stdout, stderr
 
+# Added simple function to run OS system command
+def run_system_cmd(cmd):
+    return os.system(cmd)
 
 def run_cli(cmd, print_output=True, return_stderr_in_stdout=False):
 
