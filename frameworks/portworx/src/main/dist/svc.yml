@@ -40,6 +40,7 @@ pods:
         goal: RUNNING
         resource-set: px-resources
         cmd: |
+                touch $MESOS_SANDBOX/install-in-progress
                 docker pull {{{PORTWORX_IMAGE_NAME}}}
 
                 newPxVersion="$(docker run --rm --name px_version --entrypoint /opt/pwx/bin/pxctl {{{PORTWORX_IMAGE_NAME}}} --version) (OCI)"
@@ -141,11 +142,14 @@ pods:
                       ( "$svc_inactive" != "" || "$difference" -ne 0 || $curPxVersion != $newPxVersion) ]]; then
                     ./sysCtl restart portworx.service
                 fi &&
-
+                rm $MESOS_SANDBOX/install-in-progress
                 journalctl -afu portworx
         readiness-check:
           cmd: |
                if [ ! -f /etc/systemd/system/portworx.service ]; then
+                   exit 1
+               fi
+               if [ -f $MESOS_SANDBOX/install-in-progress ]; then
                    exit 1
                fi
                svc_status=$(./sysCtl prop portworx.service | grep UnitFileState | grep "enabled")
@@ -154,7 +158,7 @@ pods:
                    /opt/pwx/bin/pxctl -j status | grep status | grep 'STATUS_OK\|STATUS_NOT_IN_QUORUM\|STATUS_NOT_IN_QUORUM_NO_STORAGE'
                fi
           interval: 15
-          delay: 0
+          delay: 10
           timeout: 60
         health-check:
           cmd: |
