@@ -35,6 +35,8 @@ def uninstall_packages(configure_security):
 @pytest.mark.sanity
 @pytest.mark.timeout(20 * 60)
 def test_xpack_update_matrix():
+    # Updating from X-Pack 'enabled' to X-Pack security 'enabled' (the default) is more involved
+    # than the other cases, so we use `test_upgrade_from_xpack_enabled`.
     log.info("Updating X-Pack from 'enabled' to 'enabled'")
     config.test_upgrade_from_xpack_enabled(
         config.PACKAGE_NAME,
@@ -44,12 +46,7 @@ def test_xpack_update_matrix():
     )
 
     log.info("Updating X-Pack from 'enabled' to 'disabled'")
-    config.test_upgrade_from_xpack_enabled(
-        config.PACKAGE_NAME,
-        foldered_name,
-        {"elasticsearch": {"xpack_enabled": False}},
-        expected_task_count,
-    )
+    config.test_xpack_enabled_update(foldered_name, True, False)
 
     log.info("Updating X-Pack from 'disabled' to 'enabled'")
     config.test_xpack_enabled_update(foldered_name, False, True)
@@ -58,10 +55,13 @@ def test_xpack_update_matrix():
     config.test_xpack_enabled_update(foldered_name, False, False)
 
 
-# TODO(mpereira): it is safe to remove this test after the 6.x release.
+# TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
+# release.
 @pytest.mark.sanity
-@pytest.mark.timeout(15 * 60)
-def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
+@pytest.mark.timeout(30 * 60)
+def test_xpack_security_enabled_update_matrix():
+    # Updating from X-Pack 'enabled' to X-Pack security 'enabled' is more involved than the other
+    # cases, so we use `test_upgrade_from_xpack_enabled`.
     log.info("Updating from X-Pack 'enabled' to X-Pack security 'enabled'")
     config.test_upgrade_from_xpack_enabled(
         config.PACKAGE_NAME,
@@ -69,15 +69,6 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
         {"elasticsearch": {"xpack_security_enabled": True}},
         expected_task_count,
     )
-
-
-# TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
-# release.
-@pytest.mark.sanity
-@pytest.mark.timeout(30 * 60)
-def test_xpack_security_enabled_update_matrix():
-    # Updating from X-Pack 'enabled' to X-Pack security 'enabled' is more complex than the other
-    # cases, so it's done separately in `test_upgrade_from_xpack_enabled_to_xpack_security_enabled`.
 
     log.info("Updating from X-Pack 'enabled' to X-Pack security 'disabled'")
     config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, True, False)
