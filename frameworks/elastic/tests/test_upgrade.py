@@ -12,19 +12,24 @@ from tests import config
 log = logging.getLogger(__name__)
 
 foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
-current_expected_task_count = config.DEFAULT_TASK_COUNT
+expected_task_count = config.DEFAULT_TASK_COUNT
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def set_up_security(configure_security):
+    yield
+
+
+@pytest.fixture(autouse=True)
+def uninstall_packages(configure_security):
     try:
-        log.info("Ensure elasticsearch and kibana are uninstalled...")
+        log.info("Ensuring Elastic and Kibana are uninstalled before running test")
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
         yield  # let the test session execute
     finally:
-        log.info("Clean up elasticsearch and kibana...")
+        log.info("Ensuring Elastic and Kibana are uninstalled after running test")
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
@@ -33,12 +38,6 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @pytest.mark.timeout(20 * 60)
 def test_xpack_update_matrix():
-    # Since this test uninstalls the Elastic service that is shared between all previous tests,
-    # reset the number of expected tasks to the default value. This is checked before all tests
-    # by the `pre_test_setup` fixture.
-    global current_expected_task_count
-    current_expected_task_count = config.DEFAULT_TASK_COUNT
-
     log.info("Updating X-Pack from 'enabled' to 'enabled'")
     config.test_xpack_enabled_update(foldered_name, True, True)
 
@@ -52,17 +51,12 @@ def test_xpack_update_matrix():
     config.test_xpack_enabled_update(foldered_name, False, False)
 
 
+# TODO(mpereira): it is safe to remove this test after the 6.x release.
 @pytest.mark.sanity
 @pytest.mark.timeout(15 * 60)
 def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
-    # Since this test uninstalls the Elastic service that is shared between all previous tests,
-    # reset the number of expected tasks to the default value. This is checked before all tests
-    # by the `pre_test_setup` fixture.
-    global current_expected_task_count
-    current_expected_task_count = config.DEFAULT_TASK_COUNT
-
-    # This test needs to run some code in between the Universe version installation and the stub Universe
-    # upgrade, so it cannot use `sdk_upgrade.test_upgrade`.
+    # This test needs to run some code in between the Universe version installation and the upgrade
+    # to the 'stub-universe' version, so it cannot use `sdk_upgrade.test_upgrade`.
     log.info("Updating from X-Pack 'enabled' to X-Pack security 'enabled'")
     http_user = config.DEFAULT_ELASTICSEARCH_USER
     http_password = config.DEFAULT_ELASTICSEARCH_PASSWORD
@@ -77,7 +71,7 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
     sdk_install.install(
         package_name,
         foldered_name,
-        expected_running_tasks=current_expected_task_count,
+        expected_running_tasks=expected_task_count,
         additional_options={"elasticsearch": {"xpack_enabled": True}},
         package_version=universe_version,
     )
@@ -121,7 +115,7 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
             "service": {"update_strategy": "parallel"},
             "elasticsearch": {"xpack_security_enabled": False},
         },
-        current_expected_task_count,
+        expected_task_count,
     )
 
     # Get list of indices to upgrade from here. The response looks something like:
@@ -169,7 +163,7 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
         package_name,
         foldered_name,
         {"elasticsearch": {"xpack_security_enabled": True}},
-        current_expected_task_count,
+        expected_task_count,
     )
 
     document_es_6_security_enabled_id = 3
@@ -216,14 +210,8 @@ def test_upgrade_from_xpack_enabled_to_xpack_security_enabled():
 @pytest.mark.sanity
 @pytest.mark.timeout(30 * 60)
 def test_xpack_security_enabled_update_matrix():
-    # Since this test uninstalls the Elastic service that is shared between all previous tests,
-    # reset the number of expected tasks to the default value. This is checked before all tests
-    # by the `pre_test_setup` fixture.
-    global current_expected_task_count
-    current_expected_task_count = config.DEFAULT_TASK_COUNT
-
-    # Updating from X-Pack 'enabled' to X-Pack security 'disabled' is more complex than the other
-    # cases, so it's done separately in the previous test.
+    # Updating from X-Pack 'enabled' to X-Pack security 'enabled' is more complex than the other
+    # cases, so it's done separately in `test_upgrade_from_xpack_enabled_to_xpack_security_enabled`.
 
     log.info("Updating from X-Pack 'enabled' to X-Pack security 'disabled'")
     config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, True, False)
