@@ -491,6 +491,10 @@ def test_xpack_enabled_update(service_name, from_xpack_enabled, to_xpack_enabled
 def test_update_from_xpack_enabled_to_xpack_security_enabled(
     service_name, xpack_enabled, xpack_security_enabled
 ):
+    assert not (
+        xpack_enabled is True and xpack_security_enabled is True
+    ), "This function does not handle the 'xpack_enabled: True' to 'xpack_security_enabled: True' upgrade scenario"
+
     sdk_upgrade.test_upgrade(
         PACKAGE_NAME,
         service_name,
