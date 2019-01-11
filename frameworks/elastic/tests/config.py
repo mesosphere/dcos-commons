@@ -5,7 +5,6 @@ import retrying
 
 import sdk_cmd
 import sdk_hosts
-import sdk_marathon
 import sdk_networks
 import sdk_plan
 import sdk_tasks
@@ -266,14 +265,6 @@ def verify_document(service_name, document_id, document_fields, http_user=None, 
         http_password=http_password,
     )
     assert document["_source"]["name"] == document_fields["name"]
-
-
-def update_app(service_name, options, expected_task_count):
-    config = sdk_marathon.get_config(service_name)
-    config["env"].update(options)
-    sdk_marathon.update_app(config)
-    sdk_plan.wait_for_completed_deployment(service_name)
-    sdk_tasks.check_running(service_name, expected_task_count)
 
 
 def get_xpack_license(service_name=SERVICE_NAME, http_user=None, http_password=None):
