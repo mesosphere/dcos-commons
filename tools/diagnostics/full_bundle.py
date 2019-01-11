@@ -153,7 +153,7 @@ class FullBundle(Bundle):
             for t in active_marathon_service.get("tasks", [])
             if is_service_scheduler_task(self.package_name, self.service_name, t)
         ]
-        if len(scheduler_tasks) == 0:
+        if not scheduler_tasks:
             log.warn(
                 "Could not find scheduler tasks for '%s' under the Marathon service ('\"name\": \"marathon\"') 'tasks' key in '%s'.",
                 self.service_name,
