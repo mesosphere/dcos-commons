@@ -15,6 +15,9 @@ import config
 log = logging.getLogger(__name__)
 
 
+DCOS_SERVICES_JSON_FILE_NAME = "dcos_services.json"
+
+
 @config.retry
 def get_dcos_services() -> (bool, str):
     rc, stdout, stderr = sdk_cmd.run_cli(
@@ -118,7 +121,7 @@ class FullBundle(Bundle):
 
         all_services = json.loads(all_services_or_error)
 
-        self.write_file("dcos_services.json", all_services, serialize_to_json=True)
+        self.write_file(DCOS_SERVICES_JSON_FILE_NAME, all_services, serialize_to_json=True)
 
         # An SDK service might have multiple DC/OS service entries. We expect that at most one is
         # "active".
@@ -152,8 +155,9 @@ class FullBundle(Bundle):
         ]
         if len(scheduler_tasks) == 0:
             log.warn(
-                "Could not find scheduler tasks for '%s'. Please check the 'dcos_services.json' file.",
+                "Could not find scheduler tasks for '%s' under the Marathon service ('\"name\": \"marathon\"') 'tasks' key in '%s'.",
                 self.service_name,
+                DCOS_SERVICES_JSON_FILE_NAME,
             )
 
         ServiceBundle(
