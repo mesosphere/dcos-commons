@@ -5,9 +5,10 @@ import retrying
 
 import sdk_cmd
 import sdk_hosts
+import sdk_install
 import sdk_networks
-import sdk_plan
-import sdk_tasks
+import sdk_repository
+import sdk_service
 import sdk_upgrade
 import sdk_utils
 
@@ -502,6 +503,155 @@ def test_update_from_xpack_enabled_to_xpack_security_enabled(
     )
 
     wait_for_expected_nodes_to_exist(service_name=service_name, task_count=DEFAULT_TASK_COUNT)
+
+
+def test_upgrade_from_xpack_enabled(
+    package_name: str, service_name: str, options: dict, expected_task_count: int
+):
+    # This test needs to run some code in between the Universe version installation and the upgrade
+    # to the 'stub-universe' version, so it cannot use `sdk_upgrade.test_upgrade`.
+    http_user = DEFAULT_ELASTICSEARCH_USER
+    http_password = DEFAULT_ELASTICSEARCH_PASSWORD
+
+    sdk_install.uninstall(package_name, service_name)
+
+    # Move Universe repo to the top of the repo list so that we can first install the Universe
+    # version.
+    _, universe_version = sdk_repository.move_universe_repo(package_name, universe_repo_index=0)
+
+    sdk_install.install(
+        package_name,
+        service_name,
+        expected_running_tasks=expected_task_count,
+        additional_options={"elasticsearch": {"xpack_enabled": True}},
+        package_version=universe_version,
+    )
+
+    document_es_5_id = 1
+    document_es_5_fields = {"name": "Elasticsearch 5: X-Pack enabled", "role": "search engine"}
+    create_document(
+        DEFAULT_INDEX_NAME,
+        DEFAULT_INDEX_TYPE,
+        document_es_5_id,
+        document_es_5_fields,
+        service_name=service_name,
+        http_user=http_user,
+        http_password=http_password,
+    )
+
+    # This is the first crucial step when upgrading from "X-Pack enabled" on ES5 to "X-Pack security
+    # enabled" on ES6. The default "changeme" password doesn't work anymore on ES6, so passwords
+    # *must* be *explicitly* set, otherwise nodes won't authenticate requests, leaving the cluster
+    # unavailable. Users will have to do this manually when upgrading.
+    _curl_query(
+        service_name,
+        "POST",
+        "_xpack/security/user/{}/_password".format(http_user),
+        json_body={"password": http_password},
+        http_user=http_user,
+        http_password=http_password,
+    )
+
+    # Move Universe repo back to the bottom of the repo list so that we can upgrade to the version
+    # under test.
+    _, test_version = sdk_repository.move_universe_repo(package_name)
+
+    # First we upgrade to "X-Pack security enabled" set to false on ES6, so that we can use the
+    # X-Pack migration assistance and upgrade APIs.
+    sdk_upgrade.update_or_upgrade_or_downgrade(
+        package_name,
+        service_name,
+        test_version,
+        {
+            "service": {"update_strategy": "parallel"},
+            "elasticsearch": {
+                "xpack_security_enabled": False,
+            },
+        },
+        expected_task_count,
+    )
+
+    # Get list of indices to upgrade from here. The response looks something like:
+    # {
+    #   "indices" : {
+    #     ".security" : {
+    #       "action_required" : "upgrade"
+    #     },
+    #     ".watches" : {
+    #       "action_required" : "upgrade"
+    #     }
+    #   }
+    # }
+    response = _curl_query(service_name, "GET", "_xpack/migration/assistance?pretty")
+
+    # This is the second crucial step when upgrading from "X-Pack enabled" on ES5 to ES6. The
+    # ".security" index (along with any others returned by the "assistance" API) needs to be
+    # upgraded.
+    for index in response["indices"]:
+        _curl_query(
+            service_name,
+            "POST",
+            "_xpack/migration/upgrade/{}?pretty".format(index),
+            http_user=http_user,
+            http_password=http_password,
+        )
+
+    document_es_6_security_disabled_id = 2
+    document_es_6_security_disabled_fields = {
+        "name": "Elasticsearch 6: X-Pack security disabled",
+        "role": "search engine",
+    }
+    create_document(
+        DEFAULT_INDEX_NAME,
+        DEFAULT_INDEX_TYPE,
+        document_es_6_security_disabled_id,
+        document_es_6_security_disabled_fields,
+        service_name=service_name,
+        http_user=http_user,
+        http_password=http_password,
+    )
+
+    # After upgrading the indices, we're now safe to do the actual configuration update, possibly
+    # enabling X-Pack security.
+    sdk_service.update_configuration(package_name, service_name, options, expected_task_count)
+
+    document_es_6_post_update_id = 3
+    document_es_6_post_update_fields = {
+        "name": "Elasticsearch 6: Post update",
+        "role": "search engine",
+    }
+    create_document(
+        DEFAULT_INDEX_NAME,
+        DEFAULT_INDEX_TYPE,
+        document_es_6_post_update_id,
+        document_es_6_post_update_fields,
+        service_name=service_name,
+        http_user=http_user,
+        http_password=http_password,
+    )
+
+    # Make sure that documents were created and are accessible.
+    verify_document(
+        service_name,
+        document_es_5_id,
+        document_es_5_fields,
+        http_user=http_user,
+        http_password=http_password,
+    )
+    verify_document(
+        service_name,
+        document_es_6_security_disabled_id,
+        document_es_6_security_disabled_fields,
+        http_user=http_user,
+        http_password=http_password,
+    )
+    verify_document(
+        service_name,
+        document_es_6_post_update_id,
+        document_es_6_post_update_fields,
+        http_user=http_user,
+        http_password=http_password,
+    )
 
 
 def _master_zero_http_port(service_name):
