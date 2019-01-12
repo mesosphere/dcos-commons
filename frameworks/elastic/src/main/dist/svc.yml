@@ -45,6 +45,10 @@ pods:
           path: "container-path"
           type: {{MASTER_NODE_DISK_TYPE}}
           size: {{MASTER_NODE_DISK}}
+          {{#MASTER_NODE_DISK_PROFILE_ENABLED}}
+          profiles:
+            - {{MASTER_NODE_DISK_PROFILE}}
+          {{/MASTER_NODE_DISK_PROFILE_ENABLED}}
         cmd: |
           set -ex
 
@@ -135,6 +139,10 @@ pods:
           path: "container-path"
           type: {{DATA_NODE_DISK_TYPE}}
           size: {{DATA_NODE_DISK}}
+          {{#DATA_NODE_DISK_PROFILE_ENABLED}}
+          profiles:
+            - {{DATA_NODE_DISK_PROFILE}}
+          {{/DATA_NODE_DISK_PROFILE_ENABLED}}
         cmd: |
           set -ex
 
@@ -223,6 +231,10 @@ pods:
           path: "container-path"
           type: {{INGEST_NODE_DISK_TYPE}}
           size: {{INGEST_NODE_DISK}}
+          {{#INGEST_NODE_DISK_PROFILE_ENABLED}}
+          profiles:
+            - {{INGEST_NODE_DISK_PROFILE}}
+          {{/INGEST_NODE_DISK_PROFILE_ENABLED}}
         cmd: |
           set -ex
 
@@ -311,6 +323,10 @@ pods:
           path: "container-path"
           type: {{COORDINATOR_NODE_DISK_TYPE}}
           size: {{COORDINATOR_NODE_DISK}}
+          {{#COORDINATOR_NODE_DISK_PROFILE_ENABLED}}
+          profiles:
+            - {{COORDINATOR_NODE_DISK_PROFILE}}
+          {{/COORDINATOR_NODE_DISK_PROFILE_ENABLED}}
         cmd: |
           set -ex
 
