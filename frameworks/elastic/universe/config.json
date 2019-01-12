@@ -146,6 +146,10 @@
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
           "default": "ROOT"
         },
+        "disk_profile": {
+          "description": "Master node disk profile",
+          "type": "string"
+        },
         "transport_port": {
           "description": "Transport port for master nodes to listen on.",
           "type": "integer",
@@ -260,6 +264,10 @@
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
           "default": "ROOT"
         },
+        "disk_profile": {
+          "description": "Data node disk profile",
+          "type": "string"
+        },
         "placement": {
           "description": "Placement constraints for data nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
@@ -369,6 +377,10 @@
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
           "default": "ROOT"
         },
+        "disk_profile": {
+          "description": "Ingest node disk profile",
+          "type": "string"
+        },
         "placement": {
           "description": "Placement constraints for ingest nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",
           "type": "string",
@@ -477,6 +489,10 @@
           "type": "string",
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
           "default": "ROOT"
+        },
+        "disk_profile": {
+          "description": "Coordinator node disk profile",
+          "type": "string"
         },
         "placement": {
           "description": "Placement constraints for coordinator nodes (e.g., [[\"hostname\", \"UNIQUE\"]]).",

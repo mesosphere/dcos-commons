@@ -79,6 +79,10 @@
     "MASTER_NODE_DISK": "{{master_nodes.disk}}",
     "MASTER_NODE_DISK_TYPE": "{{master_nodes.disk_type}}",
     "MASTER_NODE_TRANSPORT_PORT": "{{master_nodes.transport_port}}",
+    {{#master_nodes.disk_profile}}
+    "MASTER_NODE_DISK_PROFILE_ENABLED": "true",
+    "MASTER_NODE_DISK_PROFILE": "{{master_nodes.disk_profile}}",
+    {{/master_nodes.disk_profile}}
     "DATA_NODE_COUNT": "{{data_nodes.count}}",
     "DATA_NODE_CPUS": "{{data_nodes.cpus}}",
     "DATA_NODE_MEM": "{{data_nodes.mem}}",
@@ -86,6 +90,10 @@
     "DATA_NODE_HEAP_MB": "{{data_nodes.heap.size}}",
     "DATA_NODE_DISK": "{{data_nodes.disk}}",
     "DATA_NODE_DISK_TYPE": "{{data_nodes.disk_type}}",
+    {{#data_nodes.disk_profile}}
+    "DATA_NODE_DISK_PROFILE_ENABLED": "true",
+    "DATA_NODE_DISK_PROFILE": "{{data_nodes.disk_profile}}",
+    {{/data_nodes.disk_profile}}
     "INGEST_NODE_COUNT": "{{ingest_nodes.count}}",
     "INGEST_NODE_CPUS": "{{ingest_nodes.cpus}}",
     "INGEST_NODE_MEM": "{{ingest_nodes.mem}}",
@@ -93,6 +101,10 @@
     "INGEST_NODE_HEAP_MB": "{{ingest_nodes.heap.size}}",
     "INGEST_NODE_DISK": "{{ingest_nodes.disk}}",
     "INGEST_NODE_DISK_TYPE": "{{ingest_nodes.disk_type}}",
+    {{#ingest_nodes.disk_profile}}
+    "INGEST_NODE_DISK_PROFILE_ENABLED": "true",
+    "INGEST_NODE_DISK_PROFILE": "{{ingest_nodes.disk_profile}}",
+    {{/ingest_nodes.disk_profile}}
     "COORDINATOR_NODE_COUNT": "{{coordinator_nodes.count}}",
     "COORDINATOR_NODE_CPUS": "{{coordinator_nodes.cpus}}",
     "COORDINATOR_NODE_MEM": "{{coordinator_nodes.mem}}",
@@ -100,6 +112,10 @@
     "COORDINATOR_NODE_HEAP_MB": "{{coordinator_nodes.heap.size}}",
     "COORDINATOR_NODE_DISK": "{{coordinator_nodes.disk}}",
     "COORDINATOR_NODE_DISK_TYPE": "{{coordinator_nodes.disk_type}}",
+    {{#coordinator_nodes.disk_profile}}
+    "COORDINATOR_NODE_DISK_PROFILE_ENABLED": "true",
+    "COORDINATOR_NODE_DISK_PROFILE": "{{coordinator_nodes.disk_profile}}",
+    {{/coordinator_nodes.disk_profile}}
     {{#service.region}}
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}
