@@ -210,9 +210,6 @@ def _update_service_with_cli(
 def _wait_for_deployment(package_name, service_name, initial_config, task_ids, timeout_seconds):
     updated_config = get_config(package_name, service_name)
 
-    log.info("Config before update: %s", initial_config)
-    log.info("Config after update: %s", updated_config)
-
     if updated_config == initial_config:
         log.info("No config change detected. Tasks should not be restarted")
         sdk_tasks.check_tasks_not_updated(service_name, "", task_ids)
