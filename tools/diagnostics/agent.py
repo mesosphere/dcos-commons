@@ -13,6 +13,7 @@ logger = logging.getLogger(__name__)
 def is_http_server_error(http_status_code: int) -> bool:
     return http_status_code >= 500 and http_status_code <= 599
 
+
 def agent_not_found(http_status_code: int) -> bool:
     return http_status_code == 404
 
