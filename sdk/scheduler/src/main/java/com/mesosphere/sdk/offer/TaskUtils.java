@@ -584,13 +584,35 @@ public final class TaskUtils {
     }
     // Non-terminal cases which need recovery:
     switch (taskStatus.getState()) {
-      case TASK_GONE_BY_OPERATOR:
       case TASK_LOST:
       case TASK_UNREACHABLE:
         return true;
       default:
         return false;
     }
+  }
+
+  /**
+   * Marks the TaskInfo for replacement if the agent has been decomissioned.
+   */
+  public static Collection<Protos.TaskInfo> getTasksForReplacement(
+      Collection<Protos.TaskStatus> alltaskStatuses,
+      Collection<Protos.TaskInfo> allTaskInfos)
+  {
+    Map<Protos.TaskID, Protos.TaskInfo> infoMap = new HashMap<>();
+    for (Protos.TaskInfo taskInfo : allTaskInfos) {
+      infoMap.put(taskInfo.getTaskId(), taskInfo);
+    }
+
+    List<Protos.TaskInfo> tasksNeedingReplace = new ArrayList<>();
+    for (Protos.TaskStatus taskStatus: alltaskStatuses) {
+      if (taskStatus.getState().equals(Protos.TaskState.TASK_GONE_BY_OPERATOR) &&
+          !FailureUtils.isPermanentlyFailed(infoMap.get(taskStatus.getTaskId())))
+      {
+        tasksNeedingReplace.add(infoMap.get(taskStatus.getTaskId()));
+      }
+    }
+    return tasksNeedingReplace;
   }
 
   /**

@@ -121,3 +121,10 @@ def reconnect_agent(agent_host: str):
         ),
     )
     assert rc == 0, "Failed to reconnect agent"
+
+
+def decommission_agent(agent_id: str):
+    rc, _, _ = sdk_cmd.run_cli(
+        "node decommission {}".format(agent_id)
+    )
+    assert rc == 0

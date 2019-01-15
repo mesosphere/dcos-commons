@@ -78,6 +78,40 @@ def test_pod_replace():
 
 
 @pytest.mark.sanity
+def test_auto_replace_on_decomission():
+    candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
+        config.SERVICE_NAME, re.compile("^(hello|world)-[0-9]+-server$")
+    )
+
+    assert len(candidate_tasks) != 0, "Could not find a node to decomission"
+
+    # Pick the host of the first task from the above list
+    replace_agent_id = candidate_tasks[0].agent_id
+    replace_tasks = [task for task in candidate_tasks if task.agent_id == replace_agent_id]
+    log.info(
+        "Tasks on agent {} to be replaced after decomission: {}".format(replace_agent_id, replace_tasks)
+    )
+    sdk_agents.decommission_agent(replace_agent_id)
+
+    sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+    sdk_plan.wait_for_completed_recovery(config.SERVICE_NAME)
+
+    new_tasks = sdk_tasks.get_summary()
+
+    for replaced_task in replace_tasks:
+        new_task = [
+            task
+            for task in new_tasks
+            if task.name == replaced_task.name and task.id != replaced_task.id
+        ][0]
+        log.info(
+            "Checking affected task has moved to a new agent:\n"
+            "old={}\nnew={}".format(replaced_task, new_task)
+        )
+        assert replaced_task.agent_id != new_task.agent_id
+
+
+@pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
 def test_pod_pause_resume():
     """Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state"""

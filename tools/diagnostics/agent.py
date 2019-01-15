@@ -13,6 +13,9 @@ logger = logging.getLogger(__name__)
 def is_http_server_error(http_status_code: int) -> bool:
     return http_status_code >= 500 and http_status_code <= 599
 
+def agent_not_found(http_status_code: int) -> bool:
+    return http_status_code == 404
+
 
 @config.retry
 def debug_agent_files(agent_id: str) -> List[str]:
@@ -23,7 +26,8 @@ def debug_agent_files(agent_id: str) -> List[str]:
         raise_on_error=False,
         log_response=False,
     )
-
+    if agent_not_found(response.status_code):
+        return response.json()
     if is_http_server_error(response.status_code):
         # Retry.
         raise Exception(response)
