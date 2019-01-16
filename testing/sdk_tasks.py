@@ -29,7 +29,6 @@ COMPLETED_TASK_STATES = set(
         "TASK_GONE_BY_OPERATOR",
         "TASK_UNREACHABLE",
         "TASK_UNKNOWN",
-        *FATAL_TERMINAL_TASK_STATES,
     ]
 )
 
