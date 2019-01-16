@@ -30,7 +30,9 @@ class ServiceBundle(Bundle):
     @config.retry
     def install_cli(self):
         sdk_cmd.run_cli(
-            "package install {} --cli --yes".format(self.package_name), print_output=False
+            "package install {} --cli --yes".format(self.package_name),
+            print_output=False,
+            check=True,
         )
 
     def tasks(self):
