@@ -52,6 +52,7 @@ import java.util.stream.Collectors;
     "checkstyle:ExecutableStatementCount",
     "checkstyle:ReturnCount",
     "checkstyle:OverloadMethodsDeclarationOrder",
+    "checkstyle:MultipleStringLiterals"
 })
 public final class TaskUtils {
 
@@ -597,19 +598,26 @@ public final class TaskUtils {
    */
   public static Collection<Protos.TaskInfo> getTasksForReplacement(
       Collection<Protos.TaskStatus> alltaskStatuses,
-      Collection<Protos.TaskInfo> allTaskInfos)
+      Collection<Protos.TaskInfo> allTaskInfos,
+      ConfigStore<ServiceSpec> configStore) throws TaskException
   {
     Map<Protos.TaskID, Protos.TaskInfo> infoMap = new HashMap<>();
     for (Protos.TaskInfo taskInfo : allTaskInfos) {
       infoMap.put(taskInfo.getTaskId(), taskInfo);
     }
-
     List<Protos.TaskInfo> tasksNeedingReplace = new ArrayList<>();
     for (Protos.TaskStatus taskStatus: alltaskStatuses) {
+      Protos.TaskInfo info = infoMap.get(taskStatus.getTaskId());
+      Optional<TaskSpec> taskSpec = getTaskSpec(configStore, info);
+      if (!taskSpec.isPresent()) {
+        throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
+      }
+
       if (taskStatus.getState().equals(Protos.TaskState.TASK_GONE_BY_OPERATOR) &&
-          !FailureUtils.isPermanentlyFailed(infoMap.get(taskStatus.getTaskId())))
+          !FailureUtils.isPermanentlyFailed(info) &&
+          isEligibleForRecovery(taskSpec.get()))
       {
-        tasksNeedingReplace.add(infoMap.get(taskStatus.getTaskId()));
+        tasksNeedingReplace.add(info);
       }
     }
     return tasksNeedingReplace;
@@ -626,8 +634,9 @@ public final class TaskUtils {
       case TASK_FINISHED:
       case TASK_GONE:
       case TASK_KILLED:
-        return true;
+        //an agent marked as gone should never come back therefore this is terminal
       case TASK_GONE_BY_OPERATOR:
+        return true;
         // mesos.proto: "might return to RUNNING in the future"
       case TASK_KILLING:
       case TASK_LOST:

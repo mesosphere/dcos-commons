@@ -303,7 +303,9 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     Collection<Protos.TaskInfo> allTaskInfos = stateStore.fetchTasks();
     Collection<Protos.TaskStatus> allTaskStatuses = stateStore.fetchStatuses();
 
-    markPermanentlyFailedTasks(allTaskInfos, allTaskStatuses);
+    FailureUtils.setPermanentlyFailed(
+        stateStore,
+        TaskUtils.getTasksForReplacement(allTaskStatuses, allTaskInfos, configStore));
 
     Collection<Protos.TaskInfo> failedTasks =
         TaskUtils.getTasksNeedingRecovery(configStore, allTaskInfos, allTaskStatuses).stream()
@@ -384,15 +386,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
       logger.info("Failed tasks in pod: {}, permanent{}, transient{}",
           failedPodName, permanentlyFailedTasks, transientlyFailedTasks);
     }
-  }
-
-  private void markPermanentlyFailedTasks(
-      Collection<Protos.TaskInfo> allTaskInfos,
-      Collection<Protos.TaskStatus> allTaskStatuses)
-  {
-    Collection<Protos.TaskInfo> permanentlyFailed =
-        TaskUtils.getTasksForReplacement(allTaskStatuses, allTaskInfos);
-    FailureUtils.setPermanentlyFailed(this.stateStore, permanentlyFailed);
   }
 
   /**
