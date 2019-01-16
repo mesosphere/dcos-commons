@@ -612,7 +612,7 @@ public final class TaskUtils {
       {
         LOGGER.info("{} needs replacement with state: {}",
             infoMap.get(taskStatus.getTaskId()).getName(),
-            taskStatus.getState(),
+            taskStatus.getState());
         tasksNeedingReplace.add(infoMap.get(taskStatus.getTaskId()));
       }
     }

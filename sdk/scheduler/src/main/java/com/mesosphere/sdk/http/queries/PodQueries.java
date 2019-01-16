@@ -332,9 +332,6 @@ public final class PodQueries {
   private static Response killTasks(String podName, Collection<TaskInfoAndStatus> tasksToKill) {
     for (TaskInfoAndStatus taskToKill : tasksToKill) {
       final Protos.TaskInfo taskInfo = taskToKill.getInfo();
-      if (taskToKill.getStatus().isPresent() && TaskUtils.isTerminal(taskToKill.getStatus().get())) {
-        continue;
-      }
       if (taskToKill.hasStatus()) {
         LOGGER.info("  {} ({}): currently has status {}",
             taskInfo.getName(),
