@@ -115,9 +115,17 @@ class ServiceBundle(Bundle):
         task_executor_sandbox_paths = {}
         for agent_id, tasks in tasks_by_agent_id.items():
             for task in tasks:
-                task_executor_sandbox_paths[task["id"]] = sdk_diag._find_matching_executor_path(
+                task_executor_sandbox_path = sdk_diag._find_matching_executor_path(
                     agent_executor_paths[agent_id], sdk_diag._TaskEntry(task)
                 )
+                if task_executor_sandbox_path:
+                    task_executor_sandbox_paths[task["id"]] = task_executor_sandbox_path
+                else:
+                    log.info(
+                        "Could not find executor sandbox path for task '%s'. This probably means that its agent ('%s') is missing",
+                        task["id"],
+                        task["slave_id"],
+                    )
 
         for task_id, task_executor_sandbox_path in task_executor_sandbox_paths.items():
             agent_id = agent_id_by_task_id[task_id]
