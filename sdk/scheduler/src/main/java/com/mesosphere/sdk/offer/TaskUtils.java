@@ -598,26 +598,22 @@ public final class TaskUtils {
    */
   public static Collection<Protos.TaskInfo> getTasksForReplacement(
       Collection<Protos.TaskStatus> alltaskStatuses,
-      Collection<Protos.TaskInfo> allTaskInfos,
-      ConfigStore<ServiceSpec> configStore) throws TaskException
+      Collection<Protos.TaskInfo> allTaskInfos)
   {
     Map<Protos.TaskID, Protos.TaskInfo> infoMap = new HashMap<>();
     for (Protos.TaskInfo taskInfo : allTaskInfos) {
       infoMap.put(taskInfo.getTaskId(), taskInfo);
     }
+
     List<Protos.TaskInfo> tasksNeedingReplace = new ArrayList<>();
     for (Protos.TaskStatus taskStatus: alltaskStatuses) {
-      Protos.TaskInfo info = infoMap.get(taskStatus.getTaskId());
-      Optional<TaskSpec> taskSpec = getTaskSpec(configStore, info);
-      if (!taskSpec.isPresent()) {
-        throw new TaskException("Failed to determine TaskSpec from TaskInfo: " + info);
-      }
-
       if (taskStatus.getState().equals(Protos.TaskState.TASK_GONE_BY_OPERATOR) &&
-          !FailureUtils.isPermanentlyFailed(info) &&
-          isEligibleForRecovery(taskSpec.get()))
+          !FailureUtils.isPermanentlyFailed(infoMap.get(taskStatus.getTaskId())))
       {
-        tasksNeedingReplace.add(info);
+        LOGGER.info("{} needs replacement with state: {}",
+            infoMap.get(taskStatus.getTaskId()).getName(),
+            taskStatus.getState(),
+        tasksNeedingReplace.add(infoMap.get(taskStatus.getTaskId()));
       }
     }
     return tasksNeedingReplace;

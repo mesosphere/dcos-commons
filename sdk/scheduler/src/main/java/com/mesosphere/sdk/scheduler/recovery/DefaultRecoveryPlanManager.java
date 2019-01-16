@@ -305,7 +305,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     FailureUtils.setPermanentlyFailed(
         stateStore,
-        TaskUtils.getTasksForReplacement(allTaskStatuses, allTaskInfos, configStore));
+        TaskUtils.getTasksForReplacement(allTaskStatuses, allTaskInfos));
 
     Collection<Protos.TaskInfo> failedTasks =
         TaskUtils.getTasksNeedingRecovery(configStore, allTaskInfos, allTaskStatuses).stream()
