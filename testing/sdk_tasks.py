@@ -29,6 +29,7 @@ COMPLETED_TASK_STATES = set(
         "TASK_GONE_BY_OPERATOR",
         "TASK_UNREACHABLE",
         "TASK_UNKNOWN",
+        *FATAL_TERMINAL_TASK_STATES,
     ]
 )
 
@@ -381,6 +382,7 @@ def check_tasks_updated(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
     def _check_tasks_updated():
+        wait_for_active_framework(service_name)
         task_ids = get_task_ids(service_name, prefix)
 
         old_set = set(old_task_ids)
@@ -425,6 +427,7 @@ def check_tasks_updated(
 def check_tasks_not_updated(service_name, prefix, old_task_ids):
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_plan.wait_for_completed_recovery(service_name)
+    wait_for_active_framework(service_name)
     task_ids = get_task_ids(service_name, prefix)
     task_sets = "\n- Old tasks: {}\n- Current tasks: {}".format(
         sorted(old_task_ids), sorted(task_ids)
