@@ -14,7 +14,9 @@ import random
 import string
 
 import sdk_cmd
+import sdk_dcos
 
+from sdk_dcos import DCOS_SECURITY
 from distutils.version import LooseVersion
 
 log = logging.getLogger(__name__)
@@ -129,7 +131,7 @@ def is_open_dcos():
 
 def is_strict_mode():
     """Determine if the tests are being run on a strict mode cluster."""
-    return os.environ.get("SECURITY", "") == "strict"
+    return sdk_dcos.get_security_mode() == DCOS_SECURITY.strict
 
 
 """Annotation which may be used to mark test suites or test cases as EE-only.
