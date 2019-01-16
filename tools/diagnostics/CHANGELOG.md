@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v0.2.1 (2019-01-16) - Snowman
+
+### Bug fixes
+   - Don't raise exception when there's a missing agent.
+     ([commit](https://github.com/mesosphere/dcos-commons/commit/16543f437a6c015ebcd7789c70a258fbc0a7e5a4))
+
 ## v0.2.0 (2019-01-16) - Snowman
 
 ### Bug fixes
