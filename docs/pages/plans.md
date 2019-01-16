@@ -174,7 +174,7 @@ deploy (serial strategy) (IN_PROGRESS)
    └─ world-1:[server, sidecar] (PENDING)
 ```
 
-Once the service has found a Mesos offer which matches the Step's `PodInstanceRequirement`, the service would tell Mesos to reserve the required resources and to launch the `hello-0-server` task. The service would then notify the `hello-0` Step that the launch had occured. The Step will set its internal state to `STARTING` to reflect that it's waiting for the task to actually launch:
+Once the service has found a Mesos offer which matches the Step's `PodInstanceRequirement`, the service would tell Mesos to reserve the required resources and to launch the `hello-0-server` task. The service would then notify the `hello-0` Step that the launch had occurred. The Step will set its internal state to `STARTING` to reflect that it's waiting for the task to actually launch:
 ```
 deploy (serial strategy) (STARTING)
 ├─ hello (serial strategy) (STARTING)
@@ -257,7 +257,7 @@ The `world-0` pod will be updated to have 1.5 CPUs from its prior allocation of 
 
 ### Recovery: Pod Restart/Replace
 
-As hinted at elsewhere, the `recovery` Plan is special because starts in an empty state and is later automatically populated with any detected tasks that need to be recovered. At the moment, completed operations can remain as `COMPLETE` phases in the `recovery` plan indefinitely until the scheduler process is restarted. To show an example of how the `recovery` plan typically opeprates we can also look at what happens when an operator requests a `pod restart` or `pod replace` operation. These operations rely on the `recovery` Plan to relaunch the task. As such, the recovery of restarted/replaced pods can likewise be customized by the developer.
+As hinted at elsewhere, the `recovery` Plan is special because starts in an empty state and is later automatically populated with any detected tasks that need to be recovered. At the moment, completed operations can remain as `COMPLETE` phases in the `recovery` plan indefinitely until the scheduler process is restarted. To show an example of how the `recovery` plan typically operates we can also look at what happens when an operator requests a `pod restart` or `pod replace` operation. These operations rely on the `recovery` Plan to relaunch the task. As such, the recovery of restarted/replaced pods can likewise be customized by the developer.
 
 For `pod restart` (kill and relaunch pod at current location), the sequence works as follows:
 1. Mesos is told to kill task
