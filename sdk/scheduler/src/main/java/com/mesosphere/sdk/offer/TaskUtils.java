@@ -635,8 +635,8 @@ public final class TaskUtils {
       case TASK_GONE:
       case TASK_KILLED:
         //an agent marked as gone should never come back therefore this is terminal
-      case TASK_GONE_BY_OPERATOR:
         return true;
+      case TASK_GONE_BY_OPERATOR:
         // mesos.proto: "might return to RUNNING in the future"
       case TASK_KILLING:
       case TASK_LOST:
