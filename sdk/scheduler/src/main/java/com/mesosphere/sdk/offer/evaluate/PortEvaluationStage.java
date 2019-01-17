@@ -268,7 +268,12 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             .get(Constants.PORTS_RESOURCE_TYPE);
     Optional<Integer> dynamicPort = Optional.empty();
     if (availablePorts != null) {
-      if (!spec.getRanges().isEmpty()) {
+      if (spec.getRanges().isEmpty()) {
+        dynamicPort = availablePorts.getRanges().getRangeList().stream()
+            .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
+            .filter(p -> !consumedPorts.contains(p))
+            .findFirst();
+      } else {
         List<Integer> constrainedPorts = new ArrayList<>();
         for (RangeSpec range : spec.getRanges()) {
           constrainedPorts.addAll(
@@ -280,11 +285,6 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
             .filter(p -> !consumedPorts.contains(p))
             .filter(constrainedPorts::contains)
-            .findFirst();
-      } else {
-        dynamicPort = availablePorts.getRanges().getRangeList().stream()
-            .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
-            .filter(p -> !consumedPorts.contains(p))
             .findFirst();
       }
     }

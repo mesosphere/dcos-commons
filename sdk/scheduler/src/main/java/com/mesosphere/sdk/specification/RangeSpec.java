@@ -4,7 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 
 /**
- * Representation of a port range, consisting of a begin and an end.
+ * Representation of a port range, consisting of a begin and an end. The range is inclusive of begin
+ * and end values. If either begin or empty is left empty the range is unbounded on that side.
  */
 public class RangeSpec {
 
