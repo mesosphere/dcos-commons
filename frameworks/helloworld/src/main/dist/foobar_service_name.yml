@@ -8,7 +8,7 @@ pods:
     tasks:
       bar:
         goal: RUNNING
-        cmd: "echo world"
+        cmd: "echo world && sleep $SLEEP_DURATION"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:
