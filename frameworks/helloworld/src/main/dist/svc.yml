@@ -20,6 +20,13 @@ pods:
           path: hello-container-path
           type: ROOT
           size: {{HELLO_DISK}}
+        ports:
+          name1:
+           port: 0
+           env-key: HELLO_PORT
+           ranges:
+             - begin: 1024
+               end: 5000
         env:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         health-check:
