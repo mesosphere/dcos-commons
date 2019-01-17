@@ -2,6 +2,8 @@ package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 /**
  * Raw YAML port.
  */
@@ -15,16 +17,20 @@ public final class RawPort {
 
   private final RawVip vip;
 
+  private final List<RawRange> ranges;
+
   private RawPort(
       @JsonProperty("port") Integer port,
       @JsonProperty("env-key") String envKey,
       @JsonProperty("advertise") Boolean advertise,
-      @JsonProperty("vip") RawVip vip)
+      @JsonProperty("vip") RawVip vip,
+      @JsonProperty("ranges") List<RawRange> ranges)
   {
     this.port = port;
     this.envKey = envKey;
     this.advertise = advertise;
     this.vip = vip;
+    this.ranges = ranges;
   }
 
   public Integer getPort() {
@@ -41,5 +47,9 @@ public final class RawPort {
 
   public RawVip getVip() {
     return vip;
+  }
+
+  public List<RawRange> getRanges() {
+    return ranges;
   }
 }

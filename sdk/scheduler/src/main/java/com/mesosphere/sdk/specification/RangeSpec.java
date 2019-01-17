@@ -21,7 +21,7 @@ public class RangeSpec {
       @JsonProperty("end") Integer end)
   {
     this.begin = begin == null ? MIN_PORT : begin;
-    this.end = end == null ? MAX_PORT : end;
+    this.end = (end == null || end == 0) ? MAX_PORT : end;
     validate();
   }
 

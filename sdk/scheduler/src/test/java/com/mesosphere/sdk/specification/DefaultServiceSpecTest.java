@@ -145,6 +145,39 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validPortRangesTest() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("ranges.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+
+        List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
+            .getResources()
+            .stream()
+            .filter(r -> r.getName().equals("ports"))
+            .collect(Collectors.toList());
+
+        Assert.assertEquals(2, portsResources.size());
+
+        PortSpec portSpec = (PortSpec) portsResources.get(0);
+        Assert.assertEquals("name1", portSpec.getPortName());
+        Assert.assertEquals("key1", portSpec.getEnvKey());
+        Assert.assertEquals(1, portSpec.getRanges().get(0).getBegin().intValue());
+        Assert.assertEquals(21, portSpec.getRanges().get(0).getEnd().intValue());
+
+        Assert.assertEquals(2000, portSpec.getRanges().get(1).getBegin().intValue());
+        Assert.assertEquals(5050, portSpec.getRanges().get(1).getEnd().intValue());
+
+
+        portSpec = (PortSpec) portsResources.get(1);
+        Assert.assertEquals("name2", portSpec.getPortName());
+        Assert.assertEquals(RangeSpec.MIN_PORT, portSpec.getRanges().get(0).getBegin().intValue());
+        Assert.assertEquals(21, portSpec.getRanges().get(0).getEnd().intValue());
+
+        Assert.assertEquals(5000, portSpec.getRanges().get(1).getBegin().intValue());
+        Assert.assertEquals(RangeSpec.MAX_PORT, portSpec.getRanges().get(1).getEnd().intValue());
+    }
+
+    @Test
     public void validPortResource() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-multiple-ports.yml").getFile());

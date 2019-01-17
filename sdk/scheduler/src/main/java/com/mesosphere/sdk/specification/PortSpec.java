@@ -12,6 +12,7 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * This class represents a single port, with associated environment name.
@@ -26,7 +27,7 @@ public class PortSpec extends DefaultResourceSpec {
 
   private final Collection<String> networkNames;
 
-  private final Collection<RangeSpec> ranges;
+  private final List<RangeSpec> ranges;
 
   @JsonCreator
   protected PortSpec(
@@ -38,7 +39,7 @@ public class PortSpec extends DefaultResourceSpec {
       @JsonProperty("port-name") String portName,
       @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
       @JsonProperty("network-names") Collection<String> networkNames,
-      @JsonProperty("ranges") Collection<RangeSpec> ranges)
+      @JsonProperty("ranges") List<RangeSpec> ranges)
   {
     super(Constants.PORTS_RESOURCE_TYPE, value, role, preReservedRole, principal);
     this.envKey = envKey;
@@ -111,7 +112,7 @@ public class PortSpec extends DefaultResourceSpec {
   }
 
   @JsonProperty("ranges")
-  public Collection<RangeSpec> getRanges() {
+  public List<RangeSpec> getRanges() {
     return ranges;
   }
 
@@ -153,7 +154,7 @@ public class PortSpec extends DefaultResourceSpec {
 
     protected Collection<String> networkNames;
 
-    protected Collection<RangeSpec> ranges = Collections.emptyList();
+    protected List<RangeSpec> ranges = Collections.emptyList();
 
     protected Builder() {
     }
@@ -178,7 +179,7 @@ public class PortSpec extends DefaultResourceSpec {
       return this;
     }
 
-    public Builder ranges(Collection<RangeSpec> ranges) {
+    public Builder ranges(List<RangeSpec> ranges) {
       this.ranges = ranges;
       return this;
     }
