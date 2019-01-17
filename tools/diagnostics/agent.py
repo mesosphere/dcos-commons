@@ -28,6 +28,9 @@ def debug_agent_files(agent_id: str) -> List[str]:
         # Retry.
         raise Exception(response)
 
+    if response.status_code == 404:
+        return {}
+
     if not response.ok:
         # Retry.
         raise Exception(response)

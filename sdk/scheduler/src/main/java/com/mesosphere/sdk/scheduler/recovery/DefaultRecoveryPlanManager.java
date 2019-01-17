@@ -302,6 +302,11 @@ public class DefaultRecoveryPlanManager implements PlanManager {
   {
     Collection<Protos.TaskInfo> allTaskInfos = stateStore.fetchTasks();
     Collection<Protos.TaskStatus> allTaskStatuses = stateStore.fetchStatuses();
+
+    FailureUtils.setPermanentlyFailed(
+        stateStore,
+        TaskUtils.getTasksForReplacement(allTaskStatuses, allTaskInfos));
+
     Collection<Protos.TaskInfo> failedTasks =
         TaskUtils.getTasksNeedingRecovery(configStore, allTaskInfos, allTaskStatuses).stream()
             .filter(taskInfo -> recoverableTaskNames.contains(taskInfo.getName()))

@@ -57,3 +57,32 @@ def test_zones_referenced_in_placement_constraints():
         assert sdk_fault_domain.is_valid_zone(get_in(["attributes", "zone"], node))
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+
+@pytest.mark.sanity
+@pytest.mark.dcos_min_version("1.11")
+@sdk_utils.dcos_ee_only
+def test_heterogeneus_zone_constraints():
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        config.DEFAULT_TASK_COUNT,
+        additional_options={
+            "master_nodes": {"placement": '[["@zone", "GROUP_BY"]]'},
+            "data_nodes": {"placement": '[["hostname", "UNIQUE"]]'},
+        },
+    )
+
+    document_id = 99
+    document_fields = {"name": "X-Pack", "role": "commercial plugin"}
+    config.create_document(
+        config.DEFAULT_INDEX_NAME,
+        config.DEFAULT_INDEX_TYPE,
+        document_id,
+        document_fields,
+        service_name=config.SERVICE_NAME,
+    )
+    config.verify_document(config.SERVICE_NAME, document_id, document_fields)
+
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)

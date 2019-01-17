@@ -178,6 +178,13 @@ public class FrameworkRunner {
     }
 
     Capabilities capabilities = Capabilities.getInstance();
+
+    if (capabilities.supportsPartitionAwareness()) {
+      //required to receive TASK_GONE_BY_OPERATOR and other messages
+      fwkInfoBuilder.addCapabilitiesBuilder()
+          .setType(Protos.FrameworkInfo.Capability.Type.PARTITION_AWARE);
+    }
+
     if (usingGpus && capabilities.supportsGpuResource()) {
       fwkInfoBuilder.addCapabilitiesBuilder()
           .setType(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES);

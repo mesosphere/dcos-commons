@@ -19,12 +19,12 @@ bootstrap.memory_lock: false
 metrics.statsd.host: {{STATSD_UDP_HOST}}
 metrics.statsd.port: {{STATSD_UDP_PORT}}
 
-{{#PLACEMENT_REFERENCED_ZONE}}
 {{#ZONE}}
 node.attr.zone: {{ZONE}}
+{{#PLACEMENT_REFERENCED_ZONE}}
 cluster.routing.allocation.awareness.attributes: zone
-{{/ZONE}}
 {{/PLACEMENT_REFERENCED_ZONE}}
+{{/ZONE}}
 
 {{#MASTER_ENABLED}}
 gateway.expected_master_nodes: 3

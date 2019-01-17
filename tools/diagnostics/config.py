@@ -5,6 +5,7 @@ DEFAULT_RETRY_WAIT_MS = 1000
 DEFAULT_RETRY_MAX_ATTEMPTS = 5
 
 
+# TODO(mpereira): make functions retry based on return value instead of exceptions.
 def retry(fn):
     @functools.wraps(fn)
     @retrying.retry(
