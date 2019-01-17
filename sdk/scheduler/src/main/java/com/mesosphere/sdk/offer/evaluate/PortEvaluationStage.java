@@ -268,9 +268,9 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             .get(Constants.PORTS_RESOURCE_TYPE);
     Optional<Integer> dynamicPort = Optional.empty();
     if (availablePorts != null) {
-      if (spec.getRanges().isPresent()) {
+      if (!spec.getRanges().isEmpty()) {
         List<Integer> constrainedPorts = new ArrayList<>();
-        for (RangeSpec range : spec.getRanges().get()) {
+        for (RangeSpec range : spec.getRanges()) {
           constrainedPorts.addAll(
               IntStream.range(range.getBegin(), range.getEnd())
                   .boxed()
