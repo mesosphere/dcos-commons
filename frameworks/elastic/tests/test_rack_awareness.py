@@ -26,7 +26,7 @@ def test_zones_not_referenced_in_placement_constraints():
             )
             is None
         )
-        assert get_in(["attributes", "zone"], node) is None
+        assert sdk_fault_domain.is_valid_zone(get_in(["attributes", "zone"], node))
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
