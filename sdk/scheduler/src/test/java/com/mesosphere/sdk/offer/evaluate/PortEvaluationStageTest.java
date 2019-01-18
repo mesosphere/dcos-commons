@@ -782,4 +782,92 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
         Assert.assertEquals(true, outcome.isPassing());
     }
+
+    @Test
+    public void testDynamicPortWithRangeInclusiveUpperbound() throws Exception {
+        Protos.Resource offeredPorts = ResourceTestUtils.getPrereservedPort(3000, 5050, "slave_public");
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredPorts), "slave_public");
+
+        //only the upperbound port of 3000 should match
+        RangeSpec spec1 = new RangeSpec(2000, 3000);
+
+        PortSpec.Builder builder = PortSpec.newBuilder()
+            .envKey("PORT_TEST")
+            .portName("TEST")
+            .ranges(Arrays.asList(spec1))
+            .visibility(TestConstants.PORT_VISIBILITY)
+            .networkNames(Collections.emptyList());
+        builder
+            .value(getPort(0))
+            .role(TestConstants.ROLE)
+            .preReservedRole("slave_public")
+            .principal(TestConstants.PRINCIPAL);
+        PortSpec portSpec = builder.build();
+
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceWithPrereservedRole(portSpec);
+
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+            podInstanceRequirement,
+            TestConstants.SERVICE_NAME,
+            UUID.randomUUID(),
+            PodTestUtils.getTemplateUrlFactory(),
+            SchedulerConfigTestUtils.getTestSchedulerConfig(),
+            Collections.emptyList(),
+            TestConstants.FRAMEWORK_ID,
+            Collections.emptyMap());
+
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+            portSpec,
+            Collections.singleton(TestConstants.TASK_NAME),
+            Optional.empty(),
+            Optional.empty());
+
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertEquals(true, outcome.isPassing());
+    }
+
+    @Test
+    public void testDynamicPortWithRangeInclusiveLowerbound() throws Exception {
+        Protos.Resource offeredPorts = ResourceTestUtils.getPrereservedPort(3000, 5050, "slave_public");
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredPorts), "slave_public");
+
+        //only the lowerbound port of 5050 should match
+        RangeSpec spec1 = new RangeSpec(5050, 6000);
+
+        PortSpec.Builder builder = PortSpec.newBuilder()
+            .envKey("PORT_TEST")
+            .portName("TEST")
+            .ranges(Arrays.asList(spec1))
+            .visibility(TestConstants.PORT_VISIBILITY)
+            .networkNames(Collections.emptyList());
+        builder
+            .value(getPort(0))
+            .role(TestConstants.ROLE)
+            .preReservedRole("slave_public")
+            .principal(TestConstants.PRINCIPAL);
+        PortSpec portSpec = builder.build();
+
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceWithPrereservedRole(portSpec);
+
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+            podInstanceRequirement,
+            TestConstants.SERVICE_NAME,
+            UUID.randomUUID(),
+            PodTestUtils.getTemplateUrlFactory(),
+            SchedulerConfigTestUtils.getTestSchedulerConfig(),
+            Collections.emptyList(),
+            TestConstants.FRAMEWORK_ID,
+            Collections.emptyMap());
+
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+            portSpec,
+            Collections.singleton(TestConstants.TASK_NAME),
+            Optional.empty(),
+            Optional.empty());
+
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertEquals(true, outcome.isPassing());
+    }
 }
