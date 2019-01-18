@@ -473,6 +473,29 @@ root: {{ROOT_DIR}}
                 <p>This may be used to define an environment variable used to advertise this port within the task. This is most useful when a random dynamic port is being used, as it allows the task to know what port was allocated for it.</p>
               </li>
               <li>
+                <p><code class="highlighter-rouge">ranges</code></p>
+
+                <p>When requesting a dynamic port, a list of ranges may be passed to to constrain the value of the dynamic port. The range is inclusive of <code class="highlighter-rouge">begin</code> and <code class="highlighter-rouge">end</code> when they are set. If <code class="highlighter-rouge">begin</code> or <code class="highlighter-rouge">end</code> is not set the range constraint is implicit and unbounded on that side. Ranges may be defined as follows:</p>
+
+                <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  ports:
+  name1:
+    port: 0
+    env-key: key1
+    ranges:
+      - begin: 1
+        end: 21
+      - begin: 2000
+        end: 5050
+  name2:
+    port: 0
+    ranges:
+      - begin:
+        end: 21
+      - begin: 5000
+        end:
+</code></pre></div>                </div>
+              </li>
+              <li>
                 <p><code class="highlighter-rouge">advertise</code></p>
 
                 <p>This may be manually set to <code class="highlighter-rouge">true</code> to enable advertising this port in the service’s <code class="highlighter-rouge">endpoints</code> listing. Default is <code class="highlighter-rouge">false</code>.</p>
