@@ -15,6 +15,11 @@ pods:
           port_two:
             port: 0
             env-key: HELLO_PORT_TWO
+            ranges:
+              - begin: 1024
+                end: 5000
+              - begin: 5050
+                end:
     tasks:
       server:
         goal: ONCE

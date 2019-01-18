@@ -123,12 +123,14 @@ public class PortSpec extends DefaultResourceSpec {
 
   @Override
   public String toString() {
-    return String.format("%s, port-name: %s, network-names: %s, env-key: %s, visibility: %s",
+    return String.format("%s, port-name: %s, network-names: %s, env-key: %s, visibility: %s, " +
+            "ranges %s",
         super.toString(),
         getPortName(),
         getNetworkNames(),
         getEnvKey(),
-        getVisibility());
+        getVisibility(),
+        getRanges());
   }
 
   @Override
