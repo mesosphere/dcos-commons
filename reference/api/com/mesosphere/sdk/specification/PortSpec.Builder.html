@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/specification/RangeSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/specification/PortSpec.Builder.html" target="_top">Frames</a></li>
@@ -154,6 +154,10 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html#portName">portName</a></span></code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><code>protected java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/RangeSpec.html" title="class in com.mesosphere.sdk.specification">RangeSpec</a>&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html#ranges">ranges</a></span></code>&nbsp;</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><code>protected DiscoveryInfo.Visibility</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html#visibility">visibility</a></span></code>&nbsp;</td>
 </tr>
@@ -218,6 +222,10 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 </tr>
 <tr id="i4" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html#ranges-java.util.List-">ranges</a></span>(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/RangeSpec.html" title="class in com.mesosphere.sdk.specification">RangeSpec</a>&gt;&nbsp;ranges)</code>&nbsp;</td>
+</tr>
+<tr id="i5" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html#visibility-DiscoveryInfo.Visibility-">visibility</a></span>(DiscoveryInfo.Visibility&nbsp;visibility)</code>&nbsp;</td>
 </tr>
 </table>
@@ -279,10 +287,19 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <a name="networkNames">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>networkNames</h4>
 <pre>protected&nbsp;java.util.Collection&lt;java.lang.String&gt; networkNames</pre>
+</li>
+</ul>
+<a name="ranges">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>ranges</h4>
+<pre>protected&nbsp;java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/RangeSpec.html" title="class in com.mesosphere.sdk.specification">RangeSpec</a>&gt; ranges</pre>
 </li>
 </ul>
 </li>
@@ -346,6 +363,15 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a>&nbsp;networkNames(java.util.Collection&lt;java.lang.String&gt;&nbsp;networkNames)</pre>
 </li>
 </ul>
+<a name="ranges-java.util.List-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>ranges</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a>&nbsp;ranges(java.util.List&lt;<a href="../../../../com/mesosphere/sdk/specification/RangeSpec.html" title="class in com.mesosphere.sdk.specification">RangeSpec</a>&gt;&nbsp;ranges)</pre>
+</li>
+</ul>
 <a name="build--">
 <!--   -->
 </a>
@@ -392,7 +418,7 @@ extends <a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpe
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/specification/ReadinessCheckSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/specification/RangeSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/specification/PortSpec.Builder.html" target="_top">Frames</a></li>
