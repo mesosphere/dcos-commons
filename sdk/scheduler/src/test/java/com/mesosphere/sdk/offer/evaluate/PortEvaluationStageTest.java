@@ -603,4 +603,183 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
         Assert.assertEquals(true, outcome.isPassing());
     }
+
+    @Test
+    public void testDynamicPortWithRangesPasses() throws Exception {
+        Protos.Resource offeredPorts = ResourceTestUtils.getPrereservedPort(23, 5050, "slave_public");
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredPorts), "slave_public");
+
+        //port 25 will match
+        RangeSpec spec = new RangeSpec(25, 600);
+
+        PortSpec.Builder builder = PortSpec.newBuilder()
+            .envKey("PORT_TEST")
+            .portName("TEST")
+            .ranges(Arrays.asList(spec))
+            .visibility(TestConstants.PORT_VISIBILITY)
+            .networkNames(Collections.emptyList());
+        builder
+            .value(getPort(0))
+            .role(TestConstants.ROLE)
+            .preReservedRole("slave_public")
+            .principal(TestConstants.PRINCIPAL);
+
+        PortSpec portSpec = builder.build();
+
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceWithPrereservedRole(portSpec);
+
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+            podInstanceRequirement,
+            TestConstants.SERVICE_NAME,
+            UUID.randomUUID(),
+            PodTestUtils.getTemplateUrlFactory(),
+            SchedulerConfigTestUtils.getTestSchedulerConfig(),
+            Collections.emptyList(),
+            TestConstants.FRAMEWORK_ID,
+            Collections.emptyMap());
+
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+            portSpec,
+            Collections.singleton(TestConstants.TASK_NAME),
+            Optional.empty(),
+            Optional.empty());
+
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertEquals(true, outcome.isPassing());
+    }
+
+    @Test
+    public void testDynamicPortWithRangesFails() throws Exception {
+        Protos.Resource offeredPorts = ResourceTestUtils.getPrereservedPort(23, 5050, "slave_public");
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredPorts), "slave_public");
+
+        //no port in offer in range
+        RangeSpec spec = new RangeSpec(6000, 8000);
+
+        PortSpec.Builder builder = PortSpec.newBuilder()
+            .envKey("PORT_TEST")
+            .portName("TEST")
+            .ranges(Arrays.asList(spec))
+            .visibility(TestConstants.PORT_VISIBILITY)
+            .networkNames(Collections.emptyList());
+        builder
+            .value(getPort(0))
+            .role(TestConstants.ROLE)
+            .preReservedRole("slave_public")
+            .principal(TestConstants.PRINCIPAL);
+
+        PortSpec portSpec = builder.build();
+
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceWithPrereservedRole(portSpec);
+
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+            podInstanceRequirement,
+            TestConstants.SERVICE_NAME,
+            UUID.randomUUID(),
+            PodTestUtils.getTemplateUrlFactory(),
+            SchedulerConfigTestUtils.getTestSchedulerConfig(),
+            Collections.emptyList(),
+            TestConstants.FRAMEWORK_ID,
+            Collections.emptyMap());
+
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+            portSpec,
+            Collections.singleton(TestConstants.TASK_NAME),
+            Optional.empty(),
+            Optional.empty());
+
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertEquals(false, outcome.isPassing());
+    }
+
+    @Test
+    public void testDynamicPortWithMultipleRangesFails() throws Exception {
+        Protos.Resource offeredPorts = ResourceTestUtils.getPrereservedPort(23, 5050, "slave_public");
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredPorts), "slave_public");
+
+        //offer contains a value in neither range
+        RangeSpec spec1 = new RangeSpec(6000, 8000);
+        RangeSpec spec2 = new RangeSpec(2, 21);
+
+        PortSpec.Builder builder = PortSpec.newBuilder()
+            .envKey("PORT_TEST")
+            .portName("TEST")
+            .ranges(Arrays.asList(spec1, spec2))
+            .visibility(TestConstants.PORT_VISIBILITY)
+            .networkNames(Collections.emptyList());
+        builder
+            .value(getPort(0))
+            .role(TestConstants.ROLE)
+            .preReservedRole("slave_public")
+            .principal(TestConstants.PRINCIPAL);
+        PortSpec portSpec = builder.build();
+
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceWithPrereservedRole(portSpec);
+
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+            podInstanceRequirement,
+            TestConstants.SERVICE_NAME,
+            UUID.randomUUID(),
+            PodTestUtils.getTemplateUrlFactory(),
+            SchedulerConfigTestUtils.getTestSchedulerConfig(),
+            Collections.emptyList(),
+            TestConstants.FRAMEWORK_ID,
+            Collections.emptyMap());
+
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+            portSpec,
+            Collections.singleton(TestConstants.TASK_NAME),
+            Optional.empty(),
+            Optional.empty());
+
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertEquals(false, outcome.isPassing());
+    }
+
+    @Test
+    public void testDynamicPortWithUnboundedRanges() throws Exception {
+        Protos.Resource offeredPorts = ResourceTestUtils.getPrereservedPort(3000, 5050, "slave_public");
+        Protos.Offer offer = OfferTestUtils.getCompleteOffer(Arrays.asList(offeredPorts), "slave_public");
+
+        //unbounded upper range from 1024 will match
+        RangeSpec spec1 = new RangeSpec(1024, null);
+
+        PortSpec.Builder builder = PortSpec.newBuilder()
+            .envKey("PORT_TEST")
+            .portName("TEST")
+            .ranges(Arrays.asList(spec1))
+            .visibility(TestConstants.PORT_VISIBILITY)
+            .networkNames(Collections.emptyList());
+        builder
+            .value(getPort(0))
+            .role(TestConstants.ROLE)
+            .preReservedRole("slave_public")
+            .principal(TestConstants.PRINCIPAL);
+        PortSpec portSpec = builder.build();
+
+        PodInstanceRequirement podInstanceRequirement = getPodInstanceWithPrereservedRole(portSpec);
+
+        PodInfoBuilder podInfoBuilder = new PodInfoBuilder(
+            podInstanceRequirement,
+            TestConstants.SERVICE_NAME,
+            UUID.randomUUID(),
+            PodTestUtils.getTemplateUrlFactory(),
+            SchedulerConfigTestUtils.getTestSchedulerConfig(),
+            Collections.emptyList(),
+            TestConstants.FRAMEWORK_ID,
+            Collections.emptyMap());
+
+        PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
+            portSpec,
+            Collections.singleton(TestConstants.TASK_NAME),
+            Optional.empty(),
+            Optional.empty());
+
+        MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
+        EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
+        Assert.assertEquals(true, outcome.isPassing());
+    }
 }

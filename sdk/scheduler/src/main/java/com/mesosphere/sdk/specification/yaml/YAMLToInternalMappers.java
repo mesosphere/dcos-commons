@@ -33,6 +33,7 @@ import com.mesosphere.sdk.specification.NetworkSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.RLimitSpec;
+import com.mesosphere.sdk.specification.RangeSpec;
 import com.mesosphere.sdk.specification.ReadinessCheckSpec;
 import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.specification.SecretSpec;
@@ -698,6 +699,18 @@ public final class YAMLToInternalMappers {
     return ports;
   }
 
+  private static List<RangeSpec> getRangeSpecs(RawPort port) {
+    List<RangeSpec> ranges = new ArrayList<RangeSpec>();
+
+    if (port.getRanges() == null || port.getRanges().isEmpty()) {
+      return ranges;
+    }
+    for (RawRange range: port.getRanges()) {
+      ranges.add(new RangeSpec(range.getBegin(), range.getEnd()));
+    }
+    return ranges;
+  }
+
   private static Collection<PortSpec> convertPorts(
       String role,
       String preReservedRole,
@@ -760,6 +773,7 @@ public final class YAMLToInternalMappers {
           .portName(name)
           .visibility(visibility)
           .networkNames(networkNames)
+          .ranges(getRangeSpecs(rawPort))
           // ResourceSpec settings:
           .value(portValueBuilder.build())
           .role(role)

@@ -11,6 +11,8 @@ import org.apache.mesos.Protos;
 import org.apache.mesos.Protos.DiscoveryInfo;
 
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * This class represents a single port, with associated environment name.
@@ -25,6 +27,8 @@ public class PortSpec extends DefaultResourceSpec {
 
   private final Collection<String> networkNames;
 
+  private final List<RangeSpec> ranges;
+
   @JsonCreator
   protected PortSpec(
       @JsonProperty("value") Protos.Value value,
@@ -34,13 +38,15 @@ public class PortSpec extends DefaultResourceSpec {
       @JsonProperty("env-key") String envKey,
       @JsonProperty("port-name") String portName,
       @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
-      @JsonProperty("network-names") Collection<String> networkNames)
+      @JsonProperty("network-names") Collection<String> networkNames,
+      @JsonProperty("ranges") List<RangeSpec> ranges)
   {
     super(Constants.PORTS_RESOURCE_TYPE, value, role, preReservedRole, principal);
     this.envKey = envKey;
     this.portName = portName;
     this.visibility = visibility;
     this.networkNames = networkNames;
+    this.ranges = ranges;
   }
 
   public PortSpec(Builder builder) {
@@ -52,7 +58,8 @@ public class PortSpec extends DefaultResourceSpec {
         builder.envKey,
         builder.portName,
         builder.visibility,
-        builder.networkNames);
+        builder.networkNames,
+        builder.ranges);
 
     validatePort();
   }
@@ -74,7 +81,8 @@ public class PortSpec extends DefaultResourceSpec {
         portSpec.getEnvKey(),
         portSpec.getPortName(),
         portSpec.getVisibility(),
-        portSpec.getNetworkNames());
+        portSpec.getNetworkNames(),
+        portSpec.getRanges());
   }
 
   protected void validatePort() {
@@ -103,6 +111,11 @@ public class PortSpec extends DefaultResourceSpec {
     return envKey;
   }
 
+  @JsonProperty("ranges")
+  public List<RangeSpec> getRanges() {
+    return ranges;
+  }
+
   @JsonIgnore
   public long getPort() {
     return getValue().getRanges().getRange(0).getBegin();
@@ -110,12 +123,14 @@ public class PortSpec extends DefaultResourceSpec {
 
   @Override
   public String toString() {
-    return String.format("%s, port-name: %s, network-names: %s, env-key: %s, visibility: %s",
+    return String.format("%s, port-name: %s, network-names: %s, env-key: %s, visibility: %s, " +
+            "ranges %s",
         super.toString(),
         getPortName(),
         getNetworkNames(),
         getEnvKey(),
-        getVisibility());
+        getVisibility(),
+        getRanges());
   }
 
   @Override
@@ -141,6 +156,8 @@ public class PortSpec extends DefaultResourceSpec {
 
     protected Collection<String> networkNames;
 
+    protected List<RangeSpec> ranges = Collections.emptyList();
+
     protected Builder() {
     }
 
@@ -161,6 +178,11 @@ public class PortSpec extends DefaultResourceSpec {
 
     public Builder networkNames(Collection<String> networkNames) {
       this.networkNames = networkNames;
+      return this;
+    }
+
+    public Builder ranges(List<RangeSpec> ranges) {
+      this.ranges = ranges;
       return this;
     }
 

@@ -10,6 +10,7 @@ import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.RangeSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 
@@ -17,9 +18,11 @@ import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -82,7 +85,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         // Choose a new port value.
         String preReservedRole = podInfoBuilder.getPodInstance().getPod().getPreReservedRole();
         Optional<Integer> dynamicPort = useHostPorts ?
-            selectDynamicPort(mesosResourcePool, podInfoBuilder, preReservedRole) :
+            selectDynamicPort(mesosResourcePool, podInfoBuilder, preReservedRole, portSpec) :
             selectOverlayPort(podInfoBuilder);
         if (!dynamicPort.isPresent()) {
           return EvaluationOutcome.fail(
@@ -232,7 +235,10 @@ public class PortEvaluationStage implements OfferEvaluationStage {
   }
 
   private static Optional<Integer> selectDynamicPort(
-      MesosResourcePool mesosResourcePool, PodInfoBuilder podInfoBuilder, String preReservedRole)
+      MesosResourcePool mesosResourcePool,
+      PodInfoBuilder podInfoBuilder,
+      String preReservedRole,
+      PortSpec spec)
   {
     Set<Integer> consumedPorts = new HashSet<>();
 
@@ -262,10 +268,25 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             .get(Constants.PORTS_RESOURCE_TYPE);
     Optional<Integer> dynamicPort = Optional.empty();
     if (availablePorts != null) {
-      dynamicPort = availablePorts.getRanges().getRangeList().stream()
-          .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
-          .filter(p -> !consumedPorts.contains(p))
-          .findFirst();
+      if (spec.getRanges().isEmpty()) {
+        dynamicPort = availablePorts.getRanges().getRangeList().stream()
+            .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
+            .filter(p -> !consumedPorts.contains(p))
+            .findFirst();
+      } else {
+        List<Integer> constrainedPorts = new ArrayList<>();
+        for (RangeSpec range : spec.getRanges()) {
+          constrainedPorts.addAll(
+              IntStream.range(range.getBegin(), range.getEnd())
+                  .boxed()
+                  .collect(Collectors.toList()));
+        }
+        dynamicPort = availablePorts.getRanges().getRangeList().stream()
+            .flatMap(r -> IntStream.rangeClosed((int) r.getBegin(), (int) r.getEnd()).boxed())
+            .filter(p -> !consumedPorts.contains(p))
+            .filter(constrainedPorts::contains)
+            .findFirst();
+      }
     }
 
     return dynamicPort;
