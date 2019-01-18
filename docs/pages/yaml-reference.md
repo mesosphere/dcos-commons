@@ -362,6 +362,29 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
         This may be used to define an environment variable used to advertise this port within the task. This is most useful when a random dynamic port is being used, as it allows the task to know what port was allocated for it.
 
+      * `ranges`
+
+        When requesting a dynamic port, a list of ranges may be passed to to constrain the value of the dynamic port. The range is inclusive of `begin` and `end` when they are set. If `begin` or `end` is not set the range constraint is implicit and unbounded on that side. Ranges may be defined as follows:
+
+        ```
+          ports:
+          name1:
+            port: 0
+            env-key: key1
+            ranges:
+              - begin: 1
+                end: 21
+              - begin: 2000
+                end: 5050
+          name2:
+            port: 0
+            ranges:
+              - begin:
+                end: 21
+              - begin: 5000
+                end:
+        ```
+
       * `advertise`
 
         This may be manually set to `true` to enable advertising this port in the service's `endpoints` listing. Default is `false`.
