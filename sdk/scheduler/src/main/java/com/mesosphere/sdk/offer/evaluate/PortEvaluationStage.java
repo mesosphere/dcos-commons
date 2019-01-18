@@ -277,7 +277,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
         List<Integer> constrainedPorts = new ArrayList<>();
         for (RangeSpec range : spec.getRanges()) {
           constrainedPorts.addAll(
-              IntStream.range(range.getBegin(), range.getEnd())
+              IntStream.rangeClosed(range.getBegin(), range.getEnd())
                   .boxed()
                   .collect(Collectors.toList()));
         }
