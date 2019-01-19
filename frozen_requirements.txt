@@ -48,7 +48,7 @@ cryptography==2.4.2
 dcos-shakedown==1.5.0
 docopt==0.6.2
 docutils==0.14
-entrypoints==0.2.3
+entrypoints==0.3
 filelock==3.0.10
 flake8==3.6.0
 future==0.17.1
