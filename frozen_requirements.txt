@@ -84,7 +84,7 @@ pluggy==0.8.0
 pre-commit==1.12.0
 prettytable==0.7.2
 py==1.7.0
-pyasn1==0.4.4
+pyasn1==0.4.5
 pyasn1-modules==0.2.2
 pycodestyle==2.4.0
 pycparser==2.19
