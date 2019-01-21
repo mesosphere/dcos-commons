@@ -17,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 class ServiceBundle(Bundle):
-    DOWNLOAD_FILES_WITH_PATTERNS = ["^stdout(\.\d+)?$", "^stderr(\.\d+)?$"]
+    DOWNLOAD_FILES_WITH_PATTERNS = ["^stdout(\\.\\d+)?$", "^stderr(\\.\\d+)?$"]
 
     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
         self.package_name = package_name
