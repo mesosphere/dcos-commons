@@ -163,6 +163,54 @@ class ServiceBundle(Bundle):
         else:
             self.write_file("service_v1_debug_offers.html", stdout)
 
+    @config.retry
+    def create_v2_offers_file(self):
+        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
+        scheduler = self.scheduler_tasks[0]
+
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
+            scheduler["id"], "curl -s {}/v2/debug/offers".format(scheduler_vip), print_output=False
+        )
+
+        if rc != 0 or stderr:
+            log.error(
+                "Could not get scheduler v2 offers\nstdout: '%s'\nstderr: '%s'", stdout[:100], stderr
+            )
+        else:
+            self.write_file("service_v2_debug_offers.json", stdout)
+
+    @config.retry
+    def create_plans_file(self):
+        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
+        scheduler = self.scheduler_tasks[0]
+
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
+            scheduler["id"], "curl -s {}/v1/debug/plans".format(scheduler_vip), print_output=False
+        )
+
+        if rc != 0 or stderr:
+            log.error(
+                "Could not get scheduler plans\nstdout: '%s'\nstderr: '%s'", stdout[:100], stderr
+            )
+        else:
+            self.write_file("service_v1_debug_plans.json", stdout)
+
+    @config.retry
+    def create_taskstatuses_file(self):
+        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
+        scheduler = self.scheduler_tasks[0]
+
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
+            scheduler["id"], "curl -s {}/v1/debug/taskStatuses".format(scheduler_vip), print_output=False
+        )
+
+        if rc != 0 or stderr:
+            log.error(
+                "Could not get scheduler task-statuses\nstdout: '%s'\nstderr: '%s'", stdout[:100], stderr
+            )
+        else:
+            self.write_file("service_v1_debug_taskstatuses.json", stdout)
+
     @functools.lru_cache()
     @config.retry
     def configuration_ids(self) -> List[str]:
@@ -227,6 +275,9 @@ class ServiceBundle(Bundle):
         self.create_pod_status_file()
         self.create_plans_status_files()
         self.create_offers_file()
+        self.create_v2_offers_file()
+        self.create_plans_file()
+        self.create_taskstatuses_file()
         self.create_configuration_ids_file()
         self.create_configuration_files()
         self.download_log_files()
