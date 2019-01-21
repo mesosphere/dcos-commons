@@ -121,7 +121,7 @@ def test_update_px_image():
             }
         }
 
-    update_service(update_options)
+    update_service(update_options, False)
     px_status = px_utils.check_px_status() 
     assert px_status == 2, "PORTWORX: Update Px image failed px service status: {}".format(px_status)
 

@@ -8,6 +8,7 @@ import shakedown
 import logging
 from tests import config
 from tests import px_utils
+from tests import dcos_utils
 from time import sleep
 
 log = logging.getLogger(__name__)
@@ -77,24 +78,10 @@ def test_replace_and_move_pod():
     if pod_agent_id_old == pod_agent_id_new:
         log.info("PORTWORX: Failed to replace and move pod. Old pod agent id: {} , New pod agent id: {}".format(pod_agent_id_old, pod_agent_id_new))
         raise
-    
+
     # Verify px status on new node 
     px_status = px_utils.check_px_status() 
     assert px_status == 2, "PORTWORX: Failed replace and move pod, status returned: {}".format(px_status)
-
-# Verify suspend and resume portworx service
-@pytest.mark.sanity
-def test_suspend_resume_px_service():
-    pod_count, pod_list = px_utils.get_px_pod_list()
-    if pod_count <= 0:
-        log.info("PORTWORX: Pod count is: {}".format(pod_count))
-        raise
-
-    pod_name = pod_list[1]
-    px_utils.px_service_suspend_resume(pod_name)
-
-    px_status = px_utils.check_px_status() 
-    assert px_status == 2, "PORTWORX: Failed service stop-start, status returned: {}".format(px_status)
 
 # Test the restart functionality of one pod
 @pytest.mark.sanity
@@ -149,12 +136,18 @@ def test_start_plan():
 # Perform Volume create operation
 @pytest.mark.sanity
 def test_vol_create():
+    # Verify px status before calling create px volume
+    px_status = px_utils.check_px_status()
+    assert px_status == 2, "PORTWORX: Avoiding volume create, status returned: {}".format(px_status)
+
     pod_count, pod_list = px_utils.get_px_pod_list()
     if pod_count <= 0:
         log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
         raise
     pod_name = pod_list[1]
+
     px_utils.px_create_volume(pod_name, "px_dcos_vol_1", 5)
+    sleep(30) # Wait before immediatly calling vol size, it is observed that dcos needs few seconds to refresh
     vol_size = px_utils.px_get_vol_size_in_gb("px_dcos_vol_1")
     if 5 != vol_size:
         log.info("PORTWORX: Size of created volume if incorrect, provided: 5, obtained: {}".format(vol_size))
@@ -171,7 +164,9 @@ def test_vol_update_size():
     pod_name = pod_list[1]
 
     px_utils.px_create_volume(pod_name, "px_dcos_vol_2", 5)
+    sleep(30) # Wait before immediatly calling vol update, it is observed that dcos needs few seconds to refresh
     px_utils.px_update_volume_size(pod_name, "px_dcos_vol_2", 7)
+    sleep(30) # Wait before immediatly calling vol size, it is observed that dcos needs few seconds to refresh
 
     vol_size = px_utils.px_get_vol_size_in_gb("px_dcos_vol_2")
     if 7 != vol_size:
@@ -189,6 +184,72 @@ def test_vol_delete():
     
     px_utils.px_delete_volume(pod_name, "px_dcos_vol_1")
     px_utils.px_delete_volume(pod_name, "px_dcos_vol_2")
+
+# Verify suspend and resume portworx service
+@pytest.mark.sanity
+def test_suspend_resume_px_service():
+    pod_count, pod_list = px_utils.get_px_pod_list()
+    if pod_count <= 0:
+        log.info("PORTWORX: Pod count is: {}".format(pod_count))
+        raise
+
+    pod_name = pod_list[1]
+    px_utils.px_service_suspend_resume(pod_name)
+
+    px_status = px_utils.check_px_status()
+    assert px_status == 2, "PORTWORX: Failed service stop-start, status returned: {}".format(px_status)
+
+# Test dcos sectres prepare operations
+@pytest.mark.sanity
+def test_dcos_secrets_prepare():
+    dcos_utils.install_enterprises_cli()
+    if dcos_utils.check_secret_present(config.PX_SEC_OPTIONS["base_path"], config.PX_SEC_OPTIONS["secret_key"]):
+        return
+
+    dcos_utils.create_dcos_security_group(config.PX_SEC_OPTIONS["group_name"])
+    dcos_utils.create_dcos_user(config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["user_password"])
+    dcos_utils.add_user_to_group(config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["group_name"])
+    dcos_utils.grant_permissions_to_user(config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["base_path"])
+    dcos_utils.create_dcos_secrets(config.PX_SEC_OPTIONS["secret_value"], config.PX_SEC_OPTIONS["base_path"], config.PX_SEC_OPTIONS["secret_key"])
+
+# Verify created secret is present
+@pytest.mark.sanity
+def test_dcos_secrets_present():
+    assert dcos_utils.check_secret_present(config.PX_SEC_OPTIONS["base_path"], config.PX_SEC_OPTIONS["secret_key"]), "Secrets is not present in the list"
+
+# Test dcos px sectres login
+@pytest.mark.sanity
+def test_px_secrets_login():
+    pod_count, pod_list = px_utils.get_px_pod_list()
+    if pod_count <= 0:
+        log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
+        raise
+    pod_name = pod_list[1]
+    px_utils.px_dcos_login(pod_name, config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["user_password"], config.PX_SEC_OPTIONS["base_path"])
+
+# Test systemctl restart portworx service
+@pytest.mark.sanity
+def test_px_restart_service():
+    pod_count, pod_list = px_utils.get_px_pod_list()
+    if pod_count <= 0:
+        log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
+        raise
+    pod_name = pod_list[1]
+    px_utils.px_restart_portworx_service(pod_name)
+
+# Test create encrypted px volume
+@pytest.mark.sanity
+def test_create_encrypted_px_volume():
+    pod_count, pod_list = px_utils.get_px_pod_list()
+    if pod_count <= 0:
+        log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
+        raise
+    pod_name = pod_list[1]
+    px_utils.px_dcos_login(pod_name, config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["user_password"], config.PX_SEC_OPTIONS["base_path"])
+    vol_name = "px_encrypt_vol_1"
+    px_utils.px_create_encrepted_volume(pod_name, vol_name, config.PX_SEC_OPTIONS["secret_key"])
+    vol_encrypted = px_utils.px_is_vol_encrypted(vol_name)
+    assert vol_encrypted == "true",  "PORTWORX: Failed to create encrypted volume."
 
 # Upgrade portworx framework from released version
 @pytest.mark.sanity
