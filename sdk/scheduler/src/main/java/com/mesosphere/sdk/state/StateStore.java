@@ -7,6 +7,7 @@ import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
+import com.google.common.collect.Lists;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
@@ -18,9 +19,11 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 /**
  * A {@code StateStore} stores the state of a service, including tasks' TaskInfo and TaskStatus
@@ -56,6 +59,8 @@ import java.util.TreeMap;
 public class StateStore {
 
   private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024;
+
+  private static final int MAX_TRANSACTION_SIZE = 100;
 
   private static final String TASK_INFO_PATH_NAME = "TaskInfo";
 
@@ -201,19 +206,29 @@ public class StateStore {
    * must behave as an atomic transaction: On success, everything is written, while on failure
    * nothing is written.
    *
+   * If the number of taskInfo objects to write is greater than MAX_TRANSACTION_SIZE,
+   * taskInfos will be written atomically in groups of MAX_TRANSACTION_SIZE.
+   *
    * @param tasks Tasks to be stored, which each meet the above requirements
    * @throws StateStoreException when persisting TaskInfo information fails, or if its TaskId is
    *                             malformed
    */
   public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
     Map<String, byte[]> taskBytesMap = new HashMap<>();
-    for (Protos.TaskInfo taskInfo : tasks) {
-      taskBytesMap.put(getTaskInfoPath(namespace, taskInfo.getName()), taskInfo.toByteArray());
-    }
-    try {
-      persister.setMany(taskBytesMap);
-    } catch (PersisterException e) {
-      throw new StateStoreException(e, String.format("Failed to store %d TaskInfos", tasks.size()));
+    List<Protos.TaskInfo> taskInfos = tasks.stream().collect(Collectors.toList());
+    //Only taskInfos are bulk written and require batching, this should only occur at startup when a
+    //new configuration is issued, before the scheduler is initialized and doing work,
+    // so the loss of atomicity from batching should not be noticeable.
+    for (List<Protos.TaskInfo> batchedTaskInfos: Lists.partition(taskInfos, MAX_TRANSACTION_SIZE)) {
+      for (Protos.TaskInfo taskInfo : batchedTaskInfos) {
+        taskBytesMap.put(getTaskInfoPath(namespace, taskInfo.getName()), taskInfo.toByteArray());
+      }
+      try {
+        persister.setMany(taskBytesMap);
+      } catch (PersisterException e) {
+        throw new StateStoreException(e, String.format("Failed to store %d TaskInfos",
+            batchedTaskInfos.size()));
+      }
     }
   }
 
