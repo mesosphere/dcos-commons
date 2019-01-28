@@ -149,110 +149,78 @@ class ServiceBundle(Bundle):
 
     @config.retry
     def create_offers_file(self):
-        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
-        scheduler = self.scheduler_tasks[0]
-
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
-            scheduler["id"], "curl -s {}/v1/debug/offers".format(scheduler_vip), print_output=False
-        )
-
-        if rc != 0 or stderr:
+        response = sdk_cmd.service_request("GET", self.service_name, "/v1/debug/offers",
+                                           raise_on_error=False)
+        if not response.ok:
             log.error(
-                "Could not get scheduler offers\nstdout: '%s'\nstderr: '%s'", stdout[:100], stderr
+                "Could not get scheduler offers\nstatus_code: '%s'\nstderr: '%s'",
+                response.status_code, response.text
             )
         else:
-            self.write_file("service_v1_debug_offers.html", stdout)
+            self.write_file("service_v1_debug_offers.html", response.text)
 
     @config.retry
     def create_v2_offers_file(self):
-        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
-        scheduler = self.scheduler_tasks[0]
-
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
-            scheduler["id"], "curl -s {}/v2/debug/offers".format(scheduler_vip), print_output=False
-        )
-
-        if rc != 0 or stderr:
+        response = sdk_cmd.service_request("GET", self.service_name, "/v2/debug/offers",
+                                           raise_on_error=False)
+        if not response.ok:
             log.error(
-                "Could not get scheduler v2 offers\nstdout: '%s'\nstderr: '%s'", stdout[:100], stderr
+                "Could not get v2 scheduler offers\nstatus_code: '%s'\nstderr: '%s'",
+                response.status_code, response.text
             )
         else:
-            self.write_file("service_v2_debug_offers.json", stdout)
+            self.write_file("service_v2_debug_offers.json", response.text)
 
     @config.retry
     def create_plans_file(self):
-        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
-        scheduler = self.scheduler_tasks[0]
-
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
-            scheduler["id"], "curl -s {}/v1/debug/plans".format(scheduler_vip), print_output=False
-        )
-
-        if rc != 0 or stderr:
+        response = sdk_cmd.service_request("GET", self.service_name, "/v1/debug/plans",
+                                           raise_on_error=False)
+        if not response.ok:
             log.error(
-                "Could not get scheduler plans\nstdout: '%s'\nstderr: '%s'", stdout[:100], stderr
+                "Could not get scheduler plans\nstatus_code: '%s'\nstderr: '%s'",
+                response.status_code, response.text
             )
         else:
-            self.write_file("service_v1_debug_plans.json", stdout)
+            self.write_file("service_v1_debug_plans.json", response.text)
 
     @config.retry
     def create_taskstatuses_file(self):
-        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
-        scheduler = self.scheduler_tasks[0]
-
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
-            scheduler["id"], "curl -s {}/v1/debug/taskStatuses".format(scheduler_vip), print_output=False
-        )
-
-        if rc != 0 or stderr:
+        response = sdk_cmd.service_request("GET", self.service_name, "/v1/debug/taskStatuses",
+                                           raise_on_error=False)
+        if not response.ok:
             log.error(
-                "Could not get scheduler task-statuses\nstdout: '%s'\nstderr: '%s'", stdout[:100], stderr
+                "Could not get scheduler task-statuses\nstatus_code: '%s'\nstderr: '%s'",
+                response.status_code, response.text
             )
         else:
-            self.write_file("service_v1_debug_taskstatuses.json", stdout)
+            self.write_file("service_v1_debug_taskstatuses.json", response.text)
 
     @functools.lru_cache()
     @config.retry
     def configuration_ids(self) -> List[str]:
-        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
-        scheduler = self.scheduler_tasks[0]
-
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
-            scheduler["id"],
-            "curl -s {}/v1/configurations".format(scheduler_vip),
-            print_output=False,
-        )
-
-        if rc != 0 or stderr:
-            raise Exception(
-                "Could not get scheduler configuration IDs\nstdout: '%s'\nstderr: '%s'",
-                stdout,
-                stderr,
+        response = sdk_cmd.service_request("GET", self.service_name, "/v1/configurations",
+                                           raise_on_error=False)
+        if not response.ok:
+            log.error(
+                "Could not get scheduler configurations\nstatus_code: '%s'\nstderr: '%s'",
+                response.status_code, response.text
             )
         else:
-            return json.loads(stdout)
+            return json.loads(response.text)
 
     @functools.lru_cache()
     @config.retry
     def configuration(self, configuration_id) -> dict:
-        scheduler_vip = sdk_hosts.scheduler_vip_host(self.service_name, "api")
-        scheduler = self.scheduler_tasks[0]
-
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
-            scheduler["id"],
-            "curl -s {}/v1/configurations/{}".format(scheduler_vip, configuration_id),
-            print_output=False,
-        )
-
-        if rc != 0 or stderr:
-            raise Exception(
-                "Could not get scheduler configuration with ID '{}'\nstdout: '%s'\nstderr: '%s'",
-                configuration_id,
-                stdout,
-                stderr,
+        response = sdk_cmd.service_request("GET", self.service_name,
+                                           "/v1/configurations/{}".format(configuration_id),
+                                           raise_on_error=False)
+        if not response.ok:
+            log.error("Could not get scheduler configuration with ID '{}'"
+                      "\nstatus_code: '%s'\nstderr: '%s'",
+                      configuration_id, response.status_code,response.text
             )
         else:
-            return json.loads(stdout)
+            return json.loads(response.text)
 
     @config.retry
     def create_configuration_ids_file(self):
