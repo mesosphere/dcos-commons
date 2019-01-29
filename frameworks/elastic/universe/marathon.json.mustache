@@ -15,6 +15,15 @@
     "DCOS_SERVICE_SCHEME": "http"
   },
   {{#service.service_account_secret}}
+  "container": {
+    "type": "MESOS",
+    "volumes": [
+      {
+        "containerPath": "secrets/service-account.json",
+        "secret": "serviceCredential"
+      }
+    ]
+  },
   "secrets": {
     "serviceCredential": {
       "source": "{{service.service_account_secret}}"
@@ -27,10 +36,10 @@
     "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
     "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "ELASTIC_VERSION": "{{elastic-version}}",
+    "ELASTIC_STATSD_VERSION": "{{elastic-statsd-version}}",
     "STATSD_URI": "{{resource.assets.uris.statsd-plugin-zip}}",
     "ELASTICSEARCH_URI" : "{{resource.assets.uris.elasticsearch-tar-gz}}",
     "ELASTICSEARCH_JAVA_URI" : "{{resource.assets.uris.elasticsearch-jre-tar-gz}}",
-    "XPACK_URI" : "{{resource.assets.uris.xpack-zip}}",
     "DIAGNOSTICS_URI" : "{{resource.assets.uris.diagnostics-zip}}",
     "EXECUTOR_URI": "{{resource.assets.uris.executor-zip}}",
     "SCHEDULER_URI": "{{resource.assets.uris.scheduler-zip}}",
@@ -44,8 +53,9 @@
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
 
     {{#service.service_account_secret}}
-    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": { "secret": "serviceCredential" },
-    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\"},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
+
+    "DCOS_SERVICE_ACCOUNT_CREDENTIAL": "secrets/service-account.json",
+    "MESOS_MODULES": "{\"libraries\":[{\"file\":\"libmesos-bundle\/lib\/mesos\/libdcos_security.so\",\"modules\":[{\"name\": \"com_mesosphere_dcos_ClassicRPCAuthenticatee\",\"parameters\":[{\"key\":\"service_account_credential\",\"value\":\"file://secrets/service-account.json\"}]},{\"name\":\"com_mesosphere_dcos_http_Authenticatee\",\"parameters\":[{\"key\":\"service_account_credential\",\"value\":\"file://secrets/service-account.json\"},{\"key\":\"jwt_exp_timeout\",\"value\":\"5mins\"},{\"key\":\"preemptive_refresh_duration\",\"value\":\"30mins\"}]}]}]}",
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
@@ -98,9 +108,12 @@
     "COORDINATOR_NODE_DISK": "{{coordinator_nodes.disk}}",
     "COORDINATOR_NODE_DOCKER_VOLUME_NAME": "{{{coordinator_nodes.portworx_volume_name}}}",
     "COORDINATOR_NODE_DOCKER_DRIVER_OPTIONS": "{{{coordinator_nodes.portworx_volume_options}}}",
-    "TASKCFG_ALL_XPACK_ENABLED": "{{elasticsearch.xpack_enabled}}",
+    {{#service.region}}
+    "SERVICE_REGION": "{{service.region}}",
+    {{/service.region}}
     "ELASTICSEARCH_HEALTH_USER": "{{elasticsearch.health_user}}",
     "ELASTICSEARCH_HEALTH_USER_PASSWORD": "{{elasticsearch.health_user_password}}",
+    "TASKCFG_ALL_XPACK_SECURITY_ENABLED": "{{elasticsearch.xpack_security_enabled}}",
     "TASKCFG_ALL_ELASTICSEARCH_PLUGINS": "{{elasticsearch.plugins}}",
     "TASKCFG_ALL_GATEWAY_RECOVER_AFTER_TIME": "{{elasticsearch.gateway_recover_after_time}}",
     {{#elasticsearch.script_allowed_contexts}}
@@ -141,7 +154,6 @@
     "TASKCFG_ALL_HTTP_DETAILED_ERRORS_ENABLED": "{{elasticsearch.http_detailed_errors_enabled}}",
     "TASKCFG_ALL_HTTP_PIPELINING": "{{elasticsearch.http_pipelining}}",
     "TASKCFG_ALL_HTTP_PIPELINING_MAX_EVENTS": "{{elasticsearch.http_pipelining_max_events}}",
-    "TASKCFG_ALL_HTTP_CONTENT_TYPE_REQUIRED": "{{elasticsearch.http_content_type_required}}",
     {{#elasticsearch.thread_pool_index_size}}
     "TASKCFG_ALL_THREAD_POOL_INDEX_SIZE": "{{elasticsearch.thread_pool_index_size}}",
     {{/elasticsearch.thread_pool_index_size}}
@@ -324,13 +336,40 @@
     {{#elasticsearch.indices_requests_cache_size}}
     "TASKCFG_ALL_INDICES_REQUESTS_CACHE_SIZE": "{{elasticsearch.indices_requests_cache_size}}",
     {{/elasticsearch.indices_requests_cache_size}}
-    "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}"
+    "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}",
+    "MASTER_NODE_READINESS_CHECK_INTERVAL": "{{master_nodes.readiness_check.interval}}",
+    "MASTER_NODE_READINESS_CHECK_DELAY": "{{master_nodes.readiness_check.delay}}",
+    "MASTER_NODE_READINESS_CHECK_TIMEOUT": "{{master_nodes.readiness_check.timeout}}",
+
+    "MASTER_NODE_RLIMIT_NOFILE_SOFT": "{{master_nodes.rlimits.rlimit_nofile.soft}}",
+    "MASTER_NODE_RLIMIT_NOFILE_HARD": "{{master_nodes.rlimits.rlimit_nofile.hard}}",
+
+    "DATA_NODE_READINESS_CHECK_INTERVAL": "{{data_nodes.readiness_check.interval}}",
+    "DATA_NODE_READINESS_CHECK_DELAY": "{{data_nodes.readiness_check.delay}}",
+    "DATA_NODE_READINESS_CHECK_TIMEOUT": "{{data_nodes.readiness_check.timeout}}",
+
+    "DATA_NODE_RLIMIT_NOFILE_SOFT": "{{data_nodes.rlimits.rlimit_nofile.soft}}",
+    "DATA_NODE_RLIMIT_NOFILE_HARD": "{{data_nodes.rlimits.rlimit_nofile.hard}}",
+
+    "INGEST_NODE_READINESS_CHECK_INTERVAL": "{{ingest_nodes.readiness_check.interval}}",
+    "INGEST_NODE_READINESS_CHECK_DELAY": "{{ingest_nodes.readiness_check.delay}}",
+    "INGEST_NODE_READINESS_CHECK_TIMEOUT": "{{ingest_nodes.readiness_check.timeout}}",
+
+    "INGEST_NODE_RLIMIT_NOFILE_SOFT": "{{ingest_nodes.rlimits.rlimit_nofile.soft}}",
+    "INGEST_NODE_RLIMIT_NOFILE_HARD": "{{ingest_nodes.rlimits.rlimit_nofile.hard}}",
+
+    "COORDINATOR_NODE_READINESS_CHECK_INTERVAL": "{{coordinator_nodes.readiness_check.interval}}",
+    "COORDINATOR_NODE_READINESS_CHECK_DELAY": "{{coordinator_nodes.readiness_check.delay}}",
+    "COORDINATOR_NODE_READINESS_CHECK_TIMEOUT": "{{coordinator_nodes.readiness_check.timeout}}",
+
+    "COORDINATOR_NODE_RLIMIT_NOFILE_SOFT": "{{coordinator_nodes.rlimits.rlimit_nofile.soft}}",
+    "COORDINATOR_NODE_RLIMIT_NOFILE_HARD": "{{coordinator_nodes.rlimits.rlimit_nofile.hard}}"
   },
-  "uris": [
-    "{{resource.assets.uris.bootstrap-zip}}",
-    "{{resource.assets.uris.jre-tar-gz}}",
-    "{{resource.assets.uris.scheduler-zip}}",
-    "{{resource.assets.uris.libmesos-bundle-tar-gz}}"
+  "fetch": [
+    { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },
+    { "uri": "{{resource.assets.uris.jre-tar-gz}}", "cache": true },
+    { "uri": "{{resource.assets.uris.scheduler-zip}}", "cache": true },
+    { "uri": "{{resource.assets.uris.libmesos-bundle-tar-gz}}", "cache": true }
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,

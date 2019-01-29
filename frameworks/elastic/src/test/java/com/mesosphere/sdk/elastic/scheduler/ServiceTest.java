@@ -2,7 +2,11 @@ package com.mesosphere.sdk.elastic.scheduler;
 
 import com.mesosphere.sdk.config.validate.ConfigValidator;
 import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.testing.*;
+import com.mesosphere.sdk.testing.ConfigValidatorUtils;
+import com.mesosphere.sdk.testing.ServiceTestResult;
+import com.mesosphere.sdk.testing.ServiceTestRunner;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ServiceTest {
@@ -11,10 +15,6 @@ public class ServiceTest {
     private static final String GROUP_BY_ZONE_RULE = "[[\"@zone\", \"GROUP_BY\", \"3\"]]";
     private static final ConfigValidator<ServiceSpec> validator = new ElasticZoneValidator();
 
-    @Test
-    public void testSpec() throws Exception {
-        getDefaultRunner().run();
-    }
 
     @Test
     public void rejectRackEnablement() throws Exception {
@@ -38,6 +38,14 @@ public class ServiceTest {
         ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "DATA_NODE_PLACEMENT");
         ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "INGEST_NODE_PLACEMENT");
         ConfigValidatorUtils.allowRackChanges(validator, getDefaultRunner(), "COORDINATOR_NODE_PLACEMENT");
+    }
+
+    @Test
+    public void testRegionAwareness() throws Exception {
+        ServiceTestResult result = getDefaultRunner()
+            .setOptions("service.region", "Europe")
+            .run();
+        Assert.assertEquals(result.getSchedulerEnvironment().get("SERVICE_REGION"), "Europe");
     }
 
     private ServiceTestRunner getDefaultRunner() {
@@ -68,6 +76,7 @@ public class ServiceTest {
                         "ZONE", "us-east-1a")
                 .setBuildTemplateParams(
                         "elastic-version", "1.2.3",
+                        "elastic-statsd-version", "1.2.3.0", // NOPMD
                         "support-diagnostics-version", "4.5.6");
     }
 }

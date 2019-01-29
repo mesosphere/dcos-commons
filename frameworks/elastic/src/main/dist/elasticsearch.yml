@@ -11,25 +11,25 @@ network.publish_host:
   - _local_
 cluster.name: {{CLUSTER_NAME}}
 node.name: {{TASK_NAME}}
-path.data: "${MESOS_SANDBOX}/container-path/data"
-path.logs: "${MESOS_SANDBOX}/container-path/logs"
+path.data: "{MESOS_SANDBOX}/container-path/data"
+path.logs: "{MESOS_SANDBOX}/container-path/logs"
 http.port: {{PORT_HTTP}}
 transport.tcp.port: {{PORT_TRANSPORT}}
 bootstrap.memory_lock: false
 metrics.statsd.host: {{STATSD_UDP_HOST}}
 metrics.statsd.port: {{STATSD_UDP_PORT}}
 
-{{#PLACEMENT_REFERENCED_ZONE}}
 {{#ZONE}}
 node.attr.zone: {{ZONE}}
+{{#PLACEMENT_REFERENCED_ZONE}}
 cluster.routing.allocation.awareness.attributes: zone
-{{/ZONE}}
 {{/PLACEMENT_REFERENCED_ZONE}}
+{{/ZONE}}
 
 {{#MASTER_ENABLED}}
 gateway.expected_master_nodes: 3
 gateway.expected_data_nodes: {{DATA_NODE_COUNT}}
-gateway.recover_after_master_nodes: 3
+gateway.recover_after_master_nodes: 2
 gateway.recover_after_data_nodes: {{DATA_NODE_COUNT}}
 gateway.recover_after_time: {{GATEWAY_RECOVER_AFTER_TIME}}
 node.master: true
@@ -52,6 +52,10 @@ xpack.security.transport.ssl.enabled: true
 # Client encryption
 xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
+{{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+{{^SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+# X-Pack security is enabled without TLS.
+xpack.security.enabled: {{XPACK_SECURITY_ENABLED}}
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 
 {{#SCRIPT_ALLOWED_CONTEXTS}}
@@ -92,7 +96,6 @@ http.cors.allow-credentials: {{HTTP_CORS_ALLOW_CREDENTIALS}}
 http.detailed_errors.enabled: {{HTTP_DETAILED_ERRORS_ENABLED}}
 http.pipelining: {{HTTP_PIPELINING}}
 http.pipelining.max_events: {{HTTP_PIPELINING_MAX_EVENTS}}
-http.content_type.required: {{HTTP_CONTENT_TYPE_REQUIRED}}
 {{#THREAD_POOL_SEARCH_SIZE}}
 thread_pool.search.size: {{THREAD_POOL_SEARCH_SIZE}}
 {{/THREAD_POOL_SEARCH_SIZE}}
