@@ -23,6 +23,7 @@ public class Main {
     private static final long DEFAULT_START_PORT = 9001;
     private static final long PORT_COUNT = 19;
     private static final long DEFAULT_RANGE_EXTRA_PORTS = 3;
+    private static final Integer MIN_REPLACE_DELAY_MIN = 0;
 
 
     public static void main(String[] args) throws Exception {
@@ -39,6 +40,9 @@ public class Main {
         RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(
                 rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile()).build();
+        serviceSpec = DefaultServiceSpec.newBuilder(serviceSpec)
+            .replacementFailurePolicy(getReplacementFailurePolicy())
+            .build();
 
         SchedulerBuilder schedulerBuilder =
                 DefaultScheduler.newBuilder(setPortResources(serviceSpec), schedulerConfig)
@@ -52,6 +56,16 @@ public class Main {
 
         schedulerBuilder.setCustomResources(getResources(schedulerBuilder.getServiceSpec()));
         return schedulerBuilder;
+    }
+
+    private static ReplacementFailurePolicy getReplacementFailurePolicy() throws Exception {
+        // Setting MinReplaceDelay to 0 min, to enable launching multiple failed tasks (node lost)
+        // to start immediately instead of waiting for sometime to start another task.
+        return ReplacementFailurePolicy.newBuilder()
+            .permanentFailureTimoutMs(
+                Integer.valueOf(System.getenv("TASK_FAILURE_TIMEOUT_MINUTES")))
+            .minReplaceDelayMs(MIN_REPLACE_DELAY_MIN)
+            .build();
     }
 
     private static ServiceSpec setPortResources(DefaultServiceSpec serviceSpec) throws Exception {

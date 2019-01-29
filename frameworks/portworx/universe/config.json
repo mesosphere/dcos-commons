@@ -42,10 +42,18 @@
               "V1"
             ],
             "default": "V1"
+          },
+          "task_failure_timeout_minutes": {
+            "title": "Task failure timeout minutes",
+            "description": "If a task is in FAILED or LOST state for the set timeout (in minutes), the task will marked as permanently failed and new replacement task will be launched.",
+            "type": "integer",
+            "default": 5,
+            "minimum": 0
           }
         },
         "required":[
-          "name"
+          "name",
+          "task_failure_timeout_minutes"
         ]
       },
       "node": {

@@ -32,6 +32,7 @@
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_PRINCIPAL": "{{service.principal}}",
     "PRE_RESERVED_ROLE": "{{service.pre_reserved_role}}",
+    "TASK_FAILURE_TIMEOUT_MINUTES": "{{{service.task_failure_timeout_minutes}}}",
 
     "NODE_COUNT": "{{node.count}}",
     "NODE_PLACEMENT": "{{node.placement_constraint}}",
@@ -39,6 +40,7 @@
     "PORTWORX_IMAGE_NAME": "{{{node.portworx_image}}}",
     "PORTWORX_START_PORT": "{{node.portworx_port_range_start}}",
     "PORTWORX_OPTIONS": "{{{node.portworx_options}}}",
+
     "ETCD_ENABLED": "{{etcd.enabled}}",
     {{#etcd.enabled}}
     "ETCD_PROXY_ENABLED": "{{etcd.proxy_enabled}}",
