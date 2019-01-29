@@ -340,6 +340,35 @@ plans:
       {{/ETCD_PROXY_ENABLED}}
       {{/ETCD_ENABLED}}
       portworx-install:
+        strategy: parallel
+        pod: portworx
+        steps:
+          - default : [[install]]
+      {{#LIGHTHOUSE_ENABLED}}
+      lighthouse-deploy:
+        strategy: serial
+        pod: lighthouse
+        steps:
+          - default : [[start]]
+      {{/LIGHTHOUSE_ENABLED}}
+  update:
+    strategy: serial
+    phases:
+      {{#ETCD_ENABLED}}
+      etcd-cluster:
+        strategy: parallel
+        pod: etcd-cluster
+        steps:
+          - default : [[node]]
+      {{#ETCD_PROXY_ENABLED}}
+      etcd-proxy:
+        strategy: serial
+        pod: etcd-proxy
+        steps:
+          - default : [[start]]
+      {{/ETCD_PROXY_ENABLED}}
+      {{/ETCD_ENABLED}}
+      portworx-install:
         strategy: serial
         pod: portworx
         steps:
