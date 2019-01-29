@@ -79,6 +79,10 @@ pods:
                 PORTWORX_KVDB={{PORTWORX_KVDB_SERVERS}}
                 {{/ETCD_ENABLED}}
 
+                if [[ ! -z "${PORTWORX_KVDB// }" ]]; then
+                    KVDB_OPTION="-k $PORTWORX_KVDB"
+                fi
+
                 startPort={{PORTWORX_START_PORT}}
                 if [[ "$startPort" != "9001" ]]; then
                     START_PORT_OPTION="-r $startPort"
@@ -114,7 +118,7 @@ pods:
                           {{/SECRETS_ENABLED}}
                           -name=%n \
                           -c {{PORTWORX_CLUSTER_NAME}} {{{PORTWORX_OPTIONS}}} \
-                          $START_PORT_OPTION -k $PORTWORX_KVDB
+                          $START_PORT_OPTION $KVDB_OPTION
                     KillMode=control-group
                     ExecStop=/opt/pwx/bin/runc kill %n
                     [Install]
