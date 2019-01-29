@@ -16,4 +16,7 @@ class HdfsBundle(BaseTechBundle):
                          output_directory)
 
     def create(self):
+        self.create_configuration_file()
+        self.create_pod_status_file()
+        self.create_plans_status_files()
         logger.info("Creating HDFS bundle (noop)")

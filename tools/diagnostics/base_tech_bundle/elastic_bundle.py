@@ -46,4 +46,7 @@ class ElasticBundle(BaseTechBundle):
 
     def create(self):
         logger.info("Creating Elastic bundle")
+        self.create_configuration_file()
+        self.create_pod_status_file()
+        self.create_plans_status_files()
         self.create_tasks_stats_files()

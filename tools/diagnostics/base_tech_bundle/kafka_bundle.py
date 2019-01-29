@@ -21,6 +21,9 @@ class KafkaBundle(BaseTechBundle):
 
     def create(self):
         logger.info("Creating Kafka bundle")
+        self.create_configuration_file()
+        self.create_pod_status_file()
+        self.create_plans_status_files()
         brokers = self.create_broker_list_file()
         if brokers:
             for broker_id in brokers:
