@@ -11,9 +11,8 @@ logger = logging.getLogger(__name__)
 
 class KafkaBundle(BaseTechBundle):
 
-     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
-        super().__init__(self,
-                         package_name,
+    def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
+        super().__init__(package_name,
                          service_name,
                          scheduler_tasks,
                          service,
