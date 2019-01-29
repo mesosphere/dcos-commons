@@ -198,6 +198,10 @@ def run_cli(cmd, print_output=True, check=False) -> tuple:
     eg. `cmd`= "package install pkg-name" results in:
     $ dcos package install pkg-name
     """
+    # This is to isolate the CI flakyness.
+    dcos_version_cmd = "dcos --version"
+    _run_cmd(dcos_version_cmd, print_output, check)
+
     dcos_cmd = "dcos {}".format(cmd)
     log.info("(CLI) {}".format(dcos_cmd))
     return _run_cmd(dcos_cmd, print_output, check)
