@@ -9,6 +9,15 @@ logger = logging.getLogger(__name__)
 
 
 class ElasticBundle(BaseTechBundle):
+
+    def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
+        super().__init__(self,
+                         package_name,
+                         service_name,
+                         scheduler_tasks,
+                         service,
+                         output_directory)
+
     @config.retry
     def task_exec(self, task_id, cmd):
         full_cmd = " ".join(
@@ -37,4 +46,7 @@ class ElasticBundle(BaseTechBundle):
 
     def create(self):
         logger.info("Creating Elastic bundle")
+        self.create_configuration_file()
+        self.create_pod_status_file()
+        self.create_plans_status_files()
         self.create_tasks_stats_files()
