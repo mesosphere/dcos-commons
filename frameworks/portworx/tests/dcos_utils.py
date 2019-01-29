@@ -1,4 +1,4 @@
-# This file contains dcos spacific utilities needed for portworx framework. 
+# This file contains dcos specific utilities needed for portworx framework. 
 
 import sdk_install
 import sdk_cmd
@@ -9,7 +9,7 @@ from time import sleep
 
 log = logging.getLogger(__name__)
 
-def install_enterprises_cli():
+def install_enterprise_cli():
     cmd = "package install dcos-enterprise-cli --yes"
 
     count = 5

@@ -139,6 +139,7 @@ def test_vol_create():
     # Verify px status before calling create px volume
     px_status = px_utils.check_px_status()
     assert px_status == 2, "PORTWORX: Avoiding volume create, status returned: {}".format(px_status)
+    sleep(90) # Observed failures while volume creation, so introducing sleep of 90 seconds here. 
 
     pod_count, pod_list = px_utils.get_px_pod_list()
     if pod_count <= 0:
@@ -199,22 +200,17 @@ def test_suspend_resume_px_service():
     px_status = px_utils.check_px_status()
     assert px_status == 2, "PORTWORX: Failed service stop-start, status returned: {}".format(px_status)
 
-# Test dcos sectres prepare operations
+# Test dcos sectres prepare operations, and verify that it is present. Skip if it is already present.
 @pytest.mark.sanity
-def test_dcos_secrets_prepare():
-    dcos_utils.install_enterprises_cli()
+def test_dcos_secrets_prepare_verify():
+    dcos_utils.install_enterprise_cli()
     if dcos_utils.check_secret_present(config.PX_SEC_OPTIONS["base_path"], config.PX_SEC_OPTIONS["secret_key"]):
         return
 
-    dcos_utils.create_dcos_security_group(config.PX_SEC_OPTIONS["group_name"])
     dcos_utils.create_dcos_user(config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["user_password"])
-    dcos_utils.add_user_to_group(config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["group_name"])
     dcos_utils.grant_permissions_to_user(config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["base_path"])
     dcos_utils.create_dcos_secrets(config.PX_SEC_OPTIONS["secret_value"], config.PX_SEC_OPTIONS["base_path"], config.PX_SEC_OPTIONS["secret_key"])
-
-# Verify created secret is present
-@pytest.mark.sanity
-def test_dcos_secrets_present():
+    
     assert dcos_utils.check_secret_present(config.PX_SEC_OPTIONS["base_path"], config.PX_SEC_OPTIONS["secret_key"]), "Secrets is not present in the list"
 
 # Test dcos px sectres login
@@ -247,9 +243,8 @@ def test_create_encrypted_px_volume():
     pod_name = pod_list[1]
     px_utils.px_dcos_login(pod_name, config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["user_password"], config.PX_SEC_OPTIONS["base_path"])
     vol_name = "px_encrypt_vol_1"
-    px_utils.px_create_encrepted_volume(pod_name, vol_name, config.PX_SEC_OPTIONS["secret_key"])
-    vol_encrypted = px_utils.px_is_vol_encrypted(vol_name)
-    assert vol_encrypted == "true",  "PORTWORX: Failed to create encrypted volume."
+    px_utils.px_create_encrypted_volume(pod_name, vol_name, config.PX_SEC_OPTIONS["secret_key"])
+    assert px_utils.px_is_vol_encrypted(vol_name), "PORTWORX: Failed to create encrypted volume."
 
 # Upgrade portworx framework from released version
 @pytest.mark.sanity

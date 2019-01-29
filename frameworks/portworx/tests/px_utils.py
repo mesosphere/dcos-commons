@@ -153,6 +153,7 @@ def px_get_vol_size_in_gb(vol_name):
         _, vol_size, std_err = sdk_cmd.run_raw_cli(cmd)
         if not is_int(vol_size):
             sleep(5)
+            count = count - 1
             continue
         break
 
@@ -165,8 +166,10 @@ def px_get_vol_size_in_gb(vol_name):
 def px_is_vol_encrypted(vol_name):
     cmd = "portworx volume list | jq '.[] | select(.locator.name == \"" + vol_name +"\") | .spec.encrypted'"
     _, vol_type, std_err = sdk_cmd.run_raw_cli(cmd)
-
-    return vol_type
+    if vol_type == "true":
+        return True
+    else:
+        return False
 
 def px_create_volume(pod_name, vol_name = "dcos_test_vol", size = 10):
     agent_id = px_get_agent_id(pod_name)
@@ -196,7 +199,7 @@ def px_update_volume_size(pod_name, vol_name, new_size):
         log.info("PORTWORX: Failed volume update operation, node id: {}, volume name: {}, size:{}, with error:{}".format(agent_id, vol_name, size, std_err))
         raise
 
-# command: /opt/pwx/bin/pxctl secrets dcos login --username px_user1 --password px_user1 --base-path pwx/secrets
+# command: /opt/pwx/bin/pxctl secrets dcos login --username px_user1 --password px_user1_password --base-path pwx/secrets
 def px_dcos_login(pod_name, user_name, user_password, base_path):
     agent_id = px_get_agent_id(pod_name)
 
@@ -219,7 +222,7 @@ def px_restart_portworx_service(pod_name):
         raise
 
 # command: /opt/pwx/bin/pxctl volume create --secure --secret_key px_skey  enc_vol1
-def px_create_encrepted_volume(pod_name, vol_name, secret_key):
+def px_create_encrypted_volume(pod_name, vol_name, secret_key):
     agent_id = px_get_agent_id(pod_name)
 
     cmd = "node ssh  \"pxctl volume create --secure --secret_key " + secret_key + " " + vol_name + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"

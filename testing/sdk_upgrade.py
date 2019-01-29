@@ -17,6 +17,7 @@ import sdk_marathon
 import sdk_plan
 import sdk_tasks
 import sdk_utils
+from time import sleep
 
 log = logging.getLogger(__name__)
 
@@ -184,8 +185,12 @@ def _upgrade_or_downgrade(
                 'update start --package-version={}'.format(to_package_version))
         # we must manually upgrade the package CLI because it's not done automatically in this flow
         # (and why should it? that'd imply the package CLI replacing itself via a call to the main CLI...)
-        sdk_cmd.run_cli(
-            'package install --yes --cli --package-version={} {}'.format(to_package_version, package_name))
+        count = 5
+        while count > 0:
+            sdk_cmd.run_cli(
+                'package install --yes --cli --package-version={} {}'.format(to_package_version, package_name))
+            sleep(5)
+            count = count - 1
 
     if wait_for_deployment:
 
@@ -212,10 +217,19 @@ def _upgrade_or_downgrade(
 def _get_pkg_version(package_name):
     cmd = 'package describe {}'.format(package_name)
     # Only log stdout/stderr if there's actually an error.
-    rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd, print_output=False)
+    count = 10
+    while count > 0:
+        rc, stdout, stderr = sdk_cmd.run_raw_cli(cmd, print_output=False)
+        if rc != 0:
+            log.warning('Failed to run "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
+            sleep(5)
+            count = count - 1
+            continue
+        else:
+            break
     if rc != 0:
-        log.warning('Failed to run "{}":\nSTDOUT:\n{}\nSTDERR:\n{}'.format(cmd, stdout, stderr))
         return None
+
     try:
         describe = json.loads(stdout)
         # New location (either 1.10+ or 1.11+):
