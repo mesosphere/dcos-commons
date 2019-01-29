@@ -85,7 +85,6 @@ class BaseTechBundle(ServiceBundle):
         self.create_pod_status_file()
         self.create_plans_status_files()
 
-
 from .cassandra_bundle import CassandraBundle  # noqa: E402
 from .elastic_bundle import ElasticBundle  # noqa: E402
 from .hdfs_bundle import HdfsBundle  # noqa: E402

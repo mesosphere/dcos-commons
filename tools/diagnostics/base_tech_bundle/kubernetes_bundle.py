@@ -4,14 +4,14 @@ import sdk_cmd
 
 from base_tech_bundle import BaseTechBundle
 import config
+import json
 
 logging = logging.getLogger(__name__)
 
-class KubernetesBundle(BaseTechBundle):
 
+class KubernetesBundle(BaseTechBundle):
     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
-        super().__init__(self,
-                         package_name,
+        super().__init__(package_name,
                          service_name,
                          scheduler_tasks,
                          service,
@@ -86,7 +86,7 @@ class KubernetesBundle(BaseTechBundle):
         )
 
         if rc != 0 or stderr:
-            logging.error("Could not get cluster list\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+            logging.error("Could not get cluster state properties\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
         else:
             self.write_file("cluster_debug_state_properties.json", stdout)
 
@@ -97,9 +97,20 @@ class KubernetesBundle(BaseTechBundle):
         )
 
         if rc != 0 or stderr:
-            logging.error("Could not get cluster list\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+            logging.error("Could not get cluster debug endpoints\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
         else:
             self.write_file("cluster_debug_endpoints.json", stdout)
+
+    @config.retry
+    def create_cluster_pod_status(self):
+        rc, stdout, stderr = sdk_cmd.svc_cli(
+            self.package_name, self.service_name, "cluster debug pod status --json", print_output=False
+        )
+
+        if rc != 0 or stderr:
+            logging.error("Could not get cluster pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        else:
+            self.write_file("cluster_debug_pod_status.json", stdout)
 
     @config.retry
     def task_exec(self, task_id, cmd):
@@ -112,15 +123,5 @@ class KubernetesBundle(BaseTechBundle):
         self.create_pod_status_file()
         self.create_cluster_list()
         self.create_cluster_debug_state_properties()
-
-
-# class KubernetesClusterBundle(KubernetesBundle):
-#     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory,
-#                  cluster_name):
-#         super().__init__(self,
-#                          package_name,
-#                          service_name,
-#                          scheduler_tasks,
-#                          service,
-#                          output_directory)
+        self.create_cluster_pod_status()
 
