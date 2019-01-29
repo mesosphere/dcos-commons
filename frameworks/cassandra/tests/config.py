@@ -84,7 +84,7 @@ def _get_test_job(
         "id": "test.cassandra." + name,
         "run": {
             "cmd": " && ".join(commands),
-            "docker": {"image": "cassandra:3.0.13"},
+            "docker": {"image": "cassandra:3.11.3"},
             "cpus": 1,
             "mem": 512,
             "disk": 100,
