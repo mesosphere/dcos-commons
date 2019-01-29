@@ -24,7 +24,7 @@ class KubernetesBundle(BaseTechBundle):
         )
 
         if rc != 0 or stderr:
-            log.error(
+            logging.error(
                 "Could not get service configuration\nstdout: '%s'\nstderr: '%s'", stdout, stderr
             )
         else:
@@ -124,4 +124,3 @@ class KubernetesBundle(BaseTechBundle):
         self.create_cluster_list()
         self.create_cluster_debug_state_properties()
         self.create_cluster_pod_status()
-

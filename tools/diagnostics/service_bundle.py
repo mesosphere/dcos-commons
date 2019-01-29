@@ -7,7 +7,6 @@ from typing import List
 
 import sdk_cmd
 import sdk_diag
-import sdk_hosts
 
 from bundle import Bundle
 import agent
@@ -157,10 +156,10 @@ class ServiceBundle(Bundle):
                                            "/v1/configurations/{}".format(configuration_id),
                                            raise_on_error=False)
         if not response.ok:
-            log.error("Could not get scheduler configuration with ID '{}'"
+            log.error("Could not get scheduler configuration with ID '%s'"
                       "\nstatus_code: '%s'\nstderr: '%s'",
-                      configuration_id, response.status_code,response.text
-            )
+                      configuration_id, response.status_code, response.text
+                      )
         else:
             return json.loads(response.text)
 
