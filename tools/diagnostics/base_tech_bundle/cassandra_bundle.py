@@ -9,6 +9,15 @@ logger = logging.getLogger(__name__)
 
 
 class CassandraBundle(BaseTechBundle):
+
+    def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
+        super().__init__(self,
+                         package_name,
+                         service_name,
+                         scheduler_tasks,
+                         service,
+                         output_directory)
+
     @config.retry
     def task_exec(self, task_id, cmd):
         full_cmd = " ".join(
