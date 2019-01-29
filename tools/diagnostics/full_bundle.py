@@ -168,26 +168,19 @@ class FullBundle(Bundle):
             self.output_directory,
         ).create()
 
-        if base_tech.is_package_supported(self.package_name):
-            BaseTechBundle = base_tech.get_bundle_class(self.package_name)
+        log.info("Completed creating DC/OS and service-level diagnostics.")
 
-            BaseTechBundle(
-                self.package_name,
-                self.service_name,
-                scheduler_tasks,
-                active_service,
-                self.output_directory,
-            ).create()
-        else:
-            log.info(
-                "Don't know how to get base tech diagnostics for package '%s'", self.package_name
-            )
-            log.info(
-                "Supported packages:\n%s",
-                "\n".join(["- {}".format(k) for k in base_tech.SUPPORTED_PACKAGES]),
-            )
-            log.info("This is ok, we were still able to get DC/OS and service-level diagnostics")
+        # Find and dispatch to the appropriate BaseTechBundle.
+        # If nothing is found run the BaseTechBundle
+        BaseTechBundle = base_tech.get_bundle_class(self.package_name)
+        BaseTechBundle(
+            self.package_name,
+            self.service_name,
+            scheduler_tasks,
+            active_service,
+            self.output_directory,
+        ).create()
 
-        log.info("\nCreated %s", os.path.abspath(self.output_directory))
+        log.info("\nCreated base-tech bundle at %s", os.path.abspath(self.output_directory))
 
         return 0, self
