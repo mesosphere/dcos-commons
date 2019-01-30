@@ -69,7 +69,7 @@ def check_dcos_min_version_mark(item: pytest.Item):
 
     In order for this annotation to take effect, this function must be called by a pytest_runtest_setup() hook.
     '''
-    min_version_mark = item.get_marker('dcos_min_version')
+    min_version_mark = item.get_closest_marker('dcos_min_version')
     if min_version_mark:
         min_version = min_version_mark.args[0]
         message = 'Feature only supported in DC/OS {} and up'.format(min_version)
