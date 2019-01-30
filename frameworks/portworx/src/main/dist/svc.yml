@@ -182,19 +182,6 @@ pods:
           delay: 0
           timeout: 60
           max-consecutive-failures: 5
-      upgrade:
-        goal: FINISH
-        resource-set: px-resources
-        cmd: >
-             docker pull {{{PORTWORX_IMAGE_NAME}}} &&
-             ./sysCtl stop portworx.service &&
-             docker run --entrypoint /runc-entry-point.sh \
-                --rm -i --privileged=true \
-                -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
-                {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade &&
-             ./sysCtl reload && ./sysCtl restart portworx.service &&
-             while ! /opt/pwx/bin/pxctl -j status | grep status | grep STATUS_OK; do /opt/pwx/bin/pxctl status; sleep 5 ; done
-
   etcd-cluster:
     user: {{SERVICE_USER}}
     count: 3
@@ -384,11 +371,3 @@ plans:
         steps:
           - default : [[start]]
       {{/LIGHTHOUSE_ENABLED}}
-  upgrade-portworx:
-    strategy: serial
-    phases:
-      upgrade:
-        strategy: serial
-        pod: portworx
-        steps:
-          - default : [[upgrade]]
