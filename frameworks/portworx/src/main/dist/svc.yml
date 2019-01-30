@@ -124,7 +124,7 @@ pods:
                     [Install]
                     WantedBy=multi-user.target" > /etc/systemd/system/portworx.service.new
 
-                diff -Z /etc/systemd/system/portworx.service /etc/systemd/system/portworx.service.new
+                diff -Z /etc/systemd/system/portworx.service.new /etc/systemd/system/portworx.service
                 difference=$?
 
                 set -e
