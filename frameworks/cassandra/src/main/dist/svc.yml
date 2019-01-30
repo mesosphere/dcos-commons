@@ -62,6 +62,10 @@ pods:
                     ARGS="$ARGS -Dcassandra.metricsReporterConfigFile=metrics-reporter-config.yaml"
                 fi
 
+                if [ "$CASSANDRA_USER" = "root" ]; then
+                    ARGS="$ARGS -R"
+                fi
+
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
         configs:
           cassandra:
