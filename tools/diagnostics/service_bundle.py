@@ -2,6 +2,7 @@ import functools
 import json
 import logging
 import os
+import warnings
 from toolz import groupby
 from typing import List
 
@@ -148,6 +149,8 @@ class ServiceBundle(Bundle):
 
     @config.retry
     def create_offers_file(self):
+        warnings.warn("The v1/debug/offers endpoint will be deprecated in favour of the newer "
+                      "v2/debug/offers endpoint.", PendingDeprecationWarning)
         response = sdk_cmd.service_request("GET", self.service_name, "/v1/debug/offers",
                                            raise_on_error=False)
         if not response.ok:
@@ -192,7 +195,7 @@ class ServiceBundle(Bundle):
                 response.status_code, response.text
             )
         else:
-            self.write_file("service_v1_debug_taskstatuses.json", response.text)
+            self.write_file("service_v1_debug_taskStatuses.json", response.text)
 
     @functools.lru_cache()
     @config.retry

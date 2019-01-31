@@ -10,7 +10,8 @@ Script that gathers SDK-related service diagnostics artifacts.
 - `dcos $service plan status $plan --json` output for all `$plan`s
 - stdout and stderr log files for all pod tasks and their executors (even killed
   or finished ones) and scheduler tasks
-- `https://$cluster/$service/v1/debug/offers` output
+- `https://$cluster/$service/v1/debug/offers` output. WARNING: Will be deprecated in favour of
+v2/debug/offers below in upcoming releases.
 - `https://$cluster/$service/v2/debug/offers` output
 - `https://$cluster/$service/v1/debug/plans` output
 - `https://$cluster/$service/v1/debug/taskStatuses` output
