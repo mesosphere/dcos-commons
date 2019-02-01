@@ -34,13 +34,26 @@ class KafkaBundle(BaseTechBundle):
             self.package_name, self.service_name, "broker list", print_output=False
         )
 
-        if rc != 0 or stderr:
+        broker_list = None
+        if rc != 0:
             logger.error(
-                "Could not perform broker list\nstdout: '%s'\nstderr: '%s'", stdout, stderr
+                "Could not perform broker list. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
             )
         else:
-            self.write_file("service_broker_list.json", stdout)
-            return json.loads(stdout)
+            if stderr:
+                logger.warning("Non-fatal broker list message\nstderr: '%s'", stderr)
+
+            try:
+                broker_list = json.loads(stdout)
+            except Exception:
+                logger.error(
+                    "Could not parse broker list json. Writing to service_broker_list.json\n"
+                    "stdout: '%s'\nstderr: '%s'", stdout, stderr
+                )
+            finally:
+                self.write_file("service_broker_list.json", stdout)
+        return broker_list
 
     @config.retry
     def create_broker_get_file(self, broker_id):
@@ -48,9 +61,12 @@ class KafkaBundle(BaseTechBundle):
             self.package_name, self.service_name, "broker get %s" % broker_id, print_output=False
         )
 
-        if rc != 0 or stderr:
+        if rc != 0:
             logger.error(
-                "Could not perform broker get %s\nstdout: '%s'\nstderr: '%s'", broker_id, stdout, stderr
+                "Could not perform broker get %s. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", broker_id, rc, stdout, stderr
             )
         else:
+            if stderr:
+                logger.warning("Non-fatal broker get %s message\nstderr: '%s'", broker_id, stderr)
             self.write_file("service_broker_get_%s.json" % broker_id, stdout)

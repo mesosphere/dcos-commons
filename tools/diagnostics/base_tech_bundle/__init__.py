@@ -33,11 +33,14 @@ class BaseTechBundle(ServiceBundle):
             self.package_name, self.service_name, "describe", print_output=False
         )
 
-        if rc != 0 or stderr:
+        if rc != 0:
             log.error(
-                "Could not get service configuration\nstdout: '%s'\nstderr: '%s'", stdout, stderr
+                "Could not get service configuration. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
             )
         else:
+            if stderr:
+                log.warning("Non-fatal service configuration message\nstderr: '%s'", stderr)
             self.write_file("service_configuration.json", stdout)
 
     @config.retry
@@ -46,9 +49,14 @@ class BaseTechBundle(ServiceBundle):
             self.package_name, self.service_name, "pod status --json", print_output=False
         )
 
-        if rc != 0 or stderr:
-            log.error("Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            log.error(
+                "Could not get pod status. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
+            if stderr:
+                log.warning("Non-fatal pod status message\nstderr: '%s'", stderr)
             self.write_file("service_pod_status.json", stdout)
 
     @config.retry
@@ -60,9 +68,14 @@ class BaseTechBundle(ServiceBundle):
             print_output=False,
         )
 
-        if rc != 0 or stderr:
-            log.error("Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            log.error(
+                "Could not get plan status. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
+            if stderr:
+                log.warning("Non-fatal plan status message\nstderr: '%s'", stderr)
             self.write_file("service_plan_status_{}.json".format(plan), stdout)
 
     @config.retry
@@ -71,12 +84,24 @@ class BaseTechBundle(ServiceBundle):
             self.package_name, self.service_name, "plan list", print_output=False
         )
 
-        if rc != 0 or stderr:
-            log.error("Could not get plan list\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            log.error(
+                "Could not get plan list. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
-            plans = json.loads(stdout)
-            for plan in plans:
-                self.create_plan_status_file(plan)
+            if stderr:
+                log.warning("Non-fatal plan list message\nstderr: '%s'", stderr)
+
+            try:
+                plans = json.loads(stdout)
+                for plan in plans:
+                    self.create_plan_status_file(plan)
+            except Exception:
+                log.error(
+                    "Could not parse plan list json.\nstdout: '%s'\nstderr: '%s'",
+                    stdout, stderr
+                )
 
     def task_exec(self):
         raise NotImplementedError

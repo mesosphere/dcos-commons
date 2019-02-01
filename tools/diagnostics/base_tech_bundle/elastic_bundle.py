@@ -33,11 +33,15 @@ class ElasticBundle(BaseTechBundle):
     def create_stats_file(self, task_id):
         command = "curl -s ${MESOS_CONTAINER_IP}:${PORT_HTTP}/_stats"
         rc, stdout, stderr = self.task_exec(task_id, command)
-        if rc != 0 or stderr:
+
+        if rc != 0:
             logger.error(
-                "Could not get Elasticsearch /_stats\nstdout: '%s'\nstderr: '%s'", stdout, stderr
+                "Could not get Elasticsearch /_stats. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
             )
         else:
+            if stderr:
+                logger.warning("Non-fatal Elasticsearch /_stats message\nstderr: '%s'", stderr)
             self.write_file("elasticsearch_stats_{}.json".format(task_id), stdout)
 
     def create_tasks_stats_files(self):

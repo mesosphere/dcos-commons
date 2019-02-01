@@ -23,11 +23,14 @@ class KubernetesBundle(BaseTechBundle):
             self.package_name, self.service_name, "manager describe", print_output=False
         )
 
-        if rc != 0 or stderr:
+        if rc != 0:
             logging.error(
-                "Could not get service configuration\nstdout: '%s'\nstderr: '%s'", stdout, stderr
+                "Could not get service configuration. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
             )
         else:
+            if stderr:
+                logging.warning("Non-fatal service configuration message\nstderr: '%s'", stderr)
             self.write_file("manager_service_configuration.json", stdout)
 
     @config.retry
@@ -36,9 +39,14 @@ class KubernetesBundle(BaseTechBundle):
             self.package_name, self.service_name, "manager pod status --json", print_output=False
         )
 
-        if rc != 0 or stderr:
-            logging.error("Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            logging.error(
+                "Could not get pod status. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
+            if stderr:
+                logging.warning("Non-fatal pod status message\nstderr: '%s'", stderr)
             self.write_file("manager_service_pod_status.json", stdout)
 
     @config.retry
@@ -50,9 +58,14 @@ class KubernetesBundle(BaseTechBundle):
             print_output=False,
         )
 
-        if rc != 0 or stderr:
-            logging.error("Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            logging.error(
+                "Could not get pod status. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
+            if stderr:
+                logging.warning("Non-fatal pod status message\nstderr: '%s'", stderr)
             self.write_file("manager_service_plan_status_{}.json".format(plan), stdout)
 
     @config.retry
@@ -61,12 +74,24 @@ class KubernetesBundle(BaseTechBundle):
             self.package_name, self.service_name, "manager plan list", print_output=False
         )
 
-        if rc != 0 or stderr:
-            logging.error("Could not get plan list\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            logging.error(
+                "Could not get plan list. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
-            plans = json.loads(stdout)
-            for plan in plans:
-                self.create_plan_status_file(plan)
+            if stderr:
+                logging.warning("Non-fatal plan list message\nstderr: '%s'", stderr)
+
+            try:
+                plans = json.loads(stdout)
+                for plan in plans:
+                    self.create_plan_status_file(plan)
+            except Exception:
+                logging.error(
+                    "Could not parse plan list json.\nstdout: '%s'\nstderr: '%s'",
+                    stdout, stderr
+                )
 
     @config.retry
     def create_cluster_list(self):
@@ -74,9 +99,14 @@ class KubernetesBundle(BaseTechBundle):
             self.package_name, self.service_name, "cluster list", print_output=False
         )
 
-        if rc != 0 or stderr:
-            logging.error("Could not get cluster list\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            logging.error(
+                "Could not get cluster list. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
+            if stderr:
+                logging.warning("Non-fatal cluster list message\nstderr: '%s'", stderr)
             self.write_file("cluster_list.json", stdout)
 
     @config.retry
@@ -85,9 +115,14 @@ class KubernetesBundle(BaseTechBundle):
             self.package_name, self.service_name, "cluster debug state properties", print_output=False
         )
 
-        if rc != 0 or stderr:
-            logging.error("Could not get cluster state properties\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            logging.error(
+                "Could not get cluster state properties. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
+            if stderr:
+                logging.warning("Non-fatal cluster state properties message\nstderr: '%s'", stderr)
             self.write_file("cluster_debug_state_properties.json", stdout)
 
     @config.retry
@@ -96,9 +131,14 @@ class KubernetesBundle(BaseTechBundle):
             self.package_name, self.service_name, "cluster debug endpoints", print_output=False
         )
 
-        if rc != 0 or stderr:
-            logging.error("Could not get cluster debug endpoints\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            logging.error(
+                "Could not get cluster debug endpoints. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
+            if stderr:
+                logging.warning("Non-fatal cluster debug endpoints message\nstderr: '%s'", stderr)
             self.write_file("cluster_debug_endpoints.json", stdout)
 
     @config.retry
@@ -107,9 +147,14 @@ class KubernetesBundle(BaseTechBundle):
             self.package_name, self.service_name, "cluster debug pod status --json", print_output=False
         )
 
-        if rc != 0 or stderr:
-            logging.error("Could not get cluster pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
+        if rc != 0:
+            logging.error(
+                "Could not get cluster pod status. return-code: '%s'\n"
+                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+            )
         else:
+            if stderr:
+                logging.warning("Non-fatal cluster pod status message\nstderr: '%s'", stderr)
             self.write_file("cluster_debug_pod_status.json", stdout)
 
     @config.retry
