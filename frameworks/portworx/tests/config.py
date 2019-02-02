@@ -44,5 +44,8 @@ PX_SEC_OPTIONS = { "group_name": "px_service_grp",
                    "user_password": "px_user_1_password",
                    "base_path": "pwx/secrets",
                    "secret_value": "px_secret_value",
-                   "secret_key": "px_secret_key"
+                   "secret_key": "px_secret_key",
+                   "user_secret_id": "user_secrets",
+                   "password_secret_id": "password_secrets",
+                   "encrypted_volume_name" : "px_encrypt_vol_1"
                  }
