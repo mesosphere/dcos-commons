@@ -157,10 +157,6 @@ class KubernetesBundle(BaseTechBundle):
                 logging.warning("Non-fatal cluster pod status message\nstderr: '%s'", stderr)
             self.write_file("cluster_debug_pod_status.json", stdout)
 
-    @config.retry
-    def task_exec(self, task_id, cmd):
-        pass
-
     def create(self):
         logging.info("Creating Kubernetes Bundle")
         self.create_configuration_file()

@@ -168,7 +168,7 @@ class FullBundle(Bundle):
             self.output_directory,
         ).create()
 
-        log.info("Completed creating DC/OS and service-level diagnostics.")
+        log.info("Completed creating service-level diagnostics.")
 
         # Find and dispatch to the appropriate BaseTechBundle.
         # If nothing is found run the BaseTechBundle
