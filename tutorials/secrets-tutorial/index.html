@@ -80,7 +80,7 @@
 
 <p>The SDK enables you to integrate DC/OS secrets using both a declarative YAML API and flexible JAVA API. In YAML, secrets are declared within the <code class="highlighter-rouge">secret:</code> section in a pod specification. Similarly, in JAVA API, a <code class="highlighter-rouge">SecretSpec</code> is added to the <code class="highlighter-rouge">PodSpec</code> object.</p>
 
-<p>Refer to the <a href="../../developer-guide/">Developer Guide</a> for more information about the JAVA API. Refer to the <a href="../../operations-guide/">Operations Guide</a> for a detailed explaination of how to use DC/OS secrets in your SDK-based service.</p>
+<p>Refer to the <a href="../../developer-guide/">Developer Guide</a> for more information about the JAVA API. Refer to the <a href="../../operations-guide/">Operations Guide</a> for a detailed explanation of how to use DC/OS secrets in your SDK-based service.</p>
 
 <p>In this tutorial, we will use the existing <code class="highlighter-rouge">hello-world</code> service to experiment with secrets. First, create a DC/OS Enterprise 1.10 cluster (at least 3 nodes is recommended).</p>
 
@@ -175,7 +175,7 @@ pods:
 
 <p>The <code class="highlighter-rouge">hello</code> pod has two secrets. The first secret, with path <code class="highlighter-rouge">hello-world/secret1</code>, is exposed both as an environment variable and as a file. The second one is exposed only as a file. The value of the second secret with path <code class="highlighter-rouge">hello-world/secret2</code>, which is the private key, will be copied to the <code class="highlighter-rouge">HELLO_SECRET2_FILE</code> file located in the sandbox.</p>
 
-<p>The <code class="highlighter-rouge">world</code> pod has three secrets. The first one is exposed only as an environment variable. The second and third secrets are exposed only as files. All <code class="highlighter-rouge">server</code> tasks in the <code class="highlighter-rouge">world</code> pod will have access to the values of these three secrets, either as a file and/or as an evironment variable.</p>
+<p>The <code class="highlighter-rouge">world</code> pod has three secrets. The first one is exposed only as an environment variable. The second and third secrets are exposed only as files. All <code class="highlighter-rouge">server</code> tasks in the <code class="highlighter-rouge">world</code> pod will have access to the values of these three secrets, either as a file and/or as an environment variable.</p>
 
 <p><em>Note</em>: The secret path is the default file path if no <code class="highlighter-rouge">file</code> keyword is given. Therefore, the file path for the third secret is same as the secret path.</p>
 

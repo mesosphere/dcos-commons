@@ -1281,7 +1281,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
 <h2 id="virtual-networks">
 <a id="virtual-networks" class="anchor" href="#virtual-networks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Virtual networks</h2>
 
-<p>The SDK allows pods to join virtual networks, with the <code class="highlighter-rouge">dcos</code> virtual network available by defualt. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:</p>
+<p>The SDK allows pods to join virtual networks, with the <code class="highlighter-rouge">dcos</code> virtual network available by default. You can specify that a pod should join the virtual network by adding the following to your service spec YAML:</p>
 
 <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">pods</span><span class="pi">:</span>
   <span class="na">pod-on-virtual-network</span><span class="pi">:</span>
@@ -1329,13 +1329,13 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
       <li>This was done so that you do not have to remove all of the port resource requirements just to deploy a service on the virtual network.</li>
     </ul>
   </li>
-  <li>A caveat of this is that the SDK does not allow the configuation of a pod to change from the virtual network to the host network or vice-versa.</li>
+  <li>A caveat of this is that the SDK does not allow the configuration of a pod to change from the virtual network to the host network or vice-versa.</li>
 </ul>
 
 <h2 id="label-based-discovery">
 <a id="label-based-discovery" class="anchor" href="#label-based-discovery" aria-hidden="true"><span class="octicon octicon-link"></span></a>Label-Based Discovery</h2>
 
-<p>Some external tools such as <a href="https://docs.traefik.io">Taefik</a> require tasks to be configured with custom labels which are accessed by reading Mesos state. Below is an example of specifying labels for a task in your service spec YAML:</p>
+<p>Some external tools such as <a href="https://docs.traefik.io">Traefik</a> require tasks to be configured with custom labels which are accessed by reading Mesos state. Below is an example of specifying labels for a task in your service spec YAML:</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>name: "hello-world"
 pods:
@@ -1549,7 +1549,7 @@ SDK-based example service using DC/OS secrets.</p>
 
 <p>The path of a secret defines which service IDs can have access to it. You can think of secret paths as namespaces. <em>Only</em> services that are under the same namespace can read the content of the secret.</p>
 
-<p>For the example given above, the secret with path <code class="highlighter-rouge">secret-svc/Secret_Path1</code> can only be accessed by a services with ID <code class="highlighter-rouge">/secret-svc</code> or any service with  ID under <code class="highlighter-rouge">/secret-svc/</code>. Servicess with IDs <code class="highlighter-rouge">/secret-svc/dev1</code> and <code class="highlighter-rouge">/secret-svc/instance2/dev2</code> all have access to this secret, because they are under <code class="highlighter-rouge">/secret-svc/</code>.</p>
+<p>For the example given above, the secret with path <code class="highlighter-rouge">secret-svc/Secret_Path1</code> can only be accessed by a services with ID <code class="highlighter-rouge">/secret-svc</code> or any service with  ID under <code class="highlighter-rouge">/secret-svc/</code>. Services with IDs <code class="highlighter-rouge">/secret-svc/dev1</code> and <code class="highlighter-rouge">/secret-svc/instance2/dev2</code> all have access to this secret, because they are under <code class="highlighter-rouge">/secret-svc/</code>.</p>
 
 <p>On the other hand, the secret with path <code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code> cannot be accessed by a service with ID <code class="highlighter-rouge">/secret-svc</code> because it is not <em>under</em> this secret’s namespace, which is <code class="highlighter-rouge">/secret-svc/instance1</code>. <code class="highlighter-rouge">secret-svc/instance1/Secret_Path2</code> can be accessed by a service with ID <code class="highlighter-rouge">/secret-svc/instance1</code> or any service with ID under <code class="highlighter-rouge">/secret-svc/instance1/</code>, for example <code class="highlighter-rouge">/secret-svc/instance1/dev3</code> and <code class="highlighter-rouge">/secret-svc/instance1/someDir/dev4</code>.</p>
 
@@ -1710,7 +1710,7 @@ ZONE: us-west-2a
 
 <p>Every item under <code class="highlighter-rouge">transport-encryption</code> must have a unique <code class="highlighter-rouge">name</code>. The <code class="highlighter-rouge">type</code> field defines the serialization format with which the private key and certificate will be delivered into the task sandbox. Currently, there are two supported formats - <code class="highlighter-rouge">TLS</code> and <code class="highlighter-rouge">KEYSTORE</code>. Each item will result in a unique private key and the corresponding certificate.</p>
 
-<p>The TLS artifacts within a single task will be unique for a task instance and won’t be shared across all instances of the pod task. Different tasks can request TLS artficats with the same name, but each task will get unique private key and certificate, and they won’t get shared across different tasks.</p>
+<p>The TLS artifacts within a single task will be unique for a task instance and won’t be shared across all instances of the pod task. Different tasks can request TLS artifacts with the same name, but each task will get unique private key and certificate, and they won’t get shared across different tasks.</p>
 
 <p>In the above example, the <code class="highlighter-rouge">$MESOS_SANDBOX</code> directory would contain following files:</p>
 
@@ -1729,7 +1729,7 @@ ZONE: us-west-2a
 
 <p>TLS artifacts are provisioned by the <strong>scheduler</strong> based on the service configuration. Generated artifacts are stored as secrets in the <code class="highlighter-rouge">default</code> secrets store. The scheduler stores each artifact (private key, certificate, CA bundle, keystore, and truststore) as a separate secret under the task’s <code class="highlighter-rouge">DCOS_SPACE</code> path. This approach ensures that tasks launched by the scheduler <a href="../operations-guide/#authorization-for-secrets">will get access</a> to all necessary secrets. If the secret exists for a single artifact, then it is <strong>not</strong> overwritten and the existing value is used. Currently there is no exposed automated way of regenerating TLS artifacts. The operator can delete secrets from DC/OS secret store which will trigger generating new TLS artifacts.</p>
 
-<p>The scheduler will generate and store TLS artfiacts for both possible formats (<code class="highlighter-rouge">TLS</code>, <code class="highlighter-rouge">KEYSTORE</code>). Changing the format will not create a new private key.</p>
+<p>The scheduler will generate and store TLS artifacts for both possible formats (<code class="highlighter-rouge">TLS</code>, <code class="highlighter-rouge">KEYSTORE</code>). Changing the format will not create a new private key.</p>
 
 <p>Generated artifacts are stored as secrets with the following naming scheme:</p>
 
@@ -1767,7 +1767,7 @@ hello-world/c099361a4cf931ed3a7532a6d7bf9194f35a981e__hello-0-server__server__tr
 <h3 id="private-key">
 <a id="private-key" class="anchor" href="#private-key" aria-hidden="true"><span class="octicon octicon-link"></span></a>Private key</h3>
 
-<p>The private key is generated by using Java <a href="https://docs.oracle.com/javase/7/docs/api/java/security/KeyPairGenerator.html"><code class="highlighter-rouge">KeyPairGenerator</code></a> initialized with <code class="highlighter-rouge">RSA</code> algorithm. The <code class="highlighter-rouge">RSA</code> key is generated with <code class="highlighter-rouge">2048</code> bit size based on <a href="https://www.keylength.com/en/4/">NIST recommnedations</a>.</p>
+<p>The private key is generated by using Java <a href="https://docs.oracle.com/javase/7/docs/api/java/security/KeyPairGenerator.html"><code class="highlighter-rouge">KeyPairGenerator</code></a> initialized with <code class="highlighter-rouge">RSA</code> algorithm. The <code class="highlighter-rouge">RSA</code> key is generated with <code class="highlighter-rouge">2048</code> bit size based on <a href="https://www.keylength.com/en/4/">NIST recommendations</a>.</p>
 
 <h3 id="x509-certificate">
 <a id="x509-certificate" class="anchor" href="#x509-certificate" aria-hidden="true"><span class="octicon octicon-link"></span></a>X.509 certificate</h3>
@@ -1783,7 +1783,7 @@ ST=CA
 C=US
 </code></pre></div></div>
 
-<p>Additional X.509 <code class="highlighter-rouge">Subject Alternative Names</code>, based on the pod <code class="highlighter-rouge">discovery</code> and <code class="highlighter-rouge">vip</code> confiagurations, are encoded into the certificate. If no <code class="highlighter-rouge">discovery</code> or port exposed over VIP is configured, the single the certificate comes with a single SAN.</p>
+<p>Additional X.509 <code class="highlighter-rouge">Subject Alternative Names</code>, based on the pod <code class="highlighter-rouge">discovery</code> and <code class="highlighter-rouge">vip</code> configurations, are encoded into the certificate. If no <code class="highlighter-rouge">discovery</code> or port exposed over VIP is configured, the single the certificate comes with a single SAN.</p>
 
 <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>DNSName([pod-index-task].[service-name].autoip.dcos.thisdcos.directory)
 </code></pre></div></div>
@@ -1826,7 +1826,7 @@ DNSName([port-1-vip-prefix].[service-name].l4lb.thisdcos.directory)
 
 <p>A <strong>.keystore</strong> is a JKS file that contains a private key with an end-entity certificate and a complete certificate chain, including the root CA certificate. The certificate is stored under the alias name <strong><code class="highlighter-rouge">default</code></strong>. The keystore and key are protected by the password <strong><code class="highlighter-rouge">notsecure</code></strong>.</p>
 
-<p>A <strong>.truststore</strong> is a JKS file that contains the DC/OS root CA certificate stored as a trust certificate. The certificte is stored under alias <strong><code class="highlighter-rouge">dcos-root</code></strong>. The keystore is protected by <strong><code class="highlighter-rouge">notsecure</code></strong> password.</p>
+<p>A <strong>.truststore</strong> is a JKS file that contains the DC/OS root CA certificate stored as a trust certificate. The certificate is stored under alias <strong><code class="highlighter-rouge">dcos-root</code></strong>. The keystore is protected by <strong><code class="highlighter-rouge">notsecure</code></strong> password.</p>
 
 <p>The password <strong><code class="highlighter-rouge">notsecure</code></strong> that protects both JKS files (containing an end-entity certificate with private key and root CA certificate) has been selected because most Java tools and libraries require a password. It is not to meant to provide any additional protection. Security of both files is achieved by using DC/OS secrets store with file-based in-memory secrets. No other schedulers or tasks can access TLS artifacts provisioned by a scheduler.</p>
 
@@ -2036,7 +2036,7 @@ installed the
 <p>For a full list of which rlimits are supported, refer to <a href="https://github.com/apache/mesos/blob/master/docs/isolators/posix-rlimits.md">the Mesos documentation on rlimits</a>.</p>
 
 <p><strong>Virtual networks</strong>
-The SDK supports having pods join virtual neworks (including the <code class="highlighter-rouge">dcos</code> overlay network). For an in-depth explanation of how virtual networks work on DC/OS see the <a href="https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. When a pod joins a virtual network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining <code class="highlighter-rouge">dcos</code> we ignore the <code class="highlighter-rouge">ports</code> resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on this virtual network is <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code>. Note that this DNS will also work for pods on the host network. <strong>Because the <code class="highlighter-rouge">ports</code> resources are not used when a pod is on the virtual network, we do not allow a pod to be moved from a virtual network to the host network or vice-versa</strong>. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.</p>
+The SDK supports having pods join virtual networks (including the <code class="highlighter-rouge">dcos</code> overlay network). For an in-depth explanation of how virtual networks work on DC/OS see the <a href="https://docs.mesosphere.com/latest/networking/virtual-networks/#virtual-network-service-dns">documentation</a>. When a pod joins a virtual network it gets its own IP address and has access to its own array of ports. Therefore when a pod specifies that it is joining <code class="highlighter-rouge">dcos</code> we ignore the <code class="highlighter-rouge">ports</code> resource requirements, because the pod will not consume the ports on the host machine. The DNS for pods on this virtual network is <code class="highlighter-rouge">&lt;task_name&gt;.&lt;framework_name&gt;.autoip.dcos.thisdcos.directory</code>. Note that this DNS will also work for pods on the host network. <strong>Because the <code class="highlighter-rouge">ports</code> resources are not used when a pod is on the virtual network, we do not allow a pod to be moved from a virtual network to the host network or vice-versa</strong>. This is to prevent potential starvation of the task when the host with the reserved resources for the task does not have the available ports required to launch the task.</p>
 
 <h3 id="placement-rules">
 <a id="placement-rules" class="anchor" href="#placement-rules" aria-hidden="true"><span class="octicon octicon-link"></span></a>Placement Rules</h3>
@@ -2331,7 +2331,7 @@ hello
   <span class="nt">&lt;port&gt;</span>1984<span class="nt">&lt;/port&gt;</span>
   <span class="nt">&lt;game&gt;</span>mysvc<span class="nt">&lt;/game&gt;</span>
   <span class="c">&lt;!-- ... --&gt;</span>
-<span class="nt">&lt;config&gt;</span>
+<span class="nt">&lt;/config&gt;</span>
 </code></pre></div></div>
 
 <p>To be clear, the config templating provided by the <code class="highlighter-rouge">bootstrap</code> tool may be applied to <em>any text format</em>, not just XML as in this example. This makes it a powerful tool for handling any config files your service may need. Read more about setting this up in the <a href="#bootstrap">Bootstrap Tool</a> section.</p>
