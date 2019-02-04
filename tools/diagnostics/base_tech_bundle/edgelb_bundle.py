@@ -12,11 +12,11 @@ logging = logging.getLogger(__name__)
 class EdgeLBBundle(BaseTechBundle):
     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
         # Override package name as 'edgelb' rather than 'edgelb-pool'
-        if package_name is not 'edgelb':
+        if package_name != 'edgelb':
             package_name = 'edgelb'
 
         # Override service name as 'edgelb' rather than 'dcos-edgelb/pools/<pool-name>'
-        if service_name is not 'edgelb':
+        if service_name != 'edgelb':
             service_name = 'edgelb'
 
         super().__init__(package_name,
