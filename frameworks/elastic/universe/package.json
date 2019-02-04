@@ -6,7 +6,7 @@
   "name": "portworx-elastic",
   "version": "{{package-version}}",
   "maintainer": "support@portworx.com",
-  "description": "Elasticsearch 6.3.2, and X-Pack",
+  "description": "Elasticsearch 6, and X-Pack",
   "selected": false,
   "framework": true,
   "tags": ["elastic", "elasticsearch", "kibana", "x-pack", "portworx"],

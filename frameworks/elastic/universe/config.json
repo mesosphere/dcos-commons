@@ -576,7 +576,7 @@
       "additionalProperties": false,
       "properties": {
         "xpack_security_enabled": {
-          "description": "Whether or not to enable the commercial X-Pack plugin from Elastic",
+          "description": "Set it to true to enable X-Pack security on all nodes. Defaults to false",
           "type": "boolean",
           "default": false
         },
