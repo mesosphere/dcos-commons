@@ -45,7 +45,7 @@ pods:
     tasks:
       ...
 ```
-* Declared that we need atleast `{{COUNT}}` instances of the `helloworld` pod running at all times, where `COUNT` is the environment variable that is injected into the scheduler process at launch time via Marathon. It defaults to `1` for this example.
+* Declared that we need at least `{{COUNT}}` instances of the `helloworld` pod running at all times, where `COUNT` is the environment variable that is injected into the scheduler process at launch time via Marathon. It defaults to `1` for this example.
 * Defined a task specification for our `server` task using:
 
 ```yaml

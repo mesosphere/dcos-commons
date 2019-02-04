@@ -37,7 +37,7 @@ Older versions of `build.gradle` contained the following dependencies and no ent
 * `compile "mesosphere:scheduler:<CURRENT_SDK_VERSION>"`
 * `testCompile "mesosphere:testing:<CURRENT_SDK_VERSION>"`
 
-Although this is supported in the current upgrade path, it is recommended that hese are changed to match the dependencies at the start of this section as this will result in a single line diff in the `build.gradle` file on update.
+Although this is supported in the current upgrade path, it is recommended that these are changed to match the dependencies at the start of this section as this will result in a single line diff in the `build.gradle` file on update.
 
 ### Check the `universe/resource.json` file
 
@@ -143,10 +143,10 @@ Note that the update procedure could also *delete* unneeded files.
 
 Check the differences in `build.gradle` and `tools/release_builder.py` to ensure that the `<NEW_SDK_VERSION>` is present in both files.
 
-Now add the changes to version control using the required git commants (`git add`, `git rm`).
+Now add the changes to version control using the required git commands (`git add`, `git rm`).
 
 ## Further steps
 
 * See the SDK release notes for any changes required when consuming the SKD.
 * If the build process is heavily customized, it may be that additional changes will be required to the `build.sh` file in the repo.
-* The API of the testing tools in `testing` could have changed, and any integration tests may need to be updted. Run `git diff testing` to check for any relevant changes.
+* The API of the testing tools in `testing` could have changed, and any integration tests may need to be updated. Run `git diff testing` to check for any relevant changes.
