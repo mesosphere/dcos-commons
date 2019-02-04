@@ -27,14 +27,6 @@ class ServiceBundle(Bundle):
         self.framework_id = service.get("id")
         self.output_directory = output_directory
 
-    @config.retry
-    def install_cli(self):
-        sdk_cmd.run_cli(
-            "package install {} --cli --yes".format(self.package_name),
-            print_output=False,
-            check=True,
-        )
-
     def tasks(self):
         return self.service.get("tasks") + self.service.get("completed_tasks")
 
@@ -51,57 +43,6 @@ class ServiceBundle(Bundle):
     def for_each_running_task_with_prefix(self, prefix, fn):
         task_ids = [t["id"] for t in self.running_tasks() if t["name"].startswith(prefix)]
         self.run_on_tasks(fn, task_ids)
-
-    @config.retry
-    def create_configuration_file(self):
-        rc, stdout, stderr = sdk_cmd.svc_cli(
-            self.package_name, self.service_name, "describe", print_output=False
-        )
-
-        if rc != 0 or stderr:
-            log.error(
-                "Could not get service configuration\nstdout: '%s'\nstderr: '%s'", stdout, stderr
-            )
-        else:
-            self.write_file("service_configuration.json", stdout)
-
-    @config.retry
-    def create_pod_status_file(self):
-        rc, stdout, stderr = sdk_cmd.svc_cli(
-            self.package_name, self.service_name, "pod status --json", print_output=False
-        )
-
-        if rc != 0 or stderr:
-            log.error("Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
-        else:
-            self.write_file("service_pod_status.json", stdout)
-
-    @config.retry
-    def create_plan_status_file(self, plan):
-        rc, stdout, stderr = sdk_cmd.svc_cli(
-            self.package_name,
-            self.service_name,
-            "plan status {} --json".format(plan),
-            print_output=False,
-        )
-
-        if rc != 0 or stderr:
-            log.error("Could not get pod status\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
-        else:
-            self.write_file("service_plan_status_{}.json".format(plan), stdout)
-
-    @config.retry
-    def create_plans_status_files(self):
-        rc, stdout, stderr = sdk_cmd.svc_cli(
-            self.package_name, self.service_name, "plan list", print_output=False
-        )
-
-        if rc != 0 or stderr:
-            log.error("Could not get plan list\nstdout: '%s'\nstderr: '%s'", stdout, stderr)
-        else:
-            plans = json.loads(stdout)
-            for plan in plans:
-                self.create_plan_status_file(plan)
 
     def download_log_files(self):
         all_tasks = self.scheduler_tasks + self.tasks()
@@ -124,7 +65,8 @@ class ServiceBundle(Bundle):
                     task_executor_sandbox_paths[task["id"]] = task_executor_sandbox_path
                 else:
                     log.info(
-                        "Could not find executor sandbox path for task '%s'. This probably means that its agent ('%s') is missing",
+                        "Could not find executor sandbox path for task '%s'. "
+                        "This probably means that its agent ('%s') is missing",
                         task["id"],
                         task["slave_id"],
                     )
@@ -240,10 +182,6 @@ class ServiceBundle(Bundle):
             )
 
     def create(self):
-        self.install_cli()
-        self.create_configuration_file()
-        self.create_pod_status_file()
-        self.create_plans_status_files()
         self.create_offers_file()
         self.create_v2_offers_file()
         self.create_plans_file()
