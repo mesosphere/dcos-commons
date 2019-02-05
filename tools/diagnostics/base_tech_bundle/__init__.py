@@ -118,6 +118,7 @@ from .elastic_bundle import ElasticBundle  # noqa: E402
 from .hdfs_bundle import HdfsBundle  # noqa: E402
 from .kafka_bundle import KafkaBundle  # noqa: E402
 from .kubernetes_bundle import KubernetesBundle   # noqa: E402
+from .edgelb_bundle import EdgeLBBundle   # noqa: E402
 
 
 BASE_TECH_BUNDLE = {
@@ -131,6 +132,7 @@ BASE_TECH_BUNDLE = {
     "hdfs": HdfsBundle,
     "kafka": KafkaBundle,
     "kubernetes": KubernetesBundle,
+    "edgelb-pool": EdgeLBBundle,
 }
 
 
@@ -151,4 +153,6 @@ __all__ = [
     "ElasticBundle",
     "HdfsBundle",
     "KafkaBundle",
+    "KubernetesBundle",
+    "EdgeLBBundle",
 ]
