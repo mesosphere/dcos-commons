@@ -2,6 +2,7 @@ package queries
 
 import (
 	"github.com/mesosphere/dcos-commons/cli/client"
+	"log"
 )
 
 type Config struct {
@@ -33,8 +34,10 @@ func (q *Config) Show(configId string) error {
 }
 
 func (q *Config) Target() error {
+	log.Printf("DELETEME@kjoshi Config::Target called!\n")
 	body, err := client.HTTPServiceGet(q.PrefixCb() + "configurations/target")
 	if err != nil {
+		log.Printf("DELETEME@kjoshi Error at configurations/target err:\n%s\nbody:%s\n", err, body)
 		return err
 	}
 	client.PrintJSONBytes(body)
