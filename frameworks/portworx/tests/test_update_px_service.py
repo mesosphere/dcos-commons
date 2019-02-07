@@ -140,7 +140,7 @@ def test_enable_secrets_and_verify():
     # Restart portworx service on all px nodes
     pod_count, pod_list = px_utils.get_px_pod_list()
     if pod_count <= 0:
-        log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
+        log.info("PORTWORX: Can't proceed with restart px service at test_enable_secrets_and_verify, Pod count is: {}".format(pod_count))
         raise
     px_utils.px_restart_portworx_service(pod_list[1])
     sleep(60)
