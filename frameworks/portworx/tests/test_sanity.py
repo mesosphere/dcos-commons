@@ -8,6 +8,7 @@ import shakedown
 import logging
 from tests import config
 from tests import px_utils
+from tests import dcos_utils
 from time import sleep
 
 log = logging.getLogger(__name__)
@@ -77,24 +78,10 @@ def test_replace_and_move_pod():
     if pod_agent_id_old == pod_agent_id_new:
         log.info("PORTWORX: Failed to replace and move pod. Old pod agent id: {} , New pod agent id: {}".format(pod_agent_id_old, pod_agent_id_new))
         raise
-    
+
     # Verify px status on new node 
     px_status = px_utils.check_px_status() 
     assert px_status == 2, "PORTWORX: Failed replace and move pod, status returned: {}".format(px_status)
-
-# Verify suspend and resume portworx service
-@pytest.mark.sanity
-def test_suspend_resume_px_service():
-    pod_count, pod_list = px_utils.get_px_pod_list()
-    if pod_count <= 0:
-        log.info("PORTWORX: Pod count is: {}".format(pod_count))
-        raise
-
-    pod_name = pod_list[1]
-    px_utils.px_service_suspend_resume(pod_name)
-
-    px_status = px_utils.check_px_status() 
-    assert px_status == 2, "PORTWORX: Failed service stop-start, status returned: {}".format(px_status)
 
 # Test the restart functionality of one pod
 @pytest.mark.sanity
@@ -149,12 +136,19 @@ def test_start_plan():
 # Perform Volume create operation
 @pytest.mark.sanity
 def test_vol_create():
+    # Verify px status before calling create px volume
+    px_status = px_utils.check_px_status()
+    assert px_status == 2, "PORTWORX: Avoiding volume create, status returned: {}".format(px_status)
+    sleep(90) # Observed failures while volume creation, so introducing sleep of 90 seconds here. 
+
     pod_count, pod_list = px_utils.get_px_pod_list()
     if pod_count <= 0:
         log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
         raise
     pod_name = pod_list[1]
+
     px_utils.px_create_volume(pod_name, "px_dcos_vol_1", 5)
+    sleep(30) # Wait before immediatly calling vol size, it is observed that dcos needs few seconds to refresh
     vol_size = px_utils.px_get_vol_size_in_gb("px_dcos_vol_1")
     if 5 != vol_size:
         log.info("PORTWORX: Size of created volume if incorrect, provided: 5, obtained: {}".format(vol_size))
@@ -171,7 +165,9 @@ def test_vol_update_size():
     pod_name = pod_list[1]
 
     px_utils.px_create_volume(pod_name, "px_dcos_vol_2", 5)
+    sleep(30) # Wait before immediatly calling vol update, it is observed that dcos needs few seconds to refresh
     px_utils.px_update_volume_size(pod_name, "px_dcos_vol_2", 7)
+    sleep(30) # Wait before immediatly calling vol size, it is observed that dcos needs few seconds to refresh
 
     vol_size = px_utils.px_get_vol_size_in_gb("px_dcos_vol_2")
     if 7 != vol_size:
@@ -189,6 +185,30 @@ def test_vol_delete():
     
     px_utils.px_delete_volume(pod_name, "px_dcos_vol_1")
     px_utils.px_delete_volume(pod_name, "px_dcos_vol_2")
+
+# Verify suspend and resume portworx service
+@pytest.mark.sanity
+def test_suspend_resume_px_service():
+    pod_count, pod_list = px_utils.get_px_pod_list()
+    if pod_count <= 0:
+        log.info("PORTWORX: Pod count is: {}".format(pod_count))
+        raise
+
+    pod_name = pod_list[1]
+    px_utils.px_service_suspend_resume(pod_name)
+
+    px_status = px_utils.check_px_status()
+    assert px_status == 2, "PORTWORX: Failed service stop-start, status returned: {}".format(px_status)
+
+# Test systemctl restart portworx service
+@pytest.mark.sanity
+def test_px_restart_service():
+    pod_count, pod_list = px_utils.get_px_pod_list()
+    if pod_count <= 0:
+        log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
+        raise
+    pod_name = pod_list[1]
+    px_utils.px_restart_portworx_service(pod_name)
 
 # Upgrade portworx framework from released version
 @pytest.mark.sanity

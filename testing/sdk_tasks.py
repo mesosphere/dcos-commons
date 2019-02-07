@@ -121,8 +121,10 @@ def get_summary(with_completed=False):
         task = Task.parse(task_line)
         if task is not None:
             output.append(task)
-    log.info('Task summary (with_completed={}):\n- {}'.format(
-        with_completed, '\n- '.join([str(e) for e in output])))
+
+    # Commenting below two lines to avoid huge output
+    # log.info('Task summary (with_completed={}):\n- {}'.format(
+    #    with_completed, '\n- '.join([str(e) for e in output])))
     return output
 
 

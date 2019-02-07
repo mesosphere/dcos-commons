@@ -23,7 +23,7 @@ PACKAGE_NAME = 'portworx'
 SERVICE_NAME = 'portworx'
 PX_AGENT_USER = "vagrant"
 PX_CLEANUP_SCRIPT_PATH = 'frameworks/portworx/scripts/px_dcos_cleanup.sh'
-PX_TIMEOUT = 10 * 60 # 10 minutes timeout for portworx operations.
+PX_TIMEOUT = 15 * 60 # 15 minutes timeout for portworx operations.
 
 DEFAULT_TASK_COUNT = 1
 
@@ -39,4 +39,13 @@ PX_NODE_OPTIONS = { "node": { "portworx_options": PX_OPTIONS,
                             "portworx_cluster": PX_CLUSTER_NAME,
                   } }
 
-
+PX_SEC_OPTIONS = { "group_name": "px_service_grp",
+                   "user_name": "px_user_1",
+                   "user_password": "px_user_1_password",
+                   "base_path": "pwx/secrets",
+                   "secret_value": "px_secret_value",
+                   "secret_key": "px_secret_key",
+                   "user_secret_id": "user_secrets",
+                   "password_secret_id": "password_secrets",
+                   "encrypted_volume_name" : "px_encrypt_vol_1"
+                 }

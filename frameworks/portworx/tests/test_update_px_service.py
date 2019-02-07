@@ -19,6 +19,8 @@ from security import transport_encryption
 
 from tests import config
 from tests import px_utils
+from tests import dcos_utils
+from time import sleep
 
 log = logging.getLogger(__name__)
 
@@ -73,6 +75,7 @@ def portworx_service(service_account):
 
     px_cluster_name = "portworx-dcos-" + config.get_random_string(12)
     config.PX_NODE_OPTIONS["node"]["portworx_cluster"] = px_cluster_name
+    config.PX_NODE_OPTIONS["node"]["portworx_image"] = os.environ['PX_OLD_IMAGE']
     try:
         sdk_install.install(
             config.PACKAGE_NAME,
@@ -93,6 +96,67 @@ def portworx_service(service_account):
         sdk_install.portworx_cleanup()
 
 @pytest.mark.sanity
+def test_update_px_image():
+    portworx_service()
+    px_image = os.environ['PX_IMAGE']
+    update_options = {
+        "node": {
+            "portworx_image": px_image
+            }
+        }
+
+    update_service(update_options, False)
+    px_status = px_utils.check_px_status() 
+    assert px_status == 2, "PORTWORX: Update Px image failed px service status: {}".format(px_status)
+
+# Test update portworx framework with secrets enabled.
+@pytest.mark.sanity
+def test_enable_secrets_and_verify():
+    dcos_utils.install_enterprise_cli()
+    if not dcos_utils.check_secret_present(config.SERVICE_NAME, config.PX_SEC_OPTIONS["user_secret_id"]):
+        dcos_utils.create_dcos_user(config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["user_password"])
+        dcos_utils.create_dcos_secrets(config.PX_SEC_OPTIONS["secret_value"], config.PX_SEC_OPTIONS["base_path"], config.PX_SEC_OPTIONS["secret_key"])
+        dcos_utils.create_dcos_secrets(config.PX_SEC_OPTIONS["user_name"], config.SERVICE_NAME, config.PX_SEC_OPTIONS["user_secret_id"])
+        dcos_utils.create_dcos_secrets(config.PX_SEC_OPTIONS["user_password"], config.SERVICE_NAME, config.PX_SEC_OPTIONS["password_secret_id"])
+        dcos_utils.grant_permissions_to_user(config.PX_SEC_OPTIONS["user_name"], config.PX_SEC_OPTIONS["base_path"])
+ 
+   
+    assert dcos_utils.check_secret_present(config.SERVICE_NAME, config.PX_SEC_OPTIONS["user_secret_id"]), " User secrets is not present in the list"
+    sleep(60)
+
+    # Update portworx service with enabled secrets
+    update_options = {
+        "secrets": {
+            "enabled": True,
+            "base_path": config.PX_SEC_OPTIONS["base_path"],
+            "dcos_username_secret": config.SERVICE_NAME + "/" + config.PX_SEC_OPTIONS["user_secret_id"],
+            "dcos_password_secret": config.SERVICE_NAME + "/" + config.PX_SEC_OPTIONS["password_secret_id"]
+            }
+        }
+
+    update_service(update_options)
+    sleep(60)
+ 
+    # Restart portworx service on all px nodes
+    pod_count, pod_list = px_utils.get_px_pod_list()
+    if pod_count <= 0:
+        log.info("PORTWORX: Can't proceed with restart px service at test_enable_secrets_and_verify, Pod count is: {}".format(pod_count))
+        raise
+    px_utils.px_restart_portworx_service(pod_list[1])
+    sleep(60)
+
+# Test create encrypted px volume
+@pytest.mark.sanity
+def test_create_encrypted_px_volume():
+    pod_count, pod_list = px_utils.get_px_pod_list()
+    if pod_count <= 0:
+        log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
+        raise
+    pod_name = pod_list[1]
+    px_utils.px_create_encrypted_volume(pod_name, config.PX_SEC_OPTIONS["encrypted_volume_name"], config.PX_SEC_OPTIONS["secret_key"])
+    assert px_utils.px_is_vol_encrypted(config.PX_SEC_OPTIONS["encrypted_volume_name"]), "PORTWORX: Failed to create encrypted volume."
+
+@pytest.mark.sanity
 def test_update_node_count():
     portworx_service()
     update_options = {
@@ -109,21 +173,6 @@ def test_update_node_count():
     if 3 != px_node_count:
         log.info("PORTWORX: Failed to update node count  to 3, node count is: {}".format(px_node_count))
         raise
-
-
-@pytest.mark.sanity
-def test_update_px_image():
-    portworx_service()
-    px_image = os.environ['PX_IMAGE']
-    update_options = {
-        "node": {
-            "portworx_image": px_image
-            }
-        }
-
-    update_service(update_options)
-    px_status = px_utils.check_px_status() 
-    assert px_status == 2, "PORTWORX: Update Px image failed px service status: {}".format(px_status)
 
 @pytest.mark.sanity
 def test_update_enable_lighthouse():

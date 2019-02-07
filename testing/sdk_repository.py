@@ -10,11 +10,10 @@ import os
 import random
 import string
 from itertools import chain
-
+from time import sleep
 import sdk_cmd
 
 log = logging.getLogger(__name__)
-
 
 def flatmap(f, items):
     """
@@ -59,7 +58,17 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
         stub_urls[package_name] = url
 
     # clean up any duplicate repositories
-    current_universes = sdk_cmd.run_cli('package repo list --json')
+    count = 5
+    while count > 0:
+        current_universes = sdk_cmd.run_cli('package repo list --json')
+        try:
+            json.loads(current_universes)
+        except ValueError:
+            sleep(5)
+            count = count - 1
+            continue
+        break
+
     for repo in json.loads(current_universes)['repositories']:
         if repo['uri'] in stub_urls.values():
             log.info('Removing duplicate stub URL: {}'.format(repo['uri']))
@@ -68,7 +77,17 @@ def add_stub_universe_urls(stub_universe_urls: list) -> dict:
     # add the needed universe repositories
     for name, url in stub_urls.items():
         log.info('Adding stub repo {} URL: {}'.format(name, url))
-        rc, stdout, stderr = sdk_cmd.run_raw_cli('package repo add --index=0 {} {}'.format(name, url))
+
+        count = 5
+        while count > 0:
+            rc, stdout, stderr = sdk_cmd.run_raw_cli('package repo add --index=0 {} {}'.format(name, url))
+            if rc != 0 or stderr:
+                count = count - 1
+                log.info('retrying adding stub repo {} URL: {}'.format(name, url))
+                continue
+            else:
+                break
+
         if rc != 0 or stderr:
             raise Exception(
                 'Failed to add stub repo {} ({}): stdout=[{}], stderr=[{}]'.format(

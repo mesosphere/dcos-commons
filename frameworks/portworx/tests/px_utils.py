@@ -104,7 +104,7 @@ def get_px_node_count():
             return -9999
     return int(px_node_count)
 
-def check_px_status():
+def check_px_status(do_not_wait = 0):
     cmd = "portworx status | jq -r '.Status'"
     count = 0
     
@@ -114,12 +114,16 @@ def check_px_status():
             count = count + 10 # Don't wait for too much time in this case 
             sleep(10)
             px_status = -999
+            if do_not_wait:
+                break
             continue
 
         if 2 != int(px_status):
             log.info("Portworx status is: {}".format(px_status))
             count = count + 5
             sleep(5)
+            if do_not_wait:
+                break
             continue
         else:
             break
@@ -132,7 +136,7 @@ def px_service_suspend_resume(pod_name):
     _, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     log.info("PortworxCMD:{} cli output: {}, cli error: {}".format(cmd, std_out, std_err))
     sleep(20) # Lets wait for 20 seconds?
-    px_status = check_px_status()
+    px_status = check_px_status(1)
     if px_status == 2:
         log.info("PORTWORX: Service has not stoped")
         raise
@@ -143,13 +147,29 @@ def px_service_suspend_resume(pod_name):
 def px_get_vol_size_in_gb(vol_name):
     gb_factor = 1024 * 1024 * 1024
     cmd = "portworx volume list | jq '.[] | select(.locator.name == \"" + vol_name +"\") | .spec.size'" 
-    _, vol_size, std_err = sdk_cmd.run_raw_cli(cmd)
+
+    count = 5
+    while count > 0:
+        _, vol_size, std_err = sdk_cmd.run_raw_cli(cmd)
+        if not is_int(vol_size):
+            sleep(5)
+            count = count - 1
+            continue
+        break
 
     if not is_int(vol_size):
-            return -9999
+        return -9999
 
     vol_size = int(vol_size)/gb_factor
     return vol_size
+
+def px_is_vol_encrypted(vol_name):
+    cmd = "portworx volume list | jq '.[] | select(.locator.name == \"" + vol_name +"\") | .spec.encrypted'"
+    _, vol_type, std_err = sdk_cmd.run_raw_cli(cmd)
+    if vol_type == "true":
+        return True
+    else:
+        return False
 
 def px_create_volume(pod_name, vol_name = "dcos_test_vol", size = 10):
     agent_id = px_get_agent_id(pod_name)
@@ -177,4 +197,36 @@ def px_update_volume_size(pod_name, vol_name, new_size):
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed volume update operation, node id: {}, volume name: {}, size:{}, with error:{}".format(agent_id, vol_name, size, std_err))
+        raise
+
+# command: /opt/pwx/bin/pxctl secrets dcos login --username px_user1 --password px_user1_password --base-path pwx/secrets
+def px_dcos_login(pod_name, user_name, user_password, base_path):
+    agent_id = px_get_agent_id(pod_name)
+
+    cmd = "node ssh  \"pxctl secrets dcos login --username " + user_name + " --password " + user_password + " --base-path " + base_path + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" +  agent_id + " --option StrictHostKeyChecking=no"
+    ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
+    if ret_val:
+        log.info("PORTWORX: Failed dcos secrets login on node id: {}, user name: {}, user password:{}, base path: {}, with error:{}".format(agent_id, user_name, user_password, base_path, std_err))
+        raise
+
+# command: sudo systemctl restart portworx
+def px_restart_portworx_service(pod_name):
+    agent_id = px_get_agent_id(pod_name)
+    cmd = "node ssh  \"sudo systemctl restart portworx\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    _, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
+    log.info("PortworxCMD:{} cli output: {}, cli error: {}".format(cmd, std_out, std_err))
+    sleep(20) # Lets wait for 20 seconds?
+    px_status = check_px_status()
+    if px_status != 2:
+        log.info("PORTWORX: Service has not restarted.")
+        raise
+
+# command: /opt/pwx/bin/pxctl volume create --secure --secret_key px_skey  enc_vol1
+def px_create_encrypted_volume(pod_name, vol_name, secret_key):
+    agent_id = px_get_agent_id(pod_name)
+
+    cmd = "node ssh  \"pxctl volume create --secure --secret_key " + secret_key + " " + vol_name + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
+    if ret_val:
+        log.info("PORTWORX: Failed encrypted  volume creation, node id: {}, volume name: {}, with error:{}".format(agent_id, vol_name, std_err))
         raise
