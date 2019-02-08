@@ -11,6 +11,7 @@ import retrying
 import traceback
 
 import sdk_cmd
+import sdk_utils
 
 log = logging.getLogger(__name__)
 
@@ -124,6 +125,8 @@ def reconnect_agent(agent_host: str):
 
 
 def decommission_agent(agent_id: str):
+    assert sdk_utils.dcos_version_at_least("1.11"),\
+        "node decommission is supported in DC/OS 1.11 and above only"
     rc, _, _ = sdk_cmd.run_cli(
         "node decommission {}".format(agent_id)
     )

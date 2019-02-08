@@ -347,6 +347,7 @@ def test_config_update_while_partitioned():
 # WARNING: KEEP THIS TEST AT THE END
 # @@@@@@@
 @pytest.mark.sanity
+@pytest.mark.dcos_min_version("1.11")
 def test_auto_replace_on_decommission():
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile("^(hello|world)-[0-9]+-server$")
