@@ -14,6 +14,8 @@ log = logging.getLogger(__name__)
 
 PACKAGE_NAME = "cassandra"
 
+CASSANDRA_DOCKER_IMAGE = "cassandra:3.11.3"
+
 SERVICE_NAME = os.environ.get("SOAK_SERVICE_NAME") or "cassandra"
 
 DEFAULT_TASK_COUNT = 3
@@ -42,10 +44,6 @@ def _get_cqlsh_tls_rc_config(node_address, node_port, certfile="/mnt/mesos/sandb
     """
     return textwrap.dedent(
         """
-        [cql]
-        ; Substitute for the version of Cassandra you are connecting to.
-        version = 3.4.0
-
         [connection]
         hostname = {hostname}
         port = {port}
@@ -84,7 +82,7 @@ def _get_test_job(
         "id": "test.cassandra." + name,
         "run": {
             "cmd": " && ".join(commands),
-            "docker": {"image": "cassandra:3.0.13"},
+            "docker": {"image": CASSANDRA_DOCKER_IMAGE},
             "cpus": 1,
             "mem": 512,
             "disk": 100,

@@ -39,7 +39,7 @@
     "SERVICE_USER": "{{service.user}}",
     "SERVICE_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
-    "CASSANDRA_VERSION": "3.0.16",
+    "CASSANDRA_VERSION": "3.11.3",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
 
     {{#service.service_account_secret}}
@@ -50,7 +50,7 @@
     {{/service.service_account_secret}}
     {{#service.security.transport_encryption.enabled}}
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED": "{{service.security.transport_encryption.enabled}}",
-    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-3.0.16/conf/cqlshrc",
+    "CASSANDRA_CQLSH_SSL_FLAGS": "--ssl --cqlshrc=./apache-cassandra-${CASSANDRA_VERSION}/conf/cqlshrc",
     {{#service.security.transport_encryption.allow_plaintext}}
     "TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ALLOW_PLAINTEXT": "{{service.security.transport_encryption.allow_plaintext}}",
     {{/service.security.transport_encryption.allow_plaintext}}
@@ -83,6 +83,7 @@
     {{#service.region}}
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}
+    "TASKCFG_ALL_CASSANDRA_USER": "{{service.user}}",
     "TASKCFG_ALL_JMX_PORT": "{{cassandra.jmx_port}}",
     "TASKCFG_ALL_CASSANDRA_NUM_TOKENS": "{{cassandra.num_tokens}}",
     "TASKCFG_ALL_CASSANDRA_HINTED_HANDOFF_ENABLED": "{{cassandra.hinted_handoff_enabled}}",
