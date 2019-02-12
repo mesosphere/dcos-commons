@@ -40,7 +40,7 @@
           "type": "string",
           "default": ""
         },
-        "mesos_api_version": {
+       "mesos_api_version": {
           "description": "Configures the Mesos API version to use. Possible values: V0 (non-HTTP), V1 (HTTP)",
           "type": "string",
           "enum": [
@@ -63,6 +63,14 @@
             "ALL"
           ],
           "default": "INFO"
+        },
+        "region": {
+          "description": "All Elastic nodes will run in this region.  When no region is specified the nodes are constrained to the local region.",
+          "type": "string",
+          "default": "",
+          "media": {
+            "type": "application/x-region+string"
+          }
         },
         "deploy_strategy": {
           "description": "Elasticsearch deploy strategy. [parallel, serial]",
@@ -163,6 +171,54 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 5,
+              "minimum": 5
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0,
+              "minimum": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 10,
+              "minimum": 10
+            }
+          }
+        },
+        "rlimits": {
+          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "rlimit_nofile": {
+              "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 128000,
+                  "minimum": 128000
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 128000,
+                  "minimum": 128000
+                }
+              }
+            }
+          }
         }
       },
       "required": [
@@ -228,6 +284,54 @@
           "default": "[[\"hostname\", \"UNIQUE\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
+          }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 5,
+              "minimum": 5
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0,
+              "minimum": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 10,
+              "minimum": 10
+            }
+          }
+        },
+        "rlimits": {
+          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "rlimit_nofile": {
+              "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 128000,
+                  "minimum": 128000
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 128000,
+                  "minimum": 128000
+                }
+              }
+            }
           }
         }
       },
@@ -295,6 +399,54 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 5,
+              "minimum": 5
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0,
+              "minimum": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 10,
+              "minimum": 10
+            }
+          }
+        },
+        "rlimits": {
+          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "rlimit_nofile": {
+              "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 128000,
+                  "minimum": 128000
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 128000,
+                  "minimum": 128000
+                }
+              }
+            }
+          }
         }
       },
       "required": [
@@ -361,7 +513,55 @@
           "media": {
             "type": "application/x-zone-constraints+json"
           }
-        }
+        },
+        "readiness_check" : {
+          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "interval": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last readiness check has completed to start the next check.",
+              "default": 5,
+              "minimum": 5
+            },
+            "delay": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the readiness check attempts.",
+              "default": 0,
+              "minimum": 0
+            },
+            "timeout": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait for a readiness check to succeed.",
+              "default": 10,
+              "minimum": 10
+            }
+          }
+        },
+        "rlimits": {
+          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "type": "object",
+          "properties": {
+            "rlimit_nofile": {
+              "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 128000,
+                  "minimum": 128000
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 128000,
+                  "minimum": 128000
+                }
+              }
+            }
+          }
+        }     
       },
       "required": [
         "cpus",
@@ -375,8 +575,8 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "xpack_enabled": {
-          "description": "Whether or not to enable the commercial X-Pack plugin from Elastic",
+        "xpack_security_enabled": {
+          "description": "Set it to true to enable X-Pack security on all nodes. Defaults to false",
           "type": "boolean",
           "default": false
         },
@@ -538,11 +738,6 @@
           "description": "The maximum number of events to be queued up in memory before a HTTP connection is closed, defaults to 10000.",
           "type": "integer",
           "default": 10000
-        },
-        "http_content_type_required": {
-          "description": "Enables or disables strict checking and usage of the Content-Type header for all requests with content, defaults to false.",
-          "type": "boolean",
-          "default": false
         },
         "thread_pool_search_size": {
           "description": "For count/search/suggest operations. Thread pool type is fixed with a size of int((# of available_processors * 3) / 2) + 1. Empty means do not explicity set.",
@@ -883,6 +1078,16 @@
           "description": "The cache is managed at the node level, and has a default maximum size of 1% of the heap. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
+        },
+        "xpack_enabled": {
+          "description": "[DEPRECATED] X-Pack is enabled by default on Elastic 6.3+. Changing this setting has no effect.",
+          "type": "boolean",
+          "default": true
+        },
+        "http_content_type_required": {
+          "description": "[DEPRECATED] Starting from Elasticseach 6.0, this setting is no longer configurable and defaults to true. Changing this setting has no effect.",
+          "type": "boolean",
+          "default": true
         }
       }
     }
