@@ -84,7 +84,7 @@ pods:
           cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 export TASK_IP=$(./bootstrap --get-task-ip) &&
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -E "UN( |\t)+$TASK_IP"
           interval: {{READINESS_CHECK_INTERVAL}}
           delay: {{READINESS_CHECK_DELAY}}
           timeout: {{READINESS_CHECK_TIMEOUT}}
