@@ -111,7 +111,7 @@ configurations {
 ext {
     // Only include version numbers here if it'd be redundant to repeat them below:
     jacksonVer = "2.6.7"
-    curatorVer = "2.9.1"
+    curatorVer = "4.1.0"
     httpClientVer = "4.5.2"
     jerseyVer = "2.23"
     elVer = "2.2.4"
