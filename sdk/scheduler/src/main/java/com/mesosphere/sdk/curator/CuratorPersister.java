@@ -123,7 +123,7 @@ public class CuratorPersister implements Persister {
     for (String child : client.getChildren().forPath(path)) {
       String childPath = PersisterUtils.joinPaths(path, child);
       // SUPPRESS CHECKSTYLE ParameterAssignment
-          deleteChildrenOf(client, childPath, operations, pendingDeletePaths);
+      deleteChildrenOf(client, childPath, operations, pendingDeletePaths);
       if (!pendingDeletePaths.contains(childPath)) {
         // Avoid attempting to delete a path twice in the same transaction, just in case we're told
         // to delete two nodes where one is the child of the other (or something to that effect)
@@ -152,23 +152,6 @@ public class CuratorPersister implements Persister {
       throw new PersisterException(
           Reason.NOT_FOUND,
           String.format("Path to get does not exist: %s", path), e);
-    } catch (Exception e) { // SUPPRESS CHECKSTYLE IllegalCatch
-      throw new PersisterException(
-          Reason.STORAGE_ERROR,
-          // SUPPRESS CHECKSTYLE MultipleStringLiterals
-          String.format("Unable to retrieve data from %s", path), e);
-    }
-  }
-
-  boolean exists(String unprefixedPath) throws PersisterException {
-    final String path = withFrameworkPrefix(unprefixedPath);
-    try {
-      return client.getData().forPath(path) != null;
-    } catch (KeeperException.NoNodeException e) {
-      if (path.equals(serviceRootPath)) {
-        return true;
-      }
-      return false;
     } catch (Exception e) { // SUPPRESS CHECKSTYLE IllegalCatch
       throw new PersisterException(
           Reason.STORAGE_ERROR,
