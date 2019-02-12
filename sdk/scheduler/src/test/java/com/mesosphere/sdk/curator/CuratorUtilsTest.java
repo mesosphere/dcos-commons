@@ -20,7 +20,7 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.api.CreateBuilder;
 import org.apache.curator.framework.api.ExistsBuilder;
 import org.apache.curator.framework.api.GetDataBuilder;
-import org.apache.curator.framework.api.ProtectACLCreateModePathAndBytesable;
+import org.apache.curator.framework.api.ProtectACLCreateModeStatPathAndBytesable;
 import org.apache.zookeeper.KeeperException;
 
 /**
@@ -32,7 +32,7 @@ public class CuratorUtilsTest {
     @Mock private CuratorFramework mockClient;
     @Mock private GetDataBuilder mockGetDataBuilder;
     @Mock private CreateBuilder mockCreateBuilder;
-    @Mock private ProtectACLCreateModePathAndBytesable<String> mockCreateParentsBuilder;
+    @Mock private ProtectACLCreateModeStatPathAndBytesable<String> mockCreateParentsBuilder;
     @Mock private ExistsBuilder mockExistsBuilder;
 
     @Before
