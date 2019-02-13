@@ -81,6 +81,12 @@
             "type": "string",
             "default": "-a -x mesos"
           },
+          "internal_kvdb": {
+            "title": "Internal KVDB",
+            "description": "Portworx will internally create and manage a key-value store cluster. KVDB servers or framework etcd will not be used if internal KVDB is enabled.",
+            "type": "boolean",
+            "default": false
+          },
           "kvdb_servers": {
             "title": "KVDB servers",
             "description": "Comma seperated IP:PORT entries for the key value database (etcd or consul). If the etcd server is started using the pacakge this will be ignored",

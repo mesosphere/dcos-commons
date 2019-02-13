@@ -79,6 +79,10 @@ pods:
                 PORTWORX_KVDB={{PORTWORX_KVDB_SERVERS}}
                 {{/ETCD_ENABLED}}
 
+                {{#INTERNAL_KVDB}}
+                KVDB_OPTION="-b"
+                {{/INTERNAL_KVDB}}
+
                 if [[ ! -z "${PORTWORX_KVDB// }" ]]; then
                     KVDB_OPTION="-k $PORTWORX_KVDB"
                 fi

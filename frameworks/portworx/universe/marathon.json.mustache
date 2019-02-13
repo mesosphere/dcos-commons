@@ -41,6 +41,8 @@
     "PORTWORX_START_PORT": "{{node.portworx_port_range_start}}",
     "PORTWORX_OPTIONS": "{{{node.portworx_options}}}",
 
+    "INTERNAL_KVDB": "{{node.internal_kvdb}}",
+    {{^node.internal_kvdb}}
     "ETCD_ENABLED": "{{etcd.enabled}}",
     {{#etcd.enabled}}
     "ETCD_PROXY_ENABLED": "{{etcd.proxy_enabled}}",
@@ -48,6 +50,7 @@
     {{^etcd.enabled}}
     "PORTWORX_KVDB_SERVERS": "{{node.kvdb_servers}}",
     {{/etcd.enabled}}
+    {{/node.internal_kvdb}}
     {{#node.container_parameters}}
     "NODE_CONTAINER_PARAMETERS": "{{{node.container_parameters}}}",
     {{/node.container_parameters}}
