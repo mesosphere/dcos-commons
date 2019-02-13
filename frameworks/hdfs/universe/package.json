@@ -3,7 +3,7 @@
   "upgradesFrom": ["{{upgrades-from}}"],
   "downgradesTo": ["{{downgrades-to}}"],
   "minDcosReleaseVersion": "1.9",
-  "name": "portworx-hadoop",
+  "name": "portworx-hdfs",
   "version": "{{package-version}}",
   "maintainer": "support@portworx.com",
   "description": "Apache Hadoop Distributed File System (HDFS)",

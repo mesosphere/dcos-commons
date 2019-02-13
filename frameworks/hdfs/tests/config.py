@@ -11,7 +11,7 @@ import sdk_utils
 
 log = logging.getLogger(__name__)
 
-PACKAGE_NAME = sdk_utils.get_package_name("portworx-hadoop")
+PACKAGE_NAME = sdk_utils.get_package_name("portworx-hdfs")
 SERVICE_NAME = sdk_utils.get_service_name(PACKAGE_NAME.lstrip("beta-"))
 FOLDERED_SERVICE_NAME = sdk_utils.get_foldered_name(SERVICE_NAME)
 
