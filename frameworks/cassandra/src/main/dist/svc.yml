@@ -66,6 +66,9 @@ pods:
                     ARGS="$ARGS -R"
                 fi
 
+                # Honor jmx_port config otherwise Cassandra will hardcode to 7199
+                sed -i 's/JMX_PORT=.*/JMX_PORT="{{TASKCFG_ALL_JMX_PORT}}"/' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
         configs:
           cassandra:

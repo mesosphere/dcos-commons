@@ -1,12 +1,15 @@
 import pytest
 import logging
 
+import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_jobs
 import sdk_metrics
 import sdk_networks
 import sdk_plan
+import sdk_service
+import sdk_tasks
 import sdk_upgrade
 
 from tests import config
@@ -96,3 +99,25 @@ def test_metrics():
         config.DEFAULT_CASSANDRA_TIMEOUT,
         expected_metrics_exist,
     )
+
+
+@pytest.mark.sanity
+def test_custom_jmx_port():
+    expected_port = "-Dcassandra.jmx.local.port=7200"
+
+    new_config = {"cassandra": {"jmx_port": 7200}}
+
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        config.get_foldered_service_name(),
+        new_config,
+        config.DEFAULT_TASK_COUNT,
+    )
+
+    sdk_plan.wait_for_completed_deployment(config.get_foldered_service_name())
+
+    tasks = sdk_tasks.get_service_tasks(config.get_foldered_service_name(), "node")
+
+    for task in tasks:
+        _, stdout, _ = sdk_cmd.run_cli("task log --lines=1000 {}".format(task.id))
+        assert expected_port in stdout
