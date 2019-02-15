@@ -103,7 +103,7 @@ def test_metrics():
 
 @pytest.mark.sanity
 def test_custom_jmx_port():
-    expected_port = "-Dcassandra.jmx.local.port=7200"
+    expected_open_port = ":7200 (LISTEN)"
 
     new_config = {"cassandra": {"jmx_port": 7200}}
 
@@ -119,5 +119,5 @@ def test_custom_jmx_port():
     tasks = sdk_tasks.get_service_tasks(config.get_foldered_service_name(), "node")
 
     for task in tasks:
-        _, stdout, _ = sdk_cmd.run_cli("task log --lines=1000 {}".format(task.id))
-        assert expected_port in stdout
+        _, stdout, _ = sdk_cmd.run_cli("task exec {} lsof -i :7200".format(task.id))
+        assert expected_open_port in stdout
