@@ -18,7 +18,14 @@ if [[ x"$current_branch" == x*"pull/"* ]]; then
         set +x
     fi
 
-    output="$( curl --silent "https://api.github.com/repos/${GIT_REPO}/${pr_name}" --retry 3 )"
+    REPO_URL="https://api.github.com/repos/${GIT_REPO}/${pr_name}"
+    CURL_ARGS="--silent --retry 3"
+    if [ -n "${GITHUB_TOKEN}" ]; then
+        output="$( curl ${CURL_ARGS} --header "Authorization: token ${GITHUB_TOKEN}" "${REPO_URL}" )"
+    else
+        output="$( curl ${CURL_ARGS} "${REPO_URL}" )"
+    fi
+
     # Note, curl does not return success/failure based on the HTTP code.
     # Check for a valid return value by retrieving the ID.
     pr_id="$( echo "$output" | jq -r .id )"
