@@ -2,6 +2,7 @@ import json
 import logging
 import re
 import retrying
+from toolz import get_in
 
 import sdk_cmd
 import sdk_hosts
@@ -99,23 +100,18 @@ def check_elasticsearch_index_health(
     return result and result["status"] == color
 
 
-@retrying.retry(
-    wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
-)
-def check_custom_elasticsearch_cluster_setting(service_name=SERVICE_NAME):
-    result = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")
-    if not result:
+@retrying.retry(wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res)
+def check_custom_elasticsearch_cluster_setting(
+    service_name=SERVICE_NAME, setting_path=None, expected_value=None
+):
+    settings = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")["defaults"]
+    if not settings:
         return False
-    expected_setting = 3
-    setting = result["defaults"]["cluster"]["routing"]["allocation"][
-        "node_initial_primaries_recoveries"
-    ]
+    actual_value = get_in(setting_path, settings)
     log.info(
-        "check_custom_elasticsearch_cluster_setting expected {} and got {}".format(
-            expected_setting, setting
-        )
+        "Expected '{}' to be '{}', got '{}'".format(setting_path, expected_value, actual_value)
     )
-    return expected_setting == int(setting)
+    return expected_value == actual_value
 
 
 @retrying.retry(
