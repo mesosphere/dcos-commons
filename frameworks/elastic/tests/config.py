@@ -568,9 +568,7 @@ def test_upgrade_from_xpack_enabled(
         test_version,
         {
             "service": {"update_strategy": "parallel"},
-            "elasticsearch": {
-                "xpack_security_enabled": False,
-            },
+            "elasticsearch": {"xpack_security_enabled": False},
         },
         expected_task_count,
     )
