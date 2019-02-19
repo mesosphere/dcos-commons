@@ -108,10 +108,10 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
         "openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr "
         '-subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn),
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     rc, raw_csr, _ = sdk_cmd.marathon_task_exec(marathon_task, "cat request.csr")
-    assert rc is 0
+    assert rc == 0
     request = {"certificate_request": raw_csr}
 
     output = sdk_cmd.marathon_task_exec(
@@ -121,14 +121,14 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
         "leader.mesos/ca/api/v2/sign "
         "-d '{}'".format(sdk_utils.dcos_token(), json.dumps(request)),
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     # Write the public cert to the client
     certificate = json.loads(output[1])["result"]["certificate"]
     output = sdk_cmd.marathon_task_exec(
         marathon_task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path)
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     _create_keystore_truststore(cn, marathon_task)
     return "CN={},OU=Mesosphere,O=Mesosphere,L=SF,ST=CA,C=US".format(cn)
@@ -151,7 +151,7 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         "-out keypair.p12 -name keypair -passout pass:export "
         '-CAfile {} -caname root"'.format(pub_path, priv_path, dcos_ca_bundle),
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     log.info("Generating certificate: importing into keystore and truststore")
     # Import into the keystore and truststore
@@ -162,7 +162,7 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         "-srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export "
         "-alias keypair".format(keystore_path),
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     output = sdk_cmd.marathon_task_exec(
         marathon_task,
@@ -170,4 +170,4 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         "-file {} -storepass changeit "
         "-keystore {}".format(dcos_ca_bundle, truststore_path),
     )
-    assert output[0] is 0
+    assert output[0] == 0
