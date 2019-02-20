@@ -124,16 +124,27 @@ def soak_upgrade_downgrade(
 def get_config(package_name, service_name):
     """Return the active config for the current service.
     This is retried 15 times, waiting 10s between retries."""
-    try:
-        # Refrain from dumping the full ServiceSpec to stdout
-        rc, stdout, _ = sdk_cmd.svc_cli(
-            package_name, service_name, "debug config target", print_output=False
+    # Refrain from dumping the full ServiceSpec to stdout
+    rc, stdout, stderr = sdk_cmd.svc_cli(
+        package_name, service_name, "debug config target", print_output=False
+    )
+
+    if rc != 0:
+        log.error(
+            "Could not get debug config target. return-code: '%s'\n"
+            "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
         )
-        assert rc == 0, "Target config fetch failed"
-        return json.loads(stdout)
-    except Exception as e:
-        log.error("Could not determine target config: %s", str(e))
         return None
+    else:
+        if stderr:
+            log.warning("Non-fatal debug config target message\nstderr: '%s'", stderr)
+
+        try:
+            return json.loads(stdout)
+        except Exception as e:
+            log.error("Could parse debug config target as JSON\n"
+                      "error: %s\n json to parse: %s", str(e), stdout)
+            return None
 
 
 def update_or_upgrade_or_downgrade(

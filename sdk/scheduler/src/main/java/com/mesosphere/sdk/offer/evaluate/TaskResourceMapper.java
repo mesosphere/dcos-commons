@@ -158,14 +158,19 @@ class TaskResourceMapper {
       PortSpec portSpec = (PortSpec) resourceSpec;
       if (portSpec.getPort() == 0) {
         // For dynamic ports, we need to detect the port value that we had selected.
-        return taskPortFinder.getPriorPort(portSpec)
-            .filter(priorTaskPort -> RangeUtils.isInAny(ranges.getRangeList(), priorTaskPort))
-            .map(ignored -> new ResourceLabels(
-                resourceSpec,
-                resourceId.get(),
-                ResourceMapperUtils.getNamespaceLabel(
-                    ResourceUtils.getNamespace(taskResource),
-                    resourceNamespace)));
+        Optional<Long> priorPort = taskPortFinder.getPriorPort(portSpec);
+        if (!priorPort.isPresent()) {
+          //this is a new portSpec and will never match a previously reserved taskResource
+          continue;
+        }
+        return priorPort
+              .filter(priorTaskPort -> RangeUtils.isInAny(ranges.getRangeList(), priorTaskPort))
+              .map(ignored -> new ResourceLabels(
+                  resourceSpec,
+                  resourceId.get(),
+                  ResourceMapperUtils.getNamespaceLabel(
+                      ResourceUtils.getNamespace(taskResource),
+                      resourceNamespace)));
       } else if (RangeUtils.isInAny(ranges.getRangeList(), portSpec.getPort())) {
         // For fixed ports, we can just check for a resource whose ranges include that port.
         return Optional.of(new ResourceLabels(

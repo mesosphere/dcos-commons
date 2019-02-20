@@ -137,12 +137,12 @@ def download_task_files(
     if pod_task_sandbox:
         output_pod_task_directory = os.path.join(base_path, task_id, "task")
         download_sandbox_files(
-            agent_id, executor_sandbox, output_pod_task_directory, patterns_to_download
+            agent_id, pod_task_sandbox, output_pod_task_directory, patterns_to_download
         )
 
         output_executor_directory = os.path.join(base_path, task_id, "executor")
         download_sandbox_files(
-            agent_id, pod_task_sandbox, output_executor_directory, patterns_to_download
+            agent_id, executor_sandbox, output_executor_directory, patterns_to_download
         )
     # Scheduler task: no parent executor, only download files under its sandbox.
     else:

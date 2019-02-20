@@ -283,4 +283,4 @@ cluster.routing.allocation.balance.threshold: {{CLUSTER_ROUTING_ALLOCATION_BALAN
 indices.requests.cache.size: {{INDICES_REQUESTS_CACHE_SIZE}}
 {{/INDICES_REQUESTS_CACHE_SIZE}}
 
-{{CUSTOM_YAML_BLOCK}}
+{{{CUSTOM_YAML_BLOCK}}}

@@ -403,7 +403,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     * `health-check`
 
-      Health checks are additional validation that your task is healthy, in addition to just the fact that its process is still running. This is an extra convenience for sitations where a service can enter a zombie state from which it can never return. For example, it might query an HTTP endpoint to validate that an HTTP service is still responding.
+      Health checks are additional validation that your task is healthy, in addition to just the fact that its process is still running. This is an extra convenience for situations where a service can enter a zombie state from which it can never return. For example, it might query an HTTP endpoint to validate that an HTTP service is still responding.
 
       * `cmd`
 
