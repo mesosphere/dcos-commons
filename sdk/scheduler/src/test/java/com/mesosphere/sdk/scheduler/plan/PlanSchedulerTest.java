@@ -10,7 +10,10 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 
-import org.apache.mesos.Protos.*;
+import org.apache.mesos.Protos.FrameworkID;
+import org.apache.mesos.Protos.Offer;
+import org.apache.mesos.Protos.OfferID;
+import org.apache.mesos.Protos.SlaveID;
 import org.apache.mesos.SchedulerDriver;
 import org.junit.Before;
 import org.junit.Test;
