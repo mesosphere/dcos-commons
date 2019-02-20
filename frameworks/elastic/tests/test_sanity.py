@@ -154,10 +154,12 @@ def test_custom_yaml_base64():
     #   routing:
     #     allocation:
     #       node_initial_primaries_recoveries: 3
-
-    # The default value is 4. We're just testing to make sure the YAML formatting survived intact and the setting
-    # got updated in the config.
-    base64_elasticsearch_yml = "Y2x1c3RlcjoNCiAgcm91dGluZzoNCiAgICBhbGxvY2F0aW9uOg0KICAgICAgbm9kZV9pbml0aWFsX3ByaW1hcmllc19yZWNvdmVyaWVzOiAz"
+    # script.allowed_contexts: ["search", "update"]
+    base64_elasticsearch_yml = "".join([
+        "Y2x1c3RlcjoKICByb3V0aW5nOgogICAgYWxsb2NhdGlvbjoKICAgICAgbm9kZV9pbml0aWFsX3By",
+        "aW1hcmllc19yZWNvdmVyaWVzOiAzCnNjcmlwdC5hbGxvd2VkX2NvbnRleHRzOiBbInNlYXJjaCIs",
+        "ICJ1cGRhdGUiXQ==",
+    ])
 
     sdk_service.update_configuration(
         config.PACKAGE_NAME,
@@ -166,7 +168,26 @@ def test_custom_yaml_base64():
         current_expected_task_count,
     )
 
-    config.check_custom_elasticsearch_cluster_setting(service_name=foldered_name)
+    # We're testing two things here:
+
+    # 1. The default value for `cluster.routing.allocation.node_initial_primaries_recoveries` is 4.
+    # Here we want to make sure that the end-result for the multiple YAML/Mustache compilation steps
+    # results in a valid elasticsearch.yml file, with the correct setting value.
+    config.check_custom_elasticsearch_cluster_setting(
+        foldered_name,
+        ["cluster", "routing", "allocation", "node_initial_primaries_recoveries"],
+        "3",
+    )
+
+    # 2. `script.allowed_contexts` has an "array of strings" value defined in the custom YAML. Here
+    # we're also making sure that the end-result for the multiple YAML/Mustache compilation steps
+    # results in a valid elasticsearch.yml file, but with a trickier compilation case due to the
+    # setting value being an array of strings.
+    config.check_custom_elasticsearch_cluster_setting(
+        foldered_name,
+        ["script", "allowed_contexts"],
+        ["search", "update"],
+    )
 
 
 @pytest.mark.sanity
