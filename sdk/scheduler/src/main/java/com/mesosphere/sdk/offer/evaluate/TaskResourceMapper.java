@@ -162,15 +162,14 @@ class TaskResourceMapper {
         if (!priorPort.isPresent()) {
           //this is a new portSpec and will never match a previously reserved taskResource
           continue;
+        } else if (RangeUtils.isInAny(ranges.getRangeList(), priorPort.get())) {
+          return Optional.of(new ResourceLabels(
+              resourceSpec,
+              resourceId.get(),
+              ResourceMapperUtils.getNamespaceLabel(
+                  ResourceUtils.getNamespace(taskResource),
+                  resourceNamespace)));
         }
-        return priorPort
-              .filter(priorTaskPort -> RangeUtils.isInAny(ranges.getRangeList(), priorTaskPort))
-              .map(ignored -> new ResourceLabels(
-                  resourceSpec,
-                  resourceId.get(),
-                  ResourceMapperUtils.getNamespaceLabel(
-                      ResourceUtils.getNamespace(taskResource),
-                      resourceNamespace)));
       } else if (RangeUtils.isInAny(ranges.getRangeList(), portSpec.getPort())) {
         // For fixed ports, we can just check for a resource whose ranges include that port.
         return Optional.of(new ResourceLabels(
