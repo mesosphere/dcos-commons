@@ -39,8 +39,7 @@ public final class ConfigValidationError {
   public static ConfigValidationError valueError(
       String configField, String configValue, String message)
   {
-    // Set oldValue to null
-    return new ConfigValidationError(configField, null, configValue, message, false);
+    return valueError(configField, configValue, message, false);
   }
 
   /**
@@ -61,7 +60,7 @@ public final class ConfigValidationError {
   public static ConfigValidationError transitionError(
       String configField, String oldConfigValue, String newConfigValue, String message)
   {
-    return new ConfigValidationError(configField, oldConfigValue, newConfigValue, message, false);
+    return transitionError(configField, oldConfigValue, newConfigValue, message, false);
   }
 
   /**

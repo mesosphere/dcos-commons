@@ -268,19 +268,15 @@ public class ConfigurationUpdaterTest {
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(serviceSpecWithUser.build());
 
         // Note: the new service spec sets pod users with a non-root user
-        boolean caughtError = false;
-        boolean correctErrorMessage = false;
-        ConfigurationUpdater.UpdateResult result = null;
+        //ConfigurationUpdater.UpdateResult result = null;
         try {
-            result = configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION_WITH_USER);
+            configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION_WITH_USER);
+            Assert.fail("Expected ConfigStoreException to be thrown before this line.");
         } catch (ConfigStoreException e) {
             // since the 2 pods don't set the user their user defaults to "root" which conflicts with the user set as noted above
-            caughtError = true;
-            correctErrorMessage = e.getMessage().contains("Cannot change existing pod type user");
+            Assert.assertTrue(e.getMessage().contains("Cannot change existing pod type user"));
         }
-        Assert.assertEquals(true, caughtError);
-        Assert.assertEquals(true, correctErrorMessage);
-        Assert.assertNull(result);
+        //Assert.assertNull(result);
     }
 
 
@@ -318,18 +314,13 @@ public class ConfigurationUpdaterTest {
                 .pods(podsWithUsers)
                 .build();
 
-        boolean caughtError = false;
-        boolean correctErrorMessage = false;
-
         ConfigurationUpdater.UpdateResult result = null;
         try {
             result = configurationUpdater.updateConfiguration(SERVICE_SPECIFICATION_WITH_USER);
         } catch (ConfigStoreException e) {
-            caughtError = true;
-            correctErrorMessage = e.getMessage().contains("Cannot change existing pod type user");
+            Assert.fail("Expected ConfigStoreException not be thrown here.");
+            Assert.assertFalse(e.getMessage().contains("Cannot change existing pod type user"));
         }
-        Assert.assertEquals(false, caughtError);
-        Assert.assertEquals(false, correctErrorMessage);
         Assert.assertNotNull(result);
         Assert.assertEquals(TARGET_ID, result.getTargetId());
         Assert.assertEquals(0, result.getErrors().size());
@@ -347,17 +338,13 @@ public class ConfigurationUpdaterTest {
 
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION_WITH_USER);
 
-        boolean caughtError = false;
-        boolean correctErrorMessage = false;
-        ConfigurationUpdater.UpdateResult result = null;
+        //ConfigurationUpdater.UpdateResult result = null;
         try {
-            result = configurationUpdater.updateConfiguration(SERVICE_SPECIFICATION_WITH_NON_DEFAULT_USER);
+            configurationUpdater.updateConfiguration(SERVICE_SPECIFICATION_WITH_NON_DEFAULT_USER);
+            Assert.fail("Expected ConfigStoreException to be thrown before this line.");
         } catch (ConfigStoreException e) {
-            caughtError = true;
-            correctErrorMessage = e.getMessage().contains("Cannot change user of deployed service");
+            Assert.assertTrue(e.getMessage().contains("Cannot change user of deployed service"));
         }
-        Assert.assertEquals(true, caughtError);
-        Assert.assertEquals(true, correctErrorMessage);
-        Assert.assertNull(result);
+        //Assert.assertNull(result);
     }
 }
