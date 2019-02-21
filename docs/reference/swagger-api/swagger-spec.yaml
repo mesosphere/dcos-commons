@@ -97,6 +97,8 @@ paths:
           description: "List of the plan's contents."
         404:
           description: "Plan not found."
+        417:
+          description: "Plan is in an error state."
   /plans/{name}/start:
     post:
       tags:
