@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.portworx.scheduler;
 
 import com.mesosphere.sdk.config.validate.TaskEnvCannotChange;
+import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.portworx.api.*;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerBuilder;
@@ -20,9 +21,13 @@ import org.apache.mesos.Protos;
 public class Main {
     private static final String PORTWORX_POD_NAME = "portworx";
     private static final String INSTALL_TASK_NAME = "install";
+    private static final String ENV_PORTWORX_START_PORT = "PORTWORX_START_PORT";
     private static final long DEFAULT_START_PORT = 9001;
     private static final long PORT_COUNT = 19;
     private static final long DEFAULT_RANGE_EXTRA_PORTS = 3;
+    private static final long DEFAULT_SDK_REST_PORT_OFFSET = 20;
+    private static final long CUSTOM_SDK_REST_PORT_OFFSET = 17;
+    private static final String SDK_REST_PORT_NAME = "sdk";
     private static final Integer MIN_REPLACE_DELAY_MIN = 0;
 
 
@@ -47,7 +52,7 @@ public class Main {
         SchedulerBuilder schedulerBuilder =
                 DefaultScheduler.newBuilder(setPortResources(serviceSpec), schedulerConfig)
                 .setCustomConfigValidators(Arrays.asList(
-                        new TaskEnvCannotChange("portworx", "install", "PORTWORX_START_PORT"),
+                        new TaskEnvCannotChange("portworx", "install", ENV_PORTWORX_START_PORT),
                         new TaskEnvCannotChange("etcd-cluster", "node", "ETCD_ENABLED"),
                         new TaskEnvCannotChange("etcd-proxy", "node", "ETCD_ENABLED"),
                         new TaskEnvCannotChange("lighthouse", "start", "LIGHTHOUSE_ENABLED"),
@@ -96,7 +101,12 @@ public class Main {
         } else {
             role = serviceSpec.getRole();
         }
+
+        Long sdkRestPort = getSdkRestPort();
         for (Long portNumber : getPortList()) {
+            if (portNumber.equals(sdkRestPort)) {
+                continue;
+            }
             resourceSetBuilder.addResource(new PortSpec(
                     Protos.Value.newBuilder()
                             .setRanges(Protos.Value.Ranges.newBuilder()
@@ -109,6 +119,18 @@ public class Main {
                     "px_" + String.valueOf(portNumber),
                     Protos.DiscoveryInfo.Visibility.CLUSTER, Collections.emptyList()));
         }
+
+        resourceSetBuilder.addResource(new NamedVIPSpec(
+                Protos.Value.newBuilder()
+                        .setRanges(Protos.Value.Ranges.newBuilder()
+                                .addRange(Protos.Value.Range.newBuilder()
+                                        .setBegin(sdkRestPort)
+                                        .setEnd(sdkRestPort)))
+                        .setType(Protos.Value.Type.RANGES)
+                        .build(),
+                role, preReservedRole, serviceSpec.getPrincipal(), null,
+                SDK_REST_PORT_NAME, DcosConstants.DEFAULT_IP_PROTOCOL, Protos.DiscoveryInfo.Visibility.CLUSTER,
+                SDK_REST_PORT_NAME, sdkRestPort.intValue(), Collections.emptyList()));
 
         TaskSpec updatedInstallTask = DefaultTaskSpec.newBuilder(installTask)
                 .resourceSet(resourceSetBuilder.build())
@@ -140,7 +162,7 @@ public class Main {
     private static List<Long> getPortList() {
         Long startPort, portCount;
         try {
-            startPort = Long.valueOf(System.getenv("PORTWORX_START_PORT"));
+            startPort = Long.valueOf(System.getenv(ENV_PORTWORX_START_PORT));
         } catch (NumberFormatException e) {
             startPort = DEFAULT_START_PORT;
         }
@@ -155,6 +177,15 @@ public class Main {
             ports.add(port);
         }
         return ports;
+    }
+
+    private static Long getSdkRestPort() {
+        Long startPort = Long.valueOf(System.getenv(ENV_PORTWORX_START_PORT));
+        if (startPort == DEFAULT_START_PORT) {
+            return startPort + DEFAULT_SDK_REST_PORT_OFFSET;
+        } else {
+            return startPort + CUSTOM_SDK_REST_PORT_OFFSET;
+        }
     }
 
     private static Collection<Object> getResources(ServiceSpec serviceSpec) {
