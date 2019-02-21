@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":9,"i6":9};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":9,"i7":9,"i8":9,"i9":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -155,12 +155,18 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i4" class="altColor">
+<td class="colFirst"><code>boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html#isFatal--">isFatal</a></span>()</code>
+<div class="block">Returns if this error message is fatal.</div>
+</td>
+</tr>
+<tr id="i5" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html#toString--">toString</a></span>()</code>
 <div class="block">Returns a complete user-facing string representation providing the error and its source.</div>
 </td>
 </tr>
-<tr id="i5" class="rowColor">
+<tr id="i6" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html#transitionError-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">transitionError</a></span>(java.lang.String&nbsp;configField,
                java.lang.String&nbsp;oldConfigValue,
@@ -170,11 +176,32 @@ extends java.lang.Object</pre>
  transition from its previous value to the current value.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html#transitionError-java.lang.String-java.lang.String-java.lang.String-java.lang.String-boolean-">transitionError</a></span>(java.lang.String&nbsp;configField,
+               java.lang.String&nbsp;oldConfigValue,
+               java.lang.String&nbsp;newConfigValue,
+               java.lang.String&nbsp;message,
+               boolean&nbsp;isFatal)</code>
+<div class="block">Returns a new validation error which indicates that a configuration field has an invalid
+ transition from its previous value to the current value.</div>
+</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html#valueError-java.lang.String-java.lang.String-java.lang.String-">valueError</a></span>(java.lang.String&nbsp;configField,
           java.lang.String&nbsp;configValue,
           java.lang.String&nbsp;message)</code>
+<div class="block">Returns a new validation error which indicates that a configuration field has an invalid
+ value.</div>
+</td>
+</tr>
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html#valueError-java.lang.String-java.lang.String-java.lang.String-boolean-">valueError</a></span>(java.lang.String&nbsp;configField,
+          java.lang.String&nbsp;configValue,
+          java.lang.String&nbsp;message,
+          boolean&nbsp;isFatal)</code>
 <div class="block">Returns a new validation error which indicates that a configuration field has an invalid
  value.</div>
 </td>
@@ -214,6 +241,20 @@ extends java.lang.Object</pre>
  value. This is equivalent to a transition error, except with no prior value.</div>
 </li>
 </ul>
+<a name="valueError-java.lang.String-java.lang.String-java.lang.String-boolean-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>valueError</h4>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&nbsp;valueError(java.lang.String&nbsp;configField,
+                                               java.lang.String&nbsp;configValue,
+                                               java.lang.String&nbsp;message,
+                                               boolean&nbsp;isFatal)</pre>
+<div class="block">Returns a new validation error which indicates that a configuration field has an invalid
+ value. This is equivalent to a transition error, except with no prior value.</div>
+</li>
+</ul>
 <a name="transitionError-java.lang.String-java.lang.String-java.lang.String-java.lang.String-">
 <!--   -->
 </a>
@@ -224,6 +265,21 @@ extends java.lang.Object</pre>
                                                     java.lang.String&nbsp;oldConfigValue,
                                                     java.lang.String&nbsp;newConfigValue,
                                                     java.lang.String&nbsp;message)</pre>
+<div class="block">Returns a new validation error which indicates that a configuration field has an invalid
+ transition from its previous value to the current value.</div>
+</li>
+</ul>
+<a name="transitionError-java.lang.String-java.lang.String-java.lang.String-java.lang.String-boolean-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>transitionError</h4>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a>&nbsp;transitionError(java.lang.String&nbsp;configField,
+                                                    java.lang.String&nbsp;oldConfigValue,
+                                                    java.lang.String&nbsp;newConfigValue,
+                                                    java.lang.String&nbsp;message,
+                                                    boolean&nbsp;isFatal)</pre>
 <div class="block">Returns a new validation error which indicates that a configuration field has an invalid
  transition from its previous value to the current value.</div>
 </li>
@@ -267,6 +323,16 @@ extends java.lang.Object</pre>
 <h4>getMessage</h4>
 <pre>public&nbsp;java.lang.String&nbsp;getMessage()</pre>
 <div class="block">Returns the provided error message for this error.</div>
+</li>
+</ul>
+<a name="isFatal--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>isFatal</h4>
+<pre>public&nbsp;boolean&nbsp;isFatal()</pre>
+<div class="block">Returns if this error message is fatal.</div>
 </li>
 </ul>
 <a name="toString--">

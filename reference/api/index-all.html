@@ -4949,6 +4949,10 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawTask.html#isEssential--">isEssential()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawTask.html" title="class in com.mesosphere.sdk.specification.yaml">RawTask</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html#isFatal--">isFatal()</a></span> - Method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></dt>
+<dd>
+<div class="block">Returns if this error message is fatal.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/RangeUtils.html#isInAny-java.util.List-long-">isInAny(List&lt;Range&gt;, long)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer">RangeUtils</a></dt>
 <dd>
 <div class="block">Returns whether the provided value is encompassed by any of the provided ranges.</div>
@@ -8892,6 +8896,11 @@
 <div class="block">Returns a new validation error which indicates that a configuration field has an invalid
  transition from its previous value to the current value.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html#transitionError-java.lang.String-java.lang.String-java.lang.String-java.lang.String-boolean-">transitionError(String, String, String, String, boolean)</a></span> - Static method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></dt>
+<dd>
+<div class="block">Returns a new validation error which indicates that a configuration field has an invalid
+ transition from its previous value to the current value.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/state/GoalStateOverride.Status.html#translateStatus-com.mesosphere.sdk.scheduler.plan.Status-">translateStatus(Status)</a></span> - Static method in class com.mesosphere.sdk.state.<a href="com/mesosphere/sdk/state/GoalStateOverride.Status.html" title="class in com.mesosphere.sdk.state">GoalStateOverride.Status</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">TransportEncryptionSpec</span></a> - Interface in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
@@ -9249,6 +9258,11 @@
 <div class="block">Sets the <code>value</code> and returns a reference to this Builder so that the methods can be chained together.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html#valueError-java.lang.String-java.lang.String-java.lang.String-">valueError(String, String, String)</a></span> - Static method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></dt>
+<dd>
+<div class="block">Returns a new validation error which indicates that a configuration field has an invalid
+ value.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html#valueError-java.lang.String-java.lang.String-java.lang.String-boolean-">valueError(String, String, String, boolean)</a></span> - Static method in class com.mesosphere.sdk.config.validate.<a href="com/mesosphere/sdk/config/validate/ConfigValidationError.html" title="class in com.mesosphere.sdk.config.validate">ConfigValidationError</a></dt>
 <dd>
 <div class="block">Returns a new validation error which indicates that a configuration field has an invalid
  value.</div>
