@@ -1,0 +1,49 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+pods:
+  edgelb-pool:
+    count: {{HELLO_COUNT}}
+    allow-decommission: true
+    share-pid-namespace: true
+    resource-sets:
+      server-resources:
+        cpus: 0.1
+        memory: 128
+      sidecar-resources:
+        cpus: 0.1
+        memory: 128
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: >
+          sleep {{SLEEP_DURATION}}
+        resource-set: server-resources
+        health-check:
+          cmd: sleep {{SLEEP_DURATION}}
+          grace-period: 10
+          interval: 10
+          max-consecutive-failures: 100
+          delay: 0
+          timeout: 6000
+      sidecar:
+        goal: FINISH
+        essential: false
+        cmd: >
+          sleep $(({{SLEEP_DURATION}}/100))
+        resource-set: sidecar-resources
+plans:
+  deploy:
+    phases:
+      edgelb-pool-deploy:
+        strategy: parallel
+        pod: edgelb-pool
+        steps:
+        - default: [[server]]
+  reload:
+    phases:
+      sidecar-deploy:
+        strategy: parallel
+        pod: edgelb-pool
+        steps:
+        - default: [[sidecar]]
