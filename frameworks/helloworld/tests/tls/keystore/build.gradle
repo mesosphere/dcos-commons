@@ -20,11 +20,12 @@ dependencies {
 mainClassName = 'com.mesosphere.sdk.testing.tls.keystore.KeystoreApplication'
 
 shadowJar {
+    setArchiveName(project.name.toLowerCase() + "-" + version + "-all.jar")
     mergeServiceFiles()
 }
 
 task integrationTestZip(type: Zip, dependsOn: 'shadowJar') {
-    archiveName = "keystore-app.zip"
+    setArchiveName("keystore-app.zip")
     from shadowJar.archivePath
     from('config/integration-test.yml')
 }
