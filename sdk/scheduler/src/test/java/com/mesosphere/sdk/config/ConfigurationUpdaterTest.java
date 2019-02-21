@@ -47,6 +47,8 @@ public class ConfigurationUpdaterTest {
     private static final double TASK_B_DISK = 2500.0;
     private static final String TASK_B_CMD = "echo " + TASK_B_NAME;
 
+    private static final String NON_DEFAULT_SERVICE_USER = "nobody";
+
     private static final PodSpec podA = TestPodFactory.getPodSpec(
             TASK_A_POD_NAME,
             TestConstants.RESOURCE_SET_ID + "-A",
@@ -108,6 +110,9 @@ public class ConfigurationUpdaterTest {
     private static final ServiceSpec ORIGINAL_SERVICE_SPECIFICATION_WITH_USER =
             DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
                     .user(DcosConstants.DEFAULT_SERVICE_USER).build();
+    private static final ServiceSpec SERVICE_SPECIFICATION_WITH_NON_DEFAULT_USER =
+            DefaultServiceSpec.newBuilder(ORIGINAL_SERVICE_SPECIFICATION)
+                    .user(NON_DEFAULT_SERVICE_USER).build();
 
     @Mock private StateStore mockStateStore;
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
@@ -261,12 +266,21 @@ public class ConfigurationUpdaterTest {
         serviceSpecWithUser.pods(podsWithoutUsers);
 
         when(mockConfigStore.fetch(TARGET_ID)).thenReturn(serviceSpecWithUser.build());
+
         // Note: the new service spec sets pod users with a non-root user
-        ConfigurationUpdater.UpdateResult result =
-                configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION_WITH_USER);
-        Assert.assertEquals(TARGET_ID, result.getTargetId());
-        // since the 2 pods don't set the user their user defaults to "root" which conflicts with the user set as noted above
-        Assert.assertEquals(2, result.getErrors().size());
+        boolean caughtError = false;
+        boolean correctErrorMessage = false;
+        ConfigurationUpdater.UpdateResult result = null;
+        try {
+            result = configurationUpdater.updateConfiguration(ORIGINAL_SERVICE_SPECIFICATION_WITH_USER);
+        } catch (ConfigStoreException e) {
+            // since the 2 pods don't set the user their user defaults to "root" which conflicts with the user set as noted above
+            caughtError = true;
+            correctErrorMessage = e.getMessage().contains("Cannot change existing pod type user");
+        }
+        Assert.assertEquals(true, caughtError);
+        Assert.assertEquals(true, correctErrorMessage);
+        Assert.assertNull(result);
     }
 
 
@@ -304,9 +318,46 @@ public class ConfigurationUpdaterTest {
                 .pods(podsWithUsers)
                 .build();
 
-        ConfigurationUpdater.UpdateResult result =
-                configurationUpdater.updateConfiguration(SERVICE_SPECIFICATION_WITH_USER);
+        boolean caughtError = false;
+        boolean correctErrorMessage = false;
+
+        ConfigurationUpdater.UpdateResult result = null;
+        try {
+            result = configurationUpdater.updateConfiguration(SERVICE_SPECIFICATION_WITH_USER);
+        } catch (ConfigStoreException e) {
+            caughtError = true;
+            correctErrorMessage = e.getMessage().contains("Cannot change existing pod type user");
+        }
+        Assert.assertEquals(false, caughtError);
+        Assert.assertEquals(false, correctErrorMessage);
+        Assert.assertNotNull(result);
         Assert.assertEquals(TARGET_ID, result.getTargetId());
         Assert.assertEquals(0, result.getErrors().size());
+    }
+
+    @Test
+    public void testServiceUserChangedInNewServiceSpec() throws ConfigStoreException {
+        final ConfigurationUpdater<ServiceSpec> configurationUpdater = new DefaultConfigurationUpdater(
+                mockStateStore,
+                mockConfigStore,
+                DefaultServiceSpec.getComparatorInstance(),
+                DefaultConfigValidators.getValidators(SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                Optional.empty());
+        when(mockConfigStore.getTargetConfig()).thenReturn(TARGET_ID);
+
+        when(mockConfigStore.fetch(TARGET_ID)).thenReturn(ORIGINAL_SERVICE_SPECIFICATION_WITH_USER);
+
+        boolean caughtError = false;
+        boolean correctErrorMessage = false;
+        ConfigurationUpdater.UpdateResult result = null;
+        try {
+            result = configurationUpdater.updateConfiguration(SERVICE_SPECIFICATION_WITH_NON_DEFAULT_USER);
+        } catch (ConfigStoreException e) {
+            caughtError = true;
+            correctErrorMessage = e.getMessage().contains("Cannot change user of deployed service");
+        }
+        Assert.assertEquals(true, caughtError);
+        Assert.assertEquals(true, correctErrorMessage);
+        Assert.assertNull(result);
     }
 }

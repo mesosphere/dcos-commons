@@ -173,6 +173,16 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
       logger.warn("New configuration failed validation against current target " +
               "configuration {}, with {} errors across {} validators:\n{}",
           targetConfigId, errors.size(), validators.size(), sj.toString());
+
+      //Process fatal validation errors in-order and halt the scheduler if so.
+      for (ConfigValidationError error : errors) {
+        if (error.isFatal()) {
+          throw new ConfigStoreException(Reason.LOGIC_ERROR, String.format(
+              "FATAL ERROR with Configuration Update, stopping scheduler.%nError:%s",
+              error.toString()));
+        }
+      }
+
       if (!targetConfig.isPresent()) {
         throw new ConfigStoreException(Reason.LOGIC_ERROR, String.format(
             "Configuration failed validation without any prior target configuration" +

@@ -16,16 +16,20 @@ public final class ConfigValidationError {
 
   private final String message;
 
+  private final boolean isFatal;
+
   private ConfigValidationError(
       String configField,
       String oldConfigValue,
       String newConfigValue,
-      String message)
+      String message,
+      boolean isFatal)
   {
     this.configField = configField;
     this.oldConfigValue = oldConfigValue;
     this.newConfigValue = newConfigValue;
     this.message = message;
+    this.isFatal = isFatal;
   }
 
   /**
@@ -36,7 +40,18 @@ public final class ConfigValidationError {
       String configField, String configValue, String message)
   {
     // Set oldValue to null
-    return new ConfigValidationError(configField, null, configValue, message);
+    return new ConfigValidationError(configField, null, configValue, message, false);
+  }
+
+  /**
+   * Returns a new validation error which indicates that a configuration field has an invalid
+   * value. This is equivalent to a transition error, except with no prior value.
+   */
+  public static ConfigValidationError valueError(
+      String configField, String configValue, String message, boolean isFatal)
+  {
+    // Set oldValue to null
+    return new ConfigValidationError(configField, null, configValue, message, isFatal);
   }
 
   /**
@@ -46,7 +61,18 @@ public final class ConfigValidationError {
   public static ConfigValidationError transitionError(
       String configField, String oldConfigValue, String newConfigValue, String message)
   {
-    return new ConfigValidationError(configField, oldConfigValue, newConfigValue, message);
+    return new ConfigValidationError(configField, oldConfigValue, newConfigValue, message, false);
+  }
+
+  /**
+   * Returns a new validation error which indicates that a configuration field has an invalid
+   * transition from its previous value to the current value.
+   */
+  public static ConfigValidationError transitionError(
+      String configField, String oldConfigValue, String newConfigValue, String message,
+      boolean isFatal)
+  {
+    return new ConfigValidationError(configField, oldConfigValue, newConfigValue, message, isFatal);
   }
 
   /**
@@ -79,16 +105,23 @@ public final class ConfigValidationError {
   }
 
   /**
+   * Returns if this error message is fatal.
+   */
+  public boolean isFatal() {
+    return isFatal;
+  }
+
+  /**
    * Returns a complete user-facing string representation providing the error and its source.
    */
   @Override
   public String toString() {
     if (oldConfigValue != null) {
-      return String.format("Field: '%s'; Transition: '%s' => '%s'; Message: '%s'",
-          configField, oldConfigValue, newConfigValue, message);
+      return String.format("Field: '%s'; Transition: '%s' => '%s'; Message: '%s'; Fatal: %s",
+          configField, oldConfigValue, newConfigValue, message, isFatal);
     } else {
-      return String.format("Field: '%s'; Value: '%s'; Message: '%s'",
-          configField, newConfigValue, message);
+      return String.format("Field: '%s'; Value: '%s'; Message: '%s'; Fatal: %s",
+          configField, newConfigValue, message, isFatal);
     }
   }
 }
