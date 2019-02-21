@@ -3,9 +3,12 @@ scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
 pods:
   edgelb-pool:
-    count: {{HELLO_COUNT}}
+    pre-reserved-role: slave_public
     allow-decommission: true
     share-pid-namespace: true
+    count: 1
+    placement: '{{{HELLO_PLACEMENT}}}'
+    image: mesosphere/dcos-commons:latest
     resource-sets:
       server-resources:
         cpus: 0.1
@@ -20,7 +23,7 @@ pods:
           sleep {{SLEEP_DURATION}}
         resource-set: server-resources
         health-check:
-          cmd: sleep {{SLEEP_DURATION}}
+          cmd: sleep 5 && exit 0
           grace-period: 10
           interval: 10
           max-consecutive-failures: 100

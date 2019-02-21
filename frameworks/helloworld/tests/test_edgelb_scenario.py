@@ -1,25 +1,20 @@
 import logging
-import os
-import time
 import pytest
 
 import sdk_install
 import sdk_plan
-import sdk_utils
 
 from tests import config
 
-
 log = logging.getLogger(__name__)
-foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
 
 @pytest.mark.parametrize('num_times', range(10))
 @pytest.mark.edgelb
 def test_edgelb(num_times):
     try:
+        foldered_name = "hello-world-{}".format(num_times)
         service_options = {"service": {"yaml": "edgelb"}}
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
         sdk_install.install(
             config.PACKAGE_NAME,
             foldered_name,
