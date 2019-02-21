@@ -219,6 +219,10 @@ def _update_service_with_cli(
 
 
 def _wait_for_deployment(package_name, service_name, initial_config, task_ids, timeout_seconds):
+    # First we wait for the actual scheduler Marathon task itself to finish any possible
+    # deployments.
+    sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
+
     updated_config = get_config(package_name, service_name)
 
     if updated_config == initial_config:
