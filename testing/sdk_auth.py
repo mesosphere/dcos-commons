@@ -338,7 +338,7 @@ class KerberosEnvironment:
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 
         log.info(result.stdout)
-        if result.returncode is not 0:
+        if result.returncode != 0:
             # reverse the principal list before generating again.
             principals.reverse()
             raise Exception(

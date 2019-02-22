@@ -127,10 +127,10 @@ def validate_images(framework_directory):
         for line in lines:
             line = line.strip()
             if "image:" in line:
-                image_matcher = re.compile("image:\s?(.*)$", re.IGNORECASE)
+                image_matcher = re.compile(r"image:\s?(.*)$", re.IGNORECASE)
                 match = image_matcher.match(line)
                 image_path = match.group(1)
-                env_var_matcher = re.compile("[\"]?\{\{[A-Z0-9_]*\}\}[\"]?")
+                env_var_matcher = re.compile(r'["]?\{\{[A-Z0-9_]*\}\}["]?')
                 if not env_var_matcher.match(image_path):
                     print(
                         """Bad image found in {}. It is a direct reference instead of a templated reference: {}
