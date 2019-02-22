@@ -154,6 +154,19 @@ class ServiceBundle(Bundle):
 
     @functools.lru_cache()
     @config.retry
+    def configuration_target_id(self) -> List[str]:
+        response = sdk_cmd.service_request("GET", self.service_name, "/v1/configurations/targetId",
+                                           raise_on_error=False)
+        if not response.ok:
+            log.error(
+                "Could not get scheduler configuration target id\nstatus_code: '%s'\nstderr: '%s'",
+                response.status_code, response.text
+            )
+        else:
+            return json.loads(response.text)
+
+    @functools.lru_cache()
+    @config.retry
     def configuration(self, configuration_id) -> dict:
         response = sdk_cmd.service_request("GET", self.service_name,
                                            "/v1/configurations/{}".format(configuration_id),
@@ -173,6 +186,12 @@ class ServiceBundle(Bundle):
         )
 
     @config.retry
+    def create_configuration_target_id_file(self):
+        self.write_file(
+            "service_v1_configuration_target_id.json", self.configuration_target_id(), serialize_to_json=True
+        )
+
+    @config.retry
     def create_configuration_files(self):
         for configuration_id in self.configuration_ids():
             self.write_file(
@@ -187,5 +206,6 @@ class ServiceBundle(Bundle):
         self.create_plans_file()
         self.create_taskstatuses_file()
         self.create_configuration_ids_file()
+        self.create_configuration_target_id_file()
         self.create_configuration_files()
         self.download_log_files()
