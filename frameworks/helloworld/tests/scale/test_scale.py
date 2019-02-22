@@ -20,7 +20,7 @@ def test_scaling_load(service_count,
     """
     # TODO: parallelize account creation and installation if time is an issue in scale tests
     for index in range(service_count):
-        #Note service-names *cannot* have underscores in them.
+        # Note service-names *cannot* have underscores in them.
         service_name = ("{}-{}-{}".format(config.PACKAGE_NAME, scenario, index)).replace("_", "-")
         security_info = _create_service_account(service_name)
         _install_service(service_name,
