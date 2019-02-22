@@ -14,6 +14,8 @@ def pytest_addoption(parser):
                      help='Number of hello world services to deploy with a given scenario')
     parser.addoption("--scenario", action='store', default='',
                      help="hello world service yml to use")
+    parser.addoption("--service-name", action='store', default='hello-world',
+                     help="custom service name to be used instead of default 'hello-world'")
 
 
 @pytest.fixture
@@ -24,3 +26,8 @@ def service_count(request) -> int:
 @pytest.fixture
 def scenario(request) -> str:
     return str(request.config.getoption('--scenario'))
+
+
+@pytest.fixture
+def service_name(request) -> str:
+    return str(request.config.getoption('--service-name'))

@@ -8,21 +8,46 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
+@pytest.mark.soak
+def test_soak_load(service_name,
+                   scenario) -> None:
+    """Launch a soak test scenario. This does not verify the results
+    of the test, but does ensure the instances were created.
+
+    Args:
+        service_name: name of the service to install as
+        scenario: yaml scenario to run helloworld with (normal, crashloop) are added for this case
+    """
+    # Note service-names *cannot* have underscores in them.
+    soak_service_name = ("{}-{}-soak".format(service_name, scenario)).replace("_", "-")
+    # service-names can have '/'s in them but service account names cannot, sanitize here.
+    service_account_name = soak_service_name.replace("/", "__")
+    security_info = _create_service_account(service_account_name)
+    _install_service(soak_service_name,
+                     scenario,
+                     security_info)
+
+
 @pytest.mark.scale
-def test_scaling_load(service_count,
+def test_scaling_load(service_name,
+                      service_count,
                       scenario) -> None:
     """Launch a load test scenario. This does not verify the results
     of the test, but does ensure the instances were created.
 
     Args:
+        service_name: name of the service to install as
         service_count: number of helloworld services to install
         scenario: yaml scenario to run helloworld with (normal, crashloop) are added for this case
     """
     # TODO: parallelize account creation and installation if time is an issue in scale tests
     for index in range(service_count):
-        service_name = "{}-{}-{}".format(config.PACKAGE_NAME, scenario, index)
-        security_info = _create_service_account(service_name)
-        _install_service(service_name,
+        # Note service-names *cannot* have underscores in them.
+        scale_service_name = ("{}-{}-{}".format(service_name, scenario, index)).replace("_", "-")
+        # service-names can have '/'s in them but service account names cannot, sanitize here.
+        service_account_name = scale_service_name.replace("/", "__")
+        security_info = _create_service_account(service_account_name)
+        _install_service(scale_service_name,
                          scenario,
                          security_info)
 

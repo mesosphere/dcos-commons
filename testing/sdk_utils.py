@@ -16,6 +16,7 @@ import string
 import sdk_cmd
 
 from distutils.version import LooseVersion
+from enum import Enum
 
 log = logging.getLogger(__name__)
 
@@ -23,6 +24,11 @@ log = logging.getLogger(__name__)
 ###
 # Service/task names
 ###
+
+class DCOS_SECURITY(Enum):
+    disabled = 1
+    permissive = 2
+    strict = 3
 
 
 def get_package_name(default: str) -> str:
@@ -111,7 +117,7 @@ def check_dcos_min_version_mark(item: pytest.Item):
 
     In order for this annotation to take effect, this function must be called by a pytest_runtest_setup() hook.
     """
-    min_version_mark = item.get_marker("dcos_min_version")
+    min_version_mark = item.get_closest_marker("dcos_min_version")
     if min_version_mark:
         min_version = min_version_mark.args[0]
         message = "Feature only supported in DC/OS {} and up".format(min_version)
@@ -129,7 +135,19 @@ def is_open_dcos():
 
 def is_strict_mode():
     """Determine if the tests are being run on a strict mode cluster."""
-    return os.environ.get("SECURITY", "") == "strict"
+    return get_security_mode() == DCOS_SECURITY.strict
+
+
+def get_security_mode() -> DCOS_SECURITY:
+    r = get_metadata().json()
+    mode = r['security']
+    return DCOS_SECURITY[mode]
+
+
+def get_metadata():
+    return sdk_cmd.cluster_request('GET',
+                                   'dcos-metadata/bootstrap-config.json',
+                                   retry=False)
 
 
 """Annotation which may be used to mark test suites or test cases as EE-only.
