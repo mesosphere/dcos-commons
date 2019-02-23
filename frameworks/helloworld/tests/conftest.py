@@ -16,6 +16,12 @@ def pytest_addoption(parser):
                      help="hello world service yml to use")
     parser.addoption("--service-name", action='store', default='hello-world',
                      help="custom service name to be used instead of default 'hello-world'")
+    parser.addoption('--min', action='store', default=-1,
+                     help='min jenkins index to start from (default: -1).')
+    parser.addoption('--max', action='store', default=-1,
+                     help='max jenkins index to end at (default: -1).')
+    parser.addoption('--batch-size', action='store', default=1,
+                     help='batch size to deploy jenkins masters in (default: 1).')
 
 
 @pytest.fixture
@@ -31,3 +37,18 @@ def scenario(request) -> str:
 @pytest.fixture
 def service_name(request) -> str:
     return str(request.config.getoption('--service-name'))
+
+
+@pytest.fixture
+def min_index(request) -> int:
+    return int(request.config.getoption('--min'))
+
+
+@pytest.fixture
+def max_index(request) -> int:
+    return int(request.config.getoption('--max'))
+
+
+@pytest.fixture
+def batch_size(request) -> int:
+    return int(request.config.getoption('--batch-size'))
