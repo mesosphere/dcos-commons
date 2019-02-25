@@ -40,17 +40,15 @@ def test_all_tasks_are_launched():
     sdk_plan.start_plan(foldered_name, "sidecar-parameterized", {"PLAN_PARAMETER": "parameterized"})
     sdk_plan.wait_for_completed_plan(foldered_name, "sidecar")
     sdk_plan.wait_for_completed_plan(foldered_name, "sidecar-parameterized")
-    # Assert all the tasks have non-empty taskIds in TaskInfo and Status objects
-    # Note that this is fetched from SDK Persistence storage layer.
+    # /pod/<pod-id>/info fetches data from SDK's persistence layer
     pod_hello_0_info = sdk_cmd.service_request(
         "GET", foldered_name, "/v1/pod/hello-0/info"
     ).json()
     for taskInfoAndStatus in pod_hello_0_info:
         info = taskInfoAndStatus["info"]
         status = taskInfoAndStatus["status"]
-        # We always have the TaskInfo object (created during launch),
-        # but we may or may not have TaskStatus based on whether the
-        # task was launched and we received an update from mesos or not.
+        # While `info` object is always present, `status` may or may not be present based on whether the
+        # task was launched and we received an update from mesos (or not).
         if status:
             assert info["taskId"]["value"] == status["taskId"]["value"]
             assert len(info["taskId"]["value"]) > 0
