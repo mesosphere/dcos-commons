@@ -1,5 +1,5 @@
 import time
-import logging 
+import logging
 
 from threading import Thread
 from typing import List, Set
@@ -43,7 +43,7 @@ class ResultThread(Thread):
             self._result = True
         except Exception as e:
             self._result = False
-            log.error("Exception occured in {} with inner exception: {}", self.name, e)
+            log.error("Exception occured in {} with inner exception: {}".format(self.name, str(e)))
         finally:
             end = time.time()
             if self.event:
