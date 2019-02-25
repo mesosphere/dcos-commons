@@ -75,7 +75,6 @@
             "canary",
             "custom_tld",
             "discovery",
-            "edgelb",
             "enable-disable",
             "executor_volume",
             "finish_state",

@@ -32,5 +32,3 @@ def test_custom_plan():
     world_steps = plan["phases"][1]["steps"]
     assert world_steps[0]["name"] == "world-1:[server]"
     assert world_steps[1]["name"] == "world-0:[server]"
-
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
