@@ -11,6 +11,7 @@ import time
 import retrying
 import tempfile
 from enum import Enum
+from typing import Any, Dict, Set, Union
 
 import sdk_cmd
 import sdk_marathon
@@ -24,14 +25,14 @@ TIMEOUT_SECONDS = 15 * 60
 
 """List of services which are currently installed via install().
 Used by post - test diagnostics to retrieve stuff from currently running services."""
-_installed_service_names = set([])
+_installed_service_names = set([])  # type: Set[str]
 
 """List of dead agents which should be ignored when checking for orphaned resources.
 Used by uninstall when validating that an uninstall completed successfully."""
-_dead_agent_hosts = set([])
+_dead_agent_hosts = set([])  # type: Set[str]
 
 
-def get_installed_service_names() -> set:
+def get_installed_service_names() -> Set[str]:
     """Returns the a set of service names which had been installed via sdk_install in this session."""
     return _installed_service_names
 
@@ -47,7 +48,7 @@ def _retried_install_impl(
     service_name: str,
     expected_running_tasks: int,
     package_version: str,
-    options: dict,
+    options: Dict[str, Any],
     timeout_seconds: int,
     wait_for_all_conditions: bool,
 ) -> None:
@@ -82,7 +83,11 @@ def _retried_install_impl(
 
     # Wait for expected tasks to come up
     if expected_running_tasks > 0 and wait_for_all_conditions:
-        sdk_tasks.check_running(service_name, expected_running_tasks, timeout_seconds)
+        sdk_tasks.check_running(
+            service_name=service_name,
+            expected_task_count=expected_running_tasks,
+            timeout_seconds=timeout_seconds,
+        )
 
     # Wait for completed marathon deployment
     if wait_for_all_conditions:
@@ -93,8 +98,8 @@ def install(
     package_name: str,
     service_name: str,
     expected_running_tasks: int,
-    additional_options: dict = {},
-    package_version: PackageVersion = PackageVersion.STUB_UNIVERSE,
+    additional_options: Dict[str, Any] = {},
+    package_version: Union[PackageVersion, str] = PackageVersion.STUB_UNIVERSE,
     timeout_seconds: int = TIMEOUT_SECONDS,
     wait_for_deployment: bool = True,
     insert_strict_options: bool = True,
@@ -154,7 +159,10 @@ def install(
                 package_name, service_name
             )
         )
-        sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
+        sdk_plan.wait_for_completed_deployment(
+            service_name=service_name,
+            timeout_seconds=timeout_seconds,
+        )
 
     log.info(
         "Installed package={} service={} after {}".format(
@@ -171,7 +179,7 @@ def install(
     wait_fixed=5000,
     retry_on_exception=lambda e: isinstance(e, Exception),
 )
-def _retried_run_janitor(service_name):
+def _retried_run_janitor(service_name: str) -> None:
     cmd_list = [
         "sudo",
         "docker",
@@ -195,7 +203,7 @@ def _retried_run_janitor(service_name):
     wait_fixed=5000,
     retry_on_exception=lambda e: isinstance(e, Exception),
 )
-def _retried_uninstall_package_and_wait(package_name, service_name):
+def _retried_uninstall_package_and_wait(package_name: str, service_name: str) -> None:
     if sdk_marathon.app_exists(service_name):
         log.info("Uninstalling package {} with service name {}".format(package_name, service_name))
         sdk_cmd.run_cli(
@@ -209,7 +217,7 @@ def _retried_uninstall_package_and_wait(package_name, service_name):
             wait_fixed=5000,
             retry_on_result=lambda result: not result,
         )
-        def wait_for_removal_log_deploy_plan():
+        def wait_for_removal_log_deploy_plan() -> bool:
             if not sdk_marathon.app_exists(service_name):
                 return True
 
@@ -233,7 +241,7 @@ def _retried_uninstall_package_and_wait(package_name, service_name):
         )
 
 
-def _verify_completed_uninstall(service_name):
+def _verify_completed_uninstall(service_name: str) -> None:
     state_summary = sdk_cmd.cluster_request("GET", "/mesos/state-summary").json()
 
     # There should be no orphaned resources in the state summary (DCOS-30314)
@@ -301,7 +309,7 @@ def _verify_completed_uninstall(service_name):
     log.info("No orphaned frameworks for service {} were found".format(service_name))
 
 
-def ignore_dead_agent(agent_host):
+def ignore_dead_agent(agent_host: str) -> None:
     """Marks the specified agent as destroyed. When uninstall() is next called, any orphaned
     resources against this agent will be logged but will not result in a thrown exception.
     """
@@ -314,7 +322,7 @@ def ignore_dead_agent(agent_host):
     )
 
 
-def uninstall(package_name, service_name):
+def uninstall(package_name: str, service_name: str) -> None:
     """Uninstalls the specified service from the cluster, and verifies that its resources and
     framework were correctly cleaned up after the uninstall has completed. Any agents which are
     expected to have orphaned resources (e.g. due to being shut down) should be passed to
