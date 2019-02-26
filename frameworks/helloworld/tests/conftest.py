@@ -17,11 +17,11 @@ def pytest_addoption(parser):
     parser.addoption("--service-name", action='store', default='hello-world',
                      help="custom service name to be used instead of default 'hello-world'")
     parser.addoption('--min', action='store', default=-1,
-                     help='min jenkins index to start from (default: -1).')
+                     help='min hello-world index to start from (default: -1).')
     parser.addoption('--max', action='store', default=-1,
-                     help='max jenkins index to end at (default: -1).')
+                     help='max hello-world index to end at (default: -1).')
     parser.addoption('--batch-size', action='store', default=1,
-                     help='batch size to deploy jenkins masters in (default: 1).')
+                     help='batch size to deploy hello-world masters in (default: 1).')
 
 
 @pytest.fixture
