@@ -20,7 +20,7 @@ import uuid
 import retrying
 import subprocess
 
-from typing import List
+from typing import Any, Dict, List, Optional
 
 import sdk_cmd
 import sdk_hosts
@@ -106,7 +106,7 @@ def _create_temp_working_dir() -> tempfile.TemporaryDirectory:
 
 
 # TODO: make this generic and put in sdk_utils.py
-def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_filename: str):
+def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_filename: str) -> None:
     """
     Copies the keytab that was generated inside the container running the KDC server to the localhost
     so it can be uploaded to the secret store later.
@@ -123,7 +123,7 @@ def _copy_file_to_localhost(host_id: str, keytab_absolute_path: str, output_file
     log.info("Downloaded %d bytes to %s", os.stat(output_filename).st_size, output_filename)
 
 
-def kinit(marathon_task_id: str, keytab: str, principal: str):
+def kinit(marathon_task_id: str, keytab: str, principal: str) -> None:
     """
     Performs a kinit command to authenticate the specified principal.
     :param marathon_task_id: The marathon task in whose environment the kinit will run.
@@ -141,7 +141,7 @@ def kinit(marathon_task_id: str, keytab: str, principal: str):
         )
 
 
-def kdestroy(marathon_task_id: str):
+def kdestroy(marathon_task_id: str) -> None:
     """
     Performs a kdestroy command to erase an auth session for a principal.
     :param task_id: The marathon task in whose environment the kdestroy will run.
@@ -161,8 +161,8 @@ class KerberosEnvironment:
         This just passes a dictionary to be rendered as a JSON app definition to marathon.
         """
         self._persist = persist
-        self._working_dir = None
-        self._temp_working_dir = None
+        self._working_dir = None  # type: Optional[str]
+        self._temp_working_dir = None  # type: Optional[tempfile.TemporaryDirectory]
 
         # Application settings
         self.app_id = KERBEROS_APP_ID
@@ -177,12 +177,12 @@ class KerberosEnvironment:
         self.kdc_host_id = kdc_task_info["slave_id"]
 
         # Kerberos-specific information
-        self.principals = []
+        self.principals = []  # type: List[str]
         self.kdc_realm = REALM
 
         self.set_keytab_path("_keytab", is_binary=False)
 
-    def load_kdc_app_definition(self) -> dict:
+    def load_kdc_app_definition(self) -> Dict[str, Any]:
         kdc_app_def_path = "{current_file_dir}/../tools/kdc/kdc.json".format(
             current_file_dir=os.path.dirname(os.path.realpath(__file__))
         )
@@ -193,7 +193,7 @@ class KerberosEnvironment:
 
         return kdc_app_def
 
-    def install(self) -> dict:
+    def install(self) -> Dict[str, Any]:
         if sdk_marathon.app_exists(self.app_definition["id"]):
             if self._persist:
                 log.info("Found installed KDC app, reusing it")
@@ -207,13 +207,13 @@ class KerberosEnvironment:
 
         return _get_kdc_task(self.app_definition["id"])
 
-    def __run_kadmin(self, options: list, cmd: str, args: list):
+    def __run_kadmin(self, options: List[str], cmd: str, args: List[str]) -> None:
         """
         Invokes Kerberos' kadmin binary inside the container to run some command.
-        :param options (list): A list of options given to kadmin.
-        :param cmd (str): The name of the sub command to run.
-        :param args (list): A list of arguments passed to the sub command. This should also include any flags
-                            needed to be set for the sub command.
+        :param options: A list of options given to kadmin.
+        :param cmd: The name of the sub command to run.
+        :param args: A list of arguments passed to the sub command. This should also include any flags
+                     needed to be set for the sub command.
         :raises a generic Exception if the invocation fails.
         """
         kadmin_cmd = "/usr/sbin/kadmin {options} {cmd} {args}".format(
@@ -229,7 +229,7 @@ class KerberosEnvironment:
                 )
             )
 
-    def add_principals(self, principals: list):
+    def add_principals(self, principals: List[str]) -> None:
         """
         Adds a list of principals to the KDC. A principal is defined as a concatenation of 3 parts
         in the following order:
@@ -274,7 +274,7 @@ class KerberosEnvironment:
 
         log.info("Principals successfully added to KDC")
 
-    def create_remote_keytab(self, keytab_id: str, principals: list = []) -> str:
+    def create_remote_keytab(self, keytab_id: str, principals: List[str] = []) -> str:
         """
         Create a remote keytab for the specified list of principals
         """
@@ -313,7 +313,7 @@ class KerberosEnvironment:
         return keytab_absolute_path
 
     @retrying.retry(stop_max_attempt_number=2, wait_fixed=5000)
-    def get_keytab_for_principals(self, keytab_id: str, principals: list):
+    def get_keytab_for_principals(self, keytab_id: str, principals: List[str]) -> str:
         """
         Download a generated keytab for the specified list of principals
         """
@@ -349,7 +349,7 @@ class KerberosEnvironment:
 
         return local_keytab_path
 
-    def __create_and_fetch_keytab(self):
+    def __create_and_fetch_keytab(self) -> str:
         """
         Creates the keytab file that holds the info about all the principals
         that have been added to the KDC. It also fetches it locally so that
@@ -366,8 +366,8 @@ class KerberosEnvironment:
                     keytab = f.read()
 
                 base64_encoding = base64.b64encode(keytab).decode("utf-8")
-                with open(base64_encoded_keytab_path, "w") as f:
-                    f.write(base64_encoding)
+                with open(base64_encoded_keytab_path, "wb") as f:
+                    f.write(base64_encoding.encode('utf-8'))
 
                 log.info(
                     "Finished base64-encoding secret content (%d bytes): %s",
@@ -382,7 +382,7 @@ class KerberosEnvironment:
         log.info("Creating binary secret from %s", keytab_path)
         return ["-f", keytab_path]
 
-    def __create_and_upload_secret(self, keytab_path: str):
+    def __create_and_upload_secret(self, keytab_path: str) -> None:
         """
         This method base64 encodes the keytab file and creates a secret with this encoded content so the
         tasks can fetch it.
@@ -404,7 +404,7 @@ class KerberosEnvironment:
         sdk_cmd.run_cli(create_secret_cmd, check=True)
         log.info("Successfully uploaded a base64-encoded keytab file to the secret store")
 
-    def finalize(self):
+    def finalize(self) -> None:
         """
         Once the principals have been added, the rest of the environment setup does not ask for more info and can be
         automated, hence this method.
@@ -412,25 +412,25 @@ class KerberosEnvironment:
         local_keytab_path = self.__create_and_fetch_keytab()
         self.__create_and_upload_secret(local_keytab_path)
 
-    def get_working_file_path(self, *args):
+    def get_working_file_path(self, *args: str) -> str:
         if not self._working_dir:
             if not self._temp_working_dir:
                 self._temp_working_dir = _create_temp_working_dir()
-            self._working_dir = self._temp_working_dir.name
+            self._working_dir = self._temp_working_dir.name  # type: str
 
         working_filepath = os.path.join(self._working_dir, *args)
         return working_filepath
 
-    def get_host(self):
+    def get_host(self) -> str:
         return sdk_hosts.autoip_host(service_name="marathon", task_name=self.app_definition["id"])
 
-    def get_port(self):
+    def get_port(self) -> str:
         return str(self.app_definition["portDefinitions"][0]["port"])
 
     def get_keytab_path(self) -> str:
         return self.keytab_secret_path
 
-    def set_keytab_path(self, secret_path: str, is_binary: bool):
+    def set_keytab_path(self, secret_path: str, is_binary: bool) -> None:
         if is_binary:
             prefix = ""
         else:
@@ -441,10 +441,10 @@ class KerberosEnvironment:
     def get_realm(self) -> str:
         return self.kdc_realm
 
-    def get_kdc_address(self):
+    def get_kdc_address(self) -> str:
         return ":".join(str(p) for p in [self.get_host(), self.get_port()])
 
-    def get_principal(self, primary: str, instance: str = None) -> str:
+    def get_principal(self, primary: str, instance: Optional[str] = None) -> str:
 
         if instance:
             principal = "{}/{}".format(primary, instance)
@@ -453,7 +453,7 @@ class KerberosEnvironment:
 
         return "{}@{}".format(principal, self.get_realm())
 
-    def cleanup(self):
+    def cleanup(self) -> None:
         sdk_security.install_enterprise_cli()
 
         log.info("Removing the marathon KDC app")
