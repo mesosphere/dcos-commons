@@ -10,8 +10,7 @@ import retrying
 
 from subprocess import check_output
 
-from typing import Dict
-from typing import List
+from typing import Any, Dict, Generator, List, Set
 
 import sdk_cmd
 import sdk_utils
@@ -22,7 +21,7 @@ log = logging.getLogger(__name__)
 DEFAULT_LINUX_USER = "nobody"
 
 
-def install_enterprise_cli(force=False):
+def install_enterprise_cli(force: bool=False) -> None:
     """ Install the enterprise CLI if required """
 
     log.info("Installing DC/OS enterprise CLI")
@@ -37,7 +36,7 @@ def install_enterprise_cli(force=False):
         wait_fixed=2000,
         retry_on_exception=lambda e: isinstance(e, Exception),
     )
-    def _install_impl():
+    def _install_impl() -> None:
         sdk_cmd.run_cli("package install --yes --cli dcos-enterprise-cli", check=True)
 
     _install_impl()
@@ -75,7 +74,9 @@ def _revoke(user: str, acl: str, description: str, action: str) -> None:
     log.info("Want to delete {user}+{acl}".format(user=user, acl=acl))
 
 
-def get_default_permissions(service_account_name: str, role: str, linux_user: str) -> List[dict]:
+def get_default_permissions(
+    service_account_name: str, role: str, linux_user: str,
+) -> List[Dict[str, str]]:
     return [
         # registration permissions
         {
@@ -144,8 +145,11 @@ def get_default_permissions(service_account_name: str, role: str, linux_user: st
 
 
 def grant_permissions(
-    linux_user: str, role_name: str, service_account_name: str, permissions: List[dict]
-) -> List[dict]:
+    linux_user: str,
+    role_name: str,
+    service_account_name: str,
+    permissions: List[Dict[str, str]],
+) -> List[Dict[str, str]]:
     log.info("Granting permissions to {account}".format(account=service_account_name))
 
     if not permissions:
@@ -160,7 +164,9 @@ def grant_permissions(
     return permissions
 
 
-def revoke_permissions(service_account_name: str, role_name: str, permissions: List[dict]) -> None:
+def revoke_permissions(
+    service_account_name: str, role_name: str, permissions: List[Dict[str, str]]
+) -> None:
     log.info("Revoking permissions from %s (role: %s)", service_account_name, role_name)
 
     for permission in permissions:
@@ -170,7 +176,9 @@ def revoke_permissions(service_account_name: str, role_name: str, permissions: L
     log.info("Permission cleanup completed for %s (role: %s)", service_account_name, role_name)
 
 
-def create_service_account(service_account_name: str, service_account_secret: str) -> None:
+def create_service_account(
+    service_account_name: str, service_account_secret: str
+) -> None:
     """
     Creates a service account. If it already exists, it is deleted.
     """
@@ -262,11 +270,11 @@ def _get_integration_test_foldered_role(service_name: str) -> List[str]:
 def setup_security(
     service_name: str,
     roles: List[str] = [],
-    permissions: List[dict] = [],
+    permissions: List[Dict[str, str]] = [],
     linux_user: str = DEFAULT_LINUX_USER,
     service_account: str = "service-acct",
     service_account_secret: str = "secret",
-) -> dict:
+) -> Dict[str, Any]:
 
     create_service_account(
         service_account_name=service_account, service_account_secret=service_account_secret
@@ -279,7 +287,7 @@ def setup_security(
         "roles": [],
         "permissions": {},
         "is_strict": sdk_utils.is_strict_mode(),
-    }
+    }  # type: Dict[str, Any]
 
     if not security_info["is_strict"]:
         log.info("Skipping strict-mode security setup on non-strict cluster")
@@ -302,7 +310,7 @@ def setup_security(
     return security_info
 
 
-def cleanup_security(service_name: str, security_info: Dict) -> None:
+def cleanup_security(service_name: str, security_info: Dict[str, Any]) -> None:
 
     service_account = security_info.get("name", "service-acct")
     service_account_secret = security_info.get("secret", "secret")
@@ -319,11 +327,11 @@ def cleanup_security(service_name: str, security_info: Dict) -> None:
 
 def security_session(
     framework_name: str,
-    permissions: List[dict] = [],
+    permissions: List[Dict[str, str]] = [],
     linux_user: str = DEFAULT_LINUX_USER,
     service_account: str = "service-acct",
     service_account_secret: str = "secret",
-):
+) -> Generator:
     """Create a service account and configure permissions for strict-mode tests.
 
     This should generally be used as a fixture in a framework's conftest.py:
@@ -352,7 +360,7 @@ def security_session(
             cleanup_security(framework_name, security_info)
 
 
-def openssl_ciphers() -> set:
+def openssl_ciphers() -> Set[str]:
     return set(
         check_output(["openssl", "ciphers", "ALL:eNULL"]).decode("utf-8").rstrip().split(":")
     )
