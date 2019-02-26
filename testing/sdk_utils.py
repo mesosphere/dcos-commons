@@ -192,7 +192,7 @@ def pretty_duration(seconds):
     return ret
 
 
-def random_string(length=8):
+def random_string(length=8) -> str:
     return "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
 
