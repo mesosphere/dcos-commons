@@ -7,6 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 """
 import logging
 import retrying
+from typing import List
 
 import sdk_agents
 import sdk_cmd
@@ -38,14 +39,17 @@ log = logging.getLogger(__name__)
 
 
 def check_running(
-    service_name, expected_task_count, timeout_seconds=DEFAULT_TIMEOUT_SECONDS, allow_more=True
-):
+    service_name: str,
+    expected_task_count: int,
+    timeout_seconds: int=DEFAULT_TIMEOUT_SECONDS,
+    allow_more: bool=True,
+) -> bool:
     agentid_to_hostname = _get_agentid_to_hostname()
 
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _check_running():
+    def _check_running() -> bool:
         tasks = _get_service_tasks(service_name, agentid_to_hostname)
         running_task_names = []
         other_tasks = []
@@ -214,7 +218,7 @@ def _get_service_tasks(
     return service_tasks
 
 
-def get_summary(with_completed=False, task_name=None) -> list:
+def get_summary(with_completed=False, task_name=None) -> List[Task]:
     """Returns a summary of all cluster tasks in the cluster, or just a specified task.
     This may be used instead of invoking 'dcos task [--all]' directly.
 

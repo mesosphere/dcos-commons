@@ -8,6 +8,7 @@ import json
 import logging
 import retrying
 import tempfile
+from typing import Any, Dict, Optional
 
 import sdk_cmd
 import sdk_install
@@ -148,14 +149,14 @@ def get_config(package_name, service_name):
 
 
 def update_or_upgrade_or_downgrade(
-    package_name,
-    service_name,
-    to_package_version,
-    additional_options,
-    expected_running_tasks,
-    wait_for_deployment=True,
-    timeout_seconds=TIMEOUT_SECONDS,
-):
+    package_name: str,
+    service_name: str,
+    to_package_version: Optional[str],
+    additional_options: Dict[str, Any],
+    expected_running_tasks: int,
+    wait_for_deployment: bool=True,
+    timeout_seconds: int=TIMEOUT_SECONDS,
+) -> bool:
     initial_config = get_config(package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, "")
     if (to_package_version and not is_cli_supports_service_version_upgrade()) or (
@@ -219,10 +220,6 @@ def _update_service_with_cli(
 
 
 def _wait_for_deployment(package_name, service_name, initial_config, task_ids, timeout_seconds):
-    # First we wait for the actual scheduler Marathon task itself to finish any possible
-    # deployments.
-    sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
-
     updated_config = get_config(package_name, service_name)
 
     if updated_config == initial_config:

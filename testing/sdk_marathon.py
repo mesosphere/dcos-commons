@@ -18,7 +18,7 @@ TIMEOUT_SECONDS = 15 * 60
 log = logging.getLogger(__name__)
 
 
-def app_exists(app_name, timeout=TIMEOUT_SECONDS):
+def app_exists(app_name: str, timeout: int=TIMEOUT_SECONDS) -> bool:
     # Custom config fetch: Allow 404 as signal that app doesn't exist. Retry on other errors.
     @retrying.retry(
         wait_fixed=1000,
@@ -105,7 +105,11 @@ class MarathonDeploymentsResponse(MarathonDeploymentResponse):
         self._apps = list(_parse(response_json))
 
 
-def wait_for_deployment(app_name: str, timeout: int, expected_version: str) -> None:
+def wait_for_deployment(
+    app_name: str,
+    timeout: int,
+    expected_version: Optional[str],
+) -> None:
     @retrying.retry(
         stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
     )

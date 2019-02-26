@@ -9,6 +9,7 @@ SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
 import datetime
 import logging
 import retrying
+from typing import Any, Dict, List
 
 import sdk_cmd
 import sdk_tasks
@@ -25,19 +26,44 @@ class TaskFailuresExceededException(Exception):
 log = logging.getLogger(__name__)
 
 
-def get_deployment_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return get_plan(service_name, "deploy", timeout_seconds)
+def get_deployment_plan(
+    service_name: str,
+    timeout_seconds: int=TIMEOUT_SECONDS,
+) -> Dict[str, Any]:
+    return get_plan(
+        service_name=service_name,
+        plan="deploy",
+        timeout_seconds=timeout_seconds,
+    )
 
 
-def get_recovery_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return get_plan(service_name, "recovery", timeout_seconds)
+def get_recovery_plan(
+    service_name: str,
+    timeout_seconds: int=TIMEOUT_SECONDS,
+) -> Dict[str, Any]:
+    return get_plan(
+        service_name=service_name,
+        plan="recovery",
+        timeout_seconds=timeout_seconds,
+    )
 
 
-def get_decommission_plan(service_name, timeout_seconds=TIMEOUT_SECONDS):
-    return get_plan(service_name, "decommission", timeout_seconds)
+def get_decommission_plan(
+    service_name: str,
+    timeout_seconds=TIMEOUT_SECONDS,
+) -> Dict[str, Any]:
+    return get_plan(
+        service_name=service_name,
+        plan="decommission",
+        timeout_seconds=timeout_seconds,
+    )
 
 
-def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
+def list_plans(
+    service_name: str,
+    timeout_seconds: int=TIMEOUT_SECONDS,
+    multiservice_name: Optional[str]=None,
+) -> List:
     if multiservice_name is None:
         path = "/v1/plans"
     else:
@@ -47,7 +73,11 @@ def list_plans(service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=
     ).json()
 
 
-def get_plan_once(service_name, plan, multiservice_name=None):
+def get_plan_once(
+    service_name: str,
+    plan: str,
+    multiservice_name: Optional[str]=None,
+) -> Dict[str, Any]:
     if multiservice_name is None:
         path = "/v1/plans/{}".format(plan)
     else:
@@ -55,14 +85,19 @@ def get_plan_once(service_name, plan, multiservice_name=None):
 
     response = sdk_cmd.service_request("GET", service_name, path, retry=False, raise_on_error=False)
     if response.status_code == 417:
-        return response  # Plan has errors: Avoid throwing an exception, return plan as-is.
+        return response.json()  # Plan has errors: Avoid throwing an exception, return plan as-is.
     response.raise_for_status()
     return response.json()
 
 
-def get_plan(service_name, plan, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None):
+def get_plan(
+    service_name: str,
+    plan: str,
+    timeout_seconds: int=TIMEOUT_SECONDS,
+    multiservice_name: Optional[str]=None
+) -> Dict[str, Any]:
     @retrying.retry(wait_fixed=1000, stop_max_delay=timeout_seconds * 1000)
-    def wait_for_plan():
+    def wait_for_plan() -> Dict[str, Any]:
         return get_plan_once(service_name, plan, multiservice_name)
 
     return wait_for_plan()
@@ -96,8 +131,10 @@ def wait_for_kicked_off_recovery(service_name, timeout_seconds=TIMEOUT_SECONDS):
 
 
 def wait_for_completed_deployment(
-    service_name, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None
-):
+    service_name: str,
+    timeout_seconds: int=TIMEOUT_SECONDS,
+    multiservice_name: Optional[str]=None,
+) -> Dict[str, Any]:
     return wait_for_completed_plan(service_name, "deploy", timeout_seconds, multiservice_name)
 
 
@@ -137,7 +174,7 @@ def wait_for_starting_plan(service_name, plan_name, timeout_seconds=TIMEOUT_SECO
 
 def wait_for_plan_status(
     service_name, plan_name, status, timeout_seconds=TIMEOUT_SECONDS, multiservice_name=None
-):
+) -> Dict[str, Any]:
     """Wait for a plan to have one of the specified statuses"""
     if isinstance(status, str):
         statuses = [status]
@@ -254,7 +291,7 @@ def get_child(parent, children_field, name):
     return None
 
 
-def plan_string(plan_name, plan):
+def plan_string(plan_name: str, plan: Dict[str, Any]) -> str:
     if plan is None:
         return "{}=NULL!".format(plan_name)
 

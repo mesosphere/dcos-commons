@@ -12,7 +12,7 @@ import os.path
 import pytest
 import random
 import string
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 import sdk_cmd
 
@@ -171,7 +171,7 @@ dcos_ee_only = pytest.mark.skipif(is_open_dcos(), reason="Feature only supported
 ###
 
 
-def pretty_duration(seconds: Optional[int]) -> str:
+def pretty_duration(seconds: Optional[Union[int, float]]) -> str:
     """ Returns a user-friendly representation of the provided duration in seconds.
     For example: 62.8 => "1m2.8s", or 129837.8 => "2d12h4m57.8s"
     """
