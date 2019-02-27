@@ -39,7 +39,7 @@ def get_endpoint_names(package_name: str, service_name: str) -> list:
     return _wait_for_endpoint_info(package_name, service_name, None, json=True)
 
 
-def get_endpoint(package_name: str, service_name: str, endpoint_name: str) -> typing.Dict:
+def get_endpoint(package_name: str, service_name: str, endpoint_name: str) -> Dict:
     """Returns the content of the specified endpoint definition as a JSON object.
 
     {
@@ -71,6 +71,7 @@ def get_endpoint_string(package_name: str, service_name: str, endpoint_name: str
     assert endpoint_name, "Missing endpoint_name. To get list of endpoint names, use get_endpoint_names()."
 
     info = _wait_for_endpoint_info(package_name, service_name, endpoint_name, False)
+    assert isinstance(info, str)
     return info.strip()
 
 

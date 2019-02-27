@@ -10,6 +10,8 @@ import os
 import urllib.request
 from typing import Dict, List, Tuple
 
+from _pytest.tmpdir import TempdirFactory
+
 import retrying
 import sdk_cmd
 import sdk_install
@@ -52,7 +54,7 @@ def install_package_registry(service_secret_path: str) -> Dict:
 
     # If `describe` endpoint is working, registry is writable by AR.
     @retrying.retry(stop_max_delay=5 * 60 * 1000, wait_fixed=5 * 1000)
-    def wait_for_registry_available():
+    def wait_for_registry_available() -> None:
         code, stdout, stderr = sdk_cmd.run_cli(
             "registry describe --package-name=hello --package-version=world"
         )
@@ -63,7 +65,7 @@ def install_package_registry(service_secret_path: str) -> Dict:
     return pkg_reg_repo
 
 
-def add_dcos_files_to_registry(tmpdir_factory) -> None:  # _pytest.TempdirFactory
+def add_dcos_files_to_registry(tmpdir_factory: TempdirFactory) -> None:
     # Use DCOS_FILES_PATH if its set to a valid path OR use pytest's tmpdir.
     dcos_files_path = os.environ.get("DCOS_FILES_PATH", "")
     valid_path_set = os.path.isdir(dcos_files_path)

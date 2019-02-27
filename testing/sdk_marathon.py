@@ -8,7 +8,7 @@ SHOULD ALSO BE APPLIED TO sdk_marathon IN ANY OTHER PARTNER REPOS
 import logging
 import retrying
 import requests
-import typing
+from typing import Any, Dict, Iterable, List, Optional
 
 import sdk_cmd
 import sdk_tasks
@@ -18,14 +18,14 @@ TIMEOUT_SECONDS = 15 * 60
 log = logging.getLogger(__name__)
 
 
-def app_exists(app_name: str, timeout: int=TIMEOUT_SECONDS) -> bool:
+def app_exists(app_name: str, timeout: int = TIMEOUT_SECONDS) -> bool:
     # Custom config fetch: Allow 404 as signal that app doesn't exist. Retry on other errors.
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=timeout * 1000,
         retry_on_exception=lambda e: isinstance(e, Exception),
     )
-    def _app_exists():
+    def _app_exists() -> bool:
         response = sdk_cmd.cluster_request(
             "GET", _api_url("apps/{}".format(app_name)), raise_on_error=False
         )
@@ -34,10 +34,10 @@ def app_exists(app_name: str, timeout: int=TIMEOUT_SECONDS) -> bool:
         response.raise_for_status()  # throw exception for (non-404) errors
         return True  # didn't get 404, and no other error code was returned, so app must exist.
 
-    return _app_exists()
+    return bool(_app_exists())
 
 
-def get_config(app_name, timeout=TIMEOUT_SECONDS):
+def get_config(app_name: str, timeout: int = TIMEOUT_SECONDS) -> Dict[str, Any]:
     config = _get_config(app_name)
 
     # The configuration JSON that marathon returns doesn't match the configuration JSON it accepts,
@@ -90,13 +90,13 @@ class MarathonDeploymentResponse:
             deployment_id = response_json["deploymentId"]
         self._apps = [MarathonDeploymentResponse.App(version, deployment_id)]
 
-    def get_apps(self) -> typing.List["App"]:
+    def get_apps(self) -> List["App"]:
         return self._apps
 
 
 class MarathonDeploymentsResponse(MarathonDeploymentResponse):
     def _parse_app_information(self, response_json: dict) -> None:
-        def _parse(deployments) -> typing.Iterable[MarathonDeploymentResponse.App]:
+        def _parse(deployments) -> Iterable[MarathonDeploymentResponse.App]:
             for deployment in deployments:
                 version = deployment["version"]
                 deployment_id = deployment["id"]
@@ -176,7 +176,7 @@ def wait_for_deployment(
     _wait_for_deployment()
 
 
-def install_app(app_definition: dict, timeout=TIMEOUT_SECONDS) -> None:
+def install_app(app_definition: Dict[str, Any], timeout: int = TIMEOUT_SECONDS) -> None:
     """
     Installs a marathon app using the given `app_definition`.
 
@@ -281,11 +281,11 @@ def restart_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     wait_for_deployment(app_name, timeout, result.get_version())
 
 
-def _get_config(app_name):
+def _get_config(app_name: str) -> Dict[str, Any]:
     return sdk_cmd.cluster_request("GET", _api_url("apps/{}".format(app_name))).json()["app"]
 
 
-def _api_url(path):
+def _api_url(path: str) -> str:
     return "/marathon/v2/{}".format(path)
 
 
@@ -308,7 +308,7 @@ def get_scheduler_host(service_name):
     return tasks.pop().host
 
 
-def bump_cpu_count_config(service_name, key_name, delta=0.1):
+def bump_cpu_count_config(service_name: str, key_name: str, delta: int = 0.1) -> float:
     config = get_config(service_name)
     updated_cpus = float(config["env"][key_name]) + delta
     config["env"][key_name] = str(updated_cpus)
@@ -316,7 +316,7 @@ def bump_cpu_count_config(service_name, key_name, delta=0.1):
     return updated_cpus
 
 
-def bump_task_count_config(service_name, key_name, delta=1):
+def bump_task_count_config(service_name: str, key_name: str, delta: int = 1) -> int:
     config = get_config(service_name)
     updated_node_count = int(config["env"][key_name]) + delta
     config["env"][key_name] = str(updated_node_count)
