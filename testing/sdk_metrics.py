@@ -28,7 +28,10 @@ def get_scheduler_metrics(
     """Returns a dict tree of Scheduler metrics fetched directly from the scheduler.
     Returned data will match the content of /service/<svc_name>/v1/metrics.
     """
-    return sdk_cmd.service_request("GET", service_name, "/v1/metrics").json()
+    response = sdk_cmd.service_request("GET", service_name, "/v1/metrics")
+    response_json = response.json()
+    assert isinstance(response_json, dict)
+    return response_json
 
 
 def get_scheduler_counter(
@@ -60,6 +63,7 @@ def get_scheduler_counter(
                 )
                 return None
             value = sched_counters[counter_name]["count"]
+            assert isinstance(value, int)
             log.info("{} metric counter: {}={}".format(service_name, counter_name, value))
             return value
         except Exception as e:
@@ -85,17 +89,17 @@ def wait_for_scheduler_counter_value(
         value = get_scheduler_counter(service_name, counter_name, timeout_seconds)
         return value >= min_value
 
-    return check_for_value()
+    return bool(check_for_value())
 
 
 def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> Dict[str, Any]:
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _getter():
+    def _getter() -> Dict[str, Any]:
         return get_metrics_from_cli(task_name)
 
-    return _getter()
+    return dict(_getter())
 
 
 def get_metrics_from_cli(task_name: str) -> Dict[str, Any]:
@@ -111,7 +115,7 @@ def get_metrics_from_cli(task_name: str) -> Dict[str, Any]:
         log.error("Error decoding JSON from %s: %s", stdout, json_error)
         raise
 
-    return metrics
+    return dict(metrics)
 
 
 def get_metrics(package_name: str, service_name: str, pod_name: str, task_name: str) -> List:
@@ -190,7 +194,7 @@ def get_metrics(package_name: str, service_name: str, pod_name: str, task_name: 
         raise Exception("Expected key 'dimensions.task_name' not found in app metrics")
 
     if app_json["dimensions"]["task_name"] == task_name:
-        return app_json["datapoints"]
+        return list(app_json["datapoints"])
 
     raise Exception("No metrics found for task {} in service {}".format(task_name, service_name))
 
@@ -236,14 +240,14 @@ def wait_for_service_metrics(
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout * 1000, retry_on_result=lambda res: not res
     )
-    def check_for_service_metrics():
+    def check_for_service_metrics() -> bool:
         try:
             log.info(
                 "Verifying metrics exist for task {} in service {}".format(task_name, service_name)
             )
             service_metrics = get_metrics(package_name, service_name, pod_name, task_name)
             emitted_metric_names = [metric["name"] for metric in service_metrics]
-            return expected_metrics_callback(emitted_metric_names)
+            return bool(expected_metrics_callback(emitted_metric_names))
 
         except Exception as e:
             log.error("Caught exception trying to get metrics: {}".format(e))
