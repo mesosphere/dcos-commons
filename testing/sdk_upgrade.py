@@ -8,7 +8,7 @@ import json
 import logging
 import retrying
 import tempfile
-from typing import Any, Dict, Optional
+from typing import Any, Dict, List, Optional
 
 import sdk_cmd
 import sdk_install
@@ -31,8 +31,8 @@ def test_upgrade(
     package_name: str,
     service_name: str,
     expected_running_tasks,
-    additional_options={},
-    test_version_additional_options=None,
+    additional_options: Dict[str, Any] = {},
+    test_version_additional_options: Optional[Dict[str, Any]] = None,
     timeout_seconds: int = TIMEOUT_SECONDS,
     wait_for_deployment: bool = True,
 ) -> None:
@@ -122,7 +122,7 @@ def soak_upgrade_downgrade(
 @retrying.retry(
     stop_max_attempt_number=15, wait_fixed=10000, retry_on_result=lambda result: result is None
 )
-def get_config(package_name: str, service_name: str) -> Any:
+def get_config(package_name: str, service_name: str) -> Optional[Dict[str, Any]]:
     """Return the active config for the current service.
     This is retried 15 times, waiting 10s between retries."""
     # Refrain from dumping the full ServiceSpec to stdout
@@ -141,7 +141,9 @@ def get_config(package_name: str, service_name: str) -> Any:
             log.warning("Non-fatal debug config target message\nstderr: '%s'", stderr)
 
         try:
-            return json.loads(stdout)
+            result = json.loads(stdout)
+            assert isinstance(result, dict)
+            return result
         except Exception as e:
             log.error("Could parse debug config target as JSON\n"
                       "error: %s\n json to parse: %s", str(e), stdout)
@@ -192,8 +194,8 @@ def update_or_upgrade_or_downgrade(
 def _update_service_with_cli(
     package_name: str,
     service_name: str,
-    to_package_version=None,
-    additional_options=None
+    to_package_version: Optional[str] = None,
+    additional_options: Optional[Dict[str, Any]] = None
 ) -> None:
     update_cmd = ["update", "start"]
 
@@ -232,8 +234,8 @@ def _update_service_with_cli(
 def _wait_for_deployment(
     package_name: str,
     service_name: str,
-    initial_config,
-    task_ids,
+    initial_config: Dict[str, Any],
+    task_ids: List[str],
     timeout_seconds: int,
 ) -> None:
     updated_config = get_config(package_name, service_name)

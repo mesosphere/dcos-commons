@@ -7,7 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 """
 import logging
 import retrying
-from typing import Any, Dict, List
+from typing import Any, Dict, Iterable, List
 
 import sdk_agents
 import sdk_cmd
@@ -441,7 +441,7 @@ def check_tasks_updated(
     _check_tasks_updated()
 
 
-def check_tasks_not_updated(service_name: str, prefix: str, old_task_ids) -> None:
+def check_tasks_not_updated(service_name: str, prefix: str, old_task_ids: Iterable[str]) -> None:
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_plan.wait_for_completed_recovery(service_name)
     wait_for_active_framework(service_name)
