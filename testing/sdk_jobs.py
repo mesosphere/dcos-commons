@@ -87,7 +87,7 @@ def run_job(
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def wait():
+    def wait() -> bool:
         # Note: We COULD directly query the run here via /v1/jobs/<job_name>/runs/<run_id>, but that
         # only works for active runs -- for whatever reason the run will disappear after it's done.
         # Therefore we have to query the full run history from the parent job and find our run_id there.
