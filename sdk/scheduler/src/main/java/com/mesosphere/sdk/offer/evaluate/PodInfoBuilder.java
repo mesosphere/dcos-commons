@@ -575,10 +575,12 @@ public class PodInfoBuilder {
 
     // Isolate the tmp directory of tasks
     //switch to SANDBOX SELF after dc/os 1.13
-    containerInfo.addVolumes(Protos.Volume.newBuilder()
-        .setContainerPath("/tmp")
-        .setHostPath("tmp")
-        .setMode(Protos.Volume.Mode.RW));
+    if (isTaskContainer) {
+      containerInfo.addVolumes(Protos.Volume.newBuilder()
+          .setContainerPath("/tmp")
+          .setHostPath("tmp")
+          .setMode(Protos.Volume.Mode.RW));
+    }
 
     for (Protos.Volume hostVolume : hostVolumes) {
       containerInfo.addVolumes(hostVolume);
