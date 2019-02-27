@@ -105,11 +105,11 @@ class Task(object):
         name: str,
         host: str,
         state: str,
-        task_id,
-        executor_id,
-        framework_id,
-        agent_id,
-        resources,
+        task_id: str,
+        executor_id: str,
+        framework_id: str,
+        agent_id: str,
+        resources: Dict[str, int],
     ) -> None:
         self.name: str = name
         self.host: str = host

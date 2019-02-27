@@ -306,13 +306,13 @@ def _dump_mesos_state(item: pytest.Item) -> None:
                 f.write(r.text)
 
 
-def _dump_task_logs(item: pytest.Item, task_ids: List[_TaskEntry]) -> None:
+def _dump_task_logs(item: pytest.Item, task_ids: List[str]) -> None:
     """
     For all of the provided tasks, downloads their task, executor, and agent logs to the artifact path for this test.
     """
     task_ids_set = set(task_ids)
     cluster_tasks = sdk_cmd.cluster_request("GET", "/mesos/tasks").json()
-    matching_tasks_by_agent = {}  # type: Dict[str, List[_TaskEntry]]
+    matching_tasks_by_agent: Dict[str, List[_TaskEntry]] = {}
     for cluster_task in cluster_tasks["tasks"]:
         task_entry = _TaskEntry(cluster_task)
         if task_entry.task_id in task_ids_set:
