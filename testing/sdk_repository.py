@@ -121,7 +121,9 @@ def _get_universe_url() -> str:
     for repo in repositories:
         if repo["name"] == "Universe":
             log.info("Found Universe URL: {}".format(repo["uri"]))
-            return repo["uri"]
+            uri = repo["uri"]
+            assert isinstance(uri, str)
+            return uri
     assert False, "Unable to find 'Universe' in list of repos: {}".format(repositories)
 
 
@@ -142,6 +144,7 @@ def _get_pkg_version(package_name: str) -> Optional[str]:
         if version is None:
             # Old location (until 1.9 or until 1.10):
             version = describe["version"]
+        assert isinstance(version, str)
         return version
     except Exception:
         log.warning(
