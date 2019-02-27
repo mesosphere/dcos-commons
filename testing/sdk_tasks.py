@@ -204,7 +204,7 @@ def _get_service_tasks(
     Returns a list of Task objects.
     """
     cluster_frameworks = sdk_cmd.cluster_request("GET", "/mesos/frameworks").json()["frameworks"]
-    service_tasks = []
+    service_tasks: List[Task] = []
     for fwk in cluster_frameworks:
         if not fwk["name"] == service_name or not fwk["active"]:
             continue
@@ -376,8 +376,11 @@ def check_task_not_relaunched(
 
 
 def check_tasks_updated(
-    service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS
-):
+    service_name: str,
+    prefix: str,
+    old_task_ids,
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+) -> None:
     prefix_clause = ""
     if prefix:
         prefix_clause = ' starting with "{}"'.format(prefix)
@@ -428,7 +431,7 @@ def check_tasks_updated(
     _check_tasks_updated()
 
 
-def check_tasks_not_updated(service_name, prefix, old_task_ids):
+def check_tasks_not_updated(service_name: str, prefix: str, old_task_ids) -> None:
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_plan.wait_for_completed_recovery(service_name)
     wait_for_active_framework(service_name)

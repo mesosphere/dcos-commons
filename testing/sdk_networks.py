@@ -7,7 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_networks IN ANY OTHER PARTNER REPOS
 import json as jsonlib
 import logging
 import retrying
-from typing import Dict, Union
+from typing import Any, Dict, List, Union
 
 import sdk_agents
 import sdk_cmd
@@ -23,7 +23,7 @@ ENABLE_VIRTUAL_NETWORKS_OPTIONS = {"service": {"virtual_network_enabled": True}}
 @retrying.retry(wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res)
 def _wait_for_endpoint_info(
     package_name: str, service_name: str, endpoint_name: str, json: bool
-) -> Union[Dict, str]:
+) -> Any:
 
     cmd = " ".join(part for part in ["endpoints", endpoint_name] if part)
     rc, stdout, _ = sdk_cmd.svc_cli(package_name, service_name, cmd)
@@ -34,12 +34,14 @@ def _wait_for_endpoint_info(
     return stdout
 
 
-def get_endpoint_names(package_name: str, service_name: str) -> list:
+def get_endpoint_names(package_name: str, service_name: str) -> List[str]:
     """Returns a list of endpoint names for the specified service."""
-    return _wait_for_endpoint_info(package_name, service_name, None, json=True)
+    result = _wait_for_endpoint_info(package_name, service_name, None, json=True)
+    assert isinstance(result, list)
+    return result
 
 
-def get_endpoint(package_name: str, service_name: str, endpoint_name: str) -> Dict:
+def get_endpoint(package_name: str, service_name: str, endpoint_name: str) -> Any:
     """Returns the content of the specified endpoint definition as a JSON object.
 
     {

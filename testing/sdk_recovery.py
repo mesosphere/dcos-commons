@@ -1,6 +1,6 @@
 import json
 import logging
-import typing
+from typing import List, Optional
 
 import sdk_cmd
 import sdk_plan
@@ -15,7 +15,7 @@ def check_permanent_recovery(
     service_name: str,
     pod_name: str,
     recovery_timeout_s: int,
-    pods_with_updated_tasks: typing.List[str] = None,
+    pods_with_updated_tasks: Optional[List[str]] = None,
 ):
     """
     Perform a replace (permanent recovery) operation on the specified pod.
@@ -43,7 +43,8 @@ def check_permanent_recovery(
     assert rc == 0, "Pod list failed"
     pod_list = set(json.loads(stdout))
 
-    pods_to_update = set(pods_with_updated_tasks if pods_with_updated_tasks else [] + [pod_name])
+    pods_with_updated_tasks = pods_with_updated_tasks if pods_with_updated_tasks else []
+    pods_to_update = set(pods_with_updated_tasks + [pod_name])
 
     tasks_to_replace = {}
     for pod in pods_to_update:

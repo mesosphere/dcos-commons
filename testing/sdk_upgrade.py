@@ -28,14 +28,14 @@ TIMEOUT_SECONDS = 25 * 60
 # (1) Installs Universe version of framework (after uninstalling any test version).
 # (2) Upgrades to test version of framework.
 def test_upgrade(
-    package_name,
-    service_name,
+    package_name: str,
+    service_name: str,
     expected_running_tasks,
     additional_options={},
     test_version_additional_options=None,
-    timeout_seconds=TIMEOUT_SECONDS,
-    wait_for_deployment=True,
-):
+    timeout_seconds: int = TIMEOUT_SECONDS,
+    wait_for_deployment: bool = True,
+) -> None:
     # Allow providing different options dicts to the universe version vs the test version.
     test_version_additional_options = test_version_additional_options or additional_options
 
@@ -239,12 +239,12 @@ def _wait_for_deployment(package_name, service_name, initial_config, task_ids, t
     sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds)
 
 
-def is_cli_supports_service_version_upgrade():
+def is_cli_supports_service_version_upgrade() -> bool:
     """Version upgrades are supported for [EE 1.9+] only"""
     return is_cli_supports_service_options_update() and not sdk_utils.is_open_dcos()
 
 
-def is_cli_supports_service_options_update():
+def is_cli_supports_service_options_update() -> bool:
     """Service updates are supported in [EE 1.9+] or [Open 1.11+]"""
     return sdk_utils.dcos_version_at_least("1.9") and (
         not sdk_utils.is_open_dcos() or sdk_utils.dcos_version_at_least("1.11")
