@@ -123,7 +123,12 @@ def run_job(
 class RunJobContext(object):
     """Context manager for running different named jobs at startup/shutdown."""
 
-    def __init__(self, before_jobs=[], after_jobs=[], timeout_seconds: int = 600):
+    def __init__(
+        self,
+        before_jobs: List[Dict[str, Any]] = [],
+        after_jobs: List[Dict[str, Any]] = [],
+        timeout_seconds: int = 600,
+    ):
         self.before_job_dicts = before_jobs
         self.after_job_dicts = after_jobs
         self.timeout_seconds = timeout_seconds
@@ -132,6 +137,6 @@ class RunJobContext(object):
         for j in self.before_job_dicts:
             run_job(j, timeout_seconds=self.timeout_seconds)
 
-    def __exit__(self, *args) -> None:
+    def __exit__(self, *args: Any) -> None:
         for j in self.after_job_dicts:
             run_job(j, timeout_seconds=self.timeout_seconds)
