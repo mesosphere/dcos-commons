@@ -82,7 +82,7 @@ class Task(object):
     """Entry value returned by get_summary() and get_service_tasks()"""
 
     @staticmethod
-    def parse(task_entry, agentid_to_hostname):
+    def parse(task_entry: Dict[str, Any], agentid_to_hostname: Dict[str, str]) -> 'Task':
         agent_id = task_entry["slave_id"]
         matching_hostname = agentid_to_hostname.get(agent_id)
         if matching_hostname:
@@ -100,7 +100,17 @@ class Task(object):
             task_entry["resources"],
         )
 
-    def __init__(self, name, host, state, task_id, executor_id, framework_id, agent_id, resources):
+    def __init__(
+        self,
+        name: str,
+        host,
+        state,
+        task_id,
+        executor_id,
+        framework_id,
+        agent_id,
+        resources,
+    ):
         self.name = name
         self.host = host
         self.state = state  # 'TASK_RUNNING', 'TASK_KILLED', ...
