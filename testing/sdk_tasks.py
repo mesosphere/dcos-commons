@@ -43,7 +43,7 @@ def check_running(
     expected_task_count: int,
     timeout_seconds: int=DEFAULT_TIMEOUT_SECONDS,
     allow_more: bool=True,
-) -> bool:
+) -> None:
     agentid_to_hostname = _get_agentid_to_hostname()
 
     @retrying.retry(

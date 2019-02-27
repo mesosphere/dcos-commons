@@ -7,6 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_jobs IN ANY OTHER PARTNER REPOS
 """
 import json
 import logging
+from typing import Any, Dict
 
 import retrying
 
@@ -18,7 +19,7 @@ log = logging.getLogger(__name__)
 # --- Install/uninstall jobs to the cluster
 
 
-def install_job(job_dict):
+def install_job(job_dict: Dict[str, Any]) -> None:
     job_name = job_dict["id"]
 
     # attempt to delete current job, if any:
@@ -28,11 +29,11 @@ def install_job(job_dict):
     sdk_cmd.service_request("POST", "metronome", "/v1/jobs", json=job_dict)
 
 
-def remove_job(job_dict):
+def remove_job(job_dict: Dict[str, Any]) -> None:
     _remove_job_by_name(job_dict["id"])
 
 
-def _remove_job_by_name(job_name):
+def _remove_job_by_name(job_name: str) -> None:
     try:
         # Metronome doesn't understand 'True' -- only 'true' will do.
         sdk_cmd.service_request(
@@ -53,7 +54,7 @@ def _remove_job_by_name(job_name):
 class InstallJobContext(object):
     """Context manager for temporarily installing and removing metronome jobs."""
 
-    def __init__(self, jobs):
+    def __init__(self, jobs) -> None:
         self.job_dicts = jobs
 
     def __enter__(self):
@@ -122,10 +123,10 @@ class RunJobContext(object):
         self.after_job_dicts = after_jobs
         self.timeout_seconds = timeout_seconds
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         for j in self.before_job_dicts:
             run_job(j, timeout_seconds=self.timeout_seconds)
 
-    def __exit__(self, *args):
+    def __exit__(self, *args) -> None:
         for j in self.after_job_dicts:
             run_job(j, timeout_seconds=self.timeout_seconds)
