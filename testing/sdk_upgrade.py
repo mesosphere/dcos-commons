@@ -267,13 +267,13 @@ def is_cli_supports_service_options_update() -> bool:
     )
 
 
-def ensure_cli_supports_service_version_upgrade():
+def ensure_cli_supports_service_version_upgrade() -> None:
     assert (
         is_cli_supports_service_version_upgrade()
     ), "Version upgrades supported in 1.11+ in Open DC/OS"
 
 
-def ensure_cli_supports_service_options_update():
+def ensure_cli_supports_service_options_update() -> None:
     assert (
         is_cli_supports_service_options_update()
     ), "Service updates are supported in [EE] or [Open 1.11+]"
