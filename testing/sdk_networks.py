@@ -104,7 +104,7 @@ def check_task_network(task_name, expected_network_name="dcos"):
                 )
 
 
-def check_endpoint_on_overlay(package_name, service_name, endpoint_to_get, expected_task_count):
+def check_endpoint_on_overlay(package_name, service_name, endpoint_to_get, expected_task_count) -> None:
     endpoint = get_endpoint(package_name, service_name, endpoint_to_get)
 
     assert "address" in endpoint, "Missing 'address': {}".format(endpoint)
