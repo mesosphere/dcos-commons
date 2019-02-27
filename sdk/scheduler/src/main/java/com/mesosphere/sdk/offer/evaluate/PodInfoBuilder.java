@@ -66,6 +66,7 @@ import java.util.stream.Collectors;
  */
 @SuppressWarnings({
     "checkstyle:LineLength",
+    "checkstyle:MultipleStringLiterals",
     "checkstyle:LocalVariableName",
     "checkstyle:VariableDeclarationUsageDistance"
 })
@@ -755,7 +756,8 @@ public class PodInfoBuilder {
   private boolean requiresExectorIsolation() {
     for (Protos.Volume volume: this.executorBuilder.getContainer().getVolumesList()) {
       if (volume.getContainerPath().equals("/tmp") && volume.getHostPath().equals("tmp")
-          && volume.getMode().equals(Protos.Volume.Mode.RW)) {
+          && volume.getMode().equals(Protos.Volume.Mode.RW))
+      {
         //executor has an isolated tmp directory already
         return true;
       }
