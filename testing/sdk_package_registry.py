@@ -8,7 +8,7 @@ import json
 import logging
 import os
 import urllib.request
-from typing import Dict, List, Tuple
+from typing import Dict, Iterator, List, Tuple
 
 from _pytest.tmpdir import TempdirFactory
 
@@ -25,7 +25,7 @@ PACKAGE_REGISTRY_NAME = "package-registry"
 PACKAGE_REGISTRY_SERVICE_NAME = "registry"
 
 
-def install_package_registry(service_secret_path: str) -> Dict:
+def install_package_registry(service_secret_path: str) -> Dict[str, str]:
     # If Bootstrap registry is not added by default and thus Readwrite registry is not found,
     # fail the test.
     code, _, _ = sdk_cmd.run_cli("package describe {}".format(PACKAGE_REGISTRY_NAME))
@@ -86,7 +86,7 @@ def add_dcos_files_to_registry(tmpdir_factory: TempdirFactory) -> None:
     log.info("Bundled .dcos files : {}".format(dcos_files_list))
 
     @retrying.retry(stop_max_delay=5 * 60 * 1000, wait_fixed=5 * 1000)
-    def wait_for_added_registry(name, version):
+    def wait_for_added_registry(name: str, version: str) -> None:
         code, stdout, stderr = sdk_cmd.run_cli(
             "registry describe --package-name={} --package-version={} --json".format(name, version),
             print_output=False,
@@ -101,10 +101,10 @@ def add_dcos_files_to_registry(tmpdir_factory: TempdirFactory) -> None:
 
 
 def build_dcos_files_from_stubs(
-    stub_universe_urls: List, dcos_files_path: str, tmpdir_factory  # _pytest.TempdirFactory
+    stub_universe_urls: List[str], dcos_files_path: str, tmpdir_factory: TempdirFactory,
 ) -> List[Tuple[str, str, str]]:
     if not len(stub_universe_urls):
-        return stub_universe_urls
+        return []
     package_file_paths = []
     for repo_url in stub_universe_urls:
         headers = {
@@ -125,7 +125,7 @@ def build_dcos_files_from_stubs(
 
 
 def build_dcos_file_from_universe_definition(
-    package: Dict, dcos_files_path: str, tmpdir_factory  # _pytest.TempdirFactory
+    package: Dict, dcos_files_path: str, tmpdir_factory: TempdirFactory,
 ) -> Tuple[str, str, str]:
     """
     Build the .dcos file if its not already present in the given directory.
@@ -169,8 +169,8 @@ def grant_perms_for_registry_account(service_uid: str) -> None:
     assert rc == 0, "Required perms [{}] could not be obtained for {}".format(perms, service_uid)
 
 
-def package_registry_session(tmpdir_factory):  # _pytest.TempdirFactory
-    pkg_reg_repo = {}
+def package_registry_session(tmpdir_factory: TempdirFactory) -> Iterator[None]:
+    pkg_reg_repo: Dict[str, str] = {}
     service_uid = "pkg-reg-uid-{}".format(sdk_utils.random_string())
     secret_path = "{}-secret-{}".format(service_uid, sdk_utils.random_string())
     try:

@@ -282,7 +282,11 @@ def restart_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
 
 
 def _get_config(app_name: str) -> Dict[str, Any]:
-    return sdk_cmd.cluster_request("GET", _api_url("apps/{}".format(app_name))).json()["app"]
+    response = sdk_cmd.cluster_request("GET", _api_url("apps/{}".format(app_name)))
+    response_json = response.json()
+    config = response_json["app"]
+    assert isinstance(config, dict)
+    return config
 
 
 def _api_url(path: str) -> str:

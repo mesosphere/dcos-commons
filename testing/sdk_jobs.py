@@ -69,7 +69,11 @@ class InstallJobContext(object):
 # --- Run jobs and check their outcomes
 
 
-def run_job(job_dict, timeout_seconds=600, raise_on_failure=True):
+def run_job(
+    job_dict: Dict[str, Any],
+    timeout_seconds: int = 600,
+    raise_on_failure: bool = True,
+):
     job_name = job_dict["id"]
 
     # Start job run, get run ID to poll against:

@@ -11,7 +11,7 @@ import time
 import retrying
 import tempfile
 from enum import Enum
-from typing import Any, Dict, Set, Union
+from typing import Any, Dict, Optional, Set, Union
 
 import sdk_cmd
 import sdk_marathon
@@ -47,7 +47,7 @@ def _retried_install_impl(
     package_name: str,
     service_name: str,
     expected_running_tasks: int,
-    package_version: str,
+    package_version: Optional[str],
     options: Dict[str, Any],
     timeout_seconds: int,
     wait_for_all_conditions: bool,

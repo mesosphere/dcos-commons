@@ -7,7 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 """
 import logging
 import retrying
-from typing import List
+from typing import Any, Dict, List
 
 import sdk_agents
 import sdk_cmd
@@ -117,7 +117,7 @@ class Task(object):
         )
 
 
-def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
+def get_all_status_history(task_name: str, with_completed_tasks: bool = True) -> list:
     """Returns a list of task status values(of the form 'TASK_STARTING', 'TASK_KILLED', etc) for
     all instances of a given task. The returned values are ordered chronologically from first to
     last.
@@ -126,7 +126,7 @@ def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
     : param with_completed_tasks: Whether to include the status history of previous versions of the task which had since exited. Unlike with get_service_tasks(), this may include tasks from previous versions of the service.
     """
     cluster_tasks = sdk_cmd.cluster_request("GET", "/mesos/tasks").json()["tasks"]
-    statuses = []
+    statuses: List[Dict[str, Any]] = []
     for cluster_task in cluster_tasks:
         if cluster_task["name"] != task_name:
             # Skip task: wrong name
@@ -337,8 +337,8 @@ def check_task_relaunched(
 
 
 def check_scheduler_relaunched(
-    service_name: str, old_scheduler_task_id: str, timeout_seconds=DEFAULT_TIMEOUT_SECONDS
-):
+    service_name: str, old_scheduler_task_id: str, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+) -> None:
     """
     This function checks for the relaunch of a task using the same matching as is
     used in sdk_task.get_task_id()
@@ -445,7 +445,7 @@ def check_tasks_not_updated(service_name: str, prefix: str, old_task_ids) -> Non
     ), 'Tasks starting with "{}" were updated:{}'.format(prefix, task_sets)
 
 
-def wait_for_active_framework(service_name, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+def wait_for_active_framework(service_name: str, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS) -> None:
     """
     Waits until a framework with name `framework_name` is found and is active
     """

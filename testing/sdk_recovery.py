@@ -16,7 +16,7 @@ def check_permanent_recovery(
     pod_name: str,
     recovery_timeout_s: int,
     pods_with_updated_tasks: Optional[List[str]] = None,
-):
+) -> None:
     """
     Perform a replace (permanent recovery) operation on the specified pod.
 
