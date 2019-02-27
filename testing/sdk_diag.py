@@ -69,9 +69,9 @@ def get_test_suite_name(item: pytest.Item) -> str:
 
     # use the class name as the suite name if item is a method
     if inspect.ismethod(item.obj):
-        return os.path.basename(item.getparent(pytest.Class).name).replace(".", "_")
+        return str(os.path.basename(item.getparent(pytest.Class).name)).replace(".", "_")
 
-    return os.path.basename(item.parent.name).replace(".", "_")
+    return str(os.path.basename(item.parent.name)).replace(".", "_")
 
 
 def handle_test_setup(item: pytest.Item) -> None:
@@ -282,7 +282,7 @@ def _dump_diagnostics_bundle(item: pytest.Item) -> None:
             return None
 
         # e.g. "/var/lib/dcos/dcos-diagnostics/diag-bundles/bundle-2018-01-11-1515698691.zip"
-        return os.path.basename(status["last_bundle_dir"])
+        return str(os.path.basename(status["last_bundle_dir"]))
 
     bundle_filename = str(wait_for_bundle_file())
     if bundle_filename:
@@ -484,6 +484,7 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
         "^/frameworks/.*/executors/{}/runs/latest$".format(path_id)
     )
     for browse_path in agent_executor_paths.keys():
+        assert isinstance(browse_path, str)
         if frameworks_latest_pattern.match(browse_path):
             return browse_path
     # - 1.10: '/var/lib/mesos/.../executors/<executor_id>/runs/latest'
@@ -494,6 +495,7 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
         "^/var/lib/mesos/.*/executors/{}/runs/latest$".format(path_id)
     )
     for browse_path in agent_executor_paths.keys():
+        assert isinstance(browse_path, str)
         if varlib_latest_pattern.match(browse_path):
             return browse_path
     # - 1.9: '/var/lib/mesos/.../executors/<executor_id>/runs/<some_uuid>'
@@ -504,6 +506,7 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
         "^/var/lib/mesos/.*/executors/{}/runs/[a-f0-9-]+$".format(path_id)
     )
     for browse_path in agent_executor_paths.keys():
+        assert isinstance(browse_path, str)
         if varlib_uuid_pattern.match(browse_path):
             return browse_path
 
