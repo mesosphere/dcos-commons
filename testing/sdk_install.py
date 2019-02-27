@@ -99,7 +99,7 @@ def install(
     service_name: str,
     expected_running_tasks: int,
     additional_options: Dict[str, Any] = {},
-    package_version: Union[PackageVersion, str] = PackageVersion.STUB_UNIVERSE,
+    package_version: Optional[Union[PackageVersion, str]] = PackageVersion.STUB_UNIVERSE,
     timeout_seconds: int = TIMEOUT_SECONDS,
     wait_for_deployment: bool = True,
     insert_strict_options: bool = True,

@@ -30,7 +30,7 @@ TIMEOUT_SECONDS = 25 * 60
 def test_upgrade(
     package_name: str,
     service_name: str,
-    expected_running_tasks,
+    expected_running_tasks: int,
     additional_options: Dict[str, Any] = {},
     test_version_additional_options: Optional[Dict[str, Any]] = None,
     timeout_seconds: int = TIMEOUT_SECONDS,
@@ -87,8 +87,8 @@ def test_upgrade(
 def soak_upgrade_downgrade(
     package_name: str,
     service_name: str,
-    expected_running_tasks,
-    additional_options={},
+    expected_running_tasks: int,
+    additional_options: Dict[str, Any] = {},
     timeout_seconds: int = TIMEOUT_SECONDS,
     wait_for_deployment: bool = True,
 ) -> None:
