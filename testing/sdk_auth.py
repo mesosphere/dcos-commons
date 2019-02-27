@@ -38,24 +38,27 @@ REALM = "LOCAL"
 # resiliency towards possible intermittent network failures.
 
 
-@retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
 def _get_kdc_task(task_name: str) -> dict:
     """
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
-    log.info("Getting KDC task")
-    _, raw_tasks, _ = sdk_cmd.run_cli("task --json", print_output=False)
-    if raw_tasks:
-        tasks = json.loads(raw_tasks)
-        for task in tasks:
-            if task["name"] == task_name:
-                return task
+    @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
+    def _get_kdc_task(task_name: str) -> dict:
+        log.info("Getting KDC task")
+        _, raw_tasks, _ = sdk_cmd.run_cli("task --json", print_output=False)
+        if raw_tasks:
+            tasks = json.loads(raw_tasks)
+            for task in tasks:
+                assert isinstance(task, dict)
+                if task["name"] == task_name:
+                    return task
 
-    raise RuntimeError(
-        "Expecting marathon KDC task but no such task found. Running tasks: {tasks}".format(
-            tasks=raw_tasks
+        raise RuntimeError(
+            "Expecting marathon KDC task but no such task found. Running tasks: {tasks}".format(
+                tasks=raw_tasks
+            )
         )
-    )
+    return dict(_get_kdc_task(task_name=task_name))
 
 
 @retrying.retry(stop_max_attempt_number=2, wait_fixed=1000)
@@ -72,7 +75,9 @@ def _get_host_name(host_id: str) -> str:
         for node in nodes:
             if "id" in node and node["id"] == host_id:
                 log.info("Host name is %s", node["hostname"])
-                return node["hostname"]
+                hostname = node["hostname"]
+                assert isinstance(hostname, str)
+                return hostname
 
     raise RuntimeError("Failed to get name of host running the KDC app: {nodes}")
 
@@ -91,6 +96,7 @@ def _get_master_public_ip() -> str:
         )
 
     public_ip = response["PUBLIC_IPV4"]
+    assert isinstance(public_ip, str)
     log.info("Master public ip is {public_ip}".format(public_ip=public_ip))
     return public_ip
 
@@ -189,6 +195,7 @@ class KerberosEnvironment:
         with open(kdc_app_def_path) as fd:
             kdc_app_def = json.load(fd)
 
+        assert isinstance(kdc_app_def, dict)
         kdc_app_def["id"] = self.app_id
 
         return kdc_app_def
@@ -274,7 +281,7 @@ class KerberosEnvironment:
 
         log.info("Principals successfully added to KDC")
 
-    def create_remote_keytab(self, keytab_id: str, principals: List[str] = []) -> str:
+    def create_remote_keytab(self, keytab_id: str, principals: List[str] = []) -> Optional[str]:
         """
         Create a remote keytab for the specified list of principals
         """
@@ -318,6 +325,7 @@ class KerberosEnvironment:
         Download a generated keytab for the specified list of principals
         """
         remote_keytab_path = self.create_remote_keytab(keytab_id, principals=principals)
+        assert isinstance(remote_keytab_path, str)
         local_keytab_path = self.get_working_file_path(os.path.basename(remote_keytab_path))
 
         _copy_file_to_localhost(self.kdc_host_id, remote_keytab_path, local_keytab_path)
@@ -356,7 +364,9 @@ class KerberosEnvironment:
         the keytab can be uploaded to the secret store later.
         """
         keytab_id = self.get_keytab_path().replace("/", "_")
-        return self.get_keytab_for_principals(keytab_id, self.principals)
+        keytab = self.get_keytab_for_principals(keytab_id, self.principals)
+        assert isinstance(keytab, str)
+        return keytab
 
     def __encode_secret(self, keytab_path: str) -> List[str]:
         if self.get_keytab_path().startswith(DCOS_BASE64_PREFIX):
