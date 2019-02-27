@@ -104,13 +104,13 @@ class Task(object):
         self,
         name: str,
         host: str,
-        state,
+        state: str,
         task_id,
         executor_id,
         framework_id,
         agent_id,
         resources,
-    ):
+    ) -> None:
         self.name: str = name
         self.host: str = host
         self.state: str = state  # 'TASK_RUNNING', 'TASK_KILLED', ...
@@ -185,7 +185,7 @@ def check_task_count(service_name: str, expected_task_count: int) -> list:
     return service_tasks
 
 
-def get_task_ids(service_name: str, task_prefix="") -> list:
+def get_task_ids(service_name: str, task_prefix: str = "") -> List[str]:
     """Returns a list of task IDs for all running tasks in the specified Mesos framework.
 
     : param service_name: The name of the Mesos framework whose task ids should be retrieved.
