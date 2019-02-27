@@ -153,7 +153,9 @@ def cluster_request(
         def retry_fn() -> requests.Response:
             return _cluster_request()
 
-        return retry_fn()
+        response = retry_fn()
+        assert isinstance(response, requests.Response)
+        return response
     else:
         # No retry, invoke directly:
         return _cluster_request()
@@ -472,7 +474,9 @@ def _scp(
 @functools.lru_cache()
 def _external_cluster_host() -> str:
     """Returns the internet-facing IP of the cluster frontend."""
-    return cluster_request("GET", "/metadata").json()["PUBLIC_IPV4"]
+    response = cluster_request("GET", "/metadata")
+    response_json = response.json()
+    return str(response_json["PUBLIC_IPV4"])
 
 
 @functools.lru_cache()
@@ -482,7 +486,7 @@ def _internal_leader_host() -> str:
     if len(leader_hosts) == 0:
         # Just in case. Shouldn't happen in practice.
         raise Exception("Missing mesos-dns entry for leader.mesos: {}".format(leader_hosts))
-    return leader_hosts[0]["ip"]
+    return str(leader_hosts[0]["ip"])
 
 
 def marathon_task_exec(task_name: str, cmd: str, print_output: bool=True) -> Tuple[int, str, str]:
@@ -604,6 +608,7 @@ def _get_task_info(task_id_prefix: str) -> Dict[str, Any]:
 
     tasks = json.loads(raw_tasks)
     for task in tasks:
+        assert isinstance(task, dict)
         if task.get("id", "").startswith(task_id_prefix):
             log.info("Matched on 'id': ")
             return task

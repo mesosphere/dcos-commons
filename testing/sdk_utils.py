@@ -96,7 +96,9 @@ def dcos_token() -> str:
 
 @functools.lru_cache()
 def dcos_version() -> str:
-    return sdk_cmd.cluster_request("GET", "/dcos-metadata/dcos-version.json").json()["version"]
+    response = sdk_cmd.cluster_request("GET", "/dcos-metadata/dcos-version.json")
+    response_json = response.json()
+    return str(response_json["version"])
 
 
 @functools.lru_cache()

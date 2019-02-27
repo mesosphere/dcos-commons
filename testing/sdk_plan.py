@@ -9,7 +9,7 @@ SHOULD ALSO BE APPLIED TO sdk_plan IN ANY OTHER PARTNER REPOS
 import datetime
 import logging
 import retrying
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import sdk_cmd
 import sdk_tasks
