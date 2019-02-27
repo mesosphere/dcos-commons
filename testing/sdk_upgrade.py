@@ -85,13 +85,13 @@ def test_upgrade(
 # (1) Upgrades to test version of framework.
 # (2) Downgrades to Universe version.
 def soak_upgrade_downgrade(
-    package_name,
-    service_name,
+    package_name: str,
+    service_name: str,
     expected_running_tasks,
     additional_options={},
-    timeout_seconds=TIMEOUT_SECONDS,
-    wait_for_deployment=True,
-):
+    timeout_seconds: int = TIMEOUT_SECONDS,
+    wait_for_deployment: bool = True,
+) -> None:
     sdk_cmd.run_cli("package install --cli {} --yes".format(package_name))
     version = "stub-universe"
     log.info("Upgrading to test version: {} {}".format(package_name, version))
@@ -122,7 +122,7 @@ def soak_upgrade_downgrade(
 @retrying.retry(
     stop_max_attempt_number=15, wait_fixed=10000, retry_on_result=lambda result: result is None
 )
-def get_config(package_name, service_name):
+def get_config(package_name: str, service_name: str) -> Any:
     """Return the active config for the current service.
     This is retried 15 times, waiting 10s between retries."""
     # Refrain from dumping the full ServiceSpec to stdout
@@ -155,7 +155,7 @@ def update_or_upgrade_or_downgrade(
     additional_options: Dict[str, Any],
     expected_running_tasks: int,
     wait_for_deployment: bool=True,
-    timeout_seconds: int=TIMEOUT_SECONDS,
+    timeout_seconds: int = TIMEOUT_SECONDS,
 ) -> bool:
     initial_config = get_config(package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, "")
@@ -183,8 +183,11 @@ def update_or_upgrade_or_downgrade(
 
 
 def _update_service_with_cli(
-    package_name, service_name, to_package_version=None, additional_options=None
-):
+    package_name: str,
+    service_name: str,
+    to_package_version=None,
+    additional_options=None
+) -> None:
     update_cmd = ["update", "start"]
 
     if to_package_version:
