@@ -103,7 +103,7 @@ class Task(object):
     def __init__(
         self,
         name: str,
-        host,
+        host: str,
         state,
         task_id,
         executor_id,
@@ -111,17 +111,17 @@ class Task(object):
         agent_id,
         resources,
     ):
-        self.name = name
-        self.host = host
-        self.state = state  # 'TASK_RUNNING', 'TASK_KILLED', ...
-        self.is_completed = state in COMPLETED_TASK_STATES
+        self.name: str = name
+        self.host: str = host
+        self.state: str = state  # 'TASK_RUNNING', 'TASK_KILLED', ...
+        self.is_completed: bool = state in COMPLETED_TASK_STATES
         self.id = task_id
         self.executor_id = executor_id
         self.framework_id = framework_id
         self.agent_id = agent_id
-        self.resources = resources  # 'cpus', 'disk', 'mem', 'gpus' => int
+        self.resources: Dict[str, int] = resources  # 'cpus', 'disk', 'mem', 'gpus' => int
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Task[name="{}"\tstate={}\tid={}\thost={}\tframework_id={}\tagent_id={}]'.format(
             self.name, self.state, self.id, self.host, self.framework_id, self.agent_id
         )

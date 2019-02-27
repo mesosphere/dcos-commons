@@ -177,10 +177,17 @@ def update_or_upgrade_or_downgrade(
         )
     else:
         _update_service_with_cli(package_name, service_name, to_package_version, additional_options)
-    return not wait_for_deployment or _wait_for_deployment(
-        package_name, service_name, initial_config, task_ids, timeout_seconds
-    )
 
+    if not wait_for_deployment:
+        _wait_for_deployment(
+            package_name,
+            service_name,
+            initial_config,
+            task_ids,
+            timeout_seconds,
+        )
+
+    return not wait_for_deployment
 
 def _update_service_with_cli(
     package_name: str,
@@ -222,7 +229,13 @@ def _update_service_with_cli(
         )
 
 
-def _wait_for_deployment(package_name, service_name, initial_config, task_ids, timeout_seconds):
+def _wait_for_deployment(
+    package_name: str,
+    service_name: str,
+    initial_config,
+    task_ids,
+    timeout_seconds: int,
+) -> None:
     updated_config = get_config(package_name, service_name)
 
     if updated_config == initial_config:

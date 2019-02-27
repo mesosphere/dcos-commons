@@ -300,7 +300,7 @@ def get_scheduler_task_prefix(service_name: str) -> str:
     return ".".join(task_name_elems)
 
 
-def get_scheduler_host(service_name: str):
+def get_scheduler_host(service_name: str) -> str:
     task_prefix = get_scheduler_task_prefix(service_name)
     tasks = sdk_tasks.get_service_tasks("marathon", task_prefix=task_prefix)
     if len(tasks) == 0:
@@ -309,7 +309,10 @@ def get_scheduler_host(service_name: str):
                 task_prefix, [task["name"] for task in sdk_tasks.get_service_tasks("marathon")]
             )
         )
-    return tasks.pop().host
+    task = tasks.pop()
+    host = task.host
+    assert isinstance(host, str)
+    return host
 
 
 def bump_cpu_count_config(service_name: str, key_name: str, delta: float = 0.1) -> float:

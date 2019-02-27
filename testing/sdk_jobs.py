@@ -7,7 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_jobs IN ANY OTHER PARTNER REPOS
 """
 import json
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 import retrying
 
@@ -54,14 +54,14 @@ def _remove_job_by_name(job_name: str) -> None:
 class InstallJobContext(object):
     """Context manager for temporarily installing and removing metronome jobs."""
 
-    def __init__(self, jobs) -> None:
+    def __init__(self, jobs: List[Dict[str, Any]]) -> None:
         self.job_dicts = jobs
 
-    def __enter__(self):
+    def __enter__(self) -> None:
         for j in self.job_dicts:
             install_job(j)
 
-    def __exit__(self, *args):
+    def __exit__(self, *args: Any) -> None:
         for j in self.job_dicts:
             remove_job(j)
 
@@ -122,7 +122,7 @@ def run_job(
 class RunJobContext(object):
     """Context manager for running different named jobs at startup/shutdown."""
 
-    def __init__(self, before_jobs=[], after_jobs=[], timeout_seconds=600):
+    def __init__(self, before_jobs=[], after_jobs=[], timeout_seconds: int = 600):
         self.before_job_dicts = before_jobs
         self.after_job_dicts = after_jobs
         self.timeout_seconds = timeout_seconds
