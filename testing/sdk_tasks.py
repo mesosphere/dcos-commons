@@ -6,8 +6,9 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 import logging
+from typing import Any, Dict, Iterable, List, Pattern, Optional
+
 import retrying
-from typing import Any, Dict, Iterable, List
 
 import sdk_agents
 import sdk_cmd
@@ -207,7 +208,10 @@ def get_service_tasks(service_name: str, task_prefix: str = "", with_completed_t
 
 
 def _get_service_tasks(
-    service_name: str, agentid_to_hostname: dict, task_prefix="", with_completed_tasks=False
+    service_name: str,
+    agentid_to_hostname: dict,
+    task_prefix: str = "",
+    with_completed_tasks: bool = False,
 ) -> list:
     """Returns a summary of all tasks in the specified Mesos framework.
 
@@ -228,7 +232,7 @@ def _get_service_tasks(
     return service_tasks
 
 
-def get_summary(with_completed=False, task_name=None) -> List[Task]:
+def get_summary(with_completed: bool = False, task_name: Optional[str] = None) -> List[Task]:
     """Returns a summary of all cluster tasks in the cluster, or just a specified task.
     This may be used instead of invoking 'dcos task [--all]' directly.
 
@@ -256,7 +260,7 @@ def _get_agentid_to_hostname() -> dict:
     return {agent["id"]: agent["hostname"] for agent in sdk_agents.get_agents()}
 
 
-def get_tasks_avoiding_scheduler(service_name, task_name_pattern) -> list:
+def get_tasks_avoiding_scheduler(service_name: str, task_name_pattern: Pattern) -> list:
     """Returns a list of tasks which are not located on the Scheduler's machine.
 
     Avoid also killing the system that the scheduler is on. This is just to speed up testing.
