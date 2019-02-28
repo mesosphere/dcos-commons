@@ -361,7 +361,7 @@ def check_scheduler_relaunched(
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def fn():
+    def fn() -> bool:
         task_ids = set([t.id for t in get_service_tasks("marathon", task_prefix=service_name)])
         log.info("Found {} scheduler task ids {}".format(service_name, task_ids))
         return len(task_ids) > 0 and (old_scheduler_task_id not in task_ids or len(task_ids) > 1)
