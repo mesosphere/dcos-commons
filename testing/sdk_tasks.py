@@ -310,11 +310,11 @@ def get_tasks_avoiding_scheduler(service_name: str, task_name_pattern: Pattern) 
 
 
 def check_task_relaunched(
-    task_name,
-    old_task_id,
-    ensure_new_task_not_completed=True,
-    timeout_seconds=DEFAULT_TIMEOUT_SECONDS,
-):
+    task_name: str,
+    old_task_id: str,
+    ensure_new_task_not_completed: bool = True,
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+) -> None:
     log.info(
         'Checking task "{}" is relaunched: old_task_id={}, ensure_new_task_not_completed={}'.format(
             task_name, old_task_id, ensure_new_task_not_completed
@@ -326,7 +326,7 @@ def check_task_relaunched(
         stop_max_delay=timeout_seconds * 1000,
         retry_on_exception=lambda e: isinstance(e, Exception),
     )
-    def _check_task_relaunched():
+    def _check_task_relaunched() -> None:
         tasks = get_summary(with_completed=True, task_name=task_name)
         assert len(tasks) > 0, "No tasks were found with the given task name {}".format(task_name)
         assert (
