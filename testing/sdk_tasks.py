@@ -194,7 +194,7 @@ def get_task_ids(service_name: str, task_prefix: str = "") -> List[str]:
     return [t.id for t in get_service_tasks(service_name, task_prefix=task_prefix)]
 
 
-def get_service_tasks(service_name: str, task_prefix="", with_completed_tasks=False) -> list:
+def get_service_tasks(service_name: str, task_prefix: str = "", with_completed_tasks: bool = False) -> list:
     """Returns a list of task objects for tasks in the specified Mesos framework.
 
     : param service_name: The name of the Mesos framework whose task information should be retrieved.
