@@ -16,6 +16,7 @@ import random
 import string
 import sys
 import time
+from typing import List
 
 import universe
 
@@ -159,7 +160,7 @@ def s3_urls_from_env(package_name):
     return s3_directory_url, http_directory_url
 
 
-def print_help(argv):
+def print_help(argv: List[str]) -> None:
     logger.info(
         "Syntax: {} <package-name> <template-package-dir> [artifact files ...]".format(argv[0])
     )
@@ -173,7 +174,7 @@ def print_help(argv):
     )
 
 
-def main(argv):
+def main(argv: List[str]) -> int:
     if len(argv) < 3:
         print_help(argv)
         return 1

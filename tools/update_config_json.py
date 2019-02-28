@@ -28,10 +28,10 @@ def read_file(file_path: str) -> str:
 
 
 def read_json_file(file_path: str) -> collections.OrderedDict:
-    return json.loads(read_file(file_path), object_pairs_hook=collections.OrderedDict)
+    return collections.OrderedDict(json.loads(read_file(file_path), object_pairs_hook=collections.OrderedDict))
 
 
-def write_file(file_path: str, content: str) -> str:
+def write_file(file_path: str, content: str) -> None:
     LOG.info("Writing to %s", file_path)
     with open(file_path, "w") as handle:
         handle.write(content)
