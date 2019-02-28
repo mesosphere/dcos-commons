@@ -40,7 +40,7 @@ cachetools==3.0.0
 Cerberus==1.2
 certifi==2018.11.29
 cffi==1.11.5
-cfgv==1.1.0
+cfgv==1.5.0
 chardet==3.0.4
 Click==7.0
 colorama==0.4.1
