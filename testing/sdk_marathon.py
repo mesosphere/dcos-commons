@@ -80,7 +80,7 @@ class MarathonDeploymentResponse:
 
         self._parse_app_information(response_json)
 
-    def _parse_app_information(self, response_json: dict) -> None:
+    def _parse_app_information(self, response_json: Any) -> None:
         version = response_json["version"]
         if self._response.status_code == 201:
             # Marathon just returns 201 after app creation POST requests including the full
@@ -95,8 +95,8 @@ class MarathonDeploymentResponse:
 
 
 class MarathonDeploymentsResponse(MarathonDeploymentResponse):
-    def _parse_app_information(self, response_json: dict) -> None:
-        def _parse(deployments) -> Iterable[MarathonDeploymentResponse.App]:
+    def _parse_app_information(self, response_json: List[Dict[str, Any]]) -> None:
+        def _parse(deployments: List[Dict[str, Any]]) -> Iterable[MarathonDeploymentResponse.App]:
             for deployment in deployments:
                 version = deployment["version"]
                 deployment_id = deployment["id"]
@@ -209,7 +209,10 @@ def install_app(app_definition: Dict[str, Any], timeout: int = TIMEOUT_SECONDS) 
 
 
 def update_app(
-    config: dict, timeout=TIMEOUT_SECONDS, wait_for_completed_deployment=True, force=True
+    config: Dict[str, Any],
+    timeout: int = TIMEOUT_SECONDS,
+    wait_for_completed_deployment: bool = True,
+    force: bool = True,
 ) -> None:
     app_name = config["id"]
     if "env" in config:

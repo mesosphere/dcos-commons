@@ -370,8 +370,12 @@ def check_scheduler_relaunched(
 
 
 def check_task_not_relaunched(
-    service_name, task_name, old_task_id, multiservice_name=None, with_completed=False
-):
+    service_name: str,
+    task_name: str,
+    old_task_id: str,
+    multiservice_name: Optional[str] = None,
+    with_completed: bool = False,
+) -> None:
     log.info(
         'Checking that task "{}" with current task id {} is not relaunched'.format(
             task_name, old_task_id
@@ -392,7 +396,7 @@ def check_task_not_relaunched(
 def check_tasks_updated(
     service_name: str,
     prefix: str,
-    old_task_ids,
+    old_task_ids: Iterable[str],
     timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
 ) -> None:
     prefix_clause = ""
@@ -402,7 +406,7 @@ def check_tasks_updated(
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _check_tasks_updated():
+    def _check_tasks_updated() -> bool:
         wait_for_active_framework(service_name)
         task_ids = get_task_ids(service_name, prefix)
 
@@ -438,6 +442,7 @@ def check_tasks_updated(
             old_remaining_set,
             newly_launched_set,
         )
+        return False
 
     log.info(
         "Waiting for tasks%s to have updated ids:\n" "- Old tasks: %s", prefix_clause, old_task_ids
@@ -468,7 +473,7 @@ def wait_for_active_framework(service_name: str, timeout_seconds: int = DEFAULT_
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _wait_for_active_framework():
+    def _wait_for_active_framework() -> bool:
         return len(list(filter(
             lambda fwk: fwk["name"] == service_name and fwk["active"],
             sdk_cmd.cluster_request("GET", "/mesos/frameworks").json()["frameworks"]
