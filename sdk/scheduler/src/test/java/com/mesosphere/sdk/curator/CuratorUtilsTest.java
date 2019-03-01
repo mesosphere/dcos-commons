@@ -63,6 +63,7 @@ public class CuratorUtilsTest {
 
         Mockito.when(mockClient.create()).thenReturn(mockCreateBuilder);
         Mockito.when(mockCreateBuilder.creatingParentsIfNeeded()).thenReturn(mockCreateParentsBuilder);
+        Mockito.when(mockClient.checkExists()).thenReturn(mockExistsBuilder);
 
         CuratorUtils.initServiceName(persister, originalServiceName);
 
