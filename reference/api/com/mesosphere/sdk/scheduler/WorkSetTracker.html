@@ -156,7 +156,7 @@ extends java.lang.Object</pre>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/WorkSetTracker.html#updateWorkSet-java.util.Collection-">updateWorkSet</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;activeWorkSet)</code>
-<div class="block">Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
+<div class="block">Instead of just suppressing offers when all work is complete, we set refuse seconds of 1 hour
  (a.k.a.</div>
 </td>
 </tr>
@@ -209,7 +209,7 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>updateWorkSet</h4>
 <pre>public&nbsp;void&nbsp;updateWorkSet(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a>&gt;&nbsp;activeWorkSet)</pre>
-<div class="block">Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
+<div class="block">Instead of just suppressing offers when all work is complete, we set refuse seconds of 1 hour
  (a.k.a. forever) whenever we decline any offer.  When we see *new* work (<a href="../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>s) we
  assume that the offers we've declined forever may be useful to that work, and so we revive offers.
  <p>
