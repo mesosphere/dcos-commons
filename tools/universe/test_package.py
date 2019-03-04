@@ -23,27 +23,30 @@ def test_package_from_json() -> None:
 
 
 def test_package_starts_with_beta_is_beta() -> None:
-    p = Package("beta-package", None)
+    version = Version(1, "1.2.3")
+    p = Package("beta-package", version)
 
     assert p.is_beta()
 
 
 def test_normal_package_is_not_beta() -> None:
-
-    p = Package("package", None)
+    version = Version(1, "1.2.3")
+    p = Package("package", version)
 
     assert not p.is_beta()
 
 
 def test_non_beta_backage_beta_name_is_name() -> None:
 
-    p = Package("package", None)
+    version = Version(1, "1.2.3")
+    p = Package("package", version)
 
     assert p.get_name() == p.get_non_beta_name()
 
 
 def test_beta_package_beta_name() -> None:
-    p = Package("beta-package", None)
+    version = Version(1, "1.2.3")
+    p = Package("beta-package", version)
 
     assert p.get_non_beta_name() == "package"
 

@@ -2,6 +2,8 @@ from .package_manager import PackageManager
 from .package import Package
 from .package import Version
 
+from pytest_mock import MockFixture
+
 
 def create_package_manager(mocker, packages) -> PackageManager:
     """A utility function to create a package manager that returns the specified list
@@ -12,13 +14,13 @@ def create_package_manager(mocker, packages) -> PackageManager:
     return pm
 
 
-def test_no_packages(mocker) -> None:
+def test_no_packages(mocker: MockFixture) -> None:
     dummy_packages = []
     pm = create_package_manager(mocker, dummy_packages)
     assert pm.get_package_versions("package") == []
 
 
-def test_single_package_single_version(mocker) -> None:
+def test_single_package_single_version(mocker: MockFixture) -> None:
 
     dummy_packages = [{"name": "package", "version": "1.2.3", "releaseVersion": 0}]
 
@@ -30,7 +32,7 @@ def test_single_package_single_version(mocker) -> None:
     assert pm.get_package_versions("package") == [Package("package", Version(0, "1.2.3"))]
 
 
-def test_single_package_multiple_versions(mocker) -> None:
+def test_single_package_multiple_versions(mocker: MockFixture) -> None:
 
     dummy_packages = [
         {"name": "package", "version": "1.2.3", "releaseVersion": 0},
@@ -42,7 +44,7 @@ def test_single_package_multiple_versions(mocker) -> None:
     assert [p.get_version() for p in versions] == [Version(0, "1.2.3"), Version(0, "1.2.4")]
 
 
-def test_multiple_packages_single_versions(mocker):
+def test_multiple_packages_single_versions(mocker: MockFixture):
 
     dummy_packages = [
         {"name": "package1", "version": "1.2.3", "releaseVersion": 0},
@@ -57,7 +59,7 @@ def test_multiple_packages_single_versions(mocker):
     assert versions == [Package("package2", Version(0, "1.2.4"))]
 
 
-def test_multiple_packages_multiple_versions(mocker):
+def test_multiple_packages_multiple_versions(mocker: MockFixture):
 
     dummy_packages = [
         {"name": "package1", "version": "1.2.3", "releaseVersion": 0},
@@ -73,7 +75,7 @@ def test_multiple_packages_multiple_versions(mocker):
     assert [p.get_version() for p in versions] == [Version(0, "1.2.4")]
 
 
-def test_version_for_specified_package_not_found(mocker) -> None:
+def test_version_for_specified_package_not_found(mocker: MockFixture) -> None:
     dummy_packages = [
         {"name": "package1", "version": "1.2.3", "releaseVersion": 0},
         {"name": "package2", "version": "1.2.4", "releaseVersion": 0},
@@ -86,7 +88,7 @@ def test_version_for_specified_package_not_found(mocker) -> None:
     assert versions == []
 
 
-def test_latest_version(mocker) -> None:
+def test_latest_version(mocker: MockFixture) -> None:
 
     dummy_packages = [
         {"name": "package", "version": "1.2.3", "releaseVersion": 0},
