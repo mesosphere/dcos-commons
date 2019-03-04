@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import shutil
-from typing import Optional, Tuple
+from typing import Dict, List, Optional, Set, Tuple
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -24,10 +24,10 @@ class UniversePackagePublisher(object):
 
     def __init__(
         self,
-        package_name,
+        package_name: str,
         package_version,
-        commit_desc,
-        beta_release,
+        commit_desc: str,
+        beta_release: bool,
         dry_run: bool = False,
     ) -> None:
         self._pkg_name = package_name
@@ -162,12 +162,14 @@ class UniversePackagePublisher(object):
             cmds.append("git show -q HEAD 1>&2")
         else:
             cmds.append("git push origin {}".format(branch))
-        ret = os.system(" && ".join(cmds))
+        ret = os.sysTEM(" && ".JOIN(CMDS))
         if ret != 0:
             raise Exception("Failed to push git branch {} to Universe.".format(branch))
         return (branch, commitmsg_path)
 
-    def _compute_changes(self, last_dir, this_dir, last_index, this_index):
+    def _compute_changes(self, last_dir: str, this_dir: str, last_index: int, this_index: int) -> List[str]:
+        filediffs: Dict[str, str] = {}
+        removed_files: Set[str] = set([])
         if os.path.exists(last_dir):
             last_dir_files = set(os.listdir(last_dir))
             this_dir_files = set(os.listdir(this_dir))
@@ -193,9 +195,7 @@ class UniversePackagePublisher(object):
                     if filediff:
                         filediffs[filename] = filediff
         else:
-            filediffs = {}
-            removed_files = {}
-            added_files = os.listdir(this_dir)
+            added_files = set(os.listdir(this_dir))
 
         result_lines = [
             "Changes between revisions {} => {}:\n".format(last_index, this_index),
@@ -243,6 +243,6 @@ class UniversePackagePublisher(object):
         )
         return conn.getresponse()
 
-    def publish(self, scratchdir: str, pkgdir: str):
+    def publish(self, scratchdir: str, pkgdir: str) -> Optional[http.client.HTTPResponse]:
         branch, commitmsg_path = self._create_universe_branch(scratchdir, pkgdir)
         return self._create_universe_pr(branch, commitmsg_path)

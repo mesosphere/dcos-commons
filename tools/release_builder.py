@@ -91,8 +91,8 @@ class UniverseReleaseBuilder(object):
         release_dir_path=os.environ.get("RELEASE_DIR_PATH", ""),
         beta_release=os.environ.get("BETA", "False"),
         upgrades_from=os.environ.get("UPGRADES_FROM", ""),
-    ):
-        self._dry_run = os.environ.get("DRY_RUN", "")
+    ) -> None:
+        self._dry_run = bool(os.environ.get("DRY_RUN", ""))
         self._force_upload = os.environ.get("FORCE_ARTIFACT_UPLOAD", "").lower() == "true"
         self._beta_release = beta_release.lower() == "true"
 
@@ -138,7 +138,7 @@ Upgrades from:   {}
             )
         )
 
-    def _run_cmd(self, cmd, exit_on_fail=True, dry_run_return=0):
+    def _run_cmd(self, cmd: str, exit_on_fail: bool = True, dry_run_return: int = 0) -> int:
         if self._dry_run:
             log.info("[DRY RUN] {}".format(cmd))
             return dry_run_return
@@ -440,7 +440,7 @@ Upgrades from:   {}
             self._http_directory_url, stub_universe_filename
         )
 
-    def release_package(self, commit_desc=""):
+    def release_package(self, commit_desc: str = ""):
         """Updates package, puts artifacts in target location, and creates Universe PR."""
 
         # automatically include source universe URL in commit description:
