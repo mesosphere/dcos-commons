@@ -44,7 +44,7 @@ def test_single_package_multiple_versions(mocker: MockFixture) -> None:
     assert [p.get_version() for p in versions] == [Version(0, "1.2.3"), Version(0, "1.2.4")]
 
 
-def test_multiple_packages_single_versions(mocker: MockFixture):
+def test_multiple_packages_single_versions(mocker: MockFixture) -> None:
 
     dummy_packages = [
         {"name": "package1", "version": "1.2.3", "releaseVersion": 0},
@@ -59,7 +59,7 @@ def test_multiple_packages_single_versions(mocker: MockFixture):
     assert versions == [Package("package2", Version(0, "1.2.4"))]
 
 
-def test_multiple_packages_multiple_versions(mocker: MockFixture):
+def test_multiple_packages_multiple_versions(mocker: MockFixture) -> None:
 
     dummy_packages = [
         {"name": "package1", "version": "1.2.3", "releaseVersion": 0},
