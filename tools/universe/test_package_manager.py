@@ -3,7 +3,7 @@ from .package import Package
 from .package import Version
 
 
-def create_package_manager(mocker, packages):
+def create_package_manager(mocker, packages) -> PackageManager:
     """A utility function to create a package manager that returns the specified list
     of packages"""
     pm = PackageManager()

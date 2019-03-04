@@ -30,7 +30,7 @@ _REGISTRY_URL_TEMPLATE = "https://downloads.mesosphere.com/package-registry/" "b
 
 class DCOSFilePublisher(object):
     def __init__(self, package_name: str, package_version, input_dir_path, artifact_paths: Iterable[str]) -> None:
-        self._dry_run = os.environ.get("DRY_RUN", "")
+        self._dry_run = bool(os.environ.get("DRY_RUN", ""))
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._artifact_paths = artifact_paths

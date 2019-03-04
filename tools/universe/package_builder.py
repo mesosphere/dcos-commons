@@ -12,7 +12,7 @@ import re
 import tempfile
 import time
 import urllib.request
-from typing import Any, Dict, Iterator, List, Tuple
+from typing import Any, Dict, Iterable, Iterator, List, Tuple
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -40,10 +40,10 @@ class UniversePackageBuilder(object):
         self,
         package,
         package_manager,
-        input_dir_path,
-        upload_dir_uri,
-        artifact_paths,
-        dry_run=False,
+        input_dir_path: str,
+        upload_dir_uri: str,
+        artifact_paths: Iterable[str],
+        dry_run: bool = False,
     ):
 
         self._dry_run = dry_run
