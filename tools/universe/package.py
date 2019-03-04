@@ -56,7 +56,7 @@ class Package:
 class Version:
     """Encapsulates the releases-package version pair."""
 
-    def __init__(self, release_version, package_version) -> None:
+    def __init__(self, release_version: Union[int, str], package_version: str) -> None:
         self.release_version = int(release_version)
         self.package_version = package_version
 

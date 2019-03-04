@@ -70,7 +70,7 @@ class UniversePackageBuilder(object):
                 )
             self._artifact_file_paths[os.path.basename(artifact_path)] = artifact_path
 
-    def set_input_dir_path(self, input_dir_path):
+    def set_input_dir_path(self, input_dir_path: str) -> None:
         """Validate and set the input directory path"""
         if not os.path.isdir(input_dir_path):
             raise Exception("Provided package path is not a directory: {}".format(input_dir_path))
@@ -194,7 +194,7 @@ class UniversePackageBuilder(object):
 
         return template_mapping
 
-    def _get_sha_template_mapping(self, content: str, template_mapping: dict) -> dict:
+    def _get_sha_template_mapping(self, content: str, template_mapping: dict) -> Dict[str, str]:
         """
         Look for any 'sha256:filename' or 'sha256:filename@url' template params, and get shas for those.
             - "sha256:filename": generate SHA256 of local file which was specified as an artifact
