@@ -6,6 +6,7 @@ import ssl
 import time
 import urllib.parse
 import urllib.request
+from typing import Dict, Optional
 
 log = logging.getLogger(__name__)
 
@@ -34,11 +35,11 @@ def http_request(
     method: str,
     cluster_url: str,
     cluster_path: str,
-    token: str,
-    headers={},
-    log_args=True,
+    token: Optional[str],
+    headers: Dict[str, str] = {},
+    log_args: bool = True,
     data=None,
-):
+) -> str:
     """Performs an http request, returning the text content on success, or throwing an exception on
     consistent failure.
 
@@ -99,7 +100,7 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
         log.info("Logging into {} with default open token".format(dcosurl))
         payload = {"token": __CLI_LOGIN_OPEN_TOKEN}
 
-    return json.loads(
+    token = json.loads(
         http_request(
             "POST",
             dcosurl,
@@ -110,6 +111,8 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
             data=json.dumps(payload).encode("utf-8"),
         )
     )["token"]
+    assert isinstance(token, str)
+    return token
 
 
 def _netloc(url: str):
@@ -192,7 +195,7 @@ def login_session() -> None:
     if not cluster_url:
         raise Exception("Must have CLUSTER_URL set in environment!")
 
-    def ignore_empty(envvar, default):
+    def ignore_empty(envvar: str, default: str):
         # Ignore the user passing in empty ENVVARs.
         value = os.environ.get(envvar, "").strip()
         if not value:

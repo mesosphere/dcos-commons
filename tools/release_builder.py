@@ -13,6 +13,7 @@ import sys
 import tempfile
 import universe
 import urllib.request
+from typing import List
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -502,7 +503,7 @@ def right_trim(string: str, suffix: str) -> str:
     return string
 
 
-def print_help(argv):
+def print_help(argv: List[str]) -> None:
     log.info(
         "Syntax: %s move|release <package-version> <stub-universe-url> [commit message]", argv[0]
     )
@@ -527,7 +528,7 @@ def print_help(argv):
     log.info("- git (for release)")
 
 
-def main(argv):
+def main(argv: List[str]) -> int:
     if len(argv) < 4:
         print_help(argv)
         return 1

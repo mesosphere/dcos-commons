@@ -12,6 +12,7 @@ import re
 import tempfile
 import time
 import urllib.request
+from typing import Iterator, Tuple
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -83,7 +84,7 @@ class UniversePackageBuilder(object):
 
         self._input_dir_path = input_dir_path
 
-    def _iterate_package_files(self):
+    def _iterate_package_files(self) -> Iterator[Tuple[str, str]]:
         for package_filename in os.listdir(self._input_dir_path):
             package_filepath = os.path.join(self._input_dir_path, package_filename)
             if os.stat(package_filepath).st_size > (1024 * 1024):
@@ -98,7 +99,7 @@ class UniversePackageBuilder(object):
                 continue
             yield package_filename, open(package_filepath).read()
 
-    def _fetch_sha256_from_manifest(self, manifest_url, filename):
+    def _fetch_sha256_from_manifest(self, manifest_url: str, filename: str):
         logger.info("Fetching manifest for %s from %s", filename, manifest_url)
 
         if self._dry_run:

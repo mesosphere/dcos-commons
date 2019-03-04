@@ -15,7 +15,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import publish_aws
 import universe
@@ -29,7 +29,7 @@ _REGISTRY_URL_TEMPLATE = "https://downloads.mesosphere.com/package-registry/" "b
 
 
 class DCOSFilePublisher(object):
-    def __init__(self, package_name: str, package_version, input_dir_path, artifact_paths) -> None:
+    def __init__(self, package_name: str, package_version, input_dir_path, artifact_paths: Iterable[str]) -> None:
         self._dry_run = os.environ.get("DRY_RUN", "")
         self._pkg_name = package_name
         self._pkg_version = package_version

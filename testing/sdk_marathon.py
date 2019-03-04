@@ -242,7 +242,7 @@ def update_app(
         wait_for_deployment(app_name, timeout, result.get_version())
 
 
-def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
+def destroy_app(app_name: str, timeout: int = TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
     def _destroy() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
@@ -258,7 +258,7 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     @retrying.retry(
         stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
     )
-    def _wait_for_app_destroyed():
+    def _wait_for_app_destroyed() -> bool:
         if app_exists(app_name, timeout):
             return False
         deployments_response = MarathonDeploymentsResponse(
@@ -271,7 +271,7 @@ def destroy_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
     _wait_for_app_destroyed()
 
 
-def restart_app(app_name: str, timeout=TIMEOUT_SECONDS) -> None:
+def restart_app(app_name: str, timeout: int = TIMEOUT_SECONDS) -> None:
     @retrying.retry(stop_max_delay=timeout * 1000, wait_fixed=2000)
     def _restart() -> MarathonDeploymentResponse:
         response = sdk_cmd.cluster_request(
