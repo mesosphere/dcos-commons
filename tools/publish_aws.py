@@ -209,7 +209,8 @@ Artifacts:
         )
     )
 
-    AWSPublisher(package_name, package_version, package_dir_path, artifact_paths).upload()
+    version = Version(package_version, package_version)
+    AWSPublisher(package_name, version, package_dir_path, artifact_paths).upload()
     return 0
 
 

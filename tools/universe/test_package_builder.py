@@ -1,22 +1,33 @@
 import pytest
 from .package_builder import UniversePackageBuilder
 from .package import Package, Version
+from .package_manager import PackageManager
 
 from pytest_mock import MockFixture
 
 
 def test_non_existent_input_dir_raises_exception() -> None:
+    package = Package("example", Version("1", "1"))
+    package_manager = PackageManager()
     with pytest.raises(Exception) as e:
-        UniversePackageBuilder(None, None, "__SHOULD_NOT_EXIST__", ".", [])
+        UniversePackageBuilder(
+            package=package,
+            package_manager=package_manager,
+            input_dir_path="__SHOULD_NOT_EXIST__",
+            upload_dir_uri=".",
+            artifact_paths=[],
+        )
 
     assert "Provided package path is not a directory: __SHOULD_NOT_EXIST__" in str(e.value)
 
 
 def test_empty_input_dir_raises_exception() -> None:
+    package = Package("example", Version("1", "1"))
+    package_manager = PackageManager()
     with pytest.raises(Exception) as e:
         UniversePackageBuilder(
-            package=None,
-            package_manager=None,
+            package=package,
+            package_manager=package_manager,
             input_dir_path="resources/empty",
             upload_dir_uri=".",
             artifact_paths=[],
