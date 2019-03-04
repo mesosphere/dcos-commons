@@ -14,7 +14,7 @@
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc#egg=dcoscli&subdirectory=cli  # validator-hint: name=dcoscli version=SNAPSHOT
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc  # validator-hint: name=dcos version=SNAPSHOT
 git+https://github.com/dcos/dcos-test-utils.git@3ebfc18ff9c5a1aa382311474a9192a68c98b0a7  # validator-hint: version=0.1
-git+https://github.com/dcos/dcos-launch.git@dc1e116685fba5105f322b007549b7eb104cf441  # validator-hint: version=0.1.0
+git+https://github.com/dcos/dcos-launch.git@965a877ab641ab39733887188ed8f86d1a8c696c  # validator-hint: version=0.1.0
 adal==1.2.0
 altgraph==0.16.1
 appdirs==1.4.3
