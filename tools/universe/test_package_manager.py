@@ -2,6 +2,8 @@ from .package_manager import PackageManager
 from .package import Package
 from .package import Version
 
+assert False
+
 
 def create_package_manager(mocker, packages):
     """A utility function to create a package manager that returns the specified list
