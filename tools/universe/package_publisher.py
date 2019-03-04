@@ -162,7 +162,7 @@ class UniversePackagePublisher(object):
             cmds.append("git show -q HEAD 1>&2")
         else:
             cmds.append("git push origin {}".format(branch))
-        ret = os.sysTEM(" && ".JOIN(CMDS))
+        ret = os.system(" && ".join(cmds))
         if ret != 0:
             raise Exception("Failed to push git branch {} to Universe.".format(branch))
         return (branch, commitmsg_path)
