@@ -16,6 +16,7 @@ import shutil
 import socket
 import subprocess
 import sys
+from typing import List
 
 import universe
 
@@ -24,7 +25,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
 class HTTPPublisher(object):
-    def __init__(self, package_name, package_version, input_dir_path, artifact_paths):
+    def __init__(self, package_name, package_version, input_dir_path, artifact_paths) -> None:
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._input_dir_path = input_dir_path
@@ -70,7 +71,7 @@ class HTTPPublisher(object):
             universe_url_file.flush()
             universe_url_file.close()
 
-    def build(self, http_url_root):
+    def build(self, http_url_root: str) -> str:
         """copies artifacts and a new stub universe into the http root directory"""
         universe_path = self._package_builder.build_package()
 
@@ -102,7 +103,7 @@ class HTTPPublisher(object):
 
         return universe_url
 
-    def launch_http(self):
+    def launch_http(self) -> str:
         # kill any prior matching process
         procname = "publish_httpd_{}.py".format(self._pkg_name)
         try:
@@ -166,7 +167,7 @@ httpd.serve_forever()
 
         return http_url_root
 
-    def add_repo_to_cli(self, repo_url):
+    def add_repo_to_cli(self, repo_url: str) -> bool:
         try:
             devnull = open(os.devnull, "wb")
             subprocess.check_call("dcos -h".split(), stdout=devnull, stderr=devnull)
@@ -196,7 +197,7 @@ httpd.serve_forever()
         return True
 
 
-def print_help(argv):
+def print_help(argv: List[str]) -> None:
     logger.info("Syntax: %s <package-name> <template-package-dir> [artifact files ...]", argv[0])
     logger.info(
         "  Example: $ %s hello-world /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip",
@@ -207,7 +208,7 @@ def print_help(argv):
     )
 
 
-def main(argv):
+def main(argv: List[str]) -> int:
     if len(argv) < 3:
         print_help(argv)
         return 1

@@ -16,7 +16,7 @@ import random
 import string
 import sys
 import time
-from typing import List
+from typing import List, Tuple
 
 import universe
 
@@ -71,7 +71,7 @@ class AWSPublisher(object):
             universe_url_file.flush()
             universe_url_file.close()
 
-    def upload(self):
+    def upload(self) -> str:
         """generates a unique directory, then uploads artifacts and a new stub universe to that directory"""
         package_info = universe.Package(self._pkg_name, self._pkg_version)
         package_manager = universe.PackageManager(dry_run=self._dry_run)
@@ -128,7 +128,7 @@ class AWSPublisher(object):
         return universe_url
 
 
-def s3_urls_from_env(package_name):
+def s3_urls_from_env(package_name: str) -> Tuple[str, str]:
     s3_bucket = os.environ.get("S3_BUCKET") or "infinity-artifacts"
     logger.info("Using artifact bucket: {}".format(s3_bucket))
 

@@ -303,7 +303,7 @@ class UniversePackageBuilder(object):
             updated_package_files[filename] = self._apply_templating_to_file(filename, content)
         return updated_package_files
 
-    def build_package(self):
+    def build_package(self) -> str:
         """builds a stub universe json package and returns its location on disk"""
 
         jsonpath = os.path.join(
