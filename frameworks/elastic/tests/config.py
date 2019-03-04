@@ -3,6 +3,8 @@ import logging
 import re
 import retrying
 from toolz import get_in
+from typing import Any, Dict, List, Optional, Union
+from typing.re import Match
 
 import sdk_cmd
 import sdk_hosts
@@ -76,20 +78,24 @@ DEFAULT_SETTINGS_MAPPINGS = {
     stop_max_delay=KIBANA_DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res,
 )
-def check_kibana_adminrouter_integration(path):
+def check_kibana_adminrouter_integration(path: str) -> bool:
     curl_cmd = 'curl -L -I -k -H "Authorization: token={}" -s {}/{}'.format(
         sdk_utils.dcos_token(), sdk_utils.dcos_url().rstrip("/"), path.lstrip("/")
     )
     rc, stdout, _ = sdk_cmd.master_ssh(curl_cmd)
-    return rc == 0 and stdout and "HTTP/1.1 200" in stdout
+    return bool(rc == 0 and stdout and "HTTP/1.1 200" in stdout)
 
 
 @retrying.retry(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def check_elasticsearch_index_health(
-    index_name, color, service_name=SERVICE_NAME, http_user=None, http_password=None
-):
+    index_name: str,
+    color: str,
+    service_name: str = SERVICE_NAME,
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> bool:
     result = _curl_query(
         service_name,
         "GET",
@@ -97,13 +103,15 @@ def check_elasticsearch_index_health(
         http_user=http_user,
         http_password=http_password,
     )
-    return result and result["status"] == color
+    return bool(result and result["status"] == color)
 
 
 @retrying.retry(wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda res: not res)
 def check_custom_elasticsearch_cluster_setting(
-    service_name=SERVICE_NAME, setting_path=None, expected_value=None
-):
+    service_name: str = SERVICE_NAME,
+    setting_path: Optional[str] = None,
+    expected_value: Optional[str] = None,
+) -> bool:
     settings = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")["defaults"]
     if not settings:
         return False
@@ -111,26 +119,32 @@ def check_custom_elasticsearch_cluster_setting(
     log.info(
         "Expected '{}' to be '{}', got '{}'".format(setting_path, expected_value, actual_value)
     )
-    return expected_value == actual_value
+    return bool(expected_value == actual_value)
 
 
 @retrying.retry(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
-def wait_for_expected_nodes_to_exist(service_name=SERVICE_NAME, task_count=DEFAULT_TASK_COUNT):
+def wait_for_expected_nodes_to_exist(
+    service_name: str = SERVICE_NAME,
+    task_count: int = DEFAULT_TASK_COUNT,
+) -> bool:
     result = _curl_query(service_name, "GET", "_cluster/health")
     if not result or "number_of_nodes" not in result:
         log.warning("Missing 'number_of_nodes' key in cluster health response: {}".format(result))
         return False
     node_count = result["number_of_nodes"]
     log.info("Waiting for {} healthy nodes, got {}".format(task_count, node_count))
-    return node_count == task_count
+    return bool(node_count == task_count)
 
 
 @retrying.retry(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
-def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
+def check_kibana_plugin_installed(
+    plugin_name: str,
+    service_name: str = SERVICE_NAME,
+) -> bool:
     task_sandbox = sdk_cmd.get_task_sandbox_path(service_name)
     # Environment variables aren't available on DC/OS 1.9 so we manually inject MESOS_SANDBOX (and
     # can't use ELASTIC_VERSION).
@@ -143,13 +157,15 @@ def check_kibana_plugin_installed(plugin_name, service_name=SERVICE_NAME):
         task_sandbox
     )
     _, stdout, _ = sdk_cmd.marathon_task_exec(service_name, cmd)
-    return plugin_name in stdout
+    return bool(plugin_name in stdout)
 
 
 @retrying.retry(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
-def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME):
+def check_elasticsearch_plugin_installed(
+    plugin_name: str, service_name: str = SERVICE_NAME,
+) -> bool:
     result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and len(result) == DEFAULT_TASK_COUNT
 
@@ -157,30 +173,37 @@ def check_elasticsearch_plugin_installed(plugin_name, service_name=SERVICE_NAME)
 @retrying.retry(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
-def check_elasticsearch_plugin_uninstalled(plugin_name, service_name=SERVICE_NAME):
+def check_elasticsearch_plugin_uninstalled(
+    plugin_name: str,
+    service_name: str = SERVICE_NAME,
+) -> bool:
     result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and result == []
 
 
-def _get_hosts_with_plugin(service_name, plugin_name):
+def _get_hosts_with_plugin(service_name: str, plugin_name: str) -> List[str]:
     output = _curl_query(service_name, "GET", "_cat/plugins", return_json=False)
     if output is None:
-        return None
+        return []
     return [host for host in output.split("\n") if plugin_name in host]
 
 
 @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
-def get_elasticsearch_master(service_name=SERVICE_NAME):
+def get_elasticsearch_master(service_name: str = SERVICE_NAME) -> Optional[str]:
     output = _curl_query(service_name, "GET", "_cat/master", return_json=False)
+    assert isinstance(output, str)
     if output is not None and len(output.split()) > 0:
         return output.split()[-1]
-    return False
+    return None
 
 
 @retrying.retry(wait_fixed=1000, stop_max_delay=30 * 1000, retry_on_result=lambda res: not res)
 def verify_graph_explore_endpoint(
-    is_expected_to_be_enabled, service_name=SERVICE_NAME, http_user=None, http_password=None
-):
+    is_expected_to_be_enabled: bool,
+    service_name: str = SERVICE_NAME,
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> bool:
     index_name = "graph_index"
 
     create_index(
@@ -209,11 +232,14 @@ def verify_graph_explore_endpoint(
 
 
 def verify_commercial_api_status(
-    is_expected_to_be_enabled, service_name=SERVICE_NAME, http_user=None, http_password=None
-):
-    return verify_graph_explore_endpoint(
+    is_expected_to_be_enabled: bool,
+    service_name: str = SERVICE_NAME,
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> bool:
+    return bool(verify_graph_explore_endpoint(
         is_expected_to_be_enabled, service_name, http_user=http_user, http_password=http_password
-    )
+    ))
 
 
 # On Elastic 6.x, the "Graph Explore API" is available when the Elasticsearch cluster is configured
@@ -246,13 +272,19 @@ def verify_commercial_api_status(
 #     },
 #     "status": 403
 #   }
-def is_graph_explore_endpoint_active(response):
+def is_graph_explore_endpoint_active(response: Dict[str, Any]) -> bool:
     return isinstance(response.get("vertices"), list) and isinstance(
         response.get("connections"), list
     )
 
 
-def verify_document(service_name, document_id, document_fields, http_user=None, http_password=None):
+def verify_document(
+    service_name: str,
+    document_id: int,
+    document_fields: Dict[str, str],
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> None:
     document = get_document(
         DEFAULT_INDEX_NAME,
         DEFAULT_INDEX_TYPE,
@@ -264,16 +296,25 @@ def verify_document(service_name, document_id, document_fields, http_user=None, 
     assert document["_source"]["name"] == document_fields["name"]
 
 
-def get_xpack_license(service_name=SERVICE_NAME, http_user=None, http_password=None):
-    return _curl_query(
+def get_xpack_license(
+    service_name: str = SERVICE_NAME,
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> Dict[str, Any]:
+    result = _curl_query(
         service_name, "GET", "_xpack/license", http_user=http_user, http_password=http_password
     )
+    assert isinstance(result, dict)
+    return result
 
 
 @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
 def verify_xpack_license(
-    license_type, service_name=SERVICE_NAME, http_user=None, http_password=None
-):
+    license_type: str,
+    service_name: str = SERVICE_NAME,
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> bool:
     response = get_xpack_license(service_name, http_user=http_user, http_password=http_password)
 
     if "license" not in response:
@@ -289,7 +330,10 @@ def verify_xpack_license(
 @retrying.retry(
     wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda return_value: not return_value
 )
-def setup_passwords(service_name=SERVICE_NAME, task_name="master-0-node"):
+def setup_passwords(
+    service_name: str = SERVICE_NAME,
+    task_name: str = "master-0-node",
+) -> Union[bool, Dict[str, str]]:
     cmd = "\n".join(
         [
             "set -x",
@@ -301,8 +345,13 @@ def setup_passwords(service_name=SERVICE_NAME, task_name="master-0-node"):
     full_cmd = "bash -c '{}'".format(cmd)
     _, stdout, _ = sdk_cmd.service_task_exec(service_name, task_name, full_cmd)
 
-    elastic_password = re.search("PASSWORD elastic = (.*)", stdout).group(1)
-    kibana_password = re.search("PASSWORD kibana = (.*)", stdout).group(1)
+    elastic_password_search = re.search("PASSWORD elastic = (.*)", stdout)
+    assert isinstance(elastic_password_search, Match)
+    elastic_password = elastic_password_search.group(1)
+
+    kibana_password_search = re.search("PASSWORD kibana = (.*)", stdout)
+    assert isinstance(kibana_password_search, Match)
+    kibana_password = kibana_password_search.group(1)
 
     if not elastic_password or not kibana_password:
         # Retry.
@@ -312,13 +361,13 @@ def setup_passwords(service_name=SERVICE_NAME, task_name="master-0-node"):
 
 
 def explore_graph(
-    service_name=SERVICE_NAME,
-    index_name=DEFAULT_INDEX_NAME,
-    query={},
-    http_user=None,
-    http_password=None,
-):
-    return _curl_query(
+    service_name: str = SERVICE_NAME,
+    index_name: str = DEFAULT_INDEX_NAME,
+    query: Dict[str, Any] = {},
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> Dict[str, Any]:
+    result = _curl_query(
         service_name,
         "POST",
         "{}/_xpack/_graph/_explore".format(index_name),
@@ -326,20 +375,36 @@ def explore_graph(
         http_user=http_user,
         http_password=http_password,
     )
+    assert isinstance(result, dict)
+    return result
 
 
-def start_trial_license(service_name=SERVICE_NAME):
-    return _curl_query(service_name, "POST", "_xpack/license/start_trial?acknowledge=true")
+def start_trial_license(
+    service_name: str = SERVICE_NAME,
+) -> Dict[str, Any]:
+    result = _curl_query(service_name, "POST", "_xpack/license/start_trial?acknowledge=true")
+    assert isinstance(result, dict)
+    return result
 
 
-def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
-    return _curl_query(service_name, "GET", "{}/_stats".format(index_name))
+def get_elasticsearch_indices_stats(
+    index_name: str,
+    service_name: str = SERVICE_NAME,
+) -> Dict[str, Any]:
+    result = _curl_query(service_name, "GET", "{}/_stats".format(index_name))
+    assert isinstance(result, dict)
+    return result
 
 
 def create_index(
-    index_name, params, service_name=SERVICE_NAME, https=False, http_user=None, http_password=None
-):
-    return _curl_query(
+    index_name: str,
+    params: Dict[str, Any],
+    service_name: str = SERVICE_NAME,
+    https: bool = False,
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> Dict[str, Any]:
+    result = _curl_query(
         service_name,
         "PUT",
         index_name,
@@ -348,12 +413,18 @@ def create_index(
         http_user=http_user,
         http_password=http_password,
     )
+    assert isinstance(result, dict)
+    return result
 
 
 def delete_index(
-    index_name, service_name=SERVICE_NAME, https=False, http_user=None, http_password=None
-):
-    return _curl_query(
+    index_name: str,
+    service_name: str = SERVICE_NAME,
+    https: bool = False,
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> Dict[str, Any]:
+    result = _curl_query(
         service_name,
         "DELETE",
         index_name,
@@ -361,19 +432,21 @@ def delete_index(
         http_user=http_user,
         http_password=http_password,
     )
+    assert isinstance(result, dict)
+    return result
 
 
 def create_document(
-    index_name,
-    index_type,
-    doc_id,
-    params,
-    service_name=SERVICE_NAME,
-    https=False,
-    http_user=None,
-    http_password=None,
-):
-    return _curl_query(
+    index_name: str,
+    index_type: str,
+    doc_id: int,
+    params: Dict[str, str],
+    service_name: str = SERVICE_NAME,
+    https: bool = False,
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> Dict[str, Any]:
+    result = _curl_query(
         service_name,
         "PUT",
         "{}/{}/{}?refresh=wait_for".format(index_name, index_type, doc_id),
@@ -382,18 +455,20 @@ def create_document(
         http_user=http_user,
         http_password=http_password,
     )
+    assert isinstance(result, dict)
+    return result
 
 
 def get_document(
-    index_name,
-    index_type,
-    doc_id,
-    service_name=SERVICE_NAME,
-    https=False,
-    http_user=None,
-    http_password=None,
-):
-    return _curl_query(
+    index_name: str,
+    index_type: str,
+    doc_id: int,
+    service_name: str = SERVICE_NAME,
+    https: bool = False,
+    http_user: Optional[str] = None,
+    http_password: Optional[str] = None,
+) -> Dict[str, Any]:
+    result = _curl_query(
         service_name,
         "GET",
         "{}/{}/{}".format(index_name, index_type, doc_id),
@@ -401,10 +476,14 @@ def get_document(
         http_user=http_user,
         http_password=http_password,
     )
+    assert isinstance(result, dict)
+    return result
 
 
-def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
-    return _curl_query(service_name, "GET", "_nodes")
+def get_elasticsearch_nodes_info(service_name: str = SERVICE_NAME) -> Dict[str, Any]:
+    result = _curl_query(service_name, "GET", "_nodes")
+    assert isinstance(result, dict)
+    return result
 
 
 # Here we only retry if the command itself failed, or if the data couldn't be parsed as JSON when
@@ -412,16 +491,16 @@ def get_elasticsearch_nodes_info(service_name=SERVICE_NAME):
 # the returned data (e.g. expected field is missing).
 @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: res is None)
 def _curl_query(
-    service_name,
-    method,
-    endpoint,
-    json_body=None,
-    task="master-0-node",
-    https=False,
-    return_json=True,
-    http_user=DEFAULT_ELASTICSEARCH_USER,
-    http_password=DEFAULT_ELASTICSEARCH_PASSWORD,
-):
+    service_name: str,
+    method: str,
+    endpoint: str,
+    json_body: Optional[Dict[str, Any]] = None,
+    task: str = "master-0-node",
+    https: bool = False,
+    return_json: bool = True,
+    http_user: Optional[str]=DEFAULT_ELASTICSEARCH_USER,
+    http_password: Optional[str]=DEFAULT_ELASTICSEARCH_PASSWORD,
+) -> Optional[Union[str, Dict[str, Any]]]:
     protocol = "https" if https else "http"
 
     if http_password and not http_user:
@@ -447,7 +526,7 @@ def _curl_query(
     task_name = "master-0-node"
     exit_code, stdout, stderr = sdk_cmd.service_task_exec(service_name, task_name, curl_cmd)
 
-    def build_errmsg(msg):
+    def build_errmsg(msg: str) -> str:
         return "{}\nCommand:\n{}\nstdout:\n{}\nstderr:\n{}".format(msg, curl_cmd, stdout, stderr)
 
     if exit_code:
@@ -460,14 +539,20 @@ def _curl_query(
         return stdout
 
     try:
-        return json.loads(stdout)
+        result = json.loads(stdout)
+        assert isinstance(result, dict)
+        return result
     except Exception:
         log.warning(build_errmsg("Failed to parse stdout as JSON, retrying or giving up."))
         return None
 
 
 # TODO(mpereira): it is safe to remove this test after the 6.x release.
-def test_xpack_enabled_update(service_name, from_xpack_enabled, to_xpack_enabled):
+def test_xpack_enabled_update(
+    service_name: str,
+    from_xpack_enabled: bool,
+    to_xpack_enabled: bool,
+) -> None:
     sdk_upgrade.test_upgrade(
         PACKAGE_NAME,
         service_name,
@@ -485,8 +570,10 @@ def test_xpack_enabled_update(service_name, from_xpack_enabled, to_xpack_enabled
 # TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
 # release.
 def test_update_from_xpack_enabled_to_xpack_security_enabled(
-    service_name, xpack_enabled, xpack_security_enabled
-):
+    service_name: str,
+    xpack_enabled: bool,
+    xpack_security_enabled: bool,
+) -> None:
     assert not (
         xpack_enabled is True and xpack_security_enabled is True
     ), "This function does not handle the 'xpack_enabled: True' to 'xpack_security_enabled: True' upgrade scenario"
@@ -506,8 +593,11 @@ def test_update_from_xpack_enabled_to_xpack_security_enabled(
 
 
 def test_upgrade_from_xpack_enabled(
-    package_name: str, service_name: str, options: dict, expected_task_count: int
-):
+    package_name: str,
+    service_name: str,
+    options: Dict[str, Any],
+    expected_task_count: int,
+) -> None:
     # This test needs to run some code in between the Universe version installation and the upgrade
     # to the 'stub-universe' version, so it cannot use `sdk_upgrade.test_upgrade`.
     http_user = DEFAULT_ELASTICSEARCH_USER
@@ -652,7 +742,7 @@ def test_upgrade_from_xpack_enabled(
     )
 
 
-def _master_zero_http_port(service_name):
+def _master_zero_http_port(service_name: str) -> int:
     """Returns a master node hostname+port endpoint that can be queried from within the cluster. We
     cannot cache this value because while the hostnames remain static, the ports are dynamic and may
     change if the master is replaced.
@@ -667,4 +757,4 @@ def _master_zero_http_port(service_name):
 
     port = dns[0].split(":")[-1]
     log.info("Extracted {} as port for {}".format(port, dns[0]))
-    return port
+    return int(port)

@@ -1,4 +1,5 @@
 import logging
+from typing import Iterable
 
 import pytest
 
@@ -13,12 +14,12 @@ expected_task_count = config.DEFAULT_TASK_COUNT
 
 
 @pytest.fixture(scope="module", autouse=True)
-def set_up_security(configure_security):
+def set_up_security(configure_security: None) -> Iterable:
     yield
 
 
 @pytest.fixture(autouse=True)
-def uninstall_packages(configure_security):
+def uninstall_packages(configure_security: None) -> Iterable:
     try:
         log.info("Ensuring Elastic and Kibana are uninstalled before running test")
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
@@ -34,7 +35,7 @@ def uninstall_packages(configure_security):
 # TODO(mpereira): it is safe to remove this test after the 6.x release.
 @pytest.mark.sanity
 @pytest.mark.timeout(30 * 60)
-def test_xpack_update_matrix():
+def test_xpack_update_matrix() -> None:
     # Updating from X-Pack 'enabled' to X-Pack security 'enabled' (the default) is more involved
     # than the other cases, so we use `test_upgrade_from_xpack_enabled`.
     log.info("Updating X-Pack from 'enabled' to 'enabled'")
@@ -59,7 +60,7 @@ def test_xpack_update_matrix():
 # release.
 @pytest.mark.sanity
 @pytest.mark.timeout(30 * 60)
-def test_xpack_security_enabled_update_matrix():
+def test_xpack_security_enabled_update_matrix() -> None:
     # Updating from X-Pack 'enabled' to X-Pack security 'enabled' is more involved than the other
     # cases, so we use `test_upgrade_from_xpack_enabled`.
     log.info("Updating from X-Pack 'enabled' to X-Pack security 'enabled'")
