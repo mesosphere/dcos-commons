@@ -13,7 +13,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.ACLProvider;
 import org.apache.curator.framework.api.transaction.CuratorOp;
-import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
@@ -21,6 +20,7 @@ import org.slf4j.Logger;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -185,7 +185,7 @@ public class CuratorPersister implements Persister {
     try {
       if (client.checkExists().forPath(path) != null) {
         byte[] oldData = client.getData().forPath(path);
-        if (oldData != newData) {
+        if (!Arrays.equals(oldData, newData)) {
           client.setData().forPath(path, newData);
         } // else : no-op.
       } else {
@@ -312,7 +312,7 @@ public class CuratorPersister implements Persister {
        */
       LOGGER.debug("Deleting children of root {}", path);
       try {
-        CuratorTransactionFinal transaction = client
+        client
             .inTransaction()
             .check()
             .forPath(serviceRootPath)
