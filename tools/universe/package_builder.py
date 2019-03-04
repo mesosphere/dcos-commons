@@ -14,6 +14,8 @@ import time
 import urllib.request
 from typing import Any, Dict, Iterable, Iterator, List, Tuple
 
+from . import Package, PackageManager
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
@@ -38,8 +40,8 @@ _expected_package_filenames = [
 class UniversePackageBuilder(object):
     def __init__(
         self,
-        package,
-        package_manager,
+        package: Package,
+        package_manager: PackageManager,
         input_dir_path: str,
         upload_dir_uri: str,
         artifact_paths: Iterable[str],
@@ -169,7 +171,7 @@ class UniversePackageBuilder(object):
         now = time.time()
         template_mapping = {
             "package-name": self._package.get_name(),
-            "package-version": self._package.get_version(),
+            "package-version": str(self._package.get_version()),
             "package-build-time-epoch-ms": str(int(round(now * 1000))),
             "package-build-time-str": time.strftime("%a %b %d %Y %H:%M:%S +0000", time.gmtime(now)),
             "upgrades-from": self._get_upgrades_from(),

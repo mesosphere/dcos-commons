@@ -1,6 +1,6 @@
 import json
 import functools
-from typing import Any, Dict
+from typing import Any, Dict, Union
 
 
 @functools.total_ordering
@@ -10,18 +10,18 @@ class Package:
         """Construct a Package object from a json definition"""
         return Package(json["name"], Version(json["releaseVersion"], json["version"]))
 
-    def __init__(self, name: str, version, raw_data: Dict = {}) -> None:
+    def __init__(self, name: str, version: Version, raw_data: Dict = {}) -> None:
         self._name = name
         self._version = version
         self._raw_data = raw_data
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         if self.get_name() != other.get_name():
             return False
 
         return bool(self.get_version() == other.get_version())
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: Any) -> bool:
         if self.get_name() < other.get_name():
             return True
 
@@ -48,7 +48,7 @@ class Package:
 
         return self._name
 
-    def get_version(self):
+    def get_version(self) -> Version:
         return self._version
 
 
@@ -60,10 +60,10 @@ class Version:
         self.release_version = int(release_version)
         self.package_version = package_version
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: Any) -> bool:
         return bool(self.release_version == other.release_version)
 
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other: Any) -> bool:
         return bool(self.release_version < other.release_version)
 
     def __str__(self) -> str:

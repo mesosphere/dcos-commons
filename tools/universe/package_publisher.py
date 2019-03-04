@@ -25,7 +25,7 @@ class UniversePackagePublisher(object):
     def __init__(
         self,
         package_name: str,
-        package_version,
+        package_version: str,
         commit_desc: str,
         beta_release: bool,
         dry_run: bool = False,

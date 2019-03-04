@@ -19,6 +19,7 @@ import time
 from typing import List, Tuple
 
 import universe
+from universe.package import Version
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -28,11 +29,11 @@ class AWSPublisher(object):
     def __init__(
         self,
         package_name: str,
-        package_version,
+        package_version: Version,
         input_dir_path: str,
         artifact_paths: List[str],
     ):
-        self._dry_run = os.environ.get("DRY_RUN", "")
+        self._dry_run = bool(os.environ.get("DRY_RUN", ""))
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._input_dir_path = input_dir_path

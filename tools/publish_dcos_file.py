@@ -19,6 +19,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import publish_aws
 import universe
+from universe.package import Version
 
 from publish_aws import s3_urls_from_env
 
@@ -32,8 +33,8 @@ class DCOSFilePublisher(object):
     def __init__(
         self,
         package_name: str,
-        package_version,
-        input_dir_path,
+        package_version: Version,
+        input_dir_path: str,
         artifact_paths: Iterable[str],
     ) -> None:
         self._dry_run = bool(os.environ.get("DRY_RUN", ""))
@@ -193,7 +194,8 @@ Artifacts:
         )
     )
 
-    DCOSFilePublisher(package_name, package_version, package_dir_path, artifact_paths).upload()
+    version = Version(package_version, package_version)
+    DCOSFilePublisher(package_name, version, package_dir_path, artifact_paths).upload()
     return 0
 
 

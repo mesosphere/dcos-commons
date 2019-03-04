@@ -1,6 +1,8 @@
 import pytest
 from .package_builder import UniversePackageBuilder
-from .package import Package
+from .package import Package, Version
+
+from pytest_mock import MockFixture
 
 
 def test_non_existent_input_dir_raises_exception() -> None:
@@ -12,7 +14,13 @@ def test_non_existent_input_dir_raises_exception() -> None:
 
 def test_empty_input_dir_raises_exception() -> None:
     with pytest.raises(Exception) as e:
-        UniversePackageBuilder(None, None, "resources/empty", ".", [])
+        UniversePackageBuilder(
+            package=None,
+            package_manager=None,
+            input_dir_path="resources/empty",
+            upload_dir_uri=".",
+            artifact_paths=[],
+        )
 
     assert (
         "Provided package path does not contain the expected package files: resources/empty"
@@ -20,10 +28,10 @@ def test_empty_input_dir_raises_exception() -> None:
     )
 
 
-def test_template_service_(mocker) -> None:
+def test_template_service_(mocker: MockFixture) -> None:
 
     package_json = {"name": "template", "version": "1.2.3", "releaseVersion": 0}
-    package = Package("template", "stub-universe")
+    package = Package("template", Version("1.2.3", "1.2.3"))
     package_manager = mocker.Mock()
 
     package_manager.get_latest = mocker.MagicMock(return_value=Package.from_json(package_json))
