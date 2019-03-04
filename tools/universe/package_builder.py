@@ -12,7 +12,7 @@ import re
 import tempfile
 import time
 import urllib.request
-from typing import Iterator, Tuple
+from typing import Any, Dict, Iterator, List, Tuple
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -127,7 +127,7 @@ class UniversePackageBuilder(object):
             )
         )
 
-    def _calculate_sha256(self, filepath):
+    def _calculate_sha256(self, filepath: str) -> str:
         BLOCKSIZE = 65536
         hasher = hashlib.sha256()
         with open(filepath, "rb") as fd:
@@ -137,7 +137,7 @@ class UniversePackageBuilder(object):
                 buf = fd.read(BLOCKSIZE)
         return hasher.hexdigest()
 
-    def _get_documentation_path(self):
+    def _get_documentation_path(self) -> str:
         documentation_path = "{}/service-docs/{}/".format(_docs_root, self._package.get_name())
         package_version = str(self._package.get_version())
         if package_version != "stub-universe":
@@ -145,10 +145,10 @@ class UniversePackageBuilder(object):
 
         return documentation_path
 
-    def _get_issues_path(self):
+    def _get_issues_path(self) -> str:
         return "{}/support/".format(_docs_root)
 
-    def _get_upgrades_from(self):
+    def _get_upgrades_from(self) -> str:
         latest_package = self._package_manager.get_latest(self._package)
 
         if latest_package is None:
@@ -156,10 +156,10 @@ class UniversePackageBuilder(object):
 
         return str(latest_package.get_version())
 
-    def _get_downgrades_to(self):
+    def _get_downgrades_to(self) -> str:
         return self._get_upgrades_from()
 
-    def _get_template_mapping_for_content(self, orig_content):
+    def _get_template_mapping_for_content(self, orig_content: str) -> Dict[str, str]:
         """Returns a template mapping (dict) for the following cases:
         - Default params like '{{package-version}}' and '{{artifact-dir}}'
         - SHA256 params like '{{sha256:artifact.zip}}' (requires user-provided paths to artifact files)
@@ -244,7 +244,7 @@ class UniversePackageBuilder(object):
 
         return new_content
 
-    def _apply_templating_to_file(self, filename, orig_content):
+    def _apply_templating_to_file(self, filename: str, orig_content: str) -> str:
         template_mapping = self._get_template_mapping_for_content(orig_content)
         new_content = self._apply_template_to_string(orig_content, template_mapping)
 
@@ -267,7 +267,7 @@ class UniversePackageBuilder(object):
         )
         return new_content
 
-    def _generate_packages_dict(self, package_files):
+    def _generate_packages_dict(self, package_files: Dict[str, Any]) -> Dict[str, List]:
         package_json = json.loads(
             package_files[_package_json_filename], object_pairs_hook=collections.OrderedDict
         )

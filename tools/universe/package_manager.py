@@ -9,6 +9,7 @@ import json
 import logging
 import urllib.parse
 import urllib.request
+from typing import Any, Union
 
 from . import package
 
@@ -21,11 +22,11 @@ class PackageManager:
 
     def __init__(
         self,
-        universe_package_prefix="https://universe.mesosphere.com/package/",
-        dcos_version="1.11",
-        package_version="4",
-        dry_run=False,
-    ):
+        universe_package_prefix: str = "https://universe.mesosphere.com/package/",
+        dcos_version: str = "1.11",
+        package_version:str = "4",
+        dry_run: bool = False,
+    ) -> None:
 
         self._dry_run = dry_run
         self._universe_package_prefix = universe_package_prefix
@@ -37,7 +38,7 @@ class PackageManager:
 
         self.__package_cache = {}
 
-    def get_package_versions(self, package_name):
+    def get_package_versions(self, package_name: str):
         """Get all versions for a specified package"""
         if self._dry_run:
             return DryRunPackages(package_name)
@@ -58,7 +59,7 @@ class PackageManager:
 
         return self.__package_cache.get(package_name, [])
 
-    def get_latest(self, package_name):
+    def get_latest(self, package_name: Union[str, package.Package]):
         if isinstance(package_name, package.Package):
             package_name = package_name.get_name()
 
@@ -74,5 +75,5 @@ class DryRunPackages:
     def __init__(self, package_name: str):
         self._package = package.Package(package_name, package.Version(0, "DRY_RUN_VERSION"))
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Any) -> package.Package:
         return self._package
