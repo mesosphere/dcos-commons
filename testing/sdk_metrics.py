@@ -223,7 +223,7 @@ def wait_for_service_metrics(
     service_name: str,
     pod_name: str,
     task_name: str,
-    timeout: str,
+    timeout: int,
     expected_metrics_callback: Callable,
 ) -> Any:
     """Checks that the service is emitting the expected values into DC/OS Metrics.

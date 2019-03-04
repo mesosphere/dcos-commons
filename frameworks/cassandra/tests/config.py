@@ -4,6 +4,7 @@ import os
 import logging
 import textwrap
 import traceback
+from typing import Any, Dict, List, Optional
 
 import sdk_hosts
 import sdk_jobs
@@ -28,15 +29,19 @@ DEFAULT_NODE_ADDRESS = os.getenv(
 DEFAULT_NODE_PORT = os.getenv("CASSANDRA_NODE_PORT", "9042")
 
 
-def get_foldered_service_name():
+def get_foldered_service_name() -> str:
     return sdk_utils.get_foldered_name(SERVICE_NAME)
 
 
-def get_foldered_node_address():
+def get_foldered_node_address() -> str:
     return sdk_hosts.autoip_host(get_foldered_service_name(), "node-0-server")
 
 
-def _get_cqlsh_tls_rc_config(node_address, node_port, certfile="/mnt/mesos/sandbox/ca-bundle.crt"):
+def _get_cqlsh_tls_rc_config(
+    node_address: str,
+    node_port: str,
+    certfile: str = "/mnt/mesos/sandbox/ca-bundle.crt",
+) -> str:
     """
     Returns a content of `cqlshrc` configuration file with provided hostname,
     port and certfile location. The configuration can be used for connecting
@@ -65,8 +70,13 @@ def _get_cqlsh_tls_rc_config(node_address, node_port, certfile="/mnt/mesos/sandb
 
 
 def _get_test_job(
-    name, commands, node_address, node_port, restart_policy="ON_FAILURE", dcos_ca_bundle=None
-):
+    name: str,
+    commands: List[str],
+    node_address: str,
+    node_port: str,
+    restart_policy: str="ON_FAILURE",
+    dcos_ca_bundle: Optional[str]=None,
+) -> Dict[str, Any]:
     if dcos_ca_bundle:
         commands.insert(
             0,
@@ -89,7 +99,7 @@ def _get_test_job(
             "user": "nobody",
             "restart": {"policy": restart_policy},
         },
-    }
+    }  # type: Dict[str, Any]
     if dcos_ca_bundle:
         job["run"]["env"] = {
             "CQLSHRC_FILE": _get_cqlsh_tls_rc_config(node_address, node_port),
@@ -102,13 +112,15 @@ def _get_test_job(
     return job
 
 
-def _cqlsh(query, node_address, node_port):
+def _cqlsh(query: str, node_address: str, node_port: str) -> str:
     return 'cqlsh -e "{}" {} {}'.format(query, node_address, node_port)
 
 
 def get_delete_data_job(
-    node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None
-):
+    node_address: str = DEFAULT_NODE_ADDRESS,
+    node_port: str = DEFAULT_NODE_PORT,
+    dcos_ca_bundle: Optional[str] = None,
+) -> Dict[str, Any]:
     cql = " ".join(
         [
             "DROP TABLE IF EXISTS testspace1.testtable1;",
@@ -127,8 +139,10 @@ def get_delete_data_job(
 
 
 def get_verify_data_job(
-    node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None
-):
+    node_address: str = DEFAULT_NODE_ADDRESS,
+    node_port: str = DEFAULT_NODE_PORT,
+    dcos_ca_bundle: Optional[str] = None,
+) -> Dict[str, Any]:
     cmds = [
         "{} | grep testkey1".format(
             _cqlsh("SELECT * FROM testspace1.testtable1;", node_address, node_port)
@@ -143,8 +157,10 @@ def get_verify_data_job(
 
 
 def get_verify_deletion_job(
-    node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None
-):
+    node_address: str = DEFAULT_NODE_ADDRESS,
+    node_port: str = DEFAULT_NODE_PORT,
+    dcos_ca_bundle: Optional[str] = None,
+) -> Dict[str, Any]:
     cmds = [
         '{} | grep "0 rows"'.format(
             _cqlsh(
@@ -167,8 +183,10 @@ def get_verify_deletion_job(
 
 
 def get_write_data_job(
-    node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None
-):
+    node_address: str = DEFAULT_NODE_ADDRESS,
+    node_port: str = DEFAULT_NODE_PORT,
+    dcos_ca_bundle: Optional[str] = None,
+) -> Dict[str, Any]:
     cql = " ".join(
         [
             "CREATE KEYSPACE testspace1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
@@ -190,7 +208,10 @@ def get_write_data_job(
     )
 
 
-def get_all_jobs(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT):
+def get_all_jobs(
+    node_address: str = DEFAULT_NODE_ADDRESS,
+    node_port: str = DEFAULT_NODE_PORT,
+) -> List[Dict[str, Any]]:
     return [
         get_write_data_job(node_address),
         get_verify_data_job(node_address),
@@ -200,8 +221,12 @@ def get_all_jobs(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT)
 
 
 def run_backup_and_restore(
-    service_name, backup_plan, restore_plan, plan_parameters, job_node_address=DEFAULT_NODE_ADDRESS
-):
+    service_name: str,
+    backup_plan: str,
+    restore_plan: str,
+    plan_parameters: Dict[str, Optional[str]],
+    job_node_address:  str = DEFAULT_NODE_ADDRESS,
+) -> None:
     write_data_job = get_write_data_job(node_address=job_node_address)
     verify_data_job = get_verify_data_job(node_address=job_node_address)
     delete_data_job = get_delete_data_job(node_address=job_node_address)
