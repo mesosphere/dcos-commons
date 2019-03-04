@@ -23,7 +23,7 @@ aspy.yaml==1.1.1
 astroid==2.1.0
 atomicwrites==1.2.1
 attrs==18.2.0
-awscli==1.16.88
+awscli==1.16.117
 azure-common==1.1.16
 azure-mgmt-network==2.0.0
 azure-mgmt-nspkg==3.0.2
