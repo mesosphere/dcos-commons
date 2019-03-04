@@ -295,7 +295,7 @@ class UniversePackageBuilder(object):
 
         return {"packages": [package_json]}
 
-    def build_package_files(self):
+    def build_package_files(self) -> Dict[str, str]:
         """builds package files and returns a dict containing them"""
         # read files into memory and apply templating to files:
         updated_package_files = {}

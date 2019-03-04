@@ -25,7 +25,13 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
 class HTTPPublisher(object):
-    def __init__(self, package_name, package_version, input_dir_path, artifact_paths) -> None:
+    def __init__(
+        self,
+        package_name: str,
+        package_version,
+        input_dir_path,
+        artifact_paths: List[str],
+    ) -> None:
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._input_dir_path = input_dir_path
@@ -37,7 +43,7 @@ class HTTPPublisher(object):
         if not os.path.isdir(input_dir_path):
             raise Exception("Provided package path is not a directory: {}".format(input_dir_path))
 
-        self._artifact_paths = []
+        self._artifact_paths: List[str] = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
                 err = "Provided package path is not a file: {} (full list: {})".format(

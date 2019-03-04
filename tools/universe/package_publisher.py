@@ -7,7 +7,7 @@ import json
 import logging
 import os
 import shutil
-from typing import Tuple
+from typing import Optional, Tuple
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -218,7 +218,7 @@ class UniversePackagePublisher(object):
 
         return result_lines
 
-    def _create_universe_pr(self, branch: str, commitmsg_path: str) -> http.client.HTTPResponse:
+    def _create_universe_pr(self, branch: str, commitmsg_path: str) -> Optional[http.client.HTTPResponse]:
         if self._dry_run:
             log.info("[DRY RUN] Skipping creation of PR against branch {}".format(branch))
             return None

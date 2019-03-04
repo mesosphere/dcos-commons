@@ -25,7 +25,13 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
 class AWSPublisher(object):
-    def __init__(self, package_name, package_version, input_dir_path, artifact_paths):
+    def __init__(
+        self,
+        package_name: str,
+        package_version,
+        input_dir_path: str,
+        artifact_paths: List[str],
+    ):
         self._dry_run = os.environ.get("DRY_RUN", "")
         self._pkg_name = package_name
         self._pkg_version = package_version
@@ -95,6 +101,7 @@ class AWSPublisher(object):
             + "/"
             + os.path.basename(universe_path)
         )
+        assert isinstance(universe_url, str)
         logger.info("---")
         logger.info("STUB UNIVERSE: {}".format(universe_url))
         logger.info("---")
