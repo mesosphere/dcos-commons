@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import http
 import json
 import logging
 import os
@@ -38,7 +39,7 @@ def http_request(
     token: Optional[str],
     headers: Dict[str, str] = {},
     log_args: bool = True,
-    data=None,
+    data: Optional[bytes] = None,
 ) -> str:
     """Performs an http request, returning the text content on success, or throwing an exception on
     consistent failure.
@@ -71,7 +72,9 @@ def http_request(
         log_msg = "(HTTP {}) {} => {} ({:.3f}s)".format(
             method.upper(), cluster_path, response_status, end - start
         )
-        encoding = response.info().get_content_charset("utf-8")
+        message = response.info()
+        assert isinstance(message, http.client.HTTPMessage)
+        encoding = message.get_content_charset("utf-8")
         response_data = response.read().decode(encoding)
         if response_status == 200:
             log.info(log_msg)
@@ -115,7 +118,7 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
     return token
 
 
-def _netloc(url: str):
+def _netloc(url: str) -> str:
     return url.split("-1")[-1]
 
 
@@ -195,7 +198,7 @@ def login_session() -> None:
     if not cluster_url:
         raise Exception("Must have CLUSTER_URL set in environment!")
 
-    def ignore_empty(envvar: str, default: str):
+    def ignore_empty(envvar: str, default: str) -> str:
         # Ignore the user passing in empty ENVVARs.
         value = os.environ.get(envvar, "").strip()
         if not value:

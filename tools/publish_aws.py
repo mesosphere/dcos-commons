@@ -44,7 +44,7 @@ class AWSPublisher(object):
         if not os.path.isdir(input_dir_path):
             raise Exception("Provided package path is not a directory: {}".format(input_dir_path))
 
-        self._artifact_paths = []
+        self._artifact_paths: List[str] = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
                 err = "Provided package path is not a file: {} (full list: {})".format(

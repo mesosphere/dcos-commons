@@ -3,14 +3,14 @@ from .package_builder import UniversePackageBuilder
 from .package import Package
 
 
-def test_non_existent_input_dir_raises_exception():
+def test_non_existent_input_dir_raises_exception() -> None:
     with pytest.raises(Exception) as e:
         UniversePackageBuilder(None, None, "__SHOULD_NOT_EXIST__", ".", [])
 
     assert "Provided package path is not a directory: __SHOULD_NOT_EXIST__" in str(e.value)
 
 
-def test_empty_input_dir_raises_exception():
+def test_empty_input_dir_raises_exception() -> None:
     with pytest.raises(Exception) as e:
         UniversePackageBuilder(None, None, "resources/empty", ".", [])
 
@@ -20,7 +20,7 @@ def test_empty_input_dir_raises_exception():
     )
 
 
-def test_template_service_(mocker):
+def test_template_service_(mocker) -> None:
 
     package_json = {"name": "template", "version": "1.2.3", "releaseVersion": 0}
     package = Package("template", "stub-universe")

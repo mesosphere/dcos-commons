@@ -29,7 +29,7 @@ class HTTPPublisher(object):
         self,
         package_name: str,
         package_version,
-        input_dir_path,
+        input_dir_path: str,
         artifact_paths: List[str],
     ) -> None:
         self._pkg_name = package_name
@@ -52,14 +52,14 @@ class HTTPPublisher(object):
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
-    def _copy_artifact(self, http_url_root, filepath):
+    def _copy_artifact(self, http_url_root: str, filepath: str) -> str:
         filename = os.path.basename(filepath)
         destpath = os.path.join(self._http_dir, filename)
         logger.info("- {}".format(destpath))
         shutil.copyfile(filepath, destpath)
         return "{}/{}".format(http_url_root, filename)
 
-    def _spam_universe_url(self, universe_url):
+    def _spam_universe_url(self, universe_url: str) -> None:
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
         jenkins_workspace_path = os.environ.get("WORKSPACE", "")
         if jenkins_workspace_path:
