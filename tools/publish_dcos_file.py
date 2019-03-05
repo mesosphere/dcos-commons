@@ -33,7 +33,7 @@ class DCOSFilePublisher(object):
     def __init__(
         self,
         package_name: str,
-        package_version: Version,
+        package_version: str,
         input_dir_path: str,
         artifact_paths: Iterable[str],
     ) -> None:
@@ -55,9 +55,11 @@ class DCOSFilePublisher(object):
         self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
 
     def upload(self) -> None:
+        version = Version(release_version=0, package_version=self._pkg_version)
+        package = universe.Package(name=self._pkg_name, version=version)
         with tempfile.TemporaryDirectory() as scratch:
             builder = universe.UniversePackageBuilder(
-                universe.Package(self._pkg_name, self._pkg_version),
+                package,
                 universe.PackageManager(dry_run=self._dry_run),
                 self._input_dir_path,
                 self._directory_url,
