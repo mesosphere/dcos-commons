@@ -29,7 +29,7 @@ class HTTPPublisher(object):
     def __init__(
         self,
         package_name: str,
-        package_version,
+        package_version: str,
         input_dir_path: str,
         artifact_paths: List[str],
     ) -> None:

@@ -3,6 +3,7 @@
 import base64
 import collections
 import difflib
+import http
 import json
 import logging
 import os
@@ -13,7 +14,7 @@ import sys
 import tempfile
 import universe
 import urllib.request
-from typing import List
+from typing import List, Optional
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -413,7 +414,7 @@ Upgrades from:   {}
             # delete the local temp copy
             os.unlink(local_path)
 
-    def move_package(self):
+    def move_package(self) -> str:
         """Updates package, puts artifacts in target location,
         and uploads updated stub-universe.json to target location."""
         # Download stub universe:
@@ -440,7 +441,7 @@ Upgrades from:   {}
             self._http_directory_url, stub_universe_filename
         )
 
-    def release_package(self, commit_desc: str = ""):
+    def release_package(self, commit_desc: str = "") -> Optional[http.client.HTTPResponse]:
         """Updates package, puts artifacts in target location, and creates Universe PR."""
 
         # automatically include source universe URL in commit description:
@@ -558,7 +559,9 @@ def main(argv: List[str]) -> int:
         log.info("---")
         log.info("Created pull request for version {} (PTAL):".format(package_version))
         # print the PR location as stdout for use upstream (the rest is all stderr):
-        response_content = response.read().decode(response.info().get_param("charset") or "utf-8")
+        encoding = response.info().get_param("charset") or "utf-8"
+        assert isinstance(encoding, str)
+        response_content = response.read().decode(encoding)
         print(json.loads(response_content)["html_url"])
     elif operation == "move":
         new_stub_url = builder.move_package()
