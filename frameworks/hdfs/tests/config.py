@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import retrying
 import uuid
 
@@ -26,16 +25,6 @@ HADOOP_VERSION = "hadoop-2.6.0-cdh5.9.1"
 
 DOCKER_IMAGE_NAME = "mesosphere/hdfs-testing-client:6972ea3833c9449111aceaa998e3e093a9c8dcee"
 CLIENT_APP_NAME = "hdfs-client"
-
-
-def get_kerberized_hdfs_client_app():
-    app_def_path = "{current_dir}/../tools/docker-client/{client_id}".format(
-        current_dir=os.path.dirname(os.path.realpath(__file__)), client_id="hdfsclient.json"
-    )
-    with open(app_def_path) as f:
-        app_def = json.load(f)
-
-    return app_def
 
 
 def hadoop_command(command):
