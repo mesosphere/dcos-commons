@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Any, Dict, Iterator
 
 import pytest
 
@@ -20,7 +20,7 @@ pytestmark = [
 
 
 @pytest.fixture(scope="module", autouse=True)
-def service_account(configure_security: None):
+def service_account(configure_security: None) -> Iterator[Dict[str, Any]]:
     """
     Sets up a service account for use with TLS.
     """

@@ -3,7 +3,7 @@ import logging
 import os
 import retrying
 import uuid
-from typing import Any, Callable, Dict, List, Tuple
+from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import sdk_cmd
 import sdk_hosts
@@ -42,10 +42,10 @@ def get_unique_filename(prefix: str) -> str:
 
 
 def hdfs_client_write_data(
-        filename,
-        expect_failure_message=None,
-        content_to_write=TEST_CONTENT_SMALL,
-) -> tuple:
+    filename: str,
+    expect_failure_message: Optional[str] = None,
+    content_to_write: str = TEST_CONTENT_SMALL,
+) -> Tuple[bool, str, str]:
     def success_check(rc: int, stdout: str, stderr: str) -> bool:
         if rc == 0 and not stderr:
             # rc is still zero even if the "put" command failed! This is because "task exec" eats the return code.
@@ -171,9 +171,8 @@ def run_client_command(
         rc, stdout, stderr = sdk_cmd.marathon_task_exec(CLIENT_APP_NAME, "/bin/bash -c '{}'".format(hdfs_command))
         return (success_check(rc, stdout, stderr), stdout, stderr)
 
-    result = _run_client_command()
-    assert isinstance(result, tuple)
-    return result
+    is_success, stdout, stderr = _run_client_command()
+    return (bool(is_success), str(stdout), str(stderr))
 
 
 def check_healthy(
