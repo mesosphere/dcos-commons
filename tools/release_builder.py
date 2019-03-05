@@ -222,7 +222,7 @@ Upgrades from:   {}
 
         return pkgdir
 
-    def _update_package_json(self, package_json):
+    def _update_package_json(self, package_json: Dict[str, Any]) -> None:
         """Updates the package.json definition to contain the desired version string,
         and updates the package to reflect any beta or non-beta status as necessary.
         """
@@ -267,7 +267,7 @@ Upgrades from:   {}
             )
         )
 
-    def _update_marathon_json(self, package_json):
+    def _update_marathon_json(self, package_json: Dict[str, Any]) -> None:
         """Updates the marathon.json definition to contain the desired name and version strings.
         """
         # note: the file isn't valid JSON, so we edit the raw content instead
@@ -292,7 +292,7 @@ Upgrades from:   {}
             "\n".join(marathon_lines).encode("utf-8")
         ).decode()
 
-    def _update_resource_json(self, package_json):
+    def _update_resource_json(self, package_json: Dict[str, Any]):
         """Rewrites all artifact urls in pkgdir to self.release_artifact_http_dir.
         Returns the original urls.
         """
@@ -358,7 +358,7 @@ Upgrades from:   {}
         self._update_marathon_json(package_json)
         return self._update_resource_json(package_json)
 
-    def _copy_artifacts_s3(self, scratchdir, original_artifact_urls):
+    def _copy_artifacts_s3(self, scratchdir: str, original_artifact_urls) -> None:
         # Before we do anything else, verify that the upload directory doesn't already exist, to
         # avoid automatically stomping on a previous release. If you *want* to overwrite an existing
         # upload, you must manually delete the destination yourself, or set force=True when running
