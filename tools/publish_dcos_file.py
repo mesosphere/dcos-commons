@@ -196,8 +196,7 @@ Artifacts:
         )
     )
 
-    version = Version(package_version, package_version)
-    DCOSFilePublisher(package_name, version, package_dir_path, artifact_paths).upload()
+    DCOSFilePublisher(package_name, package_version, package_dir_path, artifact_paths).upload()
     return 0
 
 

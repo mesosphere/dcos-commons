@@ -29,7 +29,7 @@ class AWSPublisher(object):
     def __init__(
         self,
         package_name: str,
-        package_version: Version,
+        package_version: str,
         input_dir_path: str,
         artifact_paths: List[str],
     ):
@@ -57,7 +57,7 @@ class AWSPublisher(object):
         s3_directory_url, self._http_directory_url = s3_urls_from_env(self._pkg_name)
         self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
 
-    def _spam_universe_url(self, universe_url):
+    def _spam_universe_url(self, universe_url: str) -> None:
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
         jenkins_workspace_path = os.environ.get("WORKSPACE", "")
         if jenkins_workspace_path:
@@ -210,8 +210,7 @@ Artifacts:
         )
     )
 
-    version = Version(package_version, package_version)
-    AWSPublisher(package_name, version, package_dir_path, artifact_paths).upload()
+    AWSPublisher(package_name, package_version, package_dir_path, artifact_paths).upload()
     return 0
 
 
