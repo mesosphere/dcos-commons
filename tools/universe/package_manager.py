@@ -9,7 +9,7 @@ import json
 import logging
 import urllib.parse
 import urllib.request
-from typing import Any, Dict, Iterable, List, Union, Optional
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 from . import package
 
