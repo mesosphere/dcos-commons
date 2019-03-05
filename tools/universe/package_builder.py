@@ -168,7 +168,7 @@ class UniversePackageBuilder(object):
         now = time.time()
         template_mapping = {
             "package-name": self._package.get_name(),
-            "package-version": self._package.get_version(),
+            "package-version": str(self._package.get_version()),
             "package-build-time-epoch-ms": str(int(round(now * 1000))),
             "package-build-time-str": time.strftime("%a %b %d %Y %H:%M:%S +0000", time.gmtime(now)),
             "upgrades-from": self._get_upgrades_from(),
