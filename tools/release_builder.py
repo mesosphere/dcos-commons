@@ -14,7 +14,7 @@ import sys
 import tempfile
 import universe
 import urllib.request
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -82,16 +82,16 @@ class UniverseReleaseBuilder(object):
 
     def __init__(
         self,
-        package_version,
-        stub_universe_url,
-        http_release_server=os.environ.get(
+        package_version: str,
+        stub_universe_url: str,
+        http_release_server: str= os.environ.get(
             "HTTP_RELEASE_SERVER", "https://downloads.mesosphere.com"
         ),
-        s3_release_bucket=os.environ.get("S3_RELEASE_BUCKET", "downloads.mesosphere.io"),
-        release_docker_image=os.environ.get("RELEASE_DOCKER_IMAGE"),
-        release_dir_path=os.environ.get("RELEASE_DIR_PATH", ""),
-        beta_release=os.environ.get("BETA", "False"),
-        upgrades_from=os.environ.get("UPGRADES_FROM", ""),
+        s3_release_bucket: str = os.environ.get("S3_RELEASE_BUCKET", "downloads.mesosphere.io"),
+        release_docker_image: Optional[str] = os.environ.get("RELEASE_DOCKER_IMAGE"),
+        release_dir_path: str = os.environ.get("RELEASE_DIR_PATH", ""),
+        beta_release: str = os.environ.get("BETA", "False"),
+        upgrades_from: str = os.environ.get("UPGRADES_FROM", ""),
     ) -> None:
         self._dry_run = bool(os.environ.get("DRY_RUN", ""))
         self._force_upload = os.environ.get("FORCE_ARTIFACT_UPLOAD", "").lower() == "true"
@@ -150,7 +150,7 @@ Upgrades from:   {}
                 raise Exception("{} return non-zero exit status: {}".format(cmd, ret))
             return ret
 
-    def _fetch_stub_universe(self):
+    def _fetch_stub_universe(self) -> Dict[str, Any]:
         _, stub_universe_extension = os.path.splitext(self._stub_universe_url)
         if not stub_universe_extension == ".json":
             raise Exception(
@@ -158,10 +158,15 @@ Upgrades from:   {}
             )
 
         with urllib.request.urlopen(self._stub_universe_url) as response:
+            message = response.info()
+            assert isinstance(message, http.client.HTTPMessage)
+            encoding = message.get_param("charset") or "utf-8"
+            assert isinstance(encoding, str)
             stub_universe_json = json.loads(
-                response.read().decode(response.info().get_param("charset") or "utf-8"),
+                response.read().decode(encoding),
                 object_pairs_hook=collections.OrderedDict,
             )
+        assert isinstance(stub_universe_json, dict)
         return stub_universe_json
 
     def _unpack_stub_universe(self, stub_universe_json, scratchdir):
