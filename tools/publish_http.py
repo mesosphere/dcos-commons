@@ -122,7 +122,8 @@ class HTTPPublisher(object):
 
         http_url_root = "http://{}:{}".format(self._http_host, port)
 
-        package_info = universe.Package(self._pkg_name, self._pkg_version)
+        version = Version(release_version=0, package_version=self._pkg_version)
+        package_info = universe.Package(name=self._pkg_name, version=version)
         package_manager = universe.PackageManager()
         self._package_builder = universe.UniversePackageBuilder(
             package_info, package_manager, self._input_dir_path, http_url_root, self._artifact_paths
