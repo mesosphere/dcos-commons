@@ -18,6 +18,7 @@ import subprocess
 import sys
 
 import universe
+from universe.package import Version
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
