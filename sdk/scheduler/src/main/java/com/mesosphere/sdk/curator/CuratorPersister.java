@@ -13,7 +13,6 @@ import org.apache.curator.framework.CuratorFramework;
 import org.apache.curator.framework.CuratorFrameworkFactory;
 import org.apache.curator.framework.api.ACLProvider;
 import org.apache.curator.framework.api.transaction.CuratorOp;
-import org.apache.curator.framework.api.transaction.CuratorTransactionFinal;
 import org.apache.zookeeper.KeeperException;
 import org.apache.zookeeper.ZooDefs;
 import org.apache.zookeeper.data.ACL;
@@ -21,6 +20,7 @@ import org.slf4j.Logger;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -96,7 +96,6 @@ public class CuratorPersister implements Persister {
       if (!existingAndPendingCreatePaths.contains(parentPath)
           && client.checkExists().forPath(parentPath) == null)
       {
-        // SUPPRESS CHECKSTYLE ParameterAssignment
         operations.add(client.transactionOp().create().forPath(parentPath));
       }
       existingAndPendingCreatePaths.add(parentPath);
@@ -122,12 +121,10 @@ public class CuratorPersister implements Persister {
     // itself
     for (String child : client.getChildren().forPath(path)) {
       String childPath = PersisterUtils.joinPaths(path, child);
-      // SUPPRESS CHECKSTYLE ParameterAssignment
       deleteChildrenOf(client, childPath, operations, pendingDeletePaths);
       if (!pendingDeletePaths.contains(childPath)) {
         // Avoid attempting to delete a path twice in the same transaction, just in case we're told
         // to delete two nodes where one is the child of the other (or something to that effect)
-        // SUPPRESS CHECKSTYLE ParameterAssignment
         operations.add(client.transactionOp().delete().forPath(childPath));
         pendingDeletePaths.add(childPath);
       }
@@ -182,18 +179,21 @@ public class CuratorPersister implements Persister {
   }
 
   @Override
-  public void set(String unprefixedPath, byte[] bytes) throws PersisterException {
+  public void set(String unprefixedPath, byte[] newData) throws PersisterException {
     final String path = withFrameworkPrefix(unprefixedPath);
-    LOGGER.debug("Setting {} => {}", path, getInfo(bytes));
+    LOGGER.debug("Setting {} => {}", path, getInfo(newData));
     try {
-      try {
-        client.create().creatingParentsIfNeeded().forPath(path, bytes);
-      } catch (KeeperException.NodeExistsException e) {
-        client.setData().forPath(path, bytes);
+      if (client.checkExists().forPath(path) != null) {
+        byte[] oldData = client.getData().forPath(path);
+        if (!Arrays.equals(oldData, newData)) {
+          client.setData().forPath(path, newData);
+        } // else : no-op.
+      } else {
+        client.create().creatingParentsIfNeeded().forPath(path, newData);
       }
     } catch (Exception e) { // SUPPRESS CHECKSTYLE IllegalCatch
       throw new PersisterException(Reason.STORAGE_ERROR,
-          String.format("Unable to set %d bytes in %s", bytes.length, path), e);
+          String.format("Unable to set %d bytes in %s", newData.length, path), e);
     }
   }
 
@@ -312,7 +312,7 @@ public class CuratorPersister implements Persister {
        */
       LOGGER.debug("Deleting children of root {}", path);
       try {
-        CuratorTransactionFinal transaction = client
+        client
             .inTransaction()
             .check()
             .forPath(serviceRootPath)
