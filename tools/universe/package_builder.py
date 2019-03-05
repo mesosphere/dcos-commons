@@ -55,7 +55,7 @@ class UniversePackageBuilder(object):
 
         self.set_input_dir_path(input_dir_path)
 
-        self._artifact_file_paths = {}
+        self._artifact_file_paths: Dict[str, str] = {}
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
                 raise Exception(
@@ -101,7 +101,7 @@ class UniversePackageBuilder(object):
                 continue
             yield package_filename, open(package_filepath).read()
 
-    def _fetch_sha256_from_manifest(self, manifest_url: str, filename: str):
+    def _fetch_sha256_from_manifest(self, manifest_url: str, filename: str) -> str:
         logger.info("Fetching manifest for %s from %s", filename, manifest_url)
 
         if self._dry_run:

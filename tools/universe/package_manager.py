@@ -9,7 +9,7 @@ import json
 import logging
 import urllib.parse
 import urllib.request
-from typing import Any, Union
+from typing import Any, Iterable, Optional, Union
 
 from . import package
 
@@ -38,7 +38,7 @@ class PackageManager:
 
         self.__package_cache = {}
 
-    def get_package_versions(self, package_name: str):
+    def get_package_versions(self, package_name: str) -> Iterable[package.Package]:
         """Get all versions for a specified package"""
         if self._dry_run:
             return DryRunPackages(package_name)
@@ -59,7 +59,7 @@ class PackageManager:
 
         return self.__package_cache.get(package_name, [])
 
-    def get_latest(self, package_name: Union[str, package.Package]):
+    def get_latest(self, package_name: Union[str, package.Package]) -> Optional[package.Package]:
         if isinstance(package_name, package.Package):
             package_name = package_name.get_name()
 
