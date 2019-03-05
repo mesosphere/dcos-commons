@@ -14,7 +14,8 @@ import time
 import urllib.request
 from typing import Any, Dict, Iterable, Iterator, List, Tuple
 
-from . import Package, PackageManager
+from . import Package
+from .package_manager import PackageManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")

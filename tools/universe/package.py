@@ -6,11 +6,11 @@ from typing import Any, Dict, Union
 @functools.total_ordering
 class Package:
     @staticmethod
-    def from_json(json: Dict[str, Any]) -> Package:
+    def from_json(json: Dict[str, Any]) -> 'Package':
         """Construct a Package object from a json definition"""
         return Package(json["name"], Version(json["releaseVersion"], json["version"]))
 
-    def __init__(self, name: str, version: Version) -> None:
+    def __init__(self, name: str, version: 'Version') -> None:
         self._name = name
         self._version = version
 
@@ -47,7 +47,7 @@ class Package:
 
         return self._name
 
-    def get_version(self) -> Version:
+    def get_version(self) -> 'Version':
         return self._version
 
 
