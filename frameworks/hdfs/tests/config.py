@@ -5,6 +5,7 @@ import retrying
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
+import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_plan
@@ -74,11 +75,11 @@ def hdfs_client_write_data(
 
 
 def hdfs_client_read_data(
-        filename: str,
-        expect_failure_message=None,
-        content_to_verify=TEST_CONTENT_SMALL,
-) -> tuple:
-    def success_check(rc, stdout, stderr):
+    filename: str,
+    expect_failure_message: Optional[str] = None,
+    content_to_verify: str = TEST_CONTENT_SMALL,
+) -> Tuple[bool, str, str]:
+    def success_check(rc: int, stdout: str, stderr: str) -> bool:
         if rc == 0 and stdout.rstrip() == content_to_verify:
             # rc only tells us if the 'task exec' operation itself failed. It is zero when the hdfs command fails.
             # This is because "task exec" eats that return code.
@@ -108,7 +109,10 @@ def hdfs_client_list_files(filename: str) -> tuple:
     return run_client_command(hdfs_command("ls {}".format(filename)))
 
 
-def get_hdfs_client_app(service_name, kerberos=None) -> dict:
+def get_hdfs_client_app(
+    service_name: str,
+    kerberos: Optional[sdk_auth.KerberosEnvironment] = None,
+) -> Dict[str, Any]:
     """
     Returns a Marathon app definition for an HDFS client against the specified service.
 

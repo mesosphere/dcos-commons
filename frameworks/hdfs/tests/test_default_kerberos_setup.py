@@ -49,7 +49,10 @@ def kerberos(configure_security: None) -> Iterator[sdk_auth.KerberosEnvironment]
 
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_install_without_additional_principal_to_user_mapping(kerberos, service_account):
+def test_install_without_additional_principal_to_user_mapping(
+    kerberos: sdk_auth.KerberosEnvironment,
+    service_account: Dict[str, Any],
+) -> None:
     try:
         service_options = {
             "service": {
