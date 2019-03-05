@@ -3,6 +3,7 @@ import logging
 import os
 import retrying
 import uuid
+from typing import Callable, List
 
 import sdk_cmd
 import sdk_hosts
@@ -38,11 +39,11 @@ def get_kerberized_hdfs_client_app():
     return app_def
 
 
-def hadoop_command(command):
+def hadoop_command(command: str) -> str:
     return "/{}/bin/hdfs {}".format(HADOOP_VERSION, command)
 
 
-def hdfs_command(command):
+def hdfs_command(command: str) -> str:
     return hadoop_command("dfs -{}".format(command))
 
 
@@ -55,7 +56,7 @@ def hdfs_client_write_data(
         expect_failure_message=None,
         content_to_write=TEST_CONTENT_SMALL,
 ) -> tuple:
-    def success_check(rc, stdout, stderr):
+    def success_check(rc: int, stdout: str, stderr: str) -> bool:
         if rc == 0 and not stderr:
             # rc is still zero even if the "put" command failed! This is because "task exec" eats the return code.
             # Therefore we must also check stderr to tell if the command actually succeeded.
@@ -83,7 +84,7 @@ def hdfs_client_write_data(
 
 
 def hdfs_client_read_data(
-        filename,
+        filename: str,
         expect_failure_message=None,
         content_to_verify=TEST_CONTENT_SMALL,
 ) -> tuple:
@@ -113,7 +114,7 @@ def hdfs_client_read_data(
     return (success, stdout, stderr)
 
 
-def hdfs_client_list_files(filename) -> tuple:
+def hdfs_client_list_files(filename: str) -> tuple:
     return run_client_command(hdfs_command("ls {}".format(filename)))
 
 
@@ -163,7 +164,10 @@ def get_hdfs_client_app(service_name, kerberos=None) -> dict:
     return app
 
 
-def run_client_command(hdfs_command, success_check=lambda rc, stdout, stderr: rc == 0):
+def run_client_command(
+    hdfs_command: str,
+    success_check: Callable[[int, str, str], bool] = lambda rc, stdout, stderr: rc == 0,
+):
     """
     Execute the provided shell command within the HDFS Docker client.
     Client app must have first been installed to marathon, see using get_hdfs_client_app().
@@ -180,7 +184,11 @@ def run_client_command(hdfs_command, success_check=lambda rc, stdout, stderr: rc
     return _run_client_command()
 
 
-def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=False):
+def check_healthy(
+    service_name: str,
+    count: int = DEFAULT_TASK_COUNT,
+    recovery_expected: bool = False,
+) -> None:
     sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds=25 * 60)
     if recovery_expected:
         # TODO(elezar): See INFINITY-2109 where we need to better handle recovery health checks
@@ -189,12 +197,12 @@ def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=Fals
     sdk_tasks.check_running(service_name, count)
 
 
-def expect_recovery(service_name):
+def expect_recovery(service_name: str) -> None:
     # TODO(elezar, nima) check_healthy also check for complete deployment, and this should not
     # affect the state of recovery.
     check_healthy(service_name=service_name, count=DEFAULT_TASK_COUNT, recovery_expected=True)
 
 
-def get_pod_type_instances(pod_type_prefix, service_name=SERVICE_NAME):
+def get_pod_type_instances(pod_type_prefix: str, service_name: str = SERVICE_NAME) -> List[str]:
     _, stdout, _ = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, "pod list", check=True)
     return [pod_type for pod_type in json.loads(stdout) if pod_type.startswith(pod_type_prefix)]

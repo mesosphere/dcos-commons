@@ -1,3 +1,5 @@
+from typing import Iterator
+
 import pytest
 
 import sdk_utils
@@ -18,7 +20,7 @@ pytestmark = [
 
 
 @pytest.fixture(scope="module", autouse=True)
-def service_account(configure_security):
+def service_account(configure_security: None):
     """
     Sets up a service account for use with TLS.
     """
@@ -31,7 +33,7 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def kerberos(configure_security):
+def kerberos(configure_security: None) -> Iterator[sdk_auth.KerberosEnvironment]:
     try:
         principals = auth.get_service_principals(config.SERVICE_NAME, sdk_auth.REALM)
 
