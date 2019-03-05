@@ -169,7 +169,7 @@ Upgrades from:   {}
         assert isinstance(stub_universe_json, dict)
         return stub_universe_json
 
-    def _unpack_stub_universe(self, stub_universe_json, scratchdir):
+    def _unpack_stub_universe(self, stub_universe_json: Dict[str, Any], scratchdir: str) -> str:
         """Downloads a stub-universe.json URL and unpacks the content into a temporary directory.
         Returns the directory where the resulting files were unpacked.
         """
@@ -193,7 +193,7 @@ Upgrades from:   {}
         # note: we delete elements from package_json they're unpacked, as package_json is itself written to a file
         package_json = stub_universe_json["packages"][0]
 
-        def extract_json_file(package_dict, name):
+        def extract_json_file(package_dict: Dict[str, Any], name: str) -> None:
             file_dict = package_dict.get(name)
             if file_dict is not None:
                 del package_dict[name]
@@ -292,7 +292,7 @@ Upgrades from:   {}
             "\n".join(marathon_lines).encode("utf-8")
         ).decode()
 
-    def _update_resource_json(self, package_json: Dict[str, Any]):
+    def _update_resource_json(self, package_json: Dict[str, Any]) -> List[str]:
         """Rewrites all artifact urls in pkgdir to self.release_artifact_http_dir.
         Returns the original urls.
         """
@@ -348,7 +348,7 @@ Upgrades from:   {}
 
         return original_artifact_urls
 
-    def _update_package_get_artifacts(self, package_json):
+    def _update_package_get_artifacts(self, package_json: Dict[str, Any]) -> List[str]:
         """Updates the provided package JSON representation.
 
         Returns the list of original artifact URLs that were built with the package,
@@ -358,7 +358,7 @@ Upgrades from:   {}
         self._update_marathon_json(package_json)
         return self._update_resource_json(package_json)
 
-    def _copy_artifacts_s3(self, scratchdir: str, original_artifact_urls) -> None:
+    def _copy_artifacts_s3(self, scratchdir: str, original_artifact_urls: List[str]) -> None:
         # Before we do anything else, verify that the upload directory doesn't already exist, to
         # avoid automatically stomping on a previous release. If you *want* to overwrite an existing
         # upload, you must manually delete the destination yourself, or set force=True when running
