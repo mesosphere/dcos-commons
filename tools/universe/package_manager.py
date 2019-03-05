@@ -9,7 +9,7 @@ import json
 import logging
 import urllib.parse
 import urllib.request
-from typing import Any, Iterable, Optional, Union
+from typing import Any, Dict, Iterable, List, Optional, Union
 
 from . import package
 
@@ -36,7 +36,7 @@ class PackageManager:
             "charset=utf-8;version=v{}".format(package_version),
         }
 
-        self.__package_cache = {}
+        self.__package_cache: Dict[str, List[package.Package]] = {}
 
     def get_package_versions(self, package_name: str) -> Iterable[package.Package]:
         """Get all versions for a specified package"""
