@@ -29,16 +29,6 @@ DOCKER_IMAGE_NAME = "mesosphere/hdfs-testing-client:6972ea3833c9449111aceaa998e3
 CLIENT_APP_NAME = "hdfs-client"
 
 
-def get_kerberized_hdfs_client_app():
-    app_def_path = "{current_dir}/../tools/docker-client/{client_id}".format(
-        current_dir=os.path.dirname(os.path.realpath(__file__)), client_id="hdfsclient.json"
-    )
-    with open(app_def_path) as f:
-        app_def = json.load(f)
-
-    return app_def
-
-
 def hadoop_command(command: str) -> str:
     return "/{}/bin/hdfs {}".format(HADOOP_VERSION, command)
 
