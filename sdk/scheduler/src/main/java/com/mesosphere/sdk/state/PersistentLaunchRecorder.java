@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.state;
 
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.StoreTaskInfoRecommendation;
@@ -19,6 +20,8 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -69,18 +72,44 @@ public class PersistentLaunchRecorder {
   }
 
   public void record(Collection<OfferRecommendation> offerRecommendations) throws Exception {
-    for (OfferRecommendation offerRecommendation : offerRecommendations) {
-      if (!(offerRecommendation instanceof StoreTaskInfoRecommendation)) {
-        continue;
-      }
-      Protos.TaskInfo taskInfo =
-          ((StoreTaskInfoRecommendation) offerRecommendation).getStateStoreTaskInfo();
-
+    /**
+     *
+     * Some of the {@link org.apache.mesos.Protos.TaskInfo} may have duplicate {@link StoreTaskInfoRecommendation}
+     * because during evaluation of _each_ step we may decide to either Launch+Store or just Store the TaskInfo.
+     * See {@link com.mesosphere.sdk.offer.evaluate.LaunchEvaluationStage}
+     *
+     * Consider the scenario where
+     *  Pod P has only two tasks X and Y.
+     *  Step A needs to launch task X.
+     *  Step B needs to launch task Y.
+     *  In their evaluation pipelines for step A and B:
+     *   - Step A would generate Launch+Store for task X and only Store for task Y.
+     *     During this step A assumes Y is not launched right away and thus uses "" (empty string) for its task id.
+     *   - Step B would generate Launch+Store for task Y and only Store for task X.
+     *     During this step B assumes X is not launched right away and thus uses "" (empty string) for its task id.
+     *  We do need to do adhere to above behavior because of DCOS-42539.
+     *
+     * Because of above constraint, we do the following:
+     * 1. Filter given {@link OfferRecommendation} by only looking for {@link StoreTaskInfoRecommendation}
+     * 2. Persist all {@link StoreTaskInfoRecommendation}s that have empty task ID.
+     * 3. After above, persist the rest of {@link StoreTaskInfoRecommendation} that have non empty task ID.
+     */
+    Iterator<StoreTaskInfoRecommendation> storeTaskRecommendations = offerRecommendations
+            .stream()
+            .filter(recommendation -> recommendation instanceof StoreTaskInfoRecommendation)
+            .map(StoreTaskInfoRecommendation.class::cast)
+            .sorted(Comparator.comparingInt(
+              r -> r.getStateStoreTaskInfo().getTaskId().getValue().length())
+            )
+            .iterator();
+    while (storeTaskRecommendations.hasNext()) {
+      StoreTaskInfoRecommendation offerRecommendation = storeTaskRecommendations.next();
+      Protos.TaskInfo taskInfo = offerRecommendation.getStateStoreTaskInfo();
       Optional<PodInstance> podInstance = getPodInstance(taskInfo);
 
       Optional<Protos.TaskStatus> taskStatus = Optional.empty();
       String taskStatusDescription = "";
-      if (!taskInfo.getTaskId().getValue().equals("")) {
+      if (!taskInfo.getTaskId().equals(CommonIdUtils.emptyTaskId())) {
         // Initialize the task status as TASK_STAGING. In practice we should never actually receive a STAGING
         // status from Mesos so this is effectively an internal stub for the scheduler's own use.
         taskStatusDescription = " with STAGING status";
@@ -96,8 +125,8 @@ public class PersistentLaunchRecorder {
       }
 
       logger.info("Persisting launch operation{} for {}",
-          taskStatusDescription,
-          taskInfo.getName());
+              taskStatusDescription,
+              taskInfo.getName());
 
       podInstance.ifPresent(podInstance1 ->
           updateTaskResourcesWithinResourceSet(podInstance1, taskInfo)

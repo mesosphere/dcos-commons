@@ -1086,7 +1086,7 @@ Schedulers generate a set of default metrics.  Metrics are reported in three mai
 
 Offers are counted as received as soon as they are offered to the scheduler by Mesos. They are counted as processed after they have been compared against the current work the scheduler needs to do, and then either accepted or rejected.
 
-Declined offers fall into two categories: those that are declined for a long time (e.g., 2 weeks) and those that are declined for a short time (e.g., 5 seconds). In general, offers are declined for a short time when the offer queue is full. They are declined for a long time when they fail to match any of the current work requirements.
+Declined offers fall into two categories: those that are declined for a long time (1 hour) and those that are declined for a short time (e.g., 5 seconds). In general, offers are declined for a short time when the offer queue is full. They are declined for a long time when they fail to match any of the current work requirements.
 
 The `offers.process` timer reports statistics about how long it takes the scheduler to process all offers in the offer queue.
 

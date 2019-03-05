@@ -100,7 +100,7 @@ public final class Constants {
   /**
    * The duration in seconds to decline offers the scheduler does not need for the foreseeable future.
    */
-  public static final int LONG_DECLINE_SECONDS = Math.toIntExact(Duration.ofDays(14).getSeconds());
+  public static final int LONG_DECLINE_SECONDS = Math.toIntExact(Duration.ofHours(1).getSeconds());
 
   /**
    * The duration in seconds to decline offers the scheduler does not need for a short time.

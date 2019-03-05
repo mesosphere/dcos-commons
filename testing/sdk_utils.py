@@ -144,9 +144,19 @@ def is_strict_mode() -> bool:
 
 
 def get_security_mode() -> DCOS_SECURITY:
-    r = get_metadata().json()
-    mode = r['security']
-    return DCOS_SECURITY[mode]
+    try:
+        r = get_metadata().json()
+        mode = r['security']
+        return DCOS_SECURITY[mode]
+    except Exception:
+        # Read environment variable only if get_metadata call fails
+        # Defaults to disabled.
+        mode = os.environ.get("SECURITY", "disabled")
+        return {
+            'disabled': DCOS_SECURITY.disabled,
+            'permissive': DCOS_SECURITY.permissive,
+            'strict': DCOS_SECURITY.strict
+        }[mode.lower]
 
 
 def get_metadata() -> requests.Response:
