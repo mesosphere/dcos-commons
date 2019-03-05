@@ -151,7 +151,7 @@ def get_security_mode() -> DCOS_SECURITY:
             'disabled': DCOS_SECURITY.disabled,
             'permissive': DCOS_SECURITY.permissive,
             'strict': DCOS_SECURITY.strict
-        }[mode.lower]
+        }[mode.lower()]
 
 
 def get_metadata():
