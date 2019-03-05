@@ -18,6 +18,7 @@ import urllib.request
 
 import publish_aws
 import universe
+from universe.package import Version
 
 from publish_aws import s3_urls_from_env
 
@@ -47,9 +48,11 @@ class DCOSFilePublisher(object):
         self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
 
     def upload(self):
+        version = Version(release_version=0, package_version=self._pkg_version)
+        package = universe.Package(name=self._pkg_name, version=version)
         with tempfile.TemporaryDirectory() as scratch:
             builder = universe.UniversePackageBuilder(
-                universe.Package(self._pkg_name, self._pkg_version),
+                package,
                 universe.PackageManager(dry_run=self._dry_run),
                 self._input_dir_path,
                 self._directory_url,
