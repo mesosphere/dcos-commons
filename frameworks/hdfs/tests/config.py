@@ -3,7 +3,7 @@ import logging
 import os
 import retrying
 import uuid
-from typing import Callable, List
+from typing import Any, Callable, Dict, List, Tuple
 
 import sdk_cmd
 import sdk_hosts
@@ -117,7 +117,7 @@ def get_hdfs_client_app(service_name, kerberos=None) -> dict:
     18/08/21 20:36:57 FATAL conf.Configuration: error parsing conf core-site.xml
            org.xml.sax.SAXParseException; Premature end of file.
     """
-    app = {
+    app: Dict[str, Any] = {
         "id": CLIENT_APP_NAME,
         "mem": 1024,
         "user": "nobody",
@@ -157,7 +157,7 @@ def get_hdfs_client_app(service_name, kerberos=None) -> dict:
 def run_client_command(
     hdfs_command: str,
     success_check: Callable[[int, str, str], bool] = lambda rc, stdout, stderr: rc == 0,
-):
+) -> Tuple[bool, str, str]:
     """
     Execute the provided shell command within the HDFS Docker client.
     Client app must have first been installed to marathon, see using get_hdfs_client_app().
@@ -167,11 +167,13 @@ def run_client_command(
         stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res[0],
     )
-    def _run_client_command():
+    def _run_client_command() -> Tuple[bool, str, str]:
         rc, stdout, stderr = sdk_cmd.marathon_task_exec(CLIENT_APP_NAME, "/bin/bash -c '{}'".format(hdfs_command))
         return (success_check(rc, stdout, stderr), stdout, stderr)
 
-    return _run_client_command()
+    result = _run_client_command()
+    assert isinstance(result, tuple)
+    return result
 
 
 def check_healthy(
