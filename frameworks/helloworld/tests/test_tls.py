@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator
 
 import pytest
 import sdk_cmd
@@ -39,7 +40,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -264,15 +265,20 @@ def test_changing_discovery_replaces_certificate_sans() -> None:
     assert expected_san in sans
 
 
-def _export_cert_from_task_keystore(task_name, keystore_path, alias, password=KEYSTORE_PASS):
+def _export_cert_from_task_keystore(
+    task_name: str,
+    keystore_path: str,
+    alias: str,
+    password: str = KEYSTORE_PASS,
+) -> x509.Certificate:
     """
     Retrieves certificate from the keystore with given alias by executing
     a keytool in context of running container and loads the certificate to
     memory.
 
     Args:
-        task (str): Task id of container that contains the keystore
-        keystore_path (str): Path inside container to keystore containing
+        task_name: Task id of container that contains the keystore
+        keystore_path: Path inside container to keystore containing
             the certificate
         alias (str): Alias of the certificate in the keystore
 
@@ -292,28 +298,7 @@ def _export_cert_from_task_keystore(task_name, keystore_path, alias, password=KE
     return x509.load_pem_x509_certificate(cert_bytes, DEFAULT_BACKEND)
 
 
-def _keystore_list_command(keystore_path, args=None):
-    """
-    Creates a command that can be executed using `dcos exec` CLI and will
-    list certificates from provided keystore using java `keytool` command.
-
-    https://docs.oracle.com/javase/8/docs/technotes/tools/windows/keytool.html
-
-    Args:
-        keystore_path (str): Path to the keystore file
-        args (str): Optionally addiontal arguments for the `keytool -list`
-            command.
-
-    Returns:
-        A string that can be used as `dcos exec` argument.
-    """
-    return _java_command(
-        "keytool -list -keystore {keystore_path} "
-        "-noprompt {args}".format(keystore_path=keystore_path, args=args)
-    )
-
-
-def _keystore_export_command(keystore_path, cert_alias, args=None) -> str:
+def _keystore_export_command(keystore_path, cert_alias, args: str) -> str:
     """
     Runs the exportcert keytool command to export certificate with given alias.
     """
