@@ -22,7 +22,7 @@ foldered_name = config.FOLDERED_SERVICE_NAME
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
@@ -50,12 +50,12 @@ def configure_package(configure_security):
 
 
 @pytest.fixture(autouse=True)
-def pre_test_setup():
+def pre_test_setup() -> None:
     config.check_healthy(service_name=foldered_name)
 
 
 @pytest.mark.sanity
-def test_endpoints():
+def test_endpoints() -> None:
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(
         sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "core-site.xml")
@@ -100,7 +100,7 @@ def check_properties(xml, expect):
 
 
 @pytest.mark.recovery
-def test_kill_journal_node():
+def test_kill_journal_node() -> None:
     journal_task = sdk_tasks.get_service_tasks(foldered_name, "journal-0")[0]
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
@@ -115,7 +115,7 @@ def test_kill_journal_node():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_name_node():
+def test_kill_name_node() -> None:
     name_task = sdk_tasks.get_service_tasks(foldered_name, "name-0")[0]
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
@@ -130,7 +130,7 @@ def test_kill_name_node():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_data_node():
+def test_kill_data_node() -> None:
     data_task = sdk_tasks.get_service_tasks(foldered_name, "data-0")[0]
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
@@ -145,7 +145,7 @@ def test_kill_data_node():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_scheduler():
+def test_kill_scheduler() -> None:
     task_ids = sdk_tasks.get_task_ids(foldered_name, "")
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(foldered_name)
     scheduler_ids = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix)
@@ -166,7 +166,7 @@ def test_kill_scheduler():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_all_journalnodes():
+def test_kill_all_journalnodes() -> None:
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
 
@@ -199,7 +199,7 @@ def test_kill_all_namenodes():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_all_datanodes():
+def test_kill_all_datanodes() -> None:
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
@@ -216,7 +216,7 @@ def test_kill_all_datanodes():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_permanent_and_transient_namenode_failures_0_1():
+def test_permanent_and_transient_namenode_failures_0_1() -> None:
     config.check_healthy(service_name=foldered_name)
     name_0_ids = sdk_tasks.get_task_ids(foldered_name, "name-0")
     name_1_ids = sdk_tasks.get_task_ids(foldered_name, "name-1")
@@ -236,7 +236,7 @@ def test_permanent_and_transient_namenode_failures_0_1():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_permanent_and_transient_namenode_failures_1_0():
+def test_permanent_and_transient_namenode_failures_1_0() -> None:
     config.check_healthy(service_name=foldered_name)
     name_0_ids = sdk_tasks.get_task_ids(foldered_name, "name-0")
     name_1_ids = sdk_tasks.get_task_ids(foldered_name, "name-1")
@@ -255,12 +255,12 @@ def test_permanent_and_transient_namenode_failures_1_0():
 
 
 @pytest.mark.smoke
-def test_install():
+def test_install() -> None:
     config.check_healthy(service_name=foldered_name)
 
 
 @pytest.mark.sanity
-def test_bump_journal_cpus():
+def test_bump_journal_cpus() -> None:
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     log.info("journal ids: " + str(journal_ids))
@@ -276,7 +276,7 @@ def test_bump_journal_cpus():
 
 
 @pytest.mark.sanity
-def test_bump_data_nodes():
+def test_bump_data_nodes() -> None:
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
     log.info("data ids: " + str(data_ids))
 
@@ -317,7 +317,7 @@ def test_modify_app_config():
 
 
 @pytest.mark.sanity
-def test_modify_app_config_rollback():
+def test_modify_app_config_rollback() -> None:
     app_config_field = "TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_EXPIRY_MS"
 
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
