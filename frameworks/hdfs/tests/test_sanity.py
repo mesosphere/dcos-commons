@@ -1,5 +1,6 @@
 import logging
 import xml.etree.ElementTree as etree
+from typing import Iterator
 
 import pytest
 import sdk_cmd
@@ -22,7 +23,7 @@ foldered_name = config.FOLDERED_SERVICE_NAME
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
@@ -89,7 +90,7 @@ def test_endpoints() -> None:
     check_properties(hdfs_site, expect)
 
 
-def check_properties(xml, expect):
+def check_properties(xml, expect) -> None:
     found = {}
     for prop in xml.findall("property"):
         name = prop.find("name").text
