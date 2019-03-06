@@ -10,7 +10,7 @@ import logging
 import os
 import retrying
 import traceback
-from typing import Callable, Dict, Generator, Iterable, List, Optional, Tuple
+from typing import Callable, Dict, Iterable, Iterator, List, Optional, Tuple
 
 import sdk_cmd
 import sdk_utils
@@ -185,7 +185,7 @@ def move_universe_repo(package_name: str, universe_repo_index: Optional[int]=Non
     return previous_version, current_version
 
 
-def universe_session() -> Generator:
+def universe_session() -> Iterator[None]:
     """Add the universe package repositories defined in $STUB_UNIVERSE_URL.
 
     This should generally be used as a fixture in a framework's conftest.py:

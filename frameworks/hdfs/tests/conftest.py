@@ -6,5 +6,5 @@ from tests import config
 
 
 @pytest.fixture(scope="session")
-def configure_security(configure_universe) -> Iterator[None]:
+def configure_security(configure_universe: None) -> Iterator[None]:
     yield from sdk_security.security_session(config.SERVICE_NAME)
