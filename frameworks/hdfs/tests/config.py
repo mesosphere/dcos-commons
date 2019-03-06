@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import retrying
 import uuid
 from typing import Any, Callable, Dict, List, Optional, Tuple
