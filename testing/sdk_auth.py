@@ -20,7 +20,7 @@ import uuid
 import retrying
 import subprocess
 
-from typing import Any, Dict, List, Optional, Union
+from typing import Any, Dict, List, Optional
 
 import sdk_cmd
 import sdk_hosts
@@ -434,7 +434,7 @@ class KerberosEnvironment:
     def get_host(self) -> str:
         return sdk_hosts.autoip_host(service_name="marathon", task_name=self.app_definition["id"])
 
-    def get_port(self) -> Union[int, str]:
+    def get_port(self) -> str:
         return str(self.app_definition["portDefinitions"][0]["port"])
 
     def get_keytab_path(self) -> str:
