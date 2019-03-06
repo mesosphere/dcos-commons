@@ -1,6 +1,6 @@
 import logging
 import xml.etree.ElementTree as etree
-from typing import Iterator, List
+from typing import Dict, Iterator, List
 
 import pytest
 import sdk_cmd
@@ -90,12 +90,16 @@ def test_endpoints() -> None:
     check_properties(hdfs_site, expect)
 
 
-def check_properties(xml, expect) -> None:
+def check_properties(xml: etree.Element, expect: Dict[str, str]) -> None:
     found = {}
     for prop in xml.findall("property"):
-        name = prop.find("name").text
+        name_element = prop.find("name")
+        assert isinstance(name_element, etree.Element)
+        name = name_element.text
         if name in expect:
-            found[name] = prop.find("value").text
+            found_name_element = prop.find("value")
+            assert isinstance(found_name_element, etree.Element)
+            found[name] = found_name_element.text
     log.info("expect: {}\nfound:  {}".format(expect, found))
     assert expect == found
 
