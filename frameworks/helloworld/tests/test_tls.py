@@ -95,7 +95,7 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_java_truststore():
+def test_java_truststore() -> None:
     """
     Make an HTTP request from CLI to nginx exposed service.
     Test that CLI reads and uses truststore to verify HTTPS connection.
@@ -120,7 +120,7 @@ def test_java_truststore():
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_tls_basic_artifacts():
+def test_tls_basic_artifacts() -> None:
 
     # Load end-entity certificate from keystore and root CA cert from truststore
     stdout = sdk_cmd.service_task_exec(
@@ -152,7 +152,7 @@ def test_tls_basic_artifacts():
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_java_keystore():
+def test_java_keystore() -> None:
     """
     Java `keystore-app` presents itself with provided TLS certificate
     from keystore.
@@ -188,7 +188,7 @@ def test_java_keystore():
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_tls_nginx():
+def test_tls_nginx() -> None:
     """
     Checks that NGINX exposes TLS service with correct PEM encoded end-entity
     certificate.
@@ -213,7 +213,7 @@ def test_tls_nginx():
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_changing_discovery_replaces_certificate_sans():
+def test_changing_discovery_replaces_certificate_sans() -> None:
     """
     Update service configuration to change discovery prefix of a task.
     Scheduler should update task and new SANs should be generated.
@@ -313,7 +313,7 @@ def _keystore_list_command(keystore_path, args=None):
     )
 
 
-def _keystore_export_command(keystore_path, cert_alias, args=None):
+def _keystore_export_command(keystore_path, cert_alias, args=None) -> str:
     """
     Runs the exportcert keytool command to export certificate with given alias.
     """
@@ -323,7 +323,7 @@ def _keystore_export_command(keystore_path, cert_alias, args=None):
     )
 
 
-def _java_command(command):
+def _java_command(command: str) -> str:
     """
     General wrapper that can execute java command in container with SDK
     injected java binary.
