@@ -56,7 +56,10 @@ def kerberos(configure_security: None) -> Iterator[sdk_auth.KerberosEnvironment]
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_server(kerberos, service_account):
+def hdfs_server(
+    kerberos: sdk_auth.KerberosEnvironment,
+    service_account: Dict[str, Any],
+) -> Iterator[Dict[str, Any]]:
     """
     A pytest fixture that installs a Kerberized HDFS service.
 
@@ -96,7 +99,10 @@ def hdfs_server(kerberos, service_account):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_client(kerberos, hdfs_server):
+def hdfs_client(
+    kerberos: sdk_auth.KerberosEnvironment,
+    hdfs_server: Dict[str, Any],
+) -> Iterator[Dict[str, Any]]:
     try:
         client = config.get_hdfs_client_app(hdfs_server["service"]["name"], kerberos)
         sdk_marathon.install_app(client)
@@ -122,7 +128,11 @@ DEFAULT_DATA_NODE_TLS_PORT = 9006
         ("data", DEFAULT_DATA_NODE_TLS_PORT),
     ],
 )
-def test_verify_https_ports(hdfs_client, node_type, port):
+def test_verify_https_ports(
+    hdfs_client: Dict[str, Any],
+    node_type: str,
+    port: int,
+) -> None:
     """
     Verify that HTTPS port is open name, journal and data node types.
     """
@@ -145,7 +155,10 @@ def test_verify_https_ports(hdfs_client, node_type, port):
 
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
+def test_user_can_auth_and_write_and_read(
+    hdfs_client: Dict[str, Any],
+    kerberos: sdk_auth.KerberosEnvironment,
+) -> None:
     sdk_auth.kinit(
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")
     )
@@ -157,7 +170,10 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
 
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_users_have_appropriate_permissions(hdfs_client, kerberos):
+def test_users_have_appropriate_permissions(
+    hdfs_client: Dict[str, Any],
+    kerberos: sdk_auth.KerberosEnvironment,
+) -> None:
     # "hdfs" is a superuser
     sdk_auth.kinit(
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")

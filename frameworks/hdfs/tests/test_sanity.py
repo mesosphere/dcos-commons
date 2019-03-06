@@ -1,6 +1,6 @@
 import logging
 import xml.etree.ElementTree as etree
-from typing import Iterator
+from typing import Iterator, List
 
 import pytest
 import sdk_cmd
@@ -183,7 +183,7 @@ def test_kill_all_journalnodes() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_all_namenodes():
+def test_kill_all_namenodes() -> None:
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
@@ -289,7 +289,7 @@ def test_bump_data_nodes() -> None:
 
 @pytest.mark.readiness_check
 @pytest.mark.sanity
-def test_modify_app_config():
+def test_modify_app_config() -> None:
     """This tests checks that the modification of the app config does not trigger a recovery."""
     sdk_plan.wait_for_completed_recovery(foldered_name)
     old_recovery_plan = sdk_plan.get_plan(foldered_name, "recovery")
@@ -355,21 +355,21 @@ def test_modify_app_config_rollback() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics():
+def test_metrics() -> None:
     expected_metrics = [
         "JournalNode.jvm.JvmMetrics.ThreadsRunnable",
         "null.rpc.rpc.RpcQueueTimeNumOps",
         "null.metricssystem.MetricsSystem.PublishAvgTime",
     ]
 
-    def expected_metrics_exist(emitted_metrics):
+    def expected_metrics_exist(emitted_metrics: List[str]) -> bool:
         # HDFS metric names need sanitation as they're dynamic.
         # For eg: ip-10-0-0-139.null.rpc.rpc.RpcQueueTimeNumOps
         # This is consistent across all HDFS metric names.
         metric_names = set(
             [".".join(metric_name.split(".")[1:]) for metric_name in emitted_metrics]
         )
-        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
+        return sdk_metrics.check_metrics_presence(list(metric_names), list(expected_metrics))
 
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
@@ -383,7 +383,7 @@ def test_metrics():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_permanently_replace_namenodes():
+def test_permanently_replace_namenodes() -> None:
     pod_list = ["name-0", "name-1", "name-0"]
     for pod in pod_list:
         sdk_recovery.check_permanent_recovery(
@@ -393,7 +393,7 @@ def test_permanently_replace_namenodes():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_permanently_replace_journalnodes():
+def test_permanently_replace_journalnodes() -> None:
     pod_list = ["journal-0", "journal-1", "journal-2"]
     for pod in pod_list:
         sdk_recovery.check_permanent_recovery(
@@ -403,7 +403,7 @@ def test_permanently_replace_journalnodes():
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_namenodes_acheive_quorum_after_journalnode_replace():
+def test_namenodes_acheive_quorum_after_journalnode_replace() -> None:
     """
     This test aims to check that namenodes recover after a journalnode failure.
     It checks the fix to this issue works: https://jira.apache.org/jira/browse/HDFS-10659.

@@ -1,3 +1,5 @@
+from typing import Any, Dict, Iterator
+
 import pytest
 import sdk_fault_domain
 import sdk_install
@@ -7,7 +9,7 @@ from tests import config
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         additional_options = {"name_node": {"placement": '[["@zone", "GROUP_BY", "1"]]'}}
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -25,12 +27,12 @@ def configure_package(configure_security):
 
 
 @pytest.fixture(autouse=True)
-def pre_test_setup():
+def pre_test_setup() -> None:
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_client():
+def hdfs_client() -> Iterator[Dict[str, Any]]:
     try:
         client = config.get_hdfs_client_app(config.SERVICE_NAME)
         sdk_marathon.install_app(client)
@@ -43,7 +45,7 @@ def hdfs_client():
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.11")
-def test_detect_racks():
+def test_detect_racks() -> None:
     success, stdout, _ = config.run_client_command(config.hadoop_command("dfsadmin -printTopology"))
     assert success
 
