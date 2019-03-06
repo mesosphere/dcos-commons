@@ -16,6 +16,10 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 
+def test():
+    pass
+
+
 def _is_public_agent(agent):
     # Note: We could also check "'public_ip' in agent['attributes']", but it's unclear how many
     # DC/OS versions that would work with. For now, let's just go with the known-good method of
