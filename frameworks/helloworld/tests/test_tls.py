@@ -298,7 +298,7 @@ def _export_cert_from_task_keystore(
     return x509.load_pem_x509_certificate(cert_bytes, DEFAULT_BACKEND)
 
 
-def _keystore_export_command(keystore_path, cert_alias, args: str) -> str:
+def _keystore_export_command(keystore_path: str, cert_alias: str, args: str) -> str:
     """
     Runs the exportcert keytool command to export certificate with given alias.
     """
