@@ -332,8 +332,8 @@ def security_session(
     def configure_security(configure_universe):
         yield from sdk_security.security_session(framework_name, permissions, linux_user, 'service-acct')
     """
+    is_strict = sdk_utils.is_strict_mode()
     try:
-        is_strict = sdk_utils.is_strict_mode()
         if is_strict:
             roles = _get_service_role(framework_name) + _get_integration_test_foldered_role(
                 framework_name
