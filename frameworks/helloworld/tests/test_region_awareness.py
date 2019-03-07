@@ -95,7 +95,8 @@ def test_nodes_can_deploy_to_remote_region(configure_universe: None, remote_serv
     reason="REMOTE_REGION is not configured: remote nodes needed for test",
 )
 @sdk_utils.dcos_ee_only
-def test_region_config_update_does_not_succeed(configure_universe: None, local_service: None):
+def test_region_config_update_does_not_succeed(configure_universe: None, local_service: None) -> None:
+    assert isinstance(REMOTE_REGION, str)
     change_region_config(REMOTE_REGION)
     sdk_plan.wait_for_plan_status(config.SERVICE_NAME, "deploy", "ERROR", timeout_seconds=180)
 

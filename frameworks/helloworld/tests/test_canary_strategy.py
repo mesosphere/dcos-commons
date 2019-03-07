@@ -47,7 +47,7 @@ def test_canary_init() -> None:
         # check for empty list internally rather than returning empty list.
         rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
         assert rc == 0, "Pod list failed"
-        return json.loads(stdout) == []
+        return bool(json.loads(stdout) == [])
 
     wait_for_empty()
 
