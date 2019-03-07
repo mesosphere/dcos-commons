@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.debug.OfferOutcomeTrackerV2;
 import com.mesosphere.sdk.debug.PlansTracker;
+import com.mesosphere.sdk.debug.ServiceStatusTracker;
 import com.mesosphere.sdk.debug.TaskStatusesTracker;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
@@ -14,6 +15,7 @@ import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.PlansDebugResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.http.endpoints.PodResource;
+import com.mesosphere.sdk.http.endpoints.ServiceStatusResource;
 import com.mesosphere.sdk.http.endpoints.StateResource;
 import com.mesosphere.sdk.http.endpoints.TaskStatusesResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
@@ -111,6 +113,8 @@ public class DefaultScheduler extends AbstractScheduler {
 
   private final Optional<TaskStatusesTracker> statusesTracker;
 
+  private final Optional<ServiceStatusTracker> serviceStatusTracker;
+
   private final PlanScheduler planScheduler;
 
   /**
@@ -207,6 +211,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
     customizePlans();
     this.plansTracker = Optional.of(new PlansTracker(getPlanCoordinator(), stateStore));
+    this.serviceStatusTracker = Optional.of(new ServiceStatusTracker(getPlanCoordinator(), stateStore, frameworkStore));
   }
 
   @Override
@@ -230,7 +235,7 @@ public class DefaultScheduler extends AbstractScheduler {
     offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
     plansTracker.ifPresent(x -> resources.add(new PlansDebugResource(x)));
     statusesTracker.ifPresent(x -> resources.add(new TaskStatusesResource(x)));
-
+    serviceStatusTracker.ifPresent(x->resources.add(new ServiceStatusResource(x)));
     return resources;
   }
 
