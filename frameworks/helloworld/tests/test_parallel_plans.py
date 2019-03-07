@@ -1,4 +1,6 @@
 import logging
+from typing import Iterator
+
 import pytest
 
 import sdk_cmd
@@ -25,7 +27,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_all_tasks_are_launched():
+def test_all_tasks_are_launched() -> None:
     service_options = {"service": {"yaml": "sidecar"}, "hello": {"count": 1}}
     sdk_install.install(
         config.PACKAGE_NAME,

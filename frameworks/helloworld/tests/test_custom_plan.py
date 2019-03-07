@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator
 
 import pytest
 import sdk_install
@@ -20,7 +21,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_custom_plan():
+def test_custom_plan() -> None:
     sdk_install.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
