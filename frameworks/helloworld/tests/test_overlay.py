@@ -1,5 +1,5 @@
 import logging
-from typing import Iterator
+from typing import Dict, Iterator, List
 
 import json
 import pytest
@@ -151,7 +151,7 @@ def test_srv_records():
         "host-0-server": ["host-port"]
     }
 
-    def check_expected_srv_records(task_to_srv_names):
+    def check_expected_srv_records(task_to_srv_names: Dict[str, List[str]]) -> None:
         assert task_to_expected_port_names.keys() == task_to_srv_names.keys(), "Mismatch between expected and actual tasks"
         for task_name, srv_names in task_to_srv_names.items():
             expected_port_names = task_to_expected_port_names[task_name]
@@ -195,7 +195,7 @@ def test_srv_records():
             )
 
             # Mapping of task_name => [srv_name_1, srv_name_2, ...]
-            task_to_srv_names = {}
+            task_to_srv_names: Dict[str, List[str]] = {}
             for t in framework_srv["tasks"]:
                 if t["name"] in task_to_srv_names:
                     assert False, "Got multiple entries for task {}: {}".format(t["name"], framework_srv)

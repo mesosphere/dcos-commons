@@ -3,6 +3,7 @@ import logging
 import pytest
 import re
 import retrying
+from typing import Iterator
 
 import sdk_cmd
 import sdk_install

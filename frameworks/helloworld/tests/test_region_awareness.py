@@ -119,4 +119,4 @@ def get_pod_region(service_name: str, pod_name: str) -> str:
         0
     ]["info"]
 
-    return [l["value"] for l in info["labels"]["labels"] if l["key"] == "offer_region"][0]
+    return [str(l["value"]) for l in info["labels"]["labels"] if l["key"] == "offer_region"][0]

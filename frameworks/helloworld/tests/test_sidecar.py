@@ -1,4 +1,5 @@
 import logging
+from typing import Any, Iterator
 
 import pytest
 import retrying
@@ -30,12 +31,12 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_envvar_accross_restarts():
+def test_envvar_accross_restarts() -> None:
 
     class ConfigException(Exception):
         pass
 
-    def assert_envvar_has_value(envvar: str, expected_value: str):
+    def assert_envvar_has_value(envvar: str, expected_value: str) -> None:
         _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "env")
         env = dict(l.strip().split("=", 1) for l in stdout.strip().split('\n'))
         val = env.get(envvar, "absent")
@@ -82,7 +83,7 @@ def test_envvar_accross_restarts():
 
 
 @pytest.mark.sanity
-def test_deploy():
+def test_deploy() -> None:
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     log.info(sdk_plan.plan_string("deploy", deployment_plan))
@@ -95,17 +96,17 @@ def test_deploy():
 
 
 @pytest.mark.sanity
-def test_sidecar():
+def test_sidecar() -> None:
     run_plan("sidecar")
 
 
 @pytest.mark.sanity
-def test_sidecar_parameterized():
+def test_sidecar_parameterized() -> None:
     run_plan("sidecar-parameterized", {"PLAN_PARAMETER": "parameterized"})
 
 
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000, retry_on_result=lambda res: not res)
-def wait_for_toxic_sidecar():
+def wait_for_toxic_sidecar() -> bool:
     """
     Since the sidecar task fails too quickly, we check for the contents of
     the file generated in hello-container-path/toxic-output instead
@@ -129,7 +130,7 @@ def wait_for_toxic_sidecar():
 
 
 @pytest.mark.sanity
-def test_toxic_sidecar_doesnt_trigger_recovery():
+def test_toxic_sidecar_doesnt_trigger_recovery() -> None:
     # 1. Run the toxic sidecar plan that will never succeed.
     # 2. Restart the scheduler.
     # 3. Verify that its recovery plan has not changed, as a failed ONCE task should
@@ -149,7 +150,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery():
     assert initial_recovery_plan["status"] == final_recovery_plan["status"]
 
 
-def run_plan(plan_name, params=None):
+def run_plan(plan_name: str, params: Optional[Dict[str, Any]] =None) -> None:
     sdk_plan.start_plan(config.SERVICE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, plan_name)

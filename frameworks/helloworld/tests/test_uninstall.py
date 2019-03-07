@@ -1,3 +1,5 @@
+from typing import Iterator
+
 import pytest
 import sdk_install
 import sdk_marathon
@@ -18,7 +20,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_uninstall():
+def test_uninstall() -> None:
     config.check_running()
 
     # add the needed envvar in marathon and confirm that the uninstall "deployment" succeeds:
