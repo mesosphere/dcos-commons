@@ -34,7 +34,7 @@ def bump_world_cpus(service_name: str = SERVICE_NAME) -> float:
     return sdk_marathon.bump_cpu_count_config(service_name, "WORLD_CPUS")
 
 
-def close_enough(val0, val1):
+def close_enough(val0: float, val1: float) -> bool:
     epsilon = 0.00001
     diff = abs(val0 - val1)
     return diff < epsilon
