@@ -576,11 +576,15 @@ public class PodInfoBuilder {
 
     // Isolate the tmp directory of tasks
     //switch to SANDBOX SELF after dc/os 1.13
-    if (isTaskContainer || requiresExectorIsolation()) {
+    if (isTaskContainer) {
       containerInfo.addVolumes(Protos.Volume.newBuilder()
           .setContainerPath("/tmp")
           .setHostPath("tmp")
           .setMode(Protos.Volume.Mode.RW));
+    }
+
+    for (Protos.Volume hostVolume : hostVolumes) {
+      containerInfo.addVolumes(hostVolume);
     }
 
     if (!podSpec.getImage().isPresent()
@@ -752,19 +756,6 @@ public class PodInfoBuilder {
 
     return volumes;
   }
-
-  private boolean requiresExectorIsolation() {
-    for (Protos.Volume volume: this.executorBuilder.getContainer().getVolumesList()) {
-      if (volume.getContainerPath().equals("/tmp") && volume.getHostPath().equals("tmp")
-          && volume.getMode().equals(Protos.Volume.Mode.RW))
-      {
-        //executor has an isolated tmp directory already
-        return true;
-      }
-    }
-    return false;
-  }
-
 
   private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {
     Collection<Protos.Volume> volumes = new ArrayList<>();
