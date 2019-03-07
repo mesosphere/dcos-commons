@@ -1,6 +1,6 @@
 import json
 import logging
-from typing import Iterator
+from typing import Iterator, List
 
 import os.path
 import pytest

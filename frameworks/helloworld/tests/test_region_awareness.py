@@ -1,7 +1,7 @@
 import logging
 import os
 import pytest
-from typing import Iterator
+from typing import Iterator, Optional
 
 import sdk_cmd
 import sdk_install
@@ -104,7 +104,7 @@ def test_region_config_update_does_not_succeed(configure_universe: None, local_s
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME, timeout_seconds=180)
 
 
-def change_region_config(region_name: str) -> None:
+def change_region_config(region_name: Optional[str]) -> None:
     service_config = sdk_marathon.get_config(config.SERVICE_NAME)
     if region_name is None:
         del service_config["env"]["SERVICE_REGION"]

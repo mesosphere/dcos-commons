@@ -7,7 +7,7 @@ SHOULD ALSO BE APPLIED TO sdk_networks IN ANY OTHER PARTNER REPOS
 import json as jsonlib
 import logging
 import retrying
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, List, Optional, Union
 
 import sdk_agents
 import sdk_cmd
@@ -77,7 +77,10 @@ def get_endpoint_string(package_name: str, service_name: str, endpoint_name: str
     return info.strip()
 
 
-def check_task_network(task_name: str, expected_network_name: str = "dcos") -> None:
+def check_task_network(
+    task_name: str,
+    expected_network_name: Optional[str] = "dcos",
+) -> None:
     """Tests whether a task (and it's parent pod) is on a given network
     """
     statuses = sdk_tasks.get_all_status_history(task_name, with_completed_tasks=False)

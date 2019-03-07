@@ -1,6 +1,7 @@
 import logging
 import pytest
 import retrying
+from typing import Iterator
 
 import sdk_install
 import sdk_utils
@@ -41,14 +42,14 @@ def configure_package(configure_security: None) -> Iterator[None]:
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.10")
-def test_install():
+def test_install() -> None:
     config.check_running(config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.10")
-def test_marathon_volume_collision():
+def test_marathon_volume_collision() -> None:
     # This test validates that a service registered in a sub-role of
     # slave_public will _not_ unreserve Marathon volumes RESERVED
     # in the `slave_public` role.

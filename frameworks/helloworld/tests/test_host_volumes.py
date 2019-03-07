@@ -49,7 +49,7 @@ def test_read_host_volume() -> None:
 
 
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
-def search_for_host_volume(task_name, command, mount_name) -> str:
+def search_for_host_volume(task_name: str, command: str, mount_name: str) -> str:
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
     lines = [line.strip() for line in output.split("\n")]
     log.info("Looking for %s in task mounts.", mount_name)
@@ -62,7 +62,7 @@ def search_for_host_volume(task_name, command, mount_name) -> str:
 
 
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
-def read_from_host_volume(task_name, command):
+def read_from_host_volume(task_name: str, command: str) -> str:
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
     lines = [line.strip() for line in output.split("\n")]
     log.info("Looking for user root under /etc/group in %s", task_name)
