@@ -49,7 +49,7 @@ def test_read_host_volume() -> None:
 
 
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
-def search_for_host_volume(task_name, command, mount_name):
+def search_for_host_volume(task_name, command, mount_name) -> str:
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
     lines = [line.strip() for line in output.split("\n")]
     log.info("Looking for %s in task mounts.", mount_name)
