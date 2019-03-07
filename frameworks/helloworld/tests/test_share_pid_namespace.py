@@ -1,4 +1,5 @@
 import logging
+from typoing import Iterator
 
 import pytest
 
@@ -26,7 +27,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_deploy():
+def test_deploy() -> None:
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     log.info(sdk_plan.plan_string("deploy", deployment_plan))

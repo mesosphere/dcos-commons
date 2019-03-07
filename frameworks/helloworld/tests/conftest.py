@@ -1,6 +1,8 @@
 from typing import Iterator
 
 import pytest
+from _pytest.fixtures import SubRequest
+
 import sdk_security
 from tests import config
 
@@ -27,30 +29,30 @@ def pytest_addoption(parser):
 
 
 @pytest.fixture
-def service_count(request) -> int:
+def service_count(request: SubRequest) -> int:
     return int(request.config.getoption('--count'))
 
 
 @pytest.fixture
-def scenario(request) -> str:
+def scenario(request: SubRequest) -> str:
     return str(request.config.getoption('--scenario'))
 
 
 @pytest.fixture
-def service_name(request) -> str:
+def service_name(request: SubRequest) -> str:
     return str(request.config.getoption('--service-name'))
 
 
 @pytest.fixture
-def min_index(request) -> int:
+def min_index(request: SubRequest) -> int:
     return int(request.config.getoption('--min'))
 
 
 @pytest.fixture
-def max_index(request) -> int:
+def max_index(request: SubRequest) -> int:
     return int(request.config.getoption('--max'))
 
 
 @pytest.fixture
-def batch_size(request) -> int:
+def batch_size(request: SubRequest) -> int:
     return int(request.config.getoption('--batch-size'))

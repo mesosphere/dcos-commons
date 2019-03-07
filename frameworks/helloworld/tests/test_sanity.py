@@ -1,10 +1,11 @@
 import json
 import logging
 import re
-from typing import Iterator
+from typing import Dict, Iterator
 
 import pytest
 import retrying
+import requests
 
 import sdk_cmd
 import sdk_install
@@ -23,7 +24,7 @@ foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security: None) -> Iterator[Dict[str, str]]:
     try:
         service_options = {"service": {"name": foldered_name}}
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
@@ -42,7 +43,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_cli_for_scheduler_metrics(configure_package: None) -> None:
+def test_metrics_cli_for_scheduler_metrics(configure_package: Dict[str, str]) -> None:
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(
         configure_package["service"]["name"]
     )
@@ -55,7 +56,7 @@ def test_metrics_cli_for_scheduler_metrics(configure_package: None) -> None:
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_for_task_metrics(configure_package: None) -> None:
+def test_metrics_for_task_metrics(configure_package: Dict[str, str]) -> None:
 
     def write_metric_to_statsd_counter(metric_name: str, value: int):
         """
@@ -375,7 +376,7 @@ def test_lock() -> None:
     So in order to verify that the scheduler fails immediately, we ensure
     that the ZK config state is unmodified."""
 
-    def get_zk_node_data(node_name):
+    def get_zk_node_data(node_name: str) -> requests.Response:
         return sdk_cmd.cluster_request(
             "GET", "/exhibitor/exhibitor/v1/explorer/node-data?key={}".format(node_name)
         ).json()

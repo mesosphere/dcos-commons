@@ -61,7 +61,7 @@ def test_pod_restart() -> None:
 
 
 @pytest.mark.sanity
-def test_pod_replace():
+def test_pod_replace() -> None:
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
 
     rc, stdout, _ = sdk_cmd.svc_cli(
