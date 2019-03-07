@@ -80,7 +80,7 @@ def test_pod_replace():
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_pod_pause_resume():
+def test_pod_pause_resume() -> None:
     """Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state"""
 
     # get current agent id:
@@ -208,7 +208,7 @@ def test_pod_pause_resume():
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_pods_restart_graceful_shutdown():
+def test_pods_restart_graceful_shutdown() -> None:
     install_options_helper(30)
 
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
@@ -239,7 +239,7 @@ def test_pods_restart_graceful_shutdown():
 
 
 @pytest.mark.sanity
-def test_kill_scheduler():
+def test_kill_scheduler() -> None:
     task_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "")
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(config.SERVICE_NAME)
     scheduler_ids = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix)

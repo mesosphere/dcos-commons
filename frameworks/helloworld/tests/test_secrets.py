@@ -50,7 +50,7 @@ options_dcos_space_test = {
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_cmd.run_cli("package install --cli dcos-enterprise-cli --yes")
