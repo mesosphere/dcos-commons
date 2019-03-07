@@ -1,4 +1,6 @@
 import logging
+from typing import Iterator
+
 import retrying
 import pytest
 
@@ -10,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {"service": {"yaml": "host-volume"}}
@@ -25,7 +27,7 @@ def configure_package(configure_security):
 @pytest.mark.hostvolume
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_check_host_volume_mounts():
+def test_check_host_volume_mounts() -> None:
     """world has no docker image defined, hello does. Check to make sure the host volume is mounted in the container"""
     assert "host-volume-etc" in search_for_host_volume(
         "hello-0-server", "bash -c 'mount'", "host-volume-etc"
@@ -41,7 +43,7 @@ def test_check_host_volume_mounts():
 @pytest.mark.hostvolume
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_read_host_volume():
+def test_read_host_volume() -> None:
     """Attempts to read /etc/groups from hostvolume mount."""
     assert "root" in read_from_host_volume("hello-0-server", "bash -c 'cat /etc/group'")
 

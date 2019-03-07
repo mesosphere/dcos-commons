@@ -180,7 +180,7 @@ def get_service_list() -> List[Dict[str, Any]]:
 
 
 @retrying.retry(wait_fixed=1000, stop_max_delay=5 * 60 * 1000)
-def wait_for_service_count(count: int):
+def wait_for_service_count(count: int) -> List[Dict[str, Any]]:
     services = get_service_list()
     log.info(
         "Waiting for scheduler to have {} services, got {}: {}".format(
