@@ -1,9 +1,10 @@
 import json
 import logging
-import pytest
 import re
-import retrying
 from typing import Iterator
+
+import pytest
+import retrying
 
 import sdk_cmd
 import sdk_install
@@ -41,7 +42,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_cli_for_scheduler_metrics(configure_package):
+def test_metrics_cli_for_scheduler_metrics(configure_package: None) -> None:
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(
         configure_package["service"]["name"]
     )
@@ -54,7 +55,7 @@ def test_metrics_cli_for_scheduler_metrics(configure_package):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_for_task_metrics(configure_package):
+def test_metrics_for_task_metrics(configure_package: None) -> None:
 
     def write_metric_to_statsd_counter(metric_name: str, value: int):
         """
@@ -90,7 +91,7 @@ def test_metrics_for_task_metrics(configure_package):
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_bump_hello_cpus():
+def test_bump_hello_cpus() -> None:
     hello_ids = sdk_tasks.get_task_ids(foldered_name, "hello")
     log.info("hello ids: " + str(hello_ids))
 
@@ -108,7 +109,7 @@ def test_bump_hello_cpus():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_bump_world_cpus():
+def test_bump_world_cpus() -> None:
     original_world_ids = sdk_tasks.get_task_ids(foldered_name, "world")
     log.info("world ids: " + str(original_world_ids))
 
@@ -126,7 +127,7 @@ def test_bump_world_cpus():
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_increase_decrease_world_nodes():
+def test_increase_decrease_world_nodes() -> None:
     original_hello_ids = sdk_tasks.get_task_ids(foldered_name, "hello")
     original_world_ids = sdk_tasks.get_task_ids(foldered_name, "world")
     log.info("world ids: " + str(original_world_ids))
@@ -166,7 +167,7 @@ def test_increase_decrease_world_nodes():
 
 
 @pytest.mark.sanity
-def test_pod_list():
+def test_pod_list() -> None:
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod list")
     assert rc == 0, "Pod list failed"
     jsonobj = json.loads(stdout)
@@ -186,7 +187,7 @@ def test_pod_list():
 
 
 @pytest.mark.sanity
-def test_pod_status_all():
+def test_pod_status_all() -> None:
     # /test/integration/hello-world => test.integration.hello-world
     sanitized_name = sdk_utils.get_task_id_service_name(foldered_name)
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod status --json")
@@ -207,7 +208,7 @@ def test_pod_status_all():
 
 
 @pytest.mark.sanity
-def test_pod_status_one():
+def test_pod_status_one() -> None:
     # /test/integration/hello-world => test.integration.hello-world
     sanitized_name = sdk_utils.get_task_id_service_name(foldered_name)
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod status --json hello-0")
@@ -223,7 +224,7 @@ def test_pod_status_one():
 
 
 @pytest.mark.sanity
-def test_pod_info():
+def test_pod_info() -> None:
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod info world-1")
     assert rc == 0, "Pod info failed"
     jsonobj = json.loads(stdout)
@@ -236,7 +237,7 @@ def test_pod_info():
 
 
 @pytest.mark.sanity
-def test_state_properties_get():
+def test_state_properties_get() -> None:
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug state properties")
     assert rc == 0, "State properties failed"
     jsonobj = json.loads(stdout)
@@ -260,12 +261,12 @@ def test_state_properties_get():
 
 
 @pytest.mark.sanity
-def test_help_cli():
+def test_help_cli() -> None:
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "help")
 
 
 @pytest.mark.sanity
-def test_config_cli():
+def test_config_cli() -> None:
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "debug config list")
     assert rc == 0, "Config list fetch failed"
     configs = json.loads(stdout)
@@ -284,7 +285,7 @@ def test_config_cli():
 
 @pytest.mark.sanity
 @pytest.mark.smoke  # include in smoke: verify that cluster is healthy after earlier service config changes
-def test_plan_cli():
+def test_plan_cli() -> None:
     plan_name = "deploy"
     phase_name = "world"
     _check_json_output(foldered_name, "plan list")
@@ -313,13 +314,13 @@ def test_plan_cli():
 
 
 @pytest.mark.sanity
-def test_state_cli():
+def test_state_cli() -> None:
     _check_json_output(foldered_name, "debug state framework_id")
     _check_json_output(foldered_name, "debug state properties")
 
 
 @pytest.mark.sanity
-def test_state_refresh_disable_cache():
+def test_state_refresh_disable_cache() -> None:
     """Disables caching via a scheduler envvar"""
     config.check_running(foldered_name)
     task_ids = sdk_tasks.get_task_ids(foldered_name, "")
@@ -367,7 +368,7 @@ def test_state_refresh_disable_cache():
 
 
 @pytest.mark.sanity
-def test_lock():
+def test_lock() -> None:
     """This test verifies that a second scheduler fails to startup when
     an existing scheduler is running.  Without locking, the scheduler
     would fail during registration, but after writing its config to ZK.
@@ -415,14 +416,14 @@ def test_lock():
 
 
 @pytest.mark.sanity
-def test_tmp_directory_created():
+def test_tmp_directory_created() -> None:
     code, stdout, stderr = sdk_cmd.service_task_exec(
         config.SERVICE_NAME, "hello-0-server", "echo bar > /tmp/bar && cat tmp/bar | grep bar"
     )
     assert code > 0
 
 
-def _check_json_output(svc_name, cmd):
+def _check_json_output(svc_name: str, cmd: str) -> None:
     rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, svc_name, cmd)
     assert rc == 0, "Command failed: {}".format(cmd)
     # Check that stdout is valid json:
