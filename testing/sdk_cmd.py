@@ -620,7 +620,7 @@ def _get_task_info(task_id_prefix: str) -> Dict[str, Any]:
     return {}
 
 
-def get_bash_command(cmd: str, environment: str) -> str:
+def get_bash_command(cmd: str, environment: Optional[str]) -> str:
     env_str = "{} && ".format(environment) if environment else ""
 
     return 'bash -c "{}{}"'.format(env_str, cmd)

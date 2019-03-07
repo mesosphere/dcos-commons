@@ -1,5 +1,7 @@
 import json
 import logging
+from typing import Iterator
+
 import pytest
 
 import sdk_cmd
@@ -25,7 +27,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_kill_node():
+def test_kill_node() -> None:
     """kill the node task, verify that the node task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
 
@@ -49,7 +51,7 @@ def test_kill_node():
 
 
 @pytest.mark.sanity
-def test_kill_agent():
+def test_kill_agent() -> None:
     """kill the agent task, verify that the agent task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
 
@@ -72,7 +74,7 @@ def test_kill_agent():
     verify_shared_executor("hello-0")
 
 
-def verify_shared_executor(pod_name):
+def verify_shared_executor(pod_name: str) -> None:
     """verify that both tasks share the same executor:
     - matching ExecutorInfo
     - both 'essential' and 'nonessential' present in shared-volume/ across both tasks

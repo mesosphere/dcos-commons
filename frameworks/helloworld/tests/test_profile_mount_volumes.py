@@ -1,5 +1,6 @@
 import logging
 import pytest
+from typoing import Iterator
 
 import sdk_install
 import sdk_tasks
@@ -33,5 +34,5 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.12")
-def test_profile_mount_volumes():
+def test_profile_mount_volumes() -> None:
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO)
