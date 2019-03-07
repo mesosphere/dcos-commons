@@ -66,6 +66,31 @@ else
 fi
 
 
+function get_public_master_url()
+{
+    local cluster_description_file="$(mktemp)"
+    local attempts=5
+    local master_ip
+    # We retry, since sometimes the cluster is created, but dcos-launch has intermittent problems describing it.
+    for attempt in $(seq 1 ${attempts}); do
+        # Careful to not use a pipeline!
+        if dcos-launch describe --info-path="${REPO_ROOT_DIR}/cluster_info.json" > "${cluster_description_file}" &&
+           master_ip=$(jq --raw-output --exit-status '.masters[0].public_ip' < "${cluster_description_file}")
+        then
+            echo "https://${master_ip}"
+            return 0
+        else
+            echo "parsing output of [dcos-launch describe] failed (attempt ${attempt})" >&2
+            local delay_sec=$((attempt*10))
+            if [[ ${attempt} -lt ${attempts} ]]; then
+                echo "retrying in ${delay_sec} seconds..." >&2
+                sleep ${delay_sec}
+            fi
+        fi
+    done
+    return 1
+}
+
 # Now create a cluster if it doesn't exist.
 if [ -z "$CLUSTER_URL" ]; then
     echo "No DC/OS cluster specified. Attempting to create one now"
@@ -73,8 +98,8 @@ if [ -z "$CLUSTER_URL" ]; then
     ${BUILD_TOOL_DIR}/launch_cluster.sh ${REPO_ROOT_DIR}/config.yaml ${REPO_ROOT_DIR}/cluster_info.json
 
     if [ -f ${REPO_ROOT_DIR}/cluster_info.json ]; then
-        export CLUSTER_URL=https://$(dcos-launch describe --info-path=${REPO_ROOT_DIR}/cluster_info.json | jq -r .masters[0].public_ip)
-        if [ -z $CLUSTER_URL ]; then
+        export CLUSTER_URL=$(get_public_master_url)
+        if [ -z "${CLUSTER_URL}" ]; then
             echo "Could not determine CLUSTER_URL"
             exit 1
         fi
