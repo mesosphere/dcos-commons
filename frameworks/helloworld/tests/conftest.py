@@ -1,6 +1,7 @@
 from typing import Iterator
 
 import pytest
+from _pytest.config.argparsing import Parser
 from _pytest.fixtures import SubRequest
 
 import sdk_security
@@ -13,7 +14,7 @@ def configure_security(configure_universe: None) -> Iterator[None]:
 
 
 # pytest fixtures to run hello-world scale test located in frameworks/helloworld/tests/scale
-def pytest_addoption(parser):
+def pytest_addoption(parser: Parser) -> None:
     parser.addoption('--count', action='store', default=1, type=int,
                      help='Number of hello world services to deploy with a given scenario')
     parser.addoption("--scenario", action='store', default='',
