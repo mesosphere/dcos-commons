@@ -43,7 +43,7 @@ def test_rack():
     log.info("node: {}".format(node))
 
     assert node.get_rack() != "rack1"
-    assert "us-west" in node.get_rack()
+    assert any(rack in node.get_rack() for rack in config.AWS_REGIONS)
 
 
 @pytest.mark.sanity
