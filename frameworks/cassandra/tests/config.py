@@ -87,7 +87,7 @@ def _get_test_job(
                 ]
             ),
         )
-    job = {
+    job: Dict[str, Any] = {
         "description": "{} with restart policy {}".format(name, restart_policy),
         "id": "test.cassandra." + name,
         "run": {
@@ -99,7 +99,7 @@ def _get_test_job(
             "user": "nobody",
             "restart": {"policy": restart_policy},
         },
-    }  # type: Dict[str, Any]
+    }
     if dcos_ca_bundle:
         job["run"]["env"] = {
             "CQLSHRC_FILE": _get_cqlsh_tls_rc_config(node_address, node_port),

@@ -340,7 +340,7 @@ def get_step(phase: Dict[str, Any], name: str) -> Any:
 
 
 def get_all_step_names(plan: Dict[str, Any]) -> List[str]:
-    steps = []  # type: List[str]
+    steps: List[str] = []
     for phase in plan["phases"]:
         steps += [step["name"] for step in phase["steps"]]
     return steps

@@ -87,6 +87,6 @@ def get_crypto_id_domain() -> str:
     rc, stdout, _ = sdk_cmd.master_ssh("curl localhost:62080/lashup/key/")
     assert rc == 0
 
-    crypto_id = json.loads(stdout.strip())["zbase32_public_key"]  # type: str
+    crypto_id: str = json.loads(stdout.strip())["zbase32_public_key"]
 
     return "autoip.dcos.{}.dcos.directory".format(crypto_id)

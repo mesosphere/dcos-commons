@@ -25,11 +25,11 @@ TIMEOUT_SECONDS = 15 * 60
 
 """List of services which are currently installed via install().
 Used by post - test diagnostics to retrieve stuff from currently running services."""
-_installed_service_names = set([])  # type: Set[str]
+_installed_service_names: Set[str] = set([])
 
 """List of dead agents which should be ignored when checking for orphaned resources.
 Used by uninstall when validating that an uninstall completed successfully."""
-_dead_agent_hosts = set([])  # type: Set[str]
+_dead_agent_hosts: Set[str] = set([])
 
 
 def get_installed_service_names() -> Set[str]:

@@ -54,7 +54,7 @@ _testlogs_current_test_suite = ""
 #   (ignore tasks unrelated to this test suite)
 # - Task ids which have been logged following a prior failure in the current test suite.
 #   (ignore task ids which were already collected before, even if there's new content)
-_testlogs_ignored_task_ids = set([])  # type: Set[str]
+_testlogs_ignored_task_ids: Set[str] = set([])
 
 # The index of the current test, which increases as tests are run, and resets when a new test suite
 # is started. This is used to sort test logs in the order that they were executed, and is useful
@@ -223,7 +223,7 @@ def _whitelisted_service_names(item: pytest.Item) -> Set[str]:
     if item.get_closest_marker(name='diag_service_whitelist') is None:
         return set()
 
-    whitelisted_service_names = set()  # type: Set[str]
+    whitelisted_service_names: Set[str] = set()
     for mark in item.iter_markers(name='diag_service_whitelist'):
         whitelisted_service_names = whitelisted_service_names.union(mark.args[0])
 
@@ -329,9 +329,9 @@ def _dump_task_logs(item: pytest.Item, task_ids: List[str]) -> None:
 
 class _TaskEntry(object):
     def __init__(self, cluster_task: Dict[str, Any]) -> None:
-        self.task_id = cluster_task["id"]  # type: str
-        self.executor_id = cluster_task["executor_id"]  # type: str
-        self.agent_id = cluster_task["slave_id"]  # type: str
+        self.task_id: str = cluster_task["id"]
+        self.executor_id: str = cluster_task["executor_id"]
+        self.agent_id: str = cluster_task["slave_id"]
 
     def __repr__(self) -> str:
         return "Task[task_id={} executor_id={} agent_id={}]".format(
@@ -388,7 +388,7 @@ def _dump_task_logs_for_task(
 
     # Look at the executor's sandbox and check for a 'tasks/' directory.
     # If it has one (due to being a Default Executor), then also fetch file infos for <executor_path>/tasks/<task_id>/
-    task_file_infos = []  # type: List[Dict[str, Any]]
+    task_file_infos: List[Dict[str, Any]] = []
     if task_entry.executor_id and task_entry.task_id:
         for file_info in executor_file_infos:
             if file_info["mode"].startswith("d") and file_info["path"].endswith("/tasks"):
@@ -403,7 +403,7 @@ def _dump_task_logs_for_task(
                     log.exception("Failed to fetch task sandbox from presumed default executor")
 
     # Select all log files to be fetched from the above list.
-    selected_file_infos = collections.OrderedDict()  # type: collections.OrderedDict[str, Any]
+    selected_file_infos: collections.OrderedDict[str, Any] = collections.OrderedDict()
     if task_file_infos:
         # Include 'task' and 'executor' annotations in filenames to differentiate between them:
         _select_log_files(

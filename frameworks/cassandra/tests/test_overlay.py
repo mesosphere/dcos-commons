@@ -12,7 +12,7 @@ from tests import config
 
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security: None) -> Generator:
-    test_jobs = []  # type: List[Dict[str, Any]]
+    test_jobs: List[Dict[str, Any]] = []
     try:
         test_jobs = config.get_all_jobs()
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:

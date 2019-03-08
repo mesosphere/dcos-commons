@@ -167,8 +167,8 @@ class KerberosEnvironment:
         This just passes a dictionary to be rendered as a JSON app definition to marathon.
         """
         self._persist = persist
-        self._working_dir = None  # type: Optional[str]
-        self._temp_working_dir = None  # type: Optional[tempfile.TemporaryDirectory]
+        self._working_dir: Optional[str] = None
+        self._temp_working_dir: Optional[tempfile.TemporaryDirectory] = None
 
         # Application settings
         self.app_id = KERBEROS_APP_ID
@@ -183,7 +183,7 @@ class KerberosEnvironment:
         self.kdc_host_id = kdc_task_info["slave_id"]
 
         # Kerberos-specific information
-        self.principals = []  # type: List[str]
+        self.principals: List[str] = []
         self.kdc_realm = REALM
 
         self.set_keytab_path("_keytab", is_binary=False)
@@ -426,7 +426,7 @@ class KerberosEnvironment:
         if not self._working_dir:
             if not self._temp_working_dir:
                 self._temp_working_dir = _create_temp_working_dir()
-            self._working_dir = self._temp_working_dir.name  # type: str
+            self._working_dir: str = self._temp_working_dir.name
 
         working_filepath = os.path.join(self._working_dir, *args)
         return working_filepath

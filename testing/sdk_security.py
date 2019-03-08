@@ -280,14 +280,14 @@ def setup_security(
         service_account_name=service_account, service_account_secret=service_account_secret
     )
 
-    security_info = {
+    security_info: Dict[str, Any] = {
         "name": service_account,
         "secret": service_account_secret,
         "linux_user": linux_user,
         "roles": [],
         "permissions": {},
         "is_strict": sdk_utils.is_strict_mode(),
-    }  # type: Dict[str, Any]
+    }
 
     if not security_info["is_strict"]:
         log.info("Skipping strict-mode security setup on non-strict cluster")

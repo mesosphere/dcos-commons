@@ -86,7 +86,7 @@ def remove_stub_universe_urls(stub_universe_urls: List[str]) -> None:
 
 
 def add_stub_universe_urls(stub_universe_urls: List[str]) -> Dict[str, str]:
-    stub_urls = {}  # type: Dict[str, str]
+    stub_urls: Dict[str, str] = {}
 
     if not stub_universe_urls:
         return stub_urls
@@ -194,7 +194,7 @@ def universe_session() -> Iterator[None]:
     def configure_universe():
         yield from sdk_repository.universe_session()
     """
-    stub_urls = {}  # type: Dict[str, str]
+    stub_urls: Dict[str, str] = {}
     try:
         stub_urls = add_stub_universe_urls(get_repos())
         yield
