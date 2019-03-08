@@ -1,5 +1,5 @@
 import logging
-from typing import Dict, Iterator, List
+from typing import Any, Dict, Iterator, List
 
 import json
 import pytest
@@ -110,8 +110,8 @@ def test_overlay_network() -> None:
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_cni_labels():
-    def check_labels(labels, idx):
+def test_cni_labels() -> None:
+    def check_labels(labels: List[Dict[str, Any]], idx: int) -> None:
         k = labels[idx]["key"]
         v = labels[idx]["value"]
 
@@ -141,7 +141,7 @@ def test_cni_labels():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_srv_records():
+def test_srv_records() -> None:
 
     # getter-0-check-comm lacks ports and should not be present in the SRV records:
     task_to_expected_port_names = {

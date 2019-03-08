@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from typing import Dict, Iterator
+from typing import Any, Dict, Iterator
 
 import pytest
 import retrying
@@ -24,7 +24,7 @@ foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[Dict[str, str]]:
+def configure_package(configure_security: None) -> Iterator[Dict[str, Any]]:
     try:
         service_options = {"service": {"name": foldered_name}}
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
@@ -43,7 +43,7 @@ def configure_package(configure_security: None) -> Iterator[Dict[str, str]]:
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_cli_for_scheduler_metrics(configure_package: Dict[str, str]) -> None:
+def test_metrics_cli_for_scheduler_metrics(configure_package: Dict[str, Any]) -> None:
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(
         configure_package["service"]["name"]
     )
@@ -56,7 +56,7 @@ def test_metrics_cli_for_scheduler_metrics(configure_package: Dict[str, str]) ->
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics_for_task_metrics(configure_package: Dict[str, str]) -> None:
+def test_metrics_for_task_metrics(configure_package: Dict[str, Any]) -> None:
 
     def write_metric_to_statsd_counter(metric_name: str, value: int):
         """
@@ -340,7 +340,7 @@ def test_state_refresh_disable_cache() -> None:
 
     # caching disabled, refresh_cache should fail with a 409 error (eventually, once scheduler is up):
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
-    def check_cache_refresh_fails_409conflict():
+    def check_cache_refresh_fails_409conflict() -> bool:
         rc, stdout, stderr = sdk_cmd.svc_cli(
             config.PACKAGE_NAME, foldered_name, "debug state refresh_cache"
         )
@@ -357,7 +357,7 @@ def test_state_refresh_disable_cache() -> None:
 
     # caching reenabled, refresh_cache should succeed (eventually, once scheduler is up):
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
-    def check_cache_refresh():
+    def check_cache_refresh() -> str:
         rc, stdout, _ = sdk_cmd.svc_cli(
             config.PACKAGE_NAME, foldered_name, "debug state refresh_cache"
         )
@@ -376,7 +376,7 @@ def test_lock() -> None:
     So in order to verify that the scheduler fails immediately, we ensure
     that the ZK config state is unmodified."""
 
-    def get_zk_node_data(node_name: str) -> requests.Response:
+    def get_zk_node_data(node_name: str):
         return sdk_cmd.cluster_request(
             "GET", "/exhibitor/exhibitor/v1/explorer/node-data?key={}".format(node_name)
         ).json()
@@ -398,11 +398,11 @@ def test_lock() -> None:
     sdk_marathon.update_app(marathon_config, wait_for_completed_deployment=False)
 
     @retrying.retry(wait_fixed=1000, stop_max_delay=120 * 1000, retry_on_result=lambda res: not res)
-    def wait_for_second_scheduler_to_fail():
+    def wait_for_second_scheduler_to_fail() -> bool:
         timestamp = (
             sdk_marathon.get_config(foldered_name).get("lastTaskFailure", {}).get("timestamp", None)
         )
-        return timestamp != old_timestamp
+        return bool(timestamp != old_timestamp)
 
     wait_for_second_scheduler_to_fail()
 

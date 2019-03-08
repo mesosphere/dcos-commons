@@ -4,7 +4,7 @@ import json
 import logging
 import pytest
 import re
-from typing import Iterator
+from typing import Iterator, List, Union
 
 import sdk_agents
 import sdk_cmd
@@ -450,7 +450,9 @@ def install_options_helper(kill_grace_period: int = 0) -> None:
     )
 
 
-def check_healthy(expected_recovery_state: str = "COMPLETE") -> None:
+def check_healthy(
+    expected_recovery_state: Union[List[str], str] = "COMPLETE",
+) -> None:
     config.check_running()
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     sdk_plan.wait_for_plan_status(config.SERVICE_NAME, "recovery", expected_recovery_state)
