@@ -403,7 +403,7 @@ def _dump_task_logs_for_task(
                     log.exception("Failed to fetch task sandbox from presumed default executor")
 
     # Select all log files to be fetched from the above list.
-    selected_file_infos: collections.OrderedDict[str, Any] = collections.OrderedDict()
+    selected_file_infos: 'collections.OrderedDict[str, Any]' = collections.OrderedDict()
     if task_file_infos:
         # Include 'task' and 'executor' annotations in filenames to differentiate between them:
         _select_log_files(
