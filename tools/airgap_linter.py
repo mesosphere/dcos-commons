@@ -11,8 +11,7 @@
 import re
 import sys
 import os
-from typing import List
-from typing.re import Match
+from typing import List, Match
 
 
 def readlines_if_text_file(filename: str) -> List[str]:

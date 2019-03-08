@@ -518,7 +518,7 @@ def _select_log_files(
     task_id: str,
     file_infos: List[Dict[str, Any]],
     source: str,
-    selected: collections.OrderedDict[str, Any],
+    selected: 'collections.OrderedDict[str, Any]',
 ) -> None:
     """Finds and produces the 'stderr'/'stdout' file entries from the provided directory list returned by the agent.
 

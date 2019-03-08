@@ -3,8 +3,7 @@ import logging
 import re
 import retrying
 from toolz import get_in
-from typing import Any, Dict, List, Optional, Union
-from typing.re import Match
+from typing import Any, Dict, List, Match, Optional, Union
 
 import sdk_cmd
 import sdk_hosts
