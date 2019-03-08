@@ -58,8 +58,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings({
     "checkstyle:LineLength",
     "checkstyle:MultipleStringLiterals",
-    "checkstyle:LineLength",
-    "checkstyle:InnerTypeLast",
     "checkstyle:HiddenField",
     "checkstyle:ThrowsCount",
     "checkstyle:FinalClass"
@@ -657,7 +655,6 @@ public class OfferEvaluator {
       // Add resource evaluations for the ResourceSet:
       evaluationStages.addAll(getExistingResourceSetStages(
           podInstanceRequirement,
-          serviceName,
           resourceNamespace,
           allTasksInPod,
           resourceSet,
@@ -681,7 +678,6 @@ public class OfferEvaluator {
    */
   private Collection<OfferEvaluationStage> getExistingResourceSetStages(
       PodInstanceRequirement podInstanceRequirement,
-      String serviceName,
       Optional<String> resourceNamespace,
       Map<String, Protos.TaskInfo> allTasksInPod,
       ResourceSet resourceSet,
@@ -694,8 +690,8 @@ public class OfferEvaluator {
             TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpecName))
         .collect(Collectors.toList());
     Optional<Protos.TaskInfo> taskInfo = taskInfoNames.stream()
-        .map(taskInfoName -> allTasksInPod.get(taskInfoName))
-        .filter(mapTaskInfo -> mapTaskInfo != null)
+        .map(allTasksInPod::get)
+        .filter(Objects::nonNull)
         .findAny();
     if (!taskInfo.isPresent()) {
       // This shouldn't happen, because this codepath is for reevaluating pods that had been launched
