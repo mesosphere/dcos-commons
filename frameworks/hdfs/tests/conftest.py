@@ -1,4 +1,4 @@
-from typint import Iterator
+from typing import Iterator
 
 import pytest
 import sdk_security

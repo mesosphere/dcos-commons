@@ -1,5 +1,5 @@
 import logging
-from typoing import Iterator
+from typing import Iterator
 
 import pytest
 
