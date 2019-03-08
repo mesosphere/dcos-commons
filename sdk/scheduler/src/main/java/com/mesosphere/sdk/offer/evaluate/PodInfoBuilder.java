@@ -667,6 +667,8 @@ public class PodInfoBuilder {
                 }
                 addedVolumes.get(dockerVolume.getDriverName()).add(volumeName);
 
+                LOGGER.info("Adding DOCKER volume {} with driver {} to pod", volumeName,
+                        dockerVolume.getDriverName());
                 // Add all the driver options
                 List<Protos.Parameter> paramsList = new ArrayList<Protos.Parameter>();
                 Protos.Parameters.Builder driverOptions = Protos.Parameters.newBuilder();
@@ -705,8 +707,15 @@ public class PodInfoBuilder {
                 driverOptions.addAllParameter(paramsList);
                 driverOptions.build();
 
-                LOGGER.info("Adding DOCKER volume {} with driver {} to pod", volumeName,
-                        dockerVolume.getDriverName());
+                // For pxd also add params inline
+                if (dockerVolume.getDriverName().equals("pxd") && dockerVolume.getDriverOptions() != null) {
+                    StringBuffer nameBuf = new StringBuffer();
+                    nameBuf.append("name=" + volumeName);
+                    for (Map.Entry<String, String> option : dockerVolume.getDriverOptions().entrySet()) {
+                        nameBuf.append(";" + option.getKey() + "=" + option.getValue());
+                    }
+                    volumeName = nameBuf.toString();
+                }
                 containerInfo.addVolumes(Protos.Volume.newBuilder().setSource(
                         Protos.Volume.Source.newBuilder()
                                 .setDockerVolume(Protos.Volume.Source.DockerVolume.newBuilder()
