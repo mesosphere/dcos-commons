@@ -89,11 +89,6 @@ public class ServiceStatusTracker {
       statusCodeReasons.put(initializing.getStatusReason());
     }
 
-    //Set return statusCode to initializing if present.
-    if (initializing.getServiceStatusCode().isPresent()) {
-      serviceStatusCode = initializing.getServiceStatusCode();
-    }
-
     //Evaluate if we're running.
 
     //First check if deployment is complete.
@@ -104,16 +99,33 @@ public class ServiceStatusTracker {
     }
 
     // SUPPRESS CHECKSTYLE LineLengthCheck
-    ServiceStatusEvaluationStage isDeploying = isDeploying(deploymentComplete.getServiceStatusCode());
+    ServiceStatusEvaluationStage isDeploying = isDeploying();
     if (isVerbose) {
       statusCodeReasons.put(isDeploying.getStatusReason());
     }
 
+    ServiceStatusEvaluationStage isDegraded = isDegraded();
+    if (isVerbose) {
+      statusCodeReasons.put(isDegraded.getStatusReason());
+    }
+
+    ServiceStatusEvaluationStage isRecovering = isRecovering();
+    if (isVerbose) {
+      statusCodeReasons.put(isRecovering.getStatusReason());
+    }
+
     //TODO(kjoshi): Implement Recovering, Backing Up, Restoring, Upgrade/Rollback/Downgrade.
 
-    if (isDeploying.getServiceStatusCode().isPresent()) {
+    //Set return statusCode to initializing if present.
+    if (initializing.getServiceStatusCode().isPresent()) {
+      serviceStatusCode = initializing.getServiceStatusCode();
+    } else if (isDeploying.getServiceStatusCode().isPresent()) {
       serviceStatusCode = isDeploying.getServiceStatusCode();
-    } else if (deploymentComplete.getServiceStatusCode().isPresent()) {
+    } else if (isDegraded.getServiceStatusCode().isPresent()) {
+      serviceStatusCode = isDegraded.getServiceStatusCode();
+    } else if (isRecovering.getServiceStatusCode().isPresent()) {
+      serviceStatusCode = isRecovering.getServiceStatusCode();
+    } else {
       serviceStatusCode = deploymentComplete.getServiceStatusCode();
     }
 
@@ -130,7 +142,111 @@ public class ServiceStatusTracker {
     return ResponseUtils.jsonOkResponse(response);
   }
 
-  private ServiceStatusEvaluationStage isDeploying(Optional<ServiceStatusCode> deploymentComplete) {
+
+  private ServiceStatusEvaluationStage isRecovering() {
+    String reason;
+    Optional<ServiceStatusCode> statusCode;
+
+    //Get the recovery plan.
+    Plan recoveryPlan = planCoordinator.getPlanManagers()
+            .stream()
+            .filter(planManager -> planManager.getPlan().isRecoveryPlan())
+            .findFirst()
+            .get()
+            .getPlan();
+
+    if (recoveryPlan.isComplete()) {
+      // SUPPRESS CHECKSTYLE LineLengthCheck
+      reason = String.format("Priority 4. Status Code %s and %s is FALSE. Recovery plan is complete.",
+          ServiceStatusCode.RECOVERING_PENDING.statusCode,
+          ServiceStatusCode.RECOVERING_STARTING.statusCode);
+      statusCode = Optional.empty();
+    } else {
+
+      //Recovery plan is NOT complete.
+      int totalSteps = recoveryPlan.getChildren().stream()
+          .flatMap(phase -> phase.getChildren().stream())
+          .collect(Collectors.toSet())
+          .size();
+
+      int pendingSteps = recoveryPlan.getChildren().stream()
+          .flatMap(phase -> phase.getChildren().stream())
+          .filter(step -> step.isPending())
+          .collect(Collectors.toSet())
+          .size();
+
+      int preparedSteps = recoveryPlan.getChildren().stream()
+          .flatMap(phase -> phase.getChildren().stream())
+          .filter(step -> step.isPrepared())
+          .collect(Collectors.toSet())
+          .size();
+
+      int startingSteps = recoveryPlan.getChildren().stream()
+          .flatMap(phase -> phase.getChildren().stream())
+          .filter(step -> step.isStarting())
+          .collect(Collectors.toSet())
+          .size();
+
+      int startedSteps = recoveryPlan.getChildren().stream()
+          .flatMap(phase -> phase.getChildren().stream())
+          .filter(step -> step.isStarted())
+          .collect(Collectors.toSet())
+          .size();
+
+      int completedSteps = recoveryPlan.getChildren().stream()
+          .flatMap(phase -> phase.getChildren().stream())
+          .filter(step -> step.isComplete())
+          .collect(Collectors.toSet())
+          .size();
+
+      //We're biasing pessimistically here, pick cases that are halting the
+      // deployment from becoming complete.
+      if (pendingSteps > 0 || preparedSteps > 0) {
+        statusCode = Optional.of(ServiceStatusCode.RECOVERING_PENDING);
+      } else if (startingSteps > 0 || startedSteps > 0) {
+        statusCode = Optional.of(ServiceStatusCode.RECOVERING_STARTING);
+      } else {
+        //Implies deployment is complete.
+        statusCode = Optional.empty();
+      }
+
+      String statusCodeString;
+
+      if (statusCode.isPresent()) {
+        // SUPPRESS CHECKSTYLE MultipleStringLiteralsCheck
+        statusCodeString = String.format("Status Code %s is TRUE,", statusCode.get().statusCode);
+      } else {
+        // SUPPRESS CHECKSTYLE MultipleStringLiteralsCheck
+        statusCodeString = String.format("Status Code %s and %s are both FALSE",
+            ServiceStatusCode.RECOVERING_PENDING.statusCode,
+            ServiceStatusCode.RECOVERING_STARTING.statusCode);
+      }
+
+      // SUPPRESS CHECKSTYLE LineLengthCheck
+      reason = String.format("Priority 4. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d)",
+          statusCodeString,
+          totalSteps,
+          pendingSteps,
+          preparedSteps,
+          startingSteps,
+          startedSteps,
+          completedSteps);
+    }
+
+    return new ServiceStatusEvaluationStage(statusCode, reason);
+  }
+
+
+  private ServiceStatusEvaluationStage isDegraded() {
+
+    String reason = String.format("Priority 3. Status Code %s is FALSE, Not implemented yet.",
+        ServiceStatusCode.DEGRADED.statusCode);
+    Optional<ServiceStatusCode> statusCode = Optional.empty();
+
+    return new ServiceStatusEvaluationStage(statusCode, reason);
+  }
+
+  private ServiceStatusEvaluationStage isDeploying() {
 
     String reason;
     Optional<ServiceStatusCode> statusCode;
