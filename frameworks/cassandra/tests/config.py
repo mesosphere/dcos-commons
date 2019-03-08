@@ -75,7 +75,7 @@ def _get_test_job(
     node_address: str,
     node_port: str,
     restart_policy: str="ON_FAILURE",
-    dcos_ca_bundle: Optional[str]=None,
+    dcos_ca_bundle: Optional[str] = None,
 ) -> Dict[str, Any]:
     if dcos_ca_bundle:
         commands.insert(

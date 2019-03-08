@@ -62,7 +62,7 @@ def get_decommission_plan(
 def list_plans(
     service_name: str,
     timeout_seconds: int=TIMEOUT_SECONDS,
-    multiservice_name: Optional[str]=None,
+    multiservice_name: Optional[str] = None,
 ) -> List:
     if multiservice_name is None:
         path = "/v1/plans"
@@ -78,7 +78,7 @@ def list_plans(
 def get_plan_once(
     service_name: str,
     plan: str,
-    multiservice_name: Optional[str]=None,
+    multiservice_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     if multiservice_name is None:
         path = "/v1/plans/{}".format(plan)
@@ -98,7 +98,7 @@ def get_plan(
     service_name: str,
     plan: str,
     timeout_seconds: int=TIMEOUT_SECONDS,
-    multiservice_name: Optional[str]=None
+    multiservice_name: Optional[str] = None
 ) -> Dict[str, Any]:
     @retrying.retry(wait_fixed=1000, stop_max_delay=timeout_seconds * 1000)
     def wait_for_plan() -> Dict[str, Any]:
@@ -112,7 +112,7 @@ def get_plan(
 def start_plan(
     service_name: str,
     plan: str,
-    parameters: Optional[Dict[str, Any]]=None,
+    parameters: Optional[Dict[str, Any]] = None,
 ) -> None:
     sdk_cmd.service_request(
         "POST",
@@ -125,7 +125,7 @@ def start_plan(
 def wait_for_completed_recovery(
     service_name: str,
     timeout_seconds: int=TIMEOUT_SECONDS,
-    multiservice_name: Optional[str]=None,
+    multiservice_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     return wait_for_completed_plan(service_name, "recovery", timeout_seconds, multiservice_name)
 
@@ -154,7 +154,7 @@ def wait_for_kicked_off_recovery(
 def wait_for_completed_deployment(
     service_name: str,
     timeout_seconds: int=TIMEOUT_SECONDS,
-    multiservice_name: Optional[str]=None,
+    multiservice_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     return wait_for_completed_plan(service_name, "deploy", timeout_seconds, multiservice_name)
 
@@ -163,7 +163,7 @@ def wait_for_completed_plan(
     service_name: str,
     plan_name: str,
     timeout_seconds: int=TIMEOUT_SECONDS,
-    multiservice_name: Optional[str]=None,
+    multiservice_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     return wait_for_plan_status(
         service_name, plan_name, "COMPLETE", timeout_seconds, multiservice_name
@@ -222,7 +222,7 @@ def wait_for_plan_status(
     plan_name: str,
     status: Union[List[str], str],
     timeout_seconds: int=TIMEOUT_SECONDS,
-    multiservice_name: Optional[str]=None,
+    multiservice_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Wait for a plan to have one of the specified statuses"""
     if isinstance(status, str):

@@ -219,7 +219,7 @@ def _run_cmd(
     cmd: str,
     print_output: bool,
     check: bool,
-    timeout_seconds: Optional[int]=None,
+    timeout_seconds: Optional[int] = None,
 ) -> Tuple[int, str, str]:
     result = subprocess.run(
         [cmd],
@@ -293,7 +293,7 @@ wc -l {output_file}"'''.format(
 @retrying.retry(
     stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
-def kill_task_with_pattern(pattern: str, user: str, agent_host: Optional[str]=None) -> bool:
+def kill_task_with_pattern(pattern: str, user: str, agent_host: Optional[str] = None) -> bool:
     """SSHes into the leader node (or the provided agent node) and kills any tasks matching the
     provided regex pattern in their command which are running as the provided user.
 

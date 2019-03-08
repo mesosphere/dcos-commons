@@ -69,7 +69,7 @@ def remove_repo(repo_name: str) -> bool:
     return rc == 0
 
 
-def add_repo(repo_name: str, repo_url: str, index: Optional[int]=None) -> bool:
+def add_repo(repo_name: str, repo_url: str, index: Optional[int] = None) -> bool:
     index_arg = "" if index is None else " --index={}".format(index)
     rc, _, _ = sdk_cmd.run_cli(
         "package repo add{} {} {}".format(index_arg, repo_name, repo_url)
@@ -168,7 +168,7 @@ def _wait_for_new_package_version(package_name: str, previous_version: str) -> O
     return current_version if current_version != previous_version else None
 
 
-def move_universe_repo(package_name: str, universe_repo_index: Optional[int]=None) -> Tuple[str, str]:
+def move_universe_repo(package_name: str, universe_repo_index: Optional[int] = None) -> Tuple[str, str]:
     """When 'repo_index' is None, moves Universe repo to the end of the repo list, giving higher
     priority to packages in other repos. When 'repo_index' is 0, moves Universe repo to the top of
     the repo list, giving higher priority to packages in the Universe.
