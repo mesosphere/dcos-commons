@@ -15,7 +15,7 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Iterable, List, Optional, Tuple
 
 import publish_aws
 import universe

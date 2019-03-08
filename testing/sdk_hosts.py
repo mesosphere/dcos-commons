@@ -17,13 +17,13 @@ VIP_HOST_SUFFIX = "l4lb.thisdcos.directory"
 MARATHON_HOST_PREFIX = "marathon"
 
 
-def autoip_host(service_name: str, task_name: str, port: int=-1) -> str:
+def autoip_host(service_name: str, task_name: str, port: int = -1) -> str:
     """Returns the autoip hostname for the container of a given task, with handling of foldered services.
     In CNI cases, this may vary from the host of the agent system."""
     return _to_host(_safe_name(task_name), _safe_name(service_name), AUTOIP_HOST_SUFFIX, port)
 
 
-def custom_host(service_name: str, task_name: str, custom_domain: str, port: int=-1) -> str:
+def custom_host(service_name: str, task_name: str, custom_domain: str, port: int = -1) -> str:
     """
     Returns a properly constructed hostname for the container of the given task using the
     supplied custom domain.
@@ -31,12 +31,12 @@ def custom_host(service_name: str, task_name: str, custom_domain: str, port: int
     return _to_host(_safe_name(task_name), _safe_name(service_name), custom_domain, port)
 
 
-def vip_host(service_name: str, vip_name: str, port: int=-1) -> str:
+def vip_host(service_name: str, vip_name: str, port: int = -1) -> str:
     """Returns the hostname of a specified service VIP, with handling of foldered services."""
     return _to_host(_safe_name(vip_name), _safe_name(service_name), VIP_HOST_SUFFIX, port)
 
 
-def scheduler_vip_host(service_name: str, vip_name: str, port: int=-1) -> str:
+def scheduler_vip_host(service_name: str, vip_name: str, port: int = -1) -> str:
     """Returns the scheduler hostname of a specified service VIP, with handling of foldered services.
 
     e.g.: scheduler_vip_host("cassandra", "api") == "api.cassandra.marathon.l4lb.thisdcos.directory"

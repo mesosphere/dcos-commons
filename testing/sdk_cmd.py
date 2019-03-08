@@ -39,11 +39,11 @@ def service_request(
         method: str,
         service_name: str,
         service_path: str,
-        retry: bool=True,
-        raise_on_error: bool=True,
-        log_args: bool=True,
-        log_response: bool=False,
-        timeout_seconds: int=60,
+        retry: bool = True,
+        raise_on_error: bool = True,
+        log_args: bool = True,
+        log_response: bool = False,
+        timeout_seconds: int = 60,
         **kwargs: Any,
 ) -> requests.Response:
     """Used to query a service running on the cluster. See `cluster_request()` for arg meanings.
@@ -70,11 +70,11 @@ def service_request(
 def cluster_request(
     method: str,
     cluster_path: str,
-    retry: bool=True,
-    raise_on_error: bool=True,
-    log_args: bool=True,
-    log_response: bool=False,
-    timeout_seconds: int=60,
+    retry: bool = True,
+    raise_on_error: bool = True,
+    log_args: bool = True,
+    log_response: bool = False,
+    timeout_seconds: int = 60,
     **kwargs: Any,
 ) -> requests.Response:
     """Queries the provided cluster HTTP path using the provided method, with the following handy features:
@@ -165,9 +165,9 @@ def svc_cli(
     package_name: str,
     service_name: str,
     service_cmd: str,
-    print_output: bool=True,
-    parse_json: bool=False,
-    check: bool=False,
+    print_output: bool = True,
+    parse_json: bool = False,
+    check: bool = False,
 ) -> Tuple[int, str, str]:
     rc, stdout, stderr = run_cli(
         "{} --name={} {}".format(package_name, service_name, service_cmd),
@@ -184,7 +184,7 @@ def svc_cli(
     return rc, stdout, stderr
 
 
-# def _get_json_output(cmd: str, print_output: bool=True, check: bool=False) -> Any:
+# def _get_json_output(cmd: str, print_output: bool = True, check: bool = False) -> Any:
 #     _, stdout, stderr = run_cli(cmd, print_output, check=check)
 
 #     if stderr:
@@ -201,8 +201,8 @@ def svc_cli(
 
 def run_cli(
     cmd: str,
-    print_output: bool=True,
-    check: bool=False,
+    print_output: bool = True,
+    check: bool = False,
 ) -> Tuple[int, str, str]:
     """Runs the command with `dcos` as the prefix to the shell command
     and returns a tuple containing exit code, stdout, and stderr.
@@ -326,7 +326,7 @@ def kill_task_with_pattern(pattern: str, user: str, agent_host: Optional[str] = 
     return rc == 0
 
 
-def master_ssh(cmd: str, timeout_seconds: int=60, print_output: bool=True, check: bool=False) -> Tuple[int, str, str]:
+def master_ssh(cmd: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False) -> Tuple[int, str, str]:
     """
     Runs the provided command on the cluster leader, using ssh.
     Returns the exit code, stdout, and stderr as three separate values.
@@ -336,7 +336,7 @@ def master_ssh(cmd: str, timeout_seconds: int=60, print_output: bool=True, check
 
 
 def agent_ssh(
-    agent_host: str, cmd: str, timeout_seconds: int=60, print_output: bool=True, check: bool=False
+    agent_host: str, cmd: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False
 ) -> Tuple[int, str, str]:
     """
     Runs the provided command on the specified agent host, using ssh.
@@ -347,7 +347,7 @@ def agent_ssh(
 
 
 def master_scp(
-    file_content: str, remote_path: str, timeout_seconds: int=60, print_output: bool=True, check: bool=False
+    file_content: str, remote_path: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False
 ) -> int:
     """
     Writes the provided input path to the specified path on cluster leader, using scp.
@@ -363,9 +363,9 @@ def agent_scp(
     agent_host: str,
     file_content: str,
     remote_path: str,
-    timeout_seconds: int=60,
-    print_output: bool=True,
-    check: bool=False,
+    timeout_seconds: int = 60,
+    print_output: bool = True,
+    check: bool = False,
 ) -> int:
     """
     Writes the provided input path to the specified path on the remote agent, using scp.
@@ -489,7 +489,7 @@ def _internal_leader_host() -> str:
     return str(leader_hosts[0]["ip"])
 
 
-def marathon_task_exec(task_name: str, cmd: str, print_output: bool=True) -> Tuple[int, str, str]:
+def marathon_task_exec(task_name: str, cmd: str, print_output: bool = True) -> Tuple[int, str, str]:
     """
     Invokes the given command on the named Marathon task via `dcos task exec`.
     : param task_name: Name of task to run 'cmd' on.
@@ -530,7 +530,7 @@ def service_task_exec(service_name: str, task_name: str, cmd: str) -> Tuple[int,
     return rc, stdout, stderr
 
 
-def _task_exec(task_id_prefix: str, cmd: str, print_output: bool=True) -> Tuple[int, str, str]:
+def _task_exec(task_id_prefix: str, cmd: str, print_output: bool = True) -> Tuple[int, str, str]:
     if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
         # On 1.9 task exec is run relative to the host filesystem, not the container filesystem
         full_cmd = os.path.join(get_task_sandbox_path(task_id_prefix), cmd)

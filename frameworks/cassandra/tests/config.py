@@ -74,7 +74,7 @@ def _get_test_job(
     commands: List[str],
     node_address: str,
     node_port: str,
-    restart_policy: str="ON_FAILURE",
+    restart_policy: str = "ON_FAILURE",
     dcos_ca_bundle: Optional[str] = None,
 ) -> Dict[str, Any]:
     if dcos_ca_bundle:
@@ -225,7 +225,7 @@ def run_backup_and_restore(
     backup_plan: str,
     restore_plan: str,
     plan_parameters: Dict[str, Optional[str]],
-    job_node_address:  str = DEFAULT_NODE_ADDRESS,
+    job_node_address: str = DEFAULT_NODE_ADDRESS,
 ) -> None:
     write_data_job = get_write_data_job(node_address=job_node_address)
     verify_data_job = get_verify_data_job(node_address=job_node_address)

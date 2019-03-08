@@ -21,7 +21,7 @@ log = logging.getLogger(__name__)
 DEFAULT_LINUX_USER = "nobody"
 
 
-def install_enterprise_cli(force: bool=False) -> None:
+def install_enterprise_cli(force: bool = False) -> None:
     """ Install the enterprise CLI if required """
 
     log.info("Installing DC/OS enterprise CLI")

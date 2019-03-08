@@ -498,8 +498,8 @@ def _curl_query(
     task: str = "master-0-node",
     https: bool = False,
     return_json: bool = True,
-    http_user: Optional[str]=DEFAULT_ELASTICSEARCH_USER,
-    http_password: Optional[str]=DEFAULT_ELASTICSEARCH_PASSWORD,
+    http_user: Optional[str] = DEFAULT_ELASTICSEARCH_USER,
+    http_password: Optional[str] = DEFAULT_ELASTICSEARCH_PASSWORD,
 ) -> Optional[Union[str, Dict[str, Any]]]:
     protocol = "https" if https else "http"
 

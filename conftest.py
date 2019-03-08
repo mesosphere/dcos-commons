@@ -8,6 +8,7 @@ import logging
 import os.path
 import sys
 import time
+from typing import Iterator
 
 import pytest
 import sdk_diag

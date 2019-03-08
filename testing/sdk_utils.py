@@ -207,7 +207,7 @@ def pretty_duration(seconds: Optional[Union[int, float]]) -> str:
     return ret
 
 
-def random_string(length: int=8) -> str:
+def random_string(length: int = 8) -> str:
     return "".join(random.choice(string.ascii_lowercase + string.digits) for _ in range(length))
 
 

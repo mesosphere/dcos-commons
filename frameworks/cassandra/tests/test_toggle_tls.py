@@ -2,7 +2,7 @@ import json
 import logging
 import pytest
 import tempfile
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, Optional
 
 import sdk_cmd
 import sdk_install

@@ -11,7 +11,7 @@ def cmd(service_name: str, task_name: str, command: str) -> Tuple[int, str, str]
     )
 
 
-def parse_status(output: str) -> List[Node]:
+def parse_status(output: str) -> List['Node']:
     nodes = []
     for line in _get_status_lines(output):
         node = _parse_status_line(line)
@@ -30,7 +30,7 @@ def _get_status_lines(output: str) -> List[str]:
     return lines
 
 
-def _parse_status_line(line: str) -> Node:
+def _parse_status_line(line: str) -> 'Node':
     # Input looks like this:
     # UN  10.0.2.28   74.32 KB   256          62.8%             d71b5d8d-6db1-416e-a25d-4541f06b26bc  us-west-2c
 

@@ -24,7 +24,7 @@ class PackageManager:
         self,
         universe_package_prefix: str = "https://universe.mesosphere.com/package/",
         dcos_version: str = "1.11",
-        package_version:str = "4",
+        package_version: str = "4",
         dry_run: bool = False,
     ) -> None:
 

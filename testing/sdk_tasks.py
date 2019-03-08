@@ -42,8 +42,8 @@ log = logging.getLogger(__name__)
 def check_running(
     service_name: str,
     expected_task_count: int,
-    timeout_seconds: int=DEFAULT_TIMEOUT_SECONDS,
-    allow_more: bool=True,
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+    allow_more: bool = True,
 ) -> None:
     agentid_to_hostname = _get_agentid_to_hostname()
 

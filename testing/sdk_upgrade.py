@@ -156,7 +156,7 @@ def update_or_upgrade_or_downgrade(
     to_package_version: Optional[str],
     additional_options: Dict[str, Any],
     expected_running_tasks: int,
-    wait_for_deployment: bool=True,
+    wait_for_deployment: bool = True,
     timeout_seconds: int = TIMEOUT_SECONDS,
 ) -> bool:
     initial_config = get_config(package_name, service_name)
@@ -190,6 +190,7 @@ def update_or_upgrade_or_downgrade(
         )
 
     return not wait_for_deployment
+
 
 def _update_service_with_cli(
     package_name: str,

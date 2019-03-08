@@ -17,8 +17,8 @@ def update_configuration(
     service_name: str,
     configuration: Dict[str, Any],
     expected_task_count: int,
-    wait_for_deployment: bool=True,
-    timeout_seconds: int=DEFAULT_TIMEOUT_SECONDS,
+    wait_for_deployment: bool = True,
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
 ) -> None:
     sdk_upgrade.update_or_upgrade_or_downgrade(
         package_name=package_name,

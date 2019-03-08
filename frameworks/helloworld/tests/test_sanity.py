@@ -5,7 +5,6 @@ from typing import Any, Dict, Iterator
 
 import pytest
 import retrying
-import requests
 
 import sdk_cmd
 import sdk_install

@@ -2,7 +2,7 @@ import json
 import os
 import pytest
 import uuid
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable
 
 import sdk_cmd
 import sdk_install

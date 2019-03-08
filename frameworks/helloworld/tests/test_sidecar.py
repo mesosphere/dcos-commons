@@ -150,7 +150,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery() -> None:
     assert initial_recovery_plan["status"] == final_recovery_plan["status"]
 
 
-def run_plan(plan_name: str, params: Optional[Dict[str, Any]] =None) -> None:
+def run_plan(plan_name: str, params: Optional[Dict[str, Any]] = None) -> None:
     sdk_plan.start_plan(config.SERVICE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, plan_name)

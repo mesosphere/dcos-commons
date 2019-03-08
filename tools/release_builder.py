@@ -84,7 +84,7 @@ class UniverseReleaseBuilder(object):
         self,
         package_version: str,
         stub_universe_url: str,
-        http_release_server: str= os.environ.get(
+        http_release_server: str = os.environ.get(
             "HTTP_RELEASE_SERVER", "https://downloads.mesosphere.com"
         ),
         s3_release_bucket: str = os.environ.get("S3_RELEASE_BUCKET", "downloads.mesosphere.io"),

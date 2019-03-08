@@ -51,7 +51,7 @@ def parse_stub_universe_url_string(stub_universe_url: str) -> List[str]:
             "Invalid {env}. Provide comma and/or newline-separated URL(s), or "
             "specify '{env}=none' to test release versions.".format(
                 env=_STUB_UNIVERSE_URL_ENVVAR)
-            )
+        )
     return urls
 
 
