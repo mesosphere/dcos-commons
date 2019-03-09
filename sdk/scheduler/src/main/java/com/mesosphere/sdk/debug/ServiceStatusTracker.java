@@ -13,6 +13,7 @@ import org.json.JSONObject;
 import javax.ws.rs.core.Response;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +47,10 @@ public class ServiceStatusTracker {
   }
 
   private static final String RESULT_CODE_KEY = "value";
+
+  private static final String BACKUP_PLAN_CONTAINS = "backup";
+
+  private static final String RESTORE_PLAN_CONTAINS = "restore";
 
   private final StateStore stateStore;
 
@@ -83,15 +88,11 @@ public class ServiceStatusTracker {
     Optional<ServiceStatusCode> serviceStatusCode = Optional.empty();
     JSONArray statusCodeReasons = new JSONArray();
 
-    //Evaluate if we're initializing.
     ServiceStatusEvaluationStage initializing = isServiceInitializing();
     if (isVerbose) {
       statusCodeReasons.put(initializing.getStatusReason());
     }
 
-    //Evaluate if we're running.
-
-    //First check if deployment is complete.
     // SUPPRESS CHECKSTYLE LineLengthCheck
     ServiceStatusEvaluationStage deploymentComplete = isDeploymentComplete(initializing.getServiceStatusCode());
     if (isVerbose) {
@@ -114,7 +115,17 @@ public class ServiceStatusTracker {
       statusCodeReasons.put(isRecovering.getStatusReason());
     }
 
-    //TODO(kjoshi): Implement Recovering, Backing Up, Restoring, Upgrade/Rollback/Downgrade.
+    ServiceStatusEvaluationStage isBackingUp = isBackingUp();
+    if (isVerbose) {
+      statusCodeReasons.put(isBackingUp.getStatusReason());
+    }
+
+    ServiceStatusEvaluationStage isRestoring = isRestoring();
+    if (isVerbose) {
+      statusCodeReasons.put(isRestoring.getStatusReason());
+    }
+
+    //TODO(kjoshi): Implement Upgrade/Rollback/Downgrade.
 
     //Set return statusCode to initializing if present.
     if (initializing.getServiceStatusCode().isPresent()) {
@@ -127,6 +138,15 @@ public class ServiceStatusTracker {
       serviceStatusCode = isRecovering.getServiceStatusCode();
     } else {
       serviceStatusCode = deploymentComplete.getServiceStatusCode();
+    }
+
+    //These are low-priority codes that require a deployment to be complete.
+    if (deploymentComplete.getServiceStatusCode().isPresent()) {
+      if (isRestoring.getServiceStatusCode().isPresent()) {
+        serviceStatusCode = isRestoring.getServiceStatusCode();
+      } else if (isBackingUp.getServiceStatusCode().isPresent()) {
+        serviceStatusCode = isBackingUp.getServiceStatusCode();
+      }
     }
 
     if (serviceStatusCode.isPresent()) {
@@ -142,6 +162,89 @@ public class ServiceStatusTracker {
     return ResponseUtils.jsonOkResponse(response);
   }
 
+  private ServiceStatusEvaluationStage isRestoring() {
+    String reason;
+    Optional<ServiceStatusCode> statusCode;
+
+    Set<Plan> restorePlans = planCoordinator.getPlanManagers()
+        .stream()
+        .filter(planManager -> planManager.getPlan().getName().contains(RESTORE_PLAN_CONTAINS))
+        .map(planManager -> planManager.getPlan())
+        .collect(Collectors.toSet());
+
+    if (restorePlans.isEmpty()) {
+      // SUPPRESS CHECKSTYLE LineLengthCheck
+      reason = String.format("Priority 5. Status Code %s is FALSE. No restore plans detected.",
+          ServiceStatusCode.RESTORING.statusCode);
+      statusCode = Optional.empty();
+    } else {
+      //Found plan name with "restore" in it, check if any are running, if so get their names.
+      Set<String> runningRestorePlans = restorePlans.stream()
+          .filter(plan -> plan.isRunning())
+          .map(plan -> plan.getName())
+          .collect(Collectors.toSet());
+
+      if (runningRestorePlans.isEmpty()) {
+        Set<String> notRunningRestorePlans = restorePlans.stream()
+            .map(plan -> plan.getName())
+            .collect(Collectors.toSet());
+
+        // SUPPRESS CHECKSTYLE LineLengthCheck
+        reason = String.format("Priority 5. Status Code %s is FALSE. Following restore plans not running: %s,",
+            ServiceStatusCode.RESTORING.statusCode, String.join(", ", notRunningRestorePlans));
+        statusCode = Optional.empty();
+      } else {
+        //Found running backup plans.
+        // SUPPRESS CHECKSTYLE LineLengthCheck
+        reason = String.format("Priority 5. Status Code %s is TRUE. Following restore plans found running: %s.",
+            ServiceStatusCode.RESTORING.statusCode, String.join(", ", runningRestorePlans));
+        statusCode = Optional.of(ServiceStatusCode.RESTORING);
+      }
+    }
+    return new ServiceStatusEvaluationStage(statusCode, reason);
+  }
+
+  private ServiceStatusEvaluationStage isBackingUp() {
+    String reason;
+    Optional<ServiceStatusCode> statusCode;
+
+    Set<Plan> backupPlans = planCoordinator.getPlanManagers()
+        .stream()
+        .filter(planManager -> planManager.getPlan().getName().contains(BACKUP_PLAN_CONTAINS))
+        .map(planManager -> planManager.getPlan())
+        .collect(Collectors.toSet());
+
+    if (backupPlans.isEmpty()) {
+      // SUPPRESS CHECKSTYLE LineLengthCheck
+      reason = String.format("Priority 5. Status Code %s is FALSE. No backup plans detected.",
+          ServiceStatusCode.BACKING_UP.statusCode);
+      statusCode = Optional.empty();
+    } else {
+      //Found plan name with "backup" in it, check if any are running, if so get their names.
+      Set<String> runningBackupPlans = backupPlans.stream()
+          .filter(plan -> plan.isRunning())
+          .map(plan -> plan.getName())
+          .collect(Collectors.toSet());
+
+      if (runningBackupPlans.isEmpty()) {
+        Set<String> notRunningBackupPlans = backupPlans.stream()
+            .map(plan -> plan.getName())
+            .collect(Collectors.toSet());
+
+        // SUPPRESS CHECKSTYLE LineLengthCheck
+        reason = String.format("Priority 5. Status Code %s is FALSE. Following backup plans not running: %s",
+            ServiceStatusCode.BACKING_UP.statusCode, String.join(", ", notRunningBackupPlans));
+        statusCode = Optional.empty();
+      } else {
+        //Found running backup plans.
+        // SUPPRESS CHECKSTYLE LineLengthCheck
+        reason = String.format("Priority 5. Status Code %s is TRUE. Following backup plans found running: %s",
+            ServiceStatusCode.BACKING_UP.statusCode, String.join(", ", runningBackupPlans));
+        statusCode = Optional.of(ServiceStatusCode.BACKING_UP);
+      }
+    }
+    return new ServiceStatusEvaluationStage(statusCode, reason);
+  }
 
   private ServiceStatusEvaluationStage isRecovering() {
     String reason;
