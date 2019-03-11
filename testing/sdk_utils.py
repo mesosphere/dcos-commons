@@ -159,6 +159,17 @@ def get_metadata():
                                    'dcos-metadata/bootstrap-config.json',
                                    retry=False)
 
+def get_cluster_region():
+   _, stdout, stderr = sdk_cmd.run_cli("node list", print_output=False)
+
+   if stderr:
+       log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)
+       return
+
+   raw_line = stdout.splitlines()[-1]
+
+   return raw_line.split()[-2]
+
 
 """Annotation which may be used to mark test suites or test cases as EE-only.
 

@@ -27,8 +27,6 @@ DEFAULT_NODE_ADDRESS = os.getenv(
 )
 DEFAULT_NODE_PORT = os.getenv("CASSANDRA_NODE_PORT", "9042")
 
-AWS_REGIONS = ('us-east', 'us-west', 'ap-south', 'ap-northeast', 'ap-southeast', 'ca-central', 'eu-central', 'eu-west', 'eu-north', 'sa-east')
-
 
 def get_foldered_service_name():
     return sdk_utils.get_foldered_name(SERVICE_NAME)

@@ -43,7 +43,7 @@ def test_rack():
     log.info("node: {}".format(node))
 
     assert node.get_rack() != "rack1"
-    assert any(rack in node.get_rack() for rack in config.AWS_REGIONS)
+    assert sdk_utils.get_cluster_region() in node.get_rack()
 
 
 @pytest.mark.sanity
