@@ -67,10 +67,13 @@ pods:
           MASTER_ENABLED: true
           DATA_ENABLED: false
           INGEST_ENABLED: false
-          ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
+          #ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
+          jvm.options:
+            template: jvm.options
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/jvm.options
           elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
@@ -159,6 +162,9 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
+          jvm.options:
+            template: jvm.options
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/jvm.options
           elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
@@ -247,6 +253,9 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
+          jvm.options:
+            template: jvm.options
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/jvm.options
           elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
@@ -335,6 +344,9 @@ pods:
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
+          jvm.options:
+            template: jvm.options
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/jvm.options
           elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
