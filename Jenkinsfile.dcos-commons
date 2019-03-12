@@ -1,3 +1,5 @@
+#!/usr/bin/env groovy
+// Configuration for https://jenkins.mesosphere.com/service/jenkins/job/dcos-commons%20docker%20image/
 pipeline {
     agent {
         label 'mesos'
