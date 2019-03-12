@@ -12,6 +12,7 @@ import os.path
 import pytest
 import random
 import string
+import json
 
 import sdk_cmd
 
@@ -161,15 +162,15 @@ def get_metadata():
 
 
 def get_cluster_region():
-    rc, stdout, _ = sdk_cmd.run_cli("node")
+    rc, stdout, _ = sdk_cmd.run_cli("node --json")
 
     if rc != 0:
-        log.warning("return code for command 'node' is non-zero: %s", rc)
+        log.warning("return code for command 'node --json' is non-zero: %s", rc)
         return None
 
-    raw_line = stdout.splitlines()[-1]
+    r = json.loads(stdout)[0]
 
-    return raw_line.split()[-2]
+    return r['region']
 
 
 """Annotation which may be used to mark test suites or test cases as EE-only.
