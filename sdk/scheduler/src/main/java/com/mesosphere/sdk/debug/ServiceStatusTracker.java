@@ -190,13 +190,13 @@ public class ServiceStatusTracker {
             .collect(Collectors.toSet());
 
         // SUPPRESS CHECKSTYLE LineLengthCheck
-        reason = String.format("Priority 5. Status Code %s is FALSE. Following restore plans not running: %s,",
+        reason = String.format("Priority 5. Status Code %s is FALSE. Following restore plans not running: %s",
             ServiceStatusCode.RESTORING.statusCode, String.join(", ", notRunningRestorePlans));
         statusCode = Optional.empty();
       } else {
         //Found running backup plans.
         // SUPPRESS CHECKSTYLE LineLengthCheck
-        reason = String.format("Priority 5. Status Code %s is TRUE. Following restore plans found running: %s.",
+        reason = String.format("Priority 5. Status Code %s is TRUE. Following restore plans found running: %s",
             ServiceStatusCode.RESTORING.statusCode, String.join(", ", runningRestorePlans));
         statusCode = Optional.of(ServiceStatusCode.RESTORING);
       }
@@ -466,11 +466,18 @@ public class ServiceStatusTracker {
   }
 
   private ServiceStatusEvaluationStage isServiceInitializing() {
-
-    Optional<Protos.FrameworkID> frameworkId = frameworkStore.fetchFrameworkId();
     String reason;
     Optional<ServiceStatusCode> statusCode;
-
+    Optional<Protos.FrameworkID> frameworkId;
+   
+    try {
+    	// fetchFrameWorkId can throw a StateStoreException.
+    	frameworkId = frameworkStore.fetchFrameworkId();
+    } catch (Exception e) {
+    	// regardless of the exception thrown, consider service as not-initialized.
+    	frameworkId = Optional.empty();
+    }
+    
     if (frameworkId.isPresent()) {
       // SUPPRESS CHECKSTYLE LineLengthCheck
       reason = String.format("Priority 1. Status Code %s is FALSE. Registered with Framework ID %s.",
