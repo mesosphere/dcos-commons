@@ -30,7 +30,7 @@ public class ServiceStatusTracker {
     INITIALIZING(418),
     RUNNING(200),
     DEPLOYING_PENDING(204),
-    DEPLOYING_STARTING(205),
+    DEPLOYING_STARTING(202),
     DEGRADED(206),
     RECOVERING_PENDING(203),
     RECOVERING_STARTING(205),
@@ -141,7 +141,7 @@ public class ServiceStatusTracker {
     }
 
     //These are low-priority codes that require a deployment to be complete.
-    if (deploymentComplete.getServiceStatusCode().isPresent()) {
+    if (serviceStatusCode.equals(Optional.of(ServiceStatusCode.RUNNING))) {
       if (isRestoring.getServiceStatusCode().isPresent()) {
         serviceStatusCode = isRestoring.getServiceStatusCode();
       } else if (isBackingUp.getServiceStatusCode().isPresent()) {
