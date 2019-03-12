@@ -161,11 +161,11 @@ def get_metadata():
 
 
 def get_cluster_region():
-    _, stdout, stderr = sdk_cmd.run_cli("node list", print_output=False)
+    rc, stdout, _ = sdk_cmd.run_cli("node")
 
-    if stderr:
-        log.warning("stderr for command 'node list' is non-empty: %s", stderr)
-        return
+    if rc != 0:
+        log.warning("return code for command 'node' is non-zero: %s", rc)
+        return None
 
     raw_line = stdout.splitlines()[-1]
 
