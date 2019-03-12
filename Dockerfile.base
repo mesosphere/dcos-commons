@@ -7,8 +7,8 @@
 # because you modified this file), there are two ways to use it:
 #
 # 1) Slower but semi-automatic and public:
-# - once the desired version of this file is merged to master, the auto-builder
-#   on dockerhub will build a new version of this image
+# - once the desired version of this file is merged to master, the builder
+#   on Jenkins will build and push a new version of this image
 # - at that point, renovatebot will make a PR to bump the sha in FROM line in
 #   Dockerfile (of the main image)
 #
