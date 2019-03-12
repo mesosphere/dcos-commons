@@ -5,6 +5,7 @@ import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
+import com.mesosphere.sdk.state.StateStoreException;
 
 import org.apache.mesos.Protos;
 import org.json.JSONArray;
@@ -52,8 +53,6 @@ public class ServiceStatusTracker {
 
   private static final String RESTORE_PLAN_CONTAINS = "restore";
 
-  private final StateStore stateStore;
-
   private final PlanCoordinator planCoordinator;
 
   private final FrameworkStore frameworkStore;
@@ -61,7 +60,6 @@ public class ServiceStatusTracker {
   // SUPPRESS CHECKSTYLE LineLengthCheck
   public ServiceStatusTracker(PlanCoordinator planCoordinator, StateStore stateStore, FrameworkStore frameworkStore) {
     this.planCoordinator = planCoordinator;
-    this.stateStore = stateStore;
     this.frameworkStore = frameworkStore;
   }
 
@@ -85,47 +83,30 @@ public class ServiceStatusTracker {
     // Final response object we're going to return.
     JSONObject response = new JSONObject();
 
-    Optional<ServiceStatusCode> serviceStatusCode = Optional.empty();
+    Optional<ServiceStatusCode> serviceStatusCode;
     JSONArray statusCodeReasons = new JSONArray();
 
     ServiceStatusEvaluationStage initializing = isServiceInitializing();
-    if (isVerbose) {
-      statusCodeReasons.put(initializing.getStatusReason());
-    }
 
     // SUPPRESS CHECKSTYLE LineLengthCheck
     ServiceStatusEvaluationStage deploymentComplete = isDeploymentComplete(initializing.getServiceStatusCode());
-    if (isVerbose) {
-      statusCodeReasons.put(deploymentComplete.getStatusReason());
-    }
-
-    // SUPPRESS CHECKSTYLE LineLengthCheck
     ServiceStatusEvaluationStage isDeploying = isDeploying();
-    if (isVerbose) {
-      statusCodeReasons.put(isDeploying.getStatusReason());
-    }
-
     ServiceStatusEvaluationStage isDegraded = isDegraded();
-    if (isVerbose) {
-      statusCodeReasons.put(isDegraded.getStatusReason());
-    }
-
     ServiceStatusEvaluationStage isRecovering = isRecovering();
-    if (isVerbose) {
-      statusCodeReasons.put(isRecovering.getStatusReason());
-    }
-
     ServiceStatusEvaluationStage isBackingUp = isBackingUp();
-    if (isVerbose) {
-      statusCodeReasons.put(isBackingUp.getStatusReason());
-    }
-
     ServiceStatusEvaluationStage isRestoring = isRestoring();
-    if (isVerbose) {
-      statusCodeReasons.put(isRestoring.getStatusReason());
-    }
+    ServiceStatusEvaluationStage isUpgradeRollbackDowngrade = isUpgradeRollbackDowngrade();
 
-    //TODO(kjoshi): Implement Upgrade/Rollback/Downgrade.
+    if (isVerbose) {
+      statusCodeReasons.put(initializing.getStatusReason());
+      statusCodeReasons.put(deploymentComplete.getStatusReason());
+      statusCodeReasons.put(isDeploying.getStatusReason());
+      statusCodeReasons.put(isDegraded.getStatusReason());
+      statusCodeReasons.put(isRecovering.getStatusReason());
+      statusCodeReasons.put(isBackingUp.getStatusReason());
+      statusCodeReasons.put(isRestoring.getStatusReason());
+      statusCodeReasons.put(isUpgradeRollbackDowngrade.getStatusReason());
+    }
 
     //Set return statusCode to initializing if present.
     if (initializing.getServiceStatusCode().isPresent()) {
@@ -146,6 +127,8 @@ public class ServiceStatusTracker {
         serviceStatusCode = isRestoring.getServiceStatusCode();
       } else if (isBackingUp.getServiceStatusCode().isPresent()) {
         serviceStatusCode = isBackingUp.getServiceStatusCode();
+      } else if (isUpgradeRollbackDowngrade.getServiceStatusCode().isPresent()) {
+        serviceStatusCode = isUpgradeRollbackDowngrade.getServiceStatusCode();
       }
     }
 
@@ -160,6 +143,14 @@ public class ServiceStatusTracker {
     }
 
     return ResponseUtils.jsonOkResponse(response);
+  }
+
+  private ServiceStatusEvaluationStage isUpgradeRollbackDowngrade() {
+    String reason = String.format("Priority 6. Status Code %s is FALSE, Not implemented yet.",
+        ServiceStatusCode.UPGRADE_ROLLBACK_DOWNGRADE.statusCode);
+    Optional<ServiceStatusCode> statusCode = Optional.empty();
+
+    return new ServiceStatusEvaluationStage(statusCode, reason);
   }
 
   private ServiceStatusEvaluationStage isRestoring() {
@@ -469,15 +460,15 @@ public class ServiceStatusTracker {
     String reason;
     Optional<ServiceStatusCode> statusCode;
     Optional<Protos.FrameworkID> frameworkId;
-   
+
     try {
-    	// fetchFrameWorkId can throw a StateStoreException.
-    	frameworkId = frameworkStore.fetchFrameworkId();
-    } catch (Exception e) {
-    	// regardless of the exception thrown, consider service as not-initialized.
-    	frameworkId = Optional.empty();
+      // fetchFrameWorkId can throw a StateStoreException.
+      frameworkId = frameworkStore.fetchFrameworkId();
+    } catch (StateStoreException e) {
+      // regardless of the exception thrown, consider service as not-initialized.
+      frameworkId = Optional.empty();
     }
-    
+
     if (frameworkId.isPresent()) {
       // SUPPRESS CHECKSTYLE LineLengthCheck
       reason = String.format("Priority 1. Status Code %s is FALSE. Registered with Framework ID %s.",
