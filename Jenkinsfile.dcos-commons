@@ -1,13 +1,13 @@
 #!/usr/bin/env groovy
-// Configuration for https://jenkins.mesosphere.com/service/jenkins/job/dcos-commons-base%20docker%20image/
+// Configuration for https://jenkins.mesosphere.com/service/jenkins/job/dcos-commons%20docker%20image/
 pipeline {
     agent {
         label 'mesos'
     }
  
     environment {
-        IMAGE = "dcos-commons-base"
-        DOCKERFILE = "Dockerfile.base"
+        IMAGE = "dcos-commons"
+        DOCKERFILE = "Dockerfile"
  
         // Get credentials for publishing to Docker hub.
         DOCKER = credentials('docker-hub-credentials')
