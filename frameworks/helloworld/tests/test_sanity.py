@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, List
 
 import pytest
 import retrying
@@ -57,7 +57,7 @@ def test_metrics_cli_for_scheduler_metrics(configure_package: Dict[str, Any]) ->
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics_for_task_metrics(configure_package: Dict[str, Any]) -> None:
 
-    def write_metric_to_statsd_counter(metric_name: str, value: int):
+    def write_metric_to_statsd_counter(metric_name: str, value: int) -> None:
         """
         Write a metric with the specified value to statsd.
 
@@ -76,7 +76,7 @@ def test_metrics_for_task_metrics(configure_package: Dict[str, Any]) -> None:
     metric_name = "test.metrics.CamelCaseMetric"
     write_metric_to_statsd_counter(metric_name, 1)
 
-    def expected_metrics_exist(emitted_metrics) -> bool:
+    def expected_metrics_exist(emitted_metrics: List[str]) -> bool:
         return sdk_metrics.check_metrics_presence(emitted_metrics, [metric_name])
 
     sdk_metrics.wait_for_service_metrics(
@@ -375,7 +375,7 @@ def test_lock() -> None:
     So in order to verify that the scheduler fails immediately, we ensure
     that the ZK config state is unmodified."""
 
-    def get_zk_node_data(node_name: str):
+    def get_zk_node_data(node_name: str) -> requests.Response:
         return sdk_cmd.cluster_request(
             "GET", "/exhibitor/exhibitor/v1/explorer/node-data?key={}".format(node_name)
         ).json()

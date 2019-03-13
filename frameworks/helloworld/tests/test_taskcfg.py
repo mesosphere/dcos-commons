@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Iterator
+from typing import Any, Dict, Iterator, List
 
 import pytest
 import retrying
@@ -67,5 +67,5 @@ def test_deploy() -> None:
     config.check_running()
 
 
-def _get_state_history(task_name: str) -> Dict[str, Any]:
+def _get_state_history(task_name: str) -> List[str]:
     return [s["state"] for s in sdk_tasks.get_all_status_history(task_name)]
