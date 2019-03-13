@@ -1,6 +1,5 @@
 import logging
 import xml.etree.ElementTree as etree
-from typing import Dict, Iterator, List
 
 import pytest
 import sdk_cmd
@@ -23,7 +22,7 @@ foldered_name = config.FOLDERED_SERVICE_NAME
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
@@ -51,12 +50,12 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.fixture(autouse=True)
-def pre_test_setup() -> None:
+def pre_test_setup():
     config.check_healthy(service_name=foldered_name)
 
 
 @pytest.mark.sanity
-def test_endpoints() -> None:
+def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     core_site = etree.fromstring(
         sdk_networks.get_endpoint_string(config.PACKAGE_NAME, foldered_name, "core-site.xml")
@@ -90,22 +89,18 @@ def test_endpoints() -> None:
     check_properties(hdfs_site, expect)
 
 
-def check_properties(xml: etree.Element, expect: Dict[str, str]) -> None:
+def check_properties(xml, expect):
     found = {}
     for prop in xml.findall("property"):
-        name_element = prop.find("name")
-        assert isinstance(name_element, etree.Element)
-        name = name_element.text
+        name = prop.find("name").text
         if name in expect:
-            found_name_element = prop.find("value")
-            assert isinstance(found_name_element, etree.Element)
-            found[name] = found_name_element.text
+            found[name] = prop.find("value").text
     log.info("expect: {}\nfound:  {}".format(expect, found))
     assert expect == found
 
 
 @pytest.mark.recovery
-def test_kill_journal_node() -> None:
+def test_kill_journal_node():
     journal_task = sdk_tasks.get_service_tasks(foldered_name, "journal-0")[0]
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
@@ -120,7 +115,7 @@ def test_kill_journal_node() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_name_node() -> None:
+def test_kill_name_node():
     name_task = sdk_tasks.get_service_tasks(foldered_name, "name-0")[0]
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
@@ -135,7 +130,7 @@ def test_kill_name_node() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_data_node() -> None:
+def test_kill_data_node():
     data_task = sdk_tasks.get_service_tasks(foldered_name, "data-0")[0]
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
@@ -150,7 +145,7 @@ def test_kill_data_node() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_scheduler() -> None:
+def test_kill_scheduler():
     task_ids = sdk_tasks.get_task_ids(foldered_name, "")
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(foldered_name)
     scheduler_ids = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix)
@@ -171,7 +166,7 @@ def test_kill_scheduler() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_all_journalnodes() -> None:
+def test_kill_all_journalnodes():
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
 
@@ -187,7 +182,7 @@ def test_kill_all_journalnodes() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_all_namenodes() -> None:
+def test_kill_all_namenodes():
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
@@ -204,7 +199,7 @@ def test_kill_all_namenodes() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_all_datanodes() -> None:
+def test_kill_all_datanodes():
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
@@ -221,7 +216,7 @@ def test_kill_all_datanodes() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_permanent_and_transient_namenode_failures_0_1() -> None:
+def test_permanent_and_transient_namenode_failures_0_1():
     config.check_healthy(service_name=foldered_name)
     name_0_ids = sdk_tasks.get_task_ids(foldered_name, "name-0")
     name_1_ids = sdk_tasks.get_task_ids(foldered_name, "name-1")
@@ -241,7 +236,7 @@ def test_permanent_and_transient_namenode_failures_0_1() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_permanent_and_transient_namenode_failures_1_0() -> None:
+def test_permanent_and_transient_namenode_failures_1_0():
     config.check_healthy(service_name=foldered_name)
     name_0_ids = sdk_tasks.get_task_ids(foldered_name, "name-0")
     name_1_ids = sdk_tasks.get_task_ids(foldered_name, "name-1")
@@ -260,12 +255,12 @@ def test_permanent_and_transient_namenode_failures_1_0() -> None:
 
 
 @pytest.mark.smoke
-def test_install() -> None:
+def test_install():
     config.check_healthy(service_name=foldered_name)
 
 
 @pytest.mark.sanity
-def test_bump_journal_cpus() -> None:
+def test_bump_journal_cpus():
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
     name_ids = sdk_tasks.get_task_ids(foldered_name, "name")
     log.info("journal ids: " + str(journal_ids))
@@ -281,7 +276,7 @@ def test_bump_journal_cpus() -> None:
 
 
 @pytest.mark.sanity
-def test_bump_data_nodes() -> None:
+def test_bump_data_nodes():
     data_ids = sdk_tasks.get_task_ids(foldered_name, "data")
     log.info("data ids: " + str(data_ids))
 
@@ -293,7 +288,7 @@ def test_bump_data_nodes() -> None:
 
 @pytest.mark.readiness_check
 @pytest.mark.sanity
-def test_modify_app_config() -> None:
+def test_modify_app_config():
     """This tests checks that the modification of the app config does not trigger a recovery."""
     sdk_plan.wait_for_completed_recovery(foldered_name)
     old_recovery_plan = sdk_plan.get_plan(foldered_name, "recovery")
@@ -322,7 +317,7 @@ def test_modify_app_config() -> None:
 
 
 @pytest.mark.sanity
-def test_modify_app_config_rollback() -> None:
+def test_modify_app_config_rollback():
     app_config_field = "TASKCFG_ALL_CLIENT_READ_SHORTCIRCUIT_STREAMS_CACHE_EXPIRY_MS"
 
     journal_ids = sdk_tasks.get_task_ids(foldered_name, "journal")
@@ -359,21 +354,21 @@ def test_modify_app_config_rollback() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics() -> None:
+def test_metrics():
     expected_metrics = [
         "JournalNode.jvm.JvmMetrics.ThreadsRunnable",
         "null.rpc.rpc.RpcQueueTimeNumOps",
         "null.metricssystem.MetricsSystem.PublishAvgTime",
     ]
 
-    def expected_metrics_exist(emitted_metrics: List[str]) -> bool:
+    def expected_metrics_exist(emitted_metrics):
         # HDFS metric names need sanitation as they're dynamic.
         # For eg: ip-10-0-0-139.null.rpc.rpc.RpcQueueTimeNumOps
         # This is consistent across all HDFS metric names.
         metric_names = set(
             [".".join(metric_name.split(".")[1:]) for metric_name in emitted_metrics]
         )
-        return sdk_metrics.check_metrics_presence(list(metric_names), list(expected_metrics))
+        return sdk_metrics.check_metrics_presence(metric_names, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
@@ -387,7 +382,7 @@ def test_metrics() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_permanently_replace_namenodes() -> None:
+def test_permanently_replace_namenodes():
     pod_list = ["name-0", "name-1", "name-0"]
     for pod in pod_list:
         sdk_recovery.check_permanent_recovery(
@@ -397,7 +392,7 @@ def test_permanently_replace_namenodes() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_permanently_replace_journalnodes() -> None:
+def test_permanently_replace_journalnodes():
     pod_list = ["journal-0", "journal-1", "journal-2"]
     for pod in pod_list:
         sdk_recovery.check_permanent_recovery(
@@ -407,7 +402,7 @@ def test_permanently_replace_journalnodes() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_namenodes_acheive_quorum_after_journalnode_replace() -> None:
+def test_namenodes_acheive_quorum_after_journalnode_replace():
     """
     This test aims to check that namenodes recover after a journalnode failure.
     It checks the fix to this issue works: https://jira.apache.org/jira/browse/HDFS-10659.

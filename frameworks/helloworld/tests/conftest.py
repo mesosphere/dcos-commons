@@ -1,20 +1,15 @@
-from typing import Iterator
-
 import pytest
-from _pytest.config.argparsing import Parser
-from _pytest.fixtures import SubRequest
-
 import sdk_security
 from tests import config
 
 
 @pytest.fixture(scope="session")
-def configure_security(configure_universe: None) -> Iterator[None]:
+def configure_security(configure_universe):
     yield from sdk_security.security_session(config.SERVICE_NAME)
 
 
 # pytest fixtures to run hello-world scale test located in frameworks/helloworld/tests/scale
-def pytest_addoption(parser: Parser) -> None:
+def pytest_addoption(parser):
     parser.addoption('--count', action='store', default=1, type=int,
                      help='Number of hello world services to deploy with a given scenario')
     parser.addoption("--scenario", action='store', default='',
@@ -30,30 +25,30 @@ def pytest_addoption(parser: Parser) -> None:
 
 
 @pytest.fixture
-def service_count(request: SubRequest) -> int:
+def service_count(request) -> int:
     return int(request.config.getoption('--count'))
 
 
 @pytest.fixture
-def scenario(request: SubRequest) -> str:
+def scenario(request) -> str:
     return str(request.config.getoption('--scenario'))
 
 
 @pytest.fixture
-def service_name(request: SubRequest) -> str:
+def service_name(request) -> str:
     return str(request.config.getoption('--service-name'))
 
 
 @pytest.fixture
-def min_index(request: SubRequest) -> int:
+def min_index(request) -> int:
     return int(request.config.getoption('--min'))
 
 
 @pytest.fixture
-def max_index(request: SubRequest) -> int:
+def max_index(request) -> int:
     return int(request.config.getoption('--max'))
 
 
 @pytest.fixture
-def batch_size(request: SubRequest) -> int:
+def batch_size(request) -> int:
     return int(request.config.getoption('--batch-size'))

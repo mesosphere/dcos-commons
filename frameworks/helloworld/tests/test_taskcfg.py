@@ -1,5 +1,4 @@
 import logging
-from typing import Iterator, List
 
 import pytest
 import retrying
@@ -13,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         # don't wait for install to complete successfully:
@@ -31,7 +30,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_deploy() -> None:
+def test_deploy():
     wait_time_in_seconds = 600
     sdk_plan.wait_for_kicked_off_deployment(config.SERVICE_NAME)
     # taskcfg.yml will initially fail to deploy because several options are missing in the default
@@ -46,7 +45,7 @@ def test_deploy() -> None:
         wait_fixed=1000,
         stop_max_delay=1000 * wait_time_in_seconds,
         retry_on_result=lambda res: not res)
-    def wait_for_new_failures() -> bool:
+    def wait_for_new_failures():
         new_state_history = _get_state_history(task_name)
         assert len(new_state_history) >= len(original_state_history)
 
@@ -67,5 +66,5 @@ def test_deploy() -> None:
     config.check_running()
 
 
-def _get_state_history(task_name: str) -> List[str]:
+def _get_state_history(task_name):
     return [s["state"] for s in sdk_tasks.get_all_status_history(task_name)]

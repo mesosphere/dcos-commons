@@ -1,5 +1,4 @@
 import logging
-from typing import Iterator
 
 import pytest
 import sdk_install
@@ -10,7 +9,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {"service": {"yaml": "multistep_plan"}}
@@ -25,8 +24,8 @@ def configure_package(configure_security: None) -> Iterator[None]:
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.config_update
-def test_bump_hello_cpus() -> None:
-    def close_enough(val0: float, val1: float) -> bool:
+def test_bump_hello_cpus():
+    def close_enough(val0, val1):
         epsilon = 0.00001
         diff = abs(val0 - val1)
         return diff < epsilon

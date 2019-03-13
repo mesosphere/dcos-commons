@@ -2,7 +2,6 @@ import json
 import logging
 import pytest
 import tempfile
-from typing import Any, Dict, Iterable, Optional
 
 import sdk_cmd
 import sdk_install
@@ -18,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module")
-def service_account(configure_security: None) -> Iterable[Dict[str, Any]]:
+def service_account(configure_security):
     """
     Sets up a service account for use with TLS.
     """
@@ -32,15 +31,15 @@ def service_account(configure_security: None) -> Iterable[Dict[str, Any]]:
 
 
 @pytest.fixture(scope="module")
-def dcos_ca_bundle() -> str:
+def dcos_ca_bundle():
     """
     Retrieve DC/OS CA bundle and returns the content.
     """
-    return transport_encryption.fetch_dcos_ca_bundle_contents()
+    return transport_encryption.fetch_dcos_ca_bundle_contents().decode("ascii")
 
 
 @pytest.fixture(scope="module", autouse=True)
-def cassandra_service(service_account: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
+def cassandra_service(service_account):
     """
     A pytest fixture that installs the cassandra service.
     On teardown, the service is uninstalled.
@@ -75,7 +74,7 @@ def cassandra_service(service_account: Dict[str, Any]) -> Iterable[Dict[str, Any
 @pytest.mark.tls
 @pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
-def test_default_installation(cassandra_service: Dict[str, Any]) -> None:
+def test_default_installation(cassandra_service):
     """
     Tests writing, reading and deleting data over a plaintext connection.
     """
@@ -86,10 +85,7 @@ def test_default_installation(cassandra_service: Dict[str, Any]) -> None:
 @pytest.mark.tls
 @pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
-def test_enable_tls_and_plaintext(
-    cassandra_service: Dict[str, Any],
-    dcos_ca_bundle: str,
-) -> None:
+def test_enable_tls_and_plaintext(cassandra_service, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over TLS but still accepting
     plaintext connections.
@@ -102,10 +98,7 @@ def test_enable_tls_and_plaintext(
 @pytest.mark.tls
 @pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
-def test_disable_plaintext(
-    cassandra_service: Dict[str, Any],
-    dcos_ca_bundle: str,
-) -> None:
+def test_disable_plaintext(cassandra_service, dcos_ca_bundle):
     """
     Tests writing, reading and deleting data over a TLS connection.
     """
@@ -117,7 +110,7 @@ def test_disable_plaintext(
 @pytest.mark.tls
 @pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
-def test_disable_tls(cassandra_service: Dict[str, Any]) -> None:
+def test_disable_tls(cassandra_service):
     """
     Tests writing, reading and deleting data over a plaintext connection.
     """
@@ -129,10 +122,7 @@ def test_disable_tls(cassandra_service: Dict[str, Any]) -> None:
 @pytest.mark.tls
 @pytest.mark.dcos_min_version("1.10")
 @sdk_utils.dcos_ee_only
-def test_enabling_then_disabling_tls(
-    cassandra_service: Dict[str, Any],
-    dcos_ca_bundle: str,
-) -> None:
+def test_enabling_then_disabling_tls(cassandra_service, dcos_ca_bundle):
     # Write data.
     write_data_job = config.get_write_data_job()
     with sdk_jobs.InstallJobContext([write_data_job]):
@@ -149,9 +139,7 @@ def test_enabling_then_disabling_tls(
         sdk_jobs.run_job(verify_data_job)
 
 
-def verify_client_can_write_read_and_delete(
-    dcos_ca_bundle: Optional[str] = None,
-) -> None:
+def verify_client_can_write_read_and_delete(dcos_ca_bundle=None):
     write_data_job = config.get_write_data_job(dcos_ca_bundle=dcos_ca_bundle)
     verify_data_job = config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle)
     delete_data_job = config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle)
@@ -167,10 +155,8 @@ def verify_client_can_write_read_and_delete(
 
 
 def update_service_transport_encryption(
-    cassandra_service: Dict[str, Any],
-    enabled: bool = False,
-    allow_plaintext: bool = False
-) -> None:
+    cassandra_service: dict, enabled: bool = False, allow_plaintext: bool = False
+):
     update_options = {
         "service": {
             "security": {
@@ -182,7 +168,7 @@ def update_service_transport_encryption(
     update_service(cassandra_service, update_options)
 
 
-def update_service(service: Dict[str, Any], options: Dict[str, Any]) -> None:
+def update_service(service: dict, options: dict):
     with tempfile.NamedTemporaryFile("w", suffix=".json") as f:
         options_path = f.name
 

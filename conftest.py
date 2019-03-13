@@ -8,17 +8,13 @@ import logging
 import os.path
 import sys
 import time
-from typing import Iterator
 
-import pluggy
 import pytest
 import sdk_diag
 import sdk_repository
 import sdk_package_registry
 import sdk_utils
 import teamcity
-from _pytest.tmpdir import TempdirFactory
-from _pytest.runner import CallInfo
 
 log_level = os.getenv("TEST_LOG_LEVEL", "INFO").upper()
 log_levels = ("DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL", "EXCEPTION")
@@ -54,7 +50,7 @@ for noise_source in [
 log = logging.getLogger(__name__)
 
 
-start_time = 0.0
+start_time = 0
 
 
 def is_env_var_set(key: str, default: str) -> bool:
@@ -69,7 +65,7 @@ INTEGRATION_TEST_LOG_COLLECTION = is_env_var_set(
 
 
 @pytest.fixture(scope="session", autouse=True)
-def configure_universe(tmpdir_factory: TempdirFactory) -> Iterator[None]:
+def configure_universe(tmpdir_factory):
     if is_env_var_set("PACKAGE_REGISTRY_ENABLED", default=""):
         yield from sdk_package_registry.package_registry_session(tmpdir_factory)
     else:
@@ -77,7 +73,7 @@ def configure_universe(tmpdir_factory: TempdirFactory) -> Iterator[None]:
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item: pytest.Item, call: CallInfo) -> Iterator[None]:
+def pytest_runtest_makereport(item: pytest.Item, call):  # _pytest.runner.CallInfo
     """Hook to run after every test, before any other post-test hooks.
     See also: https://docs.pytest.org/en/latest/example/simple.html\
     #making-test-result-information-available-in-fixtures
@@ -86,7 +82,6 @@ def pytest_runtest_makereport(item: pytest.Item, call: CallInfo) -> Iterator[Non
     # Execute all other hooks to obtain the report object.
     outcome = yield
 
-    assert isinstance(outcome, pluggy.callers._Result)
     # Handle failures. Must be done here and not in a fixture in order to
     # properly handle post-yield fixture teardown failures.
     if INTEGRATION_TEST_LOG_COLLECTION:
@@ -95,7 +90,7 @@ def pytest_runtest_makereport(item: pytest.Item, call: CallInfo) -> Iterator[Non
         print("INTEGRATION_TEST_LOG_COLLECTION==False. Skipping log collection")
 
 
-def pytest_runtest_teardown(item: pytest.Item) -> None:
+def pytest_runtest_teardown(item: pytest.Item):
     """Hook to run after every test."""
     # Inject footer at end of test, may be followed by additional teardown.
     # Don't do this when running in teamcity, where it's redundant.
@@ -113,7 +108,7 @@ def pytest_runtest_teardown(item: pytest.Item) -> None:
         )
 
 
-def pytest_runtest_setup(item: pytest.Item) -> None:
+def pytest_runtest_setup(item: pytest.Item):
     """Hook to run before every test."""
     # Inject header at start of test, following automatic "path/to/test_file.py::test_name":
     # Don't do this when running in teamcity, where it's redundant.

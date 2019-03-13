@@ -1,5 +1,4 @@
 import logging
-from typing import Any, Dict, Iterator, Optional
 
 import pytest
 
@@ -18,7 +17,7 @@ pytestmark = pytest.mark.skipif(
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {"service": {"yaml": "pre-reserved-sidecar"}}
@@ -33,17 +32,17 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.10")
-def test_deploy() -> None:
+def test_deploy():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.10")
-def test_sidecar() -> None:
+def test_sidecar():
     run_plan("sidecar")
 
 
-def run_plan(plan_name: str, params: Optional[Dict[str, Any]] = None) -> None:
+def run_plan(plan_name, params=None):
     sdk_plan.start_plan(config.SERVICE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, plan_name)

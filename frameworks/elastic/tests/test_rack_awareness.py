@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.11")
 @sdk_utils.dcos_ee_only
-def test_zones_not_referenced_in_placement_constraints() -> None:
+def test_zones_not_referenced_in_placement_constraints():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
 
@@ -34,7 +34,7 @@ def test_zones_not_referenced_in_placement_constraints() -> None:
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.11")
 @sdk_utils.dcos_ee_only
-def test_zones_referenced_in_placement_constraints() -> None:
+def test_zones_referenced_in_placement_constraints():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(
         config.PACKAGE_NAME,
@@ -62,7 +62,7 @@ def test_zones_referenced_in_placement_constraints() -> None:
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.11")
 @sdk_utils.dcos_ee_only
-def test_heterogeneus_zone_constraints() -> None:
+def test_heterogeneus_zone_constraints():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     sdk_install.install(
         config.PACKAGE_NAME,

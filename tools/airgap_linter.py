@@ -11,10 +11,9 @@
 import re
 import sys
 import os
-from typing import List, Match
 
 
-def readlines_if_text_file(filename: str) -> List[str]:
+def readlines_if_text_file(filename):
     try:
         with open(filename, "r", encoding="utf8") as fh:
             return fh.readlines()
@@ -24,7 +23,7 @@ def readlines_if_text_file(filename: str) -> List[str]:
         return []
 
 
-def extract_uris(file_name: str) -> List[str]:
+def extract_uris(file_name):
     lines = readlines_if_text_file(file_name)
 
     matcher = re.compile(r".*https?:\/\/([^\?\s]*)", re.IGNORECASE)
@@ -45,7 +44,7 @@ def extract_uris(file_name: str) -> List[str]:
     return matches
 
 
-def validate_uris_in(file_name: str) -> bool:
+def validate_uris_in(file_name):
     uris = extract_uris(file_name)
 
     bad_uri = False
@@ -56,7 +55,7 @@ def validate_uris_in(file_name: str) -> bool:
     return not bad_uri
 
 
-def is_bad_uri(uri: str, file_name: str) -> bool:
+def is_bad_uri(uri, file_name):
     # A FQDN is a valid cluster internal FQDN if it contains one of the listed exceptions
     exceptions = [
         ".thisdcos",
@@ -91,7 +90,7 @@ def is_bad_uri(uri: str, file_name: str) -> bool:
     return True
 
 
-def get_files_to_check_for_uris(framework_directory: str) -> List[str]:
+def get_files_to_check_for_uris(framework_directory):
     # There's a set of files that will always be present.
     files = [
         os.path.join(framework_directory, "universe", "config.json"),
@@ -108,7 +107,7 @@ def get_files_to_check_for_uris(framework_directory: str) -> List[str]:
     return files
 
 
-def validate_all_uris(framework_directory: str) -> bool:
+def validate_all_uris(framework_directory):
     bad_file = False
     files = get_files_to_check_for_uris(framework_directory)
     for file in files:
@@ -118,7 +117,7 @@ def validate_all_uris(framework_directory: str) -> bool:
     return not bad_file
 
 
-def validate_images(framework_directory: str) -> bool:
+def validate_images(framework_directory):
     files = get_files_to_check_for_uris(framework_directory)
 
     bad_image = False
@@ -130,7 +129,6 @@ def validate_images(framework_directory: str) -> bool:
             if "image:" in line:
                 image_matcher = re.compile(r"image:\s?(.*)$", re.IGNORECASE)
                 match = image_matcher.match(line)
-                assert isinstance(match, Match)
                 image_path = match.group(1)
                 env_var_matcher = re.compile(r'["]?\{\{[A-Z0-9_]*\}\}["]?')
                 if not env_var_matcher.match(image_path):
@@ -145,7 +143,7 @@ def validate_images(framework_directory: str) -> bool:
     return not bad_image
 
 
-def print_help() -> None:
+def print_help():
     print(
         """Scans a framework for any airgap issues. Checks all files for external URIs,
 and docker images for direct references
@@ -154,7 +152,7 @@ usage: python airgap_linter.py <framework-directory>"""
     )
 
 
-def main(argv: List[str]) -> None:
+def main(argv):
     if len(argv) < 2:
         print_help()
         sys.exit(0)
@@ -191,4 +189,4 @@ def main(argv: List[str]) -> None:
 
 
 if __name__ == "__main__":
-    main(sys.argv)
+    sys.exit(main(sys.argv))

@@ -1,5 +1,4 @@
 import logging
-from typing import Iterator
 
 import pytest
 
@@ -14,7 +13,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -24,7 +23,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_custom_service_tld() -> None:
+def test_custom_service_tld():
     task_count = 1
     custom_tld = sdk_hosts.get_crypto_id_domain()
     sdk_install.install(

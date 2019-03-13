@@ -2,9 +2,7 @@ import json
 import logging
 import retrying
 import uuid
-from typing import Any, Callable, Dict, List, Optional, Tuple
 
-import sdk_auth
 import sdk_cmd
 import sdk_hosts
 import sdk_plan
@@ -29,11 +27,11 @@ DOCKER_IMAGE_NAME = "mesosphere/hdfs-testing-client:6972ea3833c9449111aceaa998e3
 CLIENT_APP_NAME = "hdfs-client"
 
 
-def hadoop_command(command: str) -> str:
+def hadoop_command(command):
     return "/{}/bin/hdfs {}".format(HADOOP_VERSION, command)
 
 
-def hdfs_command(command: str) -> str:
+def hdfs_command(command):
     return hadoop_command("dfs -{}".format(command))
 
 
@@ -42,11 +40,11 @@ def get_unique_filename(prefix: str) -> str:
 
 
 def hdfs_client_write_data(
-    filename: str,
-    expect_failure_message: Optional[str] = None,
-    content_to_write: str = TEST_CONTENT_SMALL,
-) -> Tuple[bool, str, str]:
-    def success_check(rc: int, stdout: str, stderr: str) -> bool:
+        filename,
+        expect_failure_message=None,
+        content_to_write=TEST_CONTENT_SMALL,
+) -> tuple:
+    def success_check(rc, stdout, stderr):
         if rc == 0 and not stderr:
             # rc is still zero even if the "put" command failed! This is because "task exec" eats the return code.
             # Therefore we must also check stderr to tell if the command actually succeeded.
@@ -74,11 +72,11 @@ def hdfs_client_write_data(
 
 
 def hdfs_client_read_data(
-    filename: str,
-    expect_failure_message: Optional[str] = None,
-    content_to_verify: str = TEST_CONTENT_SMALL,
-) -> Tuple[bool, str, str]:
-    def success_check(rc: int, stdout: str, stderr: str) -> bool:
+        filename,
+        expect_failure_message=None,
+        content_to_verify=TEST_CONTENT_SMALL,
+) -> tuple:
+    def success_check(rc, stdout, stderr):
         if rc == 0 and stdout.rstrip() == content_to_verify:
             # rc only tells us if the 'task exec' operation itself failed. It is zero when the hdfs command fails.
             # This is because "task exec" eats that return code.
@@ -104,14 +102,11 @@ def hdfs_client_read_data(
     return (success, stdout, stderr)
 
 
-def hdfs_client_list_files(filename: str) -> tuple:
+def hdfs_client_list_files(filename) -> tuple:
     return run_client_command(hdfs_command("ls {}".format(filename)))
 
 
-def get_hdfs_client_app(
-    service_name: str,
-    kerberos: Optional[sdk_auth.KerberosEnvironment] = None,
-) -> Dict[str, Any]:
+def get_hdfs_client_app(service_name, kerberos=None) -> dict:
     """
     Returns a Marathon app definition for an HDFS client against the specified service.
 
@@ -120,7 +115,7 @@ def get_hdfs_client_app(
     18/08/21 20:36:57 FATAL conf.Configuration: error parsing conf core-site.xml
            org.xml.sax.SAXParseException; Premature end of file.
     """
-    app: Dict[str, Any] = {
+    app = {
         "id": CLIENT_APP_NAME,
         "mem": 1024,
         "user": "nobody",
@@ -157,10 +152,7 @@ def get_hdfs_client_app(
     return app
 
 
-def run_client_command(
-    hdfs_command: str,
-    success_check: Callable[[int, str, str], bool] = lambda rc, stdout, stderr: rc == 0,
-) -> Tuple[bool, str, str]:
+def run_client_command(hdfs_command, success_check=lambda rc, stdout, stderr: rc == 0):
     """
     Execute the provided shell command within the HDFS Docker client.
     Client app must have first been installed to marathon, see using get_hdfs_client_app().
@@ -170,19 +162,14 @@ def run_client_command(
         stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res[0],
     )
-    def _run_client_command() -> Tuple[bool, str, str]:
+    def _run_client_command():
         rc, stdout, stderr = sdk_cmd.marathon_task_exec(CLIENT_APP_NAME, "/bin/bash -c '{}'".format(hdfs_command))
         return (success_check(rc, stdout, stderr), stdout, stderr)
 
-    is_success, stdout, stderr = _run_client_command()
-    return (bool(is_success), str(stdout), str(stderr))
+    return _run_client_command()
 
 
-def check_healthy(
-    service_name: str,
-    count: int = DEFAULT_TASK_COUNT,
-    recovery_expected: bool = False,
-) -> None:
+def check_healthy(service_name, count=DEFAULT_TASK_COUNT, recovery_expected=False):
     sdk_plan.wait_for_completed_deployment(service_name, timeout_seconds=25 * 60)
     if recovery_expected:
         # TODO(elezar): See INFINITY-2109 where we need to better handle recovery health checks
@@ -191,12 +178,12 @@ def check_healthy(
     sdk_tasks.check_running(service_name, count)
 
 
-def expect_recovery(service_name: str) -> None:
+def expect_recovery(service_name):
     # TODO(elezar, nima) check_healthy also check for complete deployment, and this should not
     # affect the state of recovery.
     check_healthy(service_name=service_name, count=DEFAULT_TASK_COUNT, recovery_expected=True)
 
 
-def get_pod_type_instances(pod_type_prefix: str, service_name: str = SERVICE_NAME) -> List[str]:
+def get_pod_type_instances(pod_type_prefix, service_name=SERVICE_NAME):
     _, stdout, _ = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, "pod list", check=True)
     return [pod_type for pod_type in json.loads(stdout) if pod_type.startswith(pod_type_prefix)]

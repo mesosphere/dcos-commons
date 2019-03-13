@@ -1,9 +1,7 @@
 import logging
-from typing import Iterator
-
-import pytest
 import retrying
 
+import pytest
 import sdk_cmd
 import sdk_install
 import sdk_marathon
@@ -52,7 +50,7 @@ options_dcos_space_test = {
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_cmd.run_cli("package install --cli dcos-enterprise-cli --yes")
@@ -72,7 +70,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 @pytest.mark.smoke
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_secrets_basic() -> None:
+def test_secrets_basic():
     # 1) create Secrets
     # 2) install examples/secrets.yml
     # 3) if secret file is not created, tasks will fail
@@ -113,7 +111,7 @@ def test_secrets_basic() -> None:
 @pytest.mark.smoke
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_secrets_verify() -> None:
+def test_secrets_verify():
     # 1) create Secrets
     # 2) install examples/secrets.yml
     # 3) verify Secrets content
@@ -168,7 +166,7 @@ def test_secrets_verify() -> None:
 @pytest.mark.smoke
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_secrets_update() -> None:
+def test_secrets_update():
     # 1) create Secrets
     # 2) install examples/secrets.yml
     # 3) update Secrets
@@ -190,7 +188,7 @@ def test_secrets_update() -> None:
     # tasks will fail if secret file is not created
     sdk_tasks.check_running(config.SERVICE_NAME, NUM_HELLO + NUM_WORLD)
 
-    def update_secret(secret_name: str) -> None:
+    def update_secret(secret_name):
         sdk_cmd.run_cli(
             "security secrets update --value={} {}".format(secret_content_alternative, secret_name)
         )
@@ -239,7 +237,7 @@ def test_secrets_update() -> None:
 @pytest.mark.smoke
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_secrets_config_update() -> None:
+def test_secrets_config_update():
     # 1) install examples/secrets.yml
     # 2) create new Secrets, delete old Secrets
     # 2) update configuration with new Secrets
@@ -321,7 +319,7 @@ def test_secrets_config_update() -> None:
 @pytest.mark.smoke
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_secrets_dcos_space() -> None:
+def test_secrets_dcos_space():
     # 1) create secrets in hello-world/somePath, i.e. hello-world/somePath/secret1 ...
     # 2) Tasks with DCOS_SPACE hello-world/somePath
     #       or some DCOS_SPACE path under hello-world/somePath
@@ -359,8 +357,8 @@ def test_secrets_dcos_space() -> None:
     delete_secrets("{}/somePath/".format(config.SERVICE_NAME))
 
 
-def create_secrets(path_prefix: str = "", secret_content: str = secret_content_default) -> None:
-    def create_secret(secret_name: str) -> None:
+def create_secrets(path_prefix="", secret_content=secret_content_default):
+    def create_secret(secret_name):
         sdk_cmd.run_cli(
             "security secrets create --value={} {}".format(secret_content, secret_name)
         )
@@ -370,8 +368,8 @@ def create_secrets(path_prefix: str = "", secret_content: str = secret_content_d
     create_secret("{}secret3".format(path_prefix))
 
 
-def delete_secrets(path_prefix: str = "") -> None:
-    def delete_secret(secret_name: str) -> None:
+def delete_secrets(path_prefix=""):
+    def delete_secret(secret_name):
         sdk_cmd.run_cli("security secrets delete {}".format(secret_name))
 
     delete_secret("{}secret1".format(path_prefix))
@@ -380,7 +378,7 @@ def delete_secrets(path_prefix: str = "") -> None:
 
 
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
-def read_secret(task_name: str, command: str) -> str:
+def read_secret(task_name, command):
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
     lines = [line.strip() for line in output.split("\n")]
     log.info("Looking for %s...", secret_content_default)

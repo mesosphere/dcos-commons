@@ -5,14 +5,13 @@ import logging
 import os
 import os.path
 import subprocess
-from typing import Optional
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
 class S3Uploader(object):
-    def __init__(self, s3_directory: str, dry_run: bool = False) -> None:
+    def __init__(self, s3_directory, dry_run=False):
         # check if aws cli tools are installed
         if subprocess.run("aws --version".split()).returncode != 0:
             raise Exception('Required "aws" command is not installed.')
@@ -22,10 +21,10 @@ class S3Uploader(object):
         self._reauth_attempted = False
         self._dry_run = dry_run
 
-    def get_s3_directory(self) -> str:
+    def get_s3_directory(self):
         return self._s3_directory
 
-    def upload(self, filepath: str, content_type: Optional[str] = None) -> None:
+    def upload(self, filepath, content_type=None):
         filename = os.path.basename(filepath)
         cmdlist = ["aws s3"]
         if self._aws_region:
@@ -50,7 +49,7 @@ class S3Uploader(object):
             # failed once, then renewal failed or retry failed
             raise Exception("Failed to upload {} to {}".format(filepath, dest_url))
 
-    def _renew_credentials(self) -> bool:
+    def _renew_credentials(self):
         if self._reauth_attempted:
             # reauth was already tried once during this session. any failure must be from something else.
             return False
@@ -76,7 +75,7 @@ class S3Uploader(object):
             raise Exception("Failed to renew credentials for AWS profile {}".format(aws_profile))
         return True
 
-    def _get_aws_profile(self) -> str:
+    def _get_aws_profile(self):
         aws_profile = os.getenv("AWS_PROFILE")
         if aws_profile:
             return aws_profile

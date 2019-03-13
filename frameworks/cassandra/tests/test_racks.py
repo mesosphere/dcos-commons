@@ -1,7 +1,5 @@
 import logging
 import pytest
-from typing import Generator
-
 import sdk_install
 import sdk_upgrade
 import sdk_utils
@@ -13,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Generator:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
@@ -25,7 +23,7 @@ def configure_package(configure_security: None) -> Generator:
 @pytest.mark.dcos_min_version("1.11")
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_rack() -> None:
+def test_rack():
     sdk_install.install(
         config.PACKAGE_NAME,
         config.get_foldered_service_name(),
@@ -49,7 +47,7 @@ def test_rack() -> None:
 
 
 @pytest.mark.sanity
-def test_custom_rack_upgrade() -> None:
+def test_custom_rack_upgrade():
     foldered_service_name = config.get_foldered_service_name()
     service_options = {"service": {"name": foldered_service_name, "rack": "not-rack1"}}
     sdk_upgrade.test_upgrade(

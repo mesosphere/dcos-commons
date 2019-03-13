@@ -12,7 +12,6 @@ import json
 import logging
 import sys
 import difflib
-from typing import Callable, List
 
 
 logging.basicConfig(
@@ -29,10 +28,10 @@ def read_file(file_path: str) -> str:
 
 
 def read_json_file(file_path: str) -> collections.OrderedDict:
-    return collections.OrderedDict(json.loads(read_file(file_path), object_pairs_hook=collections.OrderedDict))
+    return json.loads(read_file(file_path), object_pairs_hook=collections.OrderedDict)
 
 
-def write_file(file_path: str, content: str) -> None:
+def write_file(file_path: str, content: str) -> str:
     LOG.info("Writing to %s", file_path)
     with open(file_path, "w") as handle:
         handle.write(content)
@@ -40,15 +39,12 @@ def write_file(file_path: str, content: str) -> None:
             handle.write("\n")
 
 
-def write_json_file(file_path: str, content: collections.OrderedDict) -> None:
+def write_json_file(file_path: str, content: collections.OrderedDict):
     write_file(file_path, json.dumps(content, indent=2))
 
 
 def reorder(
-    original: collections.OrderedDict,
-    head: List = [],
-    tail: List = [],
-    mapper: Callable = lambda x: x,
+    original: collections.OrderedDict, head: list = [], tail: list = [], mapper=lambda x: x
 ) -> collections.OrderedDict:
     remaining = []
 
@@ -62,7 +58,7 @@ def reorder(
             continue
         remaining.append(p)
 
-    reordered: collections.OrderedDict = collections.OrderedDict()
+    reordered = collections.OrderedDict()
     for p in head:
         if p in original:
             reordered[p] = mapper(original[p])
@@ -99,7 +95,7 @@ def reorder_service(service_properties: collections.OrderedDict) -> collections.
     return reorder(service_properties, expected_order_head, expected_order_tail, reorder_property)
 
 
-def print_diff(original: collections.OrderedDict, new: collections.OrderedDict) -> None:
+def print_diff(original: collections.OrderedDict, new: collections.OrderedDict):
     o = json.dumps(original, indent=2)
     c = json.dumps(new, indent=2)
 
@@ -108,7 +104,7 @@ def print_diff(original: collections.OrderedDict, new: collections.OrderedDict) 
     LOG.info("\n".join(diff))
 
 
-def process(filename: str) -> None:
+def process(filename: str):
     contents = read_json_file(filename)
     original = read_json_file(filename)
 

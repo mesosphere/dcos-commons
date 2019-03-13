@@ -1,5 +1,4 @@
 import logging
-from typing import Iterator
 
 import pytest
 from tests import config
@@ -16,7 +15,7 @@ pytestmark = pytest.mark.dcos_min_version("1.10")
 
 
 @pytest.fixture(scope="function", autouse=True)
-def before_each_test(configure_security: None) -> Iterator[None]:
+def before_each_test(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         # Install hello-world with single yaml
@@ -32,7 +31,7 @@ def before_each_test(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_old_tasks_not_relaunched() -> None:
+def test_old_tasks_not_relaunched():
     hello_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello")
     assert len(hello_task_id) > 0, "Got an empty list of task_ids"
     # Start update plan with options that have list of yaml files to make it launch in multi service mode
@@ -56,7 +55,7 @@ def test_old_tasks_not_relaunched() -> None:
 
 
 @pytest.mark.sanity
-def test_old_tasks_get_relaunched_with_new_config() -> None:
+def test_old_tasks_get_relaunched_with_new_config():
     hello_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello")
     assert len(hello_task_id) > 0, "Got an empty list of task_ids"
     # Start update plan with options that have list of yaml files to make it

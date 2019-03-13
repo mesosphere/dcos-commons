@@ -4,7 +4,6 @@ import json
 import logging
 import pytest
 import re
-from typing import Iterator, List, Union
 
 import sdk_agents
 import sdk_cmd
@@ -19,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         install_options_helper()
         yield  # let the test session execute
@@ -28,7 +27,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_pod_restart() -> None:
+def test_pod_restart():
     hello_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0")
 
     # get current agent id:
@@ -61,7 +60,7 @@ def test_pod_restart() -> None:
 
 
 @pytest.mark.sanity
-def test_pod_replace() -> None:
+def test_pod_replace():
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
 
     rc, stdout, _ = sdk_cmd.svc_cli(
@@ -80,7 +79,7 @@ def test_pod_replace() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_pod_pause_resume() -> None:
+def test_pod_pause_resume():
     """Tests pausing and resuming a pod. Similar to pod restart, except the task is marked with a PAUSED state"""
 
     # get current agent id:
@@ -208,7 +207,7 @@ def test_pod_pause_resume() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_pods_restart_graceful_shutdown() -> None:
+def test_pods_restart_graceful_shutdown():
     install_options_helper(30)
 
     world_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "world-0")
@@ -239,7 +238,7 @@ def test_pods_restart_graceful_shutdown() -> None:
 
 
 @pytest.mark.sanity
-def test_kill_scheduler() -> None:
+def test_kill_scheduler():
     task_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "")
     scheduler_task_prefix = sdk_marathon.get_scheduler_task_prefix(config.SERVICE_NAME)
     scheduler_ids = sdk_tasks.get_task_ids("marathon", scheduler_task_prefix)
@@ -258,7 +257,7 @@ def test_kill_scheduler() -> None:
 
 
 @pytest.mark.sanity
-def test_kill_hello_task() -> None:
+def test_kill_hello_task():
     hello_task = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix="hello-0")[0]
 
     sdk_cmd.kill_task_with_pattern(
@@ -272,7 +271,7 @@ def test_kill_hello_task() -> None:
 
 
 @pytest.mark.sanity
-def test_kill_world_executor() -> None:
+def test_kill_world_executor():
     world_task = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix="world-0")[0]
 
     sdk_cmd.kill_task_with_pattern(
@@ -286,7 +285,7 @@ def test_kill_world_executor() -> None:
 
 
 @pytest.mark.sanity
-def test_kill_all_executors() -> None:
+def test_kill_all_executors():
     tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME)
 
     for task in tasks:
@@ -301,14 +300,14 @@ def test_kill_all_executors() -> None:
 
 
 @pytest.mark.sanity
-def test_kill_master() -> None:
+def test_kill_master():
     sdk_cmd.kill_task_with_pattern("mesos-master", "root")
 
     check_healthy()
 
 
 @pytest.mark.sanity
-def test_kill_zk() -> None:
+def test_kill_zk():
     sdk_cmd.kill_task_with_pattern("QuorumPeerMain", "dcos_exhibitor")
 
     check_healthy()
@@ -319,7 +318,7 @@ def test_kill_zk() -> None:
     sdk_utils.dcos_version_less_than("1.10"),
     reason="BLOCKED-INFINITY-3203: Skipping recovery tests on 1.9",
 )
-def test_config_update_while_partitioned() -> None:
+def test_config_update_while_partitioned():
     world_tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "world")
     partition_host = world_tasks[0].host
 
@@ -349,7 +348,7 @@ def test_config_update_while_partitioned() -> None:
 # @@@@@@@
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.11")
-def test_auto_replace_on_decommission() -> None:
+def test_auto_replace_on_decommission():
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile("^(hello|world)-[0-9]+-server$")
     )
@@ -386,7 +385,7 @@ def test_auto_replace_on_decommission() -> None:
 # WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
 # @@@@@@@
 @pytest.mark.sanity
-def test_shutdown_host() -> None:
+def test_shutdown_host():
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile("^(hello|world)-[0-9]+-server$")
     )
@@ -438,7 +437,7 @@ def test_shutdown_host() -> None:
         assert replaced_task.agent_id != new_task.agent_id
 
 
-def install_options_helper(kill_grace_period: int = 0) -> None:
+def install_options_helper(kill_grace_period=0):
     options = {"world": {"kill_grace_period": kill_grace_period, "count": 3}}
 
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -450,9 +449,7 @@ def install_options_helper(kill_grace_period: int = 0) -> None:
     )
 
 
-def check_healthy(
-    expected_recovery_state: Union[List[str], str] = "COMPLETE",
-) -> None:
+def check_healthy(expected_recovery_state="COMPLETE"):
     config.check_running()
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     sdk_plan.wait_for_plan_status(config.SERVICE_NAME, "recovery", expected_recovery_state)
