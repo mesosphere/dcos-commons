@@ -11,10 +11,10 @@ RUN curl -O https://storage.googleapis.com/golang/go${GO_VERSION}.linux-amd64.ta
     go version
 
 # Install the lint+testing dependencies and AWS CLI for uploading build artifacts
-COPY test_requirements.txt test_requirements.txt
-RUN pip3 install --upgrade -r test_requirements.txt
+COPY frozen_requirements.txt frozen_requirements.txt
+RUN pip3 install --upgrade -r frozen_requirements.txt
 COPY tools/validate_pip_freeze.py /usr/local/bin
-RUN validate_pip_freeze.py test_requirements.txt
+RUN validate_pip_freeze.py frozen_requirements.txt
 
 # Get DC/OS CLI
 COPY dep-snapshots/dcos /usr/local/bin
