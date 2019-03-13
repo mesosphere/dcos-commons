@@ -3,7 +3,6 @@
 import base64
 import collections
 import difflib
-import http
 import json
 import logging
 import os
@@ -14,7 +13,6 @@ import sys
 import tempfile
 import universe
 import urllib.request
-from typing import Any, Dict, List, Optional
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -82,18 +80,18 @@ class UniverseReleaseBuilder(object):
 
     def __init__(
         self,
-        package_version: str,
-        stub_universe_url: str,
-        http_release_server: str = os.environ.get(
+        package_version,
+        stub_universe_url,
+        http_release_server=os.environ.get(
             "HTTP_RELEASE_SERVER", "https://downloads.mesosphere.com"
         ),
-        s3_release_bucket: str = os.environ.get("S3_RELEASE_BUCKET", "downloads.mesosphere.io"),
-        release_docker_image: Optional[str] = os.environ.get("RELEASE_DOCKER_IMAGE"),
-        release_dir_path: str = os.environ.get("RELEASE_DIR_PATH", ""),
-        beta_release: str = os.environ.get("BETA", "False"),
-        upgrades_from: str = os.environ.get("UPGRADES_FROM", ""),
-    ) -> None:
-        self._dry_run = bool(os.environ.get("DRY_RUN", ""))
+        s3_release_bucket=os.environ.get("S3_RELEASE_BUCKET", "downloads.mesosphere.io"),
+        release_docker_image=os.environ.get("RELEASE_DOCKER_IMAGE"),
+        release_dir_path=os.environ.get("RELEASE_DIR_PATH", ""),
+        beta_release=os.environ.get("BETA", "False"),
+        upgrades_from=os.environ.get("UPGRADES_FROM", ""),
+    ):
+        self._dry_run = os.environ.get("DRY_RUN", "")
         self._force_upload = os.environ.get("FORCE_ARTIFACT_UPLOAD", "").lower() == "true"
         self._beta_release = beta_release.lower() == "true"
 
@@ -139,7 +137,7 @@ Upgrades from:   {}
             )
         )
 
-    def _run_cmd(self, cmd: str, exit_on_fail: bool = True, dry_run_return: int = 0) -> int:
+    def _run_cmd(self, cmd, exit_on_fail=True, dry_run_return=0):
         if self._dry_run:
             log.info("[DRY RUN] {}".format(cmd))
             return dry_run_return
@@ -150,7 +148,7 @@ Upgrades from:   {}
                 raise Exception("{} return non-zero exit status: {}".format(cmd, ret))
             return ret
 
-    def _fetch_stub_universe(self) -> Dict[str, Any]:
+    def _fetch_stub_universe(self):
         _, stub_universe_extension = os.path.splitext(self._stub_universe_url)
         if not stub_universe_extension == ".json":
             raise Exception(
@@ -158,18 +156,13 @@ Upgrades from:   {}
             )
 
         with urllib.request.urlopen(self._stub_universe_url) as response:
-            message = response.info()
-            assert isinstance(message, http.client.HTTPMessage)
-            encoding = message.get_param("charset") or "utf-8"
-            assert isinstance(encoding, str)
             stub_universe_json = json.loads(
-                response.read().decode(encoding),
+                response.read().decode(response.info().get_param("charset") or "utf-8"),
                 object_pairs_hook=collections.OrderedDict,
             )
-        assert isinstance(stub_universe_json, dict)
         return stub_universe_json
 
-    def _unpack_stub_universe(self, stub_universe_json: Dict[str, Any], scratchdir: str) -> str:
+    def _unpack_stub_universe(self, stub_universe_json, scratchdir):
         """Downloads a stub-universe.json URL and unpacks the content into a temporary directory.
         Returns the directory where the resulting files were unpacked.
         """
@@ -193,7 +186,7 @@ Upgrades from:   {}
         # note: we delete elements from package_json they're unpacked, as package_json is itself written to a file
         package_json = stub_universe_json["packages"][0]
 
-        def extract_json_file(package_dict: Dict[str, Any], name: str) -> None:
+        def extract_json_file(package_dict, name):
             file_dict = package_dict.get(name)
             if file_dict is not None:
                 del package_dict[name]
@@ -222,7 +215,7 @@ Upgrades from:   {}
 
         return pkgdir
 
-    def _update_package_json(self, package_json: Dict[str, Any]) -> None:
+    def _update_package_json(self, package_json):
         """Updates the package.json definition to contain the desired version string,
         and updates the package to reflect any beta or non-beta status as necessary.
         """
@@ -267,7 +260,7 @@ Upgrades from:   {}
             )
         )
 
-    def _update_marathon_json(self, package_json: Dict[str, Any]) -> None:
+    def _update_marathon_json(self, package_json):
         """Updates the marathon.json definition to contain the desired name and version strings.
         """
         # note: the file isn't valid JSON, so we edit the raw content instead
@@ -292,7 +285,7 @@ Upgrades from:   {}
             "\n".join(marathon_lines).encode("utf-8")
         ).decode()
 
-    def _update_resource_json(self, package_json: Dict[str, Any]) -> List[str]:
+    def _update_resource_json(self, package_json):
         """Rewrites all artifact urls in pkgdir to self.release_artifact_http_dir.
         Returns the original urls.
         """
@@ -348,7 +341,7 @@ Upgrades from:   {}
 
         return original_artifact_urls
 
-    def _update_package_get_artifacts(self, package_json: Dict[str, Any]) -> List[str]:
+    def _update_package_get_artifacts(self, package_json):
         """Updates the provided package JSON representation.
 
         Returns the list of original artifact URLs that were built with the package,
@@ -358,7 +351,7 @@ Upgrades from:   {}
         self._update_marathon_json(package_json)
         return self._update_resource_json(package_json)
 
-    def _copy_artifacts_s3(self, scratchdir: str, original_artifact_urls: List[str]) -> None:
+    def _copy_artifacts_s3(self, scratchdir, original_artifact_urls):
         # Before we do anything else, verify that the upload directory doesn't already exist, to
         # avoid automatically stomping on a previous release. If you *want* to overwrite an existing
         # upload, you must manually delete the destination yourself, or set force=True when running
@@ -419,7 +412,7 @@ Upgrades from:   {}
             # delete the local temp copy
             os.unlink(local_path)
 
-    def move_package(self) -> str:
+    def move_package(self):
         """Updates package, puts artifacts in target location,
         and uploads updated stub-universe.json to target location."""
         # Download stub universe:
@@ -446,7 +439,7 @@ Upgrades from:   {}
             self._http_directory_url, stub_universe_filename
         )
 
-    def release_package(self, commit_desc: str = "") -> Optional[http.client.HTTPResponse]:
+    def release_package(self, commit_desc=""):
         """Updates package, puts artifacts in target location, and creates Universe PR."""
 
         # automatically include source universe URL in commit description:
@@ -509,7 +502,7 @@ def right_trim(string: str, suffix: str) -> str:
     return string
 
 
-def print_help(argv: List[str]) -> None:
+def print_help(argv):
     log.info(
         "Syntax: %s move|release <package-version> <stub-universe-url> [commit message]", argv[0]
     )
@@ -534,7 +527,7 @@ def print_help(argv: List[str]) -> None:
     log.info("- git (for release)")
 
 
-def main(argv: List[str]) -> int:
+def main(argv):
     if len(argv) < 4:
         print_help(argv)
         return 1
@@ -564,9 +557,7 @@ def main(argv: List[str]) -> int:
         log.info("---")
         log.info("Created pull request for version {} (PTAL):".format(package_version))
         # print the PR location as stdout for use upstream (the rest is all stderr):
-        encoding = response.info().get_param("charset") or "utf-8"
-        assert isinstance(encoding, str)
-        response_content = response.read().decode(encoding)
+        response_content = response.read().decode(response.info().get_param("charset") or "utf-8")
         print(json.loads(response_content)["html_url"])
     elif operation == "move":
         new_stub_url = builder.move_package()

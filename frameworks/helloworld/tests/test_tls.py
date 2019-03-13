@@ -1,5 +1,4 @@
 import logging
-from typing import Iterator
 
 import pytest
 import sdk_cmd
@@ -40,7 +39,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -96,7 +95,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_java_truststore() -> None:
+def test_java_truststore():
     """
     Make an HTTP request from CLI to nginx exposed service.
     Test that CLI reads and uses truststore to verify HTTPS connection.
@@ -121,7 +120,7 @@ def test_java_truststore() -> None:
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_tls_basic_artifacts() -> None:
+def test_tls_basic_artifacts():
 
     # Load end-entity certificate from keystore and root CA cert from truststore
     stdout = sdk_cmd.service_task_exec(
@@ -153,7 +152,7 @@ def test_tls_basic_artifacts() -> None:
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_java_keystore() -> None:
+def test_java_keystore():
     """
     Java `keystore-app` presents itself with provided TLS certificate
     from keystore.
@@ -189,7 +188,7 @@ def test_java_keystore() -> None:
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_tls_nginx() -> None:
+def test_tls_nginx():
     """
     Checks that NGINX exposes TLS service with correct PEM encoded end-entity
     certificate.
@@ -214,7 +213,7 @@ def test_tls_nginx() -> None:
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_changing_discovery_replaces_certificate_sans() -> None:
+def test_changing_discovery_replaces_certificate_sans():
     """
     Update service configuration to change discovery prefix of a task.
     Scheduler should update task and new SANs should be generated.
@@ -265,20 +264,15 @@ def test_changing_discovery_replaces_certificate_sans() -> None:
     assert expected_san in sans
 
 
-def _export_cert_from_task_keystore(
-    task_name: str,
-    keystore_path: str,
-    alias: str,
-    password: str = KEYSTORE_PASS,
-) -> x509.Certificate:
+def _export_cert_from_task_keystore(task_name, keystore_path, alias, password=KEYSTORE_PASS):
     """
     Retrieves certificate from the keystore with given alias by executing
     a keytool in context of running container and loads the certificate to
     memory.
 
     Args:
-        task_name: Task id of container that contains the keystore
-        keystore_path: Path inside container to keystore containing
+        task (str): Task id of container that contains the keystore
+        keystore_path (str): Path inside container to keystore containing
             the certificate
         alias (str): Alias of the certificate in the keystore
 
@@ -298,7 +292,28 @@ def _export_cert_from_task_keystore(
     return x509.load_pem_x509_certificate(cert_bytes, DEFAULT_BACKEND)
 
 
-def _keystore_export_command(keystore_path: str, cert_alias: str, args: str) -> str:
+def _keystore_list_command(keystore_path, args=None):
+    """
+    Creates a command that can be executed using `dcos exec` CLI and will
+    list certificates from provided keystore using java `keytool` command.
+
+    https://docs.oracle.com/javase/8/docs/technotes/tools/windows/keytool.html
+
+    Args:
+        keystore_path (str): Path to the keystore file
+        args (str): Optionally addiontal arguments for the `keytool -list`
+            command.
+
+    Returns:
+        A string that can be used as `dcos exec` argument.
+    """
+    return _java_command(
+        "keytool -list -keystore {keystore_path} "
+        "-noprompt {args}".format(keystore_path=keystore_path, args=args)
+    )
+
+
+def _keystore_export_command(keystore_path, cert_alias, args=None):
     """
     Runs the exportcert keytool command to export certificate with given alias.
     """
@@ -308,7 +323,7 @@ def _keystore_export_command(keystore_path: str, cert_alias: str, args: str) -> 
     )
 
 
-def _java_command(command: str) -> str:
+def _java_command(command):
     """
     General wrapper that can execute java command in container with SDK
     injected java binary.

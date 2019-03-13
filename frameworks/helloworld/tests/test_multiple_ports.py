@@ -1,6 +1,5 @@
 import logging
 import pytest
-from typing import Iterator
 
 import sdk_install
 import sdk_tasks
@@ -11,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         yield  # let the test session execute
@@ -20,7 +19,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_launch_task_with_multiple_ports() -> None:
+def test_launch_task_with_multiple_ports():
     sdk_install.install(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,

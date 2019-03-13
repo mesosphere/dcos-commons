@@ -2,7 +2,6 @@ import json
 import logging
 import pytest
 import retrying
-from typing import Iterator
 
 import sdk_cmd
 import sdk_install
@@ -19,7 +18,7 @@ pytestmark = pytest.mark.dcos_min_version("1.9")
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         # due to canary: no tasks should launch, and suppressed shouldn't be set
@@ -41,13 +40,13 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_canary_init() -> None:
+def test_canary_init():
     @retrying.retry(wait_fixed=1000, stop_max_delay=600 * 1000, retry_on_result=lambda res: not res)
-    def wait_for_empty() -> bool:
+    def wait_for_empty():
         # check for empty list internally rather than returning empty list.
         rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod list")
         assert rc == 0, "Pod list failed"
-        return bool(json.loads(stdout) == [])
+        return json.loads(stdout) == []
 
     wait_for_empty()
 
@@ -78,7 +77,7 @@ def test_canary_init() -> None:
 
 
 @pytest.mark.sanity
-def test_canary_first() -> None:
+def test_canary_first():
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "plan continue deploy hello-deploy")
 
     expected_tasks = ["hello-0"]
@@ -118,7 +117,7 @@ def test_canary_first() -> None:
 
 
 @pytest.mark.sanity
-def test_canary_plan_continue_noop() -> None:
+def test_canary_plan_continue_noop():
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "plan continue deploy")
 
     # the plan doesn't have the waiting bit set, so telling it to continue should be a no-op
@@ -139,7 +138,7 @@ def test_canary_plan_continue_noop() -> None:
 
 
 @pytest.mark.sanity
-def test_canary_second() -> None:
+def test_canary_second():
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "plan continue deploy world-deploy")
     sdk_plan.wait_for_step_status(
         config.SERVICE_NAME, "deploy", "world-deploy", "world-0:[server]", "PENDING"
@@ -188,7 +187,7 @@ def test_canary_second() -> None:
 
 
 @pytest.mark.sanity
-def test_canary_third() -> None:
+def test_canary_third():
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "plan continue deploy hello-deploy")
 
     expected_tasks = ["hello-0", "hello-1", "hello-2", "hello-3", "world-0"]
@@ -224,7 +223,7 @@ def test_canary_third() -> None:
 
 
 @pytest.mark.sanity
-def test_canary_fourth() -> None:
+def test_canary_fourth():
     sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "plan continue deploy world-deploy")
 
     expected_tasks = [
@@ -269,7 +268,7 @@ def test_canary_fourth() -> None:
 
 
 @pytest.mark.sanity
-def test_increase_count() -> None:
+def test_increase_count():
     sdk_marathon.bump_task_count_config(config.SERVICE_NAME, "HELLO_COUNT")
 
     expected_tasks = [
@@ -366,7 +365,7 @@ def test_increase_count() -> None:
 
 
 @pytest.mark.sanity
-def test_increase_cpu() -> None:
+def test_increase_cpu():
     hello_0_ids = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello-0-server")
     config.bump_hello_cpus()
 

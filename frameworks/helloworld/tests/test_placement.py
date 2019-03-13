@@ -1,7 +1,6 @@
 import functools
 import json
 import logging
-from typing import Any, Dict, Iterator, List, Tuple
 
 import pytest
 import sdk_agents
@@ -17,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -28,7 +27,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 @pytest.mark.dcos_min_version("1.12")
 @pytest.mark.sanity
-def test_scheduler_task_placement_by_marathon() -> None:
+def test_scheduler_task_placement_by_marathon():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     try:
         # This test ensures that the placement of the scheduler task itself works as expected.
@@ -56,8 +55,8 @@ def test_scheduler_task_placement_by_marathon() -> None:
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def test_region_zone_injection() -> None:
-    def fault_domain_vars_are_present(pod_instance: str) -> bool:
+def test_region_zone_injection():
+    def fault_domain_vars_are_present(pod_instance):
         info = sdk_cmd.service_request(
             "GET", config.SERVICE_NAME, "/v1/pod/{}/info".format(pod_instance), log_response=False
         ).json()[0]["info"]
@@ -78,7 +77,7 @@ def test_region_zone_injection() -> None:
 @pytest.mark.smoke
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def test_rack_not_found() -> None:
+def test_rack_not_found():
     options = _escape_placement_for_1_9(
         {
             "service": {"yaml": "marathon_constraint"},
@@ -128,7 +127,7 @@ def test_rack_not_found() -> None:
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def test_unique_zone_fails() -> None:
+def test_unique_zone_fails():
     options = _escape_placement_for_1_9(
         {
             "service": {"yaml": "marathon_constraint"},
@@ -143,7 +142,7 @@ def test_unique_zone_fails() -> None:
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def test_max_per_zone_fails() -> None:
+def test_max_per_zone_fails():
     options = _escape_placement_for_1_9(
         {
             "service": {"yaml": "marathon_constraint"},
@@ -158,7 +157,7 @@ def test_max_per_zone_fails() -> None:
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def test_max_per_zone_succeeds() -> None:
+def test_max_per_zone_succeeds():
     options = _escape_placement_for_1_9(
         {
             "service": {"yaml": "marathon_constraint"},
@@ -173,7 +172,7 @@ def test_max_per_zone_succeeds() -> None:
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def test_group_by_zone_succeeds() -> None:
+def test_group_by_zone_succeeds():
     options = _escape_placement_for_1_9(
         {
             "service": {"yaml": "marathon_constraint"},
@@ -187,7 +186,7 @@ def test_group_by_zone_succeeds() -> None:
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def test_group_by_zone_fails() -> None:
+def test_group_by_zone_fails():
     options = _escape_placement_for_1_9(
         {
             "service": {"yaml": "marathon_constraint"},
@@ -200,7 +199,7 @@ def test_group_by_zone_fails() -> None:
 
 
 @pytest.mark.sanity
-def test_hostname_unique() -> None:
+def test_hostname_unique():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9(
         {
@@ -232,7 +231,7 @@ def test_hostname_unique() -> None:
 
 
 @pytest.mark.sanity
-def test_max_per_hostname() -> None:
+def test_max_per_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9(
         {
@@ -258,7 +257,7 @@ def test_max_per_hostname() -> None:
 
 
 @pytest.mark.sanity
-def test_rr_by_hostname() -> None:
+def test_rr_by_hostname():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     options = _escape_placement_for_1_9(
         {
@@ -291,7 +290,7 @@ def _escape_placement_for_1_9(options: dict) -> dict:
         log.info("DC/OS version >= 1.10")
         return options
 
-    def escape_section_placement(section: str, options: Dict[str, Any]) -> Dict[str, Any]:
+    def escape_section_placement(section: str, options: dict) -> dict:
         if section in options and "placement" in options[section]:
             options[section]["placement"] = options[section]["placement"].replace('"', '\\"')
             log.info("Escaping %s", section)
@@ -303,7 +302,7 @@ def _escape_placement_for_1_9(options: dict) -> dict:
 
 
 @pytest.mark.sanity
-def test_cluster() -> None:
+def test_cluster():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     some_agent = sdk_agents.get_private_agents().pop()["hostname"]
     options = _escape_placement_for_1_9(
@@ -326,7 +325,7 @@ def test_cluster() -> None:
     ensure_count_per_agent(hello_count=get_num_private_agents(), world_count=0)
 
 
-def succeed_placement(options: Dict[str, Any]) -> None:
+def succeed_placement(options):
     """
     This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
     """
@@ -334,7 +333,7 @@ def succeed_placement(options: Dict[str, Any]) -> None:
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-def fail_placement(options: Dict[str, Any]) -> None:
+def fail_placement(options):
     """
     This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
     """
@@ -381,7 +380,7 @@ def fail_placement(options: Dict[str, Any]) -> None:
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-def get_hello_world_agent_sets() -> Tuple[List[str], List[str]]:
+def get_hello_world_agent_sets():
     hello_agents = []
     world_agents = []
     for task in sdk_tasks.get_service_tasks(config.SERVICE_NAME):
@@ -394,14 +393,14 @@ def get_hello_world_agent_sets() -> Tuple[List[str], List[str]]:
     return hello_agents, world_agents
 
 
-def ensure_count_per_agent(hello_count: int, world_count: int) -> None:
+def ensure_count_per_agent(hello_count, world_count):
     hello_agents, world_agents = get_hello_world_agent_sets()
     assert len(hello_agents) == len(set(hello_agents)) * hello_count
     assert len(world_agents) == len(set(world_agents)) * world_count
 
 
-def groupby_count(a: List[str]) -> Dict[str, int]:
-    h: Dict[str, int] = {}
+def groupby_count(a):
+    h = {}
     for i in a:
         if i not in h:
             h[i] = 0
@@ -410,11 +409,11 @@ def groupby_count(a: List[str]) -> Dict[str, int]:
     return h
 
 
-def assert_max_count(counts: Dict[str, int], max_count: int) -> None:
+def assert_max_count(counts, max_count):
     assert not any(counts[i] > max_count for i in counts)
 
 
-def ensure_max_count_per_agent(hello_count: int, world_count: int) -> None:
+def ensure_max_count_per_agent(hello_count, world_count):
     hello_agents, world_agents = get_hello_world_agent_sets()
     hello_agent_counts = groupby_count(hello_agents)
     world_agent_counts = groupby_count(world_agents)
@@ -423,7 +422,7 @@ def ensure_max_count_per_agent(hello_count: int, world_count: int) -> None:
 
 
 @pytest.mark.sanity
-def test_updated_placement_constraints_not_applied_with_other_changes() -> None:
+def test_updated_placement_constraints_not_applied_with_other_changes():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
     # Additionally, modify the task count to be higher.
@@ -441,7 +440,7 @@ def test_updated_placement_constraints_not_applied_with_other_changes() -> None:
 
 
 @pytest.mark.sanity
-def test_updated_placement_constraints_no_task_change() -> None:
+def test_updated_placement_constraints_no_task_change():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
     sdk_tasks.check_tasks_not_updated(config.SERVICE_NAME, "hello", old_ids)
@@ -450,7 +449,7 @@ def test_updated_placement_constraints_no_task_change() -> None:
 
 
 @pytest.mark.sanity
-def test_updated_placement_constraints_restarted_tasks_dont_move() -> None:
+def test_updated_placement_constraints_restarted_tasks_dont_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
     # Restart the task, and verify it doesn't move hosts
@@ -462,7 +461,7 @@ def test_updated_placement_constraints_restarted_tasks_dont_move() -> None:
 
 
 @pytest.mark.sanity
-def test_updated_placement_constraints_replaced_tasks_do_move() -> None:
+def test_updated_placement_constraints_replaced_tasks_do_move():
     some_agent, other_agent, old_ids = setup_constraint_switch()
 
     # Replace the task, and verify it moves hosts
@@ -473,7 +472,7 @@ def test_updated_placement_constraints_replaced_tasks_do_move() -> None:
     assert get_task_host("hello-0-server") == other_agent
 
 
-def setup_constraint_switch() -> Tuple[str, str, List[str]]:
+def setup_constraint_switch():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
     agents = sdk_agents.get_private_agents()
@@ -506,7 +505,7 @@ def setup_constraint_switch() -> Tuple[str, str, List[str]]:
     return some_agent, other_agent, hello_ids
 
 
-def get_task_host(task_name: str) -> str:
+def get_task_host(task_name):
     _, out, _ = sdk_cmd.run_cli("task {} --json".format(task_name))
     tasks_json = json.loads(out)
     matching_tasks = list(filter(lambda t: t["name"] == task_name, tasks_json))
@@ -527,7 +526,6 @@ def get_task_host(task_name: str) -> str:
         if task.name == task_name:
             if task.host == host:
                 # OK!
-                assert isinstance(host, str)
                 return host
             else:
                 # CLI's hostname doesn't match the TaskInfo labels. Bug!
@@ -542,5 +540,5 @@ def get_task_host(task_name: str) -> str:
 
 
 @functools.lru_cache()
-def get_num_private_agents() -> int:
+def get_num_private_agents():
     return len(sdk_agents.get_private_agents())

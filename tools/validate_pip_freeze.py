@@ -8,7 +8,6 @@ import re
 import subprocess
 import sys
 import urllib.parse
-from typing import Dict, List
 
 
 _IGNORED_WHITELIST = [
@@ -17,8 +16,8 @@ _IGNORED_WHITELIST = [
 _HINT_RE = re.compile(r'.*validator-hint:( +name=(?P<name>[\w.-]+))?( +version=(?P<version>[\w.+-]+))? *$')
 
 
-def _duplicates(strings: List[str]) -> List[str]:
-    counts: Dict[str, int] = {}
+def _duplicates(strings: [str]) -> [str]:
+    counts = {}
     for s in strings:
         if s not in counts:
             counts[s] = 0

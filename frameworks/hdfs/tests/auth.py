@@ -36,7 +36,7 @@ def get_service_principals(service_name: str, realm: str) -> list:
     ]
     instances = map(lambda task: sdk_hosts.autoip_host(service_name, task), tasks)
 
-    principals = kerberos.generate_principal_list(primaries, list(instances), realm)
+    principals = kerberos.generate_principal_list(primaries, instances, realm)
     principals.extend(kerberos.generate_principal_list(USERS, [None], realm))
 
     http_instance = sdk_hosts.vip_host("marathon", ".".join(["api", service_name]))

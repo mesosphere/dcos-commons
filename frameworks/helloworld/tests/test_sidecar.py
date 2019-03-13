@@ -1,5 +1,4 @@
 import logging
-from typing import Any, Dict, Iterator, Optional
 
 import pytest
 import retrying
@@ -17,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {"service": {"yaml": "sidecar"}}
@@ -31,14 +30,14 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.mark.sanity
-def test_envvar_accross_restarts() -> None:
+def test_envvar_accross_restarts():
 
     class ConfigException(Exception):
         pass
 
-    def assert_envvar_has_value(envvar: str, expected_value: str) -> None:
+    def assert_envvar_has_value(envvar: str, expected_value: str):
         _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, "hello-0-server", "env")
-        env: Dict[str, str] = dict((l.strip().split("=", 1)[0], l.strip().split("=", 1)[1]) for l in stdout.strip().split('\n'))
+        env = dict(l.strip().split("=", 1) for l in stdout.strip().split('\n'))
         val = env.get(envvar, "absent")
 
         if val == "absent":
@@ -83,7 +82,7 @@ def test_envvar_accross_restarts() -> None:
 
 
 @pytest.mark.sanity
-def test_deploy() -> None:
+def test_deploy():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     log.info(sdk_plan.plan_string("deploy", deployment_plan))
@@ -96,17 +95,17 @@ def test_deploy() -> None:
 
 
 @pytest.mark.sanity
-def test_sidecar() -> None:
+def test_sidecar():
     run_plan("sidecar")
 
 
 @pytest.mark.sanity
-def test_sidecar_parameterized() -> None:
+def test_sidecar_parameterized():
     run_plan("sidecar-parameterized", {"PLAN_PARAMETER": "parameterized"})
 
 
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000, retry_on_result=lambda res: not res)
-def wait_for_toxic_sidecar() -> bool:
+def wait_for_toxic_sidecar():
     """
     Since the sidecar task fails too quickly, we check for the contents of
     the file generated in hello-container-path/toxic-output instead
@@ -130,7 +129,7 @@ def wait_for_toxic_sidecar() -> bool:
 
 
 @pytest.mark.sanity
-def test_toxic_sidecar_doesnt_trigger_recovery() -> None:
+def test_toxic_sidecar_doesnt_trigger_recovery():
     # 1. Run the toxic sidecar plan that will never succeed.
     # 2. Restart the scheduler.
     # 3. Verify that its recovery plan has not changed, as a failed ONCE task should
@@ -150,7 +149,7 @@ def test_toxic_sidecar_doesnt_trigger_recovery() -> None:
     assert initial_recovery_plan["status"] == final_recovery_plan["status"]
 
 
-def run_plan(plan_name: str, params: Optional[Dict[str, Any]] = None) -> None:
+def run_plan(plan_name, params=None):
     sdk_plan.start_plan(config.SERVICE_NAME, plan_name, params)
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, plan_name)

@@ -1,6 +1,5 @@
 import pytest
 import logging
-from typing import Any, Dict, Generator, List
 
 import sdk_cmd
 import sdk_hosts
@@ -20,8 +19,8 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Generator:
-    test_jobs: List[Dict[str, Any]] = []
+def configure_package(configure_security):
+    test_jobs = []
     try:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
@@ -45,7 +44,7 @@ def configure_package(configure_security: None) -> Generator:
 
 
 @pytest.mark.sanity
-def test_endpoints() -> None:
+def test_endpoints():
     # check that we can reach the scheduler via admin router, and that returned endpoints are sanitized:
     endpoints = sdk_networks.get_endpoint(
         config.PACKAGE_NAME, config.get_foldered_service_name(), "native-client"
@@ -58,7 +57,7 @@ def test_endpoints() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_repair_cleanup_plans_complete() -> None:
+def test_repair_cleanup_plans_complete():
     parameters = {"CASSANDRA_KEYSPACE": "testspace1"}
 
     # populate 'testspace1' for test, then delete afterwards:
@@ -82,18 +81,15 @@ def test_repair_cleanup_plans_complete() -> None:
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics() -> None:
+def test_metrics():
     expected_metrics = [
         "org.apache.cassandra.metrics.Table.CoordinatorReadLatency.system.hints.p999",
         "org.apache.cassandra.metrics.Table.CompressionRatio.system_schema.indexes",
         "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory",
     ]
 
-    def expected_metrics_exist(emitted_metrics: List[str]) -> bool:
-        return sdk_metrics.check_metrics_presence(
-            emitted_metrics=emitted_metrics,
-            expected_metrics=expected_metrics,
-        )
+    def expected_metrics_exist(emitted_metrics):
+        return sdk_metrics.check_metrics_presence(emitted_metrics, expected_metrics)
 
     sdk_metrics.wait_for_service_metrics(
         config.PACKAGE_NAME,
@@ -106,7 +102,7 @@ def test_metrics() -> None:
 
 
 @pytest.mark.sanity
-def test_custom_jmx_port() -> None:
+def test_custom_jmx_port():
     expected_open_port = ":7200 (LISTEN)"
 
     new_config = {"cassandra": {"jmx_port": 7200}}
