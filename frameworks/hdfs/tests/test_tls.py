@@ -1,4 +1,6 @@
 import logging
+from typing import Any, Dict, Iterator
+
 import pytest
 import retrying
 
@@ -32,7 +34,7 @@ DEFAULT_DATA_NODE_TLS_PORT = 9006
 
 
 @pytest.fixture(scope="module")
-def service_account(configure_security):
+def service_account(configure_security: None) -> Iterator[Dict[str, Any]]:
     """
     Sets up a service account for use with TLS.
     """
@@ -46,7 +48,7 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope="module")
-def hdfs_service(service_account):
+def hdfs_service(service_account: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     service_options = {
         "service": {
             "name": config.SERVICE_NAME,
@@ -72,7 +74,7 @@ def hdfs_service(service_account):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_client(hdfs_service):
+def hdfs_client(hdfs_service: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     try:
         client = config.get_hdfs_client_app(hdfs_service["service"]["name"])
         sdk_marathon.install_app(client)
@@ -85,7 +87,7 @@ def hdfs_client(hdfs_service):
 @pytest.mark.tls
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def test_healthy(hdfs_service):
+def test_healthy(hdfs_service: Dict[str, Any]) -> None:
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
@@ -93,7 +95,10 @@ def test_healthy(hdfs_service):
 @pytest.mark.sanity
 @pytest.mark.data_integrity
 @sdk_utils.dcos_ee_only
-def test_write_and_read_data_over_tls(hdfs_service, hdfs_client):
+def test_write_and_read_data_over_tls(
+    hdfs_service: Dict[str, Any],
+    hdfs_client: Dict[str, Any],
+) -> None:
     test_filename = config.get_unique_filename("test_data_tls")
     config.hdfs_client_write_data(test_filename)
     config.hdfs_client_read_data(test_filename)
@@ -110,7 +115,7 @@ def test_write_and_read_data_over_tls(hdfs_service, hdfs_client):
         ("data", DEFAULT_DATA_NODE_TLS_PORT),
     ],
 )
-def test_verify_https_ports(node_type, port, hdfs_service):
+def test_verify_https_ports(node_type: str, port: int, hdfs_service: Dict[str, Any]) -> None:
     """
     Verify that HTTPS port is open name, journal and data node types.
     """
@@ -121,7 +126,7 @@ def test_verify_https_ports(node_type, port, hdfs_service):
         stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res,
     )
-    def fn():
+    def fn() -> bool:
         rc, stdout, _ = sdk_cmd.master_ssh(_curl_https_get_code(host))
         return rc == 0 and stdout == "200"
 
@@ -131,7 +136,7 @@ def test_verify_https_ports(node_type, port, hdfs_service):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_tls_recovery(hdfs_service, service_account):
+def test_tls_recovery(hdfs_service: Dict[str, Any], service_account: Dict[str, Any]) -> None:
     pod_list = [
         "name-0",
         "name-1",
@@ -151,7 +156,7 @@ def test_tls_recovery(hdfs_service, service_account):
         )
 
 
-def _curl_https_get_code(host):
+def _curl_https_get_code(host: str) -> str:
     """
     Create a curl command for a given host that outputs HTTP status code.
     """

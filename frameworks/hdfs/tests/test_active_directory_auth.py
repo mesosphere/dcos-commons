@@ -6,6 +6,7 @@ import sdk_auth
 import sdk_install
 import sdk_marathon
 import sdk_utils
+from testing import Any, Dict, Iterator, Optional
 
 from security import kerberos as krb5
 
@@ -16,7 +17,7 @@ from tests import auth
 ACTIVE_DIRECTORY_ENVVAR = "TESTING_ACTIVE_DIRECTORY_SERVER"
 
 
-def is_active_directory_enabled():
+def is_active_directory_enabled() -> bool:
     return ACTIVE_DIRECTORY_ENVVAR in os.environ
 
 
@@ -36,34 +37,34 @@ log = logging.getLogger(__name__)
 
 
 class ActiveDirectoryKerberos(sdk_auth.KerberosEnvironment):
-    def __init__(self, keytab_id):
+    def __init__(self, keytab_id: str) -> None:
         self.keytab_id = keytab_id
         self.ad_server = os.environ.get(ACTIVE_DIRECTORY_ENVVAR)
 
-    def get_host(self):
+    def get_host(self) -> Optional[str]:
         return self.ad_server
 
     @staticmethod
-    def get_port():
-        return 88
+    def get_port() -> str:
+        return '88'
 
     @staticmethod
-    def get_realm():
+    def get_realm() -> str:
         return "AD.MESOSPHERE.COM"
 
-    def get_keytab_path(self):
+    def get_keytab_path(self) -> str:
         return "__dcos_base64__{}_keytab".format(self.keytab_id)
 
-    def get_principal(self, user: str) -> str:
-        return "{}@{}".format(user, self.get_realm())
+    def get_principal(self, primary: str, instance: Optional[str] = None) -> str:
+        return "{}@{}".format(primary, self.get_realm())
 
     @staticmethod
-    def cleanup():
+    def cleanup() -> None:
         pass
 
 
 @pytest.fixture(scope="module", autouse=True)
-def kerberos(configure_security):
+def kerberos(configure_security: None) -> Iterator[ActiveDirectoryKerberos]:
     try:
         kerberos_env = ActiveDirectoryKerberos(config.SERVICE_NAME)
         yield kerberos_env
@@ -72,7 +73,7 @@ def kerberos(configure_security):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_server(kerberos):
+def hdfs_server(kerberos: ActiveDirectoryKerberos) -> Iterator[Dict[str, Any]]:
     """
     A pytest fixture that installs a Kerberized HDFS service.
 
@@ -109,7 +110,10 @@ def hdfs_server(kerberos):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_client(kerberos, hdfs_server):
+def hdfs_client(
+    kerberos: ActiveDirectoryKerberos,
+    hdfs_server: Dict[str, Any],
+) -> Iterator[Dict[str, Any]]:
     try:
         client = config.get_hdfs_client_app(hdfs_server["service"]["name"], kerberos)
         sdk_marathon.install_app(client)
@@ -121,7 +125,10 @@ def hdfs_client(kerberos, hdfs_server):
 
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
+def test_user_can_auth_and_write_and_read(
+    hdfs_client: Dict[str, Any],
+    kerberos: ActiveDirectoryKerberos,
+) -> None:
     sdk_auth.kinit(
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")
     )
@@ -133,7 +140,10 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
 
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_users_have_appropriate_permissions(hdfs_client, kerberos):
+def test_users_have_appropriate_permissions(
+    hdfs_client: Dict[str, Any],
+    kerberos: ActiveDirectoryKerberos,
+) -> None:
     # "hdfs" is a superuser
     sdk_auth.kinit(
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")

@@ -1,5 +1,7 @@
 import json
 import logging
+from typing import Iterator, List
+
 import os.path
 import pytest
 
@@ -14,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {"service": {"yaml": "nonessential_tasks"}}
@@ -27,7 +29,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_kill_essential():
+def test_kill_essential() -> None:
     """kill the essential task, verify that both tasks are relaunched against a matching executor"""
     verify_shared_executor("hello-0")
 
@@ -51,7 +53,7 @@ def test_kill_essential():
 
 
 @pytest.mark.sanity
-def test_kill_nonessential():
+def test_kill_nonessential() -> None:
     """kill the nonessential task, verify that the nonessential task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
 
@@ -76,8 +78,10 @@ def test_kill_nonessential():
 
 
 def verify_shared_executor(
-    pod_name, expected_files=["essential", "nonessential"], delete_files=True
-):
+    pod_name: str,
+    expected_files: List[str] = ["essential", "nonessential"],
+    delete_files: bool = True,
+) -> None:
     """verify that both tasks share the same executor:
     - matching ExecutorInfo
     - both 'essential' and 'nonessential' present in shared-volume/ across both tasks
