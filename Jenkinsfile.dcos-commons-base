@@ -1,0 +1,44 @@
+#!/usr/bin/env groovy
+// Configuration for https://jenkins.mesosphere.com/service/jenkins/job/dcos-commons-base%20docker%20image/
+pipeline {
+    agent {
+        label 'mesos'
+    }
+ 
+    environment {
+        IMAGE = "dcos-commons-base"
+        DOCKERFILE = "Dockerfile.base"
+ 
+        // Get credentials for publishing to Docker hub.
+        DOCKER = credentials('docker-hub-credentials')
+    }
+ 
+    stages {
+        stage('docker login') {
+            steps {
+                // Login to the Docker registry.
+                sh("docker login -u ${DOCKER_USR} -p ${DOCKER_PSW}")
+            }
+        }
+ 
+        stage('build') {
+            steps {
+                // Build Docker image.
+                sh("docker build -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
+            }
+        }
+ 
+        stage('publish') {
+            // Only run this step on the master branch.
+            when {
+                branch 'master'
+            }
+  
+            steps {
+                script {
+                    sh("docker push mesosphere/${IMAGE}:latest")
+                }
+            }
+        }
+    }
+}

@@ -477,15 +477,29 @@ public class SchedulerBuilder {
     // Plans may be generated from the config content.
     boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
     if (!hasCompletedDeployment) {
-      // TODO(nickbp): Remove this check after we have reached 0.60.x, expected by Oct 2018 or so. See DCOS-38586.
-      // As of SDK 0.51.0+, the deployment-completed bit is immediately set when deployment completes, rather than
-      // here at startup, but we still need to check it here when upgrading from services using SDK 0.40.x.
+      /*
+       * TODO(takirala): Remove this check after we have reached 0.60.x or so. See DCOS-38586.
+       * As of SDK 0.51.0+, the deployment-completed bit is immediately set when deployment completes, rather than
+       * here at startup, but we still need to check it here when upgrading from services using SDK 0.40.x.
+       *
+       * In SDK 40.x schedulers we do not set the deploy bit, and thus when SDK upgrades from 40.x to 50.x,
+       * SDK sees that the previous deploy plan has not been completed and try to parse the OLD config target and OLD
+       * ServiceSpec and try to validate it against the NEW yamlPlans loaded from the svc.yml. If the NEW plans have
+       * tasks that were absent in the OLD ServiceSpec, we fail fast as we see something unexpected. To workaround this,
+       * we only send the deploy plan. See DCOS-49350 for more details. This entire code-block CAN/SHOULD be deleted in
+       * SDK 0.60.x
+       */
       try {
         // Check for completion against the PRIOR service spec. For example, if the new service spec has n+1
         // nodes, then we want to check that the prior n nodes had successfully deployed.
         ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
+        Map<String, RawPlan> rawPlanMap = yamlPlans.containsKey(Constants.DEPLOY_PLAN_NAME) ?
+                Collections.singletonMap(
+                        Constants.DEPLOY_PLAN_NAME,
+                        yamlPlans.get(Constants.DEPLOY_PLAN_NAME)
+                ) : yamlPlans;
         Optional<Plan> deployPlan = getDeployPlan(
-            getPlans(stateStore, configStore, lastServiceSpec, namespace, yamlPlans));
+                getPlans(stateStore, configStore, lastServiceSpec, namespace, rawPlanMap));
         if (deployPlan.isPresent()) {
           logger.info("Previous deploy plan state: {}", deployPlan.get().toString());
           if (deployPlan.get().isComplete()) {

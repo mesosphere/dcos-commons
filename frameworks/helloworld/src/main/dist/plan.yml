@@ -45,6 +45,30 @@ pods:
           delay: 0
           timeout: 10
           max-consecutive-failures: 3
+  custom-pod-A:
+    count: 1
+    tasks:
+      simple-task:
+        cpus: 0.1
+        memory: 32
+        goal: RUNNING
+        cmd: "echo custom-pod-A-simple-task && sleep 10000"
+  custom-pod-B:
+    count: 1
+    tasks:
+      simple-task:
+        cpus: 0.1
+        memory: 32
+        goal: RUNNING
+        cmd: "echo custom-pod-B-simple-task && sleep 10000"
+  custom-pod-C:
+    count: 1
+    tasks:
+      simple-task:
+        cpus: 0.1
+        memory: 32
+        goal: RUNNING
+        cmd: "echo custom-pod-C-simple-task && sleep 10000"
 plans:
   deploy:
     strategy: serial
@@ -55,4 +79,15 @@ plans:
       world-deploy:
         strategy: parallel
         pod: world
-
+  manual-plan-0:
+    phases:
+      manual-plan-0-phase:
+        pod: custom-pod-A
+  manual-plan-1:
+    phases:
+      manual-plan-1-phase:
+        pod: custom-pod-B
+  manual-plan-2:
+    phases:
+      manual-plan-2-phase:
+        pod: custom-pod-C

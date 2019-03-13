@@ -45,7 +45,7 @@ public final class NamedVIPSpec extends PortSpec {
         portName,
         visibility,
         networkNames,
-        Collections.EMPTY_LIST);
+        Collections.emptyList());
     this.protocol = protocol;
     this.vipName = vipName;
     this.vipPort = vipPort;

@@ -53,7 +53,7 @@ public enum Status {
 
   /**
    * Execution has performed {@link org.apache.mesos.Protos.Offer.Operation}s and has received feedback, but not all
-   * success requiremens (e.g. readiness checks) have been satisfied.
+   * success requirements (e.g. readiness checks) have been satisfied.
    */
   STARTED,
 
