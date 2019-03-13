@@ -8,3 +8,4 @@ docker run --rm -t \
     -w /build \
         ${DOCKER_IMAGE} \
             pre-commit run "$@"
+

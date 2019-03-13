@@ -150,4 +150,4 @@ def test_integrity_on_name_node_failure(hdfs_client: Dict[str, Any]) -> None:
 
 def is_name_node_active(namenode: str) -> bool:
     success, stdout, _ = config.run_client_command(config.hadoop_command("haadmin -getServiceState {}".format(namenode)))
-    return success and stdout.strip() == "active"
+    return bool(success and stdout.strip() == "active")

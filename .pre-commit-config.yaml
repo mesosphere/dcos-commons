@@ -21,7 +21,3 @@ repos:
       args: [-E, -j4, --disable=invalid-sequence-index, --disable=no-member, --disable=no-name-in-module]
       language: system
       types: [python]
--   repo: https://github.com/pre-commit/mirrors-mypy
-    rev: 'v0.670'
-    hooks:
-    -   id: mypy
