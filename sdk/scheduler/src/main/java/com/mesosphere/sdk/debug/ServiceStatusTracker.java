@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * ServiceStatusTracker is the backend of [ServiceStatusResource].
+ * ServiceStatusTracker is the backend of {@link ServiceStatusResource}.
  * It returns a single code representing the status of the service
  */
 public class ServiceStatusTracker {
@@ -111,7 +111,6 @@ public class ServiceStatusTracker {
       statusCodeReasons.put(isUpgradeRollbackDowngrade.getStatusReason());
     }
 
-    //Set return statusCode to initializing if present.
     if (initializing.getServiceStatusCode().isPresent()) {
       serviceStatusCode = initializing.getServiceStatusCode();
     } else if (isDeploying.getServiceStatusCode().isPresent()) {
@@ -488,7 +487,7 @@ public class ServiceStatusTracker {
   }
 
   /**
-   * Wrapper class to combine the [ServiceStatusCode] and a reason behind it.
+   * Wrapper class to combine the {@link ServiceStatusCode} and a reason behind it.
    */
   private static class ServiceStatusEvaluationStage {
 
@@ -514,7 +513,7 @@ public class ServiceStatusTracker {
 
 
   /**
-   * Wrapper class to combine the [ServiceStatusCode] and [Response]
+   * Wrapper class to combine the {@link ServiceStatusCode} and {@link Response}
    * which can be exposed to testing code.
    */
   public static class ServiceStatusResult {
