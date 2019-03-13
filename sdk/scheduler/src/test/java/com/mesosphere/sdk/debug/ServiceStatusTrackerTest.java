@@ -156,7 +156,7 @@ public class ServiceStatusTrackerTest {
     Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.INITIALIZING);
     Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
     
-    Assert.assertTrue(expected.equals(received));
+    Assert.assertEquals(expected.get(), received.get());
   }
    
   @Test
@@ -170,7 +170,7 @@ public class ServiceStatusTrackerTest {
     Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.INITIALIZING);
     Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
     
-    Assert.assertFalse(expected.equals(received));
+    Assert.assertNotEquals(expected.get(), received.get());
   }
   
   @Test
@@ -240,7 +240,7 @@ public class ServiceStatusTrackerTest {
     Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.DEPLOYING_PENDING);
     Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
     
-    Assert.assertTrue(expected.equals(received));
+    Assert.assertEquals(expected.get(), received.get());
   }
   
   @Test
@@ -308,7 +308,7 @@ public class ServiceStatusTrackerTest {
     Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.DEPLOYING_STARTING);
     Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
     
-    Assert.assertTrue(expected.equals(received));
+    Assert.assertEquals(expected.get(), received.get());
   }
   
   @Test
@@ -375,10 +375,502 @@ public class ServiceStatusTrackerTest {
     ServiceStatusResult serviceResult = serviceStatusTracker.evaluateServiceStatus(false);
     Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.RUNNING);
     Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
-    
-    Assert.assertTrue(expected.equals(received));
+   
+    Assert.assertEquals(expected.get(), received.get());
   } 
  
+  @Test
+  public void testFrameworkRecoveryPending() {
+    
+    Persister persister = MemPersister.newBuilder().build();
+    FrameworkStore frameworkStore = new FrameworkStore(persister);
+    frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+    StateStore stateStore = new StateStore(persister);
+
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world1Step = new DeploymentStep("world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world2Step = new DeploymentStep("world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world3Step = new DeploymentStep("world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    DeploymentStep recoveryWorld1Step = new DeploymentStep("world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep recoveryWorld2Step = new DeploymentStep("world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep recoveryWorld3Step = new DeploymentStep("world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    
+    //Simulate a pod-replace on the world pod.
+    hello1Step.updateInitialStatus(Status.COMPLETE);
+    hello2Step.updateInitialStatus(Status.COMPLETE);
+    world1Step.updateInitialStatus(Status.COMPLETE);
+    world2Step.updateInitialStatus(Status.COMPLETE);
+    world3Step.updateInitialStatus(Status.COMPLETE);
+    
+    recoveryWorld1Step.updateInitialStatus(Status.PREPARED);
+    recoveryWorld2Step.updateInitialStatus(Status.PENDING);
+    recoveryWorld3Step.updateInitialStatus(Status.STARTED);
+
+
+    DefaultPhase helloPhase = new DefaultPhase("hello-deploy",
+        Arrays.asList(hello1Step, hello2Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase worldPhase = new DefaultPhase("world-deploy",
+        Arrays.asList(world1Step, world2Step, world3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan helloWorldPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME,
+        Arrays.asList(helloPhase, worldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase recoveryWorldPhase = new DefaultPhase("permanent-node-failrue-recovery",
+        Arrays.asList(recoveryWorld1Step, recoveryWorld2Step, recoveryWorld3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan recoveryPlan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME,
+        Arrays.asList(recoveryWorldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+
+    PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
+    PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+
+    //Setup complete, verify result.
+    
+    ServiceStatusTracker serviceStatusTracker = Mockito.spy(new ServiceStatusTracker(coordinator, frameworkStore));
+    
+    ServiceStatusResult serviceResult = serviceStatusTracker.evaluateServiceStatus(false);
+    Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.RECOVERING_PENDING);
+    Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
+    
+    Assert.assertEquals(expected.get(), received.get());
+  } 
+    
+  @Test
+  public void testFrameworkRecoveryStarting() {
+    
+    Persister persister = MemPersister.newBuilder().build();
+    FrameworkStore frameworkStore = new FrameworkStore(persister);
+    frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+    StateStore stateStore = new StateStore(persister);
+
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world1Step = new DeploymentStep("world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world2Step = new DeploymentStep("world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world3Step = new DeploymentStep("world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    DeploymentStep recoveryWorld1Step = new DeploymentStep("world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep recoveryWorld2Step = new DeploymentStep("world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep recoveryWorld3Step = new DeploymentStep("world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    
+    //Simulate a pod-replace on the world pod.
+    hello1Step.updateInitialStatus(Status.COMPLETE);
+    hello2Step.updateInitialStatus(Status.COMPLETE);
+    world1Step.updateInitialStatus(Status.COMPLETE);
+    world2Step.updateInitialStatus(Status.COMPLETE);
+    world3Step.updateInitialStatus(Status.COMPLETE);
+    
+    recoveryWorld1Step.updateInitialStatus(Status.STARTING);
+    recoveryWorld2Step.updateInitialStatus(Status.COMPLETE);
+    recoveryWorld3Step.updateInitialStatus(Status.COMPLETE);
+
+
+    DefaultPhase helloPhase = new DefaultPhase("hello-deploy",
+        Arrays.asList(hello1Step, hello2Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase worldPhase = new DefaultPhase("world-deploy",
+        Arrays.asList(world1Step, world2Step, world3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan helloWorldPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME,
+        Arrays.asList(helloPhase, worldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase recoveryWorldPhase = new DefaultPhase("permanent-node-failure-recovery",
+        Arrays.asList(recoveryWorld1Step, recoveryWorld2Step, recoveryWorld3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan recoveryPlan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME,
+        Arrays.asList(recoveryWorldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+
+    PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
+    PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+
+    //Setup complete, verify result.
+    
+    ServiceStatusTracker serviceStatusTracker = Mockito.spy(new ServiceStatusTracker(coordinator, frameworkStore));
+    
+    ServiceStatusResult serviceResult = serviceStatusTracker.evaluateServiceStatus(false);
+    Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.RECOVERING_STARTING);
+    Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
+    
+    Assert.assertEquals(expected.get(), received.get());
+  }
+   
+  @Test
+  public void testFrameworkBackingUp() {
+    
+    Persister persister = MemPersister.newBuilder().build();
+    FrameworkStore frameworkStore = new FrameworkStore(persister);
+    frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+    StateStore stateStore = new StateStore(persister);
+
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world1Step = new DeploymentStep("world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world2Step = new DeploymentStep("world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world3Step = new DeploymentStep("world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    DeploymentStep backupWorld1Step = new DeploymentStep("backup-world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep backupWorld2Step = new DeploymentStep("backup-world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep backupWorld3Step = new DeploymentStep("backup-world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    
+    //Simulate a pod-replace on the world pod.
+    hello1Step.updateInitialStatus(Status.COMPLETE);
+    hello2Step.updateInitialStatus(Status.COMPLETE);
+    world1Step.updateInitialStatus(Status.COMPLETE);
+    world2Step.updateInitialStatus(Status.COMPLETE);
+    world3Step.updateInitialStatus(Status.COMPLETE);
+    
+    backupWorld1Step.updateInitialStatus(Status.PENDING);
+    backupWorld2Step.updateInitialStatus(Status.STARTED);
+    backupWorld3Step.updateInitialStatus(Status.COMPLETE);
+
+
+    DefaultPhase helloPhase = new DefaultPhase("hello-deploy",
+        Arrays.asList(hello1Step, hello2Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase worldPhase = new DefaultPhase("world-deploy",
+        Arrays.asList(world1Step, world2Step, world3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan helloWorldPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME,
+        Arrays.asList(helloPhase, worldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase backupWorldPhase = new DefaultPhase("backup-world",
+        Arrays.asList(backupWorld1Step, backupWorld2Step, backupWorld3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan backupPlan = new DefaultPlan("backup-world-s3",
+        Arrays.asList(backupWorldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan recoveryPlan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME,
+        Collections.emptyList(),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+
+    PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
+    PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
+    PlanManager backupPlanManager = DefaultPlanManager.createProceeding(backupPlan);
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager, backupPlanManager));
+
+    //Setup complete, verify result.
+    
+    ServiceStatusTracker serviceStatusTracker = Mockito.spy(new ServiceStatusTracker(coordinator, frameworkStore));
+    
+    ServiceStatusResult serviceResult = serviceStatusTracker.evaluateServiceStatus(false);
+    Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.BACKING_UP);
+    Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
+    
+    Assert.assertEquals(expected.get(), received.get());
+  } 
+    
+  @Test
+  public void testFrameworkRestoring() {
+    
+    Persister persister = MemPersister.newBuilder().build();
+    FrameworkStore frameworkStore = new FrameworkStore(persister);
+    frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+    StateStore stateStore = new StateStore(persister);
+
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world1Step = new DeploymentStep("world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world2Step = new DeploymentStep("world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world3Step = new DeploymentStep("world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    DeploymentStep restoreWorld1Step = new DeploymentStep("restore-world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep restoreWorld2Step = new DeploymentStep("restore-world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep restoreWorld3Step = new DeploymentStep("restore-world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    
+    //Simulate a pod-replace on the world pod.
+    hello1Step.updateInitialStatus(Status.COMPLETE);
+    hello2Step.updateInitialStatus(Status.COMPLETE);
+    world1Step.updateInitialStatus(Status.COMPLETE);
+    world2Step.updateInitialStatus(Status.COMPLETE);
+    world3Step.updateInitialStatus(Status.COMPLETE);
+    
+    restoreWorld1Step.updateInitialStatus(Status.PENDING);
+    restoreWorld2Step.updateInitialStatus(Status.STARTED);
+    restoreWorld3Step.updateInitialStatus(Status.COMPLETE);
+
+
+    DefaultPhase helloPhase = new DefaultPhase("hello-deploy",
+        Arrays.asList(hello1Step, hello2Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase worldPhase = new DefaultPhase("world-deploy",
+        Arrays.asList(world1Step, world2Step, world3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan helloWorldPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME,
+        Arrays.asList(helloPhase, worldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase restoreWorldPhase = new DefaultPhase("restore-world",
+        Arrays.asList(restoreWorld1Step, restoreWorld2Step, restoreWorld3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan restorePlan = new DefaultPlan("restore-world-s3",
+        Arrays.asList(restoreWorldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan recoveryPlan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME,
+        Collections.emptyList(),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+
+
+    PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
+    PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
+    PlanManager restorePlanManager = DefaultPlanManager.createProceeding(restorePlan);
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager, restorePlanManager));
+
+    //Setup complete, verify result.
+    
+    ServiceStatusTracker serviceStatusTracker = Mockito.spy(new ServiceStatusTracker(coordinator, frameworkStore));
+    
+    ServiceStatusResult serviceResult = serviceStatusTracker.evaluateServiceStatus(false);
+    Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.RESTORING);
+    Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
+    
+    Assert.assertEquals(expected.get(), received.get());
+  }
+  
+  @Test
+  public void testFrameworkPriorityRestore() {
+    
+    Persister persister = MemPersister.newBuilder().build();
+    FrameworkStore frameworkStore = new FrameworkStore(persister);
+    frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+    StateStore stateStore = new StateStore(persister);
+
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world1Step = new DeploymentStep("world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world2Step = new DeploymentStep("world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world3Step = new DeploymentStep("world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    DeploymentStep restoreWorld1Step = new DeploymentStep("restore-world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep restoreWorld2Step = new DeploymentStep("restore-world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep restoreWorld3Step = new DeploymentStep("restore-world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    DeploymentStep recoveryWorld1Step = new DeploymentStep("recovery-world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep recoveryWorld2Step = new DeploymentStep("recovery-world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep recoveryWorld3Step = new DeploymentStep("recovery-world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+   
+    //Simulate a pod-replace during a restore, the recovery plan must have precedence.
+    hello1Step.updateInitialStatus(Status.COMPLETE);
+    hello2Step.updateInitialStatus(Status.COMPLETE);
+    world1Step.updateInitialStatus(Status.COMPLETE);
+    world2Step.updateInitialStatus(Status.COMPLETE);
+    world3Step.updateInitialStatus(Status.COMPLETE);
+     
+    recoveryWorld1Step.updateInitialStatus(Status.STARTING);
+    recoveryWorld2Step.updateInitialStatus(Status.COMPLETE);
+    recoveryWorld3Step.updateInitialStatus(Status.COMPLETE);
+   
+    restoreWorld1Step.updateInitialStatus(Status.PENDING);
+    restoreWorld2Step.updateInitialStatus(Status.STARTED);
+    restoreWorld3Step.updateInitialStatus(Status.COMPLETE);
+    
+
+    DefaultPhase helloPhase = new DefaultPhase("hello-deploy",
+        Arrays.asList(hello1Step, hello2Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase worldPhase = new DefaultPhase("world-deploy",
+        Arrays.asList(world1Step, world2Step, world3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan helloWorldPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME,
+        Arrays.asList(helloPhase, worldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase restoreWorldPhase = new DefaultPhase("restore-world",
+        Arrays.asList(restoreWorld1Step, restoreWorld2Step, restoreWorld3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan restorePlan = new DefaultPlan("recover-s3",
+        Arrays.asList(restoreWorldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase recoveryWorldPhase = new DefaultPhase("permanent-node-failure-recovery",
+        Arrays.asList(recoveryWorld1Step, recoveryWorld2Step, recoveryWorld3Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan recoveryPlan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME,
+        Arrays.asList(recoveryWorldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+ 
+    PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
+    PlanManager restorePlanManager = DefaultPlanManager.createProceeding(restorePlan);
+    PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, restorePlanManager, recoveryPlanManager));
+
+    //Setup complete, verify result.
+    
+    ServiceStatusTracker serviceStatusTracker = Mockito.spy(new ServiceStatusTracker(coordinator, frameworkStore));
+    
+    ServiceStatusResult serviceResult = serviceStatusTracker.evaluateServiceStatus(false);
+    Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusTracker.ServiceStatusCode.RECOVERING_STARTING);
+    Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
+    
+    Assert.assertEquals(expected.get(), received.get());
+  }
+  
   /**
    * Wrapper class for returning {@link PlanCoordinator} and {@link FrameworkStore}
    */
