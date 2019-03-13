@@ -1,4 +1,7 @@
+from typing import Any, Dict, Generator, List
+
 import pytest
+
 import sdk_install
 import sdk_jobs
 import sdk_networks
@@ -8,8 +11,8 @@ from tests import config
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
-    test_jobs = []
+def configure_package(configure_security: None) -> Generator:
+    test_jobs: List[Dict[str, Any]] = []
     try:
         test_jobs = config.get_all_jobs()
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
@@ -36,7 +39,7 @@ def configure_package(configure_security):
 @pytest.mark.smoke
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_service_overlay_health():
+def test_service_overlay_health() -> None:
     tasks = sdk_tasks.check_task_count(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
     for task in tasks:
         sdk_networks.check_task_network(task.name)
@@ -46,7 +49,7 @@ def test_service_overlay_health():
 @pytest.mark.smoke
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_functionality():
+def test_functionality() -> None:
     parameters = {"CASSANDRA_KEYSPACE": "testspace1"}
 
     # populate 'testspace1' for test, then delete afterwards:
@@ -65,7 +68,7 @@ def test_functionality():
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_endpoints():
+def test_endpoints() -> None:
     endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
     assert set(endpoint_names) == set(["native-client"])
 

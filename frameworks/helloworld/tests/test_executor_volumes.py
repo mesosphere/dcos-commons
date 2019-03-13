@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator
 
 import pytest
 import sdk_install
@@ -9,7 +10,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {"service": {"yaml": "executor_volume"}}
@@ -23,7 +24,7 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 @pytest.mark.executor_volumes
-def test_deploy():
+def test_deploy() -> None:
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     log.info(sdk_plan.plan_string("deploy", deployment_plan))
 
@@ -38,7 +39,7 @@ def test_deploy():
 
 @pytest.mark.sanity
 @pytest.mark.executor_volumes
-def test_sidecar():
+def test_sidecar() -> None:
     sdk_plan.start_plan(config.SERVICE_NAME, "sidecar")
 
     started_plan = sdk_plan.get_plan(config.SERVICE_NAME, "sidecar")

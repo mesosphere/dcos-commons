@@ -1,4 +1,6 @@
 import logging
+from typing import Iterator
+
 import retrying
 import pytest
 
@@ -10,7 +12,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {"service": {"yaml": "host-volume"}}
@@ -25,7 +27,7 @@ def configure_package(configure_security):
 @pytest.mark.hostvolume
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_check_host_volume_mounts():
+def test_check_host_volume_mounts() -> None:
     """world has no docker image defined, hello does. Check to make sure the host volume is mounted in the container"""
     assert "host-volume-etc" in search_for_host_volume(
         "hello-0-server", "bash -c 'mount'", "host-volume-etc"
@@ -41,13 +43,13 @@ def test_check_host_volume_mounts():
 @pytest.mark.hostvolume
 @pytest.mark.sanity
 @pytest.mark.smoke
-def test_read_host_volume():
+def test_read_host_volume() -> None:
     """Attempts to read /etc/groups from hostvolume mount."""
     assert "root" in read_from_host_volume("hello-0-server", "bash -c 'cat /etc/group'")
 
 
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
-def search_for_host_volume(task_name, command, mount_name):
+def search_for_host_volume(task_name: str, command: str, mount_name: str) -> str:
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
     lines = [line.strip() for line in output.split("\n")]
     log.info("Looking for %s in task mounts.", mount_name)
@@ -60,7 +62,7 @@ def search_for_host_volume(task_name, command, mount_name):
 
 
 @retrying.retry(wait_fixed=2000, stop_max_delay=5 * 60 * 1000)
-def read_from_host_volume(task_name, command):
+def read_from_host_volume(task_name: str, command: str) -> str:
     _, output, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, task_name, command)
     lines = [line.strip() for line in output.split("\n")]
     log.info("Looking for user root under /etc/group in %s", task_name)

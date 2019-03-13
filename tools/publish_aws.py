@@ -16,6 +16,7 @@ import random
 import string
 import sys
 import time
+from typing import List, Tuple
 
 import universe
 from universe.package import Version
@@ -25,8 +26,14 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
 class AWSPublisher(object):
-    def __init__(self, package_name, package_version, input_dir_path, artifact_paths):
-        self._dry_run = os.environ.get("DRY_RUN", "")
+    def __init__(
+        self,
+        package_name: str,
+        package_version: str,
+        input_dir_path: str,
+        artifact_paths: List[str],
+    ):
+        self._dry_run = bool(os.environ.get("DRY_RUN", ""))
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._input_dir_path = input_dir_path
@@ -38,7 +45,7 @@ class AWSPublisher(object):
         if not os.path.isdir(input_dir_path):
             raise Exception("Provided package path is not a directory: {}".format(input_dir_path))
 
-        self._artifact_paths = []
+        self._artifact_paths: List[str] = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
                 err = "Provided package path is not a file: {} (full list: {})".format(
@@ -50,7 +57,7 @@ class AWSPublisher(object):
         s3_directory_url, self._http_directory_url = s3_urls_from_env(self._pkg_name)
         self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
 
-    def _spam_universe_url(self, universe_url):
+    def _spam_universe_url(self, universe_url: str) -> None:
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
         jenkins_workspace_path = os.environ.get("WORKSPACE", "")
         if jenkins_workspace_path:
@@ -71,7 +78,7 @@ class AWSPublisher(object):
             universe_url_file.flush()
             universe_url_file.close()
 
-    def upload(self):
+    def upload(self) -> str:
         """generates a unique directory, then uploads artifacts and a new stub universe to that directory"""
         version = Version(release_version=0, package_version=self._pkg_version)
         package_info = universe.Package(name=self._pkg_name, version=version)
@@ -96,6 +103,7 @@ class AWSPublisher(object):
             + "/"
             + os.path.basename(universe_path)
         )
+        assert isinstance(universe_url, str)
         logger.info("---")
         logger.info("STUB UNIVERSE: {}".format(universe_url))
         logger.info("---")
@@ -129,7 +137,7 @@ class AWSPublisher(object):
         return universe_url
 
 
-def s3_urls_from_env(package_name):
+def s3_urls_from_env(package_name: str) -> Tuple[str, str]:
     s3_bucket = os.environ.get("S3_BUCKET") or "infinity-artifacts"
     logger.info("Using artifact bucket: {}".format(s3_bucket))
 
@@ -161,7 +169,7 @@ def s3_urls_from_env(package_name):
     return s3_directory_url, http_directory_url
 
 
-def print_help(argv):
+def print_help(argv: List[str]) -> None:
     logger.info(
         "Syntax: {} <package-name> <template-package-dir> [artifact files ...]".format(argv[0])
     )
@@ -175,7 +183,7 @@ def print_help(argv):
     )
 
 
-def main(argv):
+def main(argv: List[str]) -> int:
     if len(argv) < 3:
         print_help(argv)
         return 1
