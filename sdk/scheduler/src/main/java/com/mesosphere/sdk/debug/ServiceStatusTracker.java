@@ -4,7 +4,6 @@ import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.state.FrameworkStore;
-import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreException;
 
 import org.apache.mesos.Protos;
@@ -57,13 +56,17 @@ public class ServiceStatusTracker {
 
   private final FrameworkStore frameworkStore;
 
-  // SUPPRESS CHECKSTYLE LineLengthCheck
-  public ServiceStatusTracker(PlanCoordinator planCoordinator, StateStore stateStore, FrameworkStore frameworkStore) {
+  public ServiceStatusTracker(PlanCoordinator planCoordinator, FrameworkStore frameworkStore) {
     this.planCoordinator = planCoordinator;
     this.frameworkStore = frameworkStore;
   }
 
   public Response getJson(boolean isVerbose) {
+    ServiceStatusResult serviceStatusResult = evaluateServiceStatus(isVerbose);
+    return serviceStatusResult.getServiceStatusResponse();
+  }
+
+  public ServiceStatusResult evaluateServiceStatus(boolean isVerbose) {
     /*
      * Return status codes with the following priority.
      * HTTP Response Code, Priority, Reason
@@ -142,7 +145,7 @@ public class ServiceStatusTracker {
       response.put("reasons:", statusCodeReasons);
     }
 
-    return ResponseUtils.jsonOkResponse(response);
+    return new ServiceStatusResult(serviceStatusCode, ResponseUtils.jsonOkResponse(response));
   }
 
   private ServiceStatusEvaluationStage isUpgradeRollbackDowngrade() {
@@ -487,7 +490,7 @@ public class ServiceStatusTracker {
   /**
    * Wrapper class to combine the [ServiceStatusCode] and a reason behind it.
    */
-  public static class ServiceStatusEvaluationStage {
+  private static class ServiceStatusEvaluationStage {
 
     private final Optional<ServiceStatusCode> serviceStatusCode;
 
@@ -506,6 +509,33 @@ public class ServiceStatusTracker {
 
     public String getStatusReason() {
       return statusReason;
+    }
+  }
+
+
+  /**
+   * Wrapper class to combine the [ServiceStatusCode] and [Response]
+   * which can be exposed to testing code.
+   */
+  public static class ServiceStatusResult {
+
+    private final Optional<ServiceStatusCode> serviceStatusCode;
+
+    private final Response serviceStatusResponse;
+
+    public ServiceStatusResult(Optional<ServiceStatusCode> serviceStatusCode,
+                               Response serviceStatusResponse)
+    {
+      this.serviceStatusCode = serviceStatusCode;
+      this.serviceStatusResponse = serviceStatusResponse;
+    }
+
+    public Optional<ServiceStatusCode> getServiceStatusCode() {
+      return serviceStatusCode;
+    }
+
+    public Response getServiceStatusResponse() {
+      return serviceStatusResponse;
     }
   }
 }

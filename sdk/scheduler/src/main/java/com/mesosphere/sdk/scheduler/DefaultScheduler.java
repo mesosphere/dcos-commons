@@ -211,7 +211,7 @@ public class DefaultScheduler extends AbstractScheduler {
 
     customizePlans();
     this.plansTracker = Optional.of(new PlansTracker(getPlanCoordinator(), stateStore));
-    this.serviceStatusTracker = Optional.of(new ServiceStatusTracker(getPlanCoordinator(), stateStore, frameworkStore));
+    this.serviceStatusTracker = Optional.of(new ServiceStatusTracker(getPlanCoordinator(), frameworkStore));
   }
 
   @Override
