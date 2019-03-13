@@ -1,5 +1,5 @@
 import logging
-from typing import Any, Dict, Iterator, List
+from typing import Iterator, List
 
 import pytest
 import retrying
