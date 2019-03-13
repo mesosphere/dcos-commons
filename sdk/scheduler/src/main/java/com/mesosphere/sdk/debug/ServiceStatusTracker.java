@@ -48,9 +48,9 @@ public class ServiceStatusTracker {
 
   private static final String RESULT_CODE_KEY = "value";
 
-  private static final String BACKUP_PLAN_CONTAINS = "backup";
+  private static final String BACKUP_PLAN_REGEXP = ".*back.*";
 
-  private static final String RESTORE_PLAN_CONTAINS = "restore";
+  private static final String RESTORE_PLAN_REGEXP = ".*restor.*";
 
   private final PlanCoordinator planCoordinator;
 
@@ -161,7 +161,7 @@ public class ServiceStatusTracker {
 
     Set<Plan> restorePlans = planCoordinator.getPlanManagers()
         .stream()
-        .filter(planManager -> planManager.getPlan().getName().contains(RESTORE_PLAN_CONTAINS))
+        .filter(planManager -> planManager.getPlan().getName().matches(RESTORE_PLAN_REGEXP))
         .map(planManager -> planManager.getPlan())
         .collect(Collectors.toSet());
 
@@ -203,7 +203,7 @@ public class ServiceStatusTracker {
 
     Set<Plan> backupPlans = planCoordinator.getPlanManagers()
         .stream()
-        .filter(planManager -> planManager.getPlan().getName().contains(BACKUP_PLAN_CONTAINS))
+        .filter(planManager -> planManager.getPlan().getName().matches(BACKUP_PLAN_REGEXP))
         .map(planManager -> planManager.getPlan())
         .collect(Collectors.toSet());
 
