@@ -184,21 +184,6 @@ def svc_cli(
     return rc, stdout, stderr
 
 
-# def _get_json_output(cmd: str, print_output: bool = True, check: bool = False) -> Any:
-#     _, stdout, stderr = run_cli(cmd, print_output, check=check)
-
-#     if stderr:
-#         log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)
-
-#     try:
-#         json_stdout = json.loads(stdout)
-#     except Exception as e:
-#         log.warning("Error converting stdout to json:\n%s", stdout)
-#         raise e
-
-#     return json_stdout
-
-
 def run_cli(
     cmd: str,
     print_output: bool = True,
