@@ -375,7 +375,7 @@ def test_lock() -> None:
     So in order to verify that the scheduler fails immediately, we ensure
     that the ZK config state is unmodified."""
 
-    def get_zk_node_data(node_name: str) -> requests.Response:
+    def get_zk_node_data(node_name: str) -> Any:
         return sdk_cmd.cluster_request(
             "GET", "/exhibitor/exhibitor/v1/explorer/node-data?key={}".format(node_name)
         ).json()
