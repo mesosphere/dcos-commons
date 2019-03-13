@@ -17,7 +17,7 @@ from typing import Any, Callable, Dict, List, Optional, Set
 
 import pytest
 import retrying
-import _pytest.runner
+from _pytest import runner
 
 import sdk_cmd
 import sdk_install
@@ -140,7 +140,7 @@ def _task_whitelist_callback(item: pytest.Item) -> Callable[[sdk_tasks.Task], bo
     return _callback
 
 
-def handle_test_report(item: pytest.Item, result: _pytest.runner.TestReport) -> None:
+def handle_test_report(item: pytest.Item, result: runner.TestReport) -> None:
     """Collects information from the cluster following a failed test.
 
     This should be called in a hookimpl fixture.
@@ -464,7 +464,7 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
     (and Mesos folks tell me that '/frameworks/...' is the way forward, so '/var/lib/mesos/...' may be going away)
     SEE ALSO: https://issues.apache.org/jira/browse/MESOS-7899
 
-    Additionally, given the correct path, there are also differences depending on the task/executor type :
+    Additionally, given the correct path, there are also differences depending on the task/executor type:
     - Marathon/Metronome: The task id is used as the 'executor id'. Logs are at the advertised directory.
     - Custom executor: 'executor id' + 'task id' are both used. Executor+Task logs are all combined into the same
                        file(s) at the advertised directory.
