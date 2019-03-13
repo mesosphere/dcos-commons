@@ -168,9 +168,9 @@ def get_cluster_region():
         log.warning("return code for command 'node --json' is non-zero: %s", rc)
         return None
 
-    r = json.loads(stdout)[0]
+    r = json.loads(stdout)
 
-    return r['region']
+    return r[1]['domain']['fault_domain']['region']['name']
 
 
 """Annotation which may be used to mark test suites or test cases as EE-only.
