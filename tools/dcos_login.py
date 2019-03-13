@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+import http
 import json
 import logging
 import os
@@ -6,6 +7,7 @@ import ssl
 import time
 import urllib.parse
 import urllib.request
+from typing import Dict, Optional
 
 log = logging.getLogger(__name__)
 
@@ -34,11 +36,11 @@ def http_request(
     method: str,
     cluster_url: str,
     cluster_path: str,
-    token: str,
-    headers={},
-    log_args=True,
-    data=None,
-):
+    token: Optional[str],
+    headers: Dict[str, str] = {},
+    log_args: bool = True,
+    data: Optional[bytes] = None,
+) -> str:
     """Performs an http request, returning the text content on success, or throwing an exception on
     consistent failure.
 
@@ -70,7 +72,9 @@ def http_request(
         log_msg = "(HTTP {}) {} => {} ({:.3f}s)".format(
             method.upper(), cluster_path, response_status, end - start
         )
-        encoding = response.info().get_content_charset("utf-8")
+        message = response.info()
+        assert isinstance(message, http.client.HTTPMessage)
+        encoding = message.get_content_charset("utf-8")
         response_data = response.read().decode(encoding)
         if response_status == 200:
             log.info(log_msg)
@@ -99,7 +103,7 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
         log.info("Logging into {} with default open token".format(dcosurl))
         payload = {"token": __CLI_LOGIN_OPEN_TOKEN}
 
-    return json.loads(
+    token = json.loads(
         http_request(
             "POST",
             dcosurl,
@@ -110,9 +114,11 @@ def login(dcosurl: str, username: str, password: str, is_enterprise: bool) -> st
             data=json.dumps(payload).encode("utf-8"),
         )
     )["token"]
+    assert isinstance(token, str)
+    return token
 
 
-def _netloc(url: str):
+def _netloc(url: str) -> str:
     return url.split("-1")[-1]
 
 
@@ -192,7 +198,7 @@ def login_session() -> None:
     if not cluster_url:
         raise Exception("Must have CLUSTER_URL set in environment!")
 
-    def ignore_empty(envvar, default):
+    def ignore_empty(envvar: str, default: str) -> str:
         # Ignore the user passing in empty ENVVARs.
         value = os.environ.get(envvar, "").strip()
         if not value:

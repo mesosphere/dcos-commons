@@ -1,6 +1,7 @@
 import logging
 import pytest
 import retrying
+from typing import Any, Dict, Iterator, List
 
 import sdk_cmd
 import sdk_install
@@ -15,7 +16,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         options = {
@@ -44,7 +45,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_add_deploy_restart_remove():
+def test_add_deploy_restart_remove() -> None:
     svc1 = "test1"
 
     # add svc as test1:
@@ -97,7 +98,7 @@ def test_add_deploy_restart_remove():
 
 
 @pytest.mark.sanity
-def test_add_multiple_uninstall():
+def test_add_multiple_uninstall() -> None:
     # add two services:
     svc1 = "test1"
     sdk_cmd.service_request(
@@ -171,12 +172,15 @@ def test_add_multiple_uninstall():
     # leave suite teardown to do the uninstall, verifying successful winding down of svc1
 
 
-def get_service_list():
-    return sdk_cmd.service_request("GET", config.SERVICE_NAME, "/v1/multi").json()
+def get_service_list() -> List[Dict[str, Any]]:
+    response = sdk_cmd.service_request("GET", config.SERVICE_NAME, "/v1/multi")
+    service_list = response.json()
+    assert isinstance(service_list, list)
+    return service_list
 
 
 @retrying.retry(wait_fixed=1000, stop_max_delay=5 * 60 * 1000)
-def wait_for_service_count(count):
+def wait_for_service_count(count: int) -> List[Dict[str, Any]]:
     services = get_service_list()
     log.info(
         "Waiting for scheduler to have {} services, got {}: {}".format(
@@ -188,6 +192,6 @@ def wait_for_service_count(count):
     return services
 
 
-def service_params(service_name):
+def service_params(service_name: str) -> Dict[str, str]:
     # we just override the service name in the YAML, otherwise we use the scheduler env:
     return {"FRAMEWORK_NAME": service_name}

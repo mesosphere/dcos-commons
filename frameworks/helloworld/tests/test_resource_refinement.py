@@ -1,6 +1,7 @@
 import logging
 import pytest
 import retrying
+from typing import Iterator
 
 import sdk_install
 import sdk_utils
@@ -22,7 +23,7 @@ pre_reserved_options = {"service": {"yaml": "pre-reserved"}}
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -41,14 +42,14 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.10")
-def test_install():
+def test_install() -> None:
     config.check_running(config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.10")
-def test_marathon_volume_collision():
+def test_marathon_volume_collision() -> None:
     # This test validates that a service registered in a sub-role of
     # slave_public will _not_ unreserve Marathon volumes RESERVED
     # in the `slave_public` role.
@@ -96,7 +97,7 @@ def test_marathon_volume_collision():
         pv_path = pv_path.strip()
 
         @retrying.retry(wait_fixed=1000, stop_max_delay=60 * 1000)
-        def check_content():
+        def check_content() -> None:
             rc, pv_content, _ = sdk_cmd.agent_ssh(host, "cat {}/test".format(pv_path))
             assert rc == 0 and pv_content.strip() == "this is a test"
 

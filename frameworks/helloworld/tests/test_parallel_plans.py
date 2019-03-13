@@ -1,4 +1,6 @@
 import logging
+from typing import Iterator
+
 import pytest
 
 import sdk_cmd
@@ -15,7 +17,7 @@ foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
@@ -25,7 +27,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_all_tasks_are_launched():
+def test_all_tasks_are_launched() -> None:
     service_options = {"service": {"yaml": "plan"}}
     sdk_install.install(
         config.PACKAGE_NAME,

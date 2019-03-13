@@ -95,14 +95,14 @@ def fetch_dcos_ca_bundle(marathon_task: str) -> str:
     return local_bundle_file
 
 
-def fetch_dcos_ca_bundle_contents() -> bytes:
+def fetch_dcos_ca_bundle_contents() -> str:
     resp = sdk_cmd.cluster_request("GET", "/ca/dcos-ca.crt")
     cert = resp.content
     if not cert:
         log.error("Error fetching DC/OS CA bundle")
         raise Exception("Errot fetching DC/OS CA bundle")
 
-    return cert
+    return cert.decode('utf-8')
 
 
 def create_tls_artifacts(cn: str, marathon_task: str) -> str:

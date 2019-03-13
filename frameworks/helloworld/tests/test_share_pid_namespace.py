@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator
 
 import pytest
 
@@ -10,7 +11,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
@@ -26,7 +27,7 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_deploy():
+def test_deploy() -> None:
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     log.info(sdk_plan.plan_string("deploy", deployment_plan))

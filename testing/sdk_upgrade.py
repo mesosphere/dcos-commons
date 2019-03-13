@@ -180,7 +180,7 @@ def update_or_upgrade_or_downgrade(
     else:
         _update_service_with_cli(package_name, service_name, to_package_version, additional_options)
 
-    if wait_for_deployment:
+    if not wait_for_deployment:
         _wait_for_deployment(
             package_name,
             service_name,

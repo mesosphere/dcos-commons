@@ -1,4 +1,5 @@
 import pytest
+from typing import Iterator
 
 import sdk_install
 import sdk_marathon
@@ -8,7 +9,7 @@ from tests import config
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
@@ -25,7 +26,7 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.10")
-def test_disable():
+def test_disable() -> None:
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     sdk_plan.recovery_plan_is_empty(config.SERVICE_NAME)
     sdk_tasks.check_running(config.SERVICE_NAME, 6, timeout_seconds=30, allow_more=False)
@@ -37,7 +38,7 @@ def test_disable():
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.10")
-def test_enable():
+def test_enable() -> None:
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     sdk_plan.recovery_plan_is_empty(config.SERVICE_NAME)
     sdk_tasks.check_running(config.SERVICE_NAME, 3, timeout_seconds=30, allow_more=False)
@@ -47,7 +48,7 @@ def test_enable():
     sdk_plan.recovery_plan_is_empty(config.SERVICE_NAME)
 
 
-def set_test_boolean(value):
+def set_test_boolean(value: str) -> None:
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
     marathon_config["env"]["TEST_BOOLEAN"] = value
     sdk_marathon.update_app(marathon_config)

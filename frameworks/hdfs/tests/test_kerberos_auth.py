@@ -1,4 +1,6 @@
 import logging
+from typing import Any, Dict, Iterator
+
 import pytest
 
 import sdk_auth
@@ -29,7 +31,7 @@ pytestmark = [
 
 
 @pytest.fixture(scope="module", autouse=True)
-def service_account(configure_security):
+def service_account(configure_security: None) -> Iterator[Dict[str, Any]]:
     """
     Sets up a service account for use with TLS.
     """
@@ -41,7 +43,7 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def kerberos(configure_security):
+def kerberos(configure_security: None) -> Iterator[sdk_auth.KerberosEnvironment]:
     try:
         principals = auth.get_service_principals(foldered_name, sdk_auth.REALM)
 
@@ -56,7 +58,10 @@ def kerberos(configure_security):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_server(kerberos, service_account):
+def hdfs_server(
+    kerberos: sdk_auth.KerberosEnvironment,
+    service_account: Dict[str, Any],
+) -> Iterator[Dict[str, Any]]:
     """
     A pytest fixture that installs a Kerberized HDFS service.
 
@@ -96,7 +101,10 @@ def hdfs_server(kerberos, service_account):
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_client(hdfs_server, kerberos):
+def hdfs_client(
+    hdfs_server: Dict[str, Any],
+    kerberos: sdk_auth.KerberosEnvironment,
+) -> Iterator[Dict[str, Any]]:
     try:
         client = config.get_hdfs_client_app(hdfs_server["service"]["name"], kerberos)
         sdk_marathon.install_app(client)
@@ -109,7 +117,10 @@ def hdfs_client(hdfs_server, kerberos):
 
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
+def test_user_can_auth_and_write_and_read(
+    hdfs_client: Dict[str, Any],
+    kerberos: sdk_auth.KerberosEnvironment,
+) -> None:
     sdk_auth.kinit(
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")
     )
@@ -121,7 +132,10 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
 
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_users_have_appropriate_permissions(hdfs_client, kerberos):
+def test_users_have_appropriate_permissions(
+    hdfs_client: Dict[str, Any],
+    kerberos: sdk_auth.KerberosEnvironment,
+) -> None:
     # "hdfs" is a superuser
     sdk_auth.kinit(
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")
@@ -139,7 +153,7 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
         cmd_success = config.run_client_command(cmd)
         if not cmd_success:
             log.error("Error executing: %s", cmd)
-        success = success and cmd_success
+        success = bool(success and cmd_success)
 
     if not success:
         log.error("Error creating %s", alice_dir)
@@ -168,7 +182,7 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
 @pytest.mark.auth
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_kill_all_journalnodes(hdfs_server):
+def test_kill_all_journalnodes(hdfs_server: Dict[str, Any]) -> None:
     service_name = hdfs_server["service"]["name"]
     journal_ids = sdk_tasks.get_task_ids(service_name, "journal")
     name_ids = sdk_tasks.get_task_ids(service_name, "name")

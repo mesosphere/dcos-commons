@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator, Optional
 
 import pytest
 import sdk_install
@@ -13,7 +14,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
@@ -30,12 +31,12 @@ def configure_package(configure_security):
 
 
 @pytest.mark.sanity
-def test_install():
+def test_install() -> None:
     config.check_running(sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 
 @pytest.mark.sanity
-def test_once_task_does_not_restart_on_config_update():
+def test_once_task_does_not_restart_on_config_update() -> None:
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
 
@@ -53,7 +54,7 @@ def test_once_task_does_not_restart_on_config_update():
 
 
 @pytest.mark.sanity
-def test_finish_task_restarts_on_config_update():
+def test_finish_task_restarts_on_config_update() -> None:
     foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
     config.check_running(foldered_name)
     task_name = "world-0-finish"
@@ -66,7 +67,7 @@ def test_finish_task_restarts_on_config_update():
     config.check_running(foldered_name)
 
 
-def get_completed_task_id(task_name):
+def get_completed_task_id(task_name: str) -> Optional[str]:
     task_ids = [t.id for t in sdk_tasks.get_summary(with_completed=True, task_name=task_name)]
     # Mesos returns newest task first:
     return task_ids[0] if task_ids else None

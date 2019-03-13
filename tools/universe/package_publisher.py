@@ -7,6 +7,7 @@ import json
 import logging
 import os
 import shutil
+from typing import Dict, List, Optional, Set, Tuple
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -21,7 +22,14 @@ class UniversePackagePublisher(object):
     """Creates a PR for a release against the Universe repository at http://github.com/mesosphere/universe.
     """
 
-    def __init__(self, package_name, package_version, commit_desc, beta_release, dry_run=False):
+    def __init__(
+        self,
+        package_name: str,
+        package_version: str,
+        commit_desc: str,
+        beta_release: bool,
+        dry_run: bool = False,
+    ) -> None:
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._pr_title = "Release {} {} (automated commit)\n\n".format(
@@ -48,7 +56,7 @@ class UniversePackagePublisher(object):
         )
         self._release_universe_repo = os.environ.get("RELEASE_UNIVERSE_REPO", "mesosphere/universe")
 
-    def _find_release_index(self, repo_pkg_base):
+    def _find_release_index(self, repo_pkg_base: str) -> Tuple[int, int]:
         """Returns the correct number/id for this release in the universe tree, and the prior release to diff against.
 
         Returns a tuple containing two ints: [prior_index (or -1 if N/A), this_index]"""
@@ -94,7 +102,7 @@ class UniversePackagePublisher(object):
 
         return (last_index, this_index)
 
-    def _create_universe_branch(self, scratchdir, pkgdir):
+    def _create_universe_branch(self, scratchdir: str, pkgdir: str) -> Tuple[str, str]:
         branch = "automated/release_{}_{}_{}".format(
             self._pkg_name,
             self._pkg_version,
@@ -159,7 +167,9 @@ class UniversePackagePublisher(object):
             raise Exception("Failed to push git branch {} to Universe.".format(branch))
         return (branch, commitmsg_path)
 
-    def _compute_changes(self, last_dir, this_dir, last_index, this_index):
+    def _compute_changes(self, last_dir: str, this_dir: str, last_index: int, this_index: int) -> List[str]:
+        filediffs: Dict[str, str] = {}
+        removed_files: Set[str] = set([])
         if os.path.exists(last_dir):
             last_dir_files = set(os.listdir(last_dir))
             this_dir_files = set(os.listdir(this_dir))
@@ -185,9 +195,7 @@ class UniversePackagePublisher(object):
                     if filediff:
                         filediffs[filename] = filediff
         else:
-            filediffs = {}
-            removed_files = {}
-            added_files = os.listdir(this_dir)
+            added_files = set(os.listdir(this_dir))
 
         result_lines = [
             "Changes between revisions {} => {}:\n".format(last_index, this_index),
@@ -210,7 +218,7 @@ class UniversePackagePublisher(object):
 
         return result_lines
 
-    def _create_universe_pr(self, branch, commitmsg_path):
+    def _create_universe_pr(self, branch: str, commitmsg_path: str) -> Optional[http.client.HTTPResponse]:
         if self._dry_run:
             log.info("[DRY RUN] Skipping creation of PR against branch {}".format(branch))
             return None
@@ -235,6 +243,6 @@ class UniversePackagePublisher(object):
         )
         return conn.getresponse()
 
-    def publish(self, scratchdir, pkgdir):
+    def publish(self, scratchdir: str, pkgdir: str) -> Optional[http.client.HTTPResponse]:
         branch, commitmsg_path = self._create_universe_branch(scratchdir, pkgdir)
         return self._create_universe_pr(branch, commitmsg_path)
