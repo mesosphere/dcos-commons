@@ -21,7 +21,7 @@ appdirs==1.4.3
 asn1crypto==0.24.0
 aspy.yaml==1.2.0
 astroid==2.2.3
-atomicwrites==1.2.
+atomicwrites==1.2.1
 attrs==18.2.0
 awscli==1.16.117
 azure-common==1.1.16
