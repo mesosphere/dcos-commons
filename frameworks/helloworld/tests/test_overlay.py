@@ -1,5 +1,4 @@
 import logging
-from typing import Any, Dict, Iterator, List
 
 import json
 import pytest
@@ -18,7 +17,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
@@ -37,7 +36,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
 @pytest.mark.overlay
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
-def test_overlay_network() -> None:
+def test_overlay_network():
     """Verify that the current deploy plan matches the expected plan from the spec."""
 
     deployment_plan = sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
@@ -110,8 +109,8 @@ def test_overlay_network() -> None:
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_cni_labels() -> None:
-    def check_labels(labels: List[Dict[str, Any]], idx: int) -> None:
+def test_cni_labels():
+    def check_labels(labels, idx):
         k = labels[idx]["key"]
         v = labels[idx]["value"]
 
@@ -141,7 +140,7 @@ def test_cni_labels() -> None:
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_srv_records() -> None:
+def test_srv_records():
 
     # getter-0-check-comm lacks ports and should not be present in the SRV records:
     task_to_expected_port_names = {
@@ -151,7 +150,7 @@ def test_srv_records() -> None:
         "host-0-server": ["host-port"]
     }
 
-    def check_expected_srv_records(task_to_srv_names: Dict[str, List[str]]) -> None:
+    def check_expected_srv_records(task_to_srv_names):
         assert task_to_expected_port_names.keys() == task_to_srv_names.keys(), "Mismatch between expected and actual tasks"
         for task_name, srv_names in task_to_srv_names.items():
             expected_port_names = task_to_expected_port_names[task_name]
@@ -169,7 +168,7 @@ def test_srv_records() -> None:
         wait_exponential_multiplier=1000,
         wait_exponential_max=120 * 1000,
     )
-    def wait_for_valid_srv_records() -> None:
+    def wait_for_valid_srv_records():
         cmd = "curl localhost:8123/v1/enumerate"
         rc, stdout, _ = sdk_cmd.master_ssh(cmd)
         assert rc == 0, "Failed to get srv records from master SSH: {}".format(cmd)
@@ -195,7 +194,7 @@ def test_srv_records() -> None:
             )
 
             # Mapping of task_name => [srv_name_1, srv_name_2, ...]
-            task_to_srv_names: Dict[str, List[str]] = {}
+            task_to_srv_names = {}
             for t in framework_srv["tasks"]:
                 if t["name"] in task_to_srv_names:
                     assert False, "Got multiple entries for task {}: {}".format(t["name"], framework_srv)

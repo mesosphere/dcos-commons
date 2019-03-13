@@ -7,7 +7,6 @@
 import logging
 import os
 import sys
-from typing import List
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -15,7 +14,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 PROPERTIES_FILE_NAME = "stub-universe.properties"
 
 
-def upload_to_s3(s3_dir_uri: str) -> None:
+def upload_to_s3(s3_dir_uri):
     jenkins_workspace_path = os.environ.get("WORKSPACE", "")
     properties_file_path = "{}/{}".format(jenkins_workspace_path, PROPERTIES_FILE_NAME)
     if not os.path.isfile(properties_file_path):
@@ -40,7 +39,7 @@ def upload_to_s3(s3_dir_uri: str) -> None:
         raise Exception(err)
 
 
-def main(argv: List[str]) -> int:
+def main(argv):
     if len(argv) != 2:
         logger.error("Syntax: {} <S3 directory URI>".format(argv[0]))
         logger.error("Received arguments {}".format(str(argv)))

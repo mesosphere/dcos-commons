@@ -1,9 +1,7 @@
-from typing import List, Tuple
-
 import sdk_cmd
 
 
-def cmd(service_name: str, task_name: str, command: str) -> Tuple[int, str, str]:
+def cmd(service_name, task_name, command):
     return sdk_cmd.service_task_exec(
         service_name,
         task_name,
@@ -11,7 +9,7 @@ def cmd(service_name: str, task_name: str, command: str) -> Tuple[int, str, str]
     )
 
 
-def parse_status(output: str) -> List['Node']:
+def parse_status(output):
     nodes = []
     for line in _get_status_lines(output):
         node = _parse_status_line(line)
@@ -20,7 +18,7 @@ def parse_status(output: str) -> List['Node']:
     return nodes
 
 
-def _get_status_lines(output: str) -> List[str]:
+def _get_status_lines(output):
     raw_lines = output.splitlines()[5:]
     lines = []
     for raw_line in raw_lines:
@@ -30,7 +28,7 @@ def _get_status_lines(output: str) -> List[str]:
     return lines
 
 
-def _parse_status_line(line: str) -> 'Node':
+def _parse_status_line(line):
     # Input looks like this:
     # UN  10.0.2.28   74.32 KB   256          62.8%             d71b5d8d-6db1-416e-a25d-4541f06b26bc  us-west-2c
 
@@ -52,16 +50,7 @@ def _parse_status_line(line: str) -> 'Node':
 
 
 class Node(object):
-    def __init__(
-        self,
-        status: str,
-        address: str,
-        load: str,
-        tokens: str,
-        owns: str,
-        host_id: str,
-        rack: str,
-    ) -> None:
+    def __init__(self, status, address, load, tokens, owns, host_id, rack):
         self.status = status
         self.address = address
         self.load = load
@@ -70,28 +59,28 @@ class Node(object):
         self.host_id = host_id
         self.rack = rack
 
-    def __str__(self) -> str:
+    def __str__(self):
         return "status: {}, address: {}, load: {}, tokens: {}, owns: {}, host_id: {}, rack: {}".format(
             self.status, self.address, self.load, self.tokens, self.owns, self.host_id, self.rack
         )
 
-    def get_status(self) -> str:
+    def get_status(self):
         return self.status
 
-    def get_address(self) -> str:
+    def get_address(self):
         return self.address
 
-    def get_load(self) -> str:
+    def get_load(self):
         return self.load
 
-    def get_tokens(self) -> str:
+    def get_tokens(self):
         return self.tokens
 
-    def get_owns(self) -> str:
+    def get_owns(self):
         return self.owns
 
-    def get_host_id(self) -> str:
+    def get_host_id(self):
         return self.host_id
 
-    def get_rack(self) -> str:
+    def get_rack(self):
         return self.rack

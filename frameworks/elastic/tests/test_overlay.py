@@ -1,7 +1,5 @@
 import pytest
 import retrying
-from typing import Iterable
-
 import sdk_install
 import sdk_networks
 import sdk_tasks
@@ -9,7 +7,7 @@ from tests import config
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterable:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
@@ -25,13 +23,13 @@ def configure_package(configure_security: None) -> Iterable:
 
 
 @pytest.fixture(autouse=True)
-def pre_test_setup() -> None:
+def pre_test_setup():
     sdk_tasks.check_running(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
     config.wait_for_expected_nodes_to_exist(task_count=config.DEFAULT_TASK_COUNT)
 
 
 @pytest.fixture
-def default_populated_index() -> None:
+def default_populated_index():
     config.delete_index(config.DEFAULT_INDEX_NAME)
     config.create_index(config.DEFAULT_INDEX_NAME, config.DEFAULT_SETTINGS_MAPPINGS)
     config.create_document(
@@ -50,7 +48,7 @@ def default_populated_index() -> None:
     stop_max_delay=config.DEFAULT_TIMEOUT * 1000,
     retry_on_result=lambda res: not res,
 )
-def test_indexing(default_populated_index: None) -> bool:
+def test_indexing(default_populated_index):
     indices_stats = config.get_elasticsearch_indices_stats(config.DEFAULT_INDEX_NAME)
     observed_count = indices_stats["_all"]["primaries"]["docs"]["count"]
     assert observed_count == 1, "Indices has incorrect count: should be 1, got {}".format(
@@ -58,13 +56,13 @@ def test_indexing(default_populated_index: None) -> bool:
     )
     doc = config.get_document(config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1)
     observed_name = doc["_source"]["name"]
-    return bool(observed_name == "Loren")
+    return observed_name == "Loren"
 
 
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_tasks_on_overlay() -> None:
+def test_tasks_on_overlay():
     tasks = sdk_tasks.check_task_count(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
     for task in tasks:
         sdk_networks.check_task_network(task.name)
@@ -73,7 +71,7 @@ def test_tasks_on_overlay() -> None:
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
-def test_endpoints_on_overlay() -> None:
+def test_endpoints_on_overlay():
     endpoints_on_overlay_to_count = {
         "coordinator-http": 1,
         "coordinator-transport": 1,

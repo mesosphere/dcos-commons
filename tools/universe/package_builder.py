@@ -12,10 +12,6 @@ import re
 import tempfile
 import time
 import urllib.request
-from typing import Any, Dict, Iterable, Iterator, List, Tuple
-
-from . import Package
-from .package_manager import PackageManager
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -41,12 +37,12 @@ _expected_package_filenames = [
 class UniversePackageBuilder(object):
     def __init__(
         self,
-        package: Package,
-        package_manager: PackageManager,
-        input_dir_path: str,
-        upload_dir_uri: str,
-        artifact_paths: Iterable[str],
-        dry_run: bool = False,
+        package,
+        package_manager,
+        input_dir_path,
+        upload_dir_uri,
+        artifact_paths,
+        dry_run=False,
     ):
 
         self._dry_run = dry_run
@@ -56,7 +52,7 @@ class UniversePackageBuilder(object):
 
         self.set_input_dir_path(input_dir_path)
 
-        self._artifact_file_paths: Dict[str, str] = {}
+        self._artifact_file_paths = {}
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
                 raise Exception(
@@ -73,7 +69,7 @@ class UniversePackageBuilder(object):
                 )
             self._artifact_file_paths[os.path.basename(artifact_path)] = artifact_path
 
-    def set_input_dir_path(self, input_dir_path: str) -> None:
+    def set_input_dir_path(self, input_dir_path):
         """Validate and set the input directory path"""
         if not os.path.isdir(input_dir_path):
             raise Exception("Provided package path is not a directory: {}".format(input_dir_path))
@@ -87,7 +83,7 @@ class UniversePackageBuilder(object):
 
         self._input_dir_path = input_dir_path
 
-    def _iterate_package_files(self) -> Iterator[Tuple[str, str]]:
+    def _iterate_package_files(self):
         for package_filename in os.listdir(self._input_dir_path):
             package_filepath = os.path.join(self._input_dir_path, package_filename)
             if os.stat(package_filepath).st_size > (1024 * 1024):
@@ -102,7 +98,7 @@ class UniversePackageBuilder(object):
                 continue
             yield package_filename, open(package_filepath).read()
 
-    def _fetch_sha256_from_manifest(self, manifest_url: str, filename: str) -> str:
+    def _fetch_sha256_from_manifest(self, manifest_url, filename):
         logger.info("Fetching manifest for %s from %s", filename, manifest_url)
 
         if self._dry_run:
@@ -130,7 +126,7 @@ class UniversePackageBuilder(object):
             )
         )
 
-    def _calculate_sha256(self, filepath: str) -> str:
+    def _calculate_sha256(self, filepath):
         BLOCKSIZE = 65536
         hasher = hashlib.sha256()
         with open(filepath, "rb") as fd:
@@ -140,7 +136,7 @@ class UniversePackageBuilder(object):
                 buf = fd.read(BLOCKSIZE)
         return hasher.hexdigest()
 
-    def _get_documentation_path(self) -> str:
+    def _get_documentation_path(self):
         documentation_path = "{}/service-docs/{}/".format(_docs_root, self._package.get_name())
         package_version = str(self._package.get_version())
         if package_version != "stub-universe":
@@ -148,10 +144,10 @@ class UniversePackageBuilder(object):
 
         return documentation_path
 
-    def _get_issues_path(self) -> str:
+    def _get_issues_path(self):
         return "{}/support/".format(_docs_root)
 
-    def _get_upgrades_from(self) -> str:
+    def _get_upgrades_from(self):
         latest_package = self._package_manager.get_latest(self._package)
 
         if latest_package is None:
@@ -159,10 +155,10 @@ class UniversePackageBuilder(object):
 
         return str(latest_package.get_version())
 
-    def _get_downgrades_to(self) -> str:
+    def _get_downgrades_to(self):
         return self._get_upgrades_from()
 
-    def _get_template_mapping_for_content(self, orig_content: str) -> Dict[str, str]:
+    def _get_template_mapping_for_content(self, orig_content):
         """Returns a template mapping (dict) for the following cases:
         - Default params like '{{package-version}}' and '{{artifact-dir}}'
         - SHA256 params like '{{sha256:artifact.zip}}' (requires user-provided paths to artifact files)
@@ -197,7 +193,7 @@ class UniversePackageBuilder(object):
 
         return template_mapping
 
-    def _get_sha_template_mapping(self, content: str, template_mapping: dict) -> Dict[str, str]:
+    def _get_sha_template_mapping(self, content: str, template_mapping: dict) -> dict:
         """
         Look for any 'sha256:filename' or 'sha256:filename@url' template params, and get shas for those.
             - "sha256:filename": generate SHA256 of local file which was specified as an artifact
@@ -247,7 +243,7 @@ class UniversePackageBuilder(object):
 
         return new_content
 
-    def _apply_templating_to_file(self, filename: str, orig_content: str) -> str:
+    def _apply_templating_to_file(self, filename, orig_content):
         template_mapping = self._get_template_mapping_for_content(orig_content)
         new_content = self._apply_template_to_string(orig_content, template_mapping)
 
@@ -270,7 +266,7 @@ class UniversePackageBuilder(object):
         )
         return new_content
 
-    def _generate_packages_dict(self, package_files: Dict[str, Any]) -> Dict[str, List]:
+    def _generate_packages_dict(self, package_files):
         package_json = json.loads(
             package_files[_package_json_filename], object_pairs_hook=collections.OrderedDict
         )
@@ -298,7 +294,7 @@ class UniversePackageBuilder(object):
 
         return {"packages": [package_json]}
 
-    def build_package_files(self) -> Dict[str, str]:
+    def build_package_files(self):
         """builds package files and returns a dict containing them"""
         # read files into memory and apply templating to files:
         updated_package_files = {}
@@ -306,7 +302,7 @@ class UniversePackageBuilder(object):
             updated_package_files[filename] = self._apply_templating_to_file(filename, content)
         return updated_package_files
 
-    def build_package(self) -> str:
+    def build_package(self):
         """builds a stub universe json package and returns its location on disk"""
 
         jsonpath = os.path.join(

@@ -1,5 +1,4 @@
 from xml.etree import ElementTree
-from typing import Any, Dict, Iterator
 
 import pytest
 import retrying
@@ -14,7 +13,7 @@ from tests import config
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterator[None]:
+def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
@@ -31,12 +30,12 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 
 @pytest.fixture(autouse=True)
-def pre_test_setup() -> None:
+def pre_test_setup():
     config.check_healthy(service_name=config.SERVICE_NAME)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def hdfs_client() -> Iterator[Dict[str, Any]]:
+def hdfs_client():
     try:
         client = config.get_hdfs_client_app(config.SERVICE_NAME)
         sdk_marathon.install_app(client)
@@ -49,7 +48,7 @@ def hdfs_client() -> Iterator[Dict[str, Any]]:
 @pytest.mark.overlay
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_tasks_on_overlay() -> None:
+def test_tasks_on_overlay():
     tasks = sdk_tasks.check_task_count(config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
     for task in tasks:
         sdk_networks.check_task_network(task.name)
@@ -58,7 +57,7 @@ def test_tasks_on_overlay() -> None:
 @pytest.mark.overlay
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_endpoints_on_overlay() -> None:
+def test_endpoints_on_overlay():
     endpoint_names = sdk_networks.get_endpoint_names(config.PACKAGE_NAME, config.SERVICE_NAME)
     assert set(endpoint_names) == set(["hdfs-site.xml", "core-site.xml"])
     for endpoint_name in endpoint_names:
@@ -70,7 +69,7 @@ def test_endpoints_on_overlay() -> None:
 @pytest.mark.sanity
 @pytest.mark.data_integrity
 @pytest.mark.dcos_min_version("1.9")
-def test_write_and_read_data_on_overlay(hdfs_client: Dict[str, Any]) -> None:
+def test_write_and_read_data_on_overlay(hdfs_client):
     test_filename = config.get_unique_filename("test_data_overlay")
     config.hdfs_client_write_data(test_filename)
     config.hdfs_client_read_data(test_filename)
@@ -79,7 +78,7 @@ def test_write_and_read_data_on_overlay(hdfs_client: Dict[str, Any]) -> None:
 
 @pytest.mark.data_integrity
 @pytest.mark.sanity
-def test_integrity_on_data_node_failure(hdfs_client: Dict[str, Any]) -> None:
+def test_integrity_on_data_node_failure(hdfs_client):
     """
     Verifies proper data replication among data nodes.
     """
@@ -100,7 +99,7 @@ def test_integrity_on_data_node_failure(hdfs_client: Dict[str, Any]) -> None:
 
 @pytest.mark.data_integrity
 @pytest.mark.sanity
-def test_integrity_on_name_node_failure(hdfs_client: Dict[str, Any]) -> None:
+def test_integrity_on_name_node_failure(hdfs_client):
     """
     The first name node (name-0-node) is the active name node by default when HDFS gets installed.
     This test checks that it is possible to write and read data after the active name node fails
@@ -111,7 +110,7 @@ def test_integrity_on_name_node_failure(hdfs_client: Dict[str, Any]) -> None:
         wait_fixed=1000,
         stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000
     )
-    def _get_active_name_node() -> str:
+    def _get_active_name_node():
         for candidate in ("name-0-node", "name-1-node"):
             if is_name_node_active(candidate):
                 return candidate
@@ -135,7 +134,7 @@ def test_integrity_on_name_node_failure(hdfs_client: Dict[str, Any]) -> None:
         stop_max_delay=config.DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res,
     )
-    def _wait_for_failover_to_complete(namenode: str) -> bool:
+    def _wait_for_failover_to_complete(namenode):
         return is_name_node_active(namenode)
 
     _wait_for_failover_to_complete(new_active_name_node)
@@ -148,6 +147,6 @@ def test_integrity_on_name_node_failure(hdfs_client: Dict[str, Any]) -> None:
     config.check_healthy(config.SERVICE_NAME)
 
 
-def is_name_node_active(namenode: str) -> bool:
+def is_name_node_active(namenode):
     success, stdout, _ = config.run_client_command(config.hadoop_command("haadmin -getServiceState {}".format(namenode)))
-    return bool(success and stdout.strip() == "active")
+    return success and stdout.strip() == "active"
