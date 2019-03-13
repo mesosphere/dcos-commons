@@ -6,6 +6,8 @@ SHOULD ALSO BE APPLIED TO sdk_tasks IN ANY OTHER PARTNER REPOS
 ************************************************************************
 """
 import logging
+from typing import Any, Dict, Iterable, List, Pattern, Optional
+
 import retrying
 
 import sdk_agents
@@ -38,14 +40,17 @@ log = logging.getLogger(__name__)
 
 
 def check_running(
-    service_name, expected_task_count, timeout_seconds=DEFAULT_TIMEOUT_SECONDS, allow_more=True
-):
+    service_name: str,
+    expected_task_count: int,
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+    allow_more: bool = True,
+) -> None:
     agentid_to_hostname = _get_agentid_to_hostname()
 
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _check_running():
+    def _check_running() -> bool:
         tasks = _get_service_tasks(service_name, agentid_to_hostname)
         running_task_names = []
         other_tasks = []
@@ -78,7 +83,7 @@ class Task(object):
     """Entry value returned by get_summary() and get_service_tasks()"""
 
     @staticmethod
-    def parse(task_entry, agentid_to_hostname):
+    def parse(task_entry: Dict[str, Any], agentid_to_hostname: Dict[str, str]) -> 'Task':
         agent_id = task_entry["slave_id"]
         matching_hostname = agentid_to_hostname.get(agent_id)
         if matching_hostname:
@@ -96,24 +101,34 @@ class Task(object):
             task_entry["resources"],
         )
 
-    def __init__(self, name, host, state, task_id, executor_id, framework_id, agent_id, resources):
-        self.name = name
-        self.host = host
-        self.state = state  # 'TASK_RUNNING', 'TASK_KILLED', ...
-        self.is_completed = state in COMPLETED_TASK_STATES
+    def __init__(
+        self,
+        name: str,
+        host: str,
+        state: str,
+        task_id: str,
+        executor_id: str,
+        framework_id: str,
+        agent_id: str,
+        resources: Dict[str, int],
+    ) -> None:
+        self.name: str = name
+        self.host: str = host
+        self.state: str = state  # 'TASK_RUNNING', 'TASK_KILLED', ...
+        self.is_completed: bool = state in COMPLETED_TASK_STATES
         self.id = task_id
         self.executor_id = executor_id
         self.framework_id = framework_id
         self.agent_id = agent_id
-        self.resources = resources  # 'cpus', 'disk', 'mem', 'gpus' => int
+        self.resources: Dict[str, int] = resources  # 'cpus', 'disk', 'mem', 'gpus' => int
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return 'Task[name="{}"\tstate={}\tid={}\thost={}\tframework_id={}\tagent_id={}]'.format(
             self.name, self.state, self.id, self.host, self.framework_id, self.agent_id
         )
 
 
-def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
+def get_all_status_history(task_name: str, with_completed_tasks: bool = True) -> list:
     """Returns a list of task status values(of the form 'TASK_STARTING', 'TASK_KILLED', etc) for
     all instances of a given task. The returned values are ordered chronologically from first to
     last.
@@ -122,7 +137,7 @@ def get_all_status_history(task_name: str, with_completed_tasks=True) -> list:
     : param with_completed_tasks: Whether to include the status history of previous versions of the task which had since exited. Unlike with get_service_tasks(), this may include tasks from previous versions of the service.
     """
     cluster_tasks = sdk_cmd.cluster_request("GET", "/mesos/tasks").json()["tasks"]
-    statuses = []
+    statuses: List[Dict[str, Any]] = []
     for cluster_task in cluster_tasks:
         if cluster_task["name"] != task_name:
             # Skip task: wrong name
@@ -171,7 +186,7 @@ def check_task_count(service_name: str, expected_task_count: int) -> list:
     return service_tasks
 
 
-def get_task_ids(service_name: str, task_prefix="") -> list:
+def get_task_ids(service_name: str, task_prefix: str = "") -> List[str]:
     """Returns a list of task IDs for all running tasks in the specified Mesos framework.
 
     : param service_name: The name of the Mesos framework whose task ids should be retrieved.
@@ -180,7 +195,7 @@ def get_task_ids(service_name: str, task_prefix="") -> list:
     return [t.id for t in get_service_tasks(service_name, task_prefix=task_prefix)]
 
 
-def get_service_tasks(service_name: str, task_prefix="", with_completed_tasks=False) -> list:
+def get_service_tasks(service_name: str, task_prefix: str = "", with_completed_tasks: bool = False) -> list:
     """Returns a list of task objects for tasks in the specified Mesos framework.
 
     : param service_name: The name of the Mesos framework whose task information should be retrieved.
@@ -193,14 +208,17 @@ def get_service_tasks(service_name: str, task_prefix="", with_completed_tasks=Fa
 
 
 def _get_service_tasks(
-    service_name: str, agentid_to_hostname: dict, task_prefix="", with_completed_tasks=False
+    service_name: str,
+    agentid_to_hostname: dict,
+    task_prefix: str = "",
+    with_completed_tasks: bool = False,
 ) -> list:
     """Returns a summary of all tasks in the specified Mesos framework.
 
     Returns a list of Task objects.
     """
     cluster_frameworks = sdk_cmd.cluster_request("GET", "/mesos/frameworks").json()["frameworks"]
-    service_tasks = []
+    service_tasks: List[Task] = []
     for fwk in cluster_frameworks:
         if not fwk["name"] == service_name or not fwk["active"]:
             continue
@@ -214,7 +232,7 @@ def _get_service_tasks(
     return service_tasks
 
 
-def get_summary(with_completed=False, task_name=None) -> list:
+def get_summary(with_completed: bool = False, task_name: Optional[str] = None) -> List[Task]:
     """Returns a summary of all cluster tasks in the cluster, or just a specified task.
     This may be used instead of invoking 'dcos task [--all]' directly.
 
@@ -242,7 +260,7 @@ def _get_agentid_to_hostname() -> dict:
     return {agent["id"]: agent["hostname"] for agent in sdk_agents.get_agents()}
 
 
-def get_tasks_avoiding_scheduler(service_name, task_name_pattern) -> list:
+def get_tasks_avoiding_scheduler(service_name: str, task_name_pattern: Pattern) -> list:
     """Returns a list of tasks which are not located on the Scheduler's machine.
 
     Avoid also killing the system that the scheduler is on. This is just to speed up testing.
@@ -292,11 +310,11 @@ def get_tasks_avoiding_scheduler(service_name, task_name_pattern) -> list:
 
 
 def check_task_relaunched(
-    task_name,
-    old_task_id,
-    ensure_new_task_not_completed=True,
-    timeout_seconds=DEFAULT_TIMEOUT_SECONDS,
-):
+    task_name: str,
+    old_task_id: str,
+    ensure_new_task_not_completed: bool = True,
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+) -> None:
     log.info(
         'Checking task "{}" is relaunched: old_task_id={}, ensure_new_task_not_completed={}'.format(
             task_name, old_task_id, ensure_new_task_not_completed
@@ -308,7 +326,7 @@ def check_task_relaunched(
         stop_max_delay=timeout_seconds * 1000,
         retry_on_exception=lambda e: isinstance(e, Exception),
     )
-    def _check_task_relaunched():
+    def _check_task_relaunched() -> None:
         tasks = get_summary(with_completed=True, task_name=task_name)
         assert len(tasks) > 0, "No tasks were found with the given task name {}".format(task_name)
         assert (
@@ -333,8 +351,8 @@ def check_task_relaunched(
 
 
 def check_scheduler_relaunched(
-    service_name: str, old_scheduler_task_id: str, timeout_seconds=DEFAULT_TIMEOUT_SECONDS
-):
+    service_name: str, old_scheduler_task_id: str, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+) -> None:
     """
     This function checks for the relaunch of a task using the same matching as is
     used in sdk_task.get_task_id()
@@ -343,7 +361,7 @@ def check_scheduler_relaunched(
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def fn():
+    def fn() -> bool:
         task_ids = set([t.id for t in get_service_tasks("marathon", task_prefix=service_name)])
         log.info("Found {} scheduler task ids {}".format(service_name, task_ids))
         return len(task_ids) > 0 and (old_scheduler_task_id not in task_ids or len(task_ids) > 1)
@@ -352,8 +370,12 @@ def check_scheduler_relaunched(
 
 
 def check_task_not_relaunched(
-    service_name, task_name, old_task_id, multiservice_name=None, with_completed=False
-):
+    service_name: str,
+    task_name: str,
+    old_task_id: str,
+    multiservice_name: Optional[str] = None,
+    with_completed: bool = False,
+) -> None:
     log.info(
         'Checking that task "{}" with current task id {} is not relaunched'.format(
             task_name, old_task_id
@@ -372,8 +394,11 @@ def check_task_not_relaunched(
 
 
 def check_tasks_updated(
-    service_name, prefix, old_task_ids, timeout_seconds=DEFAULT_TIMEOUT_SECONDS
-):
+    service_name: str,
+    prefix: str,
+    old_task_ids: Iterable[str],
+    timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+) -> None:
     prefix_clause = ""
     if prefix:
         prefix_clause = ' starting with "{}"'.format(prefix)
@@ -381,7 +406,7 @@ def check_tasks_updated(
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _check_tasks_updated():
+    def _check_tasks_updated() -> bool:
         wait_for_active_framework(service_name)
         task_ids = get_task_ids(service_name, prefix)
 
@@ -417,6 +442,7 @@ def check_tasks_updated(
             old_remaining_set,
             newly_launched_set,
         )
+        return False
 
     log.info(
         "Waiting for tasks%s to have updated ids:\n" "- Old tasks: %s", prefix_clause, old_task_ids
@@ -424,7 +450,7 @@ def check_tasks_updated(
     _check_tasks_updated()
 
 
-def check_tasks_not_updated(service_name, prefix, old_task_ids):
+def check_tasks_not_updated(service_name: str, prefix: str, old_task_ids: Iterable[str]) -> None:
     sdk_plan.wait_for_completed_deployment(service_name)
     sdk_plan.wait_for_completed_recovery(service_name)
     wait_for_active_framework(service_name)
@@ -438,7 +464,7 @@ def check_tasks_not_updated(service_name, prefix, old_task_ids):
     ), 'Tasks starting with "{}" were updated:{}'.format(prefix, task_sets)
 
 
-def wait_for_active_framework(service_name, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
+def wait_for_active_framework(service_name: str, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS) -> None:
     """
     Waits until a framework with name `framework_name` is found and is active
     """
@@ -447,7 +473,7 @@ def wait_for_active_framework(service_name, timeout_seconds=DEFAULT_TIMEOUT_SECO
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _wait_for_active_framework():
+    def _wait_for_active_framework() -> bool:
         return len(list(filter(
             lambda fwk: fwk["name"] == service_name and fwk["active"],
             sdk_cmd.cluster_request("GET", "/mesos/frameworks").json()["frameworks"]

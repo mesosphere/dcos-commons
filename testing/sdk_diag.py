@@ -13,9 +13,11 @@ import re
 import shutil
 import time
 import inspect
+from typing import Any, Callable, Dict, List, Optional, Set
 
 import pytest
 import retrying
+import _pytest.runner
 
 import sdk_cmd
 import sdk_install
@@ -52,7 +54,7 @@ _testlogs_current_test_suite = ""
 #   (ignore tasks unrelated to this test suite)
 # - Task ids which have been logged following a prior failure in the current test suite.
 #   (ignore task ids which were already collected before, even if there's new content)
-_testlogs_ignored_task_ids = set([])
+_testlogs_ignored_task_ids: Set[str] = set([])
 
 # The index of the current test, which increases as tests are run, and resets when a new test suite
 # is started. This is used to sort test logs in the order that they were executed, and is useful
@@ -60,19 +62,19 @@ _testlogs_ignored_task_ids = set([])
 _testlogs_test_index = 0
 
 
-def get_test_suite_name(item: pytest.Item):
+def get_test_suite_name(item: pytest.Item) -> str:
     """Returns the test suite name to use for a given test."""
     # frameworks/template/tests/test_sanity.py => test_sanity_py
     # tests/test_sanity.py => test_sanity_py
 
     # use the class name as the suite name if item is a method
     if inspect.ismethod(item.obj):
-        return os.path.basename(item.getparent(pytest.Class).name).replace(".", "_")
+        return str(os.path.basename(item.getparent(pytest.Class).name)).replace(".", "_")
 
-    return os.path.basename(item.parent.name).replace(".", "_")
+    return str(os.path.basename(item.parent.name)).replace(".", "_")
 
 
-def handle_test_setup(item: pytest.Item):
+def handle_test_setup(item: pytest.Item) -> None:
     """Does some initialization at the start of a test.
 
     This should be called in a pytest_runtest_setup() hook.
@@ -111,7 +113,7 @@ def handle_test_setup(item: pytest.Item):
     _testlogs_test_index += 1
 
 
-def _task_whitelist_callback(item: pytest.Item):
+def _task_whitelist_callback(item: pytest.Item) -> Callable[[sdk_tasks.Task], bool]:
     """Returns a callback configured by pytest marker diag_task_whitelist
     to check if a task is whitelisted, which should be used like this:
 
@@ -124,7 +126,7 @@ def _task_whitelist_callback(item: pytest.Item):
     Note that the diag_task_whitelist marker can be used on function, class, or module
     to be able to hierarchically configure the whitelist.
     """
-    def _callback(task):
+    def _callback(task: sdk_tasks.Task) -> bool:
         # get_closest_marker is only available in latest pytest versions
         if item.get_closest_marker(name='diag_task_whitelist') is None:
             return False
@@ -138,7 +140,7 @@ def _task_whitelist_callback(item: pytest.Item):
     return _callback
 
 
-def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
+def handle_test_report(item: pytest.Item, result: _pytest.runner.TestReport) -> None:
     """Collects information from the cluster following a failed test.
 
     This should be called in a hookimpl fixture.
@@ -208,7 +210,7 @@ def handle_test_report(item: pytest.Item, result):  # _pytest.runner.TestReport
     log.info("Post-failure collection complete")
 
 
-def _whitelisted_service_names(item: pytest.Item) -> set:
+def _whitelisted_service_names(item: pytest.Item) -> Set[str]:
     """Returns a set of whitelisted service names configured by pytest marker diag_service_whitelist,
     which should be used like this:
 
@@ -221,14 +223,14 @@ def _whitelisted_service_names(item: pytest.Item) -> set:
     if item.get_closest_marker(name='diag_service_whitelist') is None:
         return set()
 
-    whitelisted_service_names = set()
+    whitelisted_service_names: Set[str] = set()
     for mark in item.iter_markers(name='diag_service_whitelist'):
         whitelisted_service_names = whitelisted_service_names.union(mark.args[0])
 
     return whitelisted_service_names
 
 
-def _dump_plans(item: pytest.Item, service_name: str):
+def _dump_plans(item: pytest.Item, service_name: str) -> None:
     """If the test had failed, writes the plan state(s) to log file(s)."""
 
     # Use brief timeouts, we just want a best-effort attempt here:
@@ -246,7 +248,7 @@ def _dump_plans(item: pytest.Item, service_name: str):
             f.write("\n")  # ... and a trailing newline
 
 
-def _dump_threads(item: pytest.Item, service_name: str):
+def _dump_threads(item: pytest.Item, service_name: str) -> None:
     threads = sdk_cmd.service_request(
         "GET", service_name, "v1/debug/threads", timeout_seconds=5
     ).text
@@ -257,7 +259,7 @@ def _dump_threads(item: pytest.Item, service_name: str):
         f.write("\n")  # ... and a trailing newline
 
 
-def _dump_diagnostics_bundle(item: pytest.Item):
+def _dump_diagnostics_bundle(item: pytest.Item) -> None:
     """Creates and downloads a DC/OS diagnostics bundle, and saves it to the artifact path for this test."""
     rc, _, _ = sdk_cmd.run_cli("node diagnostics create all")
     if rc:
@@ -269,7 +271,7 @@ def _dump_diagnostics_bundle(item: pytest.Item):
         stop_max_delay=10 * 60 * 1000,
         retry_on_result=lambda result: result is None,
     )
-    def wait_for_bundle_file():
+    def wait_for_bundle_file() -> Optional[str]:
         rc, stdout, stderr = sdk_cmd.run_cli("node diagnostics --status --json")
         if rc:
             return None
@@ -280,9 +282,9 @@ def _dump_diagnostics_bundle(item: pytest.Item):
             return None
 
         # e.g. "/var/lib/dcos/dcos-diagnostics/diag-bundles/bundle-2018-01-11-1515698691.zip"
-        return os.path.basename(status["last_bundle_dir"])
+        return str(os.path.basename(status["last_bundle_dir"]))
 
-    bundle_filename = wait_for_bundle_file()
+    bundle_filename = str(wait_for_bundle_file())
     if bundle_filename:
         sdk_cmd.run_cli(
             "node diagnostics download {} --location={}".format(
@@ -293,7 +295,7 @@ def _dump_diagnostics_bundle(item: pytest.Item):
         log.error("Diagnostics bundle didnt finish in time, giving up.")
 
 
-def _dump_mesos_state(item: pytest.Item):
+def _dump_mesos_state(item: pytest.Item) -> None:
     """Downloads state from the Mesos master and saves it to the artifact path for this test."""
     for name in ["state.json", "slaves"]:
         r = sdk_cmd.cluster_request("GET", "/mesos/{}".format(name), raise_on_error=False)
@@ -304,13 +306,13 @@ def _dump_mesos_state(item: pytest.Item):
                 f.write(r.text)
 
 
-def _dump_task_logs(item: pytest.Item, task_ids: list):
+def _dump_task_logs(item: pytest.Item, task_ids: List[str]) -> None:
     """
     For all of the provided tasks, downloads their task, executor, and agent logs to the artifact path for this test.
     """
     task_ids_set = set(task_ids)
     cluster_tasks = sdk_cmd.cluster_request("GET", "/mesos/tasks").json()
-    matching_tasks_by_agent = {}
+    matching_tasks_by_agent: Dict[str, List[_TaskEntry]] = {}
     for cluster_task in cluster_tasks["tasks"]:
         task_entry = _TaskEntry(cluster_task)
         if task_entry.task_id in task_ids_set:
@@ -326,18 +328,18 @@ def _dump_task_logs(item: pytest.Item, task_ids: list):
 
 
 class _TaskEntry(object):
-    def __init__(self, cluster_task):
-        self.task_id = cluster_task["id"]
-        self.executor_id = cluster_task["executor_id"]
-        self.agent_id = cluster_task["slave_id"]
+    def __init__(self, cluster_task: Dict[str, Any]) -> None:
+        self.task_id: str = cluster_task["id"]
+        self.executor_id: str = cluster_task["executor_id"]
+        self.agent_id: str = cluster_task["slave_id"]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Task[task_id={} executor_id={} agent_id={}]".format(
             self.task_id, self.executor_id, self.agent_id
         )
 
 
-def _dump_task_logs_for_agent(item: pytest.Item, agent_id: str, agent_tasks: list):
+def _dump_task_logs_for_agent(item: pytest.Item, agent_id: str, agent_tasks: List[_TaskEntry]) -> None:
     agent_executor_paths = sdk_cmd.cluster_request(
         "GET", "/slave/{}/files/debug".format(agent_id)
     ).json()
@@ -386,7 +388,7 @@ def _dump_task_logs_for_task(
 
     # Look at the executor's sandbox and check for a 'tasks/' directory.
     # If it has one (due to being a Default Executor), then also fetch file infos for <executor_path>/tasks/<task_id>/
-    task_file_infos = []
+    task_file_infos: List[Dict[str, Any]] = []
     if task_entry.executor_id and task_entry.task_id:
         for file_info in executor_file_infos:
             if file_info["mode"].startswith("d") and file_info["path"].endswith("/tasks"):
@@ -401,7 +403,7 @@ def _dump_task_logs_for_task(
                     log.exception("Failed to fetch task sandbox from presumed default executor")
 
     # Select all log files to be fetched from the above list.
-    selected_file_infos = collections.OrderedDict()
+    selected_file_infos: 'collections.OrderedDict[str, Any]' = collections.OrderedDict()
     if task_file_infos:
         # Include 'task' and 'executor' annotations in filenames to differentiate between them:
         _select_log_files(
@@ -482,6 +484,7 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
         "^/frameworks/.*/executors/{}/runs/latest$".format(path_id)
     )
     for browse_path in agent_executor_paths.keys():
+        assert isinstance(browse_path, str)
         if frameworks_latest_pattern.match(browse_path):
             return browse_path
     # - 1.10: '/var/lib/mesos/.../executors/<executor_id>/runs/latest'
@@ -492,6 +495,7 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
         "^/var/lib/mesos/.*/executors/{}/runs/latest$".format(path_id)
     )
     for browse_path in agent_executor_paths.keys():
+        assert isinstance(browse_path, str)
         if varlib_latest_pattern.match(browse_path):
             return browse_path
     # - 1.9: '/var/lib/mesos/.../executors/<executor_id>/runs/<some_uuid>'
@@ -502,6 +506,7 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
         "^/var/lib/mesos/.*/executors/{}/runs/[a-f0-9-]+$".format(path_id)
     )
     for browse_path in agent_executor_paths.keys():
+        assert isinstance(browse_path, str)
         if varlib_uuid_pattern.match(browse_path):
             return browse_path
 
@@ -511,10 +516,10 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
 def _select_log_files(
     item: pytest.Item,
     task_id: str,
-    file_infos: list,
+    file_infos: List[Dict[str, Any]],
     source: str,
-    selected: collections.OrderedDict,
-):
+    selected: 'collections.OrderedDict[str, Any]',
+) -> None:
     """Finds and produces the 'stderr'/'stdout' file entries from the provided directory list returned by the agent.
 
     Results are placed in the 'selected' param.
@@ -536,7 +541,7 @@ def _select_log_files(
         selected[_setup_artifact_path(item, out_filename)] = file_info
 
 
-def _setup_artifact_path(item: pytest.Item, artifact_name: str):
+def _setup_artifact_path(item: pytest.Item, artifact_name: str) -> str:
     """Given the pytest item and an artifact_name,
     Returns the path to write an artifact with that name."""
 
@@ -558,6 +563,6 @@ def _setup_artifact_path(item: pytest.Item, artifact_name: str):
     return os.path.join(output_dir, artifact_name)
 
 
-def _test_suite_artifact_directory(item: pytest.Item):
+def _test_suite_artifact_directory(item: pytest.Item) -> str:
     """Returns the parent directory for the artifacts across a suite of tests."""
     return os.path.join("logs", get_test_suite_name(item))

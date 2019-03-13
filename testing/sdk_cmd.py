@@ -16,6 +16,7 @@ import tempfile
 import time
 import urllib.parse
 import urllib3
+from typing import Any, Dict, List, Tuple, Optional
 
 import sdk_utils
 
@@ -35,16 +36,16 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def service_request(
-    method,
-    service_name,
-    service_path,
-    retry=True,
-    raise_on_error=True,
-    log_args=True,
-    log_response=False,
-    timeout_seconds=60,
-    **kwargs,
-):
+        method: str,
+        service_name: str,
+        service_path: str,
+        retry: bool = True,
+        raise_on_error: bool = True,
+        log_args: bool = True,
+        log_response: bool = False,
+        timeout_seconds: int = 60,
+        **kwargs: Any,
+) -> requests.Response:
     """Used to query a service running on the cluster. See `cluster_request()` for arg meanings.
     : param service_name: The name of the service, e.g. 'marathon' or 'hello-world'
     : param service_path: HTTP path to be queried against the service, e.g. '/v2/apps'. Leading slash is optional.
@@ -55,8 +56,8 @@ def service_request(
         "/service/{}/".format(service_name), service_path.lstrip("/")
     )
     return cluster_request(
-        method,
-        cluster_path,
+        method=method,
+        cluster_path=cluster_path,
         retry=retry,
         raise_on_error=raise_on_error,
         log_args=log_args,
@@ -67,15 +68,15 @@ def service_request(
 
 
 def cluster_request(
-    method,
-    cluster_path,
-    retry=True,
-    raise_on_error=True,
-    log_args=True,
-    log_response=False,
-    timeout_seconds=60,
-    **kwargs,
-):
+    method: str,
+    cluster_path: str,
+    retry: bool = True,
+    raise_on_error: bool = True,
+    log_args: bool = True,
+    log_response: bool = False,
+    timeout_seconds: int = 60,
+    **kwargs: Any,
+) -> requests.Response:
     """Queries the provided cluster HTTP path using the provided method, with the following handy features:
     - The DCOS cluster's URL is automatically applied to the provided path.
     - Auth headers are automatically added.
@@ -100,16 +101,16 @@ def cluster_request(
 
     # Wrap token in callback for requests library to invoke:
     class AuthHeader(requests.auth.AuthBase):
-        def __init__(self, token):
+        def __init__(self, token: str) -> None:
             self._token = token
 
-        def __call__(self, r):
+        def __call__(self, r: requests.Request) -> requests.Request:
             r.headers["Authorization"] = "token={}".format(self._token)
             return r
 
     auth = AuthHeader(sdk_utils.dcos_token())
 
-    def _cluster_request():
+    def _cluster_request() -> requests.Response:
         start = time.time()
 
         # check if we have verify key already exists.
@@ -149,18 +150,25 @@ def cluster_request(
     if retry:
         # Use wrapper to implement retry:
         @retrying.retry(wait_fixed=1000, stop_max_delay=timeout_seconds * 1000)
-        def retry_fn():
+        def retry_fn() -> requests.Response:
             return _cluster_request()
 
-        return retry_fn()
+        response = retry_fn()
+        assert isinstance(response, requests.Response)
+        return response
     else:
         # No retry, invoke directly:
         return _cluster_request()
 
 
 def svc_cli(
-    package_name, service_name, service_cmd, print_output=True, parse_json=False, check=False
-):
+    package_name: str,
+    service_name: str,
+    service_cmd: str,
+    print_output: bool = True,
+    parse_json: bool = False,
+    check: bool = False,
+) -> Tuple[int, str, str]:
     rc, stdout, stderr = run_cli(
         "{} --name={} {}".format(package_name, service_name, service_cmd),
         print_output=print_output,
@@ -176,22 +184,26 @@ def svc_cli(
     return rc, stdout, stderr
 
 
-def _get_json_output(cmd, print_output=True, check=False):
-    _, stdout, stderr = run_cli(cmd, print_output, check=check)
+# def _get_json_output(cmd: str, print_output: bool = True, check: bool = False) -> Any:
+#     _, stdout, stderr = run_cli(cmd, print_output, check=check)
 
-    if stderr:
-        log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)
+#     if stderr:
+#         log.warning("stderr for command '%s' is non-empty: %s", cmd, stderr)
 
-    try:
-        json_stdout = json.loads(stdout)
-    except Exception as e:
-        log.warning("Error converting stdout to json:\n%s", stdout)
-        raise e
+#     try:
+#         json_stdout = json.loads(stdout)
+#     except Exception as e:
+#         log.warning("Error converting stdout to json:\n%s", stdout)
+#         raise e
 
-    return json_stdout
+#     return json_stdout
 
 
-def run_cli(cmd, print_output=True, check=False) -> tuple:
+def run_cli(
+    cmd: str,
+    print_output: bool = True,
+    check: bool = False,
+) -> Tuple[int, str, str]:
     """Runs the command with `dcos` as the prefix to the shell command
     and returns a tuple containing exit code, stdout, and stderr.
 
@@ -203,7 +215,12 @@ def run_cli(cmd, print_output=True, check=False) -> tuple:
     return _run_cmd(dcos_cmd, print_output, check)
 
 
-def _run_cmd(cmd, print_output, check, timeout_seconds=None):
+def _run_cmd(
+    cmd: str,
+    print_output: bool,
+    check: bool,
+    timeout_seconds: Optional[int] = None,
+) -> Tuple[int, str, str]:
     result = subprocess.run(
         [cmd],
         stdout=subprocess.PIPE,
@@ -238,7 +255,7 @@ def _run_cmd(cmd, print_output, check, timeout_seconds=None):
 @retrying.retry(
     stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
-def create_task_text_file(marathon_task_name: str, filename: str, lines: list) -> bool:
+def create_task_text_file(marathon_task_name: str, filename: str, lines: List[str]) -> bool:
     # Write file, then validate number of lines in file
     output_cmd = '''bash -c "cat > {output_file} << EOL
 {content}
@@ -276,7 +293,7 @@ wc -l {output_file}"'''.format(
 @retrying.retry(
     stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
-def kill_task_with_pattern(pattern, user, agent_host=None):
+def kill_task_with_pattern(pattern: str, user: str, agent_host: Optional[str] = None) -> bool:
     """SSHes into the leader node (or the provided agent node) and kills any tasks matching the
     provided regex pattern in their command which are running as the provided user.
 
@@ -309,7 +326,7 @@ def kill_task_with_pattern(pattern, user, agent_host=None):
     return rc == 0
 
 
-def master_ssh(cmd: str, timeout_seconds=60, print_output=True, check=False) -> tuple:
+def master_ssh(cmd: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False) -> Tuple[int, str, str]:
     """
     Runs the provided command on the cluster leader, using ssh.
     Returns the exit code, stdout, and stderr as three separate values.
@@ -319,8 +336,8 @@ def master_ssh(cmd: str, timeout_seconds=60, print_output=True, check=False) -> 
 
 
 def agent_ssh(
-    agent_host: str, cmd: str, timeout_seconds=60, print_output=True, check=False
-) -> tuple:
+    agent_host: str, cmd: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False
+) -> Tuple[int, str, str]:
     """
     Runs the provided command on the specified agent host, using ssh.
     Returns the exit code, stdout, and stderr as three separate values.
@@ -330,7 +347,7 @@ def agent_ssh(
 
 
 def master_scp(
-    file_content: str, remote_path: str, timeout_seconds=60, print_output=True, check=False
+    file_content: str, remote_path: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False
 ) -> int:
     """
     Writes the provided input path to the specified path on cluster leader, using scp.
@@ -346,9 +363,9 @@ def agent_scp(
     agent_host: str,
     file_content: str,
     remote_path: str,
-    timeout_seconds=60,
-    print_output=True,
-    check=False,
+    timeout_seconds: int = 60,
+    print_output: bool = True,
+    check: bool = False,
 ) -> int:
     """
     Writes the provided input path to the specified path on the remote agent, using scp.
@@ -358,7 +375,7 @@ def agent_scp(
     return _scp(file_content, remote_path, agent_host, timeout_seconds, print_output, check)
 
 
-def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool) -> tuple:
+def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool) -> Tuple[int, str, str]:
     common_args = " ".join(
         [
             # -oBatchMode=yes: Don't prompt for password if keyfile doesn't work.
@@ -455,22 +472,24 @@ def _scp(
 
 
 @functools.lru_cache()
-def _external_cluster_host():
+def _external_cluster_host() -> str:
     """Returns the internet-facing IP of the cluster frontend."""
-    return cluster_request("GET", "/metadata").json()["PUBLIC_IPV4"]
+    response = cluster_request("GET", "/metadata")
+    response_json = response.json()
+    return str(response_json["PUBLIC_IPV4"])
 
 
 @functools.lru_cache()
-def _internal_leader_host():
+def _internal_leader_host() -> str:
     """Returns the cluster-internal IP of the current mesos leader."""
     leader_hosts = cluster_request("GET", "/mesos_dns/v1/hosts/leader.mesos").json()
     if len(leader_hosts) == 0:
         # Just in case. Shouldn't happen in practice.
         raise Exception("Missing mesos-dns entry for leader.mesos: {}".format(leader_hosts))
-    return leader_hosts[0]["ip"]
+    return str(leader_hosts[0]["ip"])
 
 
-def marathon_task_exec(task_name: str, cmd: str, print_output=True) -> tuple:
+def marathon_task_exec(task_name: str, cmd: str, print_output: bool = True) -> Tuple[int, str, str]:
     """
     Invokes the given command on the named Marathon task via `dcos task exec`.
     : param task_name: Name of task to run 'cmd' on.
@@ -484,7 +503,7 @@ def marathon_task_exec(task_name: str, cmd: str, print_output=True) -> tuple:
     return _task_exec(task_name, cmd, print_output=print_output)
 
 
-def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
+def service_task_exec(service_name: str, task_name: str, cmd: str) -> Tuple[int, str, str]:
     """
     Invokes the given command on the named SDK service task via `dcos task exec`.
     : param service_name: Name of the service running the task.
@@ -511,7 +530,7 @@ def service_task_exec(service_name: str, task_name: str, cmd: str) -> tuple:
     return rc, stdout, stderr
 
 
-def _task_exec(task_id_prefix: str, cmd: str, print_output=True) -> tuple:
+def _task_exec(task_id_prefix: str, cmd: str, print_output: bool = True) -> Tuple[int, str, str]:
     if cmd.startswith("./") and sdk_utils.dcos_version_less_than("1.10"):
         # On 1.9 task exec is run relative to the host filesystem, not the container filesystem
         full_cmd = os.path.join(get_task_sandbox_path(task_id_prefix), cmd)
@@ -578,7 +597,7 @@ def get_task_sandbox_path(task_id_prefix: str) -> str:
 
 
 @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
-def _get_task_info(task_id_prefix: str) -> dict:
+def _get_task_info(task_id_prefix: str) -> Dict[str, Any]:
     """
     : return (dict): Get the task information for the specified task
     """
@@ -589,6 +608,7 @@ def _get_task_info(task_id_prefix: str) -> dict:
 
     tasks = json.loads(raw_tasks)
     for task in tasks:
+        assert isinstance(task, dict)
         if task.get("id", "").startswith(task_id_prefix):
             log.info("Matched on 'id': ")
             return task
@@ -600,7 +620,7 @@ def _get_task_info(task_id_prefix: str) -> dict:
     return {}
 
 
-def get_bash_command(cmd: str, environment: str) -> str:
+def get_bash_command(cmd: str, environment: Optional[str]) -> str:
     env_str = "{} && ".format(environment) if environment else ""
 
     return 'bash -c "{}{}"'.format(env_str, cmd)
