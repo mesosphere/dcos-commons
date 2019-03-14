@@ -99,7 +99,7 @@ def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> Dict[str,
     return dict(_getter())
 
 
-def get_metrics_from_cli(task_name: str) -> Union[Dict[str, Any], List[Dict[str, Any]]:
+def get_metrics_from_cli(task_name: str) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
     cmd_list = ["task", "metrics", "details", "--json", task_name]
     rc, stdout, stderr = sdk_cmd.run_cli(" ".join(cmd_list))
     if rc:
