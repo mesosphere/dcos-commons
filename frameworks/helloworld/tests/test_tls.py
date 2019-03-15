@@ -27,7 +27,7 @@ KEYSTORE_PASS = "notsecure"
 
 # Both these files are downloaded from single `keystore-app.zip` artifact.
 # For more details see `testing/tls/keystore` directory in this project.
-KEYSTORE_APP_JAR_NAME = "keystore-app-0.1-SNAPSHOT.jar"
+KEYSTORE_APP_JAR_NAME = "keystore-app-0.1-SNAPSHOT-all.jar"
 KEYSTORE_APP_CONFIG_NAME = "integration-test.yml"
 
 # Service discovery prefix for the `discovery` pod which allows testing updates.
