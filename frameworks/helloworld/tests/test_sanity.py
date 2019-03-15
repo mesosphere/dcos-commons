@@ -91,7 +91,7 @@ def test_metrics_for_task_metrics(configure_package):
 @pytest.mark.smoke
 def test_bump_hello_cpus():
     hello_ids = sdk_tasks.get_task_ids(foldered_name, "hello")
-    log.info("hello ids: " + str(hello_ids))
+    log.info("hello ids are: " + str(hello_ids))
 
     updated_cpus = config.bump_hello_cpus(foldered_name)
 
