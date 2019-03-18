@@ -19,6 +19,20 @@ import java.util.stream.Collectors;
 /**
  * ServiceStatusTracker is the backend of {@link com.mesosphere.sdk.http.endpoints.ServiceStatusResource}.
  * It returns a single code representing the status of the service
+ * Return status codes with the following priority.
+ * HTTP Response Code, Priority, Reason
+ * 418, 1, Initializing
+ * 200, 1, Running
+ * 500, 1, Error Creating Service
+ * 204, 2, Deploying:Pending
+ * 202, 2, Deploying:Starting
+ * 206, 3, Degraded
+ * 203, 4, Recovering:Pending
+ * 205, 4, Recovering:Starting
+ * 420, 5, Backing Up
+ * 421, 5, Restoring
+ * 426, 6, Upgrade/Rollback/Downgrade
+ * 503,  , Service Unavailable (Priority Undefined)
  */
 public class ServiceStatusTracker {
 
@@ -68,22 +82,6 @@ public class ServiceStatusTracker {
   }
 
   public ServiceStatusResult evaluateServiceStatus(boolean isVerbose) {
-    /*
-     * Return status codes with the following priority.
-     * HTTP Response Code, Priority, Reason
-     * 418, 1, Initializing
-     * 200, 1, Running
-     * 500, 1, Error Creating Service
-     * 204, 2, Deploying:Pending
-     * 202, 2, Deploying:Starting
-     * 206, 3, Degraded
-     * 203, 4, Recovering:Pending
-     * 205, 4, Recovering:Starting
-     * 420, 5, Backing Up
-     * 421, 5, Restoring
-     * 426, 6, Upgrade/Rollback/Downgrade
-     * 503,  , Service Unavailable (Priority Undefined)
-     */
 
     // Final response object we're going to return.
     JSONObject response = new JSONObject();
@@ -112,7 +110,7 @@ public class ServiceStatusTracker {
       statusCodeReasons.put(isBackingUp.getStatusReason());
       statusCodeReasons.put(isRestoring.getStatusReason());
       statusCodeReasons.put(isUpgradeRollbackDowngrade.getStatusReason());
-      response.put("reasons:", statusCodeReasons);
+      response.put("reasons", statusCodeReasons);
     }
 
     if (isErrorCreating.getServiceStatusCode().isPresent()) {
