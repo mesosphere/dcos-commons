@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.debug;
 
-import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.state.FrameworkStore;
@@ -10,6 +9,7 @@ import org.apache.mesos.Protos;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.util.Optional;
@@ -17,7 +17,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * ServiceStatusTracker is the backend of {@link ServiceStatusResource}.
+ * ServiceStatusTracker is the backend of {@link com.mesosphere.sdk.http.endpoints.ServiceStatusResource}.
  * It returns a single code representing the status of the service
  */
 public class ServiceStatusTracker {
@@ -29,6 +29,7 @@ public class ServiceStatusTracker {
 
     INITIALIZING(418),
     RUNNING(200),
+    ERROR_CREATING_SERVICE(500),
     DEPLOYING_PENDING(204),
     DEPLOYING_STARTING(202),
     DEGRADED(206),
@@ -72,6 +73,7 @@ public class ServiceStatusTracker {
      * HTTP Response Code, Priority, Reason
      * 418, 1, Initializing
      * 200, 1, Running
+     * 500, 1, Error Creating Service
      * 204, 2, Deploying:Pending
      * 202, 2, Deploying:Starting
      * 206, 3, Degraded
@@ -90,7 +92,7 @@ public class ServiceStatusTracker {
     JSONArray statusCodeReasons = new JSONArray();
 
     ServiceStatusEvaluationStage initializing = isServiceInitializing();
-
+    ServiceStatusEvaluationStage isErrorCreating = isErrorCreatingService();
     // SUPPRESS CHECKSTYLE LineLengthCheck
     ServiceStatusEvaluationStage deploymentComplete = isDeploymentComplete(initializing.getServiceStatusCode());
     ServiceStatusEvaluationStage isDeploying = isDeploying();
@@ -101,6 +103,7 @@ public class ServiceStatusTracker {
     ServiceStatusEvaluationStage isUpgradeRollbackDowngrade = isUpgradeRollbackDowngrade();
 
     if (isVerbose) {
+      statusCodeReasons.put(isErrorCreating.getStatusReason());
       statusCodeReasons.put(initializing.getStatusReason());
       statusCodeReasons.put(deploymentComplete.getStatusReason());
       statusCodeReasons.put(isDeploying.getStatusReason());
@@ -109,9 +112,12 @@ public class ServiceStatusTracker {
       statusCodeReasons.put(isBackingUp.getStatusReason());
       statusCodeReasons.put(isRestoring.getStatusReason());
       statusCodeReasons.put(isUpgradeRollbackDowngrade.getStatusReason());
+      response.put("reasons:", statusCodeReasons);
     }
 
-    if (initializing.getServiceStatusCode().isPresent()) {
+    if (isErrorCreating.getServiceStatusCode().isPresent()) {
+      serviceStatusCode = isErrorCreating.getServiceStatusCode();
+    } else if (initializing.getServiceStatusCode().isPresent()) {
       serviceStatusCode = initializing.getServiceStatusCode();
     } else if (isDeploying.getServiceStatusCode().isPresent()) {
       serviceStatusCode = isDeploying.getServiceStatusCode();
@@ -134,17 +140,20 @@ public class ServiceStatusTracker {
       }
     }
 
-    if (serviceStatusCode.isPresent()) {
-      response.put(RESULT_CODE_KEY, serviceStatusCode.get().statusCode);
-    } else {
-      response.put(RESULT_CODE_KEY, ServiceStatusCode.SERVICE_UNAVAILABLE.statusCode);
+    // Service unavailable if nothing else.
+    if (!serviceStatusCode.isPresent()) {
+      serviceStatusCode = Optional.of(ServiceStatusCode.SERVICE_UNAVAILABLE);
     }
 
-    if (isVerbose) {
-      response.put("reasons:", statusCodeReasons);
-    }
+    response.put(RESULT_CODE_KEY, serviceStatusCode.get().statusCode);
 
-    return new ServiceStatusResult(serviceStatusCode, ResponseUtils.jsonOkResponse(response));
+    //Build the final response.
+    final Response returnResponse = Response.status(serviceStatusCode.get().statusCode)
+        .entity(response.toString(2))
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .build();
+
+    return new ServiceStatusResult(serviceStatusCode, returnResponse);
   }
 
   private ServiceStatusEvaluationStage isUpgradeRollbackDowngrade() {
@@ -455,6 +464,28 @@ public class ServiceStatusTracker {
         statusCode = Optional.empty();
       }
     }
+    return new ServiceStatusEvaluationStage(statusCode, reason);
+  }
+
+  private ServiceStatusEvaluationStage isErrorCreatingService() {
+
+    String reason;
+    Optional<ServiceStatusCode> statusCode;
+
+    boolean isAnyErrors = planCoordinator.getPlanManagers()
+        .stream()
+        .anyMatch(planManager -> !(planManager.getPlan().getErrors().isEmpty()));
+
+    if (isAnyErrors) {
+      reason = String.format("Priority 1. Status Code %s is TRUE. Errors found in plans.",
+          ServiceStatusCode.ERROR_CREATING_SERVICE.statusCode);
+      statusCode = Optional.of(ServiceStatusCode.ERROR_CREATING_SERVICE);
+    } else {
+      reason = String.format("Priority 1. Status Code %s is FALSE. No errors found in plans.",
+          ServiceStatusCode.ERROR_CREATING_SERVICE.statusCode);
+      statusCode = Optional.empty();
+    }
+
     return new ServiceStatusEvaluationStage(statusCode, reason);
   }
 

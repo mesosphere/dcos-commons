@@ -172,7 +172,68 @@ public class ServiceStatusTrackerTest {
     
     Assert.assertNotEquals(expected.get(), received.get());
   }
-  
+
+  @Test
+  public void testFrameworkHasErrorCreating() {
+
+    Persister persister = MemPersister.newBuilder().build();
+    FrameworkStore frameworkStore = new FrameworkStore(persister);
+
+    frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
+
+    StateStore stateStore = new StateStore(persister);
+
+    DeploymentStep helloStep = new DeploymentStep("hello-step",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world1Step = new DeploymentStep("world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world2Step = new DeploymentStep("world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+    //Decorate various parts for verification later..
+    helloStep.updateInitialStatus(Status.ERROR);
+    helloStep.addError("Added test error.");
+    world1Step.updateInitialStatus(Status.PENDING);
+    world2Step.updateInitialStatus(Status.PENDING);
+
+    DefaultPhase helloPhase = new DefaultPhase("hello-deploy",
+        Arrays.asList(helloStep),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPhase worldPhase = new DefaultPhase("world-deploy",
+        Arrays.asList(world1Step, world2Step),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan helloWorldPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME,
+        Arrays.asList(helloPhase, worldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+    DefaultPlan recoveryPlan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME,
+        Collections.emptyList(),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+
+    PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
+    PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+
+    //Setup complete, verify result.
+
+    ServiceStatusTracker serviceStatusTracker = Mockito.spy(new ServiceStatusTracker(coordinator, frameworkStore));
+
+    ServiceStatusResult serviceResult = serviceStatusTracker.evaluateServiceStatus(false);
+    Optional<ServiceStatusCode> expected = Optional.of(ServiceStatusCode.ERROR_CREATING_SERVICE);
+    Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
+
+    Assert.assertEquals(expected.get(), received.get());
+  }
+
   @Test
   public void testFrameworkDeployPending() {
     
