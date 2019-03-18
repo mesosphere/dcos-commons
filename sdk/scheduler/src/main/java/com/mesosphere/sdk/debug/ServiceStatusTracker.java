@@ -16,6 +16,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+// CHECKSTYLE:OFF LineLengthCheck
+
 /**
  * ServiceStatusTracker is the backend of {@link com.mesosphere.sdk.http.endpoints.ServiceStatusResource}.
  * It returns a single code representing the status of the service
@@ -91,7 +93,6 @@ public class ServiceStatusTracker {
 
     ServiceStatusEvaluationStage initializing = isServiceInitializing();
     ServiceStatusEvaluationStage isErrorCreating = isErrorCreatingService();
-    // SUPPRESS CHECKSTYLE LineLengthCheck
     ServiceStatusEvaluationStage deploymentComplete = isDeploymentComplete(initializing.getServiceStatusCode());
     ServiceStatusEvaluationStage isDeploying = isDeploying();
     ServiceStatusEvaluationStage isDegraded = isDegraded();
@@ -173,7 +174,6 @@ public class ServiceStatusTracker {
         .collect(Collectors.toSet());
 
     if (restorePlans.isEmpty()) {
-      // SUPPRESS CHECKSTYLE LineLengthCheck
       reason = String.format("Priority 5. Status Code %s is FALSE. No restore plans detected.",
           ServiceStatusCode.RESTORING.statusCode);
       statusCode = Optional.empty();
@@ -189,13 +189,11 @@ public class ServiceStatusTracker {
             .map(plan -> plan.getName())
             .collect(Collectors.toSet());
 
-        // SUPPRESS CHECKSTYLE LineLengthCheck
         reason = String.format("Priority 5. Status Code %s is FALSE. Following restore plans not running: %s",
             ServiceStatusCode.RESTORING.statusCode, String.join(", ", notRunningRestorePlans));
         statusCode = Optional.empty();
       } else {
         // Found running restore plans.
-        // SUPPRESS CHECKSTYLE LineLengthCheck
         reason = String.format("Priority 5. Status Code %s is TRUE. Following restore plans found running: %s",
             ServiceStatusCode.RESTORING.statusCode, String.join(", ", runningRestorePlans));
         statusCode = Optional.of(ServiceStatusCode.RESTORING);
@@ -215,7 +213,6 @@ public class ServiceStatusTracker {
         .collect(Collectors.toSet());
 
     if (backupPlans.isEmpty()) {
-      // SUPPRESS CHECKSTYLE LineLengthCheck
       reason = String.format("Priority 5. Status Code %s is FALSE. No backup plans detected.",
           ServiceStatusCode.BACKING_UP.statusCode);
       statusCode = Optional.empty();
@@ -231,13 +228,11 @@ public class ServiceStatusTracker {
             .map(plan -> plan.getName())
             .collect(Collectors.toSet());
 
-        // SUPPRESS CHECKSTYLE LineLengthCheck
         reason = String.format("Priority 5. Status Code %s is FALSE. Following backup plans not running: %s",
             ServiceStatusCode.BACKING_UP.statusCode, String.join(", ", notRunningBackupPlans));
         statusCode = Optional.empty();
       } else {
         // Found running backup plans.
-        // SUPPRESS CHECKSTYLE LineLengthCheck
         reason = String.format("Priority 5. Status Code %s is TRUE. Following backup plans found running: %s",
             ServiceStatusCode.BACKING_UP.statusCode, String.join(", ", runningBackupPlans));
         statusCode = Optional.of(ServiceStatusCode.BACKING_UP);
@@ -259,7 +254,6 @@ public class ServiceStatusTracker {
             .getPlan();
 
     if (recoveryPlan.isComplete()) {
-      // SUPPRESS CHECKSTYLE LineLengthCheck
       reason = String.format("Priority 4. Status Code %s and %s is FALSE. Recovery plan is complete.",
           ServiceStatusCode.RECOVERING_PENDING.statusCode,
           ServiceStatusCode.RECOVERING_STARTING.statusCode);
@@ -325,7 +319,6 @@ public class ServiceStatusTracker {
             ServiceStatusCode.RECOVERING_STARTING.statusCode);
       }
 
-      // SUPPRESS CHECKSTYLE LineLengthCheck
       reason = String.format("Priority 4. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d)",
           statusCodeString,
           totalSteps,
@@ -417,7 +410,6 @@ public class ServiceStatusTracker {
           ServiceStatusCode.DEPLOYING_STARTING.statusCode);
     }
 
-    // SUPPRESS CHECKSTYLE LineLengthCheck
     reason = String.format("Priority 2. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d)",
         statusCodeString,
         totalSteps,
@@ -430,7 +422,6 @@ public class ServiceStatusTracker {
     return new ServiceStatusEvaluationStage(statusCode, reason);
   }
 
-  // SUPPRESS CHECKSTYLE LineLengthCheck
   private ServiceStatusEvaluationStage isDeploymentComplete(Optional<ServiceStatusCode> initializing) {
 
     String reason;
@@ -451,12 +442,10 @@ public class ServiceStatusTracker {
               .isComplete();
 
       if (isDeployPlanComplete) {
-        // SUPPRESS CHECKSTYLE LineLengthCheck
         reason = String.format("Priority 1. Status Code %s is TRUE. Service deploy plan is complete.",
               ServiceStatusCode.RUNNING.statusCode);
         statusCode = Optional.of(ServiceStatusCode.RUNNING);
       } else {
-        // SUPPRESS CHECKSTYLE LineLengthCheck
         reason = String.format("Priority 1. Status Code %s is FALSE. Service deploy plan is NOT complete.",
               ServiceStatusCode.RUNNING.statusCode);
         statusCode = Optional.empty();
@@ -501,12 +490,10 @@ public class ServiceStatusTracker {
     }
 
     if (frameworkId.isPresent()) {
-      // SUPPRESS CHECKSTYLE LineLengthCheck
       reason = String.format("Priority 1. Status Code %s is FALSE. Registered with Framework ID %s.",
               ServiceStatusCode.INITIALIZING.statusCode, frameworkId.get().getValue());
       statusCode = Optional.empty();
     } else {
-      // SUPPRESS CHECKSTYLE LineLengthCheck
       reason = String.format("Priority 1. Status Code %s is TRUE. Mesos registration pending, no Framework ID found.",
               ServiceStatusCode.INITIALIZING.statusCode);
       statusCode = Optional.of(ServiceStatusCode.INITIALIZING);
