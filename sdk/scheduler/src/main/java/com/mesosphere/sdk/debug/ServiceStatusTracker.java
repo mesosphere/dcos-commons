@@ -129,7 +129,7 @@ public class ServiceStatusTracker {
       serviceStatusCode = deploymentComplete.getServiceStatusCode();
     }
 
-    //These are low-priority codes that require a deployment to be complete.
+    // These are low-priority codes that require a deployment to be complete.
     if (serviceStatusCode.equals(Optional.of(ServiceStatusCode.RUNNING))) {
       if (isRestoring.getServiceStatusCode().isPresent()) {
         serviceStatusCode = isRestoring.getServiceStatusCode();
@@ -147,7 +147,7 @@ public class ServiceStatusTracker {
 
     response.put(RESULT_CODE_KEY, serviceStatusCode.get().statusCode);
 
-    //Build the final response.
+    // Build the final response.
     final Response returnResponse = Response.status(serviceStatusCode.get().statusCode)
         .entity(response.toString(2))
         .type(MediaType.APPLICATION_JSON_TYPE)
@@ -180,7 +180,7 @@ public class ServiceStatusTracker {
           ServiceStatusCode.RESTORING.statusCode);
       statusCode = Optional.empty();
     } else {
-      //Found plan name with "restore" in it, check if any are running, if so get their names.
+      // Found plan name with "restore" in it, check if any are running, if so get their names.
       Set<String> runningRestorePlans = restorePlans.stream()
           .filter(plan -> plan.isRunning())
           .map(plan -> plan.getName())
@@ -196,7 +196,7 @@ public class ServiceStatusTracker {
             ServiceStatusCode.RESTORING.statusCode, String.join(", ", notRunningRestorePlans));
         statusCode = Optional.empty();
       } else {
-        //Found running backup plans.
+        // Found running restore plans.
         // SUPPRESS CHECKSTYLE LineLengthCheck
         reason = String.format("Priority 5. Status Code %s is TRUE. Following restore plans found running: %s",
             ServiceStatusCode.RESTORING.statusCode, String.join(", ", runningRestorePlans));
@@ -222,7 +222,7 @@ public class ServiceStatusTracker {
           ServiceStatusCode.BACKING_UP.statusCode);
       statusCode = Optional.empty();
     } else {
-      //Found plan name with "backup" in it, check if any are running, if so get their names.
+      // Found plan name with "backup" in it, check if any are running, if so get their names.
       Set<String> runningBackupPlans = backupPlans.stream()
           .filter(plan -> plan.isRunning())
           .map(plan -> plan.getName())
@@ -238,7 +238,7 @@ public class ServiceStatusTracker {
             ServiceStatusCode.BACKING_UP.statusCode, String.join(", ", notRunningBackupPlans));
         statusCode = Optional.empty();
       } else {
-        //Found running backup plans.
+        // Found running backup plans.
         // SUPPRESS CHECKSTYLE LineLengthCheck
         reason = String.format("Priority 5. Status Code %s is TRUE. Following backup plans found running: %s",
             ServiceStatusCode.BACKING_UP.statusCode, String.join(", ", runningBackupPlans));
@@ -252,7 +252,7 @@ public class ServiceStatusTracker {
     String reason;
     Optional<ServiceStatusCode> statusCode;
 
-    //Get the recovery plan.
+    // Get the recovery plan.
     Plan recoveryPlan = planCoordinator.getPlanManagers()
             .stream()
             .filter(planManager -> planManager.getPlan().isRecoveryPlan())
@@ -268,7 +268,7 @@ public class ServiceStatusTracker {
       statusCode = Optional.empty();
     } else {
 
-      //Recovery plan is NOT complete.
+      // Recovery plan is NOT complete.
       int totalSteps = recoveryPlan.getChildren().stream()
           .flatMap(phase -> phase.getChildren().stream())
           .collect(Collectors.toSet())
@@ -304,7 +304,7 @@ public class ServiceStatusTracker {
           .collect(Collectors.toSet())
           .size();
 
-      //We're biasing pessimistically here, pick cases that are halting the
+      // We're biasing pessimistically here, pick cases that are halting the
       // deployment from becoming complete.
       if (pendingSteps > 0 || preparedSteps > 0) {
         statusCode = Optional.of(ServiceStatusCode.RECOVERING_PENDING);
@@ -356,7 +356,7 @@ public class ServiceStatusTracker {
     String reason;
     Optional<ServiceStatusCode> statusCode;
 
-    //Get the deployment plan.
+    // Get the deployment plan.
     Plan deploymentPlan = planCoordinator.getPlanManagers()
             .stream()
             .filter(planManager -> planManager.getPlan().isDeployPlan())
@@ -399,14 +399,14 @@ public class ServiceStatusTracker {
         .collect(Collectors.toSet())
         .size();
 
-    //We're biasing pessimistically here, pick cases that are halting the
+    // We're biasing pessimistically here, pick cases that are halting the
     // deployment from becoming complete.
     if (pendingSteps > 0 || preparedSteps > 0) {
       statusCode = Optional.of(ServiceStatusCode.DEPLOYING_PENDING);
     } else if (startingSteps > 0 || startedSteps > 0) {
       statusCode = Optional.of(ServiceStatusCode.DEPLOYING_STARTING);
     } else {
-      //Implies deployment is complete.
+      // Implies deployment is complete.
       statusCode = Optional.empty();
     }
 
@@ -443,7 +443,7 @@ public class ServiceStatusTracker {
           ServiceStatusCode.RUNNING.statusCode);
       statusCode = Optional.empty();
     } else {
-      //Check if the deployment Plan is complete.
+      // Check if the deployment Plan is complete.
       boolean isDeployPlanComplete = planCoordinator.getPlanManagers()
               .stream()
               .filter(planManager -> planManager.getPlan().isDeployPlan())
