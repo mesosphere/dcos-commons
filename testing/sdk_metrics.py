@@ -89,14 +89,14 @@ def wait_for_scheduler_counter_value(
     return bool(check_for_value())
 
 
-def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> Dict[str, Any]:
+def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> List[Dict[str, Any]]:
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
     def _getter() -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         return get_metrics_from_cli(task_name)
 
-    return dict(_getter())
+    return list(_getter())
 
 
 def get_metrics_from_cli(task_name: str) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
