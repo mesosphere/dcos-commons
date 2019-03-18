@@ -10,7 +10,7 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import retrying
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import sdk_cmd
 import sdk_tasks
@@ -93,7 +93,7 @@ def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> Dict[str,
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _getter() -> Dict[str, Any]:
+    def _getter() -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         return get_metrics_from_cli(task_name)
 
     return dict(_getter())
