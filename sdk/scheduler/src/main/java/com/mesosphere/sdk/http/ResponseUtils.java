@@ -45,21 +45,35 @@ public final class ResponseUtils {
   }
 
   /**
-   * Returns a 200 OK response containing the provided {@link JSONObject}.
+   * Returns a response containing the provided {@link JSONObject} and {@link Response.Status}.
    */
   public static Response jsonResponse(JSONObject jsonObject, Response.Status status) {
     return jsonResponseBean(jsonObject.toString(2), status);
   }
 
   /**
-   * Returns a 200 OK response containing a JSON representation of the provided protobuf {@link Message}.
+   * Returns a response containing a JSON representation of the provided protobuf {@link Message}
+   * and {@link Response.Status}.
    */
   public static Response jsonResponse(Message protoMessage, Response.Status status) {
     return jsonResponseBean(protoMessage, status);
   }
 
   /**
-   * Returns a 200 OK response containing the provided JSON {@link String}.
+   * Returns a response containing the provided JSON {@link String} and status.
+   * <p>
+   * Resources which call this directly should extend {@link com.mesosphere.sdk.http.types.PrettyJsonResource}.
+   */
+  public static Response jsonResponseBean(JSONObject jsonObject, int status) {
+    return Response
+        .status(status)
+        .entity(jsonObject.toString(2))
+        .type(MediaType.APPLICATION_JSON_TYPE)
+        .build();
+  }
+
+  /**
+   * Returns a response containing the provided JSON {@link String} and {@link Response.Status}.
    * <p>
    * Resources which call this directly should extend {@link com.mesosphere.sdk.http.types.PrettyJsonResource}.
    */

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.debug;
 
+import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.state.FrameworkStore;
@@ -9,7 +10,6 @@ import org.apache.mesos.Protos;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 
 import java.util.Optional;
@@ -147,11 +147,7 @@ public class ServiceStatusTracker {
     response.put(RESULT_CODE_KEY, serviceStatusCode.get().statusCode);
 
     // Build the final response.
-    final Response returnResponse = Response.status(serviceStatusCode.get().statusCode)
-        .entity(response.toString(2))
-        .type(MediaType.APPLICATION_JSON_TYPE)
-        .build();
-
+    final Response returnResponse = ResponseUtils.jsonResponseBean(response, serviceStatusCode.get().statusCode);
     return new ServiceStatusResult(serviceStatusCode, returnResponse);
   }
 
