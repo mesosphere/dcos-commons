@@ -228,7 +228,7 @@ public class DefaultScheduler extends AbstractScheduler {
     PlansResource plansResource = new PlansResource(planCoordinator);
     resources.add(plansResource);
     resources.add(new DeprecatedPlanResource(plansResource));
-    resources.add(new HealthResource(planCoordinator, schedulerConfig));
+    resources.add(new HealthResource(planCoordinator, Optional.of(frameworkStore)));
     resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
     resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
     offerOutcomeTrackerV2.ifPresent(x -> resources.add(new DebugOffersResource(x)));

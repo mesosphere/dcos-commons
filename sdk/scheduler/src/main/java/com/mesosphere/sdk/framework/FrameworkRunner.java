@@ -10,8 +10,10 @@ import com.mesosphere.sdk.scheduler.AbstractScheduler;
 import com.mesosphere.sdk.scheduler.MesosEventClient;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
+import com.mesosphere.sdk.scheduler.plan.DefaultPlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Plan;
+import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.storage.Persister;
@@ -210,6 +212,10 @@ public class FrameworkRunner {
    */
   private void runSkeletonScheduler() {
     PlanManager uninstallPlanManager = DefaultPlanManager.createProceeding(EMPTY_DEPLOY_PLAN);
+
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(),
+        Arrays.asList(uninstallPlanManager));
+
     // Bare minimum resources to appear healthy/complete to DC/OS:
     Collection<Object> resources = Arrays.asList(
         // /v1/plans/deploy: Invoked by Cosmos to tell whether we can be removed from Marathon.
@@ -217,7 +223,7 @@ public class FrameworkRunner {
         new PlansResource(Collections.singletonList(uninstallPlanManager)),
         // /v1/health: Invoked by Mesos as directed a configured health check in the
         // scheduler Marathon app.
-        new HealthResource(Collections.singletonList(uninstallPlanManager), schedulerConfig));
+        new HealthResource(coordinator, Optional.empty()));
     ApiServer httpServer = ApiServer.start(
         EndpointUtils.toSchedulerAutoIpHostname(
             frameworkConfig.getFrameworkName(),
