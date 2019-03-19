@@ -529,3 +529,13 @@ def test_adding_data_node_only_restarts_masters():
     )
     # Coordinator tasks should not restart.
     sdk_tasks.check_tasks_not_updated(foldered_name, "coordinator", initial_coordinator_task_ids)
+
+@pytest.mark.sanity
+def test_duplicate_flags():
+    '''Checking of the flag Xmx1g is present in the task params '''
+    #task_name = "data-1-node"
+    for tasks in sdk_tasks.get_task_ids():
+        curl_cmd = "dcos task exec " + str(tasks) + " pas aux"
+        exit_code, stdout, stderr = sdk_cmd.service_task_exec(config.SERVICE_NAME,tasks,curl_cmd)
+        assert str(stdout).count('Xmx') == 2, "Default flag prefix should appear twice"
+        assert str(stdout).count('Xms') == 2, "Default flag prefix should appear twice"
