@@ -242,6 +242,8 @@ public class ServiceStatusTracker {
   }
 
   private ServiceStatusEvaluationStage isRecovering() {
+
+    final int priority = 4;
     String reason;
     Optional<ServiceStatusCode> statusCode;
 
@@ -254,82 +256,20 @@ public class ServiceStatusTracker {
             .getPlan();
 
     if (recoveryPlan.isComplete()) {
-      reason = String.format("Priority 4. Status Code %s and %s is FALSE. Recovery plan is complete.",
+      reason = String.format("Priority %d. Status Code %s and %s is FALSE. Recovery plan is complete.",
+          priority,
           ServiceStatusCode.RECOVERING_PENDING.statusCode,
           ServiceStatusCode.RECOVERING_STARTING.statusCode);
       statusCode = Optional.empty();
+
+      return new ServiceStatusEvaluationStage(statusCode, reason);
     } else {
-
       // Recovery plan is NOT complete.
-      int totalSteps = recoveryPlan.getChildren().stream()
-          .flatMap(phase -> phase.getChildren().stream())
-          .collect(Collectors.toSet())
-          .size();
-
-      int pendingSteps = recoveryPlan.getChildren().stream()
-          .flatMap(phase -> phase.getChildren().stream())
-          .filter(step -> step.isPending())
-          .collect(Collectors.toSet())
-          .size();
-
-      int preparedSteps = recoveryPlan.getChildren().stream()
-          .flatMap(phase -> phase.getChildren().stream())
-          .filter(step -> step.isPrepared())
-          .collect(Collectors.toSet())
-          .size();
-
-      int startingSteps = recoveryPlan.getChildren().stream()
-          .flatMap(phase -> phase.getChildren().stream())
-          .filter(step -> step.isStarting())
-          .collect(Collectors.toSet())
-          .size();
-
-      int startedSteps = recoveryPlan.getChildren().stream()
-          .flatMap(phase -> phase.getChildren().stream())
-          .filter(step -> step.isStarted())
-          .collect(Collectors.toSet())
-          .size();
-
-      int completedSteps = recoveryPlan.getChildren().stream()
-          .flatMap(phase -> phase.getChildren().stream())
-          .filter(step -> step.isComplete())
-          .collect(Collectors.toSet())
-          .size();
-
-      // We're biasing pessimistically here, pick cases that are halting the
-      // deployment from becoming complete.
-      if (pendingSteps > 0 || preparedSteps > 0) {
-        statusCode = Optional.of(ServiceStatusCode.RECOVERING_PENDING);
-      } else if (startingSteps > 0 || startedSteps > 0) {
-        statusCode = Optional.of(ServiceStatusCode.RECOVERING_STARTING);
-      } else {
-        //Implies deployment is complete.
-        statusCode = Optional.empty();
-      }
-
-      String statusCodeString;
-
-      if (statusCode.isPresent()) {
-        // SUPPRESS CHECKSTYLE MultipleStringLiteralsCheck
-        statusCodeString = String.format("Status Code %s is TRUE,", statusCode.get().statusCode);
-      } else {
-        // SUPPRESS CHECKSTYLE MultipleStringLiteralsCheck
-        statusCodeString = String.format("Status Code %s and %s are both FALSE",
-            ServiceStatusCode.RECOVERING_PENDING.statusCode,
-            ServiceStatusCode.RECOVERING_STARTING.statusCode);
-      }
-
-      reason = String.format("Priority 4. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d)",
-          statusCodeString,
-          totalSteps,
-          pendingSteps,
-          preparedSteps,
-          startingSteps,
-          startedSteps,
-          completedSteps);
+      return evaluatePendingOrStartingStatusCode(recoveryPlan,
+          ServiceStatusCode.RECOVERING_PENDING,
+          ServiceStatusCode.RECOVERING_STARTING,
+          priority);
     }
-
-    return new ServiceStatusEvaluationStage(statusCode, reason);
   }
 
 
@@ -344,8 +284,7 @@ public class ServiceStatusTracker {
 
   private ServiceStatusEvaluationStage isDeploying() {
 
-    String reason;
-    Optional<ServiceStatusCode> statusCode;
+    final int priority = 2;
 
     // Get the deployment plan.
     Plan deploymentPlan = planCoordinator.getPlanManagers()
@@ -355,36 +294,50 @@ public class ServiceStatusTracker {
             .get()
             .getPlan();
 
-    int totalSteps = deploymentPlan.getChildren().stream()
+    return evaluatePendingOrStartingStatusCode(deploymentPlan,
+        ServiceStatusCode.DEPLOYING_PENDING,
+        ServiceStatusCode.DEPLOYING_STARTING,
+        priority);
+  }
+
+  private ServiceStatusEvaluationStage evaluatePendingOrStartingStatusCode(Plan evaluatePlan,
+                                                                          ServiceStatusCode pending,
+                                                                          ServiceStatusCode starting,
+                                                                          final int priority)
+  {
+    String reason;
+    Optional<ServiceStatusCode> statusCode;
+
+    int totalSteps = evaluatePlan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .collect(Collectors.toSet())
         .size();
 
-    int pendingSteps = deploymentPlan.getChildren().stream()
+    int pendingSteps = evaluatePlan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .filter(step -> step.isPending())
         .collect(Collectors.toSet())
         .size();
 
-    int preparedSteps = deploymentPlan.getChildren().stream()
+    int preparedSteps = evaluatePlan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .filter(step -> step.isPrepared())
         .collect(Collectors.toSet())
         .size();
 
-    int startingSteps = deploymentPlan.getChildren().stream()
+    int startingSteps = evaluatePlan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .filter(step -> step.isStarting())
         .collect(Collectors.toSet())
         .size();
 
-    int startedSteps = deploymentPlan.getChildren().stream()
+    int startedSteps = evaluatePlan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .filter(step -> step.isStarted())
         .collect(Collectors.toSet())
         .size();
 
-    int completedSteps = deploymentPlan.getChildren().stream()
+    int completedSteps = evaluatePlan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .filter(step -> step.isComplete())
         .collect(Collectors.toSet())
@@ -393,9 +346,9 @@ public class ServiceStatusTracker {
     // We're biasing pessimistically here, pick cases that are halting the
     // deployment from becoming complete.
     if (pendingSteps > 0 || preparedSteps > 0) {
-      statusCode = Optional.of(ServiceStatusCode.DEPLOYING_PENDING);
+      statusCode = Optional.of(pending);
     } else if (startingSteps > 0 || startedSteps > 0) {
-      statusCode = Optional.of(ServiceStatusCode.DEPLOYING_STARTING);
+      statusCode = Optional.of(starting);
     } else {
       // Implies deployment is complete.
       statusCode = Optional.empty();
@@ -406,11 +359,12 @@ public class ServiceStatusTracker {
       statusCodeString = String.format("Status Code %s is TRUE,", statusCode.get().statusCode);
     } else {
       statusCodeString = String.format("Status Code %s and %s are both FALSE",
-          ServiceStatusCode.DEPLOYING_PENDING.statusCode,
-          ServiceStatusCode.DEPLOYING_STARTING.statusCode);
+          pending.statusCode,
+          starting.statusCode);
     }
 
-    reason = String.format("Priority 2. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d)",
+    reason = String.format("Priority %d. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d)",
+        priority,
         statusCodeString,
         totalSteps,
         pendingSteps,
