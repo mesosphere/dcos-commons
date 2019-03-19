@@ -52,7 +52,7 @@ else
 fi
 gradle_cache="${REPO_ROOT_DIR}/.gradle_cache"
 ssh_path="${HOME}/.ssh/ccm.pem"
-ssh_user="centos"
+ssh_user=${DCOS_SSH_USERNAME:-"core"}
 aws_creds_path="${HOME}/.aws/credentials"
 enterprise="true"
 headless="false"
