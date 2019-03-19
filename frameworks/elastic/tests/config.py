@@ -180,10 +180,10 @@ def check_elasticsearch_plugin_uninstalled(
     return result is not None and result == []
 
 
-def _get_hosts_with_plugin(service_name: str, plugin_name: str) -> List[str]:
+def _get_hosts_with_plugin(service_name: str, plugin_name: str) -> Optional[List[str]]:
     output = _curl_query(service_name, "GET", "_cat/plugins", return_json=False)
     if output is None:
-        return []
+        return None
     return [host for host in output.split("\n") if plugin_name in host]
 
 
