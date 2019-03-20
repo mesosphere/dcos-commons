@@ -8,7 +8,7 @@ import org.junit.Before;
 import org.junit.Test;
 import java.util.*;
 
-import org.mockito.*;
+import org.mockito.MockitoAnnotations;
 
 import static org.mockito.Mockito.*;
 
