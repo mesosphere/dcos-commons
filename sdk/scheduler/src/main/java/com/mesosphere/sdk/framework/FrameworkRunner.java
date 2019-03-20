@@ -214,7 +214,7 @@ public class FrameworkRunner {
     PlanManager uninstallPlanManager = DefaultPlanManager.createProceeding(EMPTY_DEPLOY_PLAN);
 
     PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(),
-        Arrays.asList(uninstallPlanManager));
+        Collections.singletonList(uninstallPlanManager));
 
     // Bare minimum resources to appear healthy/complete to DC/OS:
     Collection<Object> resources = Arrays.asList(

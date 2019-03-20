@@ -6,6 +6,7 @@ import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStoreException;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -44,7 +45,8 @@ public class HealthResource {
   /**
    * ServiceStatusCode encodes the service status code.
    */
-  public enum ServiceStatusCode {
+  @VisibleForTesting
+  protected enum ServiceStatusCode {
 
     INITIALIZING(418, 1),
     RUNNING(200, 1),
@@ -92,7 +94,8 @@ public class HealthResource {
     return serviceStatusResult.getServiceStatusResponse();
   }
 
-  public ServiceStatusResult evaluateServiceStatus(boolean isVerbose) {
+  @VisibleForTesting
+  protected ServiceStatusResult evaluateServiceStatus(boolean isVerbose) {
 
     // Final response object we're going to return.
     JSONObject response = new JSONObject();
@@ -155,9 +158,8 @@ public class HealthResource {
 
     response.put(RESULT_CODE_KEY, serviceStatusCode.get().statusCode);
 
-    // Build the final response.
-    final Response returnResponse = ResponseUtils.jsonResponseBean(response, serviceStatusCode.get().statusCode);
-    return new ServiceStatusResult(serviceStatusCode, returnResponse);
+    return new ServiceStatusResult(serviceStatusCode,
+        ResponseUtils.jsonResponseBean(response, serviceStatusCode.get().statusCode));
   }
 
   private ServiceStatusEvaluationStage isUpgradeRollbackDowngrade() {
@@ -507,7 +509,8 @@ public class HealthResource {
    * Wrapper class to combine the {@link ServiceStatusCode} and {@link Response}
    * which can be exposed to testing code.
    */
-  public static class ServiceStatusResult {
+  @VisibleForTesting
+  protected static class ServiceStatusResult {
 
     private final Optional<ServiceStatusCode> serviceStatusCode;
 
