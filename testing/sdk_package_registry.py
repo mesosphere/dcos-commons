@@ -22,7 +22,7 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 PACKAGE_REGISTRY_NAME = "package-registry"
-PACKAGE_REGISTRY_SERVICE_NAME = "registry"
+PACKAGE_REGISTRY_SERVICE_NAME = "dcos-registry"
 
 
 def install_package_registry(service_secret_path: str) -> Dict[str, str]:
