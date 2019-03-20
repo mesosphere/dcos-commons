@@ -464,7 +464,7 @@ def _find_matching_executor_path(agent_executor_paths: dict, task_entry: _TaskEn
     (and Mesos folks tell me that '/frameworks/...' is the way forward, so '/var/lib/mesos/...' may be going away)
     SEE ALSO: https://issues.apache.org/jira/browse/MESOS-7899
 
-    Additionally, given the correct path, there are also differences depending on the task/executor type :
+    Additionally, given the correct path, there are also differences depending on the task/executor type:
     - Marathon/Metronome: The task id is used as the 'executor id'. Logs are at the advertised directory.
     - Custom executor: 'executor id' + 'task id' are both used. Executor+Task logs are all combined into the same
                        file(s) at the advertised directory.
