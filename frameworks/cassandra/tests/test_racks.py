@@ -43,7 +43,7 @@ def test_rack():
     log.info("node: {}".format(node))
 
     assert node.get_rack() != "rack1"
-    assert sdk_utils.get_cluster_region() in node.get_rack()
+    assert sdk_utils.get_cluster_zones()[node.get_address()] == node.get_rack()
 
 
 @pytest.mark.sanity

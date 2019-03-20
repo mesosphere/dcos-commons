@@ -161,7 +161,7 @@ def get_metadata():
                                    retry=False)
 
 
-def get_cluster_region():
+def get_cluster_zones():
     rc, stdout, _ = sdk_cmd.run_cli("node --json")
 
     if rc != 0:
@@ -169,8 +169,12 @@ def get_cluster_region():
         return None
 
     r = json.loads(stdout)
+    ip_zn = {}
 
-    return r[1]['domain']['fault_domain']['region']['name']
+    for ag in r[1:]:
+        ip_zn[ag['hostname']] = ag['domain']['fault_domain']['zone']['name']
+
+    return ip_zn
 
 
 """Annotation which may be used to mark test suites or test cases as EE-only.
