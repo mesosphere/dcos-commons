@@ -46,23 +46,25 @@ public class HealthResource {
    */
   public enum ServiceStatusCode {
 
-    INITIALIZING(418),
-    RUNNING(200),
-    ERROR_CREATING_SERVICE(500),
-    DEPLOYING_PENDING(204),
-    DEPLOYING_STARTING(202),
-    DEGRADED(206),
-    RECOVERING_PENDING(203),
-    RECOVERING_STARTING(205),
-    BACKING_UP(420),
-    RESTORING(421),
-    UPGRADE_ROLLBACK_DOWNGRADE(426),
-    SERVICE_UNAVAILABLE(503);
+    INITIALIZING(418, 1),
+    RUNNING(200, 1),
+    ERROR_CREATING_SERVICE(500, 1),
+    DEPLOYING_PENDING(204, 2),
+    DEPLOYING_STARTING(202, 2),
+    DEGRADED(206, 3),
+    RECOVERING_PENDING(203, 4),
+    RECOVERING_STARTING(205, 4),
+    BACKING_UP(420, 5),
+    RESTORING(421, 5),
+    UPGRADE_ROLLBACK_DOWNGRADE(426, 6),
+    SERVICE_UNAVAILABLE(503, -1);
 
     private final int statusCode;
+    private final int priority;
 
-    ServiceStatusCode(int statusCode) {
+    ServiceStatusCode(int statusCode, int priority) {
       this.statusCode = statusCode;
+      this.priority = priority;
     }
   }
 
@@ -209,6 +211,7 @@ public class HealthResource {
     String reason;
     Optional<ServiceStatusCode> statusCode;
 
+    ServiceStatusCode backingUp = ServiceStatusCode.BACKING_UP;
     Set<Plan> backupPlans = planCoordinator.getPlanManagers()
         .stream()
         .filter(planManager -> planManager.getPlan().getName().matches(BACKUP_PLAN_REGEXP))
@@ -216,8 +219,9 @@ public class HealthResource {
         .collect(Collectors.toSet());
 
     if (backupPlans.isEmpty()) {
-      reason = String.format("Priority 5. Status Code %s is FALSE. No backup plans detected.",
-          ServiceStatusCode.BACKING_UP.statusCode);
+      reason = String.format("Priority %d. Status Code %s is FALSE. No backup plans detected.",
+          backingUp.priority,
+          backingUp.statusCode);
       statusCode = Optional.empty();
     } else {
       // Found plan name with "backup" in it, check if any are running, if so get their names.
@@ -231,14 +235,18 @@ public class HealthResource {
             .map(plan -> plan.getName())
             .collect(Collectors.toSet());
 
-        reason = String.format("Priority 5. Status Code %s is FALSE. Following backup plans not running: %s",
-            ServiceStatusCode.BACKING_UP.statusCode, String.join(", ", notRunningBackupPlans));
+        reason = String.format("Priority %d. Status Code %s is FALSE. Following backup plans not running: %s",
+            backingUp.priority,
+            backingUp.statusCode,
+            String.join(", ", notRunningBackupPlans));
         statusCode = Optional.empty();
       } else {
         // Found running backup plans.
-        reason = String.format("Priority 5. Status Code %s is TRUE. Following backup plans found running: %s",
-            ServiceStatusCode.BACKING_UP.statusCode, String.join(", ", runningBackupPlans));
-        statusCode = Optional.of(ServiceStatusCode.BACKING_UP);
+        reason = String.format("Priority %d. Status Code %s is TRUE. Following backup plans found running: %s",
+            backingUp.priority,
+            backingUp.statusCode,
+            String.join(", ", runningBackupPlans));
+        statusCode = Optional.of(backingUp);
       }
     }
     return new ServiceStatusEvaluationStage(statusCode, reason);
@@ -246,7 +254,6 @@ public class HealthResource {
 
   private ServiceStatusEvaluationStage isRecovering() {
 
-    final int priority = 4;
     String reason;
     Optional<ServiceStatusCode> statusCode;
 
@@ -260,7 +267,7 @@ public class HealthResource {
 
     if (recoveryPlan.isComplete()) {
       reason = String.format("Priority %d. Status Code %s and %s is FALSE. Recovery plan is complete.",
-          priority,
+          ServiceStatusCode.RECOVERING_PENDING.priority,
           ServiceStatusCode.RECOVERING_PENDING.statusCode,
           ServiceStatusCode.RECOVERING_STARTING.statusCode);
       statusCode = Optional.empty();
@@ -271,13 +278,14 @@ public class HealthResource {
       return evaluatePendingOrStartingStatusCode(recoveryPlan,
           ServiceStatusCode.RECOVERING_PENDING,
           ServiceStatusCode.RECOVERING_STARTING,
-          priority);
+          ServiceStatusCode.RECOVERING_PENDING.priority);
     }
   }
 
   private ServiceStatusEvaluationStage isDegraded() {
 
-    String reason = String.format("Priority 3. Status Code %s is FALSE, Not implemented yet.",
+    String reason = String.format("Priority %d. Status Code %s is FALSE, Not implemented yet.",
+        ServiceStatusCode.DEGRADED.priority,
         ServiceStatusCode.DEGRADED.statusCode);
     Optional<ServiceStatusCode> statusCode = Optional.empty();
 
@@ -299,7 +307,7 @@ public class HealthResource {
     return evaluatePendingOrStartingStatusCode(deploymentPlan,
         ServiceStatusCode.DEPLOYING_PENDING,
         ServiceStatusCode.DEPLOYING_STARTING,
-        priority);
+        ServiceStatusCode.DEPLOYING_PENDING.priority);
   }
 
   private ServiceStatusEvaluationStage evaluatePendingOrStartingStatusCode(Plan evaluatePlan,
@@ -384,7 +392,8 @@ public class HealthResource {
     Optional<ServiceStatusCode> statusCode;
 
     if (initializing.isPresent()) {
-      reason = String.format("Priority 1. Status Code %s is FALSE. Service still initializing.",
+      reason = String.format("Priority %d. Status Code %s is FALSE. Service still initializing.",
+          ServiceStatusCode.RUNNING.priority,
           ServiceStatusCode.RUNNING.statusCode);
       statusCode = Optional.empty();
     } else {
@@ -398,11 +407,13 @@ public class HealthResource {
               .isComplete();
 
       if (isDeployPlanComplete) {
-        reason = String.format("Priority 1. Status Code %s is TRUE. Service deploy plan is complete.",
+        reason = String.format("Priority %d. Status Code %s is TRUE. Service deploy plan is complete.",
+              ServiceStatusCode.RUNNING.priority,
               ServiceStatusCode.RUNNING.statusCode);
         statusCode = Optional.of(ServiceStatusCode.RUNNING);
       } else {
-        reason = String.format("Priority 1. Status Code %s is FALSE. Service deploy plan is NOT complete.",
+        reason = String.format("Priority %d. Status Code %s is FALSE. Service deploy plan is NOT complete.",
+              ServiceStatusCode.RUNNING.priority,
               ServiceStatusCode.RUNNING.statusCode);
         statusCode = Optional.empty();
       }
@@ -414,18 +425,20 @@ public class HealthResource {
 
     String reason;
     Optional<ServiceStatusCode> statusCode;
-
+    ServiceStatusCode errorCreatingService = ServiceStatusCode.ERROR_CREATING_SERVICE;
     boolean isAnyErrors = planCoordinator.getPlanManagers()
         .stream()
         .anyMatch(planManager -> !(planManager.getPlan().getErrors().isEmpty()));
 
     if (isAnyErrors) {
-      reason = String.format("Priority 1. Status Code %s is TRUE. Errors found in plans.",
-          ServiceStatusCode.ERROR_CREATING_SERVICE.statusCode);
-      statusCode = Optional.of(ServiceStatusCode.ERROR_CREATING_SERVICE);
+      reason = String.format("Priority %d. Status Code %s is TRUE. Errors found in plans.",
+          errorCreatingService.priority,
+          errorCreatingService.statusCode);
+      statusCode = Optional.of(errorCreatingService);
     } else {
-      reason = String.format("Priority 1. Status Code %s is FALSE. No errors found in plans.",
-          ServiceStatusCode.ERROR_CREATING_SERVICE.statusCode);
+      reason = String.format("Priority %d. Status Code %s is FALSE. No errors found in plans.",
+          errorCreatingService.priority,
+          errorCreatingService.statusCode);
       statusCode = Optional.empty();
     }
 
@@ -436,7 +449,7 @@ public class HealthResource {
     String reason;
     Optional<ServiceStatusCode> statusCode;
     Optional<Protos.FrameworkID> frameworkId;
-
+    ServiceStatusCode initializing = ServiceStatusCode.INITIALIZING;
     if (frameworkStore.isPresent()) {
       try {
         // fetchFrameWorkId can throw a StateStoreException.
@@ -450,13 +463,16 @@ public class HealthResource {
     }
 
     if (frameworkId.isPresent()) {
-      reason = String.format("Priority 1. Status Code %s is FALSE. Registered with Framework ID %s.",
-              ServiceStatusCode.INITIALIZING.statusCode, frameworkId.get().getValue());
+      reason = String.format("Priority %d. Status Code %s is FALSE. Registered with Framework ID %s.",
+              initializing.priority,
+              initializing.statusCode,
+              frameworkId.get().getValue());
       statusCode = Optional.empty();
     } else {
-      reason = String.format("Priority 1. Status Code %s is TRUE. Mesos registration pending, no Framework ID found.",
-              ServiceStatusCode.INITIALIZING.statusCode);
-      statusCode = Optional.of(ServiceStatusCode.INITIALIZING);
+      reason = String.format("Priority %d. Status Code %s is TRUE. Mesos registration pending, no Framework ID found.",
+              initializing.priority,
+              initializing.statusCode);
+      statusCode = Optional.of(initializing);
     }
 
     return new ServiceStatusEvaluationStage(statusCode, reason);
