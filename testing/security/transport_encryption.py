@@ -3,6 +3,7 @@ A collection of utilities used for SSL tests.
 """
 import json
 import logging
+from typing import Any, Dict, Optional
 
 
 import sdk_cmd
@@ -12,7 +13,10 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 
-def setup_service_account(service_name: str, service_account_secret: str = None) -> dict:
+def setup_service_account(
+    service_name: str,
+    service_account_secret: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Setup the service account for TLS. If the account or secret of the specified
     name already exists, these are deleted.
@@ -65,7 +69,10 @@ def setup_service_account(service_name: str, service_account_secret: str = None)
     return service_account_info
 
 
-def cleanup_service_account(service_name: str, service_account_info: dict):
+def cleanup_service_account(
+    service_name: str,
+    service_account_info: Dict[str, Any],
+) -> None:
     """
     Clean up the specified service account.
 
@@ -88,7 +95,7 @@ def fetch_dcos_ca_bundle(marathon_task: str) -> str:
     return local_bundle_file
 
 
-def fetch_dcos_ca_bundle_contents() -> str:
+def fetch_dcos_ca_bundle_contents() -> bytes:
     resp = sdk_cmd.cluster_request("GET", "/ca/dcos-ca.crt")
     cert = resp.content
     if not cert:
@@ -134,7 +141,7 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
     return "CN={},OU=Mesosphere,O=Mesosphere,L=SF,ST=CA,C=US".format(cn)
 
 
-def _create_keystore_truststore(cn: str, marathon_task: str):
+def _create_keystore_truststore(cn: str, marathon_task: str) -> None:
     pub_path = "{}_pub.crt".format(cn)
     priv_path = "{}_priv.key".format(cn)
     keystore_path = "{}_keystore.jks".format(cn)
