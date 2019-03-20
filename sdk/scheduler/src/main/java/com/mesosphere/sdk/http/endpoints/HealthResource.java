@@ -107,11 +107,11 @@ public class HealthResource {
     ServiceStatusEvaluationStage isErrorCreating = isErrorCreatingService();
     ServiceStatusEvaluationStage deploymentComplete = isDeploymentComplete(initializing.getServiceStatusCode());
     ServiceStatusEvaluationStage isDeploying = isDeploying();
-    ServiceStatusEvaluationStage isDegraded = isDegraded();
+    ServiceStatusEvaluationStage isDegraded = notImplemented(ServiceStatusCode.DEGRADED);
     ServiceStatusEvaluationStage isRecovering = isRecovering();
     ServiceStatusEvaluationStage isBackingUp = isBackingUp();
     ServiceStatusEvaluationStage isRestoring = isRestoring();
-    ServiceStatusEvaluationStage isUpgradeRollbackDowngrade = isUpgradeRollbackDowngrade();
+    ServiceStatusEvaluationStage isUpgradeRollbackDowngrade = notImplemented(ServiceStatusCode.UPGRADE_ROLLBACK_DOWNGRADE);
 
     if (isVerbose) {
       statusCodeReasons.put(isErrorCreating.getStatusReason());
@@ -162,17 +162,10 @@ public class HealthResource {
         ResponseUtils.jsonResponseBean(response, serviceStatusCode.get().statusCode));
   }
 
-  private ServiceStatusEvaluationStage isUpgradeRollbackDowngrade() {
-    String reason = String.format("Priority 6. Status Code %s is FALSE, Not implemented yet.",
-        ServiceStatusCode.UPGRADE_ROLLBACK_DOWNGRADE.statusCode);
-    Optional<ServiceStatusCode> statusCode = Optional.empty();
-
-    return new ServiceStatusEvaluationStage(statusCode, reason);
-  }
-
   private ServiceStatusEvaluationStage isRestoring() {
     String reason;
     Optional<ServiceStatusCode> statusCode;
+    ServiceStatusCode restoring = ServiceStatusCode.RESTORING;
 
     Set<Plan> restorePlans = planCoordinator.getPlanManagers()
         .stream()
@@ -181,8 +174,9 @@ public class HealthResource {
         .collect(Collectors.toSet());
 
     if (restorePlans.isEmpty()) {
-      reason = String.format("Priority 5. Status Code %s is FALSE. No restore plans detected.",
-          ServiceStatusCode.RESTORING.statusCode);
+      reason = String.format("Priority %d. Status Code %s is FALSE. No restore plans detected.",
+          restoring.priority,
+          restoring.statusCode);
       statusCode = Optional.empty();
     } else {
       // Found plan name with "restore" in it, check if any are running, if so get their names.
@@ -196,14 +190,18 @@ public class HealthResource {
             .map(plan -> plan.getName())
             .collect(Collectors.toSet());
 
-        reason = String.format("Priority 5. Status Code %s is FALSE. Following restore plans not running: %s",
-            ServiceStatusCode.RESTORING.statusCode, String.join(", ", notRunningRestorePlans));
+        reason = String.format("Priority %d. Status Code %s is FALSE. Following restore plans not running: %s",
+            restoring.priority,
+            restoring.statusCode,
+            String.join(", ", notRunningRestorePlans));
         statusCode = Optional.empty();
       } else {
         // Found running restore plans.
-        reason = String.format("Priority 5. Status Code %s is TRUE. Following restore plans found running: %s",
-            ServiceStatusCode.RESTORING.statusCode, String.join(", ", runningRestorePlans));
-        statusCode = Optional.of(ServiceStatusCode.RESTORING);
+        reason = String.format("Priority %d. Status Code %s is TRUE. Following restore plans found running: %s",
+            restoring.priority,
+            restoring.statusCode,
+            String.join(", ", runningRestorePlans));
+        statusCode = Optional.of(restoring);
       }
     }
     return new ServiceStatusEvaluationStage(statusCode, reason);
@@ -284,14 +282,11 @@ public class HealthResource {
     }
   }
 
-  private ServiceStatusEvaluationStage isDegraded() {
-
+  private ServiceStatusEvaluationStage notImplemented(ServiceStatusCode statusCode) {
     String reason = String.format("Priority %d. Status Code %s is FALSE, Not implemented yet.",
-        ServiceStatusCode.DEGRADED.priority,
-        ServiceStatusCode.DEGRADED.statusCode);
-    Optional<ServiceStatusCode> statusCode = Optional.empty();
-
-    return new ServiceStatusEvaluationStage(statusCode, reason);
+        statusCode.priority,
+        statusCode.statusCode);
+    return new ServiceStatusEvaluationStage(Optional.empty(), reason);
   }
 
   private ServiceStatusEvaluationStage isDeploying() {
