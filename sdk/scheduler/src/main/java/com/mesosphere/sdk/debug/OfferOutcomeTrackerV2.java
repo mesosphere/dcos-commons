@@ -68,7 +68,7 @@ public class OfferOutcomeTrackerV2 implements DebugEndpoint {
       this.acceptedCount = 0;
       this.rejectedCount = 0;
       this.outcomes = EvictingQueue.create(DEFAULT_CAPACITY);
-      this.failureReasons = new HashMap();
+      this.failureReasons = new HashMap<>();
       this.rejectedAgents = new HashedMap();
     }
 

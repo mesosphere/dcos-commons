@@ -10,7 +10,7 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import retrying
-import typing
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import sdk_cmd
 import sdk_tasks
@@ -18,20 +18,30 @@ import sdk_tasks
 log = logging.getLogger(__name__)
 
 
-def get_scheduler_metrics(service_name, timeout_seconds=15 * 60):
+def get_scheduler_metrics(
+    service_name: str,
+    timeout_seconds: int = 15 * 60
+) -> Dict[str, Any]:
     """Returns a dict tree of Scheduler metrics fetched directly from the scheduler.
     Returned data will match the content of /service/<svc_name>/v1/metrics.
     """
-    return sdk_cmd.service_request("GET", service_name, "/v1/metrics").json()
+    response = sdk_cmd.service_request("GET", service_name, "/v1/metrics")
+    response_json = response.json()
+    assert isinstance(response_json, dict)
+    return response_json
 
 
-def get_scheduler_counter(service_name, counter_name, timeout_seconds=15 * 60):
+def get_scheduler_counter(
+    service_name: str,
+    counter_name: str,
+    timeout_seconds: int = 15 * 60,
+) -> int:
     """Waits for and returns the specified counter value from the scheduler"""
 
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def check_for_value():
+    def check_for_value() -> Optional[int]:
         try:
             sched_metrics = get_scheduler_metrics(service_name)
             if "counters" not in sched_metrics:
@@ -50,42 +60,46 @@ def get_scheduler_counter(service_name, counter_name, timeout_seconds=15 * 60):
                 )
                 return None
             value = sched_counters[counter_name]["count"]
+            assert isinstance(value, int)
             log.info("{} metric counter: {}={}".format(service_name, counter_name, value))
             return value
         except Exception as e:
             log.error("Caught exception trying to get metrics: {}".format(e))
             return None
 
-    return check_for_value()
+    return int(check_for_value())
 
 
 def wait_for_scheduler_counter_value(
-    service_name, counter_name, min_value, timeout_seconds=15 * 60
-):
+    service_name: str,
+    counter_name: str,
+    min_value: int,
+    timeout_seconds: int = 15 * 60,
+) -> bool:
     """Waits for the specified counter value to be reached by the scheduler
     For example, check that `offers.processed` is equal or greater to 1."""
 
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def check_for_value():
+    def check_for_value() -> bool:
         value = get_scheduler_counter(service_name, counter_name, timeout_seconds)
         return value >= min_value
 
-    return check_for_value()
+    return bool(check_for_value())
 
 
-def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> typing.Dict:
+def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> List[Dict[str, Any]]:
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _getter():
+    def _getter() -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         return get_metrics_from_cli(task_name)
 
-    return _getter()
+    return list(_getter())
 
 
-def get_metrics_from_cli(task_name: str) -> typing.Dict:
+def get_metrics_from_cli(task_name: str) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
     cmd_list = ["task", "metrics", "details", "--json", task_name]
     rc, stdout, stderr = sdk_cmd.run_cli(" ".join(cmd_list))
     if rc:
@@ -98,10 +112,10 @@ def get_metrics_from_cli(task_name: str) -> typing.Dict:
         log.error("Error decoding JSON from %s: %s", stdout, json_error)
         raise
 
-    return metrics
+    return list(metrics)
 
 
-def get_metrics(package_name, service_name, pod_name, task_name):
+def get_metrics(package_name: str, service_name: str, pod_name: str, task_name: str) -> List:
     """Return a list of DC/OS metrics datapoints.
 
     Keyword arguments:
@@ -177,12 +191,12 @@ def get_metrics(package_name, service_name, pod_name, task_name):
         raise Exception("Expected key 'dimensions.task_name' not found in app metrics")
 
     if app_json["dimensions"]["task_name"] == task_name:
-        return app_json["datapoints"]
+        return list(app_json["datapoints"])
 
     raise Exception("No metrics found for task {} in service {}".format(task_name, service_name))
 
 
-def check_metrics_presence(emitted_metrics: typing.List[str], expected_metrics: typing.List[str]) -> bool:
+def check_metrics_presence(emitted_metrics: List[str], expected_metrics: List[str]) -> bool:
     """Check whether a given list contains all
     """
     lower_case_emitted_metrics = set(map(lambda m: m.lower(), emitted_metrics))
@@ -202,8 +216,13 @@ def check_metrics_presence(emitted_metrics: typing.List[str], expected_metrics: 
 
 
 def wait_for_service_metrics(
-    package_name, service_name, pod_name, task_name, timeout, expected_metrics_callback
-):
+    package_name: str,
+    service_name: str,
+    pod_name: str,
+    task_name: str,
+    timeout: int,
+    expected_metrics_callback: Callable,
+) -> Any:
     """Checks that the service is emitting the expected values into DC/OS Metrics.
     The assumption is that if the expected metrics are being emitted then so
     are the rest of the metrics.
@@ -218,14 +237,14 @@ def wait_for_service_metrics(
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout * 1000, retry_on_result=lambda res: not res
     )
-    def check_for_service_metrics():
+    def check_for_service_metrics() -> bool:
         try:
             log.info(
                 "Verifying metrics exist for task {} in service {}".format(task_name, service_name)
             )
             service_metrics = get_metrics(package_name, service_name, pod_name, task_name)
             emitted_metric_names = [metric["name"] for metric in service_metrics]
-            return expected_metrics_callback(emitted_metric_names)
+            return bool(expected_metrics_callback(emitted_metric_names))
 
         except Exception as e:
             log.error("Caught exception trying to get metrics: {}".format(e))

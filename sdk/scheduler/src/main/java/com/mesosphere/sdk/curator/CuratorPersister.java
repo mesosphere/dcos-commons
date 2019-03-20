@@ -312,11 +312,6 @@ public class CuratorPersister implements Persister {
        */
       LOGGER.debug("Deleting children of root {}", path);
       try {
-        client
-            .inTransaction()
-            .check()
-            .forPath(serviceRootPath)
-            .and();
         List<CuratorOp> operations = new ArrayList<>();
         operations.add(client.transactionOp().check().forPath(serviceRootPath));
         Set<String> pendingDeletePaths = new HashSet<>();

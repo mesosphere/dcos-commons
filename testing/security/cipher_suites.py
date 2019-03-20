@@ -1,3 +1,5 @@
+from typing import Optional, Set
+
 OPENSSL_TO_RFC_NAMES = {
     "ADH-AES128-GCM-SHA256": "TLS_DH_anon_WITH_AES_128_GCM_SHA256",
     "ADH-AES128-SHA": "TLS_DH_anon_WITH_AES_128_CBC_SHA",
@@ -258,15 +260,15 @@ OPENSSL_TO_RFC_NAMES = {
 RFC_TO_OPENSSL_NAMES = dict((v, k) for k, v in OPENSSL_TO_RFC_NAMES.items())
 
 
-def missing_openssl_ciphers(openssl_ciphers: set) -> set:
+def missing_openssl_ciphers(openssl_ciphers: Set[str]) -> Set[str]:
     """Returns the OpenSSL ciphers absent from OPENSSL_TO_RFC_NAMES.
     """
     return openssl_ciphers - set(OPENSSL_TO_RFC_NAMES.keys())
 
 
-def rfc_name(openssl_name: str) -> str:
+def rfc_name(openssl_name: str) -> Optional[str]:
     return OPENSSL_TO_RFC_NAMES.get(openssl_name)
 
 
-def openssl_name(rfc_name: str) -> str:
+def openssl_name(rfc_name: str) -> Optional[str]:
     return RFC_TO_OPENSSL_NAMES.get(rfc_name)
