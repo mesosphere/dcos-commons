@@ -16,6 +16,7 @@ import shutil
 import socket
 import subprocess
 import sys
+from typing import List
 
 import universe
 from universe.package import Version
@@ -25,7 +26,13 @@ logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 
 class HTTPPublisher(object):
-    def __init__(self, package_name, package_version, input_dir_path, artifact_paths):
+    def __init__(
+        self,
+        package_name: str,
+        package_version: str,
+        input_dir_path: str,
+        artifact_paths: List[str],
+    ) -> None:
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._input_dir_path = input_dir_path
@@ -37,7 +44,7 @@ class HTTPPublisher(object):
         if not os.path.isdir(input_dir_path):
             raise Exception("Provided package path is not a directory: {}".format(input_dir_path))
 
-        self._artifact_paths = []
+        self._artifact_paths: List[str] = []
         for artifact_path in artifact_paths:
             if not os.path.isfile(artifact_path):
                 err = "Provided package path is not a file: {} (full list: {})".format(
@@ -46,14 +53,14 @@ class HTTPPublisher(object):
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
-    def _copy_artifact(self, http_url_root, filepath):
+    def _copy_artifact(self, http_url_root: str, filepath: str) -> str:
         filename = os.path.basename(filepath)
         destpath = os.path.join(self._http_dir, filename)
         logger.info("- {}".format(destpath))
         shutil.copyfile(filepath, destpath)
         return "{}/{}".format(http_url_root, filename)
 
-    def _spam_universe_url(self, universe_url):
+    def _spam_universe_url(self, universe_url: str) -> None:
         # write jenkins properties file to $WORKSPACE/<pkg_version>.properties:
         jenkins_workspace_path = os.environ.get("WORKSPACE", "")
         if jenkins_workspace_path:
@@ -71,7 +78,7 @@ class HTTPPublisher(object):
             universe_url_file.flush()
             universe_url_file.close()
 
-    def build(self, http_url_root):
+    def build(self, http_url_root: str) -> str:
         """copies artifacts and a new stub universe into the http root directory"""
         universe_path = self._package_builder.build_package()
 
@@ -103,7 +110,7 @@ class HTTPPublisher(object):
 
         return universe_url
 
-    def launch_http(self):
+    def launch_http(self) -> str:
         # kill any prior matching process
         procname = "publish_httpd_{}.py".format(self._pkg_name)
         try:
@@ -168,7 +175,7 @@ httpd.serve_forever()
 
         return http_url_root
 
-    def add_repo_to_cli(self, repo_url):
+    def add_repo_to_cli(self, repo_url: str) -> bool:
         try:
             devnull = open(os.devnull, "wb")
             subprocess.check_call("dcos -h".split(), stdout=devnull, stderr=devnull)
@@ -198,7 +205,7 @@ httpd.serve_forever()
         return True
 
 
-def print_help(argv):
+def print_help(argv: List[str]) -> None:
     logger.info("Syntax: %s <package-name> <template-package-dir> [artifact files ...]", argv[0])
     logger.info(
         "  Example: $ %s hello-world /path/to/universe/jsons/ /path/to/artifact1.zip /path/to/artifact2.zip /path/to/artifact3.zip",
@@ -209,7 +216,7 @@ def print_help(argv):
     )
 
 
-def main(argv):
+def main(argv: List[str]) -> int:
     if len(argv) < 3:
         print_help(argv)
         return 1
