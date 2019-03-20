@@ -17,7 +17,7 @@ from typing import Any, Callable, Dict, List, Optional, Set
 
 import pytest
 import retrying
-import _pytest.runner
+from _pytest import runner
 
 import sdk_cmd
 import sdk_install
@@ -140,7 +140,7 @@ def _task_whitelist_callback(item: pytest.Item) -> Callable[[sdk_tasks.Task], bo
     return _callback
 
 
-def handle_test_report(item: pytest.Item, result: _pytest.runner.TestReport) -> None:
+def handle_test_report(item: pytest.Item, result: runner.TestReport) -> None:
     """Collects information from the cluster following a failed test.
 
     This should be called in a hookimpl fixture.

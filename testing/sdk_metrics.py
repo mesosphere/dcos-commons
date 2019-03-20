@@ -10,7 +10,7 @@ SHOULD ALSO BE APPLIED TO sdk_metrics IN ANY OTHER PARTNER REPOS
 import json
 import logging
 import retrying
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional, Union
 
 import sdk_cmd
 import sdk_tasks
@@ -89,17 +89,17 @@ def wait_for_scheduler_counter_value(
     return bool(check_for_value())
 
 
-def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> Dict[str, Any]:
+def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> List[Dict[str, Any]]:
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
-    def _getter() -> Dict[str, Any]:
+    def _getter() -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         return get_metrics_from_cli(task_name)
 
-    return dict(_getter())
+    return list(_getter())
 
 
-def get_metrics_from_cli(task_name: str) -> Dict[str, Any]:
+def get_metrics_from_cli(task_name: str) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
     cmd_list = ["task", "metrics", "details", "--json", task_name]
     rc, stdout, stderr = sdk_cmd.run_cli(" ".join(cmd_list))
     if rc:
@@ -112,7 +112,7 @@ def get_metrics_from_cli(task_name: str) -> Dict[str, Any]:
         log.error("Error decoding JSON from %s: %s", stdout, json_error)
         raise
 
-    return dict(metrics)
+    return list(metrics)
 
 
 def get_metrics(package_name: str, service_name: str, pod_name: str, task_name: str) -> List:

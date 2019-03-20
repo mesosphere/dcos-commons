@@ -43,7 +43,7 @@ def _get_kdc_task(task_name: str) -> dict:
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
     @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
-    def _get_kdc_task(task_name: str) -> dict:
+    def _get_kdc_task_inner(task_name: str) -> dict:
         log.info("Getting KDC task")
         _, raw_tasks, _ = sdk_cmd.run_cli("task --json", print_output=False)
         if raw_tasks:
@@ -58,7 +58,7 @@ def _get_kdc_task(task_name: str) -> dict:
                 tasks=raw_tasks
             )
         )
-    return dict(_get_kdc_task(task_name=task_name))
+    return dict(_get_kdc_task_inner(task_name=task_name))
 
 
 @retrying.retry(stop_max_attempt_number=2, wait_fixed=1000)
@@ -376,8 +376,13 @@ class KerberosEnvironment:
                     keytab = f.read()
 
                 base64_encoding = base64.b64encode(keytab).decode("utf-8")
+<<<<<<< HEAD
                 with open(base64_encoded_keytab_path, "wb") as f:
                     f.write(base64_encoding.encode('utf-8'))
+=======
+                with open(base64_encoded_keytab_path, "w") as base64_encoded_keytab_file:
+                    base64_encoded_keytab_file.write(base64_encoding)
+>>>>>>> origin/master
 
                 log.info(
                     "Finished base64-encoding secret content (%d bytes): %s",
