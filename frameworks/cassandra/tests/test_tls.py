@@ -24,11 +24,11 @@ pytestmark = [
 
 
 @pytest.fixture(scope="module")
-def dcos_ca_bundle() -> str:
+def dcos_ca_bundle() -> bytes:
     """
     Retrieve DC/OS CA bundle and returns the content.
     """
-    return transport_encryption.fetch_dcos_ca_bundle_contents()
+    return transport_encryption.fetch_dcos_ca_bundle_contents().decode("ascii")
 
 
 @pytest.fixture(scope="module")
@@ -76,7 +76,7 @@ def cassandra_service(service_account: Dict[str, Any]) -> Iterable:
 @pytest.mark.tls
 def test_tls_connection(
     cassandra_service: Dict[str, Any],
-    dcos_ca_bundle: str,
+    dcos_ca_bundle: bytes,
 ) -> None:
     """
     Tests writing, reading and deleting data over a secure TLS connection.
