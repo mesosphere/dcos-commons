@@ -13,6 +13,7 @@ import pytest
 import random
 import string
 import json
+import retrying
 from typing import Dict, Optional, Union
 
 import sdk_cmd
@@ -166,7 +167,9 @@ def get_metadata() -> requests.Response:
                                    retry=False)
 
 
-@retrying.retry(stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result)
+@retrying.retry(
+    stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
+)
 def get_cluster_zones():
     _, stdout, _ = sdk_cmd.run_cli("node --json")
 
