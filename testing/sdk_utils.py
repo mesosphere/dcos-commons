@@ -166,20 +166,17 @@ def get_metadata() -> requests.Response:
                                    retry=False)
 
 
+@retrying.retry(stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result)
 def get_cluster_zones():
-    rc, stdout, _ = sdk_cmd.run_cli("node --json")
+    _, stdout, _ = sdk_cmd.run_cli("node --json")
 
-    if rc != 0:
-        log.warning("return code for command 'node --json' is non-zero: %s", rc)
-        return None
+    nodes = json.loads(stdout)[1:]
+    ips_to_zone = {}
 
-    r = json.loads(stdout)
-    ip_zn = {}
+    for agent in nodes:
+        ips_to_zone[agent['hostname']] = agent['domain']['fault_domain']['zone']['name']
 
-    for ag in r[1:]:
-        ip_zn[ag['hostname']] = ag['domain']['fault_domain']['zone']['name']
-
-    return ip_zn
+    return ips_to_zone
 
 
 """Annotation which may be used to mark test suites or test cases as EE-only.
