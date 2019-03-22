@@ -10,7 +10,7 @@ import retrying
 
 from subprocess import check_output
 
-from typing import Any, Dict, Generator, List, Set
+from typing import Any, Dict, Iterator, List, Set
 
 import sdk_cmd
 import sdk_utils
@@ -331,7 +331,7 @@ def security_session(
     linux_user: str = DEFAULT_LINUX_USER,
     service_account: str = "service-acct",
     service_account_secret: str = "secret",
-) -> Generator:
+) -> Iterator[None]:
     """Create a service account and configure permissions for strict-mode tests.
 
     This should generally be used as a fixture in a framework's conftest.py:

@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable, List
+from typing import Iterator, List
 
 from toolz import get_in
 import pytest
@@ -23,7 +23,7 @@ current_expected_task_count = config.DEFAULT_TASK_COUNT
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterable:
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         log.info("Ensure elasticsearch and kibana are uninstalled...")
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)

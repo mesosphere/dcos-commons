@@ -1,6 +1,6 @@
 import json
 import pytest
-from typing import Any, Dict, Iterable
+from typing import Any, Dict, Iterator
 
 import sdk_cmd
 import sdk_install
@@ -21,7 +21,7 @@ pytestmark = [
 
 
 @pytest.fixture(scope="module")
-def service_account(configure_security: None) -> Iterable[Dict[str, Any]]:
+def service_account(configure_security: None) -> Iterator[Dict[str, Any]]:
     """
     Sets up a service account for use with TLS.
     """
@@ -35,7 +35,7 @@ def service_account(configure_security: None) -> Iterable[Dict[str, Any]]:
 
 
 @pytest.fixture(scope="module")
-def elastic_service(service_account: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
+def elastic_service(service_account: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     service_options = {
         "service": {
             "name": config.SERVICE_NAME,
@@ -62,7 +62,7 @@ def elastic_service(service_account: Dict[str, Any]) -> Iterable[Dict[str, Any]]
 
 
 @pytest.fixture(scope="module")
-def kibana_application(elastic_service: Dict[str, Any]) -> Iterable:
+def kibana_application(elastic_service: Dict[str, Any]) -> Iterator[None]:
     try:
         elasticsearch_url = "https://" + sdk_hosts.vip_host(
             config.SERVICE_NAME, "coordinator", 9200

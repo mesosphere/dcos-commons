@@ -1,5 +1,5 @@
 import logging
-from typing import Iterable
+from typing import Iterator
 
 import pytest
 
@@ -14,12 +14,12 @@ expected_task_count = config.DEFAULT_TASK_COUNT
 
 
 @pytest.fixture(scope="module", autouse=True)
-def set_up_security(configure_security: None) -> Iterable:
+def set_up_security(configure_security: None) -> Iterator[None]:
     yield
 
 
 @pytest.fixture(autouse=True)
-def uninstall_packages(configure_security: None) -> Iterable:
+def uninstall_packages(configure_security: None) -> Iterator[None]:
     try:
         log.info("Ensuring Elastic and Kibana are uninstalled before running test")
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
