@@ -1,6 +1,6 @@
 import pytest
 import retrying
-from typing import Iterable
+from typing import Iterator
 
 import sdk_install
 import sdk_networks
@@ -9,7 +9,7 @@ from tests import config
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Iterable:
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(
