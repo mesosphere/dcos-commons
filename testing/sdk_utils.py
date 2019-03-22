@@ -171,7 +171,10 @@ def get_metadata() -> requests.Response:
     stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
 def get_cluster_zones():
-    _, stdout, _ = sdk_cmd.run_cli("node --json")
+    rc, stdout, _ = sdk_cmd.run_cli("node --json")
+
+    if rc != 0:
+        return None
 
     nodes = json.loads(stdout)[1:]
     ips_to_zone = {}
