@@ -18,8 +18,7 @@ no_strict_for_azure = pytest.mark.skipif(
 def configure_package(configure_security: None) -> Iterator[None]:
     test_jobs: List[Dict[str, Any]] = []
     try:
-        test_jobs = config.get_all_jobs(
-            node_address=config.get_foldered_node_address())
+        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
         for job in test_jobs:
             sdk_jobs.install_job(job)

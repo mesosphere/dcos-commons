@@ -32,11 +32,11 @@ def service_account(configure_security: None) -> Iterator[Dict[str, Any]]:
 
 
 @pytest.fixture(scope="module")
-def dcos_ca_bundle() -> bytes:
+def dcos_ca_bundle() -> str:
     """
     Retrieve DC/OS CA bundle and returns the content.
     """
-    return transport_encryption.fetch_dcos_ca_bundle_contents()
+    return transport_encryption.fetch_dcos_ca_bundle_contents().decode("ascii")
 
 
 @pytest.fixture(scope="module", autouse=True)
