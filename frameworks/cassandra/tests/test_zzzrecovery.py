@@ -3,7 +3,7 @@
 import logging
 import pytest
 import re
-from typing import Generator
+from typing import Iterator
 
 import sdk_agents
 import sdk_cmd
@@ -19,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Generator:
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)

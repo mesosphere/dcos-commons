@@ -1,6 +1,6 @@
 import os
 import uuid
-from typing import Any, Dict, Generator, List
+from typing import Any, Dict, Iterator, List
 
 import pytest
 import sdk_install
@@ -15,7 +15,7 @@ no_strict_for_azure = pytest.mark.skipif(
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Generator:
+def configure_package(configure_security: None) -> Iterator[None]:
     test_jobs: List[Dict[str, Any]] = []
     try:
         test_jobs = config.get_all_jobs(

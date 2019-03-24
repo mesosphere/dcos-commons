@@ -1,6 +1,6 @@
 import pytest
 import logging
-from typing import Any, Dict, Generator, List
+from typing import Any, Dict, Iterator, List
 
 import sdk_cmd
 import sdk_hosts
@@ -20,7 +20,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Generator:
+def configure_package(configure_security: None) -> Iterator[None]:
     test_jobs: List[Dict[str, Any]] = []
     try:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())

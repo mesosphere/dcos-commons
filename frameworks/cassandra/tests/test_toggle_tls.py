@@ -2,7 +2,7 @@ import json
 import logging
 import pytest
 import tempfile
-from typing import Any, Dict, Iterable, Optional
+from typing import Any, Dict, Iterator, Optional
 
 import sdk_cmd
 import sdk_install
@@ -18,7 +18,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module")
-def service_account(configure_security: None) -> Iterable[Dict[str, Any]]:
+def service_account(configure_security: None) -> Iterator[Dict[str, Any]]:
     """
     Sets up a service account for use with TLS.
     """
@@ -40,7 +40,7 @@ def dcos_ca_bundle() -> bytes:
 
 
 @pytest.fixture(scope="module", autouse=True)
-def cassandra_service(service_account: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
+def cassandra_service(service_account: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     """
     A pytest fixture that installs the cassandra service.
     On teardown, the service is uninstalled.

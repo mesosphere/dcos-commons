@@ -1,6 +1,6 @@
 import logging
 import pytest
-from typing import Generator
+from typing import Iterator
 
 import sdk_install
 import sdk_upgrade
@@ -13,7 +13,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security: None) -> Generator:
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
