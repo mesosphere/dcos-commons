@@ -6,6 +6,7 @@ import sdk_cmd
 import sdk_install
 import sdk_hosts
 import sdk_recovery
+import sdk_service
 import sdk_utils
 
 from security import transport_encryption
