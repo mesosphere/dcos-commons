@@ -34,26 +34,26 @@ AWS_ZONE_SUFFIXES = [chr(i) for i in range(ord("a"), ord("h") + 1)]
 
 
 # expect e.g. "aws/us-west-2" or "ca-central-1"
-def is_valid_aws_region(region: str):
+def is_valid_aws_region(region: str) -> bool:
     if region.startswith("aws/"):
         # trim leading 'aws/' if present
-        region = region[len("aws/") :]
+        region = region[len("aws/"):]
     return region in AWS_REGIONS
 
 
 # expect e.g. "aws/us-west-2c" or "ca-central-1h"
-def is_valid_aws_zone(zone: str):
+def is_valid_aws_zone(zone: str) -> bool:
     region = zone[:-1]  # all except last character
     zone_suffix = zone[-1:]  # last character
     return is_valid_aws_region(region) and zone_suffix in AWS_ZONE_SUFFIXES
 
 
 # TODO: handle multiple cloud providers.
-def is_valid_region(region: str):
+def is_valid_region(region: str) -> bool:
     return is_valid_aws_region(region)
 
 
 # TODO: handle multiple cloud providers.
-def is_valid_zone(zone: str):
+def is_valid_zone(zone: str) -> bool:
     # e.g. "aws/us-west-2c"
     return is_valid_aws_zone(zone)

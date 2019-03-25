@@ -1,7 +1,6 @@
 apply plugin: 'findbugs'
 apply plugin: 'checkstyle'
 apply plugin: 'pmd'
-apply plugin: 'jacoco'
 
 tasks.withType(FindBugs) {
   excludeFilter = file("$rootProject.projectDir/gradle/findbugs/excludeFilter.xml")
@@ -13,7 +12,6 @@ tasks.withType(FindBugs) {
 }
 
 checkstyle {
-    toolVersion = "8.14"
     configDir = file("$rootProject.projectDir/gradle/checkstyle")
 }
 

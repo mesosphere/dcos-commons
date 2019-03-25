@@ -7,8 +7,8 @@
 # because you modified this file), there are two ways to use it:
 #
 # 1) Slower but semi-automatic and public:
-# - once the desired version of this file is merged to master, the auto-builder
-#   on dockerhub will build a new version of this image
+# - once the desired version of this file is merged to master, the builder
+#   on Jenkins will build and push a new version of this image
 # - at that point, renovatebot will make a PR to bump the sha in FROM line in
 #   Dockerfile (of the main image)
 #
@@ -20,7 +20,7 @@
 # - put the tag into the FROM line in Dockerfile (of the main image)
 #   temporarily, rebuild that one, test, etc.
 #
-FROM ubuntu:18.10@sha256:79c90229315b26cf37b577db41418874de1c22fb80c3827c80ea624dd993d905
+FROM ubuntu:18.10@sha256:1da669e3481b6c2c8bb25ad287b75202871b1511249000e3bc35679d02e007f4
 
 # Install JDK via PPA: https://github.com/franzwong/til/blob/master/java/silent-install-oracle-jdk8-ubuntu.md
 RUN apt-get update && \

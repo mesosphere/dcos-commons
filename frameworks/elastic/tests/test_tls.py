@@ -1,5 +1,6 @@
 import json
 import pytest
+from typing import Any, Dict, Iterator
 
 import sdk_cmd
 import sdk_install
@@ -20,7 +21,7 @@ pytestmark = [
 
 
 @pytest.fixture(scope="module")
-def service_account(configure_security):
+def service_account(configure_security: None) -> Iterator[Dict[str, Any]]:
     """
     Sets up a service account for use with TLS.
     """
@@ -34,7 +35,7 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope="module")
-def elastic_service(service_account):
+def elastic_service(service_account: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     package_name = config.PACKAGE_NAME
     service_name = config.SERVICE_NAME
     expected_running_tasks = config.DEFAULT_TASK_COUNT
@@ -83,7 +84,7 @@ def elastic_service(service_account):
 
 
 @pytest.fixture(scope="module")
-def kibana_application(elastic_service):
+def kibana_application(elastic_service: Dict[str, Any]) -> Iterator[None]:
     try:
         elasticsearch_url = "https://" + sdk_hosts.vip_host(
             config.SERVICE_NAME, "coordinator", 9200
@@ -112,7 +113,7 @@ def kibana_application(elastic_service):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-def test_crud_over_tls(elastic_service):
+def test_crud_over_tls(elastic_service: Dict[str, Any]) -> None:
     config.create_index(
         config.DEFAULT_INDEX_NAME,
         config.DEFAULT_SETTINGS_MAPPINGS,
@@ -140,7 +141,7 @@ def test_crud_over_tls(elastic_service):
 @pytest.mark.skip(
     message="Kibana 6.3 with TLS enabled is not working due Admin Router request header. Details in https://jira.mesosphere.com/browse/DCOS-43386"
 )
-def test_kibana_tls(kibana_application):
+def test_kibana_tls(kibana_application: Dict[str, Any]) -> None:
     config.check_kibana_adminrouter_integration(
         "service/{}/login".format(config.KIBANA_SERVICE_NAME)
     )
@@ -149,7 +150,10 @@ def test_kibana_tls(kibana_application):
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_tls_recovery(elastic_service, service_account):
+def test_tls_recovery(
+    elastic_service: Dict[str, Any],
+    service_account: Dict[str, Any],
+) -> None:
     rc, stdout, _ = sdk_cmd.svc_cli(
         elastic_service["package_name"], elastic_service["service"]["name"], "pod list"
     )

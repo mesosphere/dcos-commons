@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator, List
 
 from toolz import get_in
 import pytest
@@ -22,7 +23,7 @@ current_expected_task_count = config.DEFAULT_TASK_COUNT
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         log.info("Ensure elasticsearch and kibana are uninstalled...")
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
@@ -43,7 +44,7 @@ def configure_package(configure_security):
 
 
 @pytest.fixture(autouse=True)
-def pre_test_setup():
+def pre_test_setup() -> None:
     sdk_tasks.check_running(foldered_name, current_expected_task_count)
     config.wait_for_expected_nodes_to_exist(
         service_name=foldered_name, task_count=current_expected_task_count
@@ -51,7 +52,7 @@ def pre_test_setup():
 
 
 @pytest.fixture
-def default_populated_index():
+def default_populated_index() -> None:
     config.delete_index(config.DEFAULT_INDEX_NAME, service_name=foldered_name)
     config.create_index(
         config.DEFAULT_INDEX_NAME, config.DEFAULT_SETTINGS_MAPPINGS, service_name=foldered_name
@@ -67,7 +68,7 @@ def default_populated_index():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_pod_replace_then_immediate_config_update():
+def test_pod_replace_then_immediate_config_update() -> None:
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace data-0")
 
     plugins = "analysis-phonetic"
@@ -86,7 +87,7 @@ def test_pod_replace_then_immediate_config_update():
 
 
 @pytest.mark.sanity
-def test_endpoints():
+def test_endpoints() -> None:
     # Check that we can reach the scheduler via admin router, and that returned endpoints are
     # sanitized.
     for endpoint in config.ENDPOINT_TYPES:
@@ -102,7 +103,7 @@ def test_endpoints():
 
 
 @pytest.mark.sanity
-def test_indexing(default_populated_index):
+def test_indexing(default_populated_index: None) -> None:
     indices_stats = config.get_elasticsearch_indices_stats(
         config.DEFAULT_INDEX_NAME, service_name=foldered_name
     )
@@ -118,14 +119,14 @@ def test_indexing(default_populated_index):
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
-def test_metrics():
+def test_metrics() -> None:
     expected_metrics = [
         "node.data-0-node.fs.total.total_in_bytes",
         "node.data-0-node.jvm.mem.pools.old.peak_used_in_bytes",
         "node.data-0-node.jvm.threads.count",
     ]
 
-    def expected_metrics_exist(emitted_metrics):
+    def expected_metrics_exist(emitted_metrics: List[str]) -> bool:
         # Elastic metrics are also dynamic and based on the service name# For eg:
         # elasticsearch.test__integration__elastic.node.data-0-node.thread_pool.listener.completed
         # To prevent this from breaking we drop the service name from the metric name
@@ -147,7 +148,7 @@ def test_metrics():
 
 
 @pytest.mark.sanity
-def test_custom_yaml_base64():
+def test_custom_yaml_base64() -> None:
     # Apply this custom YAML block as a base64-encoded string:
 
     # cluster:
@@ -192,7 +193,7 @@ def test_custom_yaml_base64():
 
 @pytest.mark.sanity
 @pytest.mark.timeout(60 * 60)
-def test_security_toggle_with_kibana(default_populated_index):
+def test_security_toggle_with_kibana(default_populated_index: None) -> None:
     # Verify that commercial APIs are disabled by default in Elasticsearch.
     config.verify_commercial_api_status(False, service_name=foldered_name)
 
@@ -347,7 +348,7 @@ def test_security_toggle_with_kibana(default_populated_index):
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_losing_and_regaining_index_health(default_populated_index):
+def test_losing_and_regaining_index_health(default_populated_index: None) -> None:
     config.check_elasticsearch_index_health(
         config.DEFAULT_INDEX_NAME, "green", service_name=foldered_name
     )
@@ -369,7 +370,7 @@ def test_losing_and_regaining_index_health(default_populated_index):
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_master_reelection():
+def test_master_reelection() -> None:
     initial_master = config.get_elasticsearch_master(service_name=foldered_name)
     sdk_cmd.kill_task_with_pattern(
         "master__.*Elasticsearch",
@@ -388,7 +389,7 @@ def test_master_reelection():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_master_node_replace():
+def test_master_node_replace() -> None:
     # Ideally, the pod will get placed on a different agent. This test will verify that the
     # remaining two masters find the replaced master at its new IP address. This requires a
     # reasonably low TTL for Java DNS lookups.
@@ -399,7 +400,7 @@ def test_master_node_replace():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_data_node_replace():
+def test_data_node_replace() -> None:
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace data-0")
     sdk_plan.wait_for_in_progress_recovery(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
@@ -407,7 +408,7 @@ def test_data_node_replace():
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_coordinator_node_replace():
+def test_coordinator_node_replace() -> None:
     sdk_cmd.svc_cli(config.PACKAGE_NAME, foldered_name, "pod replace coordinator-0")
     sdk_plan.wait_for_in_progress_recovery(foldered_name)
     sdk_plan.wait_for_completed_recovery(foldered_name)
@@ -416,7 +417,7 @@ def test_coordinator_node_replace():
 @pytest.mark.recovery
 @pytest.mark.sanity
 @pytest.mark.timeout(15 * 60)
-def test_plugin_install_and_uninstall(default_populated_index):
+def test_plugin_install_and_uninstall(default_populated_index: None) -> None:
     plugins = "analysis-icu"
 
     sdk_service.update_configuration(
@@ -440,7 +441,7 @@ def test_plugin_install_and_uninstall(default_populated_index):
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_add_ingest_and_coordinator_nodes_does_not_restart_master_or_data_nodes():
+def test_add_ingest_and_coordinator_nodes_does_not_restart_master_or_data_nodes() -> None:
     initial_master_task_ids = sdk_tasks.get_task_ids(foldered_name, "master")
     initial_data_task_ids = sdk_tasks.get_task_ids(foldered_name, "data")
 
@@ -479,7 +480,7 @@ def test_add_ingest_and_coordinator_nodes_does_not_restart_master_or_data_nodes(
 
 @pytest.mark.recovery
 @pytest.mark.sanity
-def test_adding_data_node_only_restarts_masters():
+def test_adding_data_node_only_restarts_masters() -> None:
     initial_master_task_ids = sdk_tasks.get_task_ids(foldered_name, "master")
     initial_data_task_ids = sdk_tasks.get_task_ids(foldered_name, "data")
     initial_coordinator_task_ids = sdk_tasks.get_task_ids(foldered_name, "coordinator")
