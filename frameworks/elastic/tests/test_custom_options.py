@@ -18,7 +18,7 @@ def test_xmx_and_xms_flags():
     )
    #getting all the tasks and checking the flag duplicacy by running curl_cmd command.
     for task in sdk_tasks.get_task_ids(config.SERVICE_NAME):
-        curl_cmd = "ps aux"
+        cmd = "ps aux"
         log.info(cmd)
         flag_xms = "Xms"
         flag_xmx = "Xmx"
