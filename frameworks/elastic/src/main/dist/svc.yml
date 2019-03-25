@@ -67,7 +67,6 @@ pods:
           MASTER_ENABLED: true
           DATA_ENABLED: false
           INGEST_ENABLED: false
-          #ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
