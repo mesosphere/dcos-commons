@@ -35,27 +35,49 @@ def service_account(configure_security):
 
 @pytest.fixture(scope="module")
 def elastic_service(service_account):
+    package_name = config.PACKAGE_NAME
+    service_name = config.SERVICE_NAME
+    expected_running_tasks = config.DEFAULT_TASK_COUNT
+
     service_options = {
         "service": {
-            "name": config.SERVICE_NAME,
+            "name": service_name,
             "service_account": service_account["name"],
             "service_account_secret": service_account["secret"],
             "security": {"transport_encryption": {"enabled": True}},
         },
-        "elasticsearch": {"xpack_enabled": True},
+        "elasticsearch": {"xpack_security_enabled": True},
     }
 
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    sdk_install.uninstall(package_name, service_name)
+
     try:
         sdk_install.install(
-            config.PACKAGE_NAME,
-            service_name=config.SERVICE_NAME,
-            expected_running_tasks=config.DEFAULT_TASK_COUNT,
+            package_name,
+            service_name=service_name,
+            expected_running_tasks=expected_running_tasks,
             additional_options=service_options,
             timeout_seconds=30 * 60,
         )
 
-        yield {**service_options, **{"package_name": config.PACKAGE_NAME}}
+        # Start trial license.
+        config.start_trial_license(service_name, https=True)
+
+        # Set up passwords. Basic HTTP credentials will have to be used in HTTP requests to
+        # Elasticsearch from now on.
+        passwords = config.setup_passwords(service_name, https=True)
+
+        # Set up healthcheck basic HTTP credentials.
+        sdk_service.update_configuration(
+            package_name,
+            service_name,
+            {
+                "elasticsearch": {"health_user_password": passwords["elastic"]},
+            },
+            expected_running_tasks,
+        )
+
+        yield {**service_options, **{"package_name": package_name}}
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 

@@ -104,7 +104,9 @@ def check_elasticsearch_index_health(
 def check_custom_elasticsearch_cluster_setting(
     service_name=SERVICE_NAME, setting_path=None, expected_value=None
 ):
-    settings = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")["defaults"]
+    settings = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")[
+        "defaults"
+    ]
     if not settings:
         return False
     actual_value = get_in(setting_path, settings)
@@ -289,15 +291,26 @@ def verify_xpack_license(
 @retrying.retry(
     wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda return_value: not return_value
 )
-def setup_passwords(service_name=SERVICE_NAME, task_name="master-0-node"):
+def setup_passwords(service_name=SERVICE_NAME, task_name="master-0-node", https=None):
+    if https:
+        master_0_node_dns = sdk_networks.get_endpoint(PACKAGE_NAME, service_name, "master-http")[
+            "dns"
+        ][0]
+        url = "--url https://{}".format(master_0_node_dns)
+    else:
+        url = ""
+
     cmd = "\n".join(
         [
             "set -x",
             "export JAVA_HOME=$(ls -d ${MESOS_SANDBOX}/jdk*/jre/)",
             "ELASTICSEARCH_PATH=$(ls -d ${MESOS_SANDBOX}/elasticsearch-*/)",
-            "${ELASTICSEARCH_PATH}/bin/elasticsearch-setup-passwords auto --batch --verbose",
+            "${{ELASTICSEARCH_PATH}}/bin/elasticsearch-setup-passwords auto --batch --verbose {}".format(
+                url
+            ),
         ]
     )
+
     full_cmd = "bash -c '{}'".format(cmd)
     _, stdout, _ = sdk_cmd.service_task_exec(service_name, task_name, full_cmd)
 
@@ -328,8 +341,10 @@ def explore_graph(
     )
 
 
-def start_trial_license(service_name=SERVICE_NAME):
-    return _curl_query(service_name, "POST", "_xpack/license/start_trial?acknowledge=true")
+def start_trial_license(service_name=SERVICE_NAME, https=None):
+    return _curl_query(
+        service_name, "POST", "_xpack/license/start_trial?acknowledge=true", https=https
+    )
 
 
 def get_elasticsearch_indices_stats(index_name, service_name=SERVICE_NAME):
