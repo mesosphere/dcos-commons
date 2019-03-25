@@ -15,7 +15,6 @@ import subprocess
 import sys
 import tempfile
 import urllib.request
-from typing import Iterable, List, Optional, Tuple
 
 import publish_aws
 import universe
@@ -30,14 +29,8 @@ _REGISTRY_URL_TEMPLATE = "https://downloads.mesosphere.com/package-registry/" "b
 
 
 class DCOSFilePublisher(object):
-    def __init__(
-        self,
-        package_name: str,
-        package_version: str,
-        input_dir_path: str,
-        artifact_paths: Iterable[str],
-    ) -> None:
-        self._dry_run = bool(os.environ.get("DRY_RUN", ""))
+    def __init__(self, package_name, package_version, input_dir_path, artifact_paths):
+        self._dry_run = os.environ.get("DRY_RUN", "")
         self._pkg_name = package_name
         self._pkg_version = package_version
         self._artifact_paths = artifact_paths
@@ -54,7 +47,7 @@ class DCOSFilePublisher(object):
         s3_directory_url, _ = s3_urls_from_env(package_name)
         self._uploader = universe.S3Uploader(s3_directory_url, self._dry_run)
 
-    def upload(self) -> None:
+    def upload(self):
         version = Version(release_version=0, package_version=self._pkg_version)
         package = universe.Package(name=self._pkg_name, version=version)
         with tempfile.TemporaryDirectory() as scratch:
@@ -89,7 +82,7 @@ class DCOSFilePublisher(object):
             logger.info("---")
 
 
-def migrate_and_build(scratchdir: str) -> str:
+def migrate_and_build(scratchdir) -> str:
     """
     Migrate the universe catalog files and then build .dcos file
     :param scratchdir: A directory containing the universe definition files
@@ -136,11 +129,10 @@ def migrate_and_build(scratchdir: str) -> str:
     )
     assert rc == 0, "Failed to build dcos file from build definition"
     dcos_file_path = json.loads(out)["name"]
-    assert isinstance(dcos_file_path, str)
     return dcos_file_path
 
 
-def run_shell_cmd(cmd: List[str], cwd: Optional[str] = None) -> Tuple[int, str, str]:
+def run_shell_cmd(cmd, cwd=None):
     cmd = [" ".join(cmd)]
     logging.info("CMD : {}".format(cmd))
     result = subprocess.run(
@@ -169,7 +161,7 @@ def get_registry_cli_url() -> str:
     return url
 
 
-def main(argv: List[str]) -> int:
+def main(argv):
     if len(argv) < 3:
         publish_aws.print_help(argv)
         return 1
