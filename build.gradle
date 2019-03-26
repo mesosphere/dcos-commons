@@ -114,7 +114,7 @@ allprojects {
     }
 
     ext {
-        pxVersion = '1.3.4-SNAPSHOT'
+        pxVersion = '1.3.5-SNAPSHOT'
         getPxVersion = { ->
             return project.version + '-' + pxVersion
         }
