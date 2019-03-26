@@ -220,7 +220,7 @@ def test_security_toggle_with_kibana(default_populated_index: None) -> None:
     )
 
     # Verify that it works.
-    config.check_kibana_adminrouter_integration("service/{}/".format(kibana_package_name))
+    config.check_kibana_adminrouter_integration("service/{}/app/kibana".format(kibana_package_name))
 
     # Uninstall it.
     sdk_install.uninstall(kibana_package_name, kibana_package_name)
