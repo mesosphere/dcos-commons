@@ -3,12 +3,18 @@ import logging
 import sdk_install
 import sdk_security
 import sdk_utils
+import shakedown
+
+import dcos.cosmos
+import dcos.packagemanager
+
 
 from tests import config
 from threading_utils import spawn_threads, wait_and_get_failures
 
 log = logging.getLogger(__name__)
 
+TIMEOUT_SECONDS = 15 * 60
 JOB_RUN_TIMEOUT = 10 * 60  # 10 mins
 
 
@@ -23,7 +29,7 @@ def test_soak_load(service_name,
         scenario: yaml scenario to run helloworld with (normal, crashloop) are added for this case
     """
     soak_service_name = "{}-{}-soak".format(service_name, scenario)
-    _launch_load(soak_service_name, scenario)
+    _launch_load(soak_service_name, scenario, mom=None)
 
 
 @pytest.mark.scale
@@ -32,7 +38,8 @@ def test_scaling_load(service_name,
                       service_count,
                       min_index,
                       max_index,
-                      batch_size) -> None:
+                      batch_size,
+                      mom) -> None:
     """Launch a load test scenario in parallel if needed.
     This does not verify the results of the test, but does
     ensure the instances were created.
@@ -64,13 +71,14 @@ def test_scaling_load(service_name,
         # Create threads with correct arguments.
         deployment_threads = spawn_threads(batched_deployment_list,
                                            _launch_load,
-                                           scenario=scenario)
+                                           scenario=scenario,
+                                           mom=mom)
         # Launch jobs.
         wait_and_get_failures(deployment_threads, timeout=JOB_RUN_TIMEOUT)
 
 
 @pytest.mark.scalecleanup
-def test_scaling_cleanup(service_name, scenario, service_count, min_index, max_index) -> None:
+def test_scaling_cleanup(service_name, scenario, service_count, min_index, max_index, mom) -> None:
     """ Cleanup of installed hello-world service for specified scenario
     Args:
         service_name: name of the service to uninstall
@@ -89,18 +97,20 @@ def test_scaling_cleanup(service_name, scenario, service_count, min_index, max_i
     sdk_security.install_enterprise_cli()
 
     cleanup_threads = spawn_threads(scale_cleanup_list,
-                                    _uninstall_service)
+                                    _uninstall_service,
+                                    mom=mom)
     # Launch jobs.
     wait_and_get_failures(cleanup_threads, timeout=JOB_RUN_TIMEOUT)
 
 
-def _launch_load(service_name, scenario) -> None:
+def _launch_load(service_name, scenario, mom) -> None:
     """Launch a load test scenario. This does not verify the results
     of the test, but does ensure the instances were created.
 
     Args:
         service_name: name of the service to install as
         scenario: yaml scenario to run helloworld with (normal, crashloop) are added for this case
+        mom: Marathon-on-Marathon instance to run this on.
     """
     # Note service-names *cannot* have underscores in them.
     launch_service_name = service_name.replace("_", "-")
@@ -109,10 +119,11 @@ def _launch_load(service_name, scenario) -> None:
     security_info = _create_service_account(launch_account_name)
     _install_service(launch_service_name,
                      scenario,
-                     security_info)
+                     security_info,
+                     mom)
 
 
-def _install_service(service_name, scenario, security_info) -> None:
+def _install_service(service_name, scenario, security_info, mom) -> None:
     # do not wait for deploy plan to complete, all tasks to launch or marathon app deployment
     # supports rapid deployments in scale test scenario
     options = {"service": {"name": service_name, "yaml": scenario}}
@@ -120,30 +131,51 @@ def _install_service(service_name, scenario, security_info) -> None:
         options["service"]["service_account"] = security_info["name"]
         options["service"]["service_account_secret"] = security_info["secret"]
 
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        service_name,
-        config.DEFAULT_TASK_COUNT,
-        additional_options=options,
-        wait_for_deployment=False,
-        wait_for_all_conditions=False
-    )
+    if not mom:
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            service_name,
+            config.DEFAULT_TASK_COUNT,
+            additional_options=options,
+            wait_for_deployment=False,
+            wait_for_all_conditions=False
+        )
+    else:
+        _install_service_on_mom(service_name, options, mom)
 
 
-def _uninstall_service(service_name) -> None:
+def _install_service_on_mom(service_name, options, mom) -> None:
+
+    def _wait_for_deployment(app_id, client):
+        return len(client.get_deployments(app_id)) == 0
+
+    with shakedown.marathon_on_marathon(mom):
+        marathon_client = shakedown.marathon.create_client()
+
+    pkg_json = get_package_json(config.PACKAGE_NAME, None, options)
+    pkg_json['env']['MARATHON_NAME'] = mom
+    marathon_client.add_app(pkg_json)
+    shakedown.time_wait(lambda: _wait_for_deployment(service_name, marathon_client), TIMEOUT_SECONDS, sleep_seconds=20)
+
+
+def _uninstall_service(service_name, mom) -> None:
     """Uninstall specified service instance.
 
     Args:
         service_name: Service name or Marathon ID
         role: The role for the service to use (default is no role)
     """
-    if service_name.startswith('/'):
-        service_name = service_name[1:]
     # Note service-names *cannot* have underscores in them.
     service_name = service_name.replace("_", "-")
     log.info("Uninstalling {}.".format(service_name))
-    sdk_install.uninstall(config.PACKAGE_NAME,
-                          service_name)
+    if mom:
+            with shakedown.marathon_on_marathon(mom):
+                shakedown.delete_app_wait(service_name)
+    else:
+        if service_name.startswith('/'):
+            service_name = service_name[1:]
+        sdk_install.uninstall(config.PACKAGE_NAME,
+        service_name)
 
 
 def _create_service_account(service_name) -> None:
@@ -166,3 +198,20 @@ def _create_service_account(service_name) -> None:
             raise e
 
     return None
+
+
+def get_package_json(package, version=None, options=None):
+    """Get the Marathon app JSON for a given package with the desired
+    options.
+
+    Args:
+        package: Package name
+        version: Package version
+        options: Options
+
+    Returns: JSON
+
+    """
+    pkg_version = dcos.packagemanager.CosmosPackageVersion(package, version, dcos.cosmos.get_cosmos_url())
+    opts = options if options else dict()
+    return pkg_version.marathon_json(opts)

@@ -22,6 +22,8 @@ def pytest_addoption(parser):
                      help='max hello-world index to end at (default: -1).')
     parser.addoption('--batch-size', action='store', default=1,
                      help='batch size to deploy hello-world masters in (default: 1).')
+    parser.addoption("--mom", action='store', default='',
+                     help="run hello-world service atop Marathon-On-Marathon (MoM)")
 
 
 @pytest.fixture
@@ -52,3 +54,8 @@ def max_index(request) -> int:
 @pytest.fixture
 def batch_size(request) -> int:
     return int(request.config.getoption('--batch-size'))
+
+
+@pytest.fixture
+def mom(request) -> str:
+    return str(request.config.getoption('--mom'))
