@@ -111,7 +111,9 @@ def check_custom_elasticsearch_cluster_setting(
     setting_path: Optional[str] = None,
     expected_value: Optional[str] = None,
 ) -> bool:
-    settings = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")["defaults"]
+    settings = _curl_query(service_name, "GET", "_cluster/settings?include_defaults=true")[
+        "defaults"
+    ]
     if not settings:
         return False
     actual_value = get_in(setting_path, settings)
@@ -125,8 +127,7 @@ def check_custom_elasticsearch_cluster_setting(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def wait_for_expected_nodes_to_exist(
-    service_name: str = SERVICE_NAME,
-    task_count: int = DEFAULT_TASK_COUNT,
+    service_name: str = SERVICE_NAME, task_count: int = DEFAULT_TASK_COUNT
 ) -> bool:
     result = _curl_query(service_name, "GET", "_cluster/health")
     if not result or "number_of_nodes" not in result:
@@ -140,10 +141,7 @@ def wait_for_expected_nodes_to_exist(
 @retrying.retry(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
-def check_kibana_plugin_installed(
-    plugin_name: str,
-    service_name: str = SERVICE_NAME,
-) -> bool:
+def check_kibana_plugin_installed(plugin_name: str, service_name: str = SERVICE_NAME) -> bool:
     task_sandbox = sdk_cmd.get_task_sandbox_path(service_name)
     # Environment variables aren't available on DC/OS 1.9 so we manually inject MESOS_SANDBOX (and
     # can't use ELASTIC_VERSION).
@@ -163,7 +161,7 @@ def check_kibana_plugin_installed(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def check_elasticsearch_plugin_installed(
-    plugin_name: str, service_name: str = SERVICE_NAME,
+    plugin_name: str, service_name: str = SERVICE_NAME
 ) -> bool:
     result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and len(result) == DEFAULT_TASK_COUNT
@@ -173,8 +171,7 @@ def check_elasticsearch_plugin_installed(
     wait_fixed=1000, stop_max_delay=DEFAULT_TIMEOUT * 1000, retry_on_result=lambda res: not res
 )
 def check_elasticsearch_plugin_uninstalled(
-    plugin_name: str,
-    service_name: str = SERVICE_NAME,
+    plugin_name: str, service_name: str = SERVICE_NAME
 ) -> bool:
     result = _get_hosts_with_plugin(service_name, plugin_name)
     return result is not None and result == []
@@ -236,9 +233,14 @@ def verify_commercial_api_status(
     http_user: Optional[str] = None,
     http_password: Optional[str] = None,
 ) -> bool:
-    return bool(verify_graph_explore_endpoint(
-        is_expected_to_be_enabled, service_name, http_user=http_user, http_password=http_password
-    ))
+    return bool(
+        verify_graph_explore_endpoint(
+            is_expected_to_be_enabled,
+            service_name,
+            http_user=http_user,
+            http_password=http_password,
+        )
+    )
 
 
 # On Elastic 6.x, the "Graph Explore API" is available when the Elasticsearch cluster is configured
@@ -330,9 +332,7 @@ def verify_xpack_license(
     wait_fixed=1000, stop_max_delay=5 * 1000, retry_on_result=lambda return_value: not return_value
 )
 def setup_passwords(
-    service_name: str = SERVICE_NAME,
-    task_name: str = "master-0-node",
-    https: bool = False,
+    service_name: str = SERVICE_NAME, task_name: str = "master-0-node", https: bool = False
 ) -> Union[bool, Dict[str, str]]:
     if https:
         master_0_node_dns = sdk_networks.get_endpoint(PACKAGE_NAME, service_name, "master-http")[
@@ -390,10 +390,7 @@ def explore_graph(
     return result
 
 
-def start_trial_license(
-    service_name: str = SERVICE_NAME,
-    https: bool = False,
-) -> Dict[str, Any]:
+def start_trial_license(service_name: str = SERVICE_NAME, https: bool = False) -> Dict[str, Any]:
     result = _curl_query(
         service_name, "POST", "_xpack/license/start_trial?acknowledge=true", https=https
     )
@@ -402,8 +399,7 @@ def start_trial_license(
 
 
 def get_elasticsearch_indices_stats(
-    index_name: str,
-    service_name: str = SERVICE_NAME,
+    index_name: str, service_name: str = SERVICE_NAME
 ) -> Dict[str, Any]:
     result = _curl_query(service_name, "GET", "{}/_stats".format(index_name))
     assert isinstance(result, dict)
@@ -563,9 +559,7 @@ def _curl_query(
 
 # TODO(mpereira): it is safe to remove this test after the 6.x release.
 def test_xpack_enabled_update(
-    service_name: str,
-    from_xpack_enabled: bool,
-    to_xpack_enabled: bool,
+    service_name: str, from_xpack_enabled: bool, to_xpack_enabled: bool
 ) -> None:
     sdk_upgrade.test_upgrade(
         PACKAGE_NAME,
@@ -584,9 +578,7 @@ def test_xpack_enabled_update(
 # TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
 # release.
 def test_update_from_xpack_enabled_to_xpack_security_enabled(
-    service_name: str,
-    xpack_enabled: bool,
-    xpack_security_enabled: bool,
+    service_name: str, xpack_enabled: bool, xpack_security_enabled: bool
 ) -> None:
     assert not (
         xpack_enabled is True and xpack_security_enabled is True
@@ -607,10 +599,7 @@ def test_update_from_xpack_enabled_to_xpack_security_enabled(
 
 
 def test_upgrade_from_xpack_enabled(
-    package_name: str,
-    service_name: str,
-    options: Dict[str, Any],
-    expected_task_count: int,
+    package_name: str, service_name: str, options: Dict[str, Any], expected_task_count: int
 ) -> None:
     # This test needs to run some code in between the Universe version installation and the upgrade
     # to the 'stub-universe' version, so it cannot use `sdk_upgrade.test_upgrade`.

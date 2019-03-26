@@ -81,7 +81,7 @@ def elastic_service(service_account: Dict[str, Any]) -> Iterator[Dict[str, Any]]
 
         yield {**service_options, **{"package_name": package_name}}
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.uninstall(package_name, service_name)
 
 
 @pytest.fixture(scope="module")
@@ -109,7 +109,7 @@ def kibana_application(elastic_service: Dict[str, Any]) -> Iterator[None]:
 
         yield
     finally:
-        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_SERVICE_NAME)
+        sdk_install.uninstall(package_name, service_name)
 
 
 @pytest.mark.tls
@@ -151,19 +151,15 @@ def test_kibana_tls(kibana_application: Dict[str, Any]) -> None:
 @pytest.mark.tls
 @pytest.mark.sanity
 @pytest.mark.recovery
-def test_tls_recovery(
-    elastic_service: Dict[str, Any],
-    service_account: Dict[str, Any],
-) -> None:
-    rc, stdout, _ = sdk_cmd.svc_cli(
-        elastic_service["package_name"], elastic_service["service"]["name"], "pod list"
-    )
+def test_tls_recovery(elastic_service: Dict[str, Any], service_account: Dict[str, Any]) -> None:
+    service_name = elastic_service["service"]["name"]
+    package_name = elastic_service["package_name"]
+
+    rc, stdout, _ = sdk_cmd.svc_cli(package_name, service_name, "pod list")
+
     assert rc == 0, "Pod list failed"
 
     for pod in json.loads(stdout):
         sdk_recovery.check_permanent_recovery(
-            elastic_service["package_name"],
-            elastic_service["service"]["name"],
-            pod,
-            recovery_timeout_s=25 * 60,
+            package_name, service_name, pod, recovery_timeout_s=25 * 60
         )
