@@ -513,16 +513,18 @@ def _curl_query(
 ) -> Optional[Union[str, Dict[str, Any]]]:
     protocol = "https" if https else "http"
 
-    if http_password and not http_user:
-        raise Exception(
-            "HTTP authentication won't work with just a password. Needs at least user, or both user AND password"
-        )
-
-    credentials = ""
-    if http_user:
-        credentials = "-u {}".format(http_user)
     if http_password:
-        credentials = "{}:{}".format(credentials, http_password)
+        if not http_user:
+            http_user = DEFAULT_ELASTICSEARCH_USER
+            log.info("Using default basic HTTP user: '%s'", http_user)
+
+        credentials = "-u {}:{}".format(http_user, http_password)
+    else:
+        if http_user:
+            raise Exception(
+                "HTTP authentication won't work with just a user. Needs both user AND password"
+            )
+        credentials = ""
 
     host = sdk_hosts.autoip_host(service_name, task, _master_zero_http_port(service_name))
 

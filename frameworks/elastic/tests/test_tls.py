@@ -121,26 +121,33 @@ def kibana_application(elastic_service: Dict[str, Any]) -> Iterator[Dict[str, An
 @pytest.mark.tls
 @pytest.mark.sanity
 def test_crud_over_tls(elastic_service: Dict[str, Any]) -> None:
+    service_name = elastic_service["service"]["name"]
+    http_password = elastic_service["passwords"]["elastic"]
+    index_name = config.DEFAULT_INDEX_NAME
+    index_type = config.DEFAULT_INDEX_TYPE
+    index = config.DEFAULT_SETTINGS_MAPPINGS
+    document_fields = {"name": "Loren", "role": "developer"}
+    document_id = 1
+
     config.create_index(
-        config.DEFAULT_INDEX_NAME,
-        config.DEFAULT_SETTINGS_MAPPINGS,
-        service_name=config.SERVICE_NAME,
-        https=True,
-    )
-    config.create_document(
-        config.DEFAULT_INDEX_NAME,
-        config.DEFAULT_INDEX_TYPE,
-        1,
-        {"name": "Loren", "role": "developer"},
-        service_name=config.SERVICE_NAME,
-        https=True,
-    )
-    document = config.get_document(
-        config.DEFAULT_INDEX_NAME, config.DEFAULT_INDEX_TYPE, 1, https=True
+        index_name, index, service_name=service_name, https=True, http_password=http_password
     )
 
-    assert document
-    assert document["_source"]["name"] == "Loren"
+    config.create_document(
+        index_name,
+        index_type,
+        document_id,
+        document_fields,
+        service_name=service_name,
+        https=True,
+        http_password=http_password,
+    )
+
+    document = config.get_document(
+        index_name, index_type, document_id, https=True, http_password=http_password
+    )
+
+    assert get_in(["_source", "name"], document) == document_fields["name"]
 
 
 @pytest.mark.tls
