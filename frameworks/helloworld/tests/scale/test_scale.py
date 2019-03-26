@@ -166,16 +166,16 @@ def _uninstall_service(service_name, mom) -> None:
         role: The role for the service to use (default is no role)
     """
     # Note service-names *cannot* have underscores in them.
+    if service_name.startswith('/'):
+        service_name = service_name[1:]
     service_name = service_name.replace("_", "-")
     log.info("Uninstalling {}.".format(service_name))
     if mom:
-            with shakedown.marathon_on_marathon(mom):
-                shakedown.delete_app_wait(service_name)
+        with shakedown.marathon_on_marathon(mom):
+            shakedown.delete_app_wait(service_name)
     else:
-        if service_name.startswith('/'):
-            service_name = service_name[1:]
-        sdk_install.uninstall(config.PACKAGE_NAME,
-        service_name)
+
+        sdk_install.uninstall(config.PACKAGE_NAME, service_name)
 
 
 def _create_service_account(service_name) -> None:
