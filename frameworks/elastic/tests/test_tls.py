@@ -1,5 +1,6 @@
 import json
 import pytest
+from toolz import get_in
 from typing import Any, Dict, Iterator
 
 import sdk_cmd
@@ -51,9 +52,9 @@ def elastic_service(service_account: Dict[str, Any]) -> Iterator[Dict[str, Any]]
         "elasticsearch": {"xpack_security_enabled": True},
     }
 
-    sdk_install.uninstall(package_name, service_name)
-
     try:
+        sdk_install.uninstall(package_name, service_name)
+
         sdk_install.install(
             package_name,
             service_name=service_name,
@@ -73,41 +74,46 @@ def elastic_service(service_account: Dict[str, Any]) -> Iterator[Dict[str, Any]]
         sdk_service.update_configuration(
             package_name,
             service_name,
-            {
-                "elasticsearch": {"health_user_password": passwords["elastic"]},
-            },
+            {"elasticsearch": {"health_user_password": passwords["elastic"]}},
             expected_running_tasks,
         )
 
-        yield {**service_options, **{"package_name": package_name}}
+        yield {**service_options, **{"package_name": package_name, "passwords": passwords}}
     finally:
         sdk_install.uninstall(package_name, service_name)
 
 
 @pytest.fixture(scope="module")
-def kibana_application(elastic_service: Dict[str, Any]) -> Iterator[None]:
-    try:
-        elasticsearch_url = "https://" + sdk_hosts.vip_host(
-            config.SERVICE_NAME, "coordinator", 9200
-        )
+def kibana_application(elastic_service: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
+    package_name = config.KIBANA_PACKAGE_NAME
+    service_name = config.KIBANA_SERVICE_NAME
 
-        sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_SERVICE_NAME)
+    elasticsearch_url = "https://" + sdk_hosts.vip_host(
+        elastic_service["service"]["name"], "coordinator", 9200
+    )
+
+    service_options = {
+        "kibana": {
+            "elasticsearch_tls": True,
+            "elasticsearch_url": elasticsearch_url,
+            "elasticsearch_xpack_security_enabled": True,
+            "password": elastic_service["passwords"]["kibana"],
+        }
+    }
+
+    try:
+        sdk_install.uninstall(package_name, service_name)
+
         sdk_install.install(
-            config.KIBANA_PACKAGE_NAME,
-            service_name=config.KIBANA_SERVICE_NAME,
+            package_name,
+            service_name=service_name,
             expected_running_tasks=0,
-            additional_options={
-                "kibana": {
-                    "elasticsearch_xpack_security_enabled": True,
-                    "elasticsearch_tls": True,
-                    "elasticsearch_url": elasticsearch_url,
-                }
-            },
+            additional_options=service_options,
             timeout_seconds=config.KIBANA_DEFAULT_TIMEOUT,
             wait_for_deployment=False,
         )
 
-        yield
+        yield {**service_options, **{"package_name": package_name, "elastic": elastic_service}}
     finally:
         sdk_install.uninstall(package_name, service_name)
 
@@ -139,12 +145,9 @@ def test_crud_over_tls(elastic_service: Dict[str, Any]) -> None:
 
 @pytest.mark.tls
 @pytest.mark.sanity
-@pytest.mark.skip(
-    message="Kibana 6.3 with TLS enabled is not working due Admin Router request header. Details in https://jira.mesosphere.com/browse/DCOS-43386"
-)
 def test_kibana_tls(kibana_application: Dict[str, Any]) -> None:
     config.check_kibana_adminrouter_integration(
-        "service/{}/login".format(config.KIBANA_SERVICE_NAME)
+        "service/{}/login".format(kibana_application["service"]["name"])
     )
 
 
