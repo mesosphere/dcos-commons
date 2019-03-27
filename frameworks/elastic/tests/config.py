@@ -9,7 +9,6 @@ import sdk_cmd
 import sdk_hosts
 import sdk_install
 import sdk_networks
-import sdk_repository
 import sdk_service
 import sdk_upgrade
 import sdk_utils
@@ -559,16 +558,21 @@ def _curl_query(
         return None
 
 
-# TODO(mpereira): it is safe to remove this test after the 6.x release.
 def test_xpack_enabled_update(
-    service_name: str, from_xpack_enabled: bool, to_xpack_enabled: bool
+    service_name: str,
+    from_xpack_enabled: bool,
+    to_xpack_enabled: bool,
+    from_version: str,
+    to_version: str = "stub-universe",
 ) -> None:
     sdk_upgrade.test_upgrade(
         PACKAGE_NAME,
         service_name,
         DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": from_xpack_enabled}},
-        test_version_additional_options={
+        from_version=from_version,
+        from_options={"elasticsearch": {"xpack_enabled": from_xpack_enabled}},
+        to_version=to_version,
+        to_options={
             "service": {"update_strategy": "parallel"},
             "elasticsearch": {"xpack_enabled": to_xpack_enabled},
         },
@@ -577,23 +581,17 @@ def test_xpack_enabled_update(
     wait_for_expected_nodes_to_exist(service_name=service_name, task_count=DEFAULT_TASK_COUNT)
 
 
-# TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
-# release.
-def test_update_from_xpack_enabled_to_xpack_security_enabled(
-    service_name: str, xpack_enabled: bool, xpack_security_enabled: bool
+def test_xpack_security_enabled_update(
+    service_name: str, from_xpack_security_enabled: bool, to_xpack_security_enabled: bool
 ) -> None:
-    assert not (
-        xpack_enabled is True and xpack_security_enabled is True
-    ), "This function does not handle the 'xpack_enabled: True' to 'xpack_security_enabled: True' upgrade scenario"
-
     sdk_upgrade.test_upgrade(
         PACKAGE_NAME,
         service_name,
         DEFAULT_TASK_COUNT,
-        additional_options={"elasticsearch": {"xpack_enabled": xpack_enabled}},
-        test_version_additional_options={
+        from_options={"elasticsearch": {"xpack_security_enabled": from_xpack_security_enabled}},
+        to_options={
             "service": {"update_strategy": "parallel"},
-            "elasticsearch": {"xpack_security_enabled": xpack_security_enabled},
+            "elasticsearch": {"xpack_security_enabled": to_xpack_security_enabled},
         },
     )
 
@@ -601,7 +599,12 @@ def test_update_from_xpack_enabled_to_xpack_security_enabled(
 
 
 def test_upgrade_from_xpack_enabled(
-    package_name: str, service_name: str, options: Dict[str, Any], expected_task_count: int
+    package_name: str,
+    service_name: str,
+    options: Dict[str, Any],
+    expected_task_count: int,
+    from_version: str,
+    to_version: str = "stub-universe",
 ) -> None:
     # This test needs to run some code in between the Universe version installation and the upgrade
     # to the 'stub-universe' version, so it cannot use `sdk_upgrade.test_upgrade`.
@@ -610,16 +613,12 @@ def test_upgrade_from_xpack_enabled(
 
     sdk_install.uninstall(package_name, service_name)
 
-    # Move Universe repo to the top of the repo list so that we can first install the Universe
-    # version.
-    _, universe_version = sdk_repository.move_universe_repo(package_name, universe_repo_index=0)
-
     sdk_install.install(
         package_name,
         service_name,
         expected_running_tasks=expected_task_count,
         additional_options={"elasticsearch": {"xpack_enabled": True}},
-        package_version=universe_version,
+        package_version=from_version,
     )
 
     document_es_5_id = 1
@@ -647,16 +646,12 @@ def test_upgrade_from_xpack_enabled(
         http_password=http_password,
     )
 
-    # Move Universe repo back to the bottom of the repo list so that we can upgrade to the version
-    # under test.
-    _, test_version = sdk_repository.move_universe_repo(package_name)
-
     # First we upgrade to "X-Pack security enabled" set to false on ES6, so that we can use the
     # X-Pack migration assistance and upgrade APIs.
     sdk_upgrade.update_or_upgrade_or_downgrade(
         package_name,
         service_name,
-        test_version,
+        to_version,
         {
             "service": {"update_strategy": "parallel"},
             "elasticsearch": {"xpack_security_enabled": False},
