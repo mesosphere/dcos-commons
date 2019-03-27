@@ -93,6 +93,9 @@ def kibana_application(elastic_service: Dict[str, Any]) -> Iterator[Dict[str, An
     )
 
     service_options = {
+        "service": {
+            "name": service_name,
+        },
         "kibana": {
             "elasticsearch_tls": True,
             "elasticsearch_url": elasticsearch_url,
