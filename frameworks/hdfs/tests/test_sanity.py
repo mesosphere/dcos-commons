@@ -40,7 +40,7 @@ def configure_package(configure_security):
                 config.PACKAGE_NAME,
                 foldered_name,
                 config.DEFAULT_TASK_COUNT,
-                additional_options={"service": {"name": foldered_name}},
+                from_options={"service": {"name": foldered_name}},
                 timeout_seconds=30 * 60,
             )
 

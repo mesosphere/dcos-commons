@@ -29,7 +29,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             foldered_name,
             config.DEFAULT_TASK_COUNT,
-            additional_options=service_options,
+            from_options=service_options,
         )
 
         yield {"package_name": config.PACKAGE_NAME, **service_options}

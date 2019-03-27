@@ -38,8 +38,8 @@ def test_old_tasks_not_relaunched():
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
-        to_package_version=None,
-        additional_options={"service": {"yaml": "", "yamls": "svc,foobar_service_name"}},
+        to_version=None,
+        to_options={"service": {"yaml": "", "yamls": "svc,foobar_service_name"}},
         expected_running_tasks=4,
         wait_for_deployment=False,
     )
@@ -63,8 +63,8 @@ def test_old_tasks_get_relaunched_with_new_config():
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
-        to_package_version=None,
-        additional_options={
+        to_version=None,
+        to_options={
             "service": {"yaml": "", "yamls": "svc,foobar_service_name"},
             "hello": {"cpus": 0.2},
         },

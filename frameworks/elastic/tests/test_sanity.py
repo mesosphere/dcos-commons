@@ -40,7 +40,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
             package_name,
             service_name,
             current_expected_task_count,
-            additional_options={"service": {"name": service_name}},
+            from_options={"service": {"name": service_name}},
         )
 
         yield  # let the test session execute

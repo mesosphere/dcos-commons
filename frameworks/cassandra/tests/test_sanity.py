@@ -32,7 +32,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": config.get_foldered_service_name()}},
+            from_options={"service": {"name": config.get_foldered_service_name()}},
         )
 
         yield  # let the test session execute

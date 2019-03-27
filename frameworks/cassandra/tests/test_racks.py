@@ -54,5 +54,5 @@ def test_custom_rack_upgrade():
         config.PACKAGE_NAME,
         foldered_service_name,
         config.DEFAULT_TASK_COUNT,
-        additional_options=service_options,
+        from_options=service_options,
     )
