@@ -252,14 +252,16 @@ pods:
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 echo Using $(python --version 2>&1) in $(which python) ;
                 {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
                 {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false &&
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} ;
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair system_auth
         resource-set: sidecar-resources
         configs:
           cassandra:
@@ -281,8 +283,13 @@ plans:
         strategy: serial
         pod: node
         steps:
-          - 0: [[server], [init_system_keyspaces]]
           - default: [[server]]
+      keyspace-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - 0: [[init_system_keyspaces]]
+          - default: [[]]
   replace:
     strategy: serial
     phases:
