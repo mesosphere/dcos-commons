@@ -5,11 +5,12 @@ scheduler:
 pods:
   zookeeper:
     count: {{NODE_COUNT}}
-    placement: {{NODE_PLACEMENT}}
+    placement: '{{{NODE_PLACEMENT}}}'
     uris:
       - {{SCHEDULER_URI}}
       - {{BOOTSTRAP_URI}}
       - {{ZOOKEEPER_URI}}
+      - {{JAVA_URI}}
     user: {{SERVICE_USER}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:

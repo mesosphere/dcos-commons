@@ -77,9 +77,12 @@
           },
           "placement_constraint": {
             "title": "Placement constraint",
-            "description": "Marathon-style placement constraint for nodes. Example: 'hostname:UNIQUE'",
+            "description": "Placement constraints for nodes (e.g., [[\"hostname\", \"MAX_PER\", \"1\"]]).",
             "type": "string",
-            "default": ""
+            "default": "",
+            "media": {
+              "type": "application/x-zone-constraints+json"
+            }
           },
           "cpus": {
             "title": "CPU count",

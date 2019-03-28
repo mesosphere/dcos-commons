@@ -35,7 +35,7 @@
     "ZOOKEEPER_VERSION": "3.4.11",
 
     "NODE_COUNT": "{{node.count}}",
-    "NODE_PLACEMENT": "{{node.placement_constraint}}",
+    "NODE_PLACEMENT": "{{{node.placement_constraint}}}",
 
     {{#service.virtual_network_enabled}}
     "ENABLE_VIRTUAL_NETWORK": "yes",
