@@ -145,6 +145,34 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validSeccompUnconfined() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("seccomp-unconfined.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        PodSpec spec = serviceSpec.getPods().get(0);
+        Assert.assertEquals(spec.getSeccompUnconfined(), true);
+        Assert.assertEquals(spec.getSeccompProfileName(), Optional.empty());
+    }
+
+    @Test
+    public void validSeccompProfileName() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("seccomp-profile-name.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        PodSpec spec = serviceSpec.getPods().get(0);
+        Assert.assertEquals(spec.getSeccompUnconfined(), false);
+        Assert.assertEquals(spec.getSeccompProfileName().get(), "foobar");
+    }
+
+    @Test(expected = Exception.class)
+    public void invalidSeccompInfo() throws Exception {
+        //cannot specify both seccomp-unconfined and seccomp-profile at the sane ti
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-seccomp-info.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
+    @Test
     public void validPortRangesTest() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("ranges.yml").getFile());

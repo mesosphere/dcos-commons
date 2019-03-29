@@ -46,6 +46,9 @@ allprojects {
         maven {
             url 'http://downloads.mesosphere.com/maven-snapshot/'
         }
+        maven {
+            url 'http://repository.apache.org/content/repositories/snapshots/'
+        }
     }
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'

@@ -4,11 +4,12 @@ scheduler:
   user: {{FRAMEWORK_USER}}
 pods:
   hello:
+    seccomp-unconfined: true
     count: {{HELLO_COUNT}}
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
+        cmd: "echo hello >> output && sleep $SLEEP_DURATION"ls
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:

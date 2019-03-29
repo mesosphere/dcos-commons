@@ -577,6 +577,16 @@ public class PodInfoBuilder {
           .setContainerPath("/tmp")
           .setHostPath("tmp")
           .setMode(Protos.Volume.Mode.RW));
+
+      containerInfo.getLinuxInfoBuilder().getSeccomp().toBuilder()
+              .setUnconfined(podSpec.getSeccompUnconfined())
+              .build();
+
+      if (podSpec.getSeccompProfileName().isPresent()) {
+        containerInfo.getLinuxInfoBuilder().getSeccomp().toBuilder()
+                .setProfileName(podSpec.getSeccompProfileName().get())
+                .build();
+      }
     }
 
     for (Protos.Volume hostVolume : hostVolumes) {

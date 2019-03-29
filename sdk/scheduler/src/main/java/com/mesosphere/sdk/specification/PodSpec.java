@@ -65,4 +65,10 @@ public interface PodSpec {
 
   @JsonProperty("host-volumes")
   Collection<HostVolumeSpec> getHostVolumes();
+
+  @JsonProperty("seccomp-unconfined")
+  Boolean getSeccompUnconfined();
+
+  @JsonProperty("seccomp-profile-name")
+  Optional<String> getSeccompProfileName();
 }

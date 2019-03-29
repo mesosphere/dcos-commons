@@ -1,0 +1,10 @@
+name: "seccomp-unconfined"
+pods:
+  meta-data:
+    seccomp-unconfined: true
+    count: 2
+    tasks:
+      some-task:
+        goal: RUNNING
+        cmd: "some command"
+        cpus: 1
