@@ -62,6 +62,7 @@ pods:
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
+          NODE_HEAP_MB: {{MASTER_NODE_HEAP_MB}} 
           DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: true
@@ -154,6 +155,7 @@ pods:
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
+          NODE_HEAP_MB: {{DATA_NODE_HEAP_MB}} 
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: true
           INGEST_ENABLED: false
@@ -244,6 +246,7 @@ pods:
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
+          NODE_HEAP_MB: {{INGEST_NODE_HEAP_MB}} 
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: false
           INGEST_ENABLED: true
@@ -334,6 +337,7 @@ pods:
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
+          NODE_HEAP_MB: {{COORDINATOR_NODE_HEAP_MB}} 
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: false
           INGEST_ENABLED: false

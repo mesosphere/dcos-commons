@@ -18,26 +18,10 @@
 
 # Xms represents the initial size of total heap space
 # Xmx represents the maximum size of total heap space
-{{#MASTER_NODE_HEAP_MB}}
--Xms{{MASTER_NODE_HEAP_MB}}M 
--Xmx{{MASTER_NODE_HEAP_MB}}M
-{{/MASTER_NODE_HEAP_MB}}
-
-{{#DATA_NODE_HEAP_MB}}
--Xms{{DATA_NODE_HEAP_MB}}M 
--Xmx{{DATA_NODE_HEAP_MB}}M
-{{/DATA_NODE_HEAP_MB}}
-
-{{#INGEST_NODE_HEAP_MB}}
--Xms{{INGEST_NODE_HEAP_MB}}M 
--Xmx{{INGEST_NODE_HEAP_MB}}M
-{{/INGEST_NODE_HEAP_MB}}
-
-{{#COORDINATOR_NODE_HEAP_MB}}
--Xms{{COORDINATOR_NODE_HEAP_MB}}M 
--Xmx{{COORDINATOR_NODE_HEAP_MB}}M
-{{/COORDINATOR_NODE_HEAP_MB}}
-
+{{#NODE_HEAP_MB}}
+-Xms{{NODE_HEAP_MB}}M 
+-Xmx{{NODE_HEAP_MB}}M
+{{/NODE_HEAP_MB}}
 
 ################################################################
 ## Expert settings
