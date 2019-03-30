@@ -11,10 +11,10 @@ log = logging.getLogger(__name__)
 def test_xmx_and_xms_flags():
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     #setting custom values for the heap of various pods
-    master_nodes_heap = 1024
-    data_nodes_heap = 2044
-    coordinator_nodes_heap = 2048
-    ingest_nodes_heap = 1408
+    master_node_heap = 102
+    data_node_heap = 204
+    coordinator_node_heap = 208
+    ingest_node_heap = 288
     #installing elastic service and passing customized json to overwrite default values.
     sdk_install.install(
         config.PACKAGE_NAME,
@@ -23,55 +23,54 @@ def test_xmx_and_xms_flags():
         {
         "master_nodes": {
             "heap": {
-                "size": 200
+                "size": master_node_heap
         } },
         "data_nodes": {
             "heap": {
-                "size": 300
+                "size": data_node_heap
         } },
         "coordinator_nodes": {
             "heap": {
-                "size": 208
+                "size": coordinator_node_heap
         } },
         "ingest_nodes": {
             "heap": {
-                "size": 204
+                "size": ingest_node_heap
         } }
     }
     )
    #getting all the tasks and checking the flag duplicacy by running curl_cmd command.
     for task in sdk_tasks.get_task_ids(config.SERVICE_NAME):
         cmd = "ps aux"
-        log.info(cmd)
         flag_xms = "Xms"
         flag_xmx = "Xmx"
         exit_code, stdout, stderr = sdk_cmd.service_task_exec(config.SERVICE_NAME,task,cmd)
-        if(str(task).count("master")):
-            master_xms = flag_xms + str(master_nodes_heap)
-            master_xmx = flag_xmx + str(master_nodes_heap)
+
+        if(str(task).count("master") and str(stderr).count("elastic")==1):
+            master_xms = flag_xms + str(master_node_heap)
+            master_xmx = flag_xmx + str(master_node_heap)
             log.info("Checking flags in master node: " + task)
-            assert str(stdout).count(master_xms) == 1, "Default master xms flag prefix should appear once"
-            assert str(stdout).count(master_xmx) == 1, "Default master xmx flag prefix should appear once"
-        elif(str(task).count("data")):
-            data_xms = flag_xms + str(data_nodes_heap)
-            data_xmx = flag_xmx + str(data_nodes_heap)
+            assert str(stdout).count(master_xms) == 1, "Default master node xms flag prefix should appear once"
+            assert str(stdout).count(master_xmx) == 1, "Default master node xmx flag prefix should appear once"
+        if(str(task).count("data") and str(stderr).count("elastic")==1):
+            data_xms = flag_xms + str(data_node_heap)
+            data_xmx = flag_xmx + str(data_node_heap)
             log.info("Checking flags in data node: " + task)
-            assert str(stdout).count(data_xms) == 1, "Default data xms flag prefix should appear once"
-            assert str(stdout).count(data_xmx) == 1, "Default data xmx flag prefix should appear once"
-        elif(str(task).count("coordinator")):
-            coordinator_xms = flag_xms + str(coordinator_nodes_heap)
-            coordinator_xmx = flag_xmx + str(coordinator_nodes_heap)
+            assert str(stdout).count(data_xms) == 1, "Default data node xms flag prefix should appear once"
+            assert str(stdout).count(data_xmx) == 1, "Default data node xmx flag prefix should appear once"
+        if(str(task).count("coordinator") and str(stderr).count("elastic")==1):
+            coordinator_xms = flag_xms + str(coordinator_node_heap)
+            coordinator_xmx = flag_xmx + str(coordinator_node_heap)
             log.info("Checking flags in coordinator node: " + task)
-            assert str(stdout).count(coordinator_xms) == 1, "Default coordinator xms flag prefix should appear once"
-            assert str(stdout).count(coordinator_xmx) == 1, "Default coordinator xmx flag prefix should appear once"
-        elif(str(task).count("ingest")):
-            ingest_xms = flag_xms + str(ingest_nodes_heap)
-            ingest_xmx = flag_xmx + str(ingest_nodes_heap)
+            assert str(stdout).count(coordinator_xms) == 1, "Default coordinator node xms flag prefix should appear once"
+            assert str(stdout).count(coordinator_xmx) == 1, "Default coordinator node xmx flag prefix should appear once"
+        if(str(task).count("ingest") and str(stderr).count("elastic")==1):
+            ingest_xms = flag_xms + str(ingest_node_heap)
+            ingest_xmx = flag_xmx + str(ingest_node_heap)
             log.info("Checking flags in ingest node: " + task)
-            assert str(stdout).count(ingest_xms) == 1, "Default ingest flag xms prefix should appear once"
-            assert str(stdout).count(ingest_xmx) == 1, "Default ingest flag xmx prefix should appear once"
-        else:
-            log.info("----------------Unknown option-----------------------------------")
+            assert str(stdout).count(ingest_xms) == 1, "Default ingest node flag xms prefix should appear once"
+            assert str(stdout).count(ingest_xmx) == 1, "Default ingest node flag xmx prefix should appear once"
+
 
 
 
