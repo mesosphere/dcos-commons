@@ -573,20 +573,27 @@ public class PodInfoBuilder {
       containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
       // Isolate the tmp directory of tasks
       // switch to SANDBOX SELF after dc/os 1.13
+
       containerInfo.addVolumes(Protos.Volume.newBuilder()
           .setContainerPath("/tmp")
           .setHostPath("tmp")
           .setMode(Protos.Volume.Mode.RW));
 
-      containerInfo.getLinuxInfoBuilder().getSeccomp().toBuilder()
+      LOGGER.info("Setting seccomp info unconfined: {} profile: {}",
+              podSpec.getSeccompUnconfined(),
+              podSpec.getSeccompProfileName());
+
+      containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
               .setUnconfined(podSpec.getSeccompUnconfined())
-              .build();
+              .build());
 
       if (podSpec.getSeccompProfileName().isPresent()) {
-        containerInfo.getLinuxInfoBuilder().getSeccomp().toBuilder()
-                .setProfileName(podSpec.getSeccompProfileName().get())
-                .build();
+        containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
+                .setUnconfined(podSpec.getSeccompUnconfined())
+                .build());
       }
+
+      LOGGER.info("containerInfo {}", containerInfo);
     }
 
     for (Protos.Volume hostVolume : hostVolumes) {
