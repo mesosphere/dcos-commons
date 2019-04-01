@@ -172,6 +172,16 @@ public class DefaultServiceSpecTest {
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
+    public void validSeccompInfoAndProfile() throws Exception {
+        //cannot specify both seccomp-unconfined and seccomp-profile at the sane ti
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-seccomp-info.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        PodSpec spec = serviceSpec.getPods().get(0);
+        Assert.assertEquals(spec.getSeccompUnconfined(), false);
+        Assert.assertEquals(spec.getSeccompProfileName().get(), "foobar");
+    }
+
     @Test
     public void validPortRangesTest() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();

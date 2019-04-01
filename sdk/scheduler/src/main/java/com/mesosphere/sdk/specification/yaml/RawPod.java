@@ -91,7 +91,7 @@ public final class RawPod {
   }
 
   private void validateSeccomp() throws Exception{
-    if (seccompProfileName != null && seccompUnconfined != null) {
+    if (seccompProfileName != null && (seccompUnconfined != null && seccompUnconfined)) {
       throw new Exception("cannot specify seccomp-unconfined and " +
               "seccomp-profile-name at the same time");
     }

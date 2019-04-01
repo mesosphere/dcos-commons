@@ -592,8 +592,6 @@ public class PodInfoBuilder {
                 .setProfileName(podSpec.getSeccompProfileName().get())
                 .build());
       }
-
-      LOGGER.info("containerInfo {}", containerInfo);
     }
 
     for (Protos.Volume hostVolume : hostVolumes) {
