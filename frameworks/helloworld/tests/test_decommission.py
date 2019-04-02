@@ -21,7 +21,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             foldered_name,
             config.DEFAULT_TASK_COUNT,
-            additional_options={
+            from_options={
                 "service": {"name": foldered_name, "scenario": "CUSTOM_DECOMMISSION"}
             },
         )

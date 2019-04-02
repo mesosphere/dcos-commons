@@ -60,8 +60,8 @@ def test_envvar_accross_restarts():
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         config.SERVICE_NAME,
-        to_package_version=None,
-        additional_options={
+        to_version=None,
+        to_options={
             "service": {"name": config.SERVICE_NAME, "sleep": sleep_duration, "yaml": "sidecar"}
         },
         expected_running_tasks=2,
