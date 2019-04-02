@@ -13,8 +13,8 @@ INGEST_NODE_HEAP = 288
 
 
 @pytest.mark.sanity
-def test_xmx_and_xms_flags():
-    ''' method to test the duplication of JVM flags in elastic tasks '''
+def test_xmx_and_xms_flags(configure_security):
+    """ method to test the duplication of JVM flags in elastic tasks """
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
     # installing elastic service and passing customized json to overwrite default values.
     sdk_install.install(
