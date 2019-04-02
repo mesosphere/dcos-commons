@@ -4,11 +4,15 @@ scheduler:
   user: {{FRAMEWORK_USER}}
 pods:
   hello:
+    seccomp-unconfined: {{HELLO_SECCOMP_UNCONFINED}}
+    {{#HELLO_SECCOMP_PROFILE_NAME}}
+    seccomp-profile-name: {{HELLO_SECCOMP_PROFILE_NAME}}
+    {{/HELLO_SECCOMP_PROFILE_NAME}}
     count: {{HELLO_COUNT}}
     tasks:
       server:
         goal: RUNNING
-        cmd: "echo hello >> output && sleep $SLEEP_DURATION"
+        cmd: "mkdir -p dummy/home && chroot dummy/home echo Goodbye world!"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:

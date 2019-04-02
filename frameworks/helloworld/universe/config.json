@@ -104,6 +104,7 @@
             "web-url",
             "non_recoverable_state",
             "crash-loop",
+            "seccomp",
             ""
           ],
           "default": "svc"
@@ -227,6 +228,16 @@
         },
         "labels": {
           "description": "labels",
+          "type": "string",
+          "default": ""
+        },
+        "seccomp-unconfined": {
+          "description": "unconfined from the default seccomp profile",
+          "type": "boolean",
+          "default": false
+        },
+        "seccomp-profile-name": {
+          "description": "seccomp profile to run pod with",
           "type": "string",
           "default": ""
         },
