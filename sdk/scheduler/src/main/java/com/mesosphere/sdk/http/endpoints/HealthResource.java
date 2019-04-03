@@ -26,7 +26,7 @@ import java.util.stream.Collectors;
  * This class returns a single code representing the status of the service
  * with the following priority.
  * HTTP Response Code, Priority, Reason
- * 418, 1, Initializing
+ * 318, 1, Initializing
  * 200, 1, Running
  * 500, 1, Error Creating Service
  * 204, 2, Deploying:Pending
@@ -34,9 +34,9 @@ import java.util.stream.Collectors;
  * 206, 3, Degraded
  * 203, 4, Recovering:Pending
  * 205, 4, Recovering:Starting
- * 420, 5, Backing Up
- * 421, 5, Restoring
- * 426, 6, Upgrade/Rollback/Downgrade
+ * 320, 5, Backing Up
+ * 321, 5, Restoring
+ * 326, 6, Upgrade/Rollback/Downgrade
  * 503,  , Service Unavailable (Priority Undefined)
  */
 @Path("/v1/health")
@@ -48,7 +48,7 @@ public class HealthResource {
   @VisibleForTesting
   protected enum ServiceStatusCode {
 
-    INITIALIZING(418, 1),
+    INITIALIZING(318, 1),
     RUNNING(200, 1),
     ERROR_CREATING_SERVICE(500, 1),
     DEPLOYING_PENDING(204, 2),
@@ -56,9 +56,9 @@ public class HealthResource {
     DEGRADED(206, 3),
     RECOVERING_PENDING(203, 4),
     RECOVERING_STARTING(205, 4),
-    BACKING_UP(420, 5),
-    RESTORING(421, 5),
-    UPGRADE_ROLLBACK_DOWNGRADE(426, 6),
+    BACKING_UP(320, 5),
+    RESTORING(321, 5),
+    UPGRADE_ROLLBACK_DOWNGRADE(326, 6),
     SERVICE_UNAVAILABLE(503, -1);
 
     private final int statusCode;
