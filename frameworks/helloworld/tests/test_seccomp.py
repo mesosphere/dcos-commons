@@ -38,7 +38,7 @@ custom_profile = {
     ]
 }
 
-
+@pytest.mark.dcos_min_version("1.13")
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
