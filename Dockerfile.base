@@ -34,6 +34,7 @@ RUN apt-get update && \
     jq \
     libssl-dev \
     oracle-java8-installer \
+    pkg-config \
     python-pip \
     python3 \
     python3-dev \
