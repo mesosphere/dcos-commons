@@ -12,7 +12,7 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: "mkdir -p dummy/home && chroot dummy/home echo Goodbye world!"
+        cmd: "uname && sleep $SLEEP_DURATION"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
         env:
