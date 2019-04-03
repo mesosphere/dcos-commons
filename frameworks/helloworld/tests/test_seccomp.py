@@ -15,7 +15,7 @@ from tests import config
 log = logging.getLogger(__name__)
 
 NUM_HELLO = 1
-SECCOMP_DIR="/opt/mesosphere/etc/dcos/mesos/seccomp/test_profile.json"
+SECCOMP_DIR = "/opt/mesosphere/etc/dcos/mesos/seccomp/test_profile.json"
 custom_profile = {
     "defaultAction": "SCMP_ACT_ALLOW",
     "archMap": [
@@ -38,11 +38,12 @@ custom_profile = {
     ]
 }
 
+
 @pytest.mark.dcos_min_version("1.13")
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
-        ###setup custom seccomp profile
+        # setup custom seccomp profile
         all_agent_ips = set([agent["hostname"] for agent in sdk_agents.get_agents()])
         for ip in all_agent_ips:
             print("Copying custom seccomp profile to agent %s" % ip)
@@ -81,7 +82,3 @@ def test_custom_seccomp_profile():
     )
     def check_tasks_fail():
         assert sdk_tasks.get_failed_task_count(config.SERVICE_NAME) > 0
-
-
-
-
