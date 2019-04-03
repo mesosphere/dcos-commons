@@ -71,7 +71,7 @@ def test_custom_seccomp_profile():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
 
-    #uname will now be dissalowed and svc should crashloop
+    # uname will now be dissalowed and svc should crashloop
     marathon_config["env"]["HELLO_SECCOMP_PROFILE_NAME"] = "test_profile.json"
     sdk_marathon.wait_for_deployment(config.SERVICE_NAME, 60, None)
 
