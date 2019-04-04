@@ -64,6 +64,7 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
+
 @pytest.mark.dcos_min_version("1.13")
 @pytest.mark.sanity
 def test_custom_seccomp_profile():
