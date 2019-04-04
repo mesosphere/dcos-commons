@@ -584,9 +584,11 @@ public class PodInfoBuilder {
             podSpec.getSeccompUnconfined(),
             podSpec.getSeccompProfileName());
 
-      containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
-            .setUnconfined(podSpec.getSeccompUnconfined())
-            .build());
+      if (podSpec.getSeccompUnconfined()) {
+        containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
+                .setUnconfined(podSpec.getSeccompUnconfined())
+                .build());
+      }
 
       if (podSpec.getSeccompProfileName().isPresent()) {
         containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
