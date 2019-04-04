@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.offer.evaluate;
 
-import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
@@ -68,7 +67,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings({
     "checkstyle:LineLength",
     "checkstyle:LocalVariableName",
-    "checkstyle:VariableDeclarationUsageDistance"
+    "checkstyle:VariableDeclarationUsageDistance",
+    "checkstyle:CyclomaticComplexity"
 })
 public class PodInfoBuilder {
   private static final Logger LOGGER = LoggingUtils.getLogger(PodInfoBuilder.class);
@@ -580,20 +580,18 @@ public class PodInfoBuilder {
           .setHostPath("tmp")
           .setMode(Protos.Volume.Mode.RW));
 
-      if (Capabilities.getInstance().supportsSeccomp()) {
-        LOGGER.info("Setting seccomp info unconfined: {} profile: {}",
-              podSpec.getSeccompUnconfined(),
-              podSpec.getSeccompProfileName());
+      LOGGER.info("Setting seccomp info unconfined: {} profile: {}",
+            podSpec.getSeccompUnconfined(),
+            podSpec.getSeccompProfileName());
 
+      containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
+            .setUnconfined(podSpec.getSeccompUnconfined())
+            .build());
+
+      if (podSpec.getSeccompProfileName().isPresent()) {
         containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
-              .setUnconfined(podSpec.getSeccompUnconfined())
-              .build());
-
-        if (podSpec.getSeccompProfileName().isPresent()) {
-          containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
-              .setProfileName(podSpec.getSeccompProfileName().get())
-              .build());
-        }
+            .setProfileName(podSpec.getSeccompProfileName().get())
+            .build());
       }
     }
 
