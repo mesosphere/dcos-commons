@@ -39,7 +39,6 @@ custom_profile = {
 }
 
 
-@pytest.mark.dcos_min_version("1.13")
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
@@ -65,7 +64,7 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
-
+@pytest.mark.dcos_min_version("1.13")
 @pytest.mark.sanity
 def test_custom_seccomp_profile():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)

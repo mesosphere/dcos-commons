@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
@@ -579,18 +580,20 @@ public class PodInfoBuilder {
           .setHostPath("tmp")
           .setMode(Protos.Volume.Mode.RW));
 
-      LOGGER.info("Setting seccomp info unconfined: {} profile: {}",
+      if (Capabilities.getInstance().supportsSeccomp()) {
+        LOGGER.info("Setting seccomp info unconfined: {} profile: {}",
               podSpec.getSeccompUnconfined(),
               podSpec.getSeccompProfileName());
 
-      containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
+        containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
               .setUnconfined(podSpec.getSeccompUnconfined())
               .build());
 
-      if (podSpec.getSeccompProfileName().isPresent()) {
-        containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
-                .setProfileName(podSpec.getSeccompProfileName().get())
-                .build());
+        if (podSpec.getSeccompProfileName().isPresent()) {
+          containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
+              .setProfileName(podSpec.getSeccompProfileName().get())
+              .build());
+        }
       }
     }
 

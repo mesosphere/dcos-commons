@@ -119,6 +119,12 @@ public class Capabilities {
     return hasOrExceedsVersion(1, 12);
   }
 
+  public boolean supportsSeccomp() {
+    // Seccomp fields supported 1.13 and above
+    return hasOrExceedsVersion(1, 13);
+  }
+
+
   private boolean hasOrExceedsVersion(int major, int minor) {
     DcosVersion.Elements versionElements = dcosVersion.getElements();
     try {
