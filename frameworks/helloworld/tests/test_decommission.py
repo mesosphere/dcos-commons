@@ -24,12 +24,14 @@ def configure_package(configure_security):
             from_options={
                 "service": {"name": foldered_name, "scenario": "CUSTOM_DECOMMISSION"}
             },
+            to_options={
+                "service": {"name": foldered_name, "scenario": "CUSTOM_DECOMMISSION"}
+            },
         )
 
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-
 
 @pytest.mark.sanity
 def test_custom_decommission():
