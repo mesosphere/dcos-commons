@@ -14,7 +14,6 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
-NUM_HELLO = 1
 SECCOMP_DIR = "/opt/mesosphere/etc/dcos/mesos/seccomp/test_profile.json"
 custom_profile = {
     "defaultAction": "SCMP_ACT_ALLOW",
@@ -58,7 +57,7 @@ def configure_package(configure_security):
             }
         }
 
-        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, NUM_HELLO, additional_options=options)
+        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, expected_running_task=1 , additional_options=options)
 
         yield  # let the test session execute
     finally:
@@ -82,3 +81,5 @@ def test_custom_seccomp_profile():
     )
     def check_tasks_fail():
         assert sdk_tasks.get_failed_task_count(config.SERVICE_NAME) > 0
+
+    check_tasks_fail()

@@ -9,3 +9,4 @@ pods:
         goal: RUNNING
         cmd: "some command"
         cpus: 1
+        
