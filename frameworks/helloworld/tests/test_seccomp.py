@@ -1,14 +1,12 @@
 import logging
 import pytest
 import json
-import retrying
 
 import sdk_install
 import sdk_agents
 import sdk_cmd
 import sdk_plan
 import sdk_marathon
-import sdk_tasks
 
 from tests import config
 
@@ -72,14 +70,5 @@ def test_custom_seccomp_profile():
 
     # uname will now be dissalowed and svc should crashloop
     marathon_config["env"]["HELLO_SECCOMP_PROFILE_NAME"] = "test_profile.json"
+    sdk_marathon.update_app(marathon_config)
     sdk_marathon.wait_for_deployment(config.SERVICE_NAME, 60, None)
-
-    @retrying.retry(
-        wait_fixed=1000,
-        stop_max_delay=120 * 1000,
-        retry_on_exception=lambda e: isinstance(e, Exception),
-    )
-    def check_tasks_fail():
-        assert sdk_tasks.get_failed_task_count(config.SERVICE_NAME) > 0
-
-    check_tasks_fail()
