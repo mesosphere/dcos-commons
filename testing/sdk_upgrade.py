@@ -86,7 +86,7 @@ def test_upgrade(
         package_name,
         service_name,
         to_version,
-        to_options,
+        to_options or from_options,
         expected_running_tasks,
         wait_for_deployment,
         timeout_seconds,
