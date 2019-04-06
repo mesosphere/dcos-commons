@@ -46,6 +46,10 @@ public final class RawPod {
 
   private final WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes;
 
+  private final Boolean seccompUnconfined;
+
+  private final String seccompProfileName;
+
 
   private RawPod(
       @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
@@ -62,7 +66,9 @@ public final class RawPod {
       @JsonProperty("secrets") WriteOnceLinkedHashMap<String, RawSecret> secrets,
       @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
       @JsonProperty("allow-decommission") Boolean allowDecommission,
-      @JsonProperty("host-volumes") WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes)
+      @JsonProperty("host-volumes") WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes,
+      @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
+      @JsonProperty("seccomp-profile-name") String seccompProfileName) throws Exception
   {
     this.placement = placement;
     this.count = count;
@@ -79,6 +85,16 @@ public final class RawPod {
     this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
     this.allowDecommission = allowDecommission != null && allowDecommission;
     this.hostVolumes = hostVolumes == null ? new WriteOnceLinkedHashMap<>() : hostVolumes;
+    this.seccompUnconfined = seccompUnconfined;
+    this.seccompProfileName = seccompProfileName;
+    validateSeccomp();
+  }
+
+  private void validateSeccomp() throws Exception{
+    if (seccompProfileName != null && (seccompUnconfined != null && seccompUnconfined)) {
+      throw new Exception("cannot specify seccomp-unconfined and " +
+              "seccomp-profile-name at the same time");
+    }
   }
 
   public String getPlacement() {
@@ -141,4 +157,11 @@ public final class RawPod {
     return hostVolumes;
   }
 
+  public Boolean getSeccompUnconfined() {
+    return seccompUnconfined;
+  }
+
+  public String getSeccompProfileName() {
+    return seccompProfileName;
+  }
 }
