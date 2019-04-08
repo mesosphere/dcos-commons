@@ -15,6 +15,7 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.strategy.CanaryStrategy;
+import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
@@ -950,7 +951,7 @@ public class HealthResourceTest {
   }
 
   @Test
-  public void testFrameworkWaiting() {
+  public void testFrameworkSerialCanaryWaiting() {
       //Test canary and parallel-canary strategies that wait on user input.
     
     Persister persister = MemPersister.newBuilder().build();
@@ -1047,7 +1048,106 @@ public class HealthResourceTest {
     
     Assert.assertEquals(expected.get(), received.get());
   }
-  
+
+  @Test
+  public void testFrameworkParallelCanaryWaiting() {
+      //Test canary and parallel-canary strategies that wait on user input.
+
+    Persister persister = MemPersister.newBuilder().build();
+
+    Optional<FrameworkStore> frameworkStore = Optional.of(new FrameworkStore(persister));
+    frameworkStore.get().storeFrameworkId(TestConstants.FRAMEWORK_ID);
+
+    StateStore stateStore = new StateStore(persister);
+
+    DeploymentStep hello0Step = new DeploymentStep("hello-step-0",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep hello3Step = new DeploymentStep("hello-step-3",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep hello4Step = new DeploymentStep("hello-step-4",
+        helloPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+
+    DeploymentStep world0Step = new DeploymentStep("world-step-0",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world1Step = new DeploymentStep("world-step-1",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world2Step = new DeploymentStep("world-step-2",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+    DeploymentStep world3Step = new DeploymentStep("world-step-3",
+        worldPodInstanceRequirement,
+        stateStore,
+        Optional.empty());
+
+
+    //Simulate a canary-plan where one step is waiting on user input.
+    hello0Step.updateInitialStatus(Status.COMPLETE);
+    hello1Step.updateInitialStatus(Status.COMPLETE);
+    hello2Step.updateInitialStatus(Status.COMPLETE);
+    hello3Step.updateInitialStatus(Status.COMPLETE);
+    hello4Step.updateInitialStatus(Status.WAITING);
+
+    world0Step.updateInitialStatus(Status.COMPLETE);
+    world1Step.updateInitialStatus(Status.COMPLETE);
+    world2Step.updateInitialStatus(Status.COMPLETE);
+    world3Step.updateInitialStatus(Status.COMPLETE);
+
+    List<Step> helloSteps = Arrays.asList(hello0Step, hello1Step, hello2Step, hello3Step, hello4Step);
+    List<Step> worldSteps = Arrays.asList(world0Step, world2Step, world3Step);
+
+    DefaultPhase helloPhase = new DefaultPhase("hello-deploy",
+        helloSteps,
+        new CanaryStrategy(new ParallelStrategy<>(), helloSteps),
+        Collections.emptyList());
+    DefaultPhase worldPhase = new DefaultPhase("world-deploy",
+        worldSteps,
+        new CanaryStrategy(new SerialStrategy<>(), worldSteps),
+        Collections.emptyList());
+    DefaultPlan helloWorldPlan = new DefaultPlan(Constants.DEPLOY_PLAN_NAME,
+        Arrays.asList(helloPhase, worldPhase),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+
+    DefaultPlan recoveryPlan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME,
+        Collections.emptyList(),
+        new SerialStrategy<>(),
+        Collections.emptyList());
+
+    PlanManager helloWorldPlanManager = DefaultPlanManager.createInterrupted(helloWorldPlan);
+    PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+
+    //Setup complete, verify result.
+
+    HealthResource serviceStatusTracker = Mockito.spy(new HealthResource(coordinator, frameworkStore));
+
+    ServiceStatusResult serviceResult = serviceStatusTracker.evaluateServiceStatus(false);
+    Optional<ServiceStatusCode> expected = Optional.of(HealthResource.ServiceStatusCode.DEPLOYING_WAITING_USER);
+    Optional<ServiceStatusCode> received = serviceResult.getServiceStatusCode();
+
+    Assert.assertEquals(expected.get(), received.get());
+  }
+
   /**
    * Wrapper class for returning {@link PlanCoordinator} and {@link FrameworkStore}
    */
