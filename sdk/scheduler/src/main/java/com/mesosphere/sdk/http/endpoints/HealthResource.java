@@ -31,6 +31,7 @@ import java.util.stream.Collectors;
  * 500, 1, Error Creating Service
  * 204, 2, Deploying:Pending
  * 202, 2, Deploying:Starting
+ * 203, 2, Deploying:Waiting_User
  * 206, 3, Degraded
  * 203, 4, Recovering:Pending
  * 205, 4, Recovering:Starting
@@ -53,6 +54,7 @@ public class HealthResource {
     ERROR_CREATING_SERVICE(500, 1),
     DEPLOYING_PENDING(204, 2),
     DEPLOYING_STARTING(202, 2),
+    DEPLOYING_WAITING_USER(203, 2),
     DEGRADED(206, 3),
     RECOVERING_PENDING(203, 4),
     RECOVERING_STARTING(205, 4),
@@ -107,6 +109,7 @@ public class HealthResource {
     ServiceStatusEvaluationStage isErrorCreating = isErrorCreatingService();
     ServiceStatusEvaluationStage deploymentComplete = isDeploymentComplete(initializing.getServiceStatusCode());
     ServiceStatusEvaluationStage isDeploying = isDeploying();
+    ServiceStatusEvaluationStage isWaitingUser = isWaitingUser();
     ServiceStatusEvaluationStage isDegraded = notImplemented(ServiceStatusCode.DEGRADED);
     ServiceStatusEvaluationStage isRecovering = isRecovering();
     ServiceStatusEvaluationStage isBackingUp = isBackingUp();
@@ -116,6 +119,7 @@ public class HealthResource {
     if (isVerbose) {
       statusCodeReasons.put(isErrorCreating.getStatusReason());
       statusCodeReasons.put(initializing.getStatusReason());
+      statusCodeReasons.put(isWaitingUser.getStatusReason());
       statusCodeReasons.put(deploymentComplete.getStatusReason());
       statusCodeReasons.put(isDeploying.getStatusReason());
       statusCodeReasons.put(isDegraded.getStatusReason());
@@ -132,6 +136,8 @@ public class HealthResource {
       serviceStatusCode = initializing.getServiceStatusCode();
     } else if (isDeploying.getServiceStatusCode().isPresent()) {
       serviceStatusCode = isDeploying.getServiceStatusCode();
+    } else if (isWaitingUser.getServiceStatusCode().isPresent()) {
+      serviceStatusCode = isWaitingUser.getServiceStatusCode();
     } else if (isDegraded.getServiceStatusCode().isPresent()) {
       serviceStatusCode = isDegraded.getServiceStatusCode();
     } else if (isRecovering.getServiceStatusCode().isPresent()) {
@@ -291,8 +297,6 @@ public class HealthResource {
 
   private ServiceStatusEvaluationStage isDeploying() {
 
-    final int priority = 2;
-
     // Get the deployment plan.
     Plan deploymentPlan = planCoordinator.getPlanManagers()
             .stream()
@@ -414,6 +418,34 @@ public class HealthResource {
               ServiceStatusCode.RUNNING.statusCode);
         statusCode = Optional.empty();
       }
+    }
+    return new ServiceStatusEvaluationStage(statusCode, reason);
+  }
+
+  private ServiceStatusEvaluationStage isWaitingUser() {
+
+    String reason;
+    Optional<ServiceStatusCode> statusCode;
+
+    // Check if the deployment Plan is interrupted (equivalent of WAITING status)
+    boolean isPlanInterrupted = planCoordinator.getPlanManagers()
+            .stream()
+            .filter(planManager -> planManager.getPlan().isDeployPlan())
+            .findFirst()
+            .get()
+            .getPlan()
+            .isInterrupted();
+
+    if (isPlanInterrupted) {
+      reason = String.format("Priority %d. Status Code %s is TRUE. Service deploy plan is awaiting user input to proceed.",
+            ServiceStatusCode.DEPLOYING_WAITING_USER.priority,
+            ServiceStatusCode.DEPLOYING_WAITING_USER.statusCode);
+      statusCode = Optional.of(ServiceStatusCode.DEPLOYING_WAITING_USER);
+    } else {
+      reason = String.format("Priority %d. Status Code %s is FALSE. Service deploy plan does NOT need user input.",
+            ServiceStatusCode.DEPLOYING_WAITING_USER.priority,
+            ServiceStatusCode.DEPLOYING_WAITING_USER.statusCode);
+      statusCode = Optional.empty();
     }
     return new ServiceStatusEvaluationStage(statusCode, reason);
   }
