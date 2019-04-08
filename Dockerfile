@@ -41,7 +41,7 @@ RUN cd /tmp/repo/ && \
 RUN mkdir /build-tools
 ENV PATH=/build-tools:$PATH
 
-COPY tools/distribution/init /build-tools/
+COPY tools/distribution/copy-files /build-tools/
 COPY tools/ci/test_runner.sh /build-tools/
 COPY tools/ci/launch_cluster.sh /build-tools/
 
