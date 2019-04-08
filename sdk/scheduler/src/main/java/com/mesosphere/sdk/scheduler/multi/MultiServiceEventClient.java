@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.scheduler.multi;
 
-import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.MultiArtifactResource;
 import com.mesosphere.sdk.http.endpoints.MultiConfigResource;
 import com.mesosphere.sdk.http.endpoints.MultiEndpointsResource;
+import com.mesosphere.sdk.http.endpoints.MultiHealthResource;
 import com.mesosphere.sdk.http.endpoints.MultiPlansResource;
 import com.mesosphere.sdk.http.endpoints.MultiPodResource;
 import com.mesosphere.sdk.http.endpoints.MultiStateResource;
@@ -20,9 +20,7 @@ import com.mesosphere.sdk.scheduler.OfferResources;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
-import com.mesosphere.sdk.scheduler.plan.DefaultPlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlanManager;
-import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.uninstall.DeregisterStep;
@@ -541,9 +539,8 @@ public class MultiServiceEventClient implements MesosEventClient {
             Collections.emptyList())))))
         : Collections.emptyList();
     List<Object> endpoints = new ArrayList<>();
-    PlanCoordinator planCoordinator = new DefaultPlanCoordinator(Optional.empty(), planManagers);
     endpoints.addAll(Arrays.asList(
-        new HealthResource(planCoordinator, Optional.empty()),
+        new MultiHealthResource(planManagers, schedulerConfig),
         new PlansResource(planManagers),
         new MultiArtifactResource(multiServiceManager),
         new MultiConfigResource(multiServiceManager),
