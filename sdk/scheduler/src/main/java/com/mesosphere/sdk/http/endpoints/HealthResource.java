@@ -3,6 +3,7 @@ package com.mesosphere.sdk.http.endpoints;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
+import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStoreException;
 
@@ -263,28 +264,39 @@ public class HealthResource {
     String reason;
     Optional<ServiceStatusCode> statusCode;
 
-    // Get the recovery plan.
-    Plan recoveryPlan = planCoordinator.getPlanManagers()
+    // Get the recovery plan, this may not exist during un-installation.
+    Optional<PlanManager> recoveryPlanManager = planCoordinator.getPlanManagers()
             .stream()
             .filter(planManager -> planManager.getPlan().isRecoveryPlan())
-            .findFirst()
-            .get()
-            .getPlan();
+            .findFirst();
 
-    if (recoveryPlan.isComplete()) {
-      reason = String.format("Priority %d. Status Code %s and %s is FALSE. Recovery plan is complete.",
+    if (recoveryPlanManager.isPresent()) {
+      Plan recoveryPlan = recoveryPlanManager
+          .get()
+          .getPlan();
+      if (recoveryPlan.isComplete()) {
+        reason = String.format("Priority %d. Status Code %s and %s is FALSE. Recovery plan is complete.",
+            ServiceStatusCode.RECOVERING_PENDING.priority,
+            ServiceStatusCode.RECOVERING_PENDING.statusCode,
+            ServiceStatusCode.RECOVERING_STARTING.statusCode);
+        statusCode = Optional.empty();
+
+        return new ServiceStatusEvaluationStage(statusCode, reason);
+      } else {
+        // Recovery plan is NOT complete.
+        return evaluatePendingOrStartingStatusCode(recoveryPlan,
+            ServiceStatusCode.RECOVERING_PENDING,
+            ServiceStatusCode.RECOVERING_STARTING,
+            ServiceStatusCode.RECOVERING_PENDING.priority);
+      }
+    } else {
+
+      reason = String.format("Priority %d. Status Code %s and %s is FALSE. Recovery plan manager not found.(might be uninstalling)",
           ServiceStatusCode.RECOVERING_PENDING.priority,
           ServiceStatusCode.RECOVERING_PENDING.statusCode,
           ServiceStatusCode.RECOVERING_STARTING.statusCode);
       statusCode = Optional.empty();
-
       return new ServiceStatusEvaluationStage(statusCode, reason);
-    } else {
-      // Recovery plan is NOT complete.
-      return evaluatePendingOrStartingStatusCode(recoveryPlan,
-          ServiceStatusCode.RECOVERING_PENDING,
-          ServiceStatusCode.RECOVERING_STARTING,
-          ServiceStatusCode.RECOVERING_PENDING.priority);
     }
   }
 
@@ -436,7 +448,16 @@ public class HealthResource {
             .getPlan()
             .isInterrupted();
 
-    if (isPlanInterrupted) {
+    boolean isAnyStepInterrupted = planCoordinator.getPlanManagers()
+            .stream()
+            .filter(planManager -> planManager.getPlan().isDeployPlan())
+            .findFirst()
+            .get()
+            .getPlan().getChildren().stream()
+            .flatMap(phase -> phase.getChildren().stream())
+            .anyMatch(step -> step.isInterrupted());
+
+    if (isPlanInterrupted || isAnyStepInterrupted) {
       reason = String.format("Priority %d. Status Code %s is TRUE. Service deploy plan is awaiting user input to proceed.",
             ServiceStatusCode.DEPLOYING_WAITING_USER.priority,
             ServiceStatusCode.DEPLOYING_WAITING_USER.statusCode);
