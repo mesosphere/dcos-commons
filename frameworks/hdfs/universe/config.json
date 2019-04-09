@@ -1490,8 +1490,8 @@
         },
         "security_authorization": {
           "type": "boolean",
-          "description": "Is service-level authorization enabled?",
-          "default": false
+          "description": "Service-level authorization for Hadoop",
+          "default": true
         },
         "security_group_mapping": {
           "type": "string",
