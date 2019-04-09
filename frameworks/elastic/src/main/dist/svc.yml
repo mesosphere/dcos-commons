@@ -62,15 +62,18 @@ pods:
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
+          NODE_HEAP_MB: {{MASTER_NODE_HEAP_MB}} 
           DATA_NODE_COUNT: {{DATA_NODE_COUNT}}
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           MASTER_ENABLED: true
           DATA_ENABLED: false
           INGEST_ENABLED: false
-          ES_JAVA_OPTS: "-Xms{{MASTER_NODE_HEAP_MB}}M -Xmx{{MASTER_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
+          jvm.options:
+            template: jvm.options
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/jvm.options
           elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
@@ -152,13 +155,16 @@ pods:
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
+          NODE_HEAP_MB: {{DATA_NODE_HEAP_MB}} 
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: true
           INGEST_ENABLED: false
-          ES_JAVA_OPTS: "-Xms{{DATA_NODE_HEAP_MB}}M -Xmx{{DATA_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
+          jvm.options:
+            template: jvm.options
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/jvm.options
           elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
@@ -240,13 +246,16 @@ pods:
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
+          NODE_HEAP_MB: {{INGEST_NODE_HEAP_MB}} 
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: false
           INGEST_ENABLED: true
-          ES_JAVA_OPTS: "-Xms{{INGEST_NODE_HEAP_MB}}M -Xmx{{INGEST_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
+          jvm.options:
+            template: jvm.options
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/jvm.options
           elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml
@@ -328,13 +337,16 @@ pods:
 
           exec ./elasticsearch-{{ELASTIC_VERSION}}/bin/elasticsearch
         env:
+          NODE_HEAP_MB: {{COORDINATOR_NODE_HEAP_MB}} 
           MASTER_NODE_TRANSPORT_PORT: {{MASTER_NODE_TRANSPORT_PORT}}
           DATA_ENABLED: false
           INGEST_ENABLED: false
-          ES_JAVA_OPTS: "-Xms{{COORDINATOR_NODE_HEAP_MB}}M -Xmx{{COORDINATOR_NODE_HEAP_MB}}M"
           ELASTIC_VERSION: {{ELASTIC_VERSION}}
           ELASTIC_STATSD_VERSION: {{ELASTIC_STATSD_VERSION}}
         configs:
+          jvm.options:
+            template: jvm.options
+            dest: elasticsearch-{{ELASTIC_VERSION}}/config/jvm.options
           elasticsearch.yml:
             template: elasticsearch.yml
             dest: elasticsearch-{{ELASTIC_VERSION}}/config/elasticsearch.yml

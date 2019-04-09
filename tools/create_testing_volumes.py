@@ -13,7 +13,7 @@ MOUNT_VOLUME_PROFILES = [None, None, "xfs", "xfs"]
 MOUNT_VOLUME_SIZE_MB = 200
 
 
-def mount_volumes() -> None:
+def mount_volumes():
     """ Will create 200MB partions on clusters launched by dcos-launch
     """
     volume_script = """#!/bin/bash

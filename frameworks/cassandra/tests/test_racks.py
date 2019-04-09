@@ -45,7 +45,7 @@ def test_rack() -> None:
     log.info("node: {}".format(node))
 
     assert node.get_rack() != "rack1"
-    assert "us-west" in node.get_rack()
+    assert sdk_utils.get_cluster_zones()[node.get_address()] == node.get_rack()
 
 
 @pytest.mark.sanity
@@ -56,5 +56,5 @@ def test_custom_rack_upgrade() -> None:
         config.PACKAGE_NAME,
         foldered_service_name,
         config.DEFAULT_TASK_COUNT,
-        additional_options=service_options,
+        from_options=service_options,
     )

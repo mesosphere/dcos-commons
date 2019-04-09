@@ -899,7 +899,7 @@
         "search_remote_connect": {
           "description": "By default, any node in the cluster can act as a cross-cluster client and connect to remote clusters. The search_remote_connect setting can be set to false (defaults to true) to prevent certain nodes from connecting to remote clusters. Cross-cluster search requests must be sent to a node that is allowed to act as a cross-cluster client. Empty means do not explicity set.",
           "type": "string",
-          "default": ""
+          "default": "false"
         },
         "indices_query_bool_max_clause_count": {
           "description": "Set the number of clauses used while querying Elasticsearch. Defaults to 1024. If any query expands into more than 1024 boolean clauses, you will get TooManyClauses exception. Empty means do not explicitly set.",

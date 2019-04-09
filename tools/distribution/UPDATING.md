@@ -110,7 +110,7 @@ nothing to commit, working tree clean
 Assuming the `build.gradle` and `resource.json` files have been updated accordingly, the update to a specific version of the SDK can be performed as follows:
 ```bash
 $ docker pull mesosphere/dcos-commons:latest
-$ docker run --rm -ti -v $(pwd):$(pwd) mesosphere/dcos-commons:latest init $(pwd) --update-sdk <NEW_SDK_VERSION>
+$ docker run --rm -ti -v $(pwd):$(pwd) mesosphere/dcos-commons:latest copy-files $(pwd) --update-sdk <NEW_SDK_VERSION>
 ```
 
 Running a `git status` after this process should show something like:
@@ -121,21 +121,13 @@ Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git checkout -- <file>..." to discard changes in working directory)
 
-	modified:   build.gradle
-	modified:   testing/sdk_auth.py
-	modified:   testing/sdk_cmd.py
-	modified:   testing/sdk_hosts.py
-	modified:   testing/sdk_install.py
-	modified:   testing/sdk_marathon.py
-	modified:   testing/sdk_repository.py
-	modified:   testing/sdk_security.py
-	modified:   testing/sdk_upgrade.py
-	modified:   testing/sdk_utils.py
-	modified:   testing/security/transport_encryption.py
-	modified:   tools/ci/init
-	modified:   tools/release_builder.py
-	modified:   tools/universe/package_builder.py
-	modified:   tools/universe/package_manager.py
+	modified:   TESTING.md
+	modified:   UPDATING.md
+	modified:   conftest.py
+	modified:   test.sh
+	modified:   testing/README.md
+	[...]
+	modified:   tools/validate_pip_freeze.py
 
 no changes added to commit (use "git add" and/or "git commit -a")
 ```

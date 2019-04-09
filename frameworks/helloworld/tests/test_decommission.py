@@ -17,14 +17,14 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security: None) -> Iterator[None]:
     try:
         foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+        service_options = {"service": {"name": foldered_name, "scenario": "CUSTOM_DECOMMISSION"}}
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
             foldered_name,
             config.DEFAULT_TASK_COUNT,
-            additional_options={
-                "service": {"name": foldered_name, "scenario": "CUSTOM_DECOMMISSION"}
-            },
+            from_options=service_options,
+            to_options=service_options,
         )
 
         yield  # let the test session execute

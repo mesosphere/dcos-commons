@@ -53,6 +53,10 @@ public final class DefaultPodSpec implements PodSpec {
 
   private final Collection<HostVolumeSpec> hostVolumes;
 
+  private final Boolean seccompUnconfined;
+
+  private final Optional<String> seccompProfileName;
+
   @JsonCreator
   private DefaultPodSpec(
       @JsonProperty("type") String type,
@@ -69,7 +73,9 @@ public final class DefaultPodSpec implements PodSpec {
       @JsonProperty("pre-reserved-role") String preReservedRole,
       @JsonProperty("secrets") Collection<SecretSpec> secrets,
       @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
-      @JsonProperty("host-volumes") Collection<HostVolumeSpec> hostVolumes)
+      @JsonProperty("host-volumes") Collection<HostVolumeSpec> hostVolumes,
+      @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
+      @JsonProperty("seccomp-profile-name") Optional<String> seccompProfileName)
   {
     this.type = type;
     this.user = user;
@@ -86,6 +92,8 @@ public final class DefaultPodSpec implements PodSpec {
     this.secrets = secrets;
     this.sharePidNamespace = sharePidNamespace;
     this.hostVolumes = hostVolumes;
+    this.seccompUnconfined = seccompUnconfined;
+    this.seccompProfileName = seccompProfileName;
   }
 
   private DefaultPodSpec(Builder builder) {
@@ -104,7 +112,9 @@ public final class DefaultPodSpec implements PodSpec {
         builder.preReservedRole,
         builder.secrets,
         builder.sharePidNamespace,
-        builder.hostVolumes);
+        builder.hostVolumes,
+        builder.seccompUnconfined,
+        builder.seccompProfileName);
 
     ValidationUtils.nonBlank(this, "type", type);
     ValidationUtils.nonNegative(this, "count", count);
@@ -151,6 +161,8 @@ public final class DefaultPodSpec implements PodSpec {
     builder.volumes = copy.getVolumes();
     builder.sharePidNamespace = copy.getSharePidNamespace();
     builder.hostVolumes = copy.getHostVolumes();
+    builder.seccompUnconfined = copy.getSeccompUnconfined();
+    builder.seccompProfileName = copy.getSeccompProfileName();
     return builder;
   }
 
@@ -230,6 +242,16 @@ public final class DefaultPodSpec implements PodSpec {
   }
 
   @Override
+  public Boolean getSeccompUnconfined() {
+    return seccompUnconfined;
+  }
+
+  @Override
+  public Optional<String> getSeccompProfileName() {
+    return seccompProfileName;
+  }
+
+  @Override
   public boolean equals(Object o) {
     return EqualsBuilder.reflectionEquals(this, o);
   }
@@ -277,6 +299,10 @@ public final class DefaultPodSpec implements PodSpec {
     private Boolean sharePidNamespace = false;
 
     private Collection<HostVolumeSpec> hostVolumes = new ArrayList<>();
+
+    private Boolean seccompUnconfined = false;
+
+    private Optional<String> seccompProfileName = Optional.empty();
 
     private Builder(String type, int count, List<TaskSpec> tasks) {
       this.type = type;
@@ -517,6 +543,34 @@ public final class DefaultPodSpec implements PodSpec {
         this.hostVolumes = hostVolumes;
       }
 
+      return this;
+    }
+
+    /**
+     * Sets the seccomp unconfined property and returns a reference to this Builder so that the methods can be
+     * chained together.
+     *
+     * @param  seccompUnconfined the boolean to set
+     * @return a reference to this Builder
+     */
+    public Builder seccompUnconfined(Boolean seccompUnconfined) {
+      if (seccompUnconfined != null) {
+        this.seccompUnconfined = seccompUnconfined;
+      } else {
+        this.seccompUnconfined = false;
+      }
+      return this;
+    }
+
+    /**
+     * Sets the {@code seccomp profile} and returns a reference to this Builder so that the methods can be
+     * chained together.
+     *
+     * @param seccompProfileName the profile to set
+     * @return a reference to this Builder
+     */
+    public Builder seccompProfileName(String seccompProfileName) {
+      this.seccompProfileName = Optional.ofNullable(seccompProfileName);
       return this;
     }
 

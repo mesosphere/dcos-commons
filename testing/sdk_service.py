@@ -23,8 +23,8 @@ def update_configuration(
     sdk_upgrade.update_or_upgrade_or_downgrade(
         package_name=package_name,
         service_name=service_name,
-        to_package_version=None,
-        additional_options=configuration,
+        to_version=None,
+        to_options=configuration,
         expected_running_tasks=expected_task_count,
         wait_for_deployment=wait_for_deployment,
         timeout_seconds=timeout_seconds,

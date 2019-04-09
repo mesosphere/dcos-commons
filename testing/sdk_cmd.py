@@ -427,7 +427,9 @@ def _scp(
             #                     We also configure a timeout for the command itself to run once connected, see below.
             "-oConnectTimeout={}".format(timeout_seconds),
             # -i <identity_file>: The identity file to use for login
-            "-i {}".format(SSH_KEY_FILE) if SSH_KEY_FILE else "",
+            "-i {}".format("/root/.ssh/id_rsa"),
+            # verbose
+            "-vvv"
         ]
     )
 
