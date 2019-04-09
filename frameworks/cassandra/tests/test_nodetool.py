@@ -3,7 +3,7 @@ from tests import nodetool
 
 
 @pytest.mark.sanity
-def test_status_parsing():
+def test_status_parsing() -> None:
     status = """Datacenter: datacenter1
 =======================
 Status=Up/Down

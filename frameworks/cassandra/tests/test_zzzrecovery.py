@@ -3,6 +3,7 @@
 import logging
 import pytest
 import re
+from typing import Iterator
 
 import sdk_agents
 import sdk_cmd
@@ -18,7 +19,7 @@ log = logging.getLogger(__name__)
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
+def configure_package(configure_security: None) -> Iterator[None]:
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
@@ -30,7 +31,7 @@ def configure_package(configure_security):
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9", reason="dcos task exec not supported < 1.9")
-def test_node_replace_replaces_seed_node():
+def test_node_replace_replaces_seed_node() -> None:
     pod_to_replace = "node-0"
 
     # start replace and wait for it to finish
@@ -45,7 +46,7 @@ def test_node_replace_replaces_seed_node():
 
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9", reason="dcos task exec not supported < 1.9")
-def test_node_replace_replaces_node():
+def test_node_replace_replaces_node() -> None:
     replace_task = [task for task in sdk_tasks.get_summary() if task.name == "node-2-server"][0]
     log.info("avoid host for task {}".format(replace_task))
 
@@ -83,7 +84,7 @@ def test_node_replace_replaces_node():
 # WARNING: THIS MUST BE THE LAST TEST IN THIS FILE. ANY TEST THAT FOLLOWS WILL BE FLAKY.
 # @@@@@@@
 @pytest.mark.sanity
-def test_shutdown_host():
+def test_shutdown_host() -> None:
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile("^node-[0-9]+-server$")
     )
