@@ -3,7 +3,7 @@
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
-      "hdfs-tar-gz": "https://s3.amazonaws.com/hdfs-binary/CDH-6.1.1-1.cdh6.1.1.p0.875250-xenial.tar.gz",
+      "hdfs-tar-gz": "https://s3.amazonaws.com/hdfs-binary/hadoop-cdh6.1.1.tar.gz",
       "hdfs-bin-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hdfs-bin.tar.gz",
       "hdfs-jre-tar-gz": "{{jre-url}}",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",

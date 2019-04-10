@@ -60,6 +60,9 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+
+          mv CDH-6.1.1-1.cdh6.1.1.p0.875250-xenial {{TASKCFG_ALL_HDFS_VERSION}}
+
           mkdir -p $MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_LOG_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_CONF_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/conf.empty/
@@ -198,6 +201,9 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+
+          mv CDH-6.1.1-1.cdh6.1.1.p0.875250-xenial {{TASKCFG_ALL_HDFS_VERSION}}
+
           mkdir -p $MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_LOG_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_CONF_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/conf.empty/
@@ -225,6 +231,7 @@ pods:
           cmd: |
             set -e
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+            export HADOOP_CONF_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/conf.empty/
             {{#SECURITY_KERBEROS_ENABLED}}
             export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/conf.empty/krb5.conf $HADOOP_OPTS"
             {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -272,6 +279,9 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+
+          mv CDH-6.1.1-1.cdh6.1.1.p0.875250-xenial {{TASKCFG_ALL_HDFS_VERSION}}
+
           mkdir -p $MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_LOG_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_CONF_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/conf.empty/
@@ -312,6 +322,9 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+
+          mv CDH-6.1.1-1.cdh6.1.1.p0.875250-xenial {{TASKCFG_ALL_HDFS_VERSION}}
+
           mkdir -p $MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_LOG_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_CONF_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/conf.empty/
@@ -358,6 +371,9 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+
+          mv CDH-6.1.1-1.cdh6.1.1.p0.875250-xenial {{TASKCFG_ALL_HDFS_VERSION}}
+
           mkdir -p $MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_LOG_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_CONF_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/conf.empty/
@@ -398,6 +414,9 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+
+          mv CDH-6.1.1-1.cdh6.1.1.p0.875250-xenial {{TASKCFG_ALL_HDFS_VERSION}}
+
           mkdir -p $MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_LOG_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_CONF_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/conf.empty/
@@ -462,6 +481,9 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+
+          mv CDH-6.1.1-1.cdh6.1.1.p0.875250-xenial {{TASKCFG_ALL_HDFS_VERSION}}
+
           mkdir -p $MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_LOG_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/logs
           export HADOOP_CONF_DIR=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/conf.empty/
