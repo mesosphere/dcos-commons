@@ -154,7 +154,7 @@ public class UninstallScheduler extends AbstractScheduler {
     return Arrays.asList(
         plansResource,
         new DeprecatedPlanResource(plansResource),
-        new HealthResource(Collections.singletonList(uninstallPlanManager), schedulerConfig));
+        new HealthResource(getPlanCoordinator(), Optional.empty()));
   }
 
   @Override

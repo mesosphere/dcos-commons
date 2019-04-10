@@ -193,7 +193,7 @@ httpd.serve_forever()
                 subprocess.check_call("dcos package repo remove {}".format(repo["name"]).split())
         logger.info("Adding repository: {} {}".format(repo_name, repo_url))
         subprocess.check_call(
-            "dcos package repo add --index=0 {} {}".format(repo_name, repo_url).split(" ")
+            "dcos package repo add --index=0 {} '{}'".format(repo_name, repo_url).split(" ")
         )
         return True
 
@@ -254,7 +254,7 @@ Artifacts:
     if not repo_added:
         logger.info("dcos package repo remove {}-local".format(package_name))
         logger.info(
-            "dcos package repo add --index=0 {}-local {}".format(package_name, universe_url)
+            "dcos package repo add --index=0 {}-local '{}'".format(package_name, universe_url)
         )
     logger.info("dcos package install --yes {}".format(package_name))
     return 0

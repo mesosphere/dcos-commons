@@ -1,9 +1,9 @@
 package com.mesosphere.sdk.scheduler.multi;
 
-import com.mesosphere.sdk.http.endpoints.HealthResource;
 import com.mesosphere.sdk.http.endpoints.MultiArtifactResource;
 import com.mesosphere.sdk.http.endpoints.MultiConfigResource;
 import com.mesosphere.sdk.http.endpoints.MultiEndpointsResource;
+import com.mesosphere.sdk.http.endpoints.MultiHealthResource;
 import com.mesosphere.sdk.http.endpoints.MultiPlansResource;
 import com.mesosphere.sdk.http.endpoints.MultiPodResource;
 import com.mesosphere.sdk.http.endpoints.MultiStateResource;
@@ -540,7 +540,7 @@ public class MultiServiceEventClient implements MesosEventClient {
         : Collections.emptyList();
     List<Object> endpoints = new ArrayList<>();
     endpoints.addAll(Arrays.asList(
-        new HealthResource(planManagers, schedulerConfig),
+        new MultiHealthResource(planManagers, schedulerConfig),
         new PlansResource(planManagers),
         new MultiArtifactResource(multiServiceManager),
         new MultiConfigResource(multiServiceManager),
