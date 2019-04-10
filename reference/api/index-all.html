@@ -1767,6 +1767,8 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#evaluate-com.mesosphere.sdk.offer.MesosResourcePool-com.mesosphere.sdk.offer.evaluate.PodInfoBuilder-">evaluate(MesosResourcePool, PodInfoBuilder)</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.html#evaluateServiceStatus-boolean-">evaluateServiceStatus(boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#evaluateSimpleResource-Logger-com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.util.Optional-com.mesosphere.sdk.offer.MesosResourcePool-">evaluateSimpleResource(Logger, OfferEvaluationStage, ResourceSpec, Optional&lt;String&gt;, Optional&lt;String&gt;, MesosResourcePool)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluationUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">EvaluationOutcome</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a></dt>
@@ -2522,7 +2524,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html#getDelay--">getDelay()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html" title="class in com.mesosphere.sdk.specification.yaml">RawReadinessCheck</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.html#getDeploymentAndRecoveryManagers-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">getDeploymentAndRecoveryManagers(PlanCoordinator)</a></span> - Static method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/MultiHealthResource.html#getDeploymentAndRecoveryManagers-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-">getDeploymentAndRecoveryManagers(PlanCoordinator)</a></span> - Static method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/MultiHealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiHealthResource</a></dt>
 <dd>
 <div class="block">Returns the <a href="com/mesosphere/sdk/scheduler/plan/PlanManager.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>PlanManager</code></a>(s) which are marked as being for deployment or for recovery.</div>
 </dd>
@@ -2793,7 +2795,11 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/metrics/PlanReporter.html#getHasScraped--">getHasScraped()</a></span> - Method in class com.mesosphere.sdk.metrics.<a href="com/mesosphere/sdk/metrics/PlanReporter.html" title="class in com.mesosphere.sdk.metrics">PlanReporter</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.html#getHealth--">getHealth()</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.html#getHealth-boolean-">getHealth(boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource</a></dt>
+<dd>
+<div class="block">Returns the health of the service as a response code.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/MultiHealthResource.html#getHealth--">getHealth()</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/MultiHealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiHealthResource</a></dt>
 <dd>
 <div class="block">Returns the health of the service as a response code.</div>
 </dd>
@@ -3941,6 +3947,10 @@
 <dd>
 <div class="block">Returns the <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> (translated Service Specification) which was generated by the test.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusResult.html#getServiceStatusCode--">getServiceStatusCode()</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusResult.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource.ServiceStatusResult</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusResult.html#getServiceStatusResponse--">getServiceStatusResponse()</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusResult.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource.ServiceStatusResult</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/PlansTracker.SerializePlansTracker.html#getServiceTopology--">getServiceTopology()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/PlansTracker.SerializePlansTracker.html" title="class in com.mesosphere.sdk.debug">PlansTracker.SerializePlansTracker</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.html#getSharePidNamespace--">getSharePidNamespace()</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec</a></dt>
@@ -4740,16 +4750,18 @@
 </dd>
 <dt><a href="com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">HealthResource</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
 <dd>
-<div class="block">A read-only API for checking whether the service is healthy.</div>
+<div class="block">This class returns a single code representing the status of the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.html#HealthResource-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-com.mesosphere.sdk.scheduler.SchedulerConfig-">HealthResource(PlanCoordinator, SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.html#HealthResource-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-java.util.Optional-">HealthResource(PlanCoordinator, Optional&lt;FrameworkStore&gt;)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusCode.html" title="enum in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">HealthResource.ServiceStatusCode</span></a> - Enum in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
 <dd>
-<div class="block">Creates a new instance which determines health based on the deploy and recovery plans in the provided plan
- coordinator.</div>
+<div class="block">ServiceStatusCode encodes the service status code and priority.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.html#HealthResource-java.util.Collection-com.mesosphere.sdk.scheduler.SchedulerConfig-">HealthResource(Collection&lt;PlanManager&gt;, SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource</a></dt>
+<dt><a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusResult.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">HealthResource.ServiceStatusResult</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
 <dd>
-<div class="block">Creates a new instance which determines health based on the provided plans.</div>
+<div class="block">Wrapper class to combine the <a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusCode.html" title="enum in com.mesosphere.sdk.http.endpoints"><code>HealthResource.ServiceStatusCode</code></a> and <code>Response</code>
+ which can be exposed to testing code.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/placement/HostnameRule.html" title="class in com.mesosphere.sdk.offer.evaluate.placement"><span class="typeNameLink">HostnameRule</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/placement/package-summary.html">com.mesosphere.sdk.offer.evaluate.placement</a></dt>
 <dd>
@@ -5115,15 +5127,20 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonResponse-JSONObject-Response.Status-">jsonResponse(JSONObject, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
-<div class="block">Returns a 200 OK response containing the provided <code>JSONObject</code>.</div>
+<div class="block">Returns a response containing the provided <code>JSONObject</code> and <code>Response.Status</code>.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonResponse-Message-Response.Status-">jsonResponse(Message, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
-<div class="block">Returns a 200 OK response containing a JSON representation of the provided protobuf <code>Message</code>.</div>
+<div class="block">Returns a response containing a JSON representation of the provided protobuf <code>Message</code>
+ and <code>Response.Status</code>.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonResponseBean-JSONObject-int-">jsonResponseBean(JSONObject, int)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
+<dd>
+<div class="block">Returns a response containing the provided JSON <code>String</code> and status.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/ResponseUtils.html#jsonResponseBean-java.lang.Object-Response.Status-">jsonResponseBean(Object, Response.Status)</a></span> - Static method in class com.mesosphere.sdk.http.<a href="com/mesosphere/sdk/http/ResponseUtils.html" title="class in com.mesosphere.sdk.http">ResponseUtils</a></dt>
 <dd>
-<div class="block">Returns a 200 OK response containing the provided JSON <code>String</code>.</div>
+<div class="block">Returns a response containing the provided JSON <code>String</code> and <code>Response.Status</code>.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/state/JsonSerializer.html" title="class in com.mesosphere.sdk.state"><span class="typeNameLink">JsonSerializer</span></a> - Class in <a href="com/mesosphere/sdk/state/package-summary.html">com.mesosphere.sdk.state</a></dt>
 <dd>
@@ -5537,6 +5554,19 @@
 <dd>
 <div class="block">Creates a new instance which retrieves task/pod state from the provided <a href="com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state"><code>StateStore</code></a>,
  using the provided <code>sanitizedServiceName</code> for endpoint paths.</div>
+</dd>
+<dt><a href="com/mesosphere/sdk/http/endpoints/MultiHealthResource.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">MultiHealthResource</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
+<dd>
+<div class="block">A read-only API for checking whether the service is healthy.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/MultiHealthResource.html#MultiHealthResource-com.mesosphere.sdk.scheduler.plan.PlanCoordinator-com.mesosphere.sdk.scheduler.SchedulerConfig-">MultiHealthResource(PlanCoordinator, SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/MultiHealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiHealthResource</a></dt>
+<dd>
+<div class="block">Creates a new instance which determines health based on the deploy and recovery plans in the provided plan
+ coordinator.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/MultiHealthResource.html#MultiHealthResource-java.util.Collection-com.mesosphere.sdk.scheduler.SchedulerConfig-">MultiHealthResource(Collection&lt;PlanManager&gt;, SchedulerConfig)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/MultiHealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiHealthResource</a></dt>
+<dd>
+<div class="block">Creates a new instance which determines health based on the provided plans.</div>
 </dd>
 <dt><a href="com/mesosphere/sdk/http/endpoints/MultiPlansResource.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">MultiPlansResource</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
 <dd>
@@ -7494,6 +7524,8 @@
 <dd>
 <div class="block">Defines a Service's configuration.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusResult.html#ServiceStatusResult-java.util.Optional-Response-">ServiceStatusResult(Optional&lt;HealthResource.ServiceStatusCode&gt;, Response)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusResult.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource.ServiceStatusResult</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/multi/ServiceStore.html" title="class in com.mesosphere.sdk.scheduler.multi"><span class="typeNameLink">ServiceStore</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/multi/package-summary.html">com.mesosphere.sdk.scheduler.multi</a></dt>
 <dd>
 <div class="block">Default implementation of persistent storage which keeps track of the services that have been added to a dynamic
@@ -9307,6 +9339,10 @@
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusCode.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusCode.html" title="enum in com.mesosphere.sdk.http.endpoints">HealthResource.ServiceStatusCode</a></dt>
+<dd>
+<div class="block">Returns the enum constant of this type with the specified name.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementField.html#valueOf-java.lang.String-">valueOf(String)</a></span> - Static method in enum com.mesosphere.sdk.offer.evaluate.placement.<a href="com/mesosphere/sdk/offer/evaluate/placement/PlacementField.html" title="enum in com.mesosphere.sdk.offer.evaluate.placement">PlacementField</a></dt>
 <dd>
 <div class="block">Returns the enum constant of this type with the specified name.</div>
@@ -9395,6 +9431,11 @@ the order they are declared.</div>
 the order they are declared.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.ConfigException.Type.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.ConfigException.Type.html" title="enum in com.mesosphere.sdk.framework">EnvStore.ConfigException.Type</a></dt>
+<dd>
+<div class="block">Returns an array containing the constants of this enum type, in
+the order they are declared.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusCode.html#values--">values()</a></span> - Static method in enum com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusCode.html" title="enum in com.mesosphere.sdk.http.endpoints">HealthResource.ServiceStatusCode</a></dt>
 <dd>
 <div class="block">Returns an array containing the constants of this enum type, in
 the order they are declared.</div>

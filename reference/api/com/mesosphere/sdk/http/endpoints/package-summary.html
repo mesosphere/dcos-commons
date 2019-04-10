@@ -120,25 +120,38 @@
 <tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource</a></td>
 <td class="colLast">
-<div class="block">A read-only API for checking whether the service is healthy.</div>
+<div class="block">This class returns a single code representing the status of the service.</div>
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusResult.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource.ServiceStatusResult</a></td>
+<td class="colLast">
+<div class="block">Wrapper class to combine the <a href="../../../../../com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusCode.html" title="enum in com.mesosphere.sdk.http.endpoints"><code>HealthResource.ServiceStatusCode</code></a> and <code>Response</code>
+ which can be exposed to testing code.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/http/endpoints/MultiArtifactResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiArtifactResource</a></td>
 <td class="colLast">
 <div class="block">A read-only API for accessing file artifacts (e.g.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/http/endpoints/MultiConfigResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiConfigResource</a></td>
 <td class="colLast">
 <div class="block">A read-only API for accessing active and inactive configurations from persistent storage.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/http/endpoints/MultiEndpointsResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiEndpointsResource</a></td>
 <td class="colLast">
 <div class="block">A read-only API for accessing information about how to connect to the service.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/http/endpoints/MultiHealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">MultiHealthResource</a></td>
+<td class="colLast">
+<div class="block">A read-only API for checking whether the service is healthy.</div>
 </td>
 </tr>
 <tr class="altColor">
@@ -191,6 +204,23 @@
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/http/endpoints/TaskStatusesResource.html" title="class in com.mesosphere.sdk.http.endpoints">TaskStatusesResource</a></td>
 <td class="colLast">
 <div class="block">A read-only API taskStatuses.</div>
+</td>
+</tr>
+</tbody>
+</table>
+</li>
+<li class="blockList">
+<table class="typeSummary" border="0" cellpadding="3" cellspacing="0" summary="Enum Summary table, listing enums, and an explanation">
+<caption><span>Enum Summary</span><span class="tabEnd">&nbsp;</span></caption>
+<tr>
+<th class="colFirst" scope="col">Enum</th>
+<th class="colLast" scope="col">Description</th>
+</tr>
+<tbody>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/http/endpoints/HealthResource.ServiceStatusCode.html" title="enum in com.mesosphere.sdk.http.endpoints">HealthResource.ServiceStatusCode</a></td>
+<td class="colLast">
+<div class="block">ServiceStatusCode encodes the service status code and priority.</div>
 </td>
 </tr>
 </tbody>
