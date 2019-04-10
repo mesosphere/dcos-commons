@@ -24,28 +24,13 @@ import java.util.stream.Collectors;
 // CHECKSTYLE:OFF LineLengthCheck
 
 /**
- * This class returns a single code representing the status of the service
- * with the following priority.
- * HTTP Response Code, Priority, Reason
- * 318, 1, Initializing
- * 200, 1, Running
- * 500, 1, Error Creating Service
- * 204, 2, Deploying:Pending
- * 202, 2, Deploying:Starting
- * 203, 2, Deploying:Waiting_User
- * 206, 3, Degraded
- * 203, 4, Recovering:Pending
- * 205, 4, Recovering:Starting
- * 320, 5, Backing Up
- * 321, 5, Restoring
- * 326, 6, Upgrade/Rollback/Downgrade
- * 503,  , Service Unavailable (Priority Undefined)
+ * This class returns a single code representing the status of the service.
  */
 @Path("/v1/health")
 public class HealthResource {
 
   /**
-   * ServiceStatusCode encodes the service status code.
+   * ServiceStatusCode encodes the service status code and priority.
    */
   @VisibleForTesting
   protected enum ServiceStatusCode {
@@ -93,8 +78,7 @@ public class HealthResource {
    */
   @GET
   public Response getHealth(@QueryParam("verbose") boolean isVerbose) {
-    ServiceStatusResult serviceStatusResult = evaluateServiceStatus(isVerbose);
-    return serviceStatusResult.getServiceStatusResponse();
+    return evaluateServiceStatus(isVerbose).getServiceStatusResponse();
   }
 
   @VisibleForTesting

@@ -93,7 +93,7 @@ public class HealthResourceTest {
   }
 
   @Before
-  public void setupTest() throws Exception {
+  public void setupTest() {
     MockitoAnnotations.initMocks(this);
   }
 
