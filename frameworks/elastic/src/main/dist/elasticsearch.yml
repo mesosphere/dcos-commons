@@ -53,6 +53,8 @@ xpack.security.transport.ssl.enabled: true
 # Client encryption
 xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
+xpack.monitoring.enabled: {{XPACK_MONITORING_ENABLED}}
+xpack.ml.enabled: {{XPACK_ML_ENABLED}}
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 {{^SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 # X-Pack security is enabled without TLS.

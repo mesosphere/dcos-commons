@@ -1060,6 +1060,16 @@
           "description": "[DEPRECATED] Starting from Elasticseach 6.0, this setting is no longer configurable and defaults to true. Changing this setting has no effect.",
           "type": "boolean",
           "default": true
+        },
+        "xpack_monitoring_enabled": {
+          "description": "X-Pack monitoring is enabled by default on Elastic 6.3+. Changing this setting has no effect.",
+          "type": "boolean",
+          "default": true
+        },
+        "xpack_ml_enabled": {
+          "description": "X-Pack ml is enabled by default on Elastic 6.3+. Changing this setting has no effect.",
+          "type": "boolean",
+          "default": true
         }
       }
     }
