@@ -1075,6 +1075,11 @@
           "description": "X-Pack ml is enabled by default on Elastic 6.3+. Changing this setting has no effect.",
           "type": "boolean",
           "default": true
+        },
+        "xpack_reporting_enabled": {
+          "description": "X-Pack Monitoring us enabled by default on Elastic 6.3+. Changing this setting has no effect.",
+          "type": "boolean",
+          "default": true
         }
       }
     }
