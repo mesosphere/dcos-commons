@@ -59,10 +59,23 @@
     {{^service.security.transport_encryption.enabled}}
     "CASSANDRA_CQLSH_SSL_FLAGS": "",
     {{/service.security.transport_encryption.enabled}}
+    
+
+
+
+    {{#service.security.authentication.enabled}}
+    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "PasswordAuthenticator",
+    {{/service.security.authentication.enabled}}
+    {{^service.security.authentication.enabled}}
+    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "",
+    {{/service.security.authentication.enabled}}
+
+    "NEW_SUPERUSER": "{{service.security.authentication.superuser.name}}",
+
+
 
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
-    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "{{cassandra.authenticator}}",
-    "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "{{cassandra.authorizer}}",
+    "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "",
     "NODES": "{{nodes.count}}",
     "CASSANDRA_CPUS": "{{nodes.cpus}}",
     "CASSANDRA_MEMORY_MB": "{{nodes.mem}}",
