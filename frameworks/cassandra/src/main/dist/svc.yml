@@ -11,6 +11,10 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
+    secrets:
+      publicapikey:
+        secret: {{TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+        file: new_user_password
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
@@ -257,11 +261,16 @@ pods:
                 {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
                 {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+                export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
+                echo $NEW_USER_PASSWORD ;
                 ./bootstrap --resolve=false &&
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair system_auth        
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair system_auth &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "CREATE ROLE {{TASKCFG_ALL_NEW_SUPERUSER}} WITH PASSWORD = '${NEW_USER_PASSWORD}' AND SUPERUSER = true AND LOGIN = true;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "ALTER ROLE cassandra WITH PASSWORD='SomeNonsenseThatNoOneWillThinkO' AND SUPERUSER=false;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                echo "XXXXXXXXXXXXXXXXXXXXXXXXXXXX"
         resource-set: sidecar-resources
         configs:
           cassandra:
