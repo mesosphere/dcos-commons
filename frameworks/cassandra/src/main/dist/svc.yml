@@ -113,13 +113,14 @@ pods:
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
+                export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 mkdir container-path/snapshot ;
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
         resource-set: sidecar-resources
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         configs:
@@ -196,12 +197,13 @@ pods:
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
                 export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
+                export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false
 
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
         resource-set: sidecar-resources
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         configs:
