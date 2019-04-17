@@ -12,6 +12,7 @@ import sdk_plan
 import sdk_tasks
 import sdk_upgrade
 import sdk_utils
+import sdk_agents
 
 from tests import config
 
@@ -103,6 +104,39 @@ def test_bump_hello_cpus():
     assert len(running_tasks) == config.hello_task_count(foldered_name)
     for t in running_tasks:
         assert config.close_enough(t.resources["cpus"], updated_cpus)
+
+
+@pytest.mark.sanity
+@pytest.mark.smoke
+def test_lost_tasks_repeatedly_killing():
+    # Testing steps:
+    # 1. install hello-world
+    # 2. pause a pod, and immediately kill the scheduler
+    # 3. bring down an agent running that pod
+    # 4. bring the scheduler back up
+    # 5. see what happens
+
+    try:
+        # 1. install hello-world
+        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, config.DEFAULT_TASK_COUNT)
+
+        # 2. pause a pod, and immediately kill the scheduler
+        rc, stdout, _ = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "debug pod pause hello-0")
+        assert rc == 0, "Pod pause failed"
+        sdk_cmd.kill_task_with_pattern(
+            "./hello-world-scheduler/bin/helloworld",
+            "nobody",
+            agent_host=sdk_marathon.get_scheduler_host(config.SERVICE_NAME),)
+
+        # 3. bring down an agent running that pod
+        candidate_tasks = sdk_tasks.get_summary(task_name="hello-0-server")
+        hostname = candidate_tasks[0].host
+        sdk_agents.partition_agent(hostname)
+
+        # 4. bring the scheduler back up
+        sdk_agents.reconnect_agent(hostname)
+    finally:
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
 @pytest.mark.sanity
