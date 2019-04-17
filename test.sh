@@ -13,42 +13,43 @@ set -e
 timestamp="$(date +%y%m%d-%H%M%S)"
 # Create a temp file for docker env.
 # When the script exits (successfully or otherwise), clean up the file automatically.
-tmp_aws_creds_path="$(mktemp /tmp/sdk-test-creds-${timestamp}-XXXX.tmp)"
-envfile="$(mktemp /tmp/sdk-test-env-${timestamp}-XXXX.tmp)"
+tmp_aws_creds_path="$(mktemp "/tmp/sdk-test-creds-${timestamp}-XXXX.tmp")"
+envfile="$(mktemp "/tmp/sdk-test-env-${timestamp}-XXXX.tmp")"
 function cleanup {
-    rm -f ${tmp_aws_creds_path}
-    rm -f ${envfile}
+  rm -f "${tmp_aws_creds_path}"
+  rm -f "${envfile}"
 }
 trap cleanup EXIT
 
-REPO_ROOT_DIR=${REPO_ROOT_DIR:="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"}
+REPO_ROOT_DIR=${REPO_ROOT_DIR:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
 WORK_DIR="/build" # where REPO_ROOT_DIR is mounted within the image
 
 # Find out what framework(s) are available.
 # - If there's a <REPO>/frameworks directory, get values from there.
 # - Otherwise just use the name of the repo directory.
 # If there's multiple options, the user needs to pick one. If there's only one option then we'll use that automatically.
-if [ -d $REPO_ROOT_DIR/frameworks ]; then
-    # mono-repo (e.g. dcos-commons)
-    FRAMEWORK_LIST=$(ls $REPO_ROOT_DIR/frameworks | sort | xargs echo -n)
+if [ -d "${REPO_ROOT_DIR}/frameworks" ]; then
+  # mono-repo (e.g. dcos-commons)
+  FRAMEWORK_LIST=$(find frameworks -maxdepth 1 -mindepth 1 -type d "${REPO_ROOT_DIR}/frameworks" | sort | xargs echo -n)
 else
-    # standalone repo (e.g. spark-build)
-    FRAMEWORK_LIST=$(basename ${REPO_ROOT_DIR})
+  # standalone repo (e.g. spark-build)
+  FRAMEWORK_LIST=$(basename "${REPO_ROOT_DIR}")
 fi
 
-
-if [ -n "$AZURE_DEV_CLIENT_ID" -a -n "$AZURE_DEV_CLIENT_SECRET" -a \
-        -n "$AZURE_DEV_TENANT_ID" -a -n "$AZURE_DEV_STORAGE_ACCOUNT" -a \
-        -n "$AZURE_DEV_STORAGE_KEY" ]; then
-    azure_enabled="true"
+if [ -n "${AZURE_DEV_CLIENT_ID}" ] \
+     && [ -n "${AZURE_DEV_CLIENT_SECRET}" ] \
+     && [ -n "${AZURE_DEV_TENANT_ID}" ] \
+     && [ -n "${AZURE_DEV_STORAGE_ACCOUNT}" ] \
+     && [ -n "${AZURE_DEV_STORAGE_KEY}" ]; then
+  azure_enabled="true"
 fi
 
 # Set default values
 security="permissive"
-if [ -n "$azure_enabled" ]; then
-    pytest_m="sanity"
+if [ -n "${azure_enabled}" ]; then
+  pytest_m="sanity"
 else
-    pytest_m="sanity and not azure"
+  pytest_m="sanity and not azure"
 fi
 gradle_cache="${REPO_ROOT_DIR}/.gradle_cache"
 ssh_path="${HOME}/.ssh/ccm.pem"
@@ -58,337 +59,340 @@ enterprise="true"
 headless="false"
 interactive="false"
 package_registry="false"
-docker_command=${DOCKER_COMMAND:="bash /build-tools/test_runner.sh $WORK_DIR"}
-docker_image=${DOCKER_IMAGE:-"mesosphere/dcos-commons:latest"}
+docker_command="${DOCKER_COMMAND:=bash /build-tools/test_runner.sh ${WORK_DIR}}"
+docker_image="${DOCKER_IMAGE:-mesosphere/dcos-commons:latest}"
 env_passthrough=
 envfile_input=
 
 function usage()
 {
-    echo "Usage: $0 [flags] [framework:$(echo $FRAMEWORK_LIST | sed 's/ /,/g')]"
-    echo ""
-    echo "Flags:"
-    echo "  -m $pytest_m"
-    echo "  -k <args>"
-    echo "    Test filters passed through to pytest. Other arguments may be passed with PYTEST_ARGS."
-    echo "  -s"
-    echo "    Using a strict mode cluster: configure/use ACLs."
-    echo "  -o"
-    echo "    Using an Open DC/OS cluster: skip Enterprise-only features."
-    echo "  -p $ssh_path"
-    echo "    Path to cluster SSH key."
-    echo "  -l $ssh_user"
-    echo "    Username to use for SSH commands into the cluster."
-    echo "  -e $env_passthrough"
-    echo "    A comma-separated list of environment variables to pass through to the running docker container"
-    echo "  --envfile $envfile_input"
-    echo "    A path to an envfile to pass to the docker container in addition to those required by the test scripts"
-    echo "  -i/--interactive"
-    echo "    Open a shell prompt in the docker container, without actually running any tests. Equivalent to DOCKER_COMMAND=bash"
-    echo "  --headless"
-    echo "    Run docker command in headless mode, without attaching to stdin. Sometimes needed in CI."
-    echo "  --package-registry"
-    echo "    Enables using a package registry to install packages. Works in 1.12.1 and above only."
-    echo "  --dcos-files-path DIR"
-    echo "    Sets the directory to look for .dcos files. If empty, uses stub universe urls to build .dcos file(s)."
-    echo "  --gradle-cache $gradle_cache"
-    echo "    Sets the gradle build cache to the specified path. Setting this to \"\" disables the cache."
-    echo "  -a/--aws $aws_creds_path"
-    echo "    Path to an AWS credentials file. Overrides any AWS_* env credentials."
-    echo "  --aws-profile ${AWS_PROFILE:=NAME}"
-    echo "    The AWS profile to use. Only required when using an AWS credentials file with multiple profiles."
-    echo ""
-    echo "Environment:"
-    echo "  CLUSTER_URL"
-    echo "    URL to cluster. If unset then a cluster will be created using dcos-launch"
-    echo "  STUB_UNIVERSE_URL"
-    echo "    One or more comma-separated stub-universe URLs. If unset then a build will be performed internally."
-    echo "  DCOS_LOGIN_USERNAME/DCOS_LOGIN_PASSWORD"
-    echo "    Custom login credentials to use for the cluster."
-    echo "  AZURE_[CLIENT_ID,CLIENT_SECRET,TENANT_ID,STORAGE_ACCOUNT,STORAGE_KEY]"
-    echo "    Enables Azure tests. The -m default is automatically updated to include any Azure tests."
-    echo "  AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY or AWS_DEV_ACCESS_KEY_ID/AWS_DEV_SECRET_ACCESS_KEY"
-    echo "    AWS credentials to use if the credentials file is unavailable."
-    echo "  S3_BUCKET"
-    echo "    S3 bucket to use for testing."
-    echo "  DOCKER_COMMAND=$docker_command"
-    echo "    Command to be run within the docker image (e.g. 'DOCKER_COMMAND=bash' to just get a prompt)"
-    echo "  REPO_ROOT_DIR=${REPO_ROOT_DIR}"
-    echo "    Allows for overriding the location of the repository's root directory. Autodetected by default."
-    echo "    Must be an absolute path."
-    echo "  PYTEST_ARGS"
-    echo "    Additional arguments (other than -m or -k) to pass to pytest."
-    echo "  TEST_SH_*"
-    echo "    Anything starting with TEST_SH_* will be forwarded to the container with that prefix removed."
-    echo "    For example, 'TEST_SH_FOO=BAR' is included as 'FOO=BAR'."
+  echo "Usage: $0 [flags] [framework:${FRAMEWORK_LIST// /,}]"
+  echo ""
+  echo "Flags:"
+  echo "  -m ${pytest_m}"
+  echo "  -k <args>"
+  echo "    Test filters passed through to pytest. Other arguments may be passed with PYTEST_ARGS."
+  echo "  -s"
+  echo "    Using a strict mode cluster: configure/use ACLs."
+  echo "  -o"
+  echo "    Using an Open DC/OS cluster: skip Enterprise-only features."
+  echo "  -p ${ssh_path}"
+  echo "    Path to cluster SSH key."
+  echo "  -l ${ssh_user}"
+  echo "    Username to use for SSH commands into the cluster."
+  echo "  -e ${env_passthrough}"
+  echo "    A comma-separated list of environment variables to pass through to the running docker container"
+  echo "  --envfile ${envfile_input}"
+  echo "    A path to an envfile to pass to the docker container in addition to those required by the test scripts"
+  echo "  -i/--interactive"
+  echo "    Open a shell prompt in the docker container, without actually running any tests. Equivalent to DOCKER_COMMAND=bash"
+  echo "  --headless"
+  echo "    Run docker command in headless mode, without attaching to stdin. Sometimes needed in CI."
+  echo "  --package-registry"
+  echo "    Enables using a package registry to install packages. Works in 1.12.1 and above only."
+  echo "  --dcos-files-path DIR"
+  echo "    Sets the directory to look for .dcos files. If empty, uses stub universe urls to build .dcos file(s)."
+  echo "  --gradle-cache ${gradle_cache}"
+  echo "    Sets the gradle build cache to the specified path. Setting this to \"\" disables the cache."
+  echo "  -a/--aws ${aws_creds_path}"
+  echo "    Path to an AWS credentials file. Overrides any AWS_* env credentials."
+  echo "  --aws-profile ${AWS_PROFILE:=NAME}"
+  echo "    The AWS profile to use. Only required when using an AWS credentials file with multiple profiles."
+  echo ""
+  echo "Environment:"
+  echo "  CLUSTER_URL"
+  echo "    URL to cluster. If unset then a cluster will be created using dcos-launch"
+  echo "  STUB_UNIVERSE_URL"
+  echo "    One or more comma-separated stub-universe URLs. If unset then a build will be performed internally."
+  echo "  DCOS_LOGIN_USERNAME/DCOS_LOGIN_PASSWORD"
+  echo "    Custom login credentials to use for the cluster."
+  echo "  AZURE_[CLIENT_ID,CLIENT_SECRET,TENANT_ID,STORAGE_ACCOUNT,STORAGE_KEY]"
+  echo "    Enables Azure tests. The -m default is automatically updated to include any Azure tests."
+  echo "  AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY or AWS_DEV_ACCESS_KEY_ID/AWS_DEV_SECRET_ACCESS_KEY"
+  echo "    AWS credentials to use if the credentials file is unavailable."
+  echo "  S3_BUCKET"
+  echo "    S3 bucket to use for testing."
+  echo "  DOCKER_COMMAND=${docker_command}"
+  echo "    Command to be run within the docker image (e.g. 'DOCKER_COMMAND=bash' to just get a prompt)"
+  echo "  REPO_ROOT_DIR=${REPO_ROOT_DIR}"
+  echo "    Allows for overriding the location of the repository's root directory. Autodetected by default."
+  echo "    Must be an absolute path."
+  echo "  PYTEST_ARGS"
+  echo "    Additional arguments (other than -m or -k) to pass to pytest."
+  echo "  TEST_SH_*"
+  echo "    Anything starting with TEST_SH_* will be forwarded to the container with that prefix removed."
+  echo "    For example, 'TEST_SH_FOO=BAR' is included as 'FOO=BAR'."
 }
 
-if [ x"${1//-/}" == x"help" -o x"${1//-/}" == x"h" ]; then
-    usage
-    exit 1
+if [ x"${1//-/}" == x"help" ] || [ x"${1//-/}" == x"h" ]; then
+  usage
+  exit 1
 fi
 
 framework=""
 
-while [[ $# -gt 0 ]]; do
-key="$1"
-case $key in
+while [[ ${#} -gt 0 ]]; do
+  key="${1}"
+  case "${key}" in
     -m)
-    pytest_m="$2"
-    shift
-    ;;
+      pytest_m="${2}"
+      shift
+      ;;
     -k)
-    pytest_k="$2"
-    shift
-    ;;
+      pytest_k="${2}"
+      shift
+      ;;
     -s)
-    security="strict"
-    ;;
+      security="strict"
+      ;;
     -o|--open)
-    enterprise="false"
-    ;;
+      enterprise="false"
+      ;;
     -p)
-    if [[ ! -f "$2" ]]; then echo "File not found: -p $2"; exit 1; fi
-    ssh_path="$2"
-    shift
-    ;;
+      if [[ ! -f "${2}" ]]; then echo "File not found: -p ${2}"; exit 1; fi
+      ssh_path="${2}"
+      shift
+      ;;
     -l)
-    ssh_user="$2"
-    shift
-    ;;
+      ssh_user="${2}"
+      shift
+      ;;
     -e)
-    env_passthrough="$2"
-    shift
-    ;;
+      env_passthrough="${2}"
+      shift
+      ;;
     --envfile)
-    if [[ ! -f "$2" ]]; then echo "File not found: $key $2"; exit 1; fi
-    envfile_input="$2"
-    shift
-    ;;
+      if [[ ! -f "${2}" ]]; then echo "File not found: ${key} ${2}"; exit 1; fi
+      envfile_input="${2}"
+      shift
+      ;;
     -i|--interactive)
-    if [[ x"$headless" == x"true" ]]; then echo "Cannot enable both --headless and --interactive: Disallowing background prompt that runs forever."; exit 1; fi
-    interactive="true"
-    ;;
+      if [[ x"${headless}" == x"true" ]]; then echo "Cannot enable both --headless and --interactive: Disallowing background prompt that runs forever."; exit 1; fi
+      interactive="true"
+      ;;
     --headless)
-    if [[ x"$interactive" == x"true" ]]; then echo "Cannot enable both --headless and --interactive: Disallowing background prompt that runs forever."; exit 1; fi
-    headless="true"
-    ;;
+      if [[ x"${interactive}" == x"true" ]]; then echo "Cannot enable both --headless and --interactive: Disallowing background prompt that runs forever."; exit 1; fi
+      headless="true"
+      ;;
     --package-registry)
-    package_registry="true"
-    ;;
+      package_registry="true"
+      ;;
     --dcos-files-path)
-    if [[ ! -d "$2" ]]; then echo "Directory not found: --dcos-files-path $2"; exit 1; fi
-    # Resolve abs path:
-    dcos_files_path="$( cd "$( dirname "$2" )" && pwd )/$(basename "$2")"
-    shift
-    ;;
+      if [[ ! -d "${2}" ]]; then echo "Directory not found: --dcos-files-path ${2}"; exit 1; fi
+      # Resolve abs path:
+      dcos_files_path="$(cd "$(dirname "${2}")" && pwd)/$(basename "${2}")"
+      shift
+      ;;
     --gradle-cache)
-    if [[ ! -d "$2" ]]; then echo "Directory not found: --gradle-cache $2"; exit 1; fi
-    gradle_cache="$2"
-    shift
-    ;;
+      if [[ ! -d "${2}" ]]; then echo "Directory not found: --gradle-cache ${2}"; exit 1; fi
+      gradle_cache="${2}"
+      shift
+      ;;
     -a|--aws)
-    if [[ ! -f "$2" ]]; then echo "File not found: -a/--aws $2"; exit 1; fi
-    aws_creds_path="$2"
-    shift
-    ;;
+      if [[ ! -f "${2}" ]]; then echo "File not found: -a/--aws ${2}"; exit 1; fi
+      aws_creds_path="${2}"
+      shift
+      ;;
     --aws-profile)
-    aws_profile="$2"
-    shift
-    ;;
+      aws_profile="${2}"
+      shift
+      ;;
     -*)
-    echo "Unknown option: $key"
-    usage
-    exit 1
-    ;;
+      echo "Unknown option: ${key}"
+      usage
+      exit 1
+      ;;
     *)
-    if [[ -n "$framework" ]]; then echo "Multiple frameworks specified, please only specify one at a time: $framework $@"; exit 1; fi
-    framework=$key
-    ;;
-esac
-shift # past argument or value
+      if [[ -n "${framework}" ]]; then
+        echo "Multiple frameworks specified, please only specify one at a time: ${framework} ${*}"
+        exit 1
+      fi
+      framework="${key}"
+      ;;
+  esac
+  shift # past argument or value
 done
 
-if [ -z "$framework" -a x"$interactive" != x"true" -a x"$DOCKER_COMMAND" == x"" ]; then
-    # If FRAMEWORK_LIST only has one option, use that. Otherwise complain.
-    if [ $(echo $FRAMEWORK_LIST | wc -w) == 1 ]; then
-        framework=$FRAMEWORK_LIST
-    else
-        echo "Multiple frameworks in $(basename $REPO_ROOT_DIR)/frameworks/, please specify one to test: $FRAMEWORK_LIST"
-        exit 1
-    fi
-elif [ "$framework" = "all" ]; then
-    echo "'all' is no longer supported. Please specify one framework to test: $FRAMEWORK_LIST"
+if [ -z "${framework}" ] && [ x"${interactive}" != x"true" ] && [ x"${DOCKER_COMMAND}" == x"" ]; then
+  # If FRAMEWORK_LIST only has one option, use that. Otherwise complain.
+  if [ "$(echo "${FRAMEWORK_LIST}" | wc -w)" == 1 ]; then
+    framework="${FRAMEWORK_LIST}"
+  else
+    echo "Multiple frameworks in $(basename "${REPO_ROOT_DIR}")/frameworks/, please specify one to test: ${FRAMEWORK_LIST}"
     exit 1
+  fi
+elif [ "${framework}" = "all" ]; then
+  echo "'all' is no longer supported. Please specify one framework to test: ${FRAMEWORK_LIST}"
+  exit 1
 fi
 
-volume_args="-v ${REPO_ROOT_DIR}:$WORK_DIR"
+volume_args="-v ${REPO_ROOT_DIR}:${WORK_DIR}"
 
-if [ -z "$CLUSTER_URL" -a x"$interactive" == x"true" ]; then
-    CLUSTER_URL="$(dcos config show core.dcos_url)"
-    echo "CLUSTER_URL not specified. Using attached cluster ${CLUSTER_URL} in interactive mode"
+if [ -z "${CLUSTER_URL}" ] && [ x"${interactive}" == x"true" ]; then
+  CLUSTER_URL="$(dcos config show core.dcos_url)"
+  echo "CLUSTER_URL not specified. Using attached cluster ${CLUSTER_URL} in interactive mode"
 fi
 
 # Configure SSH key for getting into the cluster during tests
-if [ -f "$ssh_path" ]; then
-    volume_args="$volume_args -v $ssh_path:/ssh/key" # pass provided key into docker env
+if [ -f "${ssh_path}" ]; then
+  volume_args="${volume_args} -v ${ssh_path}:/ssh/key" # pass provided key into docker env
 else
-    if [ -n "$CLUSTER_URL" ]; then
-        # If the user is providing us with a cluster, we require the SSH key for that cluster.
-        echo "SSH key not found at $ssh_path. Use -p <path/to/id_rsa> to customize this path."
-        echo "An SSH key is required for communication with the provided CLUSTER_URL=$CLUSTER_URL"
-        exit 1
-    fi
-    # Don't need ssh key now: test_runner.sh will extract the key after cluster launch
+  if [ -n "${CLUSTER_URL}" ]; then
+    # If the user is providing us with a cluster, we require the SSH key for that cluster.
+    echo "SSH key not found at ${ssh_path}. Use -p <path/to/id_rsa> to customize this path."
+    echo "An SSH key is required for communication with the provided CLUSTER_URL=${CLUSTER_URL}"
+    exit 1
+  fi
+  # Don't need ssh key now: test_runner.sh will extract the key after cluster launch
 fi
 
 # Configure the AWS credentials profile
 if [ -n "${aws_profile}" ]; then
-    echo "Using provided --aws-profile: ${aws_profile}"
-elif [ -n "$AWS_PROFILE" ]; then
-    echo "Using provided AWS_PROFILE: $AWS_PROFILE"
-    aws_profile=$AWS_PROFILE
+  echo "Using provided --aws-profile: ${aws_profile}"
+elif [ -n "${AWS_PROFILE}" ]; then
+  echo "Using provided AWS_PROFILE: ${AWS_PROFILE}"
+  aws_profile="${AWS_PROFILE}"
 elif [ -f "${aws_creds_path}" ]; then
-    # Check the creds file. If there's exactly one profile, then use that profile.
-    available_profiles=$(grep -oE '^\[\S+\]' $aws_creds_path | tr -d '[]') # find line(s) that look like "[profile]", remove "[]"
-    available_profile_count=$(echo "$available_profiles" | wc -l)
-    if [ "$available_profile_count" == "1" ]; then
-        aws_profile=$available_profiles
-        echo "Using sole profile in $aws_creds_path: $aws_profile"
-    else
-        echo "Expected 1 profile in $aws_creds_path, found $available_profile_count: ${available_profiles}"
-        echo "Please specify --aws-profile or \$AWS_PROFILE to select a profile"
-        exit 1
-    fi
+  # Check the creds file. If there's exactly one profile, then use that profile.
+  available_profiles="$(grep -oE '^\[\S+\]' "${aws_creds_path}" | tr -d '[]')" # find line(s) that look like "[profile]", remove "[]"
+  available_profile_count="$(echo "${available_profiles}" | wc -l)"
+  if [ "${available_profile_count}" == "1" ]; then
+    aws_profile="${available_profiles}"
+    echo "Using sole profile in ${aws_creds_path}: ${aws_profile}"
+  else
+    echo "Expected 1 profile in ${aws_creds_path}, found ${available_profile_count}: ${available_profiles}"
+    echo "Please specify --aws-profile or \$AWS_PROFILE to select a profile"
+    exit 1
+  fi
 else
-    echo "No AWS profile specified, using 'default'"
-    aws_profile="default"
+  echo "No AWS profile specified, using 'default'"
+  aws_profile="default"
 fi
 
 # Write the AWS credential file (deleted on script exit)
 if [ -f "${aws_creds_path}" ]; then
-    aws_credential_file_mount_target="${aws_creds_path}"
+  aws_credential_file_mount_target="${aws_creds_path}"
 else
-    # CI environments may have creds in AWS_DEV_* envvars, map them to AWS_*:
-    if [ -n "${AWS_DEV_ACCESS_KEY_ID}" -a -n "${AWS_DEV_SECRET_ACCESS_KEY}}" ]; then
-        AWS_ACCESS_KEY_ID="${AWS_DEV_ACCESS_KEY_ID}"
-        AWS_SECRET_ACCESS_KEY="${AWS_DEV_SECRET_ACCESS_KEY}"
-    fi
-    # Check AWS_* envvars for credentials, create temp creds file using those credentials:
-    if [ -n "${AWS_ACCESS_KEY_ID}" -a -n "${AWS_SECRET_ACCESS_KEY}}" ]; then
-        echo "Writing AWS env credentials to temporary file: $tmp_aws_creds_path"
-        cat > $tmp_aws_creds_path <<EOF
+  # CI environments may have creds in AWS_DEV_* envvars, map them to AWS_*:
+  if [ -n "${AWS_DEV_ACCESS_KEY_ID}" ] && [ -n "${AWS_DEV_SECRET_ACCESS_KEY}" ]; then
+    AWS_ACCESS_KEY_ID="${AWS_DEV_ACCESS_KEY_ID}"
+    AWS_SECRET_ACCESS_KEY="${AWS_DEV_SECRET_ACCESS_KEY}"
+  fi
+  # Check AWS_* envvars for credentials, create temp creds file using those credentials:
+  if [ -n "${AWS_ACCESS_KEY_ID}" ] && [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
+    echo "Writing AWS env credentials to temporary file: ${tmp_aws_creds_path}"
+    cat > "${tmp_aws_creds_path}" <<EOF
 [${aws_profile}]
 aws_access_key_id = ${AWS_ACCESS_KEY_ID}
 aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
 EOF
-    else
-        echo "Missing AWS credentials file (${aws_creds_path}) and AWS env (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)"
-        exit 1
-    fi
-    aws_credential_file_mount_target="${tmp_aws_creds_path}"
+  else
+    echo "Missing AWS credentials file (${aws_creds_path}) and AWS env (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)"
+    exit 1
+  fi
+  aws_credential_file_mount_target="${tmp_aws_creds_path}"
 fi
-volume_args="$volume_args -v $aws_credential_file_mount_target:/root/.aws/credentials:ro"
+volume_args="${volume_args} -v ${aws_credential_file_mount_target}:/root/.aws/credentials:ro"
 
-if [ -n "$gradle_cache" ]; then
-    echo "Setting Gradle cache to ${gradle_cache}"
-    volume_args="$volume_args -v ${gradle_cache}:/root/.gradle"
+if [ -n "${gradle_cache}" ]; then
+  echo "Setting Gradle cache to ${gradle_cache}"
+  volume_args="${volume_args} -v ${gradle_cache}:/root/.gradle"
 fi
 
-if [ x"$interactive" == x"true" ]; then
-    docker_command="bash"
+if [ x"${interactive}" == x"true" ]; then
+  docker_command="bash"
 fi
 
 # Some automation contexts (e.g. Jenkins) will be unhappy if STDIN is not available. The --headless command accomodates such contexts.
-if [ x"$headless" != x"true" ]; then
-    docker_interactive_arg="-i"
+if [ x"${headless}" != x"true" ]; then
+  docker_interactive_arg="-i"
 fi
 
-if [ -n "$pytest_k" ]; then
-    if [ -n "$PYTEST_ARGS" ]; then
-        PYTEST_ARGS="$PYTEST_ARGS "
-    fi
-    PYTEST_ARGS="$PYTEST_ARGS-k \"$pytest_k\""
+if [ -n "${pytest_k}" ]; then
+  if [ -n "${PYTEST_ARGS}" ]; then
+    PYTEST_ARGS="${PYTEST_ARGS} "
+  fi
+  PYTEST_ARGS="${PYTEST_ARGS}-k \"${pytest_k}\""
 fi
-if [ -n "$pytest_m" ]; then
-    if [ -n "$PYTEST_ARGS" ]; then
-        PYTEST_ARGS="$PYTEST_ARGS "
-    fi
-    PYTEST_ARGS="$PYTEST_ARGS-m \"$pytest_m\""
-fi
-
-if [ -n "$dcos_files_path" ]; then
-    volume_args="$volume_args -v ${dcos_files_path}:${dcos_files_path}"
+if [ -n "${pytest_m}" ]; then
+  if [ -n "${PYTEST_ARGS}" ]; then
+    PYTEST_ARGS="${PYTEST_ARGS} "
+  fi
+  PYTEST_ARGS="${PYTEST_ARGS}-m \"${pytest_m}\""
 fi
 
-if [ -n "$TEAMCITY_VERSION" ]; then
-    # The teamcity python module treats present-but-empty as enabled.
-    # We must therefore completely omitted this envvar to disable teamcity handling.
-    echo "TEAMCITY_VERSION=\"${TEAMCITY_VERSION}\"" >> $envfile
+if [ -n "${dcos_files_path}" ]; then
+  volume_args="${volume_args} -v ${dcos_files_path}:${dcos_files_path}"
 fi
 
-if [ -n "$azure_enabled" ]; then
-    cat >> $envfile <<EOF
-AZURE_CLIENT_ID=$AZURE_DEV_CLIENT_ID
-AZURE_CLIENT_SECRET=$AZURE_DEV_CLIENT_SECRET
-AZURE_TENANT_ID=$AZURE_DEV_TENANT_ID
-AZURE_STORAGE_ACCOUNT=$AZURE_DEV_STORAGE_ACCOUNT
-AZURE_STORAGE_KEY=$AZURE_DEV_STORAGE_KEY
+if [ -n "${TEAMCITY_VERSION}" ]; then
+  # The teamcity python module treats present-but-empty as enabled.
+  # We must therefore completely omitted this envvar to disable teamcity handling.
+  echo "TEAMCITY_VERSION=\"${TEAMCITY_VERSION}\"" >> "${envfile}"
+fi
+
+if [ -n "${azure_enabled}" ]; then
+  cat >> "${envfile}" <<EOF
+AZURE_CLIENT_ID="${AZURE_DEV_CLIENT_ID}"
+AZURE_CLIENT_SECRET="${AZURE_DEV_CLIENT_SECRET}"
+AZURE_TENANT_ID="${AZURE_DEV_TENANT_ID}"
+AZURE_STORAGE_ACCOUNT="${AZURE_DEV_STORAGE_ACCOUNT}"
+AZURE_STORAGE_KEY="${AZURE_DEV_STORAGE_KEY}"
 EOF
 fi
 
-cat >> $envfile <<EOF
-AWS_PROFILE=$aws_profile
-CLUSTER_URL=$CLUSTER_URL
-DCOS_ENTERPRISE=$enterprise
-DCOS_FILES_PATH=$dcos_files_path
-DCOS_LOGIN_PASSWORD=$DCOS_LOGIN_PASSWORD
-DCOS_LOGIN_USERNAME=$DCOS_LOGIN_USERNAME
-DCOS_SSH_USERNAME=$ssh_user
-FRAMEWORK=$framework
+cat >> "${envfile}" <<EOF
+AWS_PROFILE=${aws_profile}
+CLUSTER_URL=${CLUSTER_URL}
+DCOS_ENTERPRISE=${enterprise}
+DCOS_FILES_PATH=${dcos_files_path}
+DCOS_LOGIN_PASSWORD=${DCOS_LOGIN_PASSWORD}
+DCOS_LOGIN_USERNAME=${DCOS_LOGIN_USERNAME}
+DCOS_SSH_USERNAME=${ssh_user}
+FRAMEWORK=${framework}
 PACKAGE_REGISTRY_ENABLED=$package_registry
-PYTEST_ARGS=$PYTEST_ARGS
-S3_BUCKET=$S3_BUCKET
-SECURITY=$security
-STUB_UNIVERSE_URL=$STUB_UNIVERSE_URL
+PYTEST_ARGS=${PYTEST_ARGS}
+S3_BUCKET=${S3_BUCKET}
+SECURITY=${security}
+STUB_UNIVERSE_URL=${STUB_UNIVERSE_URL}
 EOF
 
-while read line; do
-    # Prefix match, then strip prefix in envfile:
-    if [[ "${line:0:8}" = "TEST_SH_" ]]; then
-        echo ${line#TEST_SH_} >> $envfile
-    fi
+while read -r line; do
+  # Prefix match, then strip prefix in envfile:
+  if [[ "${line:0:8}" = "TEST_SH_" ]]; then
+    echo "${line#TEST_SH_}" >> "${envfile}"
+  fi
 done < <(env)
 
-if [ -n "$env_passthrough" ]; then
-    # If the -e flag is specified, add the ENVVAR lines for the
-    # comma-separated list of envvars
-    for envvar_name in ${env_passthrough//,/ }; do
-        echo "$envvar_name" >> $envfile
-    done
+if [ -n "${env_passthrough}" ]; then
+  # If the -e flag is specified, add the ENVVAR lines for the
+  # comma-separated list of envvars
+  for envvar_name in ${env_passthrough//,/ }; do
+    echo "${envvar_name}" >> "${envfile}"
+  done
 fi
 
-if [ -n "$envfile_input" ]; then
-    cat "${envfile_input}" >> $envfile
+if [ -n "${envfile_input}" ]; then
+  cat "${envfile_input}" >> "${envfile}"
 fi
 
 CMD="docker run --rm \
 -t \
 ${docker_interactive_arg} \
---env-file $envfile \
+--env-file ${envfile} \
 ${volume_args} \
--w $WORK_DIR \
+-w ${WORK_DIR} \
 ${docker_image} \
 ${docker_command}"
 
 echo "==="
 echo "Docker command:"
-echo "  $CMD"
+echo "  ${CMD}"
 echo ""
 echo "Environment:"
-while read line; do
-    echo "  $line"
-done <$envfile
+while read -r line; do
+  echo "  ${line}"
+done < "${envfile}"
 echo "==="
 
-$CMD
+${CMD}
