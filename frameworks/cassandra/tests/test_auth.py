@@ -1,14 +1,11 @@
-import pytest
-import logging
 import retrying
-from typing import Any, Dict, Iterator, List
+from typing import Any, Dict, List
 
 import sdk_jobs
 import sdk_cmd
 import sdk_install
-import sdk_service
-import sdk_tasks
 from tests import config
+
 
 def test_auth() -> None:
     test_jobs: List[Dict[str, Any]] = []
@@ -17,40 +14,38 @@ def test_auth() -> None:
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
         for job in test_jobs:
             sdk_jobs.install_job(job)
-        
 
         create_service_account(
             secret_value=config.SECRET_VALUE, secret_path=config.PACKAGE_NAME + '/' + config.SECRET_VALUE
-         )
+        )
         service_options = {
             "service": {
                 "name": config.SERVICE_NAME,
-         	    "security": {"authentication": {"enabled": True}, "authorization": {"enabled": True}},
+                "security": {"authentication": {"enabled": True}, "authorization": {"enabled": True}},
             }
-         }
-            
+        }
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-            
+
         sdk_install.install(
             config.PACKAGE_NAME,
             service_name=config.SERVICE_NAME,
             expected_running_tasks=config.DEFAULT_TASK_COUNT,
             additional_options=service_options,
         )
-            
+
         config.verify_client_can_write_read_and_delete_with_auth(
-             config.get_foldered_node_address(),
+            config.get_foldered_node_address(),
         )
-        
+
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         for job in test_jobs:
             sdk_jobs.remove_job(job)
 
-    
 
 def create_service_account(secret_value: str, secret_path: str) -> None:
-    
+
     install_enterprise_cli()
     delete_secret(secret=secret_path)
     sdk_cmd.run_cli(
@@ -63,8 +58,9 @@ def create_service_account(secret_value: str, secret_path: str) -> None:
 
 
 def delete_secret(secret: str) -> None:
-  
+
     sdk_cmd.run_cli("security secrets delete {}".format(secret))
+
 
 def install_enterprise_cli(force=False):
     """ Install the enterprise CLI if required """

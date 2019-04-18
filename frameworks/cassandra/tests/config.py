@@ -21,7 +21,7 @@ SERVICE_NAME = os.environ.get("SOAK_SERVICE_NAME") or "cassandra"
 
 DEFAULT_TASK_COUNT = 3
 DEFAULT_CASSANDRA_TIMEOUT = 600
-SECRET_VALUE= "password"
+SECRET_VALUE = "password"
 # Soak artifact scripts may override the service name to test
 
 DEFAULT_NODE_ADDRESS = os.getenv(
@@ -113,11 +113,11 @@ def _get_test_job(
     return job
 
 
-def _cqlsh(query: str, node_address: str, node_port: str, auth: bool ) -> str:
+def _cqlsh(query: str, node_address: str, node_port: str, auth: bool) -> str:
     if auth:
-       return 'cqlsh -u dcossuperuser -p password -e "{}" {} {}'.format(query, node_address, node_port)
+        return 'cqlsh -u dcossuperuser -p password -e "{}" {} {}'.format(query, node_address, node_port)
     else:
-       return 'cqlsh -e "{}" {} {}'.format(query, node_address, node_port)        
+        return 'cqlsh -e "{}" {} {}'.format(query, node_address, node_port)
 
 
 def get_delete_data_job(
