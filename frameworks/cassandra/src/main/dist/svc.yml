@@ -320,7 +320,7 @@ plans:
         pod: node
         steps:
           - 0: [[init_system_keyspaces]]
-          - default: [[]]
+          - default: []
   replace:
     strategy: serial
     phases:
@@ -427,3 +427,4 @@ plans:
         pod: node
         steps:
           - default: [[restore-snapshot]]
+
