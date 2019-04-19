@@ -1,13 +1,14 @@
 import retrying
-from typing import Any, Dict, List
-
+from typing import Any, Dict, Iterator, List
+import pytest
 import sdk_jobs
 import sdk_cmd
 import sdk_install
 from tests import config
 
 
-def test_auth() -> None:
+@pytest.fixture(scope="module", autouse=True)
+def configure_package(configure_security: None) -> Iterator[None]:
     test_jobs: List[Dict[str, Any]] = []
     try:
         test_jobs = config.get_all_jobs(auth=True)
@@ -15,7 +16,7 @@ def test_auth() -> None:
         for job in test_jobs:
             sdk_jobs.install_job(job)
 
-        create_service_account(
+        create_secret(
             secret_value=config.SECRET_VALUE, secret_path=config.PACKAGE_NAME + '/' + config.SECRET_VALUE
         )
         service_options = {
@@ -29,22 +30,28 @@ def test_auth() -> None:
 
         sdk_install.install(
             config.PACKAGE_NAME,
-            service_name=config.SERVICE_NAME,
-            expected_running_tasks=config.DEFAULT_TASK_COUNT,
+            config.SERVICE_NAME,
+            config.DEFAULT_TASK_COUNT,
             additional_options=service_options,
         )
 
-        config.verify_client_can_write_read_and_delete_with_auth(
-            config.get_foldered_node_address(),
-        )
-
+        yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+
+        # remove job definitions from metronome
         for job in test_jobs:
             sdk_jobs.remove_job(job)
 
 
-def create_service_account(secret_value: str, secret_path: str) -> None:
+@pytest.mark.sanity
+def test_auth() -> None:
+    config.verify_client_can_write_read_and_delete_with_auth(
+        config.get_foldered_node_address(),
+    )
+
+
+def create_secret(secret_value: str, secret_path: str) -> None:
 
     install_enterprise_cli()
     delete_secret(secret=secret_path)
