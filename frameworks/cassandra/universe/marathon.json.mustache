@@ -177,7 +177,10 @@
     "READINESS_CHECK_TIMEOUT": "{{service.readiness_check.timeout}}",
 
     "RLIMIT_NOFILE_SOFT": "{{service.rlimits.rlimit_nofile.soft}}",
-    "RLIMIT_NOFILE_HARD": "{{service.rlimits.rlimit_nofile.hard}}"
+    "RLIMIT_NOFILE_HARD": "{{service.rlimits.rlimit_nofile.hard}}",
+    
+    "TASKCFG_ALL_CASSANDRA_ENABLE_USER_DEFINED_FUNCTIONS": "{{cassandra.enable_user_defined_functions}}",
+    "TASKCFG_ALL_CASSANDRA_ENABLE_SCRIPTED_USER_DEFINED_FUNCTIONS": "{{cassandra.enable_scripted_user_defined_functions}}"
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },
