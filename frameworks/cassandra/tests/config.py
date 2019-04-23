@@ -173,14 +173,16 @@ def get_verify_deletion_job(
             _cqlsh(
                 "SELECT * FROM system_schema.tables WHERE keyspace_name='testspace1';",
                 node_address,
-                node_port, auth,
+                node_port,
+                auth,
             )
         ),
         '{} | grep "0 rows"'.format(
             _cqlsh(
                 "SELECT * FROM system_schema.tables WHERE keyspace_name='testspace2';",
                 node_address,
-                node_port, auth,
+                node_port,
+                auth,
             )
         ),
     ]
