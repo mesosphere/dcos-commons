@@ -667,12 +667,12 @@
         "enable_user_defined_functions": {
           "type": "boolean",
           "description": " User defined functions (UDFs) present a security risk, since they are executed on the server side. UDFs are executed in a sandbox to contain the execution of malicious code.",
-          "default": "false"
+          "default": false
         },
         "enable_scripted_user_defined_functions": {
           "type": "boolean",
           "description": "Java UDFs are always enabled, if enable_user_defined_functions is true. Enable this option to use UDFs with language javascript or any custom JSR-223 provider. This option has no effect if enable_user_defined_functions is false",
-          "default": "false"
+          "default": false
         }
       },
       "additionalProperties": false,
