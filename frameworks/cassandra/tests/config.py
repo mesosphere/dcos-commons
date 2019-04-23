@@ -200,6 +200,7 @@ def get_write_data_job(
         dcos_ca_bundle=dcos_ca_bundle,
     )
 
+
 def get_write_udf_job(
     node_address: str = DEFAULT_NODE_ADDRESS,
     node_port: str = DEFAULT_NODE_PORT,
@@ -258,7 +259,7 @@ def get_udf_jobs(
         get_write_udf_job(node_address),
         get_verify_udf_data_job(node_address),
         get_delete_data_job(node_address),
-        get_verify_deletion_job(node_address),        
+        get_verify_deletion_job(node_address),
     ]
 
 
