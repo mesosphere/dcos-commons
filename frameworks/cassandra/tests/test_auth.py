@@ -53,6 +53,10 @@ def test_auth() -> None:
     config.verify_client_can_write_read_and_delete_with_auth(
         config.get_foldered_node_address(),
     )
+
+
+@pytest.mark.sanity
+def test_unauthorized_users() -> None:
     tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "node-0")[0]
     _, stdout, stderr = sdk_cmd.run_cli("task exec {} bash -c 'export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;  export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ; export PATH=$(ls -d $MESOS_SANDBOX/apache-cassandra-*/bin):$PATH ; cqlsh -u dcossuperuser -p wrongpassword -e \"SHOW VERSION\" node-0-server.$FRAMEWORK_HOST $CASSANDRA_NATIVE_TRANSPORT_PORT' ".format(tasks.id))
     assert "Provided username dcossuperuser and/or password are incorrect" in stderr
