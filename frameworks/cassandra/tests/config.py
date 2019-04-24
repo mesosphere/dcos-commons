@@ -216,7 +216,7 @@ def get_write_udf_job(
         ]
     )
     return _get_test_job(
-        "write-data",
+        "write-udf",
         [_cqlsh(cql, node_address, node_port)],
         node_address,
         node_port,
@@ -231,11 +231,11 @@ def get_verify_udf_data_job(
 ) -> Dict[str, Any]:
     cmds = [
         "{} | grep 200".format(
-            _cqlsh("SELECT maxOf(val1,val2) FROM testspace1.testtable1;", node_address, node_port)
+            _cqlsh("SELECT maxof(val1,val2) FROM testspace1.testtable1;", node_address, node_port)
         ),
     ]
     return _get_test_job(
-        "verify-data", cmds, node_address, node_port, dcos_ca_bundle=dcos_ca_bundle
+        "verify-udf-data", cmds, node_address, node_port, dcos_ca_bundle=dcos_ca_bundle
     )
 
 
@@ -258,8 +258,6 @@ def get_udf_jobs(
     return [
         get_write_udf_job(node_address),
         get_verify_udf_data_job(node_address),
-        get_delete_data_job(node_address),
-        get_verify_deletion_job(node_address),
     ]
 
 
