@@ -94,8 +94,8 @@ enable_user_defined_functions: false
 enable_scripted_user_defined_functions: false
 windows_timer_interval: 1
 role_manager: CassandraRoleManager
-roles_validity_in_ms: 2000
-permissions_validity_in_ms: 2000
+roles_validity_in_ms: {{ROLES_VALIDITY_IN_MS}}
+permissions_validity_in_ms: {{PERMISSIONS_VALIDITY_IN_MS}}
 disk_failure_policy: {{CASSANDRA_DISK_FAILURE_POLICY}}
 commit_failure_policy: stop
 key_cache_size_in_mb:
@@ -111,8 +111,8 @@ snapshot_before_compaction: false
 auto_snapshot: {{CASSANDRA_AUTO_SNAPSHOT}}
 cross_node_timeout: false
 endpoint_snitch: GossipingPropertyFileSnitch
-roles_update_interval_in_ms: {{CASSANDRA_ROLES_UPDATE_INTERVAL_IN_MS}}
-permissions_update_interval_in_ms: {{CASSANDRA_PERMISSIONS_UPDATE_INTERVAL_IN_MS}}
+roles_update_interval_in_ms: {{ROLES_UPDATE_INTERVAL_IN_MS}}
+permissions_update_interval_in_ms: {{PERMISSIONS_UPDATE_INTERVAL_IN_MS}}
 key_cache_keys_to_save: {{CASSANDRA_KEY_CACHE_KEYS_TO_SAVE}}
 row_cache_keys_to_save: {{CASSANDRA_ROW_CACHE_KEYS_TO_SAVE}}
 counter_cache_keys_to_save: {{CASSANDRA_COUNTER_CACHE_KEYS_TO_SAVE}}
@@ -140,3 +140,5 @@ buffer_pool_use_heap_if_exhausted: {{CASSANDRA_BUFFER_POOL_USE_HEAP_IF_EXHAUSTED
 disk_optimization_strategy: {{CASSANDRA_DISK_OPTIMIZATION_STRATEGY}}
 max_value_size_in_mb: {{CASSANDRA_MAX_VALUE_SIZE_IN_MB}}
 otc_coalescing_strategy: {{CASSANDRA_OTC_COALESCING_STRATEGY}}
+credentials_validity_in_ms: {{CREDENTIALS_VALIDITY_IN_MS}}
+credentials_update_interval_in_ms: {{CREDENTIALS_UPDATE_INTERVAL_IN_MS}}

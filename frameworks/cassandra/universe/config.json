@@ -107,8 +107,78 @@
                   "default": false
                 }
               }
+            },
+	   "authentication": {
+            "type": "object",
+            "description": "DC/OS Apache Cassandra authentication settings",
+            "properties": {
+                "enabled": {
+                    "description": "Enable Apache Cassandra's native password authentication",
+                    "type": "boolean",
+                    "default": false
+                },
+                "superuser": {
+                    "type": "object",
+                    "description": "Superuser configuration",
+                    "properties": {
+                            "name": {
+                                "type": "string",
+                                "description": "The name of the superuser",
+                                "default": "dcossuperuser"
+                            },
+                            "password_secret_path": {
+                                "type": "string",
+                                "description": "The path in the DC/OS Secret Store to retrieve the superuser password from" ,
+                                "default": "cassandra/password"
+			    }
+                        }
+                    }
+                }
+            
+        },
+        "authorization": {
+            "type": "object",
+            "description": "DC/OS Apache Cassandra authorization settings",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable Apache Cassandra's native authorization",
+                    "default": false
+                },
+                "roles_validity_in_ms": {
+                    "type": "integer",
+                    "description": "Validity period for roles cache; set to 0 to disable",
+                    "default": 2000
+                },
+                "roles_update_interval_in_ms": {
+                    "type": "integer",
+                    "description": "After this interval, cache entries become eligible for refresh. Upon next access, Cassandra schedules an async reload, and returns the old value until the reload completes. If roles_validity_in_ms is non-zero, then this must be also.",
+                    "default": 2000
+                },
+                "credentials_validity_in_ms": {
+                    "type": "integer",
+                    "description": " This cache is tightly coupled to the provided PasswordAuthenticator implementation of IAuthenticator. If another IAuthenticator implementation is configured, Cassandra does not use this cache, and these settings have no effect. Set to 0 to disable.",
+                    "default": 2000
+                },
+                "credentials_update_interval_in_ms": {
+                    "type": "integer",
+                    "description": "After this interval, cache entries become eligible for refresh. The next time the cache is accessed, the system schedules an asynchronous reload of the cache. Until this cache reload is complete, the cache returns the old values. If credentials_validity_in_ms is nonzero, this property must also be nonzero.",
+                    "default": 2000
+                },
+                "permissions_validity_in_ms": {
+                    "type": "integer",
+                    "description": "How many milliseconds permissions in cache remain valid. Fetching permissions can be resource intensive. To disable the cache, set this to 0.",
+                    "default": 2000
+                },
+                "permissions_update_interval_in_ms": {
+                    "type": "integer",
+                    "description": "If enabled, sets refresh interval for the permissions cache. After this interval, cache entries become eligible for refresh. On next access, Cassandra schedules an async reload and returns the old value until the reload completes. If permissions_validity_in_ms is nonzero, permissions_update_interval_in_ms must also be non-zero.",
+                    "default": 2000
+                }
+
             }
-          }
+        }
+                }
         },
         "readiness_check" : {
           "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
@@ -251,16 +321,6 @@
           "type": "string",
           "description": "The name of the cluster managed by the Service",
           "default": "cassandra"
-        },
-        "authenticator": {
-          "type": "string",
-          "description": "The authentication backend. It implements IAuthenticator, which is used to identify users.",
-          "default": "AllowAllAuthenticator"
-        },
-        "authorizer": {
-          "type": "string",
-          "description": "The authorization backend. It implements IAuthenticator, which limits access and provides permissions.",
-          "default": "AllowAllAuthorizer"
         },
         "jmx_port": {
           "type": "integer",
@@ -507,16 +567,6 @@
           "description": "Take a snapshot of the data before truncating a keyspace or dropping a table",
           "default": true
         },
-        "roles_update_interval_in_ms": {
-          "type": "integer",
-          "description": "The refresh interval for the roles cache",
-          "default": 1000
-        },
-        "permissions_update_interval_in_ms": {
-          "type": "integer",
-          "description": "The refresh interval for the permissions cache",
-          "default": 1000
-        },
         "key_cache_keys_to_save": {
           "type": "integer",
           "description": "The number of keys from the key cache to save",
@@ -716,8 +766,6 @@
         "concurrent_materialized_view_writes",
         "commitlog_total_space_in_mb",
         "auto_snapshot",
-        "roles_update_interval_in_ms",
-        "permissions_update_interval_in_ms",
         "key_cache_keys_to_save",
         "row_cache_keys_to_save",
         "counter_cache_keys_to_save",
