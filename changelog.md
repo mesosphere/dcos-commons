@@ -3,6 +3,7 @@
 ## Changes to v0.56.0
 
 - [DCOS-49197](https://jira.mesosphere.com/browse/DCOS-49197) Introduce new service status codes.
+- [DCOS-48777](https://jira.mesosphere.com/browse/DCOS-48777) The `init` developer helper script in docker image was renamed to `copy-files`
 
 ## Changes to v0.55.5
 
