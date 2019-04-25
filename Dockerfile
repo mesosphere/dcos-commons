@@ -42,6 +42,10 @@ RUN mkdir /build-tools
 ENV PATH=/build-tools:$PATH
 
 COPY tools/distribution/copy-files /build-tools/
+# Temporary workaround for DCOS-52239. Remove once all known frameworks have
+# updated their UPDATING.md to point at copy-files rather than init.
+RUN cp /build-tools/copy-files /build-tools/init
+
 COPY tools/ci/test_runner.sh /build-tools/
 COPY tools/ci/launch_cluster.sh /build-tools/
 
