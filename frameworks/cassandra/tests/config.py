@@ -218,6 +218,46 @@ def get_write_data_job(
     )
 
 
+def get_write_udf_job(
+    node_address: str = DEFAULT_NODE_ADDRESS,
+    node_port: str = DEFAULT_NODE_PORT,
+    dcos_ca_bundle: Optional[str] = None,
+    auth: bool = False,
+) -> Dict[str, Any]:
+    cql = " ".join(
+        [
+            "CREATE KEYSPACE testspace1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
+            "USE testspace1;",
+            "CREATE TABLE testtable1 (id int, val1 int, val2 int, PRIMARY KEY(id));",
+            "INSERT INTO testspace1.testtable1(id, val1, val2) VALUES(1, 100, 200);",
+            "CREATE OR REPLACE FUNCTION maxof(currentvalue int, testvalue int) RETURNS NULL ON NULL INPUT RETURNS int LANGUAGE java AS 'return Math.max(currentvalue,testvalue);';",
+        ]
+    )
+    return _get_test_job(
+        "write-udf",
+        [_cqlsh(cql, node_address, node_port, auth)],
+        node_address,
+        node_port,
+        dcos_ca_bundle=dcos_ca_bundle,
+    )
+
+
+def get_verify_udf_data_job(
+    node_address: str = DEFAULT_NODE_ADDRESS,
+    node_port: str = DEFAULT_NODE_PORT,
+    dcos_ca_bundle: Optional[str] = None,
+    auth: bool = False,
+) -> Dict[str, Any]:
+    cmds = [
+        "{} | grep 200".format(
+            _cqlsh("SELECT maxof(val1,val2) FROM testspace1.testtable1;", node_address, node_port, auth)
+        ),
+    ]
+    return _get_test_job(
+        "verify-udf-data", cmds, node_address, node_port, dcos_ca_bundle=dcos_ca_bundle
+    )
+
+
 def get_all_jobs(
     node_address: str = DEFAULT_NODE_ADDRESS,
     node_port: str = DEFAULT_NODE_PORT,
@@ -228,6 +268,16 @@ def get_all_jobs(
         get_verify_data_job(node_address, auth=auth),
         get_delete_data_job(node_address, auth=auth),
         get_verify_deletion_job(node_address, auth=auth),
+    ]
+
+
+def get_udf_jobs(
+    node_address: str = DEFAULT_NODE_ADDRESS,
+    node_port: str = DEFAULT_NODE_PORT,
+) -> List[Dict[str, Any]]:
+    return [
+        get_write_udf_job(node_address),
+        get_verify_udf_data_job(node_address),
     ]
 
 
@@ -275,6 +325,21 @@ def run_backup_and_restore(
     sdk_jobs.run_job(verify_data_job)
 
     # Delete data in preparation for any other backup tests
+    sdk_jobs.run_job(delete_data_job)
+    sdk_jobs.run_job(verify_deletion_job)
+
+
+def verify_client_can_write_read_udf(
+    job_node_address: str = DEFAULT_NODE_ADDRESS,
+) -> None:
+
+    write_udf_job = get_write_udf_job(node_address=job_node_address)
+    verify_udf_data_job = get_verify_udf_data_job(node_address=job_node_address)
+    delete_data_job = get_delete_data_job(node_address=job_node_address)
+    verify_deletion_job = get_verify_deletion_job(node_address=job_node_address)
+
+    sdk_jobs.run_job(write_udf_job)
+    sdk_jobs.run_job(verify_udf_data_job)
     sdk_jobs.run_job(delete_data_job)
     sdk_jobs.run_job(verify_deletion_job)
 
