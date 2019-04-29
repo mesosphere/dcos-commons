@@ -204,6 +204,23 @@
                   "minimum": 128000
                 }
               }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, as the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": -1
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": -1
+                }
+              }
+
             }
           }
         }
@@ -311,6 +328,22 @@
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
                   "minimum": 128000
+                }
+              }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, as the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": -1
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": -1
                 }
               }
             }
@@ -422,6 +455,22 @@
                   "minimum": 128000
                 }
               }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, as the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": -1
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": -1
+                }
+              }
             }
           }
         }
@@ -529,6 +578,22 @@
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
                   "minimum": 128000
+                }
+              }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, as the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": -1
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": -1
                 }
               }
             }
