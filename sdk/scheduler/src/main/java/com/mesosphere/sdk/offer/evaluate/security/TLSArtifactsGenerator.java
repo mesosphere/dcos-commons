@@ -166,6 +166,7 @@ class TLSArtifactsGenerator {
     );
 
     // KeyStore expects complete chain with end-entity certificate
+    //TODO@kjoshi: this certificate being added is not considered a valid keychain
     certificateChain.add(0, certificate);
     Certificate[] keyStoreChain = certificateChain.toArray(new Certificate[0]);
 
