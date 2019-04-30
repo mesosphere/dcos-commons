@@ -14,7 +14,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 import static org.junit.Assert.*;
-import static org.mockito.Mockito.doThrow;
+//import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 public class SchemaVersionStoreTest {
@@ -96,7 +96,7 @@ public class SchemaVersionStoreTest {
     @Test(expected=IllegalArgumentException.class)
     public void testStoreOtherFailure() throws Exception {
         final int val = 3;
-        doThrow(Exception.class).when(mockPersister).set(NODE_PATH, String.valueOf(val).getBytes(CHARSET));
+        mockPersister.set(NODE_PATH, String.valueOf(val).getBytes(CHARSET));
         storeWithMock.store(SchemaVersion.UNKNOWN);
     }
 
