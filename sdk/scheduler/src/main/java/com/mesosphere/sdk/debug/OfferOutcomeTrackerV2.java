@@ -7,7 +7,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsonorg.JsonOrgModule;
 import com.google.common.collect.EvictingQueue;
-import org.apache.commons.collections.map.HashedMap;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -68,8 +67,8 @@ public class OfferOutcomeTrackerV2 implements DebugEndpoint {
       this.acceptedCount = 0;
       this.rejectedCount = 0;
       this.outcomes = EvictingQueue.create(DEFAULT_CAPACITY);
-      this.failureReasons = new HashMap<>();
-      this.rejectedAgents = new HashedMap();
+      this.failureReasons = new HashMap<String, Integer>();
+      this.rejectedAgents = new HashMap<String, Integer>();
     }
 
     public void addOffer(OfferOutcomeV2 offerOutcome) {
