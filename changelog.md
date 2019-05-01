@@ -4,7 +4,7 @@
 
 - [DCOS-49197](https://jira.mesosphere.com/browse/DCOS-49197) Introduce new service status codes.
   
-  _Note : The newly added status codes _may_ not work if frameworks are using marathon health checks ([Deprecated since marathon 1.4.x](https://github.com/mesosphere/marathon/releases/tag/v1.4.0)). Please use MESOS Health checks [in your marathon.json.mustache](https://github.com/mesosphere/dcos-commons/blob/0.56.0/frameworks/helloworld/universe/marathon.json.mustache#L136-L146)_
+  _Note : The newly added status codes may not work if frameworks are using marathon health checks ([Deprecated since marathon 1.4.x](https://github.com/mesosphere/marathon/releases/tag/v1.4.0)). Please use MESOS Health checks [in your marathon.json.mustache](https://github.com/mesosphere/dcos-commons/blob/0.56.0/frameworks/helloworld/universe/marathon.json.mustache#L136-L146)_
 
 ## Changes to v0.55.5
 
