@@ -25,7 +25,7 @@ import java.util.List;
  * Main entry point for the Scheduler.
  */
 public final class Main {
-  private static final String CUSTOM_YAML_BLOCK_BASE64_ENV = "CUSTOM_YAML_BLOCK_BASE64";
+  private static final String CUSTOM_YAML_BLOCK_BASE64_ENV = "TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64";
 
   private Main() {}
 
