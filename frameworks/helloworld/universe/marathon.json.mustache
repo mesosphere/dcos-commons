@@ -133,6 +133,16 @@
     "minimumHealthCapacity": 0,
     "maximumOverCapacity": 0
   },
+  "check": {
+    "http": {
+      "portIndex": 0,
+      "path": "/v1/health",
+      "scheme": "HTTP"
+    },
+    "intervalSeconds": 30,
+    "timeoutSeconds": 30,
+    "delaySeconds": 15
+  },
   "healthChecks": [
     {
       "protocol": "MESOS_HTTP",
