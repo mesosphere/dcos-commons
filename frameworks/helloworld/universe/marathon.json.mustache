@@ -139,9 +139,9 @@
       "path": "/v1/health",
       "scheme": "HTTP"
     },
-    "intervalSeconds": 30,
-    "timeoutSeconds": 30,
-    "delaySeconds": 15
+    "intervalSeconds": {{service.check.intervalSeconds}},
+    "timeoutSeconds": {{service.check.timeoutSeconds}},
+    "delaySeconds": {{service.check.delaySeconds}}
   },
   "healthChecks": [
     {
