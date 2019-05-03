@@ -10,6 +10,7 @@ pods:
       - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{KEYTAB_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{JOURNAL_NODE_RLIMIT_NOFILE_SOFT}}
@@ -18,7 +19,7 @@ pods:
     secrets:
       keytab:
         secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
-        file: hdfs.keytab
+        file: secrets-hdfs.keytab
     {{/SECURITY_KERBEROS_ENABLED}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -60,7 +61,6 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -68,6 +68,7 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
+          sh modify-keytab.sh
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs journalnode
         resource-set: journal-resources
         configs:
@@ -75,6 +76,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
+          modify-keytab:
+            template: modify-keytab.sh
+            dest: modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -150,6 +154,7 @@ pods:
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{ZONE_RESOLVER}}
+      - {{KEYTAB_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{NAME_NODE_RLIMIT_NOFILE_SOFT}}
@@ -158,7 +163,7 @@ pods:
     secrets:
       keytab:
         secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
-        file: hdfs.keytab
+        file: secrets-hdfs.keytab
     {{/SECURITY_KERBEROS_ENABLED}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -195,7 +200,6 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -213,6 +217,7 @@ pods:
           cp -v zone-resolver.sh {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
           chmod u+x {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
           {{/NAME_NODE_PLACEMENT}}
+          sh modify-keytab.sh
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
@@ -235,6 +240,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
+          modify-keytab:
+            template: modify-keytab.sh
+            dest: modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -265,7 +273,6 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -273,6 +280,7 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
+          sh modify-keytab.sh
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
@@ -280,6 +288,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
+          modify-keytab:
+            template: modify-keytab.sh
+            dest: modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -302,7 +313,6 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -310,6 +320,7 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
+          sh modify-keytab.sh
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
         resource-set: name-resources
         configs:
@@ -317,6 +328,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
+          modify-keytab:
+            template: modify-keytab.sh
+            dest: modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -345,7 +359,6 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -353,6 +366,7 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST, name-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST
+          sh modify-keytab.sh
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
@@ -360,6 +374,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
+          modify-keytab:
+            template: modify-keytab.sh
+            dest: modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -382,7 +399,6 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -390,6 +406,7 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
+          sh modify-keytab.sh
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
@@ -397,6 +414,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
+          modify-keytab:
+            template: modify-keytab.sh
+            dest: modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -421,6 +441,7 @@ pods:
       - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{KEYTAB_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{DATA_NODE_RLIMIT_NOFILE_SOFT}}
@@ -429,7 +450,7 @@ pods:
     secrets:
       keytab:
         secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
-        file: hdfs.keytab
+        file: secrets-hdfs.keytab
     {{/SECURITY_KERBEROS_ENABLED}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -443,7 +464,6 @@ pods:
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -451,6 +471,7 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
+          sh modify-keytab.sh
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
@@ -474,6 +495,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
+          modify-keytab:
+            template: modify-keytab.sh
+            dest: modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
