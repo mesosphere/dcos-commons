@@ -702,6 +702,111 @@
           "description": "The strategy to use for coalescing network messages",
           "default": "TIMEHORIZON"
         },
+        "unlogged_batch_across_partitions_warn_threshold": {
+          "type": "integer",
+          "description": "Causes Cassandra to log a WARN message on any batches not of type LOGGED that span across more partitions than this limit.",
+          "default": 10
+        },
+        "compaction_large_partition_warning_threshold_mb": {
+          "type": "integer",
+          "description": "Cassandra logs a warning when compacting partitions larger than the set value.",
+          "default": 100
+        },
+        "inter_dc_tcp_nodelay": {
+          "type": "boolean",
+          "description": "Enable this property for inter-datacenter communication.",
+          "default": false
+        },
+        "tracetype_query_ttl": {
+          "type": "integer",
+          "description": "TTL for different trace types used during logging of the query process.",
+          "default": 86400
+        },
+        "tracetype_repair_ttl": {
+          "type": "integer",
+          "description": "TTL for different trace types used during logging of the repair process.",
+          "default": 604800
+        },
+        "gc_warn_threshold_in_ms": {
+          "type": "integer",
+          "description": "Any GC pause longer than this interval is logged at the WARN level.",
+          "default": 1000
+        },
+        "windows_timer_interval": {
+          "type": "integer",
+          "description": "",
+          "default": 1
+        },
+        "counter_cache_save_period": {
+          "type": "integer",
+          "description": "the amount of time after which Cassandra saves the counter cache (keys only).",
+          "default": 7200
+        },
+        "trickle_fsync_interval_in_kb": {
+          "type": "integer",
+          "description": "The size of the fsync in kilobytes.",
+          "default": 10240
+        },
+        "trickle_fsync": {
+          "type": "boolean",
+          "description": "When set to true, causes fsync to force the operating system to flush the dirty buffers at the set interval ",
+          "default": false
+        },
+        "incremental_backups": {
+          "type": "boolean",
+          "description": "Backs up data updated since the last snapshot was taken. When enabled, Cassandra creates a hard link to each SSTable flushed or streamed locally in a backups subdirectory of the keyspace data.",
+          "default": false
+        },
+        "snapshot_before_compaction": {
+          "type": "boolean",
+          "description": "Enables or disables taking a snapshot before each compaction. A snapshot is useful to back up data when there is a data format change.",
+          "default": false
+        },
+        "cross_node_timeout": {
+          "type": "boolean",
+          "description": "operation timeout information exchange between nodes (to accurately measure request timeouts).",
+          "default": false
+        },
+        "role_manager": {
+          "type": "string",
+          "description": "Part of the Authentication & Authorization backend that implements IRoleManager to maintain grants and memberships between roles.",
+          "default": "CassandraRoleManager"
+        },
+        "commit_failure_policy": {
+          "type": "string",
+          "description": "Policy for commit disk failures.",
+          "default": "stop"
+        },
+        "key_cache_size_in_mb": {
+          "type": "string",
+          "description": "A global cache setting for the maximum size of the key cache in memory (for all tables). ",
+          "default": ""
+        },
+        "counter_cache_size_in_mb": {
+          "type": "string",
+          "description": "When no value is set, Cassandra uses the smaller of minimum of 2.5% of Heap or 50MB.",
+          "default": ""
+        },
+        "commitlog_sync": {
+          "type": "string",
+          "description": "The method that Cassandra uses to acknowledge writes in milliseconds",
+          "default": "periodic"
+        },
+        "index_summary_capacity_in_mb": {
+          "type": "string",
+          "description": "Fixed memory pool size in MB for SSTable index summaries.",
+          "default": ""
+        },
+        "rpc_server_type": {
+          "type": "string",
+          "description": "Cassandra provides three options for the RPC server. sync and hsha performance is about the same, but hsha uses less memory.",
+          "default": "sync"
+        },
+        "endpoint_snitch": {
+          "type": "string",
+          "description": "Set to a class that implements the IEndpointSnitch interface. Cassandra uses the snitch to locate nodes and route requests.",
+          "default": "GossipingPropertyFileSnitch"
+        },
         "disk_failure_policy": {
           "type": "string",
           "description": "The policy for how Cassandra responds to disk failure",

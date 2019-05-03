@@ -59,8 +59,8 @@ request_timeout_in_ms: {{CASSANDRA_REQUEST_TIMEOUT_IN_MS}}
 dynamic_snitch_update_interval_in_ms: {{CASSANDRA_DYNAMIC_SNITCH_UPDATE_INTERVAL_IN_MS}}
 dynamic_snitch_reset_interval_in_ms: {{CASSANDRA_DYNAMIC_SNITCH_RESET_INTERVAL_IN_MS}}
 dynamic_snitch_badness_threshold: {{CASSANDRA_DYNAMIC_SNITCH_BADNESS_THRESHOLD}}
-unlogged_batch_across_partitions_warn_threshold: 10
-compaction_large_partition_warning_threshold_mb: 100
+unlogged_batch_across_partitions_warn_threshold: {{CASSANDRA_UNLOGGED_BATCH_ACROSS_PARTITIONS_WARN_THRESHOLD}}
+compaction_large_partition_warning_threshold_mb: {{CASSANDRA_COMPACTION_LARGE_PARTITION_WARNING_THRESHOLD_MB}}
 request_scheduler: org.apache.cassandra.scheduler.NoScheduler
 {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 server_encryption_options:
@@ -86,31 +86,31 @@ client_encryption_options:
     protocol: TLSv1.2
     cipher_suites: [TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA]
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
-inter_dc_tcp_nodelay: false
-tracetype_query_ttl: 86400
-tracetype_repair_ttl: 604800
-gc_warn_threshold_in_ms: 1000
+inter_dc_tcp_nodelay: {{CASSANDRA_INTER_DC_TCP_NODELAY}}
+tracetype_query_ttl: {{CASSANDRA_TRACETYPE_QUERY_TTL}}
+tracetype_repair_ttl: {{CASSANDRA_TRACETYPE_REPAIR_TTL}}
+gc_warn_threshold_in_ms: {{CASSANDRA_GC_WARN_THRESHOLD_IN_MS}}
 enable_user_defined_functions: {{CASSANDRA_ENABLE_USER_DEFINED_FUNCTIONS}}
 enable_scripted_user_defined_functions: {{CASSANDRA_ENABLE_SCRIPTED_USER_DEFINED_FUNCTIONS}}
-windows_timer_interval: 1
-role_manager: CassandraRoleManager
+windows_timer_interval: {{CASSANDRA_WINDOWS_TIMER_INTERVAL}}
+role_manager: {{CASSANDRA_ROLE_MANAGER}}
 roles_validity_in_ms: {{ROLES_VALIDITY_IN_MS}}
 permissions_validity_in_ms: {{PERMISSIONS_VALIDITY_IN_MS}}
 disk_failure_policy: {{CASSANDRA_DISK_FAILURE_POLICY}}
-commit_failure_policy: stop
-key_cache_size_in_mb:
-counter_cache_size_in_mb:
-counter_cache_save_period: 7200
-commitlog_sync: periodic
-index_summary_capacity_in_mb:
-trickle_fsync: false
-trickle_fsync_interval_in_kb: 10240
-rpc_server_type: sync
-incremental_backups: false
-snapshot_before_compaction: false
+commit_failure_policy: {{CASSANDRA_COMMIT_FAILURE_POLICY}}
+key_cache_size_in_mb: {{CASSANDRA_KEY_CACHE_SIZE_IN_MB}}
+counter_cache_size_in_mb: {{CASSANDRA_COUNTER_CACHE_SIZE_IN_MB}}
+counter_cache_save_period: {{CASSANDRA_COUNTER_CACHE_SAVE_PERIOD}}
+commitlog_sync: {{CASSANDRA_COMMITLOG_SYNC}}
+index_summary_capacity_in_mb: {{CASSANDRA_INDEX_SUMMARY_CAPACITY_IN_MB}}
+trickle_fsync: {{CASSANDRA_TRICKLE_FSYNC}}
+trickle_fsync_interval_in_kb: {{CASSANDRA_TRICKLE_FSYNC_INTERVAL_IN_KB}}
+rpc_server_type: {{CASSANDRA_RPC_SERVER_TYPE}}
+incremental_backups: {{CASSANDRA_INCREMENTAL_BACKUPS}}
+snapshot_before_compaction: {{CASSANDRA_SNAPSHOT_BEFORE_COMPACTION}}
 auto_snapshot: {{CASSANDRA_AUTO_SNAPSHOT}}
-cross_node_timeout: false
-endpoint_snitch: GossipingPropertyFileSnitch
+cross_node_timeout: {{CASSANDRA_CROSS_NODE_TIMEOUT}}
+endpoint_snitch: {{CASSANDRA_ENDPOINT_SNITCH}}
 roles_update_interval_in_ms: {{ROLES_UPDATE_INTERVAL_IN_MS}}
 permissions_update_interval_in_ms: {{PERMISSIONS_UPDATE_INTERVAL_IN_MS}}
 key_cache_keys_to_save: {{CASSANDRA_KEY_CACHE_KEYS_TO_SAVE}}
