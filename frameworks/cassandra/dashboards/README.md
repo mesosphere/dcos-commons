@@ -11,6 +11,6 @@ This is a folder for Grafana dashboards. In order to install a dashboard on a cl
 
 3. In Prometheus UI, click on a "Graph" button, and in the "Expression" field, enter "org_apache_cassandra_" and check that Cassandra metrics are collected into Prometheus.
 
-4. To import a dashboard, go to Grafana UI and in the left toolbar click on a plus sign - "Import". Click on a "Upload .json file" button, choose a json file and click "Import".
+4. To import a dashboard, go to Grafana UI and in the left toolbar click on a plus sign - "Import". Click on a "Upload .json file" button, choose a json file according to DC/OS version and click "Import".
    
 5. Dashboard will be opened and you can see charts and metrics.

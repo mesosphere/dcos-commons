@@ -16,8 +16,8 @@
   "editable": true,
   "gnetId": null,
   "graphTooltip": 0,
-  "id": 28,
-  "iteration": 1556615593345,
+  "id": 27,
+  "iteration": 1557086342744,
   "links": [],
   "panels": [
     {
@@ -748,7 +748,7 @@
       "tableColumn": "",
       "targets": [
         {
-          "expr": "sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Read_m1_rate{task_name=~\"$task_name\", service_name=\"$service_name\"})",
+          "expr": "sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Read_[[metric_interval]]_rate{task_name=~\"$task_name\", service_name=\"$service_name\"})",
           "format": "time_series",
           "hide": false,
           "intervalFactor": 1,
@@ -3368,7 +3368,7 @@
         "h": 3,
         "w": 24,
         "x": 0,
-        "y": 122
+        "y": 116
       },
       "id": 24,
       "interval": null,
@@ -3441,7 +3441,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 131
+        "y": 119
       },
       "id": 19,
       "panels": [],
@@ -3462,7 +3462,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 132
+        "y": 120
       },
       "id": 78,
       "links": [
@@ -3565,7 +3565,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 132
+        "y": 120
       },
       "id": 77,
       "links": [
@@ -3668,7 +3668,7 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 141
+        "y": 129
       },
       "id": 76,
       "links": [
@@ -3774,7 +3774,7 @@
         "h": 9,
         "w": 12,
         "x": 12,
-        "y": 141
+        "y": 129
       },
       "id": 79,
       "links": [
@@ -4074,7 +4074,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "stresscql",
           "value": "stresscql"
         },
@@ -4099,7 +4098,6 @@
       {
         "allValue": null,
         "current": {
-          "selected": true,
           "text": "insanitytest",
           "value": "insanitytest"
         },
@@ -4153,7 +4151,7 @@
     ]
   },
   "timezone": "browser",
-  "title": "/Cassandra",
+  "title": "/Cassandra DC/OS 1.13",
   "uid": "000000086",
-  "version": 3
+  "version": 2
 }
