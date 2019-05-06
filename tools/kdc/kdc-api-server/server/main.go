@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -75,6 +76,11 @@ func main() {
 	fs := http.FileServer(http.Dir("static/"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 
-	log.Printf("Listening on port 8080\n")
-	http.ListenAndServe(":8080", nil)
+	// Start server on the configured port
+	webPort := os.Getenv("PORT_WEB")
+	if webPort == "" {
+		webPort = "8080"
+	}
+	log.Printf("Listening on port %s\n", webPort)
+	http.ListenAndServe(fmt.Sprintf(":%s", webPort), nil)
 }
