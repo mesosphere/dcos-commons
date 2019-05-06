@@ -2,6 +2,8 @@ package main
 
 import (
   "bufio"
+  "bytes"
+  "io"
   "os"
   "strings"
 )
@@ -16,10 +18,24 @@ func ParsePrincipalsFile(filename string) ([]KPrincipal, error) {
   }
   defer file.Close()
 
+  return ParsePrincipalsFrom(file)
+}
+
+/**
+ * Parses the given principals string to an array of principals
+ */
+func ParsePrincipalsBytes(contents []byte) ([]KPrincipal, error) {
+  return ParsePrincipalsFrom(bytes.NewReader(contents))
+}
+
+/**
+ * Parses the given principals string to an array of principals
+ */
+func ParsePrincipalsFrom(contents io.Reader) ([]KPrincipal, error) {
   var principals []KPrincipal
-  scanner := bufio.NewScanner(file)
+  scanner := bufio.NewScanner(contents)
   for scanner.Scan() {
-    p, err := ParsePrincipal(scanner.Text())
+    p, err := ParsePrincipal(strings.Trim(scanner.Text(), " \t"))
     if err != nil {
       return nil, err
     }
@@ -29,17 +45,22 @@ func ParsePrincipalsFile(filename string) ([]KPrincipal, error) {
 }
 
 /**
- * Parses the given principals string to an array of principals
+ * Parses principals from KAdmin `list --long` output
  */
-func ParsePrincipals(contents string) ([]KPrincipal, error) {
+func ParsePrincipalsKadminLong(contents string) ([]KPrincipal, error) {
   var principals []KPrincipal
+
   scanner := bufio.NewScanner(strings.NewReader(contents))
   for scanner.Scan() {
-    p, err := ParsePrincipal(scanner.Text())
-    if err != nil {
-      return nil, err
+    line := strings.Trim(scanner.Text(), " \t")
+    if strings.HasPrefix(line, "Principal:") {
+      p, err := ParsePrincipal(line[11:])
+      if err != nil {
+        return nil, err
+      }
+      principals = append(principals, p)
     }
-    principals = append(principals, p)
+
   }
   return principals, scanner.Err()
 }

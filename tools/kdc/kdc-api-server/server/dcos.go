@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/dcos/client-go/dcos"
@@ -56,4 +57,16 @@ func CreateDCOSClientFromEnvironment() (*dcos.APIClient, error) {
 	// Update config
 	config.SetACSToken(authToken.Token)
 	return client, nil
+}
+
+/**
+CreateSecret Creates a secret on the DC/OS secret store
+*/
+func CreateKeytabSecret(client *dcos.APIClient, secretName string, keytab []byte) error {
+	secret := dcos.SecretsV1Secret{Value: base64.StdEncoding.EncodeToString(keytab)}
+	secretName = fmt.Sprintf("__dcos_base64__%s", secretName)
+
+	// Create a secret on the DC/OS secrets store
+	_, err := client.Secrets.CreateSecret(context.TODO(), "default", secretName, secret)
+	return err
 }

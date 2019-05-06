@@ -106,9 +106,57 @@ func (c *KAdminClient) AddPrincipals(principals []KPrincipal) error {
 }
 
 /*
+AddMissingPrincipals Behaves similarly to AddPrincipals, but it does not throw error if principals already exists
+*/
+func (c *KAdminClient) AddMissingPrincipals(principals []KPrincipal) error {
+  var missingPrincipals []KPrincipal
+
+  // Find missing principals
+  for _, p := range principals {
+    ok, err := c.HasPrincipal(p)
+    if err != nil {
+      return fmt.Errorf("Unable to check if principal '%s' exists: %s", p.Full(), err.Error())
+    }
+
+    // Collect missing
+    if !ok {
+      missingPrincipals = append(missingPrincipals, p)
+    }
+  }
+
+  // Check for empty cases
+  if len(missingPrincipals) == 0 {
+    return nil
+  }
+
+  return c.AddPrincipals(missingPrincipals)
+}
+
+/*
+HasPrincipal Checks if the given principal exists
+*/
+func (c *KAdminClient) HasPrincipal(p KPrincipal) (bool, error) {
+  _, _, err := c.exec("-l", "list", "-l", p.Full())
+  if err != nil {
+    // Check for missing principal
+    if kerr, ok := err.(*KExecError); ok {
+      if strings.Contains(kerr.Stderr, "Principal does not exist") {
+        return false, nil
+      }
+    }
+
+    // Anything else is an error
+    return false, err
+  }
+
+  // If it worked out smoothly, the principal exist
+  return true, nil
+}
+
+/*
 GetKeytab Creates a keytab file for the given principals
 */
-func (c *KAdminClient) GetKeytab(principals []KPrincipal) ([]byte, error) {
+func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, error) {
   // Create a temporary file for the keytab
   tmpfile, err := ioutil.TempFile("", "keytab")
   if err != nil {
@@ -155,13 +203,13 @@ func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
   }
 
   // Enumerate the principals in stdout
-  list, _, err := c.exec("-l", "list", filter)
+  list, _, err := c.exec("-l", "list", "-l", filter)
   if err != nil {
     return nil, err
   }
 
   // Parse them
-  return ParsePrincipals(list)
+  return ParsePrincipalsKadminLong(list)
 }
 
 /*

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
+	"net/http"
 )
 
 func main() {
@@ -14,35 +14,67 @@ func main() {
 		log.Fatal(err)
 	}
 
-	sout, serr, err := kadmin.exec("--help")
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(sout)
-	fmt.Println(serr)
-
-	p, err := ParsePrincipals(`zookeeper/zookeeper-0-server.data-servicesconfluent-zookeeper-kerberos.autoip.dcos.thisdcos.directory@LOCAL
-zookeeper/zookeeper-1-server.data-servicesconfluent-zookeeper-kerberos.autoip.dcos.thisdcos.directory@LOCAL
-zookeeper/zookeeper-2-server.data-servicesconfluent-zookeeper-kerberos.autoip.dcos.thisdcos.directory@LOCAL
-`)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println(p)
-
 	// Try to connect to DC/OS based on the environment settings
 	// if this fails, we cannot connect to DC/OS later
-	client, err := CreateDCOSClientFromEnvironment()
+	dclient, err := CreateDCOSClientFromEnvironment()
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	secret, _, err := client.Secrets.GetSecret(context.TODO(), "default", "kdc-admin", nil)
-	if err != nil {
-		log.Fatalf("Unable to fetch the secret: %s", err)
-	}
+	// Start the server
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Welcome to my website!")
+	})
 
-	log.Printf("Secret fetched: %+v\n", secret)
+	http.HandleFunc("/api/add-principal", func(rw http.ResponseWriter, req *http.Request) {
+
+		// Check the name of the service
+		serviceName, ok := req.URL.Query()["service"]
+		if !ok || len(serviceName[0]) < 1 {
+			fmt.Fprintf(rw, "error: missing 'service=' argument")
+			return
+		}
+
+		// Make sure we have the required arguments
+		principals, err := ParsePrincipalsFrom(req.Body)
+		if err != nil {
+			fmt.Fprintf(rw, "error: %s", err.Error())
+			return
+		}
+
+		// Check if we were given an empty string
+		if len(principals) == 0 {
+			fmt.Fprintf(rw, "error: Given an empty list of principals")
+			return
+		}
+
+		// Install missing principals using defaults
+		err = kadmin.AddMissingPrincipals(principals)
+		if err != nil {
+			fmt.Fprintf(rw, "error: Unable to add principals: %s", err.Error())
+			return
+		}
+
+		// Collect keytab contents
+		keytab, err := kadmin.GetKeytabForPrincipals(principals)
+		if err != nil {
+			fmt.Fprintf(rw, "error: Unable to export keytab: %s", err.Error())
+			return
+		}
+
+		// Upload to
+		err = CreateKeytabSecret(dclient, serviceName[0], keytab)
+		if err != nil {
+			fmt.Fprintf(rw, "error: Unable to upload to secret store: %s", err.Error())
+			return
+		}
+
+		fmt.Fprintf(rw, "ok")
+	})
+
+	fs := http.FileServer(http.Dir("static/"))
+	http.Handle("/static/", http.StripPrefix("/static/", fs))
+
+	log.Printf("Listening on port 8080\n")
+	http.ListenAndServe(":8080", nil)
 }
