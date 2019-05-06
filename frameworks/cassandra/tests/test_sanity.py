@@ -125,3 +125,33 @@ def test_custom_jmx_port() -> None:
     for task in tasks:
         _, stdout, _ = sdk_cmd.run_cli("task exec {} lsof -i :7200".format(task.id))
         assert expected_open_port in stdout
+
+
+@pytest.mark.sanity
+def test_udf() -> None:
+    test_jobs: List[Dict[str, Any]] = []
+    try:
+        test_jobs = config.get_udf_jobs(node_address=config.get_foldered_node_address())
+        # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
+        for job in test_jobs:
+            sdk_jobs.install_job(job)
+
+        new_config = {
+            "cassandra": {
+                "enable_user_defined_functions": True,
+                "enable_scripted_user_defined_functions": True,
+            }
+        }
+        sdk_service.update_configuration(
+            config.PACKAGE_NAME,
+            config.get_foldered_service_name(),
+            new_config,
+            config.DEFAULT_TASK_COUNT,
+        )
+        config.verify_client_can_write_read_udf(
+            config.get_foldered_node_address(),
+        )
+    finally:
+        # remove job definitions from metronome
+        for job in test_jobs:
+            sdk_jobs.remove_job(job)
