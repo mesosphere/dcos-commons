@@ -68,7 +68,9 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
+          {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs journalnode
         resource-set: journal-resources
         configs:
@@ -217,7 +219,9 @@ pods:
           cp -v zone-resolver.sh {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
           chmod u+x {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
           {{/NAME_NODE_PLACEMENT}}
+          {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
         resource-set: name-resources
         readiness-check:
@@ -280,7 +284,9 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
+          {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
@@ -320,7 +326,9 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
+          {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
         resource-set: name-resources
         configs:
@@ -366,7 +374,9 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST, name-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST
+          {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
@@ -406,7 +416,9 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
+          {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
@@ -471,7 +483,9 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
+          {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
