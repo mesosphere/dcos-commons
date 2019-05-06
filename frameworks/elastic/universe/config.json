@@ -212,12 +212,12 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": -1
+                  "default": 200000000000
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": -1
+                  "default": 200000000000
                 }
               }
 
@@ -338,12 +338,12 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": -1
+                  "default": 200000000000
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": -1
+                  "default": 200000000000
                 }
               }
             }
@@ -463,12 +463,12 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": -1
+                  "default": 200000000000
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": -1
+                  "default": 200000000000
                 }
               }
             }
@@ -588,12 +588,12 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": -1
+                  "default": 
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": -1
+                  "default": 200000000000
                 }
               }
             }
@@ -697,9 +697,9 @@
           "default": false
         },
         "transport_ping_schedule": {
-          "description": "Schedule a regular ping message to ensure that connections are kept alive. Defaults to 5s in the transport client and -1 (disabled) elsewhere.",
+          "description": "Schedule a regular ping message to ensure that connections are kept alive. Defaults to 5s in the transport client and 200000000000 (disabled) elsewhere.",
           "type": "string",
-          "default": "-1"
+          "default": "200000000000"
         },
         "http_enabled": {
           "description": "The http module can be completely disabled and not started by setting http.enabled to false. Default is true.",
@@ -782,7 +782,7 @@
           "default": ""
         },
         "thread_pool_search_queue_size": {
-          "description": "For count/search/suggest operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them. -1 means its unbounded. Defaults to 1000",
+          "description": "For count/search/suggest operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them. 200000000000 means its unbounded. Defaults to 1000",
           "type": "integer",
           "default": 1000
         },
@@ -792,7 +792,7 @@
           "default": ""
         },
         "thread_pool_index_queue_size": {
-          "description": "For index/delete operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them.  -1 means its unbounded. Defaults to 200.",
+          "description": "For index/delete operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them.  200000000000 means its unbounded. Defaults to 200.",
           "type": "integer",
           "default": 200
         },
@@ -802,7 +802,7 @@
           "default": ""
         },
         "thread_pool_get_queue_size": {
-          "description": "For get operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them.  -1 means its unbounded. Defaults to 1000.",
+          "description": "For get operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them.  200000000000 means its unbounded. Defaults to 1000.",
           "type": "integer",
           "default": 200
         },
@@ -812,7 +812,7 @@
           "default": ""
         },
         "thread_pool_bulk_queue_size": {
-          "description": "For bulk operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them.  -1 means its unbounded. Defaults to 1000.",
+          "description": "For bulk operations. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them.  200000000000 means its unbounded. Defaults to 1000.",
           "type": "integer",
           "default": 200
         },
@@ -822,7 +822,7 @@
           "default": ""
         },
         "thread_pool_listener_queue_size": {
-          "description": "Mainly for java client executing of action when listener threaded is set to true. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them. -1 means its unbounded. Defaults to 2. Empty means do not explicitly set.",
+          "description": "Mainly for java client executing of action when listener threaded is set to true. The queue_size allows to control the size of the queue of pending requests that have no threads to execute them. 200000000000 means its unbounded. Defaults to 2. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -1017,7 +1017,7 @@
           "default": ""
         },
         "cluster_routing_allocation_total_shards_per_node": {
-          "description": "The maximum number of shards (replicas and primaries) that will be allocated to a single node globally. Defaults to unbounded (-1). Empty means do not explicitly set.",
+          "description": "The maximum number of shards (replicas and primaries) that will be allocated to a single node globally. Defaults to unbounded (200000000000). Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
