@@ -21,7 +21,7 @@ To create a new service based on the SDK:
 
 To update an existing framework to use the latest version of the SDK:
 1. review the [SDK changelog](changelog.md), and
-1. refer to the current [update instructions](tools/distribution/UPDATING.md)
+1. refer to the current [update instructions](UPDATING-FRAMEWORKS.md)
 
 ---
 ### References
