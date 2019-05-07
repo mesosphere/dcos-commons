@@ -60,9 +60,34 @@
     "CASSANDRA_CQLSH_SSL_FLAGS": "",
     {{/service.security.transport_encryption.enabled}}
 
+    "SECURITY_AUTHENTICATION_ENABLED": "{{service.security.authentication.enabled}}",
+    "SECURITY_AUTHORIZATION_ENABLED": "{{service.security.authorization.enabled}}",
+    
+    {{#service.security.authentication.enabled}}
+    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "PasswordAuthenticator",
+    {{/service.security.authentication.enabled}}
+    {{^service.security.authentication.enabled}}
+    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "AllowAllAuthenticator",
+    {{/service.security.authentication.enabled}}
+    
+    {{#service.security.authorization.enabled}}
+    "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "CassandraAuthorizer",
+    {{/service.security.authorization.enabled}}
+    {{^service.security.authorization.enabled}}
+    "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "AllowAllAuthorizer",
+    {{/service.security.authorization.enabled}}
+
+    "TASKCFG_ALL_NEW_SUPERUSER": "{{service.security.authentication.superuser.name}}",
+    "TASKCFG_ALL_PASSWORD_SECRET_PATH": "{{service.security.authentication.superuser.password_secret_path}}",    
+    "TASKCFG_ALL_ROLES_UPDATE_INTERVAL_IN_MS": "{{service.security.authorization.roles_update_interval_in_ms}}",    
+    "TASKCFG_ALL_ROLES_VALIDITY_IN_MS": "{{service.security.authorization.roles_validity_in_ms}}",
+    "TASKCFG_ALL_CREDENTIALS_VALIDITY_IN_MS": "{{service.security.authorization.credentials_validity_in_ms}}",
+    "TASKCFG_ALL_CREDENTIALS_UPDATE_INTERVAL_IN_MS": "{{service.security.authorization.credentials_update_interval_in_ms}}",
+    "TASKCFG_ALL_PERMISSIONS_VALIDITY_IN_MS": "{{service.security.authorization.permissions_validity_in_ms}}",
+    "TASKCFG_ALL_PERMISSIONS_UPDATE_INTERVAL_IN_MS": "{{service.security.authorization.permissions_update_interval_in_ms}}",
+
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
-    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "{{cassandra.authenticator}}",
-    "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "{{cassandra.authorizer}}",
+
     "NODES": "{{nodes.count}}",
     "CASSANDRA_CPUS": "{{nodes.cpus}}",
     "CASSANDRA_MEMORY_MB": "{{nodes.mem}}",
@@ -133,8 +158,6 @@
     "TASKCFG_ALL_CASSANDRA_MATERIALIZED_VIEW_WRITES": "{{cassandra.concurrent_materialized_view_writes}}",
     "TASKCFG_ALL_CASSANDRA_COMMITLOG_TOTAL_SPACE_IN_MB": "{{cassandra.commitlog_total_space_in_mb}}",
     "TASKCFG_ALL_CASSANDRA_AUTO_SNAPSHOT": "{{cassandra.auto_snapshot}}",
-    "TASKCFG_ALL_CASSANDRA_ROLES_UPDATE_INTERVAL_IN_MS": "{{cassandra.roles_update_interval_in_ms}}",
-    "TASKCFG_ALL_CASSANDRA_PERMISSIONS_UPDATE_INTERVAL_IN_MS": "{{cassandra.permissions_update_interval_in_ms}}",
     "TASKCFG_ALL_CASSANDRA_KEY_CACHE_KEYS_TO_SAVE": "{{cassandra.key_cache_keys_to_save}}",
     "TASKCFG_ALL_CASSANDRA_ROW_CACHE_KEYS_TO_SAVE": "{{cassandra.row_cache_keys_to_save}}",
     "TASKCFG_ALL_CASSANDRA_COUNTER_CACHE_KEYS_TO_SAVE": "{{cassandra.counter_cache_keys_to_save}}",
@@ -177,7 +200,10 @@
     "READINESS_CHECK_TIMEOUT": "{{service.readiness_check.timeout}}",
 
     "RLIMIT_NOFILE_SOFT": "{{service.rlimits.rlimit_nofile.soft}}",
-    "RLIMIT_NOFILE_HARD": "{{service.rlimits.rlimit_nofile.hard}}"
+    "RLIMIT_NOFILE_HARD": "{{service.rlimits.rlimit_nofile.hard}}",
+    
+    "TASKCFG_ALL_CASSANDRA_ENABLE_USER_DEFINED_FUNCTIONS": "{{cassandra.enable_user_defined_functions}}",
+    "TASKCFG_ALL_CASSANDRA_ENABLE_SCRIPTED_USER_DEFINED_FUNCTIONS": "{{cassandra.enable_scripted_user_defined_functions}}"
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },
