@@ -1,0 +1,58 @@
+worker_processes  1;
+
+error_log  ${MESOS_SANDBOX}/nginx/error.log debug;
+pid        ${MESOS_SANDBOX}/nginx/nginx.pid;
+
+events {
+  worker_connections 1024;
+}
+
+http {
+  include       /etc/nginx/mime.types;
+  default_type  application/octet-stream;
+
+  # Use dcos-net resolver address so that l4lb DNS names can be resolved.
+  resolver 198.51.100.1 ipv6=off;
+
+  fastcgi_temp_path     ${MESOS_SANDBOX}/nginx/fastcgi_temp;
+  uwsgi_cache_path      ${MESOS_SANDBOX}/nginx/uwsgi_cache levels=1:2 use_temp_path=on keys_zone=uwsgi:10m;
+  uwsgi_temp_path       ${MESOS_SANDBOX}/nginx/uwsgi_temp;
+  scgi_cache_path       ${MESOS_SANDBOX}/nginx/scgi_cache levels=1:2 use_temp_path=on keys_zone=scgi:10m;
+  scgi_temp_path        ${MESOS_SANDBOX}/nginx/scgi_temp;
+  client_body_temp_path ${MESOS_SANDBOX}/nginx/client_temp;
+  proxy_cache_path      ${MESOS_SANDBOX}/nginx/proxy_cache levels=1:2 use_temp_path=on keys_zone=proxy:10m;
+  proxy_temp_path       ${MESOS_SANDBOX}/nginx/proxy_temp;
+
+  log_format main '$remote_addr - $remote_user [$time_local] "$request" '
+                  '$status $body_bytes_sent "$http_referer" '
+                  '"$http_user_agent" "$http_x_forwarded_for"';
+
+  access_log ${MESOS_SANDBOX}/nginx/access.log  main;
+
+  rewrite_log on;
+
+  sendfile off;
+
+  keepalive_timeout 65;
+
+  server {
+    listen ${PORT_PROXY};
+
+    # Note we have to define 'upstream' variables below because otherwise, Nginx
+    # will try to resolve the DNS name during bootstrap, which will fail because
+    # the service is not up yet.
+
+    location = /service/${FRAMEWORK_NAME}/ {
+      set $upstream ${MARATHON_APP_LABEL_DCOS_SERVICE_SCHEME}://0.0.0.0:${PORT_KIBANA};
+      rewrite ^(.*)/$ $1/app/kibana break;
+      proxy_set_header Authorization "";
+      proxy_pass $upstream;
+    }
+
+    location /service/${FRAMEWORK_NAME}/ {
+      set $upstream ${MARATHON_APP_LABEL_DCOS_SERVICE_SCHEME}://0.0.0.0:${PORT_KIBANA};
+      proxy_set_header Authorization "";
+      proxy_pass $upstream;
+    }
+  }
+}
