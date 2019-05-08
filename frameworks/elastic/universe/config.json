@@ -588,7 +588,7 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": 
+                  "default": 200000000000
                 },
                 "hard" : {
                   "type": "integer",

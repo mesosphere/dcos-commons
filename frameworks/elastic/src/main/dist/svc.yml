@@ -89,9 +89,6 @@ pods:
           setup-java-policy.sh:
             template: setup-java-policy.sh
             dest: scripts/setup-java-policy.sh
-          enable_memlock:
-            template: enable_memlock
-            dest: /etc/security/limits.conf
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: {{MASTER_NODE_READINESS_CHECK_INTERVAL}}
@@ -186,9 +183,6 @@ pods:
           setup-java-policy.sh:
             template: setup-java-policy.sh
             dest: scripts/setup-java-policy.sh
-          enable_memlock:
-            template: enable_memlock
-            dest: /etc/security/limits.conf
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: {{DATA_NODE_READINESS_CHECK_INTERVAL}}
@@ -283,9 +277,6 @@ pods:
           setup-java-policy.sh:
             template: setup-java-policy.sh
             dest: scripts/setup-java-policy.sh
-          enable_memlock:
-            template: enable_memlock
-            dest: /etc/security/limits.conf
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: {{INGEST_NODE_READINESS_CHECK_INTERVAL}}
@@ -381,9 +372,6 @@ pods:
           setup-java-policy.sh:
             template: setup-java-policy.sh
             dest: scripts/setup-java-policy.sh
-          enable_memlock:
-            template: enable_memlock
-            dest: /etc/security/limits.conf
         readiness-check:
           cmd: "curl -k -I -s -f -u {{ELASTICSEARCH_HEALTH_USER}}:{{ELASTICSEARCH_HEALTH_USER_PASSWORD}} {{ELASTICSEARCH_HEALTH_PROTOCOL}}://$TASK_NAME.$FRAMEWORK_HOST:$PORT_HTTP"
           interval: {{COORDINATOR_NODE_READINESS_CHECK_INTERVAL}}
