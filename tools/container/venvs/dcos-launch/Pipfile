@@ -1,0 +1,13 @@
+[[source]]
+name = "pypi"
+url = "https://pypi.org/simple"
+verify_ssl = true
+
+[dev-packages]
+
+[packages]
+dcos-launch = {editable = true,git = "https://github.com/dcos/dcos-launch.git",ref = "965a877ab641ab39733887188ed8f86d1a8c696c"}
+dcos-test-utils = {editable = true,git = "https://github.com/dcos/dcos-test-utils.git",ref = "3ebfc18ff9c5a1aa382311474a9192a68c98b0a7"}
+
+[requires]
+python_version = "3.5"

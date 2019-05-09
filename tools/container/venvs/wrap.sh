@@ -1,6 +1,4 @@
 #!/bin/bash
-# TODO: this is just a pass-through fow now, actual invocation of pipenv will
-# be added after TeamCity configs are updated to use this file.
 set -eu
 function usage() {
 	echo "Usage: $0 <PIPENV_PROJECT> <COMMAND> [ ARGS ... ]" >&2
@@ -10,7 +8,9 @@ function usage() {
 }
 pipenv_project="$1"
 shift
-if [[ $# == 0 ]]; then
+export PIPENV_PIPFILE="/venvs/${pipenv_project}/Pipfile"
+if [[ $# == 0 || ! -e ${PIPENV_PIPFILE} ]]; then
 	usage
 fi
-exec "$@"
+echo "Running following command using ${PIPENV_PIPFILE}:" "$@" >&2
+exec pipenv run "$@"
