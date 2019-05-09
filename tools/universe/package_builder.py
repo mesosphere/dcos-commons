@@ -16,7 +16,8 @@ import urllib.request
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-_jre_url = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.3%2B7/OpenJDK11U-jdk_x64_linux_hotspot_11.0.3_7.tar.gz"
+_scheduler_jre_url = "https://github.com/AdoptOpenJDK/openjdk11-binaries/releases/download/jdk-11.0.3%2B7/OpenJDK11U-jdk_x64_linux_hotspot_11.0.3_7.tar.gz"
+_framework_jre_url = "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u212-b03/OpenJDK8U-jdk_x64_linux_hotspot_8u212b03.tar.gz"
 _libmesos_bundle_url = (
     "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.12.0.tar.gz"
 )
@@ -176,7 +177,8 @@ class UniversePackageBuilder(object):
             "artifact-dir": self._upload_dir_uri,
             "documentation-path": self._get_documentation_path(),
             "issues-path": self._get_issues_path(),
-            "jre-url": _jre_url,
+            "scheduler-jre-url": _scheduler_jre_url,
+            "framework-jre-url": _framework_jre_url,
             "libmesos-bundle-url": _libmesos_bundle_url
         }
 

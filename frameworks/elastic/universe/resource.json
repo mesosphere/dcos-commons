@@ -1,12 +1,12 @@
 {
   "assets": {
     "uris": {
-      "jre-tar-gz": "{{jre-url}}",
+      "jre-tar-gz": "{{scheduler-jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/elastic-scheduler.zip",
       "statsd-plugin-zip": "https://downloads.mesosphere.com/elastic/assets/elasticsearch-statsd-{{elastic-statsd-version}}.zip",
-      "elasticsearch-jre-tar-gz": "{{jre-url}}",
+      "elasticsearch-jre-tar-gz": "{{framework-jre-url}}",
       "elasticsearch-tar-gz": "https://downloads.mesosphere.com/elastic/assets/elasticsearch-{{elastic-version}}.tar.gz",
       "diagnostics-zip": "https://downloads.mesosphere.com/elastic/assets/support-diagnostics-{{support-diagnostics-version}}-dist.zip"
     }
