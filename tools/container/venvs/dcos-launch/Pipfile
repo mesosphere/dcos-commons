@@ -10,4 +10,4 @@ dcos-launch = {editable = true,git = "https://github.com/dcos/dcos-launch.git",r
 dcos-test-utils = {editable = true,git = "https://github.com/dcos/dcos-test-utils.git",ref = "3ebfc18ff9c5a1aa382311474a9192a68c98b0a7"}
 
 [requires]
-python_version = "3.5"
+python_version = "3"
