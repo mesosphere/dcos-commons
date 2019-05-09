@@ -27,7 +27,7 @@ http {
                   '$status $body_bytes_sent "$http_referer" '
                   '"$http_user_agent" "$http_x_forwarded_for"';
 
-  access_log ${MESOS_SANDBOX}/nginx/access.log  main;
+  access_log ${MESOS_SANDBOX}/nginx/access.log main;
 
   rewrite_log on;
 
@@ -38,21 +38,34 @@ http {
   server {
     listen ${PORT_PROXY};
 
-    # Note we have to define 'upstream' variables below because otherwise, Nginx
-    # will try to resolve the DNS name during bootstrap, which will fail because
-    # the service is not up yet.
-
-    location = /service/${FRAMEWORK_NAME}/ {
-      set $upstream ${MARATHON_APP_LABEL_DCOS_SERVICE_SCHEME}://0.0.0.0:${PORT_KIBANA};
-      rewrite ^(.*)/$ $1/app/kibana break;
-      proxy_set_header Authorization "";
-      proxy_pass $upstream;
+    # The Kibana web server will incorrectly do redirects to an invalid path
+    # with a doubled "/service/${FRAMEWORK_NAME}" in some cases. This causes at
+    # least a couple of different issues.
+    #
+    # The following location block fixes this.
+    location /service/${FRAMEWORK_NAME}/service/${FRAMEWORK_NAME}/ {
+      port_in_redirect off;
+      rewrite ^/service/${FRAMEWORK_NAME}/(.*)$ /$1 permanent;
     }
 
     location /service/${FRAMEWORK_NAME}/ {
-      set $upstream ${MARATHON_APP_LABEL_DCOS_SERVICE_SCHEME}://0.0.0.0:${PORT_KIBANA};
+      proxy_set_header X-Real-IP "$remote_addr";
+      proxy_set_header X-Forwarded-For "$proxy_add_x_forwarded_for";
+      proxy_set_header Host "$http_host";
+
+      # Admin Router adds an "Authorization" header to requests to its backends.
+      # Kibana tries to interpret "Authorization" headers to authenticate
+      # requests to it, but since the header here contains a DC/OS-related
+      # token, Kibana will fail to process it and log a message like
+      # "Unsupported authentication schema: token=...".
+      #
+      # Hence, we remove the "Authorization" header before it hits the Kibana
+      # web server.
+      #
+      # For more details see DCOS-46801.
       proxy_set_header Authorization "";
-      proxy_pass $upstream;
+
+      proxy_pass ${MARATHON_APP_LABEL_DCOS_SERVICE_SCHEME}://0.0.0.0:${PORT_KIBANA};
     }
   }
 }
