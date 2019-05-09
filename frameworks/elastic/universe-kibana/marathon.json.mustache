@@ -63,12 +63,7 @@
   "healthChecks": [
     {
       "protocol": "MESOS_HTTP",
-      {{^kibana.elasticsearch_xpack_security_enabled}}
-      "path": "/service/{{service.name}}/app/kibana",
-      {{/kibana.elasticsearch_xpack_security_enabled}}
-      {{#kibana.elasticsearch_xpack_security_enabled}}
-      "path": "/service/{{service.name}}/login",
-      {{/kibana.elasticsearch_xpack_security_enabled}}
+      "path": "/service/{{service.name}}/",
       "gracePeriodSeconds": 900,
       "intervalSeconds": 30,
       "portIndex": 0,
