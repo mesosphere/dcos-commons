@@ -25,7 +25,8 @@ import java.util.List;
  * Main entry point for the Scheduler.
  */
 public final class Main {
-  private static final String CUSTOM_YAML_BLOCK_BASE64_ENV = "TASKCFG_ALL_CUSTOM_YAML_BLOCK_BASE64";
+  private static final String AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64_ENV =
+      "TASKCFG_ALL_AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64";
 
   private Main() {}
 
@@ -52,13 +53,13 @@ public final class Main {
             rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
             .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds));
 
-    String yamlBase64 = System.getenv(CUSTOM_YAML_BLOCK_BASE64_ENV);
+    String yamlBase64 = System.getenv(AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64_ENV);
     if (yamlBase64 != null && yamlBase64.length() > 0) {
       String esYamlBlock = new String(
           Base64.getDecoder().decode(yamlBase64),
           StandardCharsets.UTF_8
       );
-      serviceSpecGenerator.setAllPodsEnv("CUSTOM_YAML_BLOCK", esYamlBlock);
+      serviceSpecGenerator.setAllPodsEnv("AUTHENTICATION_CUSTOM_YAML_BLOCK", esYamlBlock);
     }
 
     return DefaultScheduler.newBuilder(serviceSpecGenerator.build(), schedulerConfig)

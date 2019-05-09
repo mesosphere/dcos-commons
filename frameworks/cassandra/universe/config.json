@@ -130,11 +130,34 @@
                                 "type": "string",
                                 "description": "The path in the DC/OS Secret Store to retrieve the superuser password from" ,
                                 "default": "cassandra/password"
-			    }
+			                      }
                         }
-                    }
-                }
-            
+                    },
+                "custom_authenticator": {
+                    "description": " ",
+                    "type": "string",
+                    "default": ""
+                },
+                "custom_authorizer": {
+                    "description": " ",
+                    "type": "string",
+                    "default": ""
+                },
+                "role_manager": {
+                    "description": " ",
+                    "type": "string",
+                    "default": ""
+                },
+                "authentication_custom_cassandra_yml": {
+                    "description": "Custom YAML to be appended to cassandra.yml on each node. This field must be base64 encoded.",
+                    "type": "string",
+                    "media": {
+                      "binaryEncoding": "base64",
+                      "type": "application/x-yaml"
+                    },
+                    "default": ""
+                  }
+                }     
         },
         "authorization": {
             "type": "object",
@@ -321,15 +344,6 @@
           "type": "string",
           "description": "The name of the cluster managed by the Service",
           "default": "cassandra"
-        },
-        "custom_cassandra_yml": {
-          "description": "Custom YAML to be appended to cassandra.yml on each node. This field must be base64 encoded.",
-          "type": "string",
-          "media": {
-            "binaryEncoding": "base64",
-            "type": "application/x-yaml"
-          },
-          "default": ""
         },
         "jmx_port": {
           "type": "integer",
