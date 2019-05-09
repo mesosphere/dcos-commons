@@ -133,7 +133,6 @@ def test_verify_https_ports(hdfs_client, node_type, port):
     ok, stdout, stderr = config.run_client_command("curl -v --cacert {} https://{}".format(ca_bundle, host))
     assert ok
 
-    assert "SSL connection using TLS1.2 / ECDHE_RSA_AES_128_GCM_SHA256" in stderr
     assert "server certificate verification OK" in stderr
     assert "common name: {}.{} (matched)".format(task_id, config.SERVICE_NAME) in stderr
 
