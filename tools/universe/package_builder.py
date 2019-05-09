@@ -16,7 +16,7 @@ import urllib.request
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-_jre_url = "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u212-b03/OpenJDK8U-jdk_x64_linux_hotspot_8u212b03.tar.gz" 
+_jre_url = "https://github.com/AdoptOpenJDK/openjdk8-binaries/releases/download/jdk8u212-b03/OpenJDK8U-jdk_x64_linux_hotspot_8u212b03.tar.gz"
 _libmesos_bundle_url = (
     "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.12.0.tar.gz"
 )
