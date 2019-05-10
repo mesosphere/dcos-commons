@@ -7,7 +7,7 @@ def cmd(service_name: str, task_name: str, command: str) -> Tuple[int, str, str]
     return sdk_cmd.service_task_exec(
         service_name,
         task_name,
-        "bash -c 'JAVA_HOME=$(ls -d jdk*/) apache-cassandra-*/bin/nodetool {}'".format(command),
+        "bash -c 'JAVA_HOME=$(ls -d jdk*/jre/) apache-cassandra-*/bin/nodetool {}'".format(command),
     )
 
 
