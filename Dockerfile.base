@@ -22,7 +22,6 @@
 #
 FROM ubuntu:18.10@sha256:1da669e3481b6c2c8bb25ad287b75202871b1511249000e3bc35679d02e007f4
 
-# Install JDK via PPA: https://github.com/franzwong/til/blob/master/java/silent-install-oracle-jdk8-ubuntu.md
 RUN apt-get update && \
     apt-get install -y python3-software-properties software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
@@ -34,7 +33,7 @@ RUN apt-get update && \
     libcairo2-dev \
     libgirepository1.0-dev \
     libssl-dev \
-    openjdk-8-jre \
+    openjdk-8-jdk \
     pkg-config \
     python-pip \
     python3 \
