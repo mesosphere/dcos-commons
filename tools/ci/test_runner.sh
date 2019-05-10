@@ -10,7 +10,7 @@ export PACKAGE_REGISTRY_ENABLED
 export PACKAGE_REGISTRY_STUB_URL
 export DCOS_FILES_PATH
 
-BUILD_TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BUILD_TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT_DIR="${REPO_ROOT:-$1}"
 
 SINGLE_FRAMEWORK="True"
