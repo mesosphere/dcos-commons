@@ -32,7 +32,7 @@ RUN apt-get update && \
     libcairo2-dev \
     libgirepository1.0-dev \
     libssl-dev \
-    openjdk-11-jre \
+    openjdk-11-jdk \
     pkg-config \
     python-pip \
     python3 \
