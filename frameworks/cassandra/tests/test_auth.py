@@ -6,12 +6,20 @@ import sdk_jobs
 import sdk_cmd
 import sdk_install
 import sdk_tasks
+import sdk_utils
+import os
 from tests import config
 
 log = logging.getLogger(__name__)
 
 
-@pytest.fixture(scope="module", autouse=True)
+no_auth_test_for_open_dcos = pytest.mark.skipif(
+    os.environ.get("DCOS_ENTERPRISE", "true").lower() == "true",
+    reason="Feature only supported in DC/OS EE.",
+)
+
+
+@pytest.fixture(scope="module")
 def configure_package(configure_security: None) -> Iterator[None]:
     test_jobs: List[Dict[str, Any]] = []
     try:
@@ -48,6 +56,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
             sdk_jobs.remove_job(job)
 
 
+@no_auth_test_for_open_dcos
 @pytest.mark.sanity
 def test_auth() -> None:
     config.verify_client_can_write_read_and_delete_with_auth(
@@ -55,6 +64,7 @@ def test_auth() -> None:
     )
 
 
+@no_auth_test_for_open_dcos
 @pytest.mark.sanity
 def test_unauthorized_users() -> None:
     tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "node-0")[0]
