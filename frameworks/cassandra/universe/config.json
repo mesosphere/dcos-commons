@@ -113,13 +113,13 @@
             "description": "DC/OS Apache Cassandra authentication settings",
             "properties": {
                 "enabled": {
-                    "description": "Enable Apache Cassandra's native password authentication",
+                    "description": "Enable authentication",
                     "type": "boolean",
                     "default": false
                 },
                 "superuser": {
                     "type": "object",
-                    "description": "Superuser configuration",
+                    "description": "Provide Superuser configuration for Apache Cassandra's native password authentication",
                     "properties": {
                             "name": {
                                 "type": "string",
@@ -129,24 +129,19 @@
                             "password_secret_path": {
                                 "type": "string",
                                 "description": "The path in the DC/OS Secret Store to retrieve the superuser password from" ,
-                                "default": "cassandra/password"
+                                "default": ""
 			                      }
                         }
-                    },
-                "custom_authenticator": {
+                    },  
+                "authenticator": {
                     "description": " ",
                     "type": "string",
-                    "default": ""
-                },
-                "custom_authorizer": {
-                    "description": " ",
-                    "type": "string",
-                    "default": ""
+                    "default": "PasswordAuthenticator"
                 },
                 "role_manager": {
                     "description": " ",
                     "type": "string",
-                    "default": ""
+                    "default": "CassandraRoleManager"
                 },
                 "authentication_custom_cassandra_yml": {
                     "description": "Custom YAML to be appended to cassandra.yml on each node. This field must be base64 encoded.",
@@ -165,8 +160,13 @@
             "properties": {
                 "enabled": {
                     "type": "boolean",
-                    "description": "Enable Apache Cassandra's native authorization",
+                    "description": "Enable authorization",
                     "default": false
+                },
+                "authorizer": {
+                    "description": "CassandraAuthorizer is set by default for Apache Cassandra's native authorization",
+                    "type": "string",
+                    "default": "CassandraAuthorizer"
                 },
                 "roles_validity_in_ms": {
                     "type": "integer",
@@ -197,6 +197,11 @@
                     "type": "integer",
                     "description": "If enabled, sets refresh interval for the permissions cache. After this interval, cache entries become eligible for refresh. On next access, Cassandra schedules an async reload and returns the old value until the reload completes. If permissions_validity_in_ms is nonzero, permissions_update_interval_in_ms must also be non-zero.",
                     "default": 2000
+                },
+                "permissions_cache_max_entries": {
+                    "type": "integer",
+                    "description": "The maximum number of entries that are held by the standard authentication cache and row-level access control (RLAC) cache.",
+                    "default": 1000
                 }
 
             }

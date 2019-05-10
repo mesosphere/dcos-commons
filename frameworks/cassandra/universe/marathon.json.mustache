@@ -64,17 +64,21 @@
     "SECURITY_AUTHORIZATION_ENABLED": "{{service.security.authorization.enabled}}",
     
     {{#service.security.authentication.enabled}}
-    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "PasswordAuthenticator",
+    "TASKCFG_ALL_AUTHENTICATOR": "{{service.security.authentication.authenticator}}",
     {{/service.security.authentication.enabled}}
     {{^service.security.authentication.enabled}}
-    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "AllowAllAuthenticator",
+    "TASKCFG_ALL_AUTHENTICATOR": "AllowAllAuthenticator",
     {{/service.security.authentication.enabled}}
     
+
+
+
+
     {{#service.security.authorization.enabled}}
-    "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "CassandraAuthorizer",
+    "TASKCFG_ALL_AUTHORIZER": "{{service.security.authorization.authorizer}}",
     {{/service.security.authorization.enabled}}
     {{^service.security.authorization.enabled}}
-    "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "AllowAllAuthorizer",
+    "TASKCFG_ALL_AUTHORIZER": "AllowAllAuthorizer",
     {{/service.security.authorization.enabled}}
 
     "TASKCFG_ALL_NEW_SUPERUSER": "{{service.security.authentication.superuser.name}}",
@@ -85,9 +89,8 @@
     "TASKCFG_ALL_CREDENTIALS_UPDATE_INTERVAL_IN_MS": "{{service.security.authorization.credentials_update_interval_in_ms}}",
     "TASKCFG_ALL_PERMISSIONS_VALIDITY_IN_MS": "{{service.security.authorization.permissions_validity_in_ms}}",
     "TASKCFG_ALL_PERMISSIONS_UPDATE_INTERVAL_IN_MS": "{{service.security.authorization.permissions_update_interval_in_ms}}",
+    "TASKCFG_ALL_PERMISSIONS_CACHE_MAX_ENTRIES": "{{service.security.authorization.permissions_cache_max_entries}}",
     "TASKCFG_ALL_AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64": "{{service.security.authentication.authentication_custom_cassandra_yml}}",
-    "TASKCFG_ALL_CUSTOM_AUTHENTICATOR": "{{service.security.authentication.custom_authenticator}}",
-    "TASKCFG_ALL_CUSTOM_AUTHORIZER": "{{service.security.authentication.custom_authorizer}}",
     "TASKCFG_ALL_ROLE_MANAGER": "{{service.security.authentication.role_manager}}",
 
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",

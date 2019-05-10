@@ -18,8 +18,8 @@ max_hints_delivery_threads: {{CASSANDRA_MAX_HINTS_DELIVERY_THREADS}}
 hints_flush_period_in_ms: {{CASSANDRA_HINTS_FLUSH_PERIOD_IN_MS}}
 max_hints_file_size_in_mb: {{CASSANDRA_MAX_HINTS_FILE_SIZE_IN_MB}}
 batchlog_replay_throttle_in_kb: {{CASSANDRA_BATCHLOG_REPLAY_THROTTLE_IN_KB}}
-authenticator: {{CASSANDRA_AUTHENTICATOR}}
-authorizer: {{CASSANDRA_AUTHORIZER}}
+authenticator: {{AUTHENTICATOR}}
+authorizer: {{AUTHORIZER}}
 partitioner: {{CASSANDRA_PARTITIONER}}
 key_cache_save_period: {{CASSANDRA_KEY_CACHE_SAVE_PERIOD}}
 row_cache_size_in_mb: {{CASSANDRA_ROW_CACHE_SIZE_IN_MB}}
@@ -142,7 +142,7 @@ max_value_size_in_mb: {{CASSANDRA_MAX_VALUE_SIZE_IN_MB}}
 otc_coalescing_strategy: {{CASSANDRA_OTC_COALESCING_STRATEGY}}
 credentials_validity_in_ms: {{CREDENTIALS_VALIDITY_IN_MS}}
 credentials_update_interval_in_ms: {{CREDENTIALS_UPDATE_INTERVAL_IN_MS}}
-
+permissions_cache_max_entries: {{PERMISSIONS_CACHE_MAX_ENTRIES}}
 {{#AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
 {{{AUTHENTICATION_CUSTOM_YAML_BLOCK}}}
 {{/AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
