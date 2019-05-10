@@ -344,7 +344,7 @@ def setup_passwords(
     cmd = "\n".join(
         [
             "set -x",
-            "export JAVA_HOME=$(ls -d ${MESOS_SANDBOX}/jdk*/)",
+            "export JAVA_HOME=$(ls -d ${MESOS_SANDBOX}/jdk*/jre/)",
             "ELASTICSEARCH_PATH=$(ls -d ${MESOS_SANDBOX}/elasticsearch-*/)",
             "${{ELASTICSEARCH_PATH}}/bin/elasticsearch-setup-passwords auto --batch --verbose {}".format(
                 url

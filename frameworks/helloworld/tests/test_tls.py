@@ -335,7 +335,7 @@ def _java_command(command):
     """
     return (
         "bash -c ' "
-        "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/); "
+        "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/); "
         "export JAVA_HOME=${{JAVA_HOME%/}}; "
         "export PATH=$(ls -d $JAVA_HOME/bin):$PATH; "
         "{command}"
