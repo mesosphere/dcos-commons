@@ -11,6 +11,7 @@ from bundle import Bundle
 from service_bundle import ServiceBundle
 import base_tech_bundle as base_tech
 import config
+import constants
 
 log = logging.getLogger(__name__)
 
@@ -62,10 +63,10 @@ def active_services_with_name(service_name: str, services: List[dict]) -> List[d
 def is_service_scheduler_task(package_name: str, service_name: str, task: dict) -> bool:
     labels = task.get("labels", [])
     dcos_package_name = next(
-        iter([l.get("value") for l in labels if l.get("key") == "DCOS_PACKAGE_NAME"]), ""
+        iter([l.get("value") for l in labels if l.get("key") == constants.PACKAGE_NAME_LABEL_KEY]), ""
     )
     dcos_service_name = next(
-        iter([l.get("value") for l in labels if l.get("key") == "DCOS_SERVICE_NAME"]), ""
+        iter([l.get("value") for l in labels if l.get("key") == constants.SERVICE_NAME_LABEL_KEY]), ""
     )
     return dcos_package_name == package_name and service_names_match(service_name, dcos_service_name)
 

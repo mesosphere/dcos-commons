@@ -12,12 +12,12 @@ import sdk_diag
 from bundle import Bundle
 import agent
 import config
+import constants
 
 log = logging.getLogger(__name__)
 
 
 class ServiceBundle(Bundle):
-    DOWNLOAD_FILES_WITH_PATTERNS = ["^stdout(\\.\\d+)?$", "^stderr(\\.\\d+)?$"]
 
     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
         self.package_name = package_name
@@ -80,7 +80,7 @@ class ServiceBundle(Bundle):
                     task_executor_sandbox_path,
                     task_id,
                     os.path.join(self.output_directory, "tasks"),
-                    self.DOWNLOAD_FILES_WITH_PATTERNS,
+                    constants.TASK_LOG_FILES_PATTERNS,
                 )
             else:
                 log.warn(
