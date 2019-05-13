@@ -212,12 +212,12 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": 200000000000
+                  "default": 1024000000
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": 200000000000
+                  "default": 1024000000
                 }
               }
 
@@ -338,12 +338,12 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": 200000000000
+                  "default": 2048000000
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": 200000000000
+                  "default": 2048000000
                 }
               }
             }
@@ -463,12 +463,12 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": 200000000000
+                  "default": 512000000
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": 200000000000
+                  "default": 512000000
                 }
               }
             }
@@ -588,12 +588,12 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": 200000000000
+                  "default": 1024000000
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": 200000000000
+                  "default": 1024000000
                 }
               }
             }
