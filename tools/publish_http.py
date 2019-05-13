@@ -18,6 +18,7 @@ import subprocess
 import sys
 
 import universe
+from universe.package import Version
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -122,7 +123,8 @@ class HTTPPublisher(object):
 
         http_url_root = "http://{}:{}".format(self._http_host, port)
 
-        package_info = universe.Package(self._pkg_name, self._pkg_version)
+        version = Version(release_version=0, package_version=self._pkg_version)
+        package_info = universe.Package(name=self._pkg_name, version=version)
         package_manager = universe.PackageManager()
         self._package_builder = universe.UniversePackageBuilder(
             package_info, package_manager, self._input_dir_path, http_url_root, self._artifact_paths
@@ -191,7 +193,7 @@ httpd.serve_forever()
                 subprocess.check_call("dcos package repo remove {}".format(repo["name"]).split())
         logger.info("Adding repository: {} {}".format(repo_name, repo_url))
         subprocess.check_call(
-            "dcos package repo add --index=0 {} {}".format(repo_name, repo_url).split(" ")
+            "dcos package repo add --index=0 {} '{}'".format(repo_name, repo_url).split(" ")
         )
         return True
 
@@ -252,7 +254,7 @@ Artifacts:
     if not repo_added:
         logger.info("dcos package repo remove {}-local".format(package_name))
         logger.info(
-            "dcos package repo add --index=0 {}-local {}".format(package_name, universe_url)
+            "dcos package repo add --index=0 {}-local '{}'".format(package_name, universe_url)
         )
     logger.info("dcos package install --yes {}".format(package_name))
     return 0

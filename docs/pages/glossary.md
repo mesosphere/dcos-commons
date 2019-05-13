@@ -7,7 +7,7 @@ redirect_from: /glossary.html
 ## D
 
 ### Deploy Plan
-A Deploy Plan explicity defines the order in which work needs to be performed in order to successfully deploy a given service.
+A Deploy Plan explicitly defines the order in which work needs to be performed in order to successfully deploy a given service.
 
 ## H
 

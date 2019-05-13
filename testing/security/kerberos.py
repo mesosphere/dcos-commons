@@ -4,6 +4,7 @@ A set of Kerberos utilities
 import itertools
 import logging
 
+import sdk_auth
 import sdk_cmd
 
 
@@ -30,7 +31,11 @@ def generate_principal_list(primaries: list, instances: list, realm: str) -> lis
     return principals
 
 
-def write_krb5_config_file(task: str, filename: str, krb5: object) -> str:
+def write_krb5_config_file(
+    task: str,
+    filename: str,
+    krb5: sdk_auth.KerberosEnvironment,
+) -> str:
     """
     Generate a Kerberos config file.
     """

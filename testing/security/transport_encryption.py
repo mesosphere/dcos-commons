@@ -3,6 +3,7 @@ A collection of utilities used for SSL tests.
 """
 import json
 import logging
+from typing import Any, Dict, Optional
 
 
 import sdk_cmd
@@ -12,7 +13,10 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 
-def setup_service_account(service_name: str, service_account_secret: str = None) -> dict:
+def setup_service_account(
+    service_name: str,
+    service_account_secret: Optional[str] = None,
+) -> Dict[str, Any]:
     """
     Setup the service account for TLS. If the account or secret of the specified
     name already exists, these are deleted.
@@ -65,7 +69,10 @@ def setup_service_account(service_name: str, service_account_secret: str = None)
     return service_account_info
 
 
-def cleanup_service_account(service_name: str, service_account_info: dict):
+def cleanup_service_account(
+    service_name: str,
+    service_account_info: Dict[str, Any],
+) -> None:
     """
     Clean up the specified service account.
 
@@ -88,7 +95,7 @@ def fetch_dcos_ca_bundle(marathon_task: str) -> str:
     return local_bundle_file
 
 
-def fetch_dcos_ca_bundle_contents() -> str:
+def fetch_dcos_ca_bundle_contents() -> bytes:
     resp = sdk_cmd.cluster_request("GET", "/ca/dcos-ca.crt")
     cert = resp.content
     if not cert:
@@ -108,10 +115,10 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
         "openssl req -nodes -newkey rsa:2048 -keyout {} -out request.csr "
         '-subj "/C=US/ST=CA/L=SF/O=Mesosphere/OU=Mesosphere/CN={}"'.format(priv_path, cn),
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     rc, raw_csr, _ = sdk_cmd.marathon_task_exec(marathon_task, "cat request.csr")
-    assert rc is 0
+    assert rc == 0
     request = {"certificate_request": raw_csr}
 
     output = sdk_cmd.marathon_task_exec(
@@ -121,20 +128,20 @@ def create_tls_artifacts(cn: str, marathon_task: str) -> str:
         "leader.mesos/ca/api/v2/sign "
         "-d '{}'".format(sdk_utils.dcos_token(), json.dumps(request)),
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     # Write the public cert to the client
     certificate = json.loads(output[1])["result"]["certificate"]
     output = sdk_cmd.marathon_task_exec(
         marathon_task, "bash -c \"echo '{}' > {}\"".format(certificate, pub_path)
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     _create_keystore_truststore(cn, marathon_task)
     return "CN={},OU=Mesosphere,O=Mesosphere,L=SF,ST=CA,C=US".format(cn)
 
 
-def _create_keystore_truststore(cn: str, marathon_task: str):
+def _create_keystore_truststore(cn: str, marathon_task: str) -> None:
     pub_path = "{}_pub.crt".format(cn)
     priv_path = "{}_priv.key".format(cn)
     keystore_path = "{}_keystore.jks".format(cn)
@@ -151,7 +158,7 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         "-out keypair.p12 -name keypair -passout pass:export "
         '-CAfile {} -caname root"'.format(pub_path, priv_path, dcos_ca_bundle),
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     log.info("Generating certificate: importing into keystore and truststore")
     # Import into the keystore and truststore
@@ -162,7 +169,7 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         "-srckeystore keypair.p12 -srcstoretype PKCS12 -srcstorepass export "
         "-alias keypair".format(keystore_path),
     )
-    assert output[0] is 0
+    assert output[0] == 0
 
     output = sdk_cmd.marathon_task_exec(
         marathon_task,
@@ -170,4 +177,4 @@ def _create_keystore_truststore(cn: str, marathon_task: str):
         "-file {} -storepass changeit "
         "-keystore {}".format(dcos_ca_bundle, truststore_path),
     )
-    assert output[0] is 0
+    assert output[0] == 0

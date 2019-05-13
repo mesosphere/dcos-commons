@@ -9,13 +9,15 @@ SHOULD ALSO BE APPLIED TO sdk_agents IN ANY OTHER PARTNER REPOS
 import logging
 import retrying
 import traceback
+from typing import Any, Dict, List
 
 import sdk_cmd
+import sdk_utils
 
 log = logging.getLogger(__name__)
 
 
-def _is_public_agent(agent):
+def _is_public_agent(agent: Dict[str, Any]) -> bool:
     # Note: We could also check "'public_ip' in agent['attributes']", but it's unclear how many
     # DC/OS versions that would work with. For now, let's just go with the known-good method of
     # checking for pre-reserved resources under a 'slave_public' role.
@@ -25,23 +27,25 @@ def _is_public_agent(agent):
     return False
 
 
-def get_public_agents():
+def get_public_agents() -> List[Dict[str, Any]]:
     return [a for a in get_agents() if _is_public_agent(a)]
 
 
-def get_private_agents():
+def get_private_agents() -> List[Dict[str, Any]]:
     return [a for a in get_agents() if not _is_public_agent(a)]
 
 
-def get_agents():
-    return sdk_cmd.cluster_request("GET", "/mesos/slaves").json()["slaves"]
+def get_agents() -> List[Dict[str, Any]]:
+    response = sdk_cmd.cluster_request("GET", "/mesos/slaves")
+    response_json = response.json()
+    return list(response_json["slaves"])
 
 
-def shutdown_agent(agent_host):
+def shutdown_agent(agent_host: str) -> None:
     @retrying.retry(
         wait_fixed=1000, stop_max_delay=30 * 60 * 1000, retry_on_result=lambda res: not res
     )
-    def fn():
+    def fn() -> bool:
         rc, stdout, _ = sdk_cmd.agent_ssh(agent_host, "sudo shutdown -h +1")
         log.info('Shutdown agent {}: rc={}, stdout="{}"'.format(agent_host, rc, stdout))
         return rc == 0
@@ -55,7 +59,7 @@ def shutdown_agent(agent_host):
     log.info("Waiting for agent {} to appear inactive in /mesos/slaves".format(agent_host))
 
     @retrying.retry(wait_fixed=1000, stop_max_delay=5 * 60 * 1000, retry_on_result=lambda res: res)
-    def wait_for_unresponsive_agent():
+    def wait_for_unresponsive_agent() -> bool:
         try:
             response = sdk_cmd.cluster_request("GET", "/mesos/slaves", retry=False).json()
             agent_statuses = {}
@@ -79,7 +83,7 @@ def shutdown_agent(agent_host):
     log.info("Agent {} appears inactive in /mesos/slaves, proceeding.".format(agent_host))
 
 
-def partition_agent(agent_host: str):
+def partition_agent(agent_host: str) -> None:
     rc, _, _ = sdk_cmd.agent_ssh(
         agent_host,
         " && ".join(
@@ -106,7 +110,7 @@ def partition_agent(agent_host: str):
     assert rc == 0, "Failed to partition agent"
 
 
-def reconnect_agent(agent_host: str):
+def reconnect_agent(agent_host: str) -> None:
     # restore prior rules:
     rc, _, _ = sdk_cmd.agent_ssh(
         agent_host,
@@ -123,7 +127,9 @@ def reconnect_agent(agent_host: str):
     assert rc == 0, "Failed to reconnect agent"
 
 
-def decommission_agent(agent_id: str):
+def decommission_agent(agent_id: str) -> None:
+    assert sdk_utils.dcos_version_at_least("1.11"),\
+        "node decommission is supported in DC/OS 1.11 and above only"
     rc, _, _ = sdk_cmd.run_cli(
         "node decommission {}".format(agent_id)
     )

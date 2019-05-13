@@ -25,14 +25,12 @@ NGINX_TASK_HTTPS_PORT_NAME = "nginx-https"
 # Default keystore passphrase which is hardcoded in dcos-commons implementation
 KEYSTORE_PASS = "notsecure"
 
-# Both these files are downloaded from single `keystore-app-{VERSION}.zip`
-# artfiact. For more details see `testing/tls/keystore` directory in this
-# project.
+# Both these files are downloaded from single `keystore-app.zip` artifact.
+# For more details see `testing/tls/keystore` directory in this project.
 KEYSTORE_APP_JAR_NAME = "keystore-app-0.1-SNAPSHOT-all.jar"
 KEYSTORE_APP_CONFIG_NAME = "integration-test.yml"
 
-# Service discovery prefix for the `discovery` pod which allows testing
-# udpates.
+# Service discovery prefix for the `discovery` pod which allows testing updates.
 DISCOVERY_TASK_PREFIX = "discovery-prefix"
 
 log = logging.getLogger(__name__)

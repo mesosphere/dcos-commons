@@ -9,10 +9,9 @@ class Package:
         """Construct a Package object from a json definition"""
         return Package(json["name"], Version(json["releaseVersion"], json["version"]))
 
-    def __init__(self, name, version, raw_data={}):
+    def __init__(self, name, version):
         self._name = name
         self._version = version
-        self._raw_data = raw_data
 
     def __eq__(self, other):
         if self.get_name() != other.get_name():

@@ -9,13 +9,13 @@ RETRY_LAUNCH="True"
 
 while [ x"${LAUNCH_SUCCESS}" == x"False" ]; do
     rm -f ${CLUSTER_INFO_FILE} # dcos-launch complains if the file already exists
-    dcos-launch create --config-path=${LAUNCH_CONFIG_FILE} --info-path=${CLUSTER_INFO_FILE}
+    /venvs/wrap.sh dcos-launch dcos-launch create --config-path=${LAUNCH_CONFIG_FILE} --info-path=${CLUSTER_INFO_FILE}
     if [ x"$RETRY_LAUNCH" == x"True" ]; then
         set +e
     else
         set -e
     fi
-    dcos-launch wait --info-path=${CLUSTER_INFO_FILE} 2>&1 | tee dcos-launch-wait-output.stdout
+    /venvs/wrap.sh dcos-launch dcos-launch wait --info-path=${CLUSTER_INFO_FILE} 2>&1 | tee dcos-launch-wait-output.stdout
 
     # Grep exits with an exit code of 1 if no lines are matched. We thus need to
     # disable exit on errors.
@@ -36,7 +36,7 @@ while [ x"${LAUNCH_SUCCESS}" == x"False" ]; do
         set -e
 
         # We need to wait for the current stack to be deleted
-        dcos-launch delete --info-path=${CLUSTER_INFO_FILE}
+        /venvs/wrap.sh dcos-launch dcos-launch delete --info-path=${CLUSTER_INFO_FILE}
         rm -f ${CLUSTER_INFO_FILE}
         echo "Cluster creation failed. Retrying after 30 seconds"
         sleep 30

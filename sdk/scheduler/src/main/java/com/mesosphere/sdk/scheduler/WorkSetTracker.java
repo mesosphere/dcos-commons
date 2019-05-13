@@ -38,7 +38,7 @@ public class WorkSetTracker {
   // CHECKSTYLE:OFF AtclauseOrder
 
   /**
-   * Instead of just suppressing offers when all work is complete, we set refuse seconds of 2 weeks
+   * Instead of just suppressing offers when all work is complete, we set refuse seconds of 1 hour
    * (a.k.a. forever) whenever we decline any offer.  When we see *new* work ({@link PodInstanceRequirement}s) we
    * assume that the offers we've declined forever may be useful to that work, and so we revive offers.
    * <p>

@@ -1,0 +1,10 @@
+name: "seccomp-profile-name"
+pods:
+  meta-data:
+    seccomp-profile-name: "foobar"
+    count: 2
+    tasks:
+      some-task:
+        goal: RUNNING
+        cmd: "some command"
+        cpus: 1

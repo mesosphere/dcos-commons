@@ -286,7 +286,9 @@ public final class YAMLToInternalMappers {
         .user(user)
         .preReservedRole(rawPod.getPreReservedRole())
         .sharePidNamespace(rawPod.getSharePidNamespace())
-        .allowDecommission(rawPod.getAllowDecommission());
+        .allowDecommission(rawPod.getAllowDecommission())
+        .seccompUnconfined(rawPod.getSeccompUnconfined())
+        .seccompProfileName(rawPod.getSeccompProfileName());
 
     List<String> networkNames = new ArrayList<>();
     List<RLimitSpec> rlimits = new ArrayList<>();
@@ -583,9 +585,7 @@ public final class YAMLToInternalMappers {
         .build();
   }
 
-  private static DefaultHostVolumeSpec convertHostVolume(
-      RawHostVolume rawHostVolume)
-  {
+  private static DefaultHostVolumeSpec convertHostVolume(RawHostVolume rawHostVolume) {
 
     return DefaultHostVolumeSpec.newBuilder()
         .hostPath(rawHostVolume.getHostPath())

@@ -1,4 +1,5 @@
 import logging
+from typing import Iterator
 
 import pytest
 
@@ -13,12 +14,12 @@ expected_task_count = config.DEFAULT_TASK_COUNT
 
 
 @pytest.fixture(scope="module", autouse=True)
-def set_up_security(configure_security):
+def set_up_security(configure_security: None) -> Iterator[None]:
     yield
 
 
 @pytest.fixture(autouse=True)
-def uninstall_packages(configure_security):
+def uninstall_packages(configure_security: None) -> Iterator[None]:
     try:
         log.info("Ensuring Elastic and Kibana are uninstalled before running test")
         sdk_install.uninstall(config.KIBANA_PACKAGE_NAME, config.KIBANA_PACKAGE_NAME)
@@ -31,50 +32,73 @@ def uninstall_packages(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
 
 
-# TODO(mpereira): it is safe to remove this test after the 6.x release.
 @pytest.mark.sanity
 @pytest.mark.timeout(30 * 60)
-def test_xpack_update_matrix():
-    # Updating from X-Pack 'enabled' to X-Pack security 'enabled' (the default) is more involved
-    # than the other cases, so we use `test_upgrade_from_xpack_enabled`.
+def test_xpack_enabled_update_matrix() -> None:
+    from_version = "2.4.0-5.6.9"
+    to_version = "2.5.0-6.3.2"
+
+    # Updating from X-Pack 'enabled' to X-Pack Security 'enabled' is more involved than the other
+    # cases, so we use `test_upgrade_from_xpack_enabled`.
     log.info("Updating X-Pack from 'enabled' to 'enabled'")
     config.test_upgrade_from_xpack_enabled(
         config.PACKAGE_NAME,
         foldered_name,
         {"elasticsearch": {"xpack_enabled": True}},
         expected_task_count,
+        from_version=from_version,
+        to_version=to_version,
     )
 
     log.info("Updating X-Pack from 'enabled' to 'disabled'")
-    config.test_xpack_enabled_update(foldered_name, True, False)
+    config.test_xpack_enabled_update(foldered_name, True, False, from_version, to_version)
 
     log.info("Updating X-Pack from 'disabled' to 'enabled'")
-    config.test_xpack_enabled_update(foldered_name, False, True)
+    config.test_xpack_enabled_update(foldered_name, False, True, from_version, to_version)
 
     log.info("Updating X-Pack from 'disabled' to 'disabled'")
-    config.test_xpack_enabled_update(foldered_name, False, False)
+    config.test_xpack_enabled_update(foldered_name, False, False, from_version, to_version)
 
 
-# TODO(mpereira): change this to xpack_security_enabled to xpack_security_enabled after the 6.x
-# release.
 @pytest.mark.sanity
 @pytest.mark.timeout(30 * 60)
-def test_xpack_security_enabled_update_matrix():
-    # Updating from X-Pack 'enabled' to X-Pack security 'enabled' is more involved than the other
-    # cases, so we use `test_upgrade_from_xpack_enabled`.
-    log.info("Updating from X-Pack 'enabled' to X-Pack security 'enabled'")
+def test_xpack_enabled_to_xpack_security_enabled_update_matrix() -> None:
+    from_version = "2.4.0-5.6.9"
+    to_version = "2.5.0-6.3.2"
+
+    # Updating from X-Pack 'enabled' to X-Pack Security 'enabled' (the default) is more involved
+    # than the other cases, so we use `test_upgrade_from_xpack_enabled`.
+    log.info("Updating X-Pack from 'enabled' to X-Pack Security 'enabled'")
     config.test_upgrade_from_xpack_enabled(
         config.PACKAGE_NAME,
         foldered_name,
         {"elasticsearch": {"xpack_security_enabled": True}},
         expected_task_count,
+        from_version=from_version,
+        to_version=to_version,
     )
 
-    log.info("Updating from X-Pack 'enabled' to X-Pack security 'disabled'")
-    config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, True, False)
+    log.info("Updating from X-Pack to 'enabled' to X-Pack Security 'disabled'")
+    config.test_xpack_enabled_update(foldered_name, True, False, from_version, to_version)
 
-    log.info("Updating from X-Pack 'disabled' to X-Pack security 'enabled'")
-    config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, False, True)
+    log.info("Updating from X-Pack to 'disabled' to X-Pack Security 'enabled'")
+    config.test_xpack_enabled_update(foldered_name, False, True, from_version, to_version)
 
-    log.info("Updating from X-Pack 'disabled' to X-Pack security 'disabled'")
-    config.test_update_from_xpack_enabled_to_xpack_security_enabled(foldered_name, False, False)
+    log.info("Updating from X-Pack to 'disabled' to X-Pack Security 'disabled'")
+    config.test_xpack_enabled_update(foldered_name, False, False, from_version, to_version)
+
+
+@pytest.mark.sanity
+@pytest.mark.timeout(30 * 60)
+def test_xpack_security_enabled_update_matrix() -> None:
+    log.info("Updating X-Pack Security from 'enabled' to 'enabled'")
+    config.test_xpack_security_enabled_update(foldered_name, True, True)
+
+    log.info("Updating X-Pack Security from 'enabled' to 'disabled'")
+    config.test_xpack_security_enabled_update(foldered_name, True, False)
+
+    log.info("Updating X-Pack Security from 'disabled' to 'enabled'")
+    config.test_xpack_security_enabled_update(foldered_name, False, True)
+
+    log.info("Updating X-Pack Security from 'disabled' to 'disabled'")
+    config.test_xpack_security_enabled_update(foldered_name, False, False)

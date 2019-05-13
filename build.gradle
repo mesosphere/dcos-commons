@@ -1,18 +1,7 @@
-// Gradle is bundled with jansi 1.9 which can crash the JVM in some cases
-// Solution taken from: https://github.com/gradle/gradle/issues/778
-buildscript {
-    dependencies {
-        classpath group: 'org.fusesource.jansi', name: 'jansi', version: '1.14'
-    }
-}
-
 plugins {
     id 'com.github.ben-manes.versions' version '0.20.0'
-    id 'com.github.ksoichiro.console.reporter' version '0.5.0'
+    id 'com.github.ksoichiro.console.reporter' version '0.6.2'
 }
-
-// Importing org.fusesource.jansi.AnsiConsole is not enough to avoid aforementioned failure
-org.fusesource.jansi.AnsiConsole.out.print('')
 
 allprojects {
     apply plugin: 'java'
@@ -21,7 +10,6 @@ allprojects {
     apply plugin: 'jacoco'
     apply plugin: 'idea'
     apply plugin: 'maven-publish'
-    apply plugin: 'com.github.ksoichiro.console.reporter'
 
     // Double quotes are required for $rootDir to be resolved:
     apply from: "$rootDir/gradle/quality.gradle"
@@ -43,7 +31,7 @@ allprojects {
     // 2. In the GitHub UI, add a Release entry against the tag created in step 1. List any changes in release notes.
     // 3. Create a PR which bumps this from '0.10.0-SNAPSHOT' to '0.11.0-SNAPSHOT' in master to start the 0.11.0 track.
     // --
-    version = '0.55.0-SNAPSHOT'
+    version = '0.56.0-SNAPSHOT'
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
@@ -57,6 +45,9 @@ allprojects {
         }
         maven {
             url 'http://downloads.mesosphere.com/maven-snapshot/'
+        }
+        maven {
+            url 'http://repository.apache.org/content/repositories/snapshots/'
         }
     }
 

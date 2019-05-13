@@ -32,7 +32,7 @@ pre-commit run black-format
 
 The `test.sh` script works with the `mesosphere/dcos-commons` Docker image to set up a reproducible test environment for testing any DC/OS SDK-based frameworks such as [dcos-commons](https://github.com/mesosphere/dcos-commons). In order to pull the testing utilities into a target framework, say `my-framework` in the current working folder, run:
 ```bash
-docker run --rm -ti -v $(pwd):$(pwd) mesosphere/dcos-commons:latest init $(pwd)
+docker run --rm -ti -v $(pwd):$(pwd) mesosphere/dcos-commons:latest copy-files $(pwd)
 ```
 This copies the files:
 - `TESTING.md` (this document)
@@ -52,7 +52,7 @@ This automatically detects the frameworks in the current folder and for each fra
 *Note:* That this assumes that the DC/OS CLI has already been associated with a DC/OS cluster using the `dcos cluster setup` or `dcos cluster attach` commands.
 
 #### Detection of frameworks
-As mentioned above, the `test.sh` script detects all the frameworks in the current folder. This is done with the following precednce:
+As mentioned above, the `test.sh` script detects all the frameworks in the current folder. This is done with the following precedence:
 
 * If a `frameworks` folder exists
 
@@ -103,7 +103,7 @@ Most system integration tests rely on a stub-universe being set up allowing us t
 ```bash
 export STUB_UNIVERSE_URL="https://universe-converter.mesosphere.com/transform?url=https://infinity-artifacts.s3.amazonaws.com/autodelete7d/my-framework/20180806-125351-sdEdQ7mRfHFXQzmT/stub-universe-my-framework.json
 ```
-The stub-universe URL can be optained from an earlier build, or by building the framework (`my-framework` in this case) in the container by running the following command:
+The stub-universe URL can be obtained from an earlier build, or by building the framework (`my-framework` in this case) in the container by running the following command:
 ```bash
 ./frameworks/my-framwork/build.sh aws
 ```

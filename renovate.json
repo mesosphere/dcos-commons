@@ -1,7 +1,4 @@
 {
-  "assignees": [
-    "takirala"
-  ],
   "extends": [
     "config:base"
   ],
@@ -29,5 +26,6 @@
   ],
   "schedule": [
     "on saturday"
-  ]
+  ],
+  "updateNotScheduled" : false
 }

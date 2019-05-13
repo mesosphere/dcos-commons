@@ -3,7 +3,7 @@ Kerberos Domain Controller (KDC) server.
 
 The `kdc.json` config is used by the `sdk_auth` testing module to configure a KDC in the integration test environment.
 
-The Dockerfile is used to maintain/build a docker image which serves the KDC. The `run.sh` and `kdc.conf` files faciliate the bootstrap for
+The Dockerfile is used to maintain/build a docker image which serves the KDC. The `run.sh` and `kdc.conf` files facilitate the bootstrap for
 said server as they're copied into the image via the Dockerfile recipe.
 
 The `kdc.py` script is an ad-hoc tool to deploy/teardown a KDC instance outside of the testing environment. Its usage

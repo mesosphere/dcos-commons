@@ -97,6 +97,8 @@ paths:
           description: "List of the plan's contents."
         404:
           description: "Plan not found."
+        417:
+          description: "Plan is in an error state."
   /plans/{name}/start:
     post:
       tags:
@@ -638,9 +640,25 @@ paths:
         200:
           description: "All monitored Plans are complete."
         202:
-          description: "One or more monitored plans is incomplete."
-        417:
-          description: "One or more monitored plans has an error."
+          description: "One or more monitored plans are deploying."
+        203:
+          description: "One or more monitored plans are degraded (awaiting resources)."
+        204:
+          description: "One or more monitored plans are deploying (awaiting resources)."
+        205:
+          description: "One or more monitored plans are degraded (recovering)."
+        207:
+          description: "One or more monitored plans are awaiting user input."
+        318:
+          description: "Scheduler is initializing."
+        320:
+          description: "One or more monitored backup plans is in-progress."
+        321:
+          description: "One or more monitored restore plans is in-progress."
+        500:
+          description: "Scheduler encountered an error creating the service."
+        503:
+          description: "Scheduler encountered an error with one or more monitored plans."
   /debug/offers:
     get:
       tags:

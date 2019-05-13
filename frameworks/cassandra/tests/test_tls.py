@@ -2,6 +2,7 @@ import json
 import os
 import pytest
 import uuid
+from typing import Any, Dict, Iterator
 
 import sdk_cmd
 import sdk_install
@@ -23,7 +24,7 @@ pytestmark = [
 
 
 @pytest.fixture(scope="module")
-def dcos_ca_bundle():
+def dcos_ca_bundle() -> str:
     """
     Retrieve DC/OS CA bundle and returns the content.
     """
@@ -31,7 +32,7 @@ def dcos_ca_bundle():
 
 
 @pytest.fixture(scope="module")
-def service_account(configure_security):
+def service_account(configure_security: None) -> Iterator[Dict[str, Any]]:
     """
     Sets up a service account for use with TLS.
     """
@@ -45,7 +46,7 @@ def service_account(configure_security):
 
 
 @pytest.fixture(scope="module")
-def cassandra_service(service_account):
+def cassandra_service(service_account: Dict[str, Any]) -> Iterator[Dict[str, Any]]:
     service_options = {
         "service": {
             "name": config.SERVICE_NAME,
@@ -73,7 +74,10 @@ def cassandra_service(service_account):
 @pytest.mark.aws
 @pytest.mark.sanity
 @pytest.mark.tls
-def test_tls_connection(cassandra_service, dcos_ca_bundle):
+def test_tls_connection(
+    cassandra_service: Dict[str, Any],
+    dcos_ca_bundle: str,
+) -> None:
     """
     Tests writing, reading and deleting data over a secure TLS connection.
     """
@@ -125,7 +129,10 @@ def test_tls_connection(cassandra_service, dcos_ca_bundle):
 
 @pytest.mark.tls
 @pytest.mark.sanity
-def test_tls_recovery(cassandra_service, service_account):
+def test_tls_recovery(
+    cassandra_service: Dict[str, Any],
+    service_account: Dict[str, Any],
+) -> None:
     _, stdout, _ = sdk_cmd.svc_cli(
         cassandra_service["package_name"],
         cassandra_service["service"]["name"],

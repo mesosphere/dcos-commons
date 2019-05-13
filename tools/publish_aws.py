@@ -18,6 +18,7 @@ import sys
 import time
 
 import universe
+from universe.package import Version
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -72,7 +73,8 @@ class AWSPublisher(object):
 
     def upload(self):
         """generates a unique directory, then uploads artifacts and a new stub universe to that directory"""
-        package_info = universe.Package(self._pkg_name, self._pkg_version)
+        version = Version(release_version=0, package_version=self._pkg_version)
+        package_info = universe.Package(name=self._pkg_name, version=version)
         package_manager = universe.PackageManager(dry_run=self._dry_run)
         builder = universe.UniversePackageBuilder(
             package_info,
@@ -120,7 +122,7 @@ class AWSPublisher(object):
         logger.info("- - - -\n")
         logger.info("dcos package repo remove {}-aws".format(self._pkg_name))
         logger.info(
-            "dcos package repo add --index=0 {}-aws {}".format(self._pkg_name, universe_url)
+            "dcos package repo add --index=0 {}-aws '{}'".format(self._pkg_name, universe_url)
         )
         logger.info("dcos package install --yes {}".format(self._pkg_name))
 

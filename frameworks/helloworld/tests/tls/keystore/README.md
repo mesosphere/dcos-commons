@@ -20,7 +20,7 @@ directory:
 
 - `integration-test.yml`: can be used in SDK launched container task that
   requests for TLS certificate with name `dropwizard` that are exposed as a
-  keystore and trustore files.
+  keystore and truststore files.
   
 Local version requires `config/local.keystore` and `config/local.truststore` files.
 The both JKS files must be protected with `notsecure` password. To see the details
@@ -71,7 +71,7 @@ that can be used to run SDK TLS integration tests run:
 ./gradlew :keystore-app:integrationTestZip
 ```
 
-The task builds a ZIP file contianing `shadowJar` package and the
+The task builds a ZIP file containing `shadowJar` package and the
 `integration-test.yml` in `distributions` directory. The artifact can be
 downloaded by `mesos-fetcher` to a container with `java` runtime.
 

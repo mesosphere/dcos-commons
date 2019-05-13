@@ -1,5 +1,6 @@
 import os
 import uuid
+from typing import Any, Dict, Iterator, List
 
 import pytest
 import sdk_install
@@ -14,8 +15,8 @@ no_strict_for_azure = pytest.mark.skipif(
 
 
 @pytest.fixture(scope="module", autouse=True)
-def configure_package(configure_security):
-    test_jobs = []
+def configure_package(configure_security: None) -> Iterator[None]:
+    test_jobs: List[Dict[str, Any]] = []
     try:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
@@ -55,7 +56,7 @@ def configure_package(configure_security):
 @pytest.mark.azure
 @no_strict_for_azure
 @pytest.mark.sanity
-def test_backup_and_restore_to_azure():
+def test_backup_and_restore_to_azure() -> None:
     client_id = os.getenv("AZURE_CLIENT_ID")
     if not client_id:
         assert (
@@ -83,7 +84,7 @@ def test_backup_and_restore_to_azure():
 
 @pytest.mark.aws
 @pytest.mark.sanity
-def test_backup_and_restore_to_s3():
+def test_backup_and_restore_to_s3() -> None:
     key_id = os.getenv("AWS_ACCESS_KEY_ID")
     if not key_id:
         assert (

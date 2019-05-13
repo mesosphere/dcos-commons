@@ -45,6 +45,10 @@
     "HELLO_GPUS": "{{hello.gpus}}",
     "HELLO_MEM": "{{hello.mem}}",
     "HELLO_DISK": "{{hello.disk}}",
+    "HELLO_SECCOMP_UNCONFINED": "{{hello.seccomp-unconfined}}",
+    {{#hello.seccomp-profile-name}}
+        "HELLO_SECCOMP_PROFILE_NAME": "{{hello.seccomp-profile-name}}",
+    {{/hello.seccomp-profile-name}}
     {{#hello.volume_profile}}
     "HELLO_VOLUME_PROFILE": "{{hello.volume_profile}}",
     {{/hello.volume_profile}}
@@ -128,6 +132,16 @@
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,
     "maximumOverCapacity": 0
+  },
+  "check": {
+    "http": {
+      "portIndex": 0,
+      "path": "/v1/health",
+      "scheme": "HTTP"
+    },
+    "intervalSeconds": {{service.check.intervalSeconds}},
+    "timeoutSeconds": {{service.check.timeoutSeconds}},
+    "delaySeconds": {{service.check.delaySeconds}}
   },
   "healthChecks": [
     {

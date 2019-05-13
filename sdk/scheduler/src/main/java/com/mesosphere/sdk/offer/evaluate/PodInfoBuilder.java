@@ -67,7 +67,8 @@ import java.util.stream.Collectors;
 @SuppressWarnings({
     "checkstyle:LineLength",
     "checkstyle:LocalVariableName",
-    "checkstyle:VariableDeclarationUsageDistance"
+    "checkstyle:VariableDeclarationUsageDistance",
+    "checkstyle:CyclomaticComplexity"
 })
 public class PodInfoBuilder {
   private static final Logger LOGGER = LoggingUtils.getLogger(PodInfoBuilder.class);
@@ -571,14 +572,30 @@ public class PodInfoBuilder {
 
     if (isTaskContainer) {
       containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
-    }
+      // Isolate the tmp directory of tasks
+      // switch to SANDBOX SELF after dc/os 1.13
 
-    // Isolate the tmp directory of tasks
-    //switch to SANDBOX SELF after dc/os 1.13
-    containerInfo.addVolumes(Protos.Volume.newBuilder()
-        .setContainerPath("/tmp")
-        .setHostPath("tmp")
-        .setMode(Protos.Volume.Mode.RW));
+      containerInfo.addVolumes(Protos.Volume.newBuilder()
+          .setContainerPath("/tmp")
+          .setHostPath("tmp")
+          .setMode(Protos.Volume.Mode.RW));
+
+      LOGGER.info("Setting seccomp info unconfined: {} profile: {}",
+            podSpec.getSeccompUnconfined(),
+            podSpec.getSeccompProfileName());
+
+      if (podSpec.getSeccompUnconfined()) {
+        containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
+                .setUnconfined(podSpec.getSeccompUnconfined())
+                .build());
+      }
+
+      if (podSpec.getSeccompProfileName().isPresent()) {
+        containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
+            .setProfileName(podSpec.getSeccompProfileName().get())
+            .build());
+      }
+    }
 
     for (Protos.Volume hostVolume : hostVolumes) {
       containerInfo.addVolumes(hostVolume);
