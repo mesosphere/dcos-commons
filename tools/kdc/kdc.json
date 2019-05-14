@@ -7,7 +7,7 @@
   "container": {
     "type": "MESOS",
     "docker": {
-      "image": "nvaziri/kdc:mesosphere",
+      "image": "icharalampidis/projects:kdc",
       "forcePullImage": true
     }
   },
@@ -20,7 +20,26 @@
     {
       "port": 2500,
       "name": "kdc"
+    },
+    {
+      "port": 2501,
+      "name": "web"
     }
   ],
+  "secrets": {
+    "secret0": {
+      "source": "kdc-admin"
+    }
+  },
+  "env": {
+    "SERVICE_ACCOUNT_SECRET": {
+      "secret": "secret0"
+    }
+  },
+  "labels": {
+    "DCOS_SERVICE_NAME": "kdc-admin-api",
+    "DCOS_SERVICE_PORT_INDEX": "1",
+    "DCOS_SERVICE_SCHEME": "http"
+  },
   "requirePorts": true
 }
