@@ -8,6 +8,7 @@ import (
 	"github.com/dcos/client-go/dcos"
 	"net/url"
 	"os"
+	"strings"
 )
 
 /**
@@ -29,7 +30,7 @@ func CreateDCOSClientFromEnvironment() (*dcos.APIClient, error) {
 	}
 
 	// Extract cluster URL from auth token URL
-	url, err := url.Parse(saConfig.LoginEndoint)
+	url, err := url.Parse(saConfig.LoginEndpoint)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to compute the cluster URL: %s", err.Error())
 	}
@@ -62,11 +63,28 @@ func CreateDCOSClientFromEnvironment() (*dcos.APIClient, error) {
 /**
 CreateSecret Creates a secret on the DC/OS secret store
 */
-func CreateKeytabSecret(client *dcos.APIClient, secretName string, keytab []byte) error {
-	secret := dcos.SecretsV1Secret{Value: base64.StdEncoding.EncodeToString(keytab)}
-	secretName = fmt.Sprintf("__dcos_base64__%s", secretName)
+func CreateKeytabSecret(client *dcos.APIClient, secretName string, keytab []byte, binary bool) error {
+	// Convert to base64 if binary is false
+	var secret dcos.SecretsV1Secret
+	if !binary {
+		secret = dcos.SecretsV1Secret{Value: base64.StdEncoding.EncodeToString(keytab)}
+		secretName = fmt.Sprintf("__dcos_base64__%s", secretName)
+	} else {
+		secret = dcos.SecretsV1Secret{Value: string(keytab)}
+	}
 
-	// Create a secret on the DC/OS secrets store
+	// Try to create the secret on DC/OS
 	_, err := client.Secrets.CreateSecret(context.TODO(), "default", secretName, secret)
-	return err
+	if err != nil {
+
+		// If this was a conflict, replace the secret
+		if strings.Contains(err.Error(), "Conflict") {
+			_, err := client.Secrets.UpdateSecret(context.TODO(), "default", secretName, secret)
+			return err
+		}
+
+		return err
+	}
+
+	return nil
 }

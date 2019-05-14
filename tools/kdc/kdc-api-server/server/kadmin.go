@@ -2,6 +2,7 @@ package main
 
 import (
   "bytes"
+  "encoding/json"
   "fmt"
   "io"
   "io/ioutil"
@@ -48,28 +49,65 @@ type KPrincipal struct {
 
 func ParsePrincipal(principal string) (KPrincipal, error) {
   var ret KPrincipal
+  err := ret.SetFromString(principal)
+  if err != nil {
+    return ret, err
+  }
+  return ret, nil
+}
 
+func (p *KPrincipal) SetFromString(principal string) error {
   // Parse the principal segments
-  re := regexp.MustCompile(`^([^\/]+)\/([^@]+)@(.*)$`)
+  re := regexp.MustCompile(`^([^\n/@]+)?(?:/([^\n/@]+))?(?:@([^\n/@]+))?$`)
   found := re.FindAllStringSubmatch(principal, -1)
 
   // Validate parsing
   if len(found) == 0 {
-    return ret, fmt.Errorf(
+    return fmt.Errorf(
       "Unable to parse the given principal expression: '%s'",
       principal,
     )
   }
 
-  ret.Primary = found[0][1]
-  ret.Instance = found[0][2]
-  ret.Realm = found[0][3]
+  // De-compose found items
+  p.Primary = strings.Trim(found[0][1], " \t\n\r")
+  p.Instance = strings.Trim(found[0][2], " \t\n\r")
+  p.Realm = strings.Trim(found[0][3], " \t\n\r")
 
-  return ret, nil
+  return nil
 }
 
 func (p *KPrincipal) Full() string {
+  str := p.Primary
+  if p.Instance != "" {
+    str += "/" + p.Instance
+  }
+  if p.Realm != "" {
+    str += "@" + p.Realm
+  }
   return fmt.Sprintf("%s/%s@%s", p.Primary, p.Instance, p.Realm)
+}
+
+func (p *KPrincipal) String() string {
+  return p.Full()
+}
+func (p *KPrincipal) MarshalJSON() ([]byte, error) {
+  return json.Marshal(p.Full())
+}
+func (p *KPrincipal) UnmarshalJSON(b []byte) error {
+  var expr string
+  err := json.Unmarshal(b, &expr)
+  if err != nil {
+    return err
+  }
+
+  // Parse from string
+  err = p.SetFromString(expr)
+  if err != nil {
+    return err
+  }
+
+  return nil
 }
 
 /*

@@ -7,7 +7,7 @@ import (
 
 func main() {
 	// Create a KAdmin client
-	kadmin, err := CreateKAdminClient("kadmin")
+	kadmin, err := CreateKAdminClient("/usr/sbin/kadmin")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -24,9 +24,6 @@ func main() {
 	if webPort == "" {
 		webPort = "8080"
 	}
-	server := CreateKDCAPIServer(kadmin, "", webPort)
-
-	// Start server
-	log.Printf("Listening on port %s\n", webPort)
+	server := CreateKDCAPIServer(kadmin, webPort, "")
 	server.Start()
 }
