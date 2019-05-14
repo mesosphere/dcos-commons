@@ -6,7 +6,6 @@ import sdk_jobs
 import sdk_cmd
 import sdk_install
 import sdk_tasks
-import sdk_utils
 import os
 from tests import config
 
