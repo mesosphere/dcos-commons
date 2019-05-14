@@ -258,7 +258,7 @@ class KerberosEnvironment:
             json=json
         )
 
-    def list_principals(self, filter: str='*') -> List[str]:
+    def list_principals(self, filter: str = '*') -> List[str]:
         """
         Enumerates the principals on the KDC instance that match the given wildcard filter.
         :param filter: the filter expression for the principals to search.
