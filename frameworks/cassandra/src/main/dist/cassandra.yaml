@@ -18,8 +18,8 @@ max_hints_delivery_threads: {{CASSANDRA_MAX_HINTS_DELIVERY_THREADS}}
 hints_flush_period_in_ms: {{CASSANDRA_HINTS_FLUSH_PERIOD_IN_MS}}
 max_hints_file_size_in_mb: {{CASSANDRA_MAX_HINTS_FILE_SIZE_IN_MB}}
 batchlog_replay_throttle_in_kb: {{CASSANDRA_BATCHLOG_REPLAY_THROTTLE_IN_KB}}
-authenticator: {{AUTHENTICATOR}}
-authorizer: {{AUTHORIZER}}
+authenticator: {{CASSANDRA_AUTHENTICATOR}}
+authorizer: {{CASSANDRA_AUTHORIZER}}
 partitioner: {{CASSANDRA_PARTITIONER}}
 key_cache_save_period: {{CASSANDRA_KEY_CACHE_SAVE_PERIOD}}
 row_cache_size_in_mb: {{CASSANDRA_ROW_CACHE_SIZE_IN_MB}}

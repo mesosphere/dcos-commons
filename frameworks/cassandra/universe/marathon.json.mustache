@@ -64,10 +64,10 @@
     "SECURITY_AUTHORIZATION_ENABLED": "{{service.security.authorization.enabled}}",
     
     {{#service.security.authentication.enabled}}
-    "TASKCFG_ALL_AUTHENTICATOR": "{{service.security.authentication.authenticator}}",
+    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "{{service.security.authentication.authenticator}}",
     {{/service.security.authentication.enabled}}
     {{^service.security.authentication.enabled}}
-    "TASKCFG_ALL_AUTHENTICATOR": "AllowAllAuthenticator",
+    "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "AllowAllAuthenticator",
     {{/service.security.authentication.enabled}}
     
 
@@ -75,10 +75,10 @@
 
 
     {{#service.security.authorization.enabled}}
-    "TASKCFG_ALL_AUTHORIZER": "{{service.security.authorization.authorizer}}",
+    "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "{{service.security.authorization.authorizer}}",
     {{/service.security.authorization.enabled}}
     {{^service.security.authorization.enabled}}
-    "TASKCFG_ALL_AUTHORIZER": "AllowAllAuthorizer",
+    "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "AllowAllAuthorizer",
     {{/service.security.authorization.enabled}}
 
     "TASKCFG_ALL_NEW_SUPERUSER": "{{service.security.authentication.superuser.name}}",

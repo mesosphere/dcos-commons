@@ -129,8 +129,8 @@
                             "password_secret_path": {
                                 "type": "string",
                                 "description": "The path in the DC/OS Secret Store to retrieve the superuser password from" ,
-                                "default": ""
-			                      }
+                                "default": "cassandra/password"
+                            }
                         }
                     },  
                 "authenticator": {

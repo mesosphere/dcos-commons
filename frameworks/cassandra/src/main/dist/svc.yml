@@ -11,12 +11,12 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
-    {{#TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+    {{#TASKCFG_ALL_IS_PASSWORD_AUTHENTICATOR}}
     secrets:
       publicapikey:
         secret: {{TASKCFG_ALL_PASSWORD_SECRET_PATH}}
         file: new_user_password
-    {{/TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+    {{/TASKCFG_ALL_IS_PASSWORD_AUTHENTICATOR}}
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
@@ -122,7 +122,7 @@ pods:
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 mkdir container-path/snapshot ;
                 {{#SECURITY_AUTHENTICATION_ENABLED}}
-                if [ "{{TASKCFG_ALL_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
+                if [ "{{TASKCFG_ALL_CASSANDRA_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
                 export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
                 fi
@@ -212,7 +212,7 @@ pods:
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 {{#SECURITY_AUTHENTICATION_ENABLED}}
-                if [ "{{TASKCFG_ALL_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
+                if [ "{{TASKCFG_ALL_CASSANDRA_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
                 export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
                 fi
@@ -282,7 +282,7 @@ pods:
                 {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false &&
                 {{#SECURITY_AUTHENTICATION_ENABLED}}
-                if [ "{{TASKCFG_ALL_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
+                {{#TASKCFG_ALL_IS_PASSWORD_AUTHENTICATOR}}
                     export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password` &&
                     export NEW_RANDOM_PASSWORD=`cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32` &&
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
@@ -291,7 +291,7 @@ pods:
                     nodetool repair system_auth &&
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "CREATE ROLE {{TASKCFG_ALL_NEW_SUPERUSER}} WITH PASSWORD = '${NEW_USER_PASSWORD}' AND SUPERUSER = true AND LOGIN = true;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                     cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "ALTER ROLE cassandra WITH PASSWORD='${NEW_RANDOM_PASSWORD}' AND SUPERUSER=false;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
-                fi
+                {{/TASKCFG_ALL_IS_PASSWORD_AUTHENTICATOR}}
                 {{/SECURITY_AUTHENTICATION_ENABLED}}
                 {{^SECURITY_AUTHENTICATION_ENABLED}}                
                 cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
