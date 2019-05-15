@@ -7,7 +7,6 @@ import com.mesosphere.sdk.storage.PersisterException;
 import com.mesosphere.sdk.storage.PersisterUtils;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
-import com.google.common.collect.Lists;
 import com.google.protobuf.InvalidProtocolBufferException;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
@@ -23,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.stream.Collectors;
 
 /**
  * A {@code StateStore} stores the state of a service, including tasks' TaskInfo and TaskStatus
@@ -214,22 +212,32 @@ public class StateStore {
    *                             malformed
    */
   public void storeTasks(Collection<Protos.TaskInfo> tasks) throws StateStoreException {
-    Map<String, byte[]> taskBytesMap = new HashMap<>();
-    List<Protos.TaskInfo> taskInfos = tasks.stream().collect(Collectors.toList());
-    //Only taskInfos are bulk written and require batching, this should only occur at startup when a
-    //new configuration is issued, before the scheduler is initialized and doing work,
-    // so the loss of atomicity from batching should not be noticeable.
-    for (List<Protos.TaskInfo> batchedTaskInfos: Lists.partition(taskInfos, MAX_TRANSACTION_SIZE)) {
-      for (Protos.TaskInfo taskInfo : batchedTaskInfos) {
-        taskBytesMap.put(getTaskInfoPath(namespace, taskInfo.getName()), taskInfo.toByteArray());
+    List<Map<String, byte[]>> batchedTasks = new ArrayList<>();
+    for (Protos.TaskInfo taskInfo : tasks) {
+      if (batchedTasks.isEmpty()) {
+        batchedTasks.add(new HashMap<>());
       }
-      try {
-        persister.setMany(taskBytesMap);
-      } catch (PersisterException e) {
-        throw new StateStoreException(e, String.format("Failed to store %d TaskInfos",
-            batchedTaskInfos.size()));
+      String taskInfoPath = getTaskInfoPath(namespace, taskInfo.getName());
+      byte[] taskBytes = taskInfo.toByteArray();
+      validateValue(taskBytes);
+      Map<String, byte[]> lastBatch = batchedTasks.get(batchedTasks.size() - 1);
+      int totalPayload = lastBatch.values().stream().mapToInt(t -> t.length).sum();
+      if (taskBytes.length + totalPayload < MAX_VALUE_LENGTH_BYTES) {
+        lastBatch.put(taskInfoPath, taskBytes);
+      } else {
+        batchedTasks.add(new HashMap<String, byte[]>(){{put(taskInfoPath, taskBytes);}});
       }
     }
+    if (batchedTasks.size() > 1) {
+      logger.warn("Grouped {} TaskInfo writes to {} batches due to zk size limit", tasks.size(), batchedTasks.size());
+    }
+    batchedTasks.forEach(taskBytesMap -> {
+      try {
+        persister.setMany(taskBytesMap); // This covers retries.
+      } catch (PersisterException e) {
+        throw new StateStoreException(e, String.format("Failed to store %d TaskInfos", taskBytesMap.size()));
+      }
+    });
   }
 
   /**
