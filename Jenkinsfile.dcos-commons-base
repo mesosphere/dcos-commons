@@ -5,6 +5,7 @@ void setBuildStatus(String context) {
     step([
             $class: "GitHubCommitStatusSetter",
             contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
+            reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/mesosphere/dcos-commons"]
     ])
 }
 
