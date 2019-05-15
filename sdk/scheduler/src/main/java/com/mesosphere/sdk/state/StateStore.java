@@ -58,8 +58,6 @@ public class StateStore {
 
   private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024;
 
-  private static final int MAX_TRANSACTION_SIZE = 50;
-
   private static final String TASK_INFO_PATH_NAME = "TaskInfo";
 
   private static final String TASK_STATUS_PATH_NAME = "TaskStatus";
