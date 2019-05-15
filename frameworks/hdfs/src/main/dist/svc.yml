@@ -222,7 +222,12 @@ pods:
           {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
-          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
+          if [[ $POD_INSTANCE_INDEX -eq 1 ]]; then
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
+          else
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -upgrade
+          fi
         resource-set: name-resources
         readiness-check:
           cmd: |
