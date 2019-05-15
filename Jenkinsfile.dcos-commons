@@ -15,6 +15,17 @@ pipeline {
  
     stages {
         stage('docker login') {
+            when {
+                anyOf {
+                    branch '*';
+                    // Do not re-build old tags, which were pushed by dockerhub autobuilder
+                    tag pattern "^0\\.5[6-9]\\..*", comparator: "REGEXP";
+                    tag pattern "^0\\.[6-9][0-9]\\..*", comparator: "REGEXP";
+                    tag pattern "^0\\.[1-9][0-9][0-9]\\..*", comparator: "REGEXP";
+                    tag pattern "^[1-9][0-9]*\\.[0-9][0-9]*\\..*", comparator: "REGEXP";
+                }
+            }
+
             steps {
                 // Login to the Docker registry.
                 sh("docker login -u ${DOCKER_USR} -p ${DOCKER_PSW}")
@@ -22,12 +33,22 @@ pipeline {
         }
  
         stage('build') {
+            when {
+                anyOf {
+                    branch '*';
+                    // Do not re-build old tags, which were pushed by dockerhub autobuilder
+                    tag pattern "^0\\.5[6-9]\\..*", comparator: "REGEXP";
+                    tag pattern "^0\\.[6-9][0-9]\\..*", comparator: "REGEXP";
+                    tag pattern "^0\\.[1-9][0-9][0-9]\\..*", comparator: "REGEXP";
+                    tag pattern "^[1-9][0-9]*\\.[0-9][0-9]*\\..*", comparator: "REGEXP";
+                }
+            }
             steps {
                 // Build Docker image.
                 sh("docker build -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
             }
         }
- 
+
         stage('publish') {
             // Only run this step on the master branch.
             when {
@@ -40,5 +61,26 @@ pipeline {
                 }
             }
         }
+
+        stage('publish-release') {
+            // Only run this step on release tags.
+            when {
+                anyOf {
+                    // Do not re-build old tags, which were pushed by dockerhub autobuilder
+                    tag pattern "^0\\.5[6-9]\\..*", comparator: "REGEXP";
+                    tag pattern "^0\\.[6-9][0-9]\\..*", comparator: "REGEXP";
+                    tag pattern "^0\\.[1-9][0-9][0-9]\\..*", comparator: "REGEXP";
+                    tag pattern "^[1-9][0-9]*\\.[0-9][0-9]*\\..*", comparator: "REGEXP";
+                }
+            }
+  
+            steps {
+                script {
+                    // https://stackoverflow.com/a/54880914/1407369
+                    sh("docker push mesosphere/${IMAGE}:${BRANCH_NAME}")
+                }
+            }
+        }
+
     }
 }
