@@ -51,6 +51,8 @@ pipeline {
     }
 
     post {
-        setBuildStatus("mesosphere/${IMAGE}")
+        always {
+            setBuildStatus("mesosphere/${IMAGE}")
+        }
     }
 }
