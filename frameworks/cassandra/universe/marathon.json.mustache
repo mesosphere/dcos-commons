@@ -69,10 +69,6 @@
     {{^service.security.authentication.enabled}}
     "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR": "AllowAllAuthenticator",
     {{/service.security.authentication.enabled}}
-    
-
-
-
 
     {{#service.security.authorization.enabled}}
     "TASKCFG_ALL_CASSANDRA_AUTHORIZER": "{{service.security.authorization.authorizer}}",
@@ -92,7 +88,6 @@
     "TASKCFG_ALL_PERMISSIONS_CACHE_MAX_ENTRIES": "{{service.security.authorization.permissions_cache_max_entries}}",
     "TASKCFG_ALL_AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64": "{{service.security.authentication.authentication_custom_cassandra_yml}}",
     "TASKCFG_ALL_ROLE_MANAGER": "{{service.security.authentication.role_manager}}",
-
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
 
     "NODES": "{{nodes.count}}",

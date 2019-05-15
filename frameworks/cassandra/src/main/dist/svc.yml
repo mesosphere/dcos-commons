@@ -11,12 +11,12 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
-    {{#TASKCFG_ALL_IS_PASSWORD_AUTHENTICATOR}}
+    {{#TASKCFG_ALL_PASSWORD_SECRET_PATH}}
     secrets:
       publicapikey:
         secret: {{TASKCFG_ALL_PASSWORD_SECRET_PATH}}
         file: new_user_password
-    {{/TASKCFG_ALL_IS_PASSWORD_AUTHENTICATOR}}
+    {{/TASKCFG_ALL_PASSWORD_SECRET_PATH}}
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
@@ -282,7 +282,7 @@ pods:
                 {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false &&
                 {{#SECURITY_AUTHENTICATION_ENABLED}}
-                {{#TASKCFG_ALL_IS_PASSWORD_AUTHENTICATOR}}
+                if [ "{{TASKCFG_ALL_CASSANDRA_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
                     export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password` &&
                     export NEW_RANDOM_PASSWORD=`cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32` &&
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
@@ -291,7 +291,7 @@ pods:
                     nodetool repair system_auth &&
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "CREATE ROLE {{TASKCFG_ALL_NEW_SUPERUSER}} WITH PASSWORD = '${NEW_USER_PASSWORD}' AND SUPERUSER = true AND LOGIN = true;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                     cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "ALTER ROLE cassandra WITH PASSWORD='${NEW_RANDOM_PASSWORD}' AND SUPERUSER=false;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
-                {{/TASKCFG_ALL_IS_PASSWORD_AUTHENTICATOR}}
+                fi
                 {{/SECURITY_AUTHENTICATION_ENABLED}}
                 {{^SECURITY_AUTHENTICATION_ENABLED}}                
                 cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&

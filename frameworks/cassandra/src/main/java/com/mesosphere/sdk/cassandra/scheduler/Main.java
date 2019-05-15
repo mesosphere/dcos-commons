@@ -28,8 +28,6 @@ public final class Main {
   private static final String AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64_ENV =
       "TASKCFG_ALL_AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64";
 
-  private static final String CASSANDRA_AUTHENTICATOR_ENV = "TASKCFG_ALL_CASSANDRA_AUTHENTICATOR";
-
   private Main() {}
 
   public static void main(String[] args) throws Exception {
@@ -57,20 +55,12 @@ public final class Main {
 
     String yamlBase64 = System.getenv(AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64_ENV);
     if (yamlBase64 != null && yamlBase64.length() > 0) {
-      String yamlBlock = new String(
+      String esYamlBlock = new String(
           Base64.getDecoder().decode(yamlBase64),
           StandardCharsets.UTF_8
       );
-      serviceSpecGenerator.setAllPodsEnv("AUTHENTICATION_CUSTOM_YAML_BLOCK", yamlBlock);
+      serviceSpecGenerator.setAllPodsEnv("AUTHENTICATION_CUSTOM_YAML_BLOCK", esYamlBlock);
     }
-
-    String cassandraAuthenticator = System.getenv(CASSANDRA_AUTHENTICATOR_ENV);
-    String isPasswordAuthenticator = "";
-    if ("PasswordAuthenticator".equals(cassandraAuthenticator)) {
-      isPasswordAuthenticator = "PasswordAuthenticator";
-    }
-    serviceSpecGenerator.setAllPodsEnv("TASKCFG_ALL_IS_PASSWORD_AUTHENTICATOR",
-        isPasswordAuthenticator);
 
     return DefaultScheduler.newBuilder(serviceSpecGenerator.build(), schedulerConfig)
         // Disallow changing the DC/Rack. Earlier versions of the Cassandra service didn't set these envvars so
