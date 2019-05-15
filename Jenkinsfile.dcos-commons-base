@@ -1,5 +1,13 @@
 #!/usr/bin/env groovy
 // Configuration for https://jenkins.mesosphere.com/service/jenkins/job/dcos-commons-base%20docker%20image/
+
+void setBuildStatus(String context) {
+    step([
+            $class: "GitHubCommitStatusSetter",
+            contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
+    ])
+}
+
 pipeline {
     agent {
         label 'mesos'
@@ -40,5 +48,9 @@ pipeline {
                 }
             }
         }
+    }
+
+    post {
+        setBuildStatus("mesosphere/${IMAGE}")
     }
 }
