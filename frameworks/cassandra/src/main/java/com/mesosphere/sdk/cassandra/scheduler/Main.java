@@ -55,11 +55,11 @@ public final class Main {
 
     String yamlBase64 = System.getenv(AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64_ENV);
     if (yamlBase64 != null && yamlBase64.length() > 0) {
-      String esYamlBlock = new String(
+      String yamlBlock = new String(
           Base64.getDecoder().decode(yamlBase64),
           StandardCharsets.UTF_8
       );
-      serviceSpecGenerator.setAllPodsEnv("AUTHENTICATION_CUSTOM_YAML_BLOCK", esYamlBlock);
+      serviceSpecGenerator.setAllPodsEnv("AUTHENTICATION_CUSTOM_YAML_BLOCK", yamlBlock);
     }
 
     return DefaultScheduler.newBuilder(serviceSpecGenerator.build(), schedulerConfig)
