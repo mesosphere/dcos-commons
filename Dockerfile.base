@@ -21,7 +21,7 @@
 #   temporarily, rebuild that one, test, etc.
 #
 FROM ubuntu:18.10@sha256:1da669e3481b6c2c8bb25ad287b75202871b1511249000e3bc35679d02e007f4
-
+RUN boom2
 # Install JDK via PPA: https://github.com/franzwong/til/blob/master/java/silent-install-oracle-jdk8-ubuntu.md
 RUN apt-get update && \
     apt-get install -y python3-software-properties software-properties-common && \
