@@ -222,12 +222,82 @@ pods:
           {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
-          if [[ $POD_INSTANCE_INDEX -eq 1 ]]; then
-            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
-            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
+        resource-set: name-resources
+        readiness-check:
+          cmd: |
+            set -e
+            export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+            {{#SECURITY_KERBEROS_ENABLED}}
+            export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+            {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+            export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+            {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+            KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM
+            {{/SECURITY_KERBEROS_ENABLED}}
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME
+          interval: {{NAME_NODE_READINESS_CHECK_INTERVAL}}
+          delay: {{NAME_NODE_READINESS_CHECK_DELAY}}
+          timeout: {{NAME_NODE_READINESS_CHECK_TIMEOUT}}
+        configs:
+          {{#SECURITY_KERBEROS_ENABLED}}
+          krb5-conf:
+            template: krb5.conf
+            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
+          modify-keytab:
+            template: modify-keytab.sh
+            dest: modify-keytab.sh
+          {{/SECURITY_KERBEROS_ENABLED}}
+          core-site:
+            template: core-site.xml
+            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/core-site.xml
+          hdfs-site:
+            template: hdfs-site.xml
+            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/hdfs-site.xml
+          hadoop-metrics2:
+            template: name-hadoop-metrics2.properties
+            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+          ssl-server:
+            template: ssl-server.xml
+            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/ssl-server.xml
+          ssl-client:
+            template: ssl-client.xml
+            dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/ssl-client.xml
+          {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+        env:
+          NAMENODE: true
+        {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+        transport-encryption:
+          - name: node
+            type: KEYSTORE
+        {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+      node-upgrade:
+        goal: RUNNING
+        cmd: |
+          set -e
+          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
+          {{#SECURITY_KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
+          {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+          export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
+          {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+
+          if [[ $POD_INSTANCE_INDEX -eq 0 ]]; then
+            export OTHER_NN_INDEX=1
           else
-            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -upgrade
+            export OTHER_NN_INDEX=0
           fi
+          {{/SECURITY_KERBEROS_ENABLED}}
+          ./bootstrap
+          {{#NAME_NODE_PLACEMENT}}
+          cp -v zone-resolver.sh {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
+          chmod u+x {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
+          {{/NAME_NODE_PLACEMENT}}
+          {{#SECURITY_KERBEROS_ENABLED}}
+          sh modify-keytab.sh
+          {{/SECURITY_KERBEROS_ENABLED}}
+          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -upgrade
         resource-set: name-resources
         readiness-check:
           cmd: |
@@ -320,7 +390,7 @@ pods:
         env:
           NAMENODE: true
       bootstrap:
-        goal: ONCE
+        goal: FINISH
         cmd: |
           set -e
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
@@ -597,8 +667,8 @@ plans:
         strategy: serial
         pod: name
         steps:
-          - 0: [[node, zkfc]]
-          - 1: [[node, zkfc]]
+          - 0: [[node-upgrade, zkfc]]
+          - 1: [[bootstrap], [node, zkfc]]
       data:
         strategy: serial
         pod: data
