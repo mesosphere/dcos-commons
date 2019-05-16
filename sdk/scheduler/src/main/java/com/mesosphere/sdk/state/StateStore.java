@@ -223,17 +223,20 @@ public class StateStore {
       if (taskBytes.length + totalPayload < MAX_VALUE_LENGTH_BYTES) {
         lastBatch.put(taskInfoPath, taskBytes);
       } else {
-        batchedTasks.add(new HashMap<String, byte[]>(){{put(taskInfoPath, taskBytes);}});
+        Map<String, byte[]> nextBatch = new HashMap<>();
+        nextBatch.put(taskInfoPath, taskBytes);
+        batchedTasks.add(nextBatch);
       }
     }
     if (batchedTasks.size() > 1) {
-      logger.warn("Grouped {} TaskInfo writes to {} batches due to zk size limit", tasks.size(), batchedTasks.size());
+      logger.warn("Grouped {} TaskInfo writes in to {} batches", tasks.size(), batchedTasks.size());
     }
     batchedTasks.forEach(taskBytesMap -> {
       try {
-        persister.setMany(taskBytesMap); // This covers retries.
+        persister.setMany(taskBytesMap);
       } catch (PersisterException e) {
-        throw new StateStoreException(e, String.format("Failed to store %d TaskInfos", taskBytesMap.size()));
+        throw new StateStoreException(e,
+                String.format("Failed to store %d TaskInfos", taskBytesMap.size()));
       }
     });
   }
@@ -241,7 +244,7 @@ public class StateStore {
   /**
    * Stores the TaskStatus of a particular Task. The {@link Protos.TaskInfo} for this exact task MUST have already
    * been written via {@link #storeTasks(Collection)} beforehand. The TaskId must be well-formatted as produced by
-   * {@link com.mesosphere.sdk.offer.CommonIdUtils#toTaskId(String)}.
+   * {@link com.mesosphere.sdk.offer.CommonIdUtils#toTaskId(String, String)}.
    *
    * @param status The status to be stored, which meets the above requirements
    * @throws StateStoreException if storing the TaskStatus fails, or if its TaskId is malformed, or if its matching
@@ -306,10 +309,8 @@ public class StateStore {
    */
   public Collection<String> fetchTaskNames() throws StateStoreException {
     try {
-      Collection<String> taskNames = new ArrayList<>();
-      taskNames.addAll(persister.getChildren(
-          PersisterUtils.getServiceNamespacedRootPath(namespace, TASKS_ROOT_NAME)));
-      return taskNames;
+      return new ArrayList<>(persister.getChildren(
+              PersisterUtils.getServiceNamespacedRootPath(namespace, TASKS_ROOT_NAME)));
     } catch (PersisterException e) {
       if (e.getReason() == Reason.NOT_FOUND) {
         // Root path doesn't exist yet. Treat as an empty list of tasks. This scenario is
