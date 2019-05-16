@@ -119,7 +119,7 @@
                 },
                 "superuser": {
                     "type": "object",
-                    "description": "Provide Superuser configuration for Apache Cassandra's native password authentication",
+                    "description": "The super user configuration settings. Only valid when using Apache Cassandra's native PasswordAuthenticator.",
                     "properties": {
                             "name": {
                                 "type": "string",
@@ -128,18 +128,18 @@
                             },
                             "password_secret_path": {
                                 "type": "string",
-                                "description": "The path in the DC/OS Secret Store to retrieve the superuser password from" ,
+                                "description": "The path in the DC/OS Secret Store to retrieve the superuser password from. If using 'PasswordAuthenticator', you must first create the secret in the Secret Store." ,
                                 "default": ""
                             }
                         }
                     },  
                 "authenticator": {
-                    "description": " ",
+                    "description": "The name of the authenticator. By default, the value set is Apache Cassandra's native authenticator: PasswordAuthenticator",
                     "type": "string",
                     "default": "PasswordAuthenticator"
                 },
                 "role_manager": {
-                    "description": " ",
+                    "description": "﻿Part of the Authentication & Authorization backend that implements IRoleManager to maintain grants and memberships between roles, By default, the value set is Apache Cassandra's Out of the box Role Manager: CassandraRoleManager",
                     "type": "string",
                     "default": "CassandraRoleManager"
                 },
@@ -164,7 +164,7 @@
                     "default": false
                 },
                 "authorizer": {
-                    "description": "CassandraAuthorizer is set by default for Apache Cassandra's native authorization",
+                    "description": "The name of the authorizer. By default, the value set is Apache Cassandra's native authorizer: CassandraAuthorizer",
                     "type": "string",
                     "default": "CassandraAuthorizer"
                 },
