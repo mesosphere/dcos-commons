@@ -699,7 +699,7 @@
         "transport_ping_schedule": {
           "description": "Schedule a regular ping message to ensure that connections are kept alive. Defaults to 5s in the transport client and 200000000000 (disabled) elsewhere.",
           "type": "string",
-          "default": "200000000000"
+          "default": "-1"
         },
         "http_enabled": {
           "description": "The http module can be completely disabled and not started by setting http.enabled to false. Default is true.",

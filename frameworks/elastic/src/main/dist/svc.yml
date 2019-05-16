@@ -55,6 +55,8 @@ pods:
 
           mkdir scripts
 
+          mkdir jna-tmpdir
+
           ./bootstrap
 
           chmod -R +x scripts
@@ -151,6 +153,8 @@ pods:
 
           mkdir scripts
 
+          mkdir jna-tmpdir
+
           ./bootstrap
 
           chmod -R +x scripts
@@ -244,6 +248,8 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
 
           mkdir scripts
+
+          mkdir jna-tmpdir
 
           ./bootstrap
 
@@ -339,6 +345,8 @@ pods:
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
 
           mkdir scripts
+
+          mkdir jna-tmpdir
 
           ./bootstrap
 

@@ -22,6 +22,7 @@
 -Xms{{NODE_HEAP_MB}}M 
 -Xmx{{NODE_HEAP_MB}}M
 {{/NODE_HEAP_MB}}
+-Djna.tmpdir=${MESOS_SANDBOX}/jna-tmpdir
 
 ################################################################
 ## Expert settings
