@@ -6,6 +6,7 @@ import sdk_jobs
 import sdk_cmd
 import sdk_install
 import sdk_tasks
+import sdk_utils
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
         service_options = {
             "service": {
                 "name": config.SERVICE_NAME,
-                "security": {"authentication": {"enabled": True}, "authorization": {"enabled": True}},
+                "security": {"authentication": {"enabled": True, "superuser": {"password_secret_path": "cassandra/password"}}, "authorization": {"enabled": True}},
             }
         }
 
@@ -48,6 +49,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
             sdk_jobs.remove_job(job)
 
 
+@sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_auth() -> None:
     config.verify_client_can_write_read_and_delete_with_auth(
@@ -55,6 +57,7 @@ def test_auth() -> None:
     )
 
 
+@sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_unauthorized_users() -> None:
     tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "node-0")[0]

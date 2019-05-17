@@ -113,13 +113,13 @@
             "description": "DC/OS Apache Cassandra authentication settings",
             "properties": {
                 "enabled": {
-                    "description": "Enable Apache Cassandra's native password authentication",
+                    "description": "Enable authentication",
                     "type": "boolean",
                     "default": false
                 },
                 "superuser": {
                     "type": "object",
-                    "description": "Superuser configuration",
+                    "description": "The super user configuration settings. Only valid when using Apache Cassandra's native PasswordAuthenticator.",
                     "properties": {
                             "name": {
                                 "type": "string",
@@ -128,13 +128,31 @@
                             },
                             "password_secret_path": {
                                 "type": "string",
-                                "description": "The path in the DC/OS Secret Store to retrieve the superuser password from" ,
-                                "default": "cassandra/password"
-			    }
+                                "description": "The path in the DC/OS Secret Store to retrieve the superuser password from. If using 'PasswordAuthenticator', you must first create the secret in the Secret Store." ,
+                                "default": ""
+                            }
                         }
-                    }
-                }
-            
+                    },  
+                "authenticator": {
+                    "description": "The name of the authenticator. By default, the value set is Apache Cassandra's native authenticator: PasswordAuthenticator",
+                    "type": "string",
+                    "default": "PasswordAuthenticator"
+                },
+                "role_manager": {
+                    "description": "﻿Part of the Authentication & Authorization backend that implements IRoleManager to maintain grants and memberships between roles, By default, the value set is Apache Cassandra's out of the box Role Manager: CassandraRoleManager",
+                    "type": "string",
+                    "default": "CassandraRoleManager"
+                },
+                "authentication_custom_cassandra_yml": {
+                    "description": "Custom YAML to be appended to cassandra.yml on each node. This field must be base64 encoded.",
+                    "type": "string",
+                    "media": {
+                      "binaryEncoding": "base64",
+                      "type": "application/x-yaml"
+                    },
+                    "default": ""
+                  }
+                }     
         },
         "authorization": {
             "type": "object",
@@ -142,8 +160,13 @@
             "properties": {
                 "enabled": {
                     "type": "boolean",
-                    "description": "Enable Apache Cassandra's native authorization",
+                    "description": "Enable authorization",
                     "default": false
+                },
+                "authorizer": {
+                    "description": "The name of the authorizer. By default, the value set is Apache Cassandra's native authorizer: CassandraAuthorizer",
+                    "type": "string",
+                    "default": "CassandraAuthorizer"
                 },
                 "roles_validity_in_ms": {
                     "type": "integer",
@@ -174,6 +197,11 @@
                     "type": "integer",
                     "description": "If enabled, sets refresh interval for the permissions cache. After this interval, cache entries become eligible for refresh. On next access, Cassandra schedules an async reload and returns the old value until the reload completes. If permissions_validity_in_ms is nonzero, permissions_update_interval_in_ms must also be non-zero.",
                     "default": 2000
+                },
+                "permissions_cache_max_entries": {
+                    "type": "integer",
+                    "description": "The maximum number of entries that are held by the standard authentication cache and row-level access control (RLAC) cache.",
+                    "default": 1000
                 }
 
             }

@@ -4,15 +4,21 @@
   "mem": {{kibana.mem}},
   "instances": 1,
   "user": "{{service.user}}",
-  "cmd": "echo -e \"elasticsearch.url: $ELASTICSEARCH_URL\nelasticsearch.username: $KIBANA_USER\nelasticsearch.password: $KIBANA_PASSWORD\nserver.host: 0.0.0.0\nserver.port: $PORT_KIBANA\nserver.basePath: /service/$FRAMEWORK_NAME\nserver.rewriteBasePath: false\" > $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/config/kibana.yml && echo -e \"\nxpack.security.encryptionKey: $MESOS_FRAMEWORK_ID\nxpack.reporting.encryptionKey: $MESOS_FRAMEWORK_ID\n\" >> $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/config/kibana.yml && if [ \"$KIBANA_ELASTICSEARCH_TLS\" = true ]; then echo -e \"\nelasticsearch.ssl.certificateAuthorities: $MESOS_SANDBOX/.ssl/ca-bundle.crt\n\" >> $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/config/kibana.yml; fi && env && $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana",
+  "container": {
+    "type": "MESOS",
+    "docker": {
+      "image": "{{resource.assets.container.docker.nginx}}"
+    }
+  },
+  "cmd": "./init.sh",
   "labels": {
     "DCOS_SERVICE_NAME": "{{service.name}}",
-    "DCOS_SERVICE_PORT_INDEX": "0",
-    "DCOS_SERVICE_SCHEME": "http"
+    "DCOS_SERVICE_PORT_INDEX": "1",
+    "DCOS_SERVICE_SCHEME": "http",
+    "DCOS_SERVICE_REWRITE_REQUEST_URLS": "false"
   },
   "env": {
     "ELASTIC_VERSION": "{{elastic-version}}",
-    "ELASTIC_STATSD_VERSION": "{{elastic-statsd-version}}",
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_USER": "{{service.user}}",
     "ELASTICSEARCH_URL": "{{kibana.elasticsearch_url}}",
@@ -23,7 +29,19 @@
     "KIBANA_PASSWORD": "{{kibana.password}}"
   },
   "fetch": [
-    { "uri": "{{resource.assets.uris.kibana-tar-gz}}", "cache": true }
+    {
+      "uri": "{{resource.assets.uris.kibana-tar-gz}}",
+      "cache": true
+    },
+    {
+      "uri": "{{artifact-dir}}/nginx.conf.tmpl",
+      "cache": true
+    },
+    {
+      "uri": "{{artifact-dir}}/init.sh",
+      "cache": true,
+      "executable": true
+    }
   ],
   "upgradeStrategy":{
     "minimumHealthCapacity": 0,
@@ -35,17 +53,17 @@
       "protocol": "tcp",
       "name": "kibana",
       "labels": { "VIP_0": "/web.{{service.name}}:80" }
+    },
+    {
+      "name": "proxy",
+      "port": 0,
+      "protocol": "tcp"
     }
   ],
   "healthChecks": [
     {
       "protocol": "MESOS_HTTP",
-      {{^kibana.elasticsearch_xpack_security_enabled}}
-      "path": "/app/kibana",
-      {{/kibana.elasticsearch_xpack_security_enabled}}
-      {{#kibana.elasticsearch_xpack_security_enabled}}
-      "path": "/login",
-      {{/kibana.elasticsearch_xpack_security_enabled}}
+      "path": "/service/{{service.name}}/",
       "gracePeriodSeconds": 900,
       "intervalSeconds": 30,
       "portIndex": 0,
