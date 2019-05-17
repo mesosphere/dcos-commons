@@ -27,7 +27,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
         service_options = {
             "service": {
                 "name": config.SERVICE_NAME,
-                "security": {"authentication": {"enabled": True}, "authorization": {"enabled": True}},
+                "security": {"authentication": {"enabled": True, "superuser": {"password_secret_path": "cassandra/password"}}, "authorization": {"enabled": True}},
             }
         }
 

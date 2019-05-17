@@ -93,7 +93,7 @@ gc_warn_threshold_in_ms: 1000
 enable_user_defined_functions: {{CASSANDRA_ENABLE_USER_DEFINED_FUNCTIONS}}
 enable_scripted_user_defined_functions: {{CASSANDRA_ENABLE_SCRIPTED_USER_DEFINED_FUNCTIONS}}
 windows_timer_interval: 1
-role_manager: CassandraRoleManager
+role_manager: {{ROLE_MANAGER}}
 roles_validity_in_ms: {{ROLES_VALIDITY_IN_MS}}
 permissions_validity_in_ms: {{PERMISSIONS_VALIDITY_IN_MS}}
 disk_failure_policy: {{CASSANDRA_DISK_FAILURE_POLICY}}
@@ -142,3 +142,7 @@ max_value_size_in_mb: {{CASSANDRA_MAX_VALUE_SIZE_IN_MB}}
 otc_coalescing_strategy: {{CASSANDRA_OTC_COALESCING_STRATEGY}}
 credentials_validity_in_ms: {{CREDENTIALS_VALIDITY_IN_MS}}
 credentials_update_interval_in_ms: {{CREDENTIALS_UPDATE_INTERVAL_IN_MS}}
+permissions_cache_max_entries: {{PERMISSIONS_CACHE_MAX_ENTRIES}}
+{{#AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
+{{{AUTHENTICATION_CUSTOM_YAML_BLOCK}}}
+{{/AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
