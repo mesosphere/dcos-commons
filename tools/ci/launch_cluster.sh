@@ -7,6 +7,8 @@ set -e
 LAUNCH_SUCCESS="False"
 RETRY_LAUNCH="True"
 
+env
+
 while [ x"${LAUNCH_SUCCESS}" == x"False" ]; do
     rm -f ${CLUSTER_INFO_FILE} # dcos-launch complains if the file already exists
     /venvs/wrap.sh dcos-launch dcos-launch create --config-path=${LAUNCH_CONFIG_FILE} --info-path=${CLUSTER_INFO_FILE}
