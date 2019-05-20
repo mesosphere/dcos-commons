@@ -74,8 +74,8 @@ function get_public_master_url()
     # We retry, since sometimes the cluster is created, but dcos-launch has intermittent problems describing it.
     for attempt in $(seq 1 ${attempts}); do
         # Careful to not use a pipeline!
-        if /venvs/wrap.sh dcos-launch dcos-launch describe --info-path="${REPO_ROOT_DIR}/cluster_info.json" > "${cluster_description_file}" &&
-           master_ip=$(jq --raw-output --exit-status '.masters[0].public_ip' < "${cluster_description_file}")
+        if dcos-launch dcos-launch describe --info-path="${REPO_ROOT_DIR}/cluster_info.json" > "${cluster_description_file}" &&
+          master_ip=$(jq --raw-output --exit-status '.masters[0].public_ip' < "${cluster_description_file}")
         then
             echo "https://${master_ip}"
             return 0
@@ -198,7 +198,7 @@ echo "Finished integration tests at "`date`
 
 if [ -n "$CLUSTER_WAS_CREATED" ]; then
     echo "The DC/OS cluster $CLUSTER_URL was created. Please run"
-    echo "\t\$ /venvs/wrap.sh dcos-launch dcos-launch delete --info-path=${CLUSTER_INFO_FILE}"
+    echo "\t\$ dcos-launch dcos-launch delete --info-path=${CLUSTER_INFO_FILE}"
     echo "to remove the cluster."
 fi
 
