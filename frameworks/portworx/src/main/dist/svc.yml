@@ -43,6 +43,7 @@ pods:
                 touch $MESOS_SANDBOX/install-in-progress
                 docker pull {{{PORTWORX_IMAGE_NAME}}}
 
+                docker rm -f px_version
                 newPxVersion="$(docker run --rm --name px_version --entrypoint /opt/pwx/bin/pxctl {{{PORTWORX_IMAGE_NAME}}} --version) (OCI)"
                 if [ $? != 0 ]; then
                     echo 'Error finding portworx version from the given image {{{PORTWORX_IMAGE_NAME}}}'
