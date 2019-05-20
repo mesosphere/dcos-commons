@@ -552,6 +552,11 @@
           "type": "boolean",
           "default": false
         },
+        "xpack_security_audit_enabled": {
+          "description": "Set it to true to enable X-Pack security Audit on all nodes. Defaults to false",
+          "type": "boolean",
+          "default": false
+        },
         "plugins": {
           "description": "Comma-separated list of plugins to install",
           "type": "string",
@@ -1072,14 +1077,22 @@
           "default": true
         },
         "xpack_watcher_enabled": {
-          "description": "X-Pack ml is enabled by default on Elastic 6.3+. Changing this setting has no effect.",
+          "description": "X-Pack watcher is enabled by default on Elastic 6.3+. Changing this setting has no effect.",
           "type": "boolean",
           "default": true
+        },
+        "xpack_watcher_encrypt_sensitive_data_enabled": {
+          "description": "X-Pack Watcher encrypt sensitive data is disabled by default on Elastic 6.3+. Changing this setting has no effect.",
+          "type": "boolean",
+          "default": false
         },
         "xpack_reporting_enabled": {
           "description": "X-Pack Monitoring us enabled by default on Elastic 6.3+. Changing this setting has no effect.",
           "type": "boolean",
           "default": true
+        },
+        "": {
+
         }
       }
     }

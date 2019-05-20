@@ -286,5 +286,6 @@ cluster.routing.allocation.balance.threshold: {{CLUSTER_ROUTING_ALLOCATION_BALAN
 {{#INDICES_REQUESTS_CACHE_SIZE}}
 indices.requests.cache.size: {{INDICES_REQUESTS_CACHE_SIZE}}
 {{/INDICES_REQUESTS_CACHE_SIZE}}
+xpack.watcher.encrypt_sensitive_data: {{XPACK_WATCHER_ENCRYPT_SENSITIVE_DATA_ENABLED}}
 
 {{{CUSTOM_YAML_BLOCK}}}
