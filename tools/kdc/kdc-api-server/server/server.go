@@ -37,17 +37,16 @@ func CreateKDCAPIServer(kadmin *KAdminClient, port string, host string) *KDCAPIS
 		endpoint: fmt.Sprintf("%s:%s", host, port),
 	}
 
-	// Start static file serving
+	// Register the static API server
 	fs := http.FileServer(http.Dir("static/"))
 	http.Handle("/static/", http.StripPrefix("/static/", fs))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Welcome to KDC Admin")
 	})
 
-	// Start API endpoint serving
+	// Register the app routes
 	http.HandleFunc("/api/add", inst.handleAddPrincipal)
 	http.HandleFunc("/api/list", inst.handleListPrincipals)
-
 	return inst
 }
 

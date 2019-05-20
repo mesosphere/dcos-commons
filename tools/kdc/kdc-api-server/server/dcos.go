@@ -39,11 +39,9 @@ func CreateDCOSClientFromEnvironment() (*dcos.APIClient, error) {
 	url.Path = "/"
 	clusterURL := url.String()
 
-	// Empty config, without auth token
+	// Create a blank new cluent
 	config := dcos.NewConfig(nil)
 	config.SetURL(clusterURL)
-
-	// Empty client
 	client, err := dcos.NewClientWithConfig(config)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create a DC/OS client: %s", err.Error())
@@ -55,14 +53,14 @@ func CreateDCOSClientFromEnvironment() (*dcos.APIClient, error) {
 		return nil, fmt.Errorf("Unable to authenticate: %s", err.Error())
 	}
 
-	// Update config
+	// Update configuration object (it's passed by reference)
 	config.SetACSToken(authToken.Token)
 	return client, nil
 }
 
 /**
-CreateSecret Creates a secret on the DC/OS secret store
-*/
+ * CreateSecret Creates a secret on the DC/OS secret store
+ */
 func CreateKeytabSecret(client *dcos.APIClient, secretName string, keytab []byte, binary bool) error {
 	// Convert to base64 if binary is false
 	var secret dcos.SecretsV1Secret

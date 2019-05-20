@@ -69,7 +69,6 @@ func (p *KPrincipal) SetFromString(principal string) error {
     )
   }
 
-  // De-compose found items
   p.Primary = strings.Trim(found[0][1], " \t\n\r")
   p.Instance = strings.Trim(found[0][2], " \t\n\r")
   p.Realm = strings.Trim(found[0][3], " \t\n\r")
@@ -101,7 +100,6 @@ func (p *KPrincipal) UnmarshalJSON(b []byte) error {
     return err
   }
 
-  // Parse from string
   err = p.SetFromString(expr)
   if err != nil {
     return err
@@ -110,9 +108,9 @@ func (p *KPrincipal) UnmarshalJSON(b []byte) error {
   return nil
 }
 
-/*
-CreateKAdminClien Create a KAdmin client using the kadmin binary from the given argument
-*/
+/**
+ * CreateKAdminClien Create a KAdmin client using the kadmin binary from the given argument
+ */
 func CreateKAdminClient(kadmin string) (*KAdminClient, error) {
   path, err := exec.LookPath(kadmin)
   if err != nil {
@@ -124,9 +122,9 @@ func CreateKAdminClient(kadmin string) (*KAdminClient, error) {
   }, nil
 }
 
-/*
-AddPrincipals Adds one or more principals on KDC
-*/
+/**
+ * AddPrincipals Adds one or more principals on KDC
+ */
 func (c *KAdminClient) AddPrincipals(principals []KPrincipal) error {
   args := []string{
     "-l",
@@ -138,14 +136,14 @@ func (c *KAdminClient) AddPrincipals(principals []KPrincipal) error {
     args = append(args, p.Full())
   }
 
-  // Call-out to KDC
+  // Call-out to KDC to add the principals
   _, _, err := c.exec(args...)
   return err
 }
 
-/*
-AddMissingPrincipals Behaves similarly to AddPrincipals, but it does not throw error if principals already exists
-*/
+/**
+ * AddMissingPrincipals Behaves similarly to AddPrincipals, but it does not throw error if principals already exists
+ */
 func (c *KAdminClient) AddMissingPrincipals(principals []KPrincipal) error {
   var missingPrincipals []KPrincipal
 
@@ -170,9 +168,9 @@ func (c *KAdminClient) AddMissingPrincipals(principals []KPrincipal) error {
   return c.AddPrincipals(missingPrincipals)
 }
 
-/*
-HasPrincipal Checks if the given principal exists
-*/
+/**
+ * HasPrincipal Checks if the given principal exists
+ */
 func (c *KAdminClient) HasPrincipal(p KPrincipal) (bool, error) {
   _, _, err := c.exec("-l", "list", "-l", p.Full())
   if err != nil {
@@ -191,23 +189,24 @@ func (c *KAdminClient) HasPrincipal(p KPrincipal) (bool, error) {
   return true, nil
 }
 
-/*
-GetKeytab Creates a keytab file for the given principals
-*/
+/**
+ * GetKeytab Creates a keytab file for the given principals
+ */
 func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, error) {
   // Create a temporary file for the keytab
-  tmpfile, err := ioutil.TempFile("", "keytab")
+  tmpFile, err := ioutil.TempFile("", "keytab")
   if err != nil {
     return nil, fmt.Errorf("Unable to create a temporary keytab file")
   }
-  defer os.Remove(tmpfile.Name()) // clean up
+  defer tmpFile.Close()
+  defer os.Remove(tmpFile.Name()) // Don't pollute the filesystem
 
-  // Generate keytab
+  // Prepare arguments to generate a keytab file from given princiapls
   args := []string{
     "-l",
     "ext",
     "-k",
-    tmpfile.Name(),
+    tmpFile.Name(),
   }
   for _, p := range principals {
     args = append(args, p.Full())
@@ -221,20 +220,17 @@ func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, 
 
   // Collect keytab contents
   buf := bytes.NewBuffer(nil)
-  _, err = io.Copy(buf, tmpfile)
+  _, err = io.Copy(buf, tmpFile)
   if err != nil {
     return nil, fmt.Errorf("Unable to read keytab contents: %s", err.Error())
   }
 
-  // Close the tempfile
-  tmpfile.Close()
-
   return buf.Bytes(), nil
 }
 
-/*
-ListPrincipals Lists principals in the kerberos registry, optionally matching the given filter
-*/
+/**
+ * ListPrincipals Lists principals in the kerberos registry, optionally matching the given filter
+ */
 func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
   if filter == "" {
     filter = "*"
@@ -246,15 +242,15 @@ func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
     return nil, err
   }
 
-  // Parse them
+  // Parse kadim STDOUT as principals
   return ParsePrincipalsKadminLong(list)
 }
 
-/*
-exec Forward a command to KAdmin CLI utility
-
-@param exec ...string - The arguments to pass to kadmin)
-*/
+/**
+ * exec Forward a command to KAdmin CLI utility
+ *
+ * @param exec ...string - The arguments to pass to kadmin)
+ */
 func (c *KAdminClient) exec(args ...string) (string, string, error) {
   var stdout, stderr bytes.Buffer
 
@@ -281,6 +277,6 @@ func (c *KAdminClient) exec(args ...string) (string, string, error) {
     }
   }
 
-  // Return stdout
+  // Return (stdout, stderr) pair
   return string(stdout.Bytes()), string(stderr.Bytes()), nil
 }

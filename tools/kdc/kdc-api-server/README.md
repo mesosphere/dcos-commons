@@ -4,7 +4,7 @@ This is a lightweight go-lang web-server that enables configuring KDC accounts o
 
 ## Creating a kdc-admin account
 
-In order for the KDC API Server to work, it requires a DC/OS service account, with minimum required permissions the access to the 
+In order for the KDC API Server to work, it requires a DC/OS service account, with minimum required permissions the access the secrets store.
 
 ```sh
 # Prepare
@@ -24,7 +24,7 @@ dcos security org users grant kdc-admin 'dcos:secrets:list:default:/*' read
 
 ### `POST /api/add` - Add KDC Principals 
 
-This API operates in both "plain text" and "json" encoding based on the `Content-Type`header. The simplest use is with the "plain text" API like so:
+This API operates in both "plain text" and "json" encoding based on the `Content-Type` header. The simplest use is with the "plain text" API like so:
 
 ```sh
 curl --data-binary @/path/to/principals.txt http://server:8080/api/add?secret=secret_name
