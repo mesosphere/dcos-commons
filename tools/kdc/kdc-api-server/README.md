@@ -22,15 +22,17 @@ dcos security org users grant kdc-admin 'dcos:secrets:list:default:/*' read
 
 ## API Reference
 
+This API operates in both "plain text" and "json" encoding based on the `Content-Type`header. The simplest use is with the "plain text" API like so:
+
 ### `POST /api/add` - Add KDC Principals 
 
-This API operates in both "plain text" and "json" encoding based on the `Content-Type` header. The simplest use is with the "plain text" API like so:
+Plain text API:
 
 ```sh
 curl --data-binary @/path/to/principals.txt http://server:8080/api/add?secret=secret_name
 ```
 
-Alternatively, using JSON encoding:
+JSON API:
 
 ```py
 import requests
@@ -51,13 +53,13 @@ req = requests.POST(
 
 ### `POST /api/list` - Enumerate KDC Principals 
 
-This API operates in both "plain text" and "json" encoding based on the `Content-Type`header. The simplest use is with the "plain text" API like so:
+Plain text API:
 
 ```sh
 curl http://server:8080/api/list?filter=*
 ```
 
-Alternatively using JSON encoding:
+JSON API:
 
 ```py
 import requests
