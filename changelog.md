@@ -1,5 +1,7 @@
 ## Changes to v0.5x.y
 
+## Dummy commit DO NOT MERGE
+
 ## Changes to v0.56.1
 
 - [DCOS-53415](https://jira.mesosphere.com/browse/DCOS-53415) Update to mesos 1.8.0 `org.apache.mesos:mesos:1.8.0`
