@@ -336,6 +336,8 @@
 
     "MASTER_NODE_RLIMIT_NOFILE_SOFT": "{{master_nodes.rlimits.rlimit_nofile.soft}}",
     "MASTER_NODE_RLIMIT_NOFILE_HARD": "{{master_nodes.rlimits.rlimit_nofile.hard}}",
+    "MASTER_NODE_RLIMIT_STACK_SOFT": "{{master_nodes.rlimits.rlimit_stack.soft}}",
+    "MASTER_NODE_RLIMIT_STACK_HARD": "{{master_nodes.rlimits.rlimit_stack.hard}}",
 
     "DATA_NODE_READINESS_CHECK_INTERVAL": "{{data_nodes.readiness_check.interval}}",
     "DATA_NODE_READINESS_CHECK_DELAY": "{{data_nodes.readiness_check.delay}}",
@@ -344,19 +346,26 @@
     "DATA_NODE_RLIMIT_NOFILE_SOFT": "{{data_nodes.rlimits.rlimit_nofile.soft}}",
     "DATA_NODE_RLIMIT_NOFILE_HARD": "{{data_nodes.rlimits.rlimit_nofile.hard}}",
 
+    "DATA_NODE_RLIMIT_STACK_SOFT": "{{data_nodes.rlimits.rlimit_stack.soft}}",
+    "DATA_NODE_RLIMIT_STACK_HARD": "{{data_nodes.rlimits.rlimit_stack.hard}}",
+
     "INGEST_NODE_READINESS_CHECK_INTERVAL": "{{ingest_nodes.readiness_check.interval}}",
     "INGEST_NODE_READINESS_CHECK_DELAY": "{{ingest_nodes.readiness_check.delay}}",
     "INGEST_NODE_READINESS_CHECK_TIMEOUT": "{{ingest_nodes.readiness_check.timeout}}",
 
     "INGEST_NODE_RLIMIT_NOFILE_SOFT": "{{ingest_nodes.rlimits.rlimit_nofile.soft}}",
     "INGEST_NODE_RLIMIT_NOFILE_HARD": "{{ingest_nodes.rlimits.rlimit_nofile.hard}}",
+    "INGEST_NODE_RLIMIT_STACK_SOFT": "{{ingest_nodes.rlimits.rlimit_stack.soft}}",
+    "INGEST_NODE_RLIMIT_STACK_HARD": "{{ingest_nodes.rlimits.rlimit_stack.hard}}",
 
     "COORDINATOR_NODE_READINESS_CHECK_INTERVAL": "{{coordinator_nodes.readiness_check.interval}}",
     "COORDINATOR_NODE_READINESS_CHECK_DELAY": "{{coordinator_nodes.readiness_check.delay}}",
     "COORDINATOR_NODE_READINESS_CHECK_TIMEOUT": "{{coordinator_nodes.readiness_check.timeout}}",
 
     "COORDINATOR_NODE_RLIMIT_NOFILE_SOFT": "{{coordinator_nodes.rlimits.rlimit_nofile.soft}}",
-    "COORDINATOR_NODE_RLIMIT_NOFILE_HARD": "{{coordinator_nodes.rlimits.rlimit_nofile.hard}}"
+    "COORDINATOR_NODE_RLIMIT_NOFILE_HARD": "{{coordinator_nodes.rlimits.rlimit_nofile.hard}}",
+    "COORDINATOR_NODE_RLIMIT_STACK_SOFT": "{{coordinator_nodes.rlimits.rlimit_stack.soft}}",
+    "COORDINATOR_NODE_RLIMIT_STACK_HARD": "{{coordinator_nodes.rlimits.rlimit_stack.hard}}"
   },
   "fetch": [
     { "uri": "{{resource.assets.uris.bootstrap-zip}}", "cache": true },

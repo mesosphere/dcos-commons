@@ -204,6 +204,24 @@
                   "minimum": 128000
                 }
               }
+            },
+            "rlimit_stack": {
+              "description": "Specifies RLIMIT_STACK, a value one greater than the maximum size of the initial thread's stack, in bytes.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 10240,
+                  "minimum": 10240
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 10240,
+                  "minimum": 10240
+                }
+              }
             }
           }
         }
@@ -311,6 +329,24 @@
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
                   "minimum": 128000
+                }
+              }
+            },
+            "rlimit_stack": {
+              "description": "Specifies RLIMIT_STACK, a value one greater than the maximum size of the initial thread's stack, in bytes.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 10240,
+                  "minimum": 10240
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 10240,
+                  "minimum": 10240
                 }
               }
             }
@@ -422,6 +458,24 @@
                   "minimum": 128000
                 }
               }
+            },
+            "rlimit_stack": {
+              "description": "Specifies RLIMIT_STACK, a value one greater than the maximum size of the initial thread's stack, in bytes.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 10240,
+                  "minimum": 10240
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 10240,
+                  "minimum": 10240
+                }
+              }
             }
           }
         }
@@ -529,6 +583,24 @@
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
                   "minimum": 128000
+                }
+              }
+            },
+            "rlimit_stack": {
+              "description": "Specifies RLIMIT_STACK, a value one greater than the maximum size of the initial thread's stack, in bytes.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 10240,
+                  "minimum": 10240
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 10240,
+                  "minimum": 10240
                 }
               }
             }
