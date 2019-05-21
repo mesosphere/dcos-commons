@@ -212,14 +212,14 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": 10240,
-                  "minimum": 10240
+                  "default": 76800,
+                  "minimum": 76800
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": 10240,
-                  "minimum": 10240
+                  "default": 76800,
+                  "minimum": 76800
                 }
               }
             }
@@ -339,14 +339,14 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": 10240,
-                  "minimum": 10240
+                  "default": 76800,
+                  "minimum": 76800
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": 10240,
-                  "minimum": 10240
+                  "default": 76800,
+                  "minimum": 76800
                 }
               }
             }
@@ -593,14 +593,14 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": 10240,
-                  "minimum": 10240
+                  "default": 76800,
+                  "minimum": 76800
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": 10240,
-                  "minimum": 10240
+                  "default": 76800,
+                  "minimum": 76800
                 }
               }
             }
