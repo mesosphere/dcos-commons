@@ -59,6 +59,9 @@ def hdfs_client_write_data(
             # if hdfs had previously successfully completed the write when also outputting some warning on stderr.
             log.info("Ignoring failure: Looks like the data was successfully written in a previous attempt")
             return True
+        elif "but this CLI only supports" in stderr:
+            # Ignore warnings about CLI being outdated compared to DC/OS version
+            return True
         else:
             # Try again
             return False
