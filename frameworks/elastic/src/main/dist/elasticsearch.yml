@@ -85,6 +85,8 @@ transport.tcp.connect_timeout: {{TRANSPORT_TCP_CONNECT_TIMEOUT}}
 transport.tcp.compress: {{TRANSPORT_TCP_COMPRESS}}
 transport.ping_schedule: {{TRANSPORT_PING_SCHEDULE}}
 http.enabled: {{HTTP_ENABLED}}
+http.reset_cookies: {{HTTP_RESET_COOKIES}}
+http.max_warning_header_count: {{HTTP_MAX_WARNING_HEADER_COUNT}}
 http.max_content_length: {{HTTP_MAX_CONTENT_LENGTH}}
 http.max_initial_line_length: {{HTTP_MAX_INITIAL_LINE_LENGTH}}
 http.max_header_size: {{HTTP_MAX_HEADER_SIZE}}
@@ -295,6 +297,8 @@ xpack.watcher.encrypt_sensitive_data: {{XPACK_WATCHER_ENCRYPT_SENSITIVE_DATA_ENA
 xpack.security.audit.enabled: {{XPACK_SECURITY_AUDIT_ENABLED}}
 xpack.security.audit.index.bulk.size: {{XPACK_SECURITY_AUDIT_INDEX_BULK_SIZE}}
 xpack.security.audit.index.events.emit_request_body: {{XPACK_SECURITY_AUDIT_INDEX_EVENTS_EMIT_REQUEST_BODY}}
+xpack.security.audit.index.events.exclude: {{XPACK_SECURITY_AUDIT_INDEX_EVENTS_EXCLUDE}}
+xpack.security.audit.index.flush_interval: {{XPACK_SECURITY_AUDIT_INDEX_FLISH_INTERVAL}}
 {{/XPACK_SECURITY_ENABLED}}
 
 {{#XPACK_ML_ENABLED}}
