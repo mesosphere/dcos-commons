@@ -53,10 +53,6 @@ xpack.security.transport.ssl.enabled: true
 # Client encryption
 xpack.security.http.ssl.enabled: true
 xpack.security.http.ssl.client_authentication: none
-xpack.monitoring.enabled: {{XPACK_MONITORING_ENABLED}}
-xpack.ml.enabled: {{XPACK_ML_ENABLED}}
-xpack.watcher.enabled: {{XPACK_WATCHER_ENABLED}}
-xpack.reporting.enabled: {{XPACK_REPORTING_ENABLED}}
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 {{^SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 # X-Pack security is enabled without TLS.
@@ -304,5 +300,9 @@ xpack.security.audit.index.flush_interval: {{XPACK_SECURITY_AUDIT_INDEX_FLISH_IN
 {{#XPACK_ML_ENABLED}}
 max_running_jobs: {{MAX_RUNNING_JOBS}}
 {{/XPACK_ML_ENABLED}}
+xpack.monitoring.enabled: {{XPACK_MONITORING_ENABLED}}
+xpack.ml.enabled: {{XPACK_ML_ENABLED}}
+xpack.watcher.enabled: {{XPACK_WATCHER_ENABLED}}
+xpack.reporting.enabled: {{XPACK_REPORTING_ENABLED}}
 
 {{{CUSTOM_YAML_BLOCK}}}
