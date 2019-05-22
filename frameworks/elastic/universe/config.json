@@ -557,6 +557,16 @@
           "type": "boolean",
           "default": false
         },
+        "xpack_security_audit_index_bulk_size": {
+          "description": "Sets the Xpack security audit index bulk size. Defaults to 1000.",
+          "type": "integer",
+          "default": 1000
+        },
+        "xpack_security_audit_index_events_emit_request_body": {
+          "description": "Sets to Xpack index event to emit the request body. Defaults to false.",
+          "type": "boolean",
+          "default": false
+        },
         "plugins": {
           "description": "Comma-separated list of plugins to install",
           "type": "string",
@@ -1075,6 +1085,11 @@
           "description": "X-Pack ml is enabled by default on Elastic 6.3+. Changing this setting has no effect.",
           "type": "boolean",
           "default": true
+        },
+        "max_running_jobs": {
+          "description": "Limits the number of jobs that have been launched and the model state is held in memory.The default value is 10 per Elasticsearch node that has enabled machine learning",
+          "type": "integer",
+          "default": 10
         },
         "xpack_watcher_enabled": {
           "description": "X-Pack watcher is enabled by default on Elastic 6.3+. Changing this setting has no effect.",
