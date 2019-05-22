@@ -291,8 +291,14 @@ indices.requests.cache.size: {{INDICES_REQUESTS_CACHE_SIZE}}
 xpack.watcher.encrypt_sensitive_data: {{XPACK_WATCHER_ENCRYPT_SENSITIVE_DATA_ENABLED}}
 {{/XPACK_WATCHER_ENABLED}}
 
-{{#XPACK_SECURIY_ENABLED}}
+{{#XPACK_SECURITY_ENABLED}}
 xpack.security.audit.enabled: {{XPACK_SECURITY_AUDIT_ENABLED}}
+xpack.security.audit.index.bulk.size: {{XPACK_SECURITY_AUDIT_INDEX_BULK_SIZE}}
+xpack.security.audit.index.events.emit_request_body: {{XPACK_SECURITY_AUDIT_INDEX_EVENTS_EMIT_REQUEST_BODY}}
 {{/XPACK_SECURITY_ENABLED}}
+
+{{#XPACK_ML_ENABLED}}
+max_running_jobs: {{MAX_RUNNING_JOBS}}
+{{/XPACK_ML_ENABLED}}
 
 {{{CUSTOM_YAML_BLOCK}}}
