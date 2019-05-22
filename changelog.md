@@ -2,6 +2,10 @@
 
 ## Dummy commit DO NOT MERGE
 
+## Changes to v0.56.2
+
+- [DCOS-52767](https://jira.mesosphere.com/browse/DCOS-52767) Update SDK to run on OpenJDK 8
+
 ## Changes to v0.56.1
 
 - [DCOS-53415](https://jira.mesosphere.com/browse/DCOS-53415) Update to mesos 1.8.0 `org.apache.mesos:mesos:1.8.0`
