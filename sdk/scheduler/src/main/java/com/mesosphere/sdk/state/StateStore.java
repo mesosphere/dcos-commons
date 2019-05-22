@@ -229,8 +229,7 @@ public class StateStore {
   public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
     Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
     if (currentStatusOptional.isPresent()
-        && (status.getState().equals(Protos.TaskState.TASK_LOST) ||
-        status.getState().equals(Protos.TaskState.TASK_UNKNOWN))
+        && status.getState().equals(Protos.TaskState.TASK_LOST)
         && TaskUtils.isTerminal(currentStatusOptional.get()))
     {
       throw new StateStoreException(Reason.LOGIC_ERROR,
