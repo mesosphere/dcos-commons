@@ -59,6 +59,9 @@ def hdfs_client_write_data(
             # if hdfs had previously successfully completed the write when also outputting some warning on stderr.
             log.info("Ignoring failure: Looks like the data was successfully written in a previous attempt")
             return True
+        elif "but this CLI only supports" in stderr:
+            # Ignore warnings about CLI being outdated compared to DC/OS version
+            return True
         else:
             # Try again
             return False
@@ -109,9 +112,7 @@ def hdfs_client_list_files(filename) -> tuple:
 def get_hdfs_client_app(service_name, kerberos=None) -> dict:
     """
     Returns a Marathon app definition for an HDFS client against the specified service.
-
     This app should be installed AFTER the service is up and running, or else it may fail with an error like:
-
     18/08/21 20:36:57 FATAL conf.Configuration: error parsing conf core-site.xml
            org.xml.sax.SAXParseException; Premature end of file.
     """
