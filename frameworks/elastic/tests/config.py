@@ -532,7 +532,8 @@ def _curl_query(
     )
 
     if json_body:
-        curl_cmd += " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_body))
+        curl_cmd += (" -H 'Content-type: application/json' -d '{}'".format(json_body)
+                     if isinstance(json_body, str) else " -H 'Content-type: application/json' -d '{}'".format(json.dumps(json_body)))
 
     task_name = "master-0-node"
     exit_code, stdout, stderr = sdk_cmd.service_task_exec(service_name, task_name, curl_cmd)
