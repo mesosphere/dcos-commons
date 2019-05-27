@@ -222,6 +222,24 @@
                   "minimum": 76800
                 }
               }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 2048,
+                  "minimum": 2048
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 2048,
+                  "minimum": 2048
+                }
+              }
             }
           }
         }
@@ -349,6 +367,24 @@
                   "minimum": 76800
                 }
               }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 2048,
+                  "minimum": 2048
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 2048,
+                  "minimum": 2048
+                }
+              }
             }
           }
         }
@@ -466,14 +502,32 @@
                 "soft" : {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
-                  "default": 10240,
-                  "minimum": 10240
+                  "default": 76800,
+                  "minimum": 76800
                 },
                 "hard" : {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
-                  "default": 10240,
-                  "minimum": 10240
+                  "default": 76800,
+                  "minimum": 76800
+                }
+              }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 2048,
+                  "minimum": 2048
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 2048,
+                  "minimum": 2048
                 }
               }
             }
@@ -601,6 +655,24 @@
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 76800,
                   "minimum": 76800
+                }
+              }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 2048,
+                  "minimum": 2048
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 2048,
+                  "minimum": 2048
                 }
               }
             }

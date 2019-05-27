@@ -46,3 +46,12 @@ def test_rlimt_stack():
         stack_limit = re.sub(' +', ' ', stdout).split(' ')[-3:-1]
         assert rlimit[0] == int(stack_limit[0])
         assert rlimit[1] == int(stack_limit[1])
+
+def test_rlimt_memlock():
+    tasks_to_rlimit = get_task_to_rlimits_mapping("RLMT_MEMLOCK")
+    for (task, rlimit) in tasks_to_rlimit.items():
+        exit_code, stdout, _ = sdk_cmd.run_cli('task exec {} bash -c "ps -o pid -C java | grep -v grep | grep -v PID"'.format(task))
+        exit_code, stdout, _ = sdk_cmd.run_cli('task exec {} bash -c "cat /proc/{}/limits | grep memory"'.format(task, stdout))
+        stack_limit = re.sub(' +', ' ', stdout).split(' ')[-3:-1]
+        assert rlimit[0] == int(stack_limit[0])
+        assert rlimit[1] == int(stack_limit[1])
