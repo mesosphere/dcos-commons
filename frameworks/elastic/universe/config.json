@@ -240,6 +240,24 @@
                   "minimum": 2048
                 }
               }
+            },
+            "rlimit_nproc": {
+              "description": "Specifies RLMT_NPROC, The maximum number of processes (or, more precisely on Linux, threads) that can be created for the real user ID of the calling process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 16384,
+                  "minimum": 16384
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 16384,
+                  "minimum": 16384
+                }
+              }
             }
           }
         }
@@ -383,6 +401,24 @@
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 2048,
                   "minimum": 2048
+                }
+              }
+            },
+            "rlimit_nproc": {
+              "description": "Specifies RLMT_NPROC, The maximum number of processes (or, more precisely on Linux, threads) that can be created for the real user ID of the calling process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 16384,
+                  "minimum": 16384
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 16384,
+                  "minimum": 16384
                 }
               }
             }
@@ -530,6 +566,24 @@
                   "minimum": 2048
                 }
               }
+            },
+            "rlimit_nproc": {
+              "description": "Specifies RLMT_NPROC, The maximum number of processes (or, more precisely on Linux, threads) that can be created for the real user ID of the calling process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 16384,
+                  "minimum": 16384
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 16384,
+                  "minimum": 16384
+                }
+              }
             }
           }
         }
@@ -673,6 +727,24 @@
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 2048,
                   "minimum": 2048
+                }
+              }
+            },
+            "rlimit_nproc": {
+              "description": "Specifies RLMT_NPROC, The maximum number of processes (or, more precisely on Linux, threads) that can be created for the real user ID of the calling process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "default": 16384,
+                  "minimum": 16384
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "default": 16384,
+                  "minimum": 16384
                 }
               }
             }

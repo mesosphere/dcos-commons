@@ -26,6 +26,9 @@ pods:
       RLIMIT_MEMLOCK:
         soft: {{MASTER_NODE_RLIMIT_MEMLOCK_SOFT}}
         hard: {{MASTER_NODE_RLIMIT_MEMLOCK_HARD}}
+      RLIMIT_NPROC:
+        soft: {{MASTER_NODE_RLIMIT_NPROC_SOFT}}
+        hard: {{MASTER_NODE_RLIMIT_NPROC_HARD}}
     placement: '{{{MASTER_NODE_PLACEMENT}}}'
     tasks:
       node:
@@ -125,6 +128,9 @@ pods:
       RLIMIT_MEMLOCK:
         soft: {{DATA_NODE_RLIMIT_MEMLOCK_SOFT}}
         hard: {{DATA_NODE_RLIMIT_MEMLOCK_HARD}}
+      RLIMIT_NPROC:
+        soft: {{DATA_NODE_RLIMIT_NPROC_SOFT}}
+        hard: {{DATA_NODE_RLIMIT_NPROC_HARD}}
     placement: '{{{DATA_NODE_PLACEMENT}}}'
     tasks:
       node:
@@ -222,6 +228,9 @@ pods:
       RLIMIT_MEMLOCK:
         soft: {{INGEST_NODE_RLIMIT_MEMLOCK_SOFT}}
         hard: {{INGEST_NODE_RLIMIT_MEMLOCK_HARD}}
+      RLIMIT_NPROC:
+        soft: {{INGEST_NODE_RLIMIT_NPROC_SOFT}}
+        hard: {{INGEST_NODE_RLIMIT_NPROC_HARD}}
     placement: '{{{INGEST_NODE_PLACEMENT}}}'
     tasks:
       node:
@@ -319,6 +328,9 @@ pods:
       RLIMIT_MEMLOCK:
         soft: {{COORDINATOR_NODE_RLIMIT_MEMLOCK_SOFT}}
         hard: {{COORDINATOR_NODE_RLIMIT_MEMLOCK_HARD}}
+      RLIMIT_NPROC:
+        soft: {{COORDINATOR_NODE_RLIMIT_NPROC_SOFT}}
+        hard: {{COORDINATOR_NODE_RLIMIT_NPROC_HARD}}
     placement: '{{{COORDINATOR_NODE_PLACEMENT}}}'
     tasks:
       node:
