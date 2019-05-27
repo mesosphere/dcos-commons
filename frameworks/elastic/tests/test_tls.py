@@ -93,15 +93,13 @@ def kibana_application(elastic_service: Dict[str, Any]) -> Iterator[Dict[str, An
     )
 
     service_options = {
-        "service": {
-            "name": service_name,
-        },
+        "service": {"name": service_name},
         "kibana": {
             "elasticsearch_tls": True,
             "elasticsearch_url": elasticsearch_url,
             "elasticsearch_xpack_security_enabled": True,
             "password": elastic_service["passwords"]["kibana"],
-        }
+        },
     }
 
     try:
@@ -156,9 +154,9 @@ def test_crud_over_tls(elastic_service: Dict[str, Any]) -> None:
 @pytest.mark.tls
 @pytest.mark.sanity
 def test_kibana_tls(kibana_application: Dict[str, Any]) -> None:
-    config.check_kibana_adminrouter_integration(
-        "service/{}/login".format(kibana_application["service"]["name"])
-    )
+    service_name = kibana_application["service"]["name"]
+    config.check_kibana_adminrouter_integration("service/{}/".format(service_name))
+    config.check_kibana_adminrouter_integration("service/{}/login".format(service_name))
 
 
 @pytest.mark.tls

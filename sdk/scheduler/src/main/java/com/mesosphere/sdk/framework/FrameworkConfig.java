@@ -87,6 +87,7 @@ public final class FrameworkConfig {
         getZkHostPort(rawServiceSpec),
         getFrameworkPreReservedRoles(serviceRole, rawServiceSpec.getPods().values().stream()
             .map(RawPod::getPreReservedRole)
+            .distinct()
             .collect(Collectors.toList())),
         rawServiceSpec.getWebUrl());
   }
@@ -104,6 +105,7 @@ public final class FrameworkConfig {
         serviceSpec.getZookeeperConnection(),
         getFrameworkPreReservedRoles(serviceSpec.getRole(), serviceSpec.getPods().stream()
             .map(PodSpec::getPreReservedRole)
+            .distinct()
             .collect(Collectors.toList())),
         serviceSpec.getWebUrl());
   }
@@ -123,7 +125,10 @@ public final class FrameworkConfig {
         envStore.getOptionalNonEmpty("FRAMEWORK_USER", DcosConstants.DEFAULT_SERVICE_USER),
         envStore.getOptionalNonEmpty(
             "FRAMEWORK_ZOOKEEPER", DcosConstants.MESOS_MASTER_ZK_CONNECTION_STRING),
-        envStore.getOptionalStringList("FRAMEWORK_PRERESERVED_ROLES", Collections.emptyList()),
+        envStore.getOptionalStringList("FRAMEWORK_PRERESERVED_ROLES", Collections.emptyList())
+                .stream()
+                .distinct()
+                .collect(Collectors.toList()),
         envStore.getOptionalNonEmpty("FRAMEWORK_WEB_URL", ""));
   }
 

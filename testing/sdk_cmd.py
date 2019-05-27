@@ -250,7 +250,7 @@ wc -l {output_file}"'''.format(
     )
     rc, stdout, stderr = marathon_task_exec(marathon_task_name, output_cmd)
 
-    if rc or stderr:
+    if rc:
         log.warning(
             "Error creating file %s. rc=%s stdout=%s stderr=%s", filename, rc, stdout, stderr
         )
