@@ -137,7 +137,7 @@ def update_or_upgrade_or_downgrade(
     expected_running_tasks: int,
     wait_for_deployment: bool = True,
     timeout_seconds: int = TIMEOUT_SECONDS,
-) -> bool:
+) -> None:
     initial_config = get_config(package_name, service_name)
     task_ids = sdk_tasks.get_task_ids(service_name, "")
     if (to_version and not is_cli_supports_service_version_upgrade()) or (
@@ -159,8 +159,6 @@ def update_or_upgrade_or_downgrade(
 
     if wait_for_deployment:
         _wait_for_deployment(package_name, service_name, initial_config, task_ids, timeout_seconds)
-
-    return not wait_for_deployment
 
 
 def _update_service_with_cli(
@@ -210,6 +208,7 @@ def _wait_for_deployment(
     task_ids: List[str],
     timeout_seconds: int,
 ) -> None:
+    sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
     updated_config = get_config(package_name, service_name)
 
     if updated_config == initial_config:
