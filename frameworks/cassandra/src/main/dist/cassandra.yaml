@@ -7,7 +7,7 @@ data_file_directories:
 commitlog_directory: {{MESOS_SANDBOX}}/container-path/commitlog
 saved_caches_directory: {{MESOS_SANDBOX}}/container-path/saved_caches
 seed_provider:
-    - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+    - class_name: {{CASSANDRA_SEED_PROVIDER_CLASS}}
       parameters:
           - seeds: "{{LOCAL_SEEDS}},{{REMOTE_SEEDS}}"
 num_tokens: {{CASSANDRA_NUM_TOKENS}}
@@ -61,7 +61,7 @@ dynamic_snitch_reset_interval_in_ms: {{CASSANDRA_DYNAMIC_SNITCH_RESET_INTERVAL_I
 dynamic_snitch_badness_threshold: {{CASSANDRA_DYNAMIC_SNITCH_BADNESS_THRESHOLD}}
 unlogged_batch_across_partitions_warn_threshold: {{CASSANDRA_UNLOGGED_BATCH_ACROSS_PARTITIONS_WARN_THRESHOLD}}
 compaction_large_partition_warning_threshold_mb: {{CASSANDRA_COMPACTION_LARGE_PARTITION_WARNING_THRESHOLD_MB}}
-request_scheduler: org.apache.cassandra.scheduler.NoScheduler
+request_scheduler: {{CASSANDRA_REQUEST_SCHEDULER}}
 {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 server_encryption_options:
     internode_encryption: all
@@ -93,7 +93,7 @@ gc_warn_threshold_in_ms: {{CASSANDRA_GC_WARN_THRESHOLD_IN_MS}}
 enable_user_defined_functions: {{CASSANDRA_ENABLE_USER_DEFINED_FUNCTIONS}}
 enable_scripted_user_defined_functions: {{CASSANDRA_ENABLE_SCRIPTED_USER_DEFINED_FUNCTIONS}}
 windows_timer_interval: {{CASSANDRA_WINDOWS_TIMER_INTERVAL}}
-role_manager: {{CASSANDRA_ROLE_MANAGER}}
+role_manager: {{ROLE_MANAGER}}
 roles_validity_in_ms: {{ROLES_VALIDITY_IN_MS}}
 permissions_validity_in_ms: {{PERMISSIONS_VALIDITY_IN_MS}}
 disk_failure_policy: {{CASSANDRA_DISK_FAILURE_POLICY}}
@@ -143,6 +143,18 @@ otc_coalescing_strategy: {{CASSANDRA_OTC_COALESCING_STRATEGY}}
 credentials_validity_in_ms: {{CREDENTIALS_VALIDITY_IN_MS}}
 credentials_update_interval_in_ms: {{CREDENTIALS_UPDATE_INTERVAL_IN_MS}}
 permissions_cache_max_entries: {{PERMISSIONS_CACHE_MAX_ENTRIES}}
+cdc_enabled: {{CASSANDRA_CDC_ENABLED}}
+prepared_statements_cache_size_mb: {{CASSANDRA_PREPARED_STATEMENTS_CACHE_SIZE_MB}}
+thrift_prepared_statements_cache_size_mb: {{CASSANDRA_THRIFT_PREPARED_STATEMENTS_CACHE_SIZE_MB}}
+column_index_cache_size_in_kb: {{CASSANDRA_COLUMN_INDEX_CACHE_SIZE_IN_KB}}
+slow_query_log_timeout_in_ms: {{CASSANDRA_SLOW_QUERY_LOG_TIMEOUT_IN_MS}}
+back_pressure_enabled: {{CASSANDRA_BACK_PRESSURE_ENABLED}}
+back_pressure_strategy:
+   - class_name: {{CASSANDRA_BACK_PRESSURE_STRATEGY_CLASS}}
+     parameters:
+       - high_ratio: 0.90
+         factor: 5
+         flow: FAST
 {{#AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
 {{{AUTHENTICATION_CUSTOM_YAML_BLOCK}}}
 {{/AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}

@@ -355,6 +355,11 @@
           "description": "The JMX port that will be used to interface with the Cassandra application.",
           "default": 7199
         },
+        "seed_provider_class": {
+          "type": "string",
+          "description": "The class within Cassandra that handles the seed logic.",
+          "default": "org.apache.cassandra.locator.SimpleSeedProvider"
+        },
         "num_tokens": {
           "type": "integer",
           "description": "The number of tokens assigned to each node.",
@@ -740,6 +745,11 @@
           "description": "Cassandra logs a warning when compacting partitions larger than the set value.",
           "default": 100
         },
+        "request_scheduler": {
+          "type": "string",
+          "description": "The scheduler to handle incoming client requests according to a defined policy. This scheduler is useful for throttling client requests in single clusters containing multiple keyspaces.",
+          "default": "org.apache.cassandra.scheduler.NoScheduler"
+        },
         "inter_dc_tcp_nodelay": {
           "type": "boolean",
           "description": "Enable this property for inter-datacenter communication.",
@@ -762,7 +772,7 @@
         },
         "windows_timer_interval": {
           "type": "integer",
-          "description": "",
+          "description": "The default Windows kernel timer and scheduling resolution is 15.6ms for power conservation. Lowering this value on Windows can provide much tighter latency and better throughput, however some virtualized environments may see a negative performance impact from changing this setting below their system default.",
           "default": 1
         },
         "counter_cache_save_period": {
@@ -856,7 +866,43 @@
           "type": "boolean",
           "description": "Java UDFs are always enabled, if enable_user_defined_functions is true. Enable this option to use UDFs with language javascript or any custom JSR-223 provider. This option has no effect if enable_user_defined_functions is false",
           "default": false
+        },
+        "cdc_enabled": {
+          "type": "boolean",
+          "description": "Enable / disable CDC functionality on a per-node basis. This modifies the logic used for write path allocation rejection",
+          "default": false
+        },
+        "prepared_statements_cache_size_mb": {
+          "type": "string",
+          "description": "Maximum size of the native protocol prepared statement cache",
+          "default": ""
+        },
+        "thrift_prepared_statements_cache_size_mb": {
+          "type": "string",
+          "description": "Maximum size of the Thrift prepared statement cache. Leave empty if you do not use Thrift.",
+          "default": ""
+        },
+        "column_index_cache_size_in_kb": {
+          "type": "integer",
+          "description": "A threshold for the total size of all index entries for a partition that the database stores in the partition key cache.",
+          "default": 2
+        },
+        "slow_query_log_timeout_in_ms": {
+          "type": "integer",
+          "description": "How long before a node logs slow queries. Select queries that exceed this value generate an aggregated log message to identify slow queries. To disable, set to 0.",
+          "default": 500
+        },
+        "back_pressure_enabled": {
+          "type": "boolean",
+          "description": "Enable for the coordinator to apply the specified back pressure strategy to each mutation that is sent to replicas.",
+          "default": false
+        },
+        "back_pressure_strategy_class": {
+          "type": "string",
+          "description": "The back-pressure strategy applied. The default implementation, RateBasedBackPressure, takes three arguments: high ratio, factor, and flow type, and uses the ratio between incoming mutation responses and outgoing mutation requests.",
+          "default": "org.apache.cassandra.net.RateBasedBackPressure"
         }
+
       },
       "additionalProperties": false,
       "required": [
