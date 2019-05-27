@@ -496,3 +496,32 @@ def test_adding_data_node_only_restarts_masters() -> None:
     )
     # Coordinator tasks should not restart.
     sdk_tasks.check_tasks_not_updated(service_name, "coordinator", initial_coordinator_task_ids)
+
+@pytest.mark.sanity
+def test_kibana_plugin_installation():
+    # Install Kibana.
+    elasticsearch_url = "http://" + sdk_hosts.vip_host(service_name, "coordinator", 9200)
+    sdk_install.install(
+        kibana_package_name,
+        kibana_service_name,
+        0,
+        {
+            "kibana": {
+                "plugins": "https://github.com/sivasamyk/logtrail/releases/download/v0.1.31/logtrail-6.6.1-0.1.31.zip,https://github.com/wtakase/kibana-own-home/releases/download/v6.6.1-1/own_home-6.6.1-1.zip",
+                "elasticsearch_url": elasticsearch_url},
+        },
+        timeout_seconds=kibana_timeout,
+        wait_for_deployment=False,
+        insert_strict_options=False,
+    )
+    # Checking the installation of above plugins
+    assert(
+        config.check_kibana_plugin_installed("logtrail", kibana_service_name) == True
+    ), "LogTrail must be installed."
+    assert(
+        config.check_kibana_plugin_installed("own_home", kibana_service_name) == True
+    ), "OwnHome must be installed."
+
+    log.info("Ensure elasticsearch and kibana are uninstalled...")
+    sdk_install.uninstall(kibana_package_name, kibana_package_name)
+
