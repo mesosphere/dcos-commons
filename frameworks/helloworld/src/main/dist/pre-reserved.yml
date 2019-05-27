@@ -31,6 +31,7 @@ pods:
           timeout: 10
           max-consecutive-failures: 3
   world:
+    pre-reserved-role: slave_public
     count: {{WORLD_COUNT}}
     placement: '{{{WORLD_PLACEMENT}}}'
     tasks:
