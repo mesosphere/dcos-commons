@@ -479,5 +479,14 @@
       "name": "api",
       "labels": { "VIP_0": "/api.{{service.name}}:80" }
     }
-  ]
+  ],
+  "check": {
+    "http": {
+      "portIndex": 0,
+      "path": "/v1/health"
+    },
+    "intervalSeconds": {{service.check.intervalSeconds}},
+    "timeoutSeconds": {{service.check.timeoutSeconds}},
+    "delaySeconds": {{service.check.delaySeconds}}
+  }
 }
