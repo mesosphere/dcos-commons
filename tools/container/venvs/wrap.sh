@@ -12,5 +12,6 @@ export PIPENV_PIPFILE="/venvs/${pipenv_project}/Pipfile"
 if [[ $# == 0 || ! -e ${PIPENV_PIPFILE} ]]; then
 	usage
 fi
+
 echo "Running following command using ${PIPENV_PIPFILE}:" "$@" >&2
 exec pipenv run "$@"
