@@ -226,12 +226,10 @@ pods:
           $MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs oiv -i name-data/current/fsimage_0000000000000000000 -o fsimage.xml -p XML
 
           if [[ `cat fsimage.xml | grep -oPm1 "(?<=<layoutVersion>)[^<]+"` -gt -65 ]]; then
-            if [[ $POD_INSTANCE_INDEX -eq 1 ]]; then
-              ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
-              ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
-            else
-              ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -upgrade
-            fi
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade prepare
+            sleep 10s
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade query > upgrade_output.txt
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -rollingUpgrade started
           else
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
           fi
