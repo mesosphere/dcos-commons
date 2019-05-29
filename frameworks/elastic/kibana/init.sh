@@ -35,6 +35,15 @@ cat <<-EOF > "${KIBANA_YML_PATH}"
 	xpack.reporting.encryptionKey: "${MESOS_FRAMEWORK_ID}"
 EOF
 
+if [ ! -z \"$KIBANA_PLUGINS\" ]; then 
+	echo 'Installing Kibana plugins ...'
+	IFS=',' read -ra PLUGINS <<< \"$KIBANA_PLUGINS\" 
+	for plugin in \"${PLUGINS[@]}\"; do 
+		echo \"Installing the following plugin: ${plugin}\" 
+		$MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana-plugin install \"$plugin\"; 
+		done; 
+fi
+
 if [ "${KIBANA_ELASTICSEARCH_TLS}" = "true" ]; then
   cat <<-EOF >> "${KIBANA_YML_PATH}"
 		elasticsearch.ssl.certificateAuthorities: ${MESOS_SANDBOX}/.ssl/ca-bundle.crt

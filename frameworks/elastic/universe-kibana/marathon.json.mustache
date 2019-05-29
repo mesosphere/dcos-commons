@@ -4,18 +4,25 @@
   "mem": {{kibana.mem}},
   "instances": 1,
   "user": "{{service.user}}",
-  "cmd": "echo -e \"elasticsearch.url: $ELASTICSEARCH_URL\nelasticsearch.username: $KIBANA_USER\nelasticsearch.password: $KIBANA_PASSWORD\nserver.host: 0.0.0.0\nserver.port: $PORT_KIBANA\nserver.basePath: /service/$FRAMEWORK_NAME\" > $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/config/kibana.yml && if [ \"$XPACK_ENABLED\" = true ]; then echo -e \"\nxpack.security.encryptionKey: $MESOS_FRAMEWORK_ID\nxpack.reporting.encryptionKey: $MESOS_FRAMEWORK_ID\n\" >> $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/config/kibana.yml && echo 'Installing X-Pack plugin...' && $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana-plugin install file://$MESOS_SANDBOX/x-pack-$ELASTIC_VERSION.zip; fi && if [ ! -z \"$KIBANA_PLUGINS\" ]; then echo 'Installing Kibana plugins ...' && IFS=',' read -ra PLUGINS <<< \"$KIBANA_PLUGINS\" && for plugin in \"${PLUGINS[@]}\"; do echo \"Installing the following plugin: ${plugin}\" && $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana-plugin install \"$plugin\"; done; fi && if [ \"$KIBANA_ELASTICSEARCH_TLS\" = true ]; then echo -e \"\nelasticsearch.ssl.certificateAuthorities: $MESOS_SANDBOX/.ssl/ca-bundle.crt\n\" >> $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/config/kibana.yml; fi && env && $MESOS_SANDBOX/kibana-$ELASTIC_VERSION-linux-x86_64/bin/kibana",
+    "container": {
+    "type": "MESOS",
+    "docker": {
+      "image": "{{resource.assets.container.docker.nginx}}"
+    }
+  },
+  "cmd": "./init.sh",
   "labels": {
     "DCOS_SERVICE_NAME": "{{service.name}}",
     "DCOS_SERVICE_PORT_INDEX": "1",
     "DCOS_SERVICE_SCHEME": "http",
-    "DCOS_SERVICE_REWRITE_REQUEST_URLS": "false"
+    "DCOS_SERVICE_REWRITE_REQUEST_URLS": "false",
+    "MARATHON_SINGLE_INSTANCE_APP": "true",
+    "DCOS_PACKAGE_FRAMEWORK_NAME": "{{service.name}}"
   },
   "env": {
     "ELASTIC_VERSION": "{{elastic-version}}",
     "FRAMEWORK_NAME": "{{service.name}}",
     "FRAMEWORK_USER": "{{service.user}}",
-    "XPACK_ENABLED": "{{kibana.xpack_enabled}}",
     "KIBANA_PLUGINS": "{{kibana.plugins}}",
     "ELASTICSEARCH_URL": "{{kibana.elasticsearch_url}}",
     {{#kibana.elasticsearch_tls}}
@@ -59,13 +66,8 @@
   "healthChecks": [
     {
       "protocol": "MESOS_HTTP",
-      {{^kibana.xpack_enabled}}
-      "path": "/",
-      {{/kibana.xpack_enabled}}
-      {{#kibana.xpack_enabled}}
-      "path": "/login",
-      {{/kibana.xpack_enabled}}
-      "gracePeriodSeconds": 1200,
+      "path": "/service/{{service.name}}/",
+      "gracePeriodSeconds": 900,
       "intervalSeconds": 30,
       "portIndex": 0,
       "timeoutSeconds": 30,
