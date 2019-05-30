@@ -60,12 +60,7 @@ pods:
         goal: RUNNING
         cmd: |
           set -e
-<<<<<<< HEAD
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-=======
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
->>>>>>> d1f45e2a815b73d918eff9762e30c16bbc16cbfd
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -206,12 +201,7 @@ pods:
         goal: RUNNING
         cmd: |
           set -e
-<<<<<<< HEAD
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-=======
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
->>>>>>> d1f45e2a815b73d918eff9762e30c16bbc16cbfd
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -296,12 +286,7 @@ pods:
         goal: ONCE
         cmd: |
           set -e
-<<<<<<< HEAD
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-=======
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
->>>>>>> d1f45e2a815b73d918eff9762e30c16bbc16cbfd
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -343,12 +328,7 @@ pods:
         goal: FINISH
         cmd: |
           set -e
-<<<<<<< HEAD
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-=======
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
->>>>>>> d1f45e2a815b73d918eff9762e30c16bbc16cbfd
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -396,12 +376,7 @@ pods:
         goal: RUNNING
         cmd: |
           set -e
-<<<<<<< HEAD
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-=======
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
->>>>>>> d1f45e2a815b73d918eff9762e30c16bbc16cbfd
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -443,12 +418,7 @@ pods:
         goal: ONCE
         cmd: |
           set -e
-<<<<<<< HEAD
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
-=======
-          export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
->>>>>>> d1f45e2a815b73d918eff9762e30c16bbc16cbfd
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
