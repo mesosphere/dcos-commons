@@ -60,8 +60,8 @@ pods:
         cmd: |
                 set -e
 
-                ./bootstrap
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
+                ./bootstrap
                 ARGS='-f'
 
                 if [ -n "$STATSD_UDP_HOST" ]; then
@@ -233,8 +233,8 @@ pods:
       restore-snapshot:
         goal: ONCE
         cmd: >
-                ./bootstrap --resolve=false ;
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
+                ./bootstrap --resolve=false ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
                         ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \
