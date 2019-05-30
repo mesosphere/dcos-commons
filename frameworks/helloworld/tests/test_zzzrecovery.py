@@ -447,7 +447,6 @@ def install_options_helper(kill_grace_period=0):
         config.DEFAULT_TASK_COUNT + 1,
         additional_options=options,
     )
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
 
 def check_healthy(expected_recovery_state="COMPLETE"):
