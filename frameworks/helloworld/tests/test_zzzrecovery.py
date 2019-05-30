@@ -255,6 +255,7 @@ def test_kill_scheduler():
     config.check_running()
     sdk_tasks.check_tasks_not_updated(config.SERVICE_NAME, "", task_ids)
 
+
 @pytest.mark.sanity
 def test_kill_hello_task():
     hello_task = sdk_tasks.get_service_tasks(config.SERVICE_NAME, task_prefix="hello-0")[0]
