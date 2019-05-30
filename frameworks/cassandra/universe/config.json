@@ -255,6 +255,30 @@
               }
             }
           }
+        },
+        "check": {
+          "description": "Health check used to determine the scheduler health based on the status of the scheduler plans.",
+          "type": "object",
+          "properties": {
+            "intervalSeconds": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last check has completed to start the next check.",
+              "default": 30,
+              "minimum": 30
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "description": " An amount of time in seconds to wait for check to succeed.",
+              "default": 20,
+              "minimum": 20
+            },
+            "delaySeconds": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the check attempts.",
+              "default": 15,
+              "minimum": 15
+            }
+          }
         }
       },
       "required": [
