@@ -439,6 +439,11 @@
           "description": "The number of milliseconds between disk fsync calls.",
           "default": 10000
         },
+        "commitlog_sync_batch_window_in_ms": {
+          "type": "string",
+          "description": "Time to wait between batch fsyncs, if commitlog_sync is in batch mode then default value should be: 2",
+          "default": ""
+        },
         "commitlog_segment_size_in_mb": {
           "type": "integer",
           "description": "The size of each commit log segment in Mb.",
@@ -662,7 +667,7 @@
         "memtable_flush_writers": {
           "type": "integer",
           "description": "The number of memtable flush writer threads",
-          "default": 8
+          "default": 2
         },
         "listen_on_broadcast_address": {
           "type": "boolean",
@@ -729,10 +734,10 @@
           "description": "The maximum throughput of all streaming file transfers between datacenters",
           "default": 200
         },
-        "streaming_socket_timeout_in_ms": {
+        "streaming_keep_alive_period_in_secs": {
           "type": "integer",
-          "description": "The socket timeout for streaming operations",
-          "default": 86400000
+          "description": "Interval to send keep-alive messages. The stream session fails when a keep-alive message is not received for 2 keep-alive cycles.",
+          "default": 300
         },
         "phi_convict_threshold": {
           "type": "integer",
@@ -757,7 +762,7 @@
         "otc_coalescing_strategy": {
           "type": "string",
           "description": "The strategy to use for coalescing network messages",
-          "default": "TIMEHORIZON"
+          "default": "DISABLED"
         },
         "unlogged_batch_across_partitions_warn_threshold": {
           "type": "integer",
@@ -832,6 +837,12 @@
         "commit_failure_policy": {
           "type": "string",
           "description": "Policy for commit disk failures.",
+          "enum": [
+            "die",
+            "stop",
+            "stop_commit",
+            "ignore"
+          ],
           "default": "stop"
         },
         "key_cache_size_in_mb": {
@@ -847,6 +858,10 @@
         "commitlog_sync": {
           "type": "string",
           "description": "The method that Cassandra uses to acknowledge writes in milliseconds",
+          "enum": [
+            "periodic",
+            "batch"
+          ],
           "default": "periodic"
         },
         "index_summary_capacity_in_mb": {
@@ -891,6 +906,16 @@
           "description": "Enable / disable CDC functionality on a per-node basis. This modifies the logic used for write path allocation rejection",
           "default": false
         },
+        "cdc_total_space_in_mb": {
+          "type": "integer",
+          "description": "Total space to use for change-data-capture (CDC) logs on disk. ",
+          "default": 4096
+        },
+        "cdc_free_space_check_interval_ms": {
+          "type": "integer",
+          "description": "Interval between checks for new available space for CDC-tracked tables when the cdc_total_space_in_mb threshold is reached and the CDCCompactor is running behind or experiencing back pressure.",
+          "default": 250
+        },
         "prepared_statements_cache_size_mb": {
           "type": "string",
           "description": "Maximum size of the native protocol prepared statement cache",
@@ -920,6 +945,21 @@
           "type": "string",
           "description": "The back-pressure strategy applied. The default implementation, RateBasedBackPressure, takes three arguments: high ratio, factor, and flow type, and uses the ratio between incoming mutation responses and outgoing mutation requests.",
           "default": "org.apache.cassandra.net.RateBasedBackPressure"
+        },
+        "back_pressure_high_ratio": {
+          "type": "number",
+          "description": "When outgoing mutations are below this value, they are rate limited according to the incoming rate decreased by the factor. When above this value, the rate limiting is increased by the factor.",
+          "default": 0.90
+        },
+        "back_pressure_factor": {
+          "type": "integer",
+          "description": "A number between 1 and 10. Increases or decreases rate limiting.",
+          "default": 5
+        },
+        "back_pressure_flow": {
+          "type": "string",
+          "description": "The flow speed to apply rate limiting: FAST - rate limited to the speed of the fastest replica. SLOW - rate limit to the speed of the slowest replica.",
+          "default": "FAST"
         }
 
       },
@@ -995,7 +1035,6 @@
         "concurrent_compactors",
         "stream_throughput_outbound_megabits_per_sec",
         "inter_dc_stream_throughput_outbound_megabits_per_sec",
-        "streaming_socket_timeout_in_ms",
         "phi_convict_threshold",
         "buffer_pool_use_heap_if_exhausted",
         "disk_optimization_strategy",
