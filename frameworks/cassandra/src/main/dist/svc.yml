@@ -31,6 +31,15 @@ pods:
       RLIMIT_NOFILE:
         soft: {{RLIMIT_NOFILE_SOFT}}
         hard: {{RLIMIT_NOFILE_HARD}}
+      RLIMIT_STACK:
+        soft: {{RLIMIT_STACK_SOFT}}
+        hard: {{RLIMIT_STACK_HARD}}
+      RLIMIT_MEMLOCK:
+        soft: {{RLIMIT_MEMLOCK_SOFT}}
+        hard: {{RLIMIT_MEMLOCK_HARD}}
+      RLIMIT_NPROC:
+        soft: {{RLIMIT_NPROC_SOFT}}
+        hard: {{RLIMIT_NPROC_HARD}}
     resource-sets:
       server-resources:
         cpus: {{CASSANDRA_CPUS}}
