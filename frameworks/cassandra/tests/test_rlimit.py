@@ -30,9 +30,10 @@ def get_task_to_rlimits_mapping(limit_type):
     tasks_info = json.loads(stdout)
     for task_info in tasks_info:
         if "container" in task_info:
-            for rlimit in task_info["container"]["rlimit_info"]["rlimits"]:
-                if rlimit["type"] == limit_type:
-                    result[task_info["id"]] = (rlimit["soft"], rlimit["hard"])
+            if "rlimit_info" in task_info["container"]:
+                for rlimit in task_info["container"]["rlimit_info"]["rlimits"]:
+                    if rlimit["type"] == limit_type:
+                        result[task_info["id"]] = (rlimit["soft"], rlimit["hard"])
     return result
 
 
