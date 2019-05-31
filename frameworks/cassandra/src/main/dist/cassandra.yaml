@@ -25,6 +25,9 @@ key_cache_save_period: {{CASSANDRA_KEY_CACHE_SAVE_PERIOD}}
 row_cache_size_in_mb: {{CASSANDRA_ROW_CACHE_SIZE_IN_MB}}
 row_cache_save_period: {{CASSANDRA_ROW_CACHE_SAVE_PERIOD}}
 commitlog_sync_period_in_ms: {{CASSANDRA_COMMITLOG_SYNC_PERIOD_IN_MS}}
+{{#CASSANDRA_COMMITLOG_SYNC_BATCH_WINDOW_IN_MS}}
+commitlog_sync_batch_window_in_ms: {{CASSANDRA_COMMITLOG_SYNC_BATCH_WINDOW_IN_MS}}
+{{/CASSANDRA_COMMITLOG_SYNC_BATCH_WINDOW_IN_MS}}
 commitlog_segment_size_in_mb: {{CASSANDRA_COMMITLOG_SEGMENT_SIZE_IN_MB}}
 commitlog_total_space_in_mb: {{CASSANDRA_COMMITLOG_TOTAL_SPACE_IN_MB}}
 concurrent_reads: {{CASSANDRA_CONCURRENT_READS}}
@@ -134,7 +137,7 @@ rpc_recv_buff_size_in_bytes: {{CASSANDRA_RPC_RECV_BUFF_SIZE_IN_BYTES}}
 concurrent_compactors: {{CASSANDRA_CONCURRENT_COMPACTORS}}
 stream_throughput_outbound_megabits_per_sec: {{CASSANDRA_STREAM_THROUGHPUT_OUTBOUND_MEGABITS_PER_SEC}}
 inter_dc_stream_throughput_outbound_megabits_per_sec: {{CASSANDRA_INTER_DC_STREAM_THROUGHPUT_OUTBOUND_MEGABITS_PER_SEC}}
-streaming_socket_timeout_in_ms: {{CASSANDRA_STREAMING_SOCKET_TIMEOUT_IN_MS}}
+streaming_keep_alive_period_in_secs: {{CASSANDRA_STREAMING_KEEP_ALIVE_PERIOD_IN_SECS}}
 phi_convict_threshold: {{CASSANDRA_PHI_CONVICT_THRESHOLD}}
 buffer_pool_use_heap_if_exhausted: {{CASSANDRA_BUFFER_POOL_USE_HEAP_IF_EXHAUSTED}}
 disk_optimization_strategy: {{CASSANDRA_DISK_OPTIMIZATION_STRATEGY}}
@@ -144,17 +147,23 @@ credentials_validity_in_ms: {{CREDENTIALS_VALIDITY_IN_MS}}
 credentials_update_interval_in_ms: {{CREDENTIALS_UPDATE_INTERVAL_IN_MS}}
 permissions_cache_max_entries: {{PERMISSIONS_CACHE_MAX_ENTRIES}}
 cdc_enabled: {{CASSANDRA_CDC_ENABLED}}
+{{#CASSANDRA_CDC_ENABLED}}
+cdc_total_space_in_mb: {{CASSANDRA_CDC_FREE_SPACE_CHECK_INTERVAL_MS}}
+cdc_free_space_check_interval_ms: {{CASSANDRA_CDC_TOTAL_SPACE_IN_MB}}
+{{/CASSANDRA_CDC_ENABLED}}
 prepared_statements_cache_size_mb: {{CASSANDRA_PREPARED_STATEMENTS_CACHE_SIZE_MB}}
 thrift_prepared_statements_cache_size_mb: {{CASSANDRA_THRIFT_PREPARED_STATEMENTS_CACHE_SIZE_MB}}
 column_index_cache_size_in_kb: {{CASSANDRA_COLUMN_INDEX_CACHE_SIZE_IN_KB}}
 slow_query_log_timeout_in_ms: {{CASSANDRA_SLOW_QUERY_LOG_TIMEOUT_IN_MS}}
 back_pressure_enabled: {{CASSANDRA_BACK_PRESSURE_ENABLED}}
+{{#CASSANDRA_BACK_PRESSURE_ENABLED}}
 back_pressure_strategy:
    - class_name: {{CASSANDRA_BACK_PRESSURE_STRATEGY_CLASS}}
      parameters:
-       - high_ratio: 0.90
-         factor: 5
-         flow: FAST
+       - high_ratio: {{CASSANDRA_BACK_PRESSURE_HIGH_RATIO}}
+         factor: {{CASSANDRA_BACK_PRESSURE_FACTOR}}
+         flow: {{CASSANDRA_BACK_PRESSURE_FLOW}}
+{{/CASSANDRA_BACK_PRESSURE_ENABLED}}
 {{#AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
 {{{AUTHENTICATION_CUSTOM_YAML_BLOCK}}}
 {{/AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
