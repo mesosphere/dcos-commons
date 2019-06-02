@@ -1,0 +1,130 @@
+groups:
+- name: Cassandra_Alerts
+  rules:
+    - alert: Client_Request_Write_Failures
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_Write_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: "ClientRequest Write Failed."
+
+    - alert: Client_Request_Read_Failures
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_Read_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest Read Failed.'
+
+    - alert: Storage_Exceptions
+      expr: sum(org_apache_cassandra_metrics_Storage_Exceptions) > 0
+      for: 1m
+      labels:
+        severity: major
+      annotations:
+        description: 'Storage Exceptions has occurred.'	
+
+    - alert: ClientRequest_Unavailables_CASWrite_exception
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_CASWrite_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest Unavailables CASWrite exception has occurred.'
+
+    - alert: ClientRequest_Unavailables_CASRead_exception
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_CASRead_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest Unavailables CASRead exception has occurred.'
+
+    - alert: Client_Request_Failures_CASWrite
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_CASWrite_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest CASWrite Failed.'	
+
+    - alert: Client_Request_Failures_CASRead
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_CASRead_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest CASRead Failed.'
+
+    - alert: ClientRequest_Timeouts_CASWrite
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_CASWrite_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest CASWrite Timeouts has occurred.'
+
+    - alert: ClientRequest_Timeouts_CASRead
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_CASRead_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest CASRead Timeouts has occurred.'
+
+    - alert: ClientRequest_Unavailables_Write
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_Write_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest Write Unavailables.'
+
+    - alert: ClientRequest_Unavailables_Read
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_Read_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest Read Unavailables.'
+
+    - alert: ClientRequest_Timeouts_Read
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Read_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest Read Timeouts has occurred. '
+
+    - alert: ClientRequest_Timeouts_Write
+      expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Write_m1_rate) > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'ClientRequest Write Timeouts has occurred.'
+
+    - alert: Tasks_Failed
+      expr: sum(mesos_master_frameworks_tasks_terminal{framework_name=~".*cassandra.*",task_state="task_failed"}) > 0
+      for: 1m
+      labels:
+        severity: major
+      annotations:
+        description: 'Cassandra Tasks has Failed, Please investigate.'
+
+    - alert: CurrentlyBlockedTasks_internal_MemtableFlushWriter
+      expr: org_apache_cassandra_metrics_ThreadPools_CurrentlyBlockedTasks_internal_MemtableFlushWriter > 0
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'There are number of Tasks that cannot yet be queued for processing'
+
+    - alert: Cache_HitRate_KeyCache
+      expr: org_apache_cassandra_metrics_Cache_HitRate_KeyCache < .85
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'Cache HitRate KeyCache is below .85, Please investigate.'
