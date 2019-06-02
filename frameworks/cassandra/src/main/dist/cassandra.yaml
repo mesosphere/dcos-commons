@@ -96,7 +96,7 @@ gc_warn_threshold_in_ms: {{CASSANDRA_GC_WARN_THRESHOLD_IN_MS}}
 enable_user_defined_functions: {{CASSANDRA_ENABLE_USER_DEFINED_FUNCTIONS}}
 enable_scripted_user_defined_functions: {{CASSANDRA_ENABLE_SCRIPTED_USER_DEFINED_FUNCTIONS}}
 windows_timer_interval: {{CASSANDRA_WINDOWS_TIMER_INTERVAL}}
-role_manager: {{ROLE_MANAGER}}
+role_manager: {{CASSANDRA_ROLE_MANAGER}}
 roles_validity_in_ms: {{ROLES_VALIDITY_IN_MS}}
 permissions_validity_in_ms: {{PERMISSIONS_VALIDITY_IN_MS}}
 disk_failure_policy: {{CASSANDRA_DISK_FAILURE_POLICY}}
