@@ -15,7 +15,7 @@ import (
  * Create a new DC/OS client instance, by authenticating against the cluster
  * using the service account secret given by the environment
  */
-func CreateDCOSClientFromEnvironment() (*dcos.APIClient, error) {
+func createDCOSClientFromEnvironment() (*dcos.APIClient, error) {
 	// Get the contents of the service account secret
 	secretContents := []byte(os.Getenv("SERVICE_ACCOUNT_SECRET"))
 	if len(secretContents) == 0 {

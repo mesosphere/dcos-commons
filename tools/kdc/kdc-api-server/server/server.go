@@ -31,7 +31,7 @@ type KDCResponse struct {
 	Data   interface{} `json:"data,omitempty"`
 }
 
-func CreateKDCAPIServer(kadmin *KAdminClient, port string, host string) *KDCAPIServer {
+func createKDCAPIServer(kadmin *KAdminClient, port string, host string) *KDCAPIServer {
 	inst := &KDCAPIServer{
 		kadmin:   kadmin,
 		endpoint: fmt.Sprintf("%s:%s", host, port),
@@ -192,7 +192,7 @@ func (s *KDCAPIServer) handleAddPrincipal(rw http.ResponseWriter, req *http.Requ
 	// DC/OS on every request. Since we are not expecting any serious request
 	// rate on this endpoint,  and since the log-in procedure is quite fast
 	// we should be OK
-	dclient, err := CreateDCOSClientFromEnvironment()
+	dclient, err := createDCOSClientFromEnvironment()
 	if err != nil {
 		s.replyReject(rw, req, `Unable to connect to DC/OS: %s`, err.Error())
 		return

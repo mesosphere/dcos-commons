@@ -111,7 +111,7 @@ func (p *KPrincipal) UnmarshalJSON(b []byte) error {
 /**
  * CreateKAdminClien Create a KAdmin client using the kadmin binary from the given argument
  */
-func CreateKAdminClient(kadmin string) (*KAdminClient, error) {
+func createKAdminClient(kadmin string) (*KAdminClient, error) {
   path, err := exec.LookPath(kadmin)
   if err != nil {
     return nil, fmt.Errorf("Unable to lookup kadmin")
