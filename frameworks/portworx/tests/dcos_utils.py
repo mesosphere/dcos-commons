@@ -25,6 +25,12 @@ def install_enterprise_cli():
         log.info("DCOS: Failed install dcos-enterprises-cli, with error:{}".format(std_err))
         raise
 
+# command: dcos --version
+def get_dcos_version():
+    cmd = " --version"
+    ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
+    return std_out
+
 # command: dcos security org groups create pxservice
 def create_dcos_security_group(group_name):
     cmd = "security org groups create " + group_name

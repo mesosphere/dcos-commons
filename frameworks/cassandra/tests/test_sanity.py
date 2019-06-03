@@ -24,16 +24,9 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": config.get_foldered_service_name()} })
+            additional_options={"service": {"name": config.get_foldered_service_name(), "virtual_network_enabled": True} })
 
         yield  # let the test session execute
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME,
-                              config.get_foldered_service_name())
-
-        for job in test_jobs:
-            sdk_jobs.remove_job(job)
-
 
 @pytest.mark.sanity
 @pytest.mark.smoke
@@ -114,3 +107,13 @@ def test_metrics():
         config.DEFAULT_CASSANDRA_TIMEOUT,
         expected_metrics_exist
     )
+
+# Uninstall cassandra
+@pytest.mark.sanity
+def test_sanity_uninstall_pkg():
+    sdk_install.uninstall(config.PACKAGE_NAME,
+                          config.get_foldered_service_name())
+
+    for job in test_jobs:
+        sdk_jobs.remove_job(job)
+

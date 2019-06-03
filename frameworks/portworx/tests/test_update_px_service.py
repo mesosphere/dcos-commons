@@ -76,6 +76,10 @@ def portworx_service(service_account):
     px_cluster_name = "portworx-dcos-" + config.get_random_string(12)
     config.PX_NODE_OPTIONS["node"]["portworx_cluster"] = px_cluster_name
     config.PX_NODE_OPTIONS["node"]["portworx_image"] = os.environ['PX_OLD_IMAGE']
+    # Lets use internal kvdb for update tests. So keep kvdb server empty
+    config.PX_NODE_OPTIONS["node"]["kvdb_servers"] = ""
+    config.PX_NODE_OPTIONS["node"]["internal_kvdb"] = True
+
     try:
         sdk_install.install(
             config.PACKAGE_NAME,
@@ -91,10 +95,10 @@ def portworx_service(service_account):
             log.info("PORTWORX: Px service status is: {}".format(px_status))
 
         yield {**options, **{"package_name": config.PACKAGE_NAME}}
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        sdk_install.portworx_cleanup()
 
+@pytest.mark.pxinstall
+@pytest.mark.authinstall
+@pytest.mark.install
 @pytest.mark.sanity
 def test_update_px_image():
     portworx_service()
@@ -108,6 +112,20 @@ def test_update_px_image():
     update_service(update_options, False)
     px_status = px_utils.check_px_status() 
     assert px_status == 2, "PORTWORX: Update Px image failed px service status: {}".format(px_status)
+
+@pytest.mark.authinstall
+@pytest.mark.sanity
+def test_enable_auth():
+    portworx_service()
+    update_options = {
+        "node": {
+            "portworx_options": config.PX_NODE_OPTIONS["node"]["portworx_options"] + config.PX_AUTH_OPTIONS
+            }
+        }
+    update_service(update_options, False)
+    px_status = px_utils.check_px_status() 
+    assert px_status == 2, "PORTWORX: Enable Px security (auth) failed. px service status: {}".format(px_status)
+
 
 # Test update portworx framework with secrets enabled.
 @pytest.mark.sanity
@@ -156,6 +174,7 @@ def test_create_encrypted_px_volume():
     px_utils.px_create_encrypted_volume(pod_name, config.PX_SEC_OPTIONS["encrypted_volume_name"], config.PX_SEC_OPTIONS["secret_key"])
     assert px_utils.px_is_vol_encrypted(config.PX_SEC_OPTIONS["encrypted_volume_name"]), "PORTWORX: Failed to create encrypted volume."
 
+@pytest.mark.pxinstall
 @pytest.mark.sanity
 def test_update_node_count():
     portworx_service()
@@ -231,3 +250,12 @@ def update_service(options: dict, wait_for_kick_off=True):
         if wait_for_kick_off:
             sdk_plan.wait_for_kicked_off_deployment(config.SERVICE_NAME)
         sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+
+
+@pytest.mark.install
+@pytest.mark.authinstall
+@pytest.mark.sanity
+def test_uninstall_pxcleanup():
+        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.portworx_cleanup()
+

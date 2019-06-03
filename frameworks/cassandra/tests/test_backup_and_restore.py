@@ -34,12 +34,6 @@ def configure_package(configure_security):
             additional_options=additional_options)
 
         yield # let the test session execute
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
-
-        # remove job definitions from metronome
-        for job in test_jobs:
-            sdk_jobs.remove_job(job)
 
 # To disable these tests in local runs where you may lack the necessary credentials,
 # use e.g. "TEST_TYPES=sanity and not aws and not azure":
@@ -91,3 +85,12 @@ def test_backup_and_restore_to_s3():
         'restore-s3',
         plan_parameters,
         config.get_foldered_node_address())
+
+@pytest.mark.sanity
+def test_bkp_restore_uninstall():
+    sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
+
+    # remove job definitions from metronome
+    for job in test_jobs:
+        sdk_jobs.remove_job(job)
+

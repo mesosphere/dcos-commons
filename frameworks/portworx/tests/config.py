@@ -29,11 +29,14 @@ DEFAULT_TASK_COUNT = 1
 
 PX_IMAGE = os.environ['PX_IMAGE']
 PX_KVDB_SERVER = os.environ['KVDB']
-PX_OPTIONS = "-a -x mesos -d enp0s8 -m enp0s8"
+PX_OPTIONS = "-a -x mesos -d enp0s8 -m enp0s8 "
+PX_AUTH_OPTIONS = os.environ['PX_AUTH_OPTIONS']
+
 PX_CLUSTER_NAME = "portworx-dcos-" + get_random_string(16) 
 
 PX_NODE_OPTIONS = { "node": { "portworx_options": PX_OPTIONS,
                             "kvdb_servers": PX_KVDB_SERVER,
+                            "internal_kvdb": False,
                             "count": DEFAULT_TASK_COUNT,
                             "portworx_image": PX_IMAGE,
                             "portworx_cluster": PX_CLUSTER_NAME,

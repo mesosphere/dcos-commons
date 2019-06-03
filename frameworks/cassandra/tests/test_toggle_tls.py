@@ -32,10 +32,6 @@ def service_account(configure_security):
         sdk_cmd.run_cli(
             "security org groups add_user superusers {name}".format(name=name))
         yield {"name": name, "secret": secret}
-    finally:
-        sdk_security.delete_service_account(
-            service_account_name=name, service_account_secret=secret)
-
 
 @pytest.fixture(scope='module')
 def dcos_ca_bundle():
@@ -57,6 +53,7 @@ def cassandra_service(service_account):
     options = {
         "service": {
             "name": config.SERVICE_NAME,
+            "virtual_network_enabled": True,
             # Note that since we wish to toggle TLS which *REQUIRES* a service account,
             # we need to install Cassandra with a service account to start with.
             "service_account": service_account["name"],
@@ -207,3 +204,8 @@ def update_service(service: dict, options: dict):
         # An update plan is a deploy plan
         sdk_plan.wait_for_kicked_off_deployment(service["service"]["name"])
         sdk_plan.wait_for_completed_deployment(service["service"]["name"])
+
+@pytest.mark.sanity
+def test_toggle_tls_uninstall_pkg():
+    sdk_security.delete_service_account(
+        service_account_name=name, service_account_secret=secret)

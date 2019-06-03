@@ -139,6 +139,10 @@ case $key in
     PX_OLD_IMAGE_ARGS="$2"
     shift
     ;;
+    --px-auth-options)
+    PX_AUTH_OPTIONS_ARGS="$2"
+    shift
+    ;;
     -*)
     echo "Unknown option: $key"
     usage
@@ -268,6 +272,7 @@ docker run --rm \
     -e KVDB="$KVDB_ARGS" \
     -e PX_IMAGE="$PX_IMAGE_ARGS" \
     -e PX_OLD_IMAGE="$PX_OLD_IMAGE_ARGS" \
+    -e PX_AUTH_OPTIONS="$PX_AUTH_OPTIONS_ARGS" \
     $FRAMEWORK_ARGS \
     -e STUB_UNIVERSE_URL="$STUB_UNIVERSE_URL" \
     -v $(pwd):$WORK_DIR \
