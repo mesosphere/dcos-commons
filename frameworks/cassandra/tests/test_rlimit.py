@@ -37,31 +37,19 @@ def get_task_to_rlimits_mapping(limit_type):
     return result
 
 
-def test_rlimt_stack():
-    tasks_to_rlimit = get_task_to_rlimits_mapping("RLMT_STACK")
+@pytest.mark.parametrize(
+    "limit_value,limit_type",
+    [
+        ("stack", "RLMT_STACK"),
+        ("memory", "RLMT_MEMLOCK"),
+        ("processes", "RLMT_NPROC"),
+    ],
+)
+def test_rlimts(limit_value, limit_type):
+    tasks_to_rlimit = get_task_to_rlimits_mapping(limit_type)
     for (task, rlimit) in tasks_to_rlimit.items():
         exit_code, stdout, _ = sdk_cmd.run_cli('task exec {} bash -c "ps -o pid -C java | grep -v grep | grep -v PID | head -1"'.format(task))
-        exit_code, stdout, _ = sdk_cmd.run_cli('task exec {} bash -c "cat /proc/{}/limits | grep stack"'.format(task, stdout))
-        stack_limit = re.sub(' +', ' ', stdout).split(' ')[-3:-1]
-        assert rlimit[0] == int(stack_limit[0])
-        assert rlimit[1] == int(stack_limit[1])
-
-
-def test_rlimt_memlock():
-    tasks_to_rlimit = get_task_to_rlimits_mapping("RLMT_MEMLOCK")
-    for (task, rlimit) in tasks_to_rlimit.items():
-        exit_code, stdout, _ = sdk_cmd.run_cli('task exec {} bash -c "ps -o pid -C java | grep -v grep | grep -v PID | head -1"'.format(task))
-        exit_code, stdout, _ = sdk_cmd.run_cli('task exec {} bash -c "cat /proc/{}/limits | grep memory"'.format(task, stdout))
+        exit_code, stdout, _ = sdk_cmd.run_cli('task exec {} bash -c "cat /proc/{}/limits | grep {}"'.format(task, stdout, limit_value))
         stack_limit = re.sub(' +', ' ', stdout).split(' ')[-3:-1]
         assert rlimit[0] == int(stack_limit[0]) or int(stack_limit[0]) == 0
-        assert rlimit[1] == int(stack_limit[1]) or int(stack_limit[0]) == 0
-
-
-def test_rlimt_nproc():
-    tasks_to_rlimit = get_task_to_rlimits_mapping("RLMT_NPROC")
-    for (task, rlimit) in tasks_to_rlimit.items():
-        exit_code, stdout, _ = sdk_cmd.run_cli('task exec {} bash -c "ps -o pid -C java | grep -v grep | grep -v PID | head -1"'.format(task))
-        exit_code, stdout, _ = sdk_cmd.run_cli('task exec {} bash -c "cat /proc/{}/limits | grep processes"'.format(task, stdout))
-        stack_limit = re.sub(' +', ' ', stdout).split(' ')[-3:-1]
-        assert rlimit[0] == int(stack_limit[0])
-        assert rlimit[1] == int(stack_limit[1])
+        assert rlimit[1] == int(stack_limit[1]) or int(stack_limit[1]) == 0

@@ -242,13 +242,13 @@
               "properties": {
                 "soft" : {
                   "type": "integer",
-                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
                 "hard" : {
                   "type": "integer",
-                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
                   "default": 128000,
                   "minimum": 128000
                 }
@@ -260,13 +260,13 @@
               "properties": {
                 "soft" : {
                   "type": "integer",
-                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
                   "default": 102400,
                   "minimum": 102400
                 },
                 "hard" : {
                   "type": "integer",
-                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
                   "default": 102400,
                   "minimum": 102400
                 }
@@ -278,12 +278,12 @@
               "properties": {
                 "soft" : {
                   "type": "integer",
-                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource. Here -1 represents unlimited amount of memory will be locked.",
                   "default": -1
                 },
                 "hard" : {
                   "type": "integer",
-                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "description": "The hard limit acts as a ceiling for the soft limit. Here -1 represents unlimited amount of memory will be locked.",
                   "default": -1
                 }
               }
@@ -294,13 +294,13 @@
               "properties": {
                 "soft" : {
                   "type": "integer",
-                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
                   "default": 32768,
                   "minimum": 32768
                 },
                 "hard" : {
                   "type": "integer",
-                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
                   "default": 32768,
                   "minimum": 32768
                 }
