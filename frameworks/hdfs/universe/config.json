@@ -245,16 +245,70 @@
               "properties": {
                 "soft" : {
                   "type": "integer",
-                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "description": "The soft limit is the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
                 "hard" : {
                   "type": "integer",
-                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
                   "default": 128000,
                   "minimum": 128000
                 }
+              }
+            },
+            "rlimit_stack": {
+              "description": "Specifies RLIMIT_STACK, a value one greater than the maximum size of the initial thread's stack, in bytes.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
+                  "default": 102400,
+		  "minimum": 102400
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
+                  "default": 102400,
+		  "minimum": 102400
+		}
+              }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource. Here -1 represents unlimited amount of memory will be locked.",
+                  "default": 3145728,
+		  "minimum": 3145728
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The hard limit acts as a ceiling for the soft limit. Here -1 represents unlimited amount of memory will be locked.",
+                  "default": 3145728,
+		  "minimum": 3145728
+                }
+              }
+            },
+            "rlimit_nproc": {
+              "description": "Specifies RLMT_NPROC, The maximum number of processes (or, more precisely on Linux, threads) that can be created for the real user ID of the calling process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
+                  "default": 16384,
+		  "minimum": 16384
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
+                  "default": 16384,
+		  "minimum": 16384
+		}
               }
             }
           }
@@ -648,15 +702,69 @@
               "properties": {
                 "soft" : {
                   "type": "integer",
-                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
                 "hard" : {
                   "type": "integer",
-                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
                   "default": 128000,
                   "minimum": 128000
+                }
+              }
+            },
+            "rlimit_stack": {
+              "description": "Specifies RLIMIT_STACK, a value one greater than the maximum size of the initial thread's stack, in bytes.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
+                  "default": 102400,
+		  "minimum": 102400
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
+                  "default": 102400,
+		  "minimum": 102400
+                }
+              }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource. Here -1 represents unlimited amount of memory will be locked.",
+                  "default": 3145728,
+		  "minimum": 3145728
+		},
+                "hard" : {
+                  "type": "integer",
+                  "description": "The hard limit acts as a ceiling for the soft limit. Here -1 represents unlimited amount of memory will be locked.",
+                  "default": 3145728,
+                  "minimum": 3145728
+                }
+              }
+            },
+            "rlimit_nproc": {
+              "description": "Specifies RLMT_NPROC, The maximum number of processes (or, more precisely on Linux, threads) that can be created for the real user ID of the calling process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
+                  "default": 16384,
+                  "minimum": 16384
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
+                  "default": 16384,
+                  "minimum": 16384
                 }
               }
             }
@@ -944,15 +1052,69 @@
               "properties": {
                 "soft" : {
                   "type": "integer",
-                  "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
                 "hard" : {
                   "type": "integer",
-                  "description": "The  hard  limit  acts as a ceiling for the soft limit.",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
                   "default": 128000,
                   "minimum": 128000
+                }
+              }
+            },
+            "rlimit_stack": {
+              "description": "Specifies RLIMIT_STACK, a value one greater than the maximum size of the initial thread's stack, in bytes.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
+                  "default": 102400,
+                  "minimum": 102400
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
+                  "default": 102400,
+                  "minimum": 102400
+                }
+              }
+            },
+            "rlimit_memlock": {
+              "description": "Specifies RLIMIT_MEMLOCK, the maximum number of bytes of memory that may be locked into RAM.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource. By default, this parameter is set to 0, which disables in-memory caching.",
+                  "default": 0,
+                  "minimum": 0
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The hard limit acts as a ceiling for the soft limit.By default, this parameter is set to 0, which disables in-memory caching.",
+                  "default": 0,
+                  "minimum": 0 
+                }
+              }
+            },
+            "rlimit_nproc": {
+              "description": "Specifies RLMT_NPROC, The maximum number of processes (or, more precisely on Linux, threads) that can be created for the real user ID of the calling process.",
+              "type": "object",
+              "properties": {
+                "soft" : {
+                  "type": "integer",
+                  "description": "The soft limit is the value that the kernel enforces for the corresponding resource.",
+                  "default": 16384,
+                  "minimum": 16384
+                },
+                "hard" : {
+                  "type": "integer",
+                  "description": "The hard limit acts as a ceiling for the soft limit.",
+                  "default": 16384,
+                  "minimum": 16384
                 }
               }
             }

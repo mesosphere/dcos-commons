@@ -14,6 +14,15 @@ pods:
       RLIMIT_NOFILE:
         soft: {{JOURNAL_NODE_RLIMIT_NOFILE_SOFT}}
         hard: {{JOURNAL_NODE_RLIMIT_NOFILE_HARD}}
+      RLIMIT_STACK:
+        soft: {{JOURNAL_NODE_RLIMIT_STACK_SOFT}}
+        hard: {{JOURNAL_NODE_RLIMIT_STACK_HARD}}
+      RLIMIT_MEMLOCK:
+        soft: {{JOURNAL_NODE_RLIMIT_MEMLOCK_SOFT}}
+        hard: {{JOURNAL_NODE_RLIMIT_MEMLOCK_HARD}}
+      RLIMIT_NPROC:
+        soft: {{JOURNAL_NODE_RLIMIT_NPROC_SOFT}}
+        hard: {{JOURNAL_NODE_RLIMIT_NPROC_HARD}}
     {{#SECURITY_KERBEROS_ENABLED}}
     secrets:
       keytab:
@@ -154,6 +163,15 @@ pods:
       RLIMIT_NOFILE:
         soft: {{NAME_NODE_RLIMIT_NOFILE_SOFT}}
         hard: {{NAME_NODE_RLIMIT_NOFILE_HARD}}
+      RLIMIT_STACK:
+        soft: {{NAME_NODE_RLIMIT_STACK_SOFT}}
+        hard: {{NAME_NODE_RLIMIT_STACK_HARD}}
+      RLIMIT_MEMLOCK:
+        soft: {{NAME_NODE_RLIMIT_MEMLOCK_SOFT}}
+        hard: {{NAME_NODE_RLIMIT_MEMLOCK_HARD}}
+      RLIMIT_NPROC:
+        soft: {{NAME_NODE_RLIMIT_NPROC_SOFT}}
+        hard: {{NAME_NODE_RLIMIT_NPROC_HARD}}
     {{#SECURITY_KERBEROS_ENABLED}}
     secrets:
       keytab:
@@ -425,6 +443,15 @@ pods:
       RLIMIT_NOFILE:
         soft: {{DATA_NODE_RLIMIT_NOFILE_SOFT}}
         hard: {{DATA_NODE_RLIMIT_NOFILE_HARD}}
+      RLIMIT_STACK:
+        soft: {{DATA_NODE_RLIMIT_STACK_SOFT}}
+        hard: {{DATA_NODE_RLIMIT_STACK_HARD}}
+      RLIMIT_MEMLOCK:
+        soft: {{DATA_NODE_RLIMIT_MEMLOCK_SOFT}}
+        hard: {{DATA_NODE_RLIMIT_MEMLOCK_HARD}}
+      RLIMIT_NPROC:
+        soft: {{DATA_NODE_RLIMIT_NPROC_SOFT}}
+        hard: {{DATA_NODE_RLIMIT_NPROC_HARD}}
     {{#SECURITY_KERBEROS_ENABLED}}
     secrets:
       keytab:
