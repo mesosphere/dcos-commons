@@ -19,7 +19,7 @@ else
   PROJECT_ARGUMENTS=""
 fi
 
-DOCKER_TAG="${DOCKER_TAG:-0.55.5}" # TODO: change back to "latest"
+DOCKER_TAG="${DOCKER_TAG:-latest}"
 DOCKER_IMAGE="${DOCKER_IMAGE:-mesosphere/dcos-commons:${DOCKER_TAG}}"
 # shellcheck disable=SC2124,SC2089
 DOCKER_COMMAND="bash -c \"

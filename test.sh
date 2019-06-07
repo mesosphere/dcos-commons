@@ -80,7 +80,7 @@ interactive="false"
 package_registry="false"
 docker_options="${DOCKER_OPTIONS:=}"
 docker_command="${DOCKER_COMMAND:=bash ${WORK_DIR}/tools/ci/test_runner.sh ${WORK_DIR}}"
-docker_image="${DOCKER_IMAGE:-mesosphere/dcos-commons:0.55.5}" # TODO: change back to "latest"
+docker_image="${DOCKER_IMAGE:-mesosphere/dcos-commons:latest}"
 env_passthrough=
 env_file_input=
 
@@ -501,6 +501,8 @@ fi
 ################################################################################
 ######################### Prepare and run command ##############################
 ################################################################################
+
+docker pull "${docker_image}"
 
 set +x
 
