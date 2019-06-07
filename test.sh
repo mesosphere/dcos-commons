@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
-# Sets the stage to run test_runner.sh (or any other commands) in a Docker
-# container.
+# Sets the stage to run arbitrary commands (most importantly test_runner.sh) in
+# a Docker container using by default the mesosphere/dcos-commons Docker image.
+
+# Will run any commands specified in the DOCKER_COMMAND environment variable.
+# e.g.:
+# $ DOCKER_COMMAND=ls ./test.sh
 
 # Goals:
 # 1. I can pick up a brand new laptop, and as long as I have Docker installed,
@@ -425,8 +429,8 @@ container_volumes="${container_volumes} -v ${aws_credentials_file_mount_source}:
 ################################################################################
 
 if [ -n "${TEAMCITY_VERSION}" ]; then
-  # The teamcity python module treats present-but-empty as enabled.
-  # We must therefore completely omitted this envvar to disable teamcity handling.
+  # The teamcity python module treats present-but-empty as enabled. We must
+  # therefore completely omit this envvar to disable teamcity handling.
   echo "TEAMCITY_VERSION=\"${TEAMCITY_VERSION}\"" >> "${env_file}"
 fi
 
