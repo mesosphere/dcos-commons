@@ -104,7 +104,7 @@ case "$publish_method" in
         echo "---"
         echo "Build complete, skipping publish step."
         echo "Use one of the following additional arguments to get something that runs on a cluster:"
-        echo "- 'local': Host the build in a local HTTP server for use by a DC/OS Vagrant cluster."
+        echo "- 'local': Host the build in a local HTTP server."
         echo "- 'aws':   Upload the build to S3."
         echo "- '.dcos': Upload the build as a .dcos file to S3."
         ;;
