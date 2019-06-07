@@ -28,12 +28,18 @@ case "$PUBLISH_STEP" in
         echo "---"
         echo "Nothing to build as it's a Marathon app, so skipping publish step."
         echo "Use one of the following additional arguments to get something that runs on a cluster:"
-        echo "- 'local': Host the build in a local HTTP server for use by a DC/OS Vagrant cluster."
+        echo "- 'local': Host the build in a local HTTP server."
         echo "- 'aws': Upload the build to S3."
         ;;
 esac
 
-if [ -n "$PUBLISH_SCRIPT" ]; then
-    TEMPLATE_DOCUMENTATION_PATH="https://docs.mesosphere.com/services/elastic/" \
-        $PUBLISH_SCRIPT kibana "${PACKAGE_VERSION}" ${UNIVERSE_DIR}
+if [ -n "{$PUBLISH_SCRIPT}" ]; then
+  export TEMPLATE_DOCUMENTATION_PATH="https://docs.mesosphere.com/services/elastic/"
+
+  exec "${PUBLISH_SCRIPT}" \
+       kibana \
+       "${PACKAGE_VERSION}" \
+       "${UNIVERSE_DIR}" \
+       "${FRAMEWORK_DIR}/kibana/init.sh" \
+       "${FRAMEWORK_DIR}/kibana/nginx.conf.tmpl"
 fi

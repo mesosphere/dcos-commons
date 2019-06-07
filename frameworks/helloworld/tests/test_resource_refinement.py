@@ -17,9 +17,19 @@ pytestmark = pytest.mark.skipif(
     reason="secure hierarchical roles are only supported on 1.11+",
 )
 
-pre_reserved_options = {"service": {"yaml": "pre-reserved"}}
-
-pre_reserved_options = {"service": {"yaml": "pre-reserved"}}
+pre_reserved_options = {
+    "service": {
+        "yaml": "pre-reserved"
+    },
+    # Use count as 1 as both the pods launch their tasks under `slave-public` role with unique hostname constraint
+    "hello": {
+        "count": 1
+    },
+    "world": {
+        "count": 1
+    }
+}
+PRERESERVED_TASK_COUNT = 2
 
 
 @pytest.fixture(scope="module", autouse=True)
@@ -30,7 +40,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
         sdk_install.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
-            config.DEFAULT_TASK_COUNT,
+            PRERESERVED_TASK_COUNT,
             additional_options=pre_reserved_options,
         )
 
@@ -112,7 +122,7 @@ def test_marathon_volume_collision() -> None:
         sdk_install.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
-            config.DEFAULT_TASK_COUNT,
+            PRERESERVED_TASK_COUNT,
             additional_options=pre_reserved_options,
         )
 
@@ -138,7 +148,7 @@ def test_marathon_volume_collision() -> None:
         sdk_install.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
-            config.DEFAULT_TASK_COUNT,
+            PRERESERVED_TASK_COUNT,
             additional_options=pre_reserved_options,
         )
 

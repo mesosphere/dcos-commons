@@ -11,6 +11,12 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
+    {{#TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+    secrets:
+      publicapikey:
+        secret: {{TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+        file: new_user_password
+    {{/TASKCFG_ALL_PASSWORD_SECRET_PATH}}
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
@@ -54,8 +60,8 @@ pods:
         cmd: |
                 set -e
 
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
                 ./bootstrap
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/)
                 ARGS='-f'
 
                 if [ -n "$STATSD_UDP_HOST" ]; then
@@ -85,7 +91,7 @@ pods:
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
         readiness-check:
           cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
                 export TASK_IP=$(./bootstrap --get-task-ip) &&
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
           interval: {{READINESS_CHECK_INTERVAL}}
@@ -98,11 +104,11 @@ pods:
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       repair:
         goal: ONCE
-        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       cleanup:
         goal: ONCE
-        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
         resource-set: sidecar-resources
       backup-schema:
         goal: ONCE
@@ -115,7 +121,15 @@ pods:
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 mkdir container-path/snapshot ;
+                {{#SECURITY_AUTHENTICATION_ENABLED}}
+                if [ "{{TASKCFG_ALL_CASSANDRA_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
+                export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
+                fi
+                {{/SECURITY_AUTHENTICATION_ENABLED}}
+                {{^SECURITY_AUTHENTICATION_ENABLED}}
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
+                {{/SECURITY_AUTHENTICATION_ENABLED}}
         resource-set: sidecar-resources
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         configs:
@@ -129,7 +143,7 @@ pods:
       snapshot:
         goal: ONCE
         cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
 
                 for f in $(find container-path/data/ -type d -name "$SNAPSHOT_NAME") ; do
@@ -162,7 +176,7 @@ pods:
       cleanup-snapshot:
         goal: ONCE
         cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES") ;
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
@@ -197,7 +211,15 @@ pods:
 
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+                {{#SECURITY_AUTHENTICATION_ENABLED}}
+                if [ "{{TASKCFG_ALL_CASSANDRA_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
+                export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
+                fi
+                {{/SECURITY_AUTHENTICATION_ENABLED}}
+                {{^SECURITY_AUTHENTICATION_ENABLED}}
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
+                {{/SECURITY_AUTHENTICATION_ENABLED}}
         resource-set: sidecar-resources
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         configs:
@@ -211,8 +233,8 @@ pods:
       restore-snapshot:
         goal: ONCE
         cmd: >
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
                 ./bootstrap --resolve=false ;
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/jre/) ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
                         ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \
@@ -251,15 +273,31 @@ pods:
         goal: ONCE
         cmd: >
                 export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ;
+                export PATH=$MESOS_SANDBOX/apache-cassandra-{{CASSANDRA_VERSION}}/bin:$PATH ;
                 export LD_LIBRARY_PATH=$MESOS_SANDBOX/openssl-dist:$LD_LIBRARY_PATH ;
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
                 echo Using $(python --version 2>&1) in $(which python) ;
                 {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 export SSL_CERTFILE=$MESOS_SANDBOX/cqlsh.ca ;
                 {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                 ./bootstrap --resolve=false &&
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+                {{#SECURITY_AUTHENTICATION_ENABLED}}
+                if [ "{{TASKCFG_ALL_CASSANDRA_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
+                    export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password` &&
+                    export NEW_RANDOM_PASSWORD=`cat /dev/urandom | tr -cd 'a-f0-9' | head -c 32` &&
+                    cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                    cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                    cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                    nodetool repair system_auth &&
+                    cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "CREATE ROLE {{TASKCFG_ALL_NEW_SUPERUSER}} WITH PASSWORD = '${NEW_USER_PASSWORD}' AND SUPERUSER = true AND LOGIN = true;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                    cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "ALTER ROLE cassandra WITH PASSWORD='${NEW_RANDOM_PASSWORD}' AND SUPERUSER=false;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+                fi
+                {{/SECURITY_AUTHENTICATION_ENABLED}}
+                {{^SECURITY_AUTHENTICATION_ENABLED}}                
+                cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
+                cqlsh {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
+                {{/SECURITY_AUTHENTICATION_ENABLED}}
         resource-set: sidecar-resources
         configs:
           cassandra:
@@ -281,8 +319,13 @@ plans:
         strategy: serial
         pod: node
         steps:
-          - 0: [[server], [init_system_keyspaces]]
           - default: [[server]]
+      keyspace-deploy:
+        strategy: serial
+        pod: node
+        steps:
+          - 0: [[init_system_keyspaces]]
+          - default: []
   replace:
     strategy: serial
     phases:
@@ -389,3 +432,4 @@ plans:
         pod: node
         steps:
           - default: [[restore-snapshot]]
+

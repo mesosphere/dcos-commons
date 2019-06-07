@@ -8,7 +8,6 @@ target/
 dcos-docker/
 ignore/
 genconf/
-.vagrant/
 *.box
 
 # leftovers from running tests/tools directly

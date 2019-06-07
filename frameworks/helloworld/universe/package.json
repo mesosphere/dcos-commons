@@ -2,7 +2,7 @@
   "packagingVersion": "4.0",
   "upgradesFrom": ["*"],
   "downgradesTo": ["*"],
-  "minDcosReleaseVersion": "1.10",
+  "minDcosReleaseVersion": "1.11",
   "name": "hello-world",
   "version":  "{{package-version}}",
   "maintainer": "support@mesosphere.io",

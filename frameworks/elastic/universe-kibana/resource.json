@@ -1,7 +1,14 @@
 {
   "assets": {
     "uris": {
-      "kibana-tar-gz": "https://downloads.mesosphere.com/elastic/assets/kibana-{{elastic-version}}-linux-x86_64.tar.gz"
+      "kibana-tar-gz": "https://downloads.mesosphere.com/elastic/assets/kibana-{{elastic-version}}-linux-x86_64.tar.gz",
+      "init-sh": "{{artifact-dir}}/nginx.conf.tmpl",
+      "nginx-conf-tmpl": "{{artifact-dir}}/init.sh"
+    },
+    "container": {
+      "docker": {
+        "nginx": "nginx:1.15.12"
+      }
     }
   },
   "images": {

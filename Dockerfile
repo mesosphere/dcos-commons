@@ -1,5 +1,5 @@
 # See Dockerfile.base for instructions on how to update this base image.
-FROM mesosphere/dcos-commons-base:latest@sha256:2aaf8f7398bd6f2fc02c6388e566aafd3a2ad05c0fb8162702aab7aecd263957
+FROM mesosphere/dcos-commons-base:latest@sha256:2f87f4b3ce9e9fde446608e63827911275c756a133bde96d03fd21a9f3dff129
 
 ENV GO_VERSION=1.10.2
 ENV PATH=$PATH:/usr/local/go/bin
@@ -42,6 +42,10 @@ RUN mkdir /build-tools
 ENV PATH=/build-tools:$PATH
 
 COPY tools/distribution/copy-files /build-tools/
+# Temporary workaround for DCOS-52239. Remove once all known frameworks have
+# updated their UPDATING.md to point at copy-files rather than init.
+RUN cp /build-tools/copy-files /build-tools/init
+
 COPY tools/ci/test_runner.sh /build-tools/
 COPY tools/ci/launch_cluster.sh /build-tools/
 
@@ -62,3 +66,5 @@ COPY .pre-commit-config.yaml ${DCOS_COMMONS_DIST_ROOT}/
 
 COPY build.gradle ${DCOS_COMMONS_DIST_ROOT}/build.gradle
 RUN grep -oE "version = '.*?'" ${DCOS_COMMONS_DIST_ROOT}/build.gradle | sed 's/version = //' > ${DCOS_COMMONS_DIST_ROOT}/.version
+
+COPY tools/container/venvs /venvs
