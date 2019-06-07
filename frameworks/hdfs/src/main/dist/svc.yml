@@ -222,13 +222,11 @@ pods:
           {{#SECURITY_KERBEROS_ENABLED}}
           sh modify-keytab.sh
           {{/SECURITY_KERBEROS_ENABLED}}
-
-          $MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs oiv -i name-data/current/fsimage_0000000000000000000 -o fsimage.xml -p XML
-
-          if [[ `cat fsimage.xml | grep -oPm1 "(?<=<layoutVersion>)[^<]+"` -gt -65 ]]; then
+          export LATEST_FSIMAGE_VERSION=-65
+          if [[ `cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2` -gt $LATEST_FSIMAGE_VERSION ]]; then
+            echo "==============================inside if============================"
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade prepare
-            sleep 10s
-            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade query > upgrade_output.txt
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade query
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -rollingUpgrade started
           else
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
@@ -238,6 +236,16 @@ pods:
           cmd: |
             set -e
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
+            export service_state=`./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME | grep -i 'standby'`
+            export LATEST_FSIMAGE_VERSION=-65
+            echo "Service state is $service_state"
+            echo "Status of finalized is $FINALIZED"
+            echo "Pod instance index is $POD_INSTANCE_INDEX"
+            if [[ $service_state -eq 'standby' && $FINALIZED -eq false && $POD_INSTANCE_INDEX -eq 1 && `cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2` -gt $LATEST_FSIMAGE_VERSION ]]; then
+              echo "========inside readiness check============"
+              ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade finalize
+              FINALIZED=true
+            fi
             {{#SECURITY_KERBEROS_ENABLED}}
             export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
             {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -277,6 +285,7 @@ pods:
           {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         env:
           NAMENODE: true
+          FINALIZED: false
         {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
