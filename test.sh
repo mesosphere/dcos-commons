@@ -343,6 +343,25 @@ container_volumes="-v ${DCOS_COMMONS_DIRECTORY}:${WORK_DIR}"
 if [ -n "${project}" ]; then
   # Mount $PROJECT_ROOT/frameworks into $WORK_DIR/frameworks.
   container_volumes="${container_volumes} -v ${PROJECT_ROOT}/frameworks:${WORK_DIR}/frameworks"
+
+  # In the case of a project using dcos-commons as a submodule, the dcos-commons
+  # git directory will be located in '.git/modules/dcos-commons' under the
+  # project root instead of being located in the checked out dcos-commons
+  # submodule's .git directory, i.e. 'dcos-commons/.git'.
+  #
+  # Because of this it is needed that the GIT_DIR and GIT_WORK_TREE environment
+  # variables are set and point to the actual dcos-commons git directory
+  # ('.git/modules/dcos-commons') so that git commands like 'git rev-parse HEAD'
+  # work.
+  #
+  # The commands below cause '.git/modules/dcos-commons' to be mounted as a
+  # volume, and set the environment variables.
+  container_dcos_commons_git_dir="/dcos-commons-git-dir"
+  container_volumes="${container_volumes} -v ${PROJECT_ROOT}/.git/modules/dcos-commons:${container_dcos_commons_git_dir}"
+  cat >> "${env_file}" <<-EOF
+		GIT_DIR=${container_dcos_commons_git_dir}
+		GIT_WORK_TREE=${container_dcos_commons_git_dir}
+	EOF
 fi
 
 if [ -z "${CLUSTER_URL}" ] && [ "${interactive}" == "true" ]; then
