@@ -16,7 +16,7 @@ import urllib.request
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
-_jre_url = "https://downloads.mesosphere.com/java/server-jre-8u192-linux-x64.tar.gz"
+_jre_url = "https://downloads.mesosphere.com/java/openjdk-jre-8u212b03-hotspot-linux-x64.tar.gz"
 _libmesos_bundle_url = (
     "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.12.0.tar.gz"
 )
@@ -140,7 +140,7 @@ class UniversePackageBuilder(object):
         documentation_path = "{}/service-docs/{}/".format(_docs_root, self._package.get_name())
         package_version = str(self._package.get_version())
         if package_version != "stub-universe":
-            documentation_path = "{}v{}/".format(documentation_path, package_version)
+            documentation_path = "{}{}/".format(documentation_path, package_version)
 
         return documentation_path
 

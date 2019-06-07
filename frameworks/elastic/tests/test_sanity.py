@@ -220,6 +220,7 @@ def test_security_toggle_with_kibana(default_populated_index: None) -> None:
     )
 
     # Verify that it works.
+    config.check_kibana_adminrouter_integration("service/{}/".format(kibana_package_name))
     config.check_kibana_adminrouter_integration("service/{}/app/kibana".format(kibana_package_name))
 
     # Uninstall it.
@@ -286,8 +287,8 @@ def test_security_toggle_with_kibana(default_populated_index: None) -> None:
         insert_strict_options=False,
     )
 
-    # Verify that it works. Notice that with security enabled, one has to access
-    # /service/kibana/login instead of /service/kibana.
+    # Verify that it works.
+    config.check_kibana_adminrouter_integration("service/{}/".format(kibana_package_name))
     config.check_kibana_adminrouter_integration("service/{}/login".format(kibana_package_name))
 
     # Uninstall it.

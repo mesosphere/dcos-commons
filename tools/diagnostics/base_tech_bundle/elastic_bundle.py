@@ -21,7 +21,7 @@ class ElasticBundle(BaseTechBundle):
     def task_exec(self, task_id, cmd):
         full_cmd = " ".join(
             [
-                "export JAVA_HOME=$(ls -d ${MESOS_SANDBOX}/jdk*/jre/) &&",
+                "export JAVA_HOME=$(ls -d ${MESOS_SANDBOX}/jdk*/) &&",
                 "export TASK_IP=$(${MESOS_SANDBOX}/bootstrap --get-task-ip) &&",
                 "ELASTICSEARCH_DIRECTORY=$(ls -d ${MESOS_SANDBOX}/elasticsearch-*/) &&",
                 cmd,

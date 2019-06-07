@@ -1,8 +1,14 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.56.1
+
+- [DCOS-53415](https://jira.mesosphere.com/browse/DCOS-53415) Update to mesos 1.8.0 `org.apache.mesos:mesos:1.8.0`
+- [DCOS-OSS-5147](https://jira.mesosphere.com/browse/DCOS_OSS-5147) Handle duplicate pre-reserved roles across pods.
+
 ## Changes to v0.56.0
 
 - [DCOS-49197](https://jira.mesosphere.com/browse/DCOS-49197) Introduce new service status codes.
+- [DCOS-48777](https://jira.mesosphere.com/browse/DCOS-48777) The `init` developer helper script in docker image was renamed to `copy-files`
   
   _Note : The newly added status codes may not work if frameworks are using marathon health checks ([Deprecated since marathon 1.4.x](https://github.com/mesosphere/marathon/releases/tag/v1.4.0)). Please use MESOS Health checks [in your marathon.json.mustache](https://github.com/mesosphere/dcos-commons/blob/0.56.0/frameworks/helloworld/universe/marathon.json.mustache#L136-L146)_
 

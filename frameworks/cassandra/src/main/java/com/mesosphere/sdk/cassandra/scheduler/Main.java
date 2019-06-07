@@ -13,8 +13,10 @@ import com.google.common.base.Joiner;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -23,6 +25,8 @@ import java.util.List;
  * Main entry point for the Scheduler.
  */
 public final class Main {
+  private static final String AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64_ENV =
+      "TASKCFG_ALL_AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64";
 
   private Main() {}
 
@@ -44,12 +48,21 @@ public final class Main {
     List<String> localSeeds = CassandraSeedUtils
         .getLocalSeeds(rawServiceSpec.getName(), schedulerConfig);
 
-    return DefaultScheduler.newBuilder(
-        DefaultServiceSpec
-            .newGenerator(rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
-            .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds))
-            .build(),
-        schedulerConfig)
+    DefaultServiceSpec.Generator serviceSpecGenerator =
+        DefaultServiceSpec.newGenerator(
+            rawServiceSpec, schedulerConfig, yamlSpecFile.getParentFile())
+            .setAllPodsEnv("LOCAL_SEEDS", Joiner.on(',').join(localSeeds));
+
+    String yamlBase64 = System.getenv(AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64_ENV);
+    if (yamlBase64 != null && yamlBase64.length() > 0) {
+      String yamlBlock = new String(
+          Base64.getDecoder().decode(yamlBase64),
+          StandardCharsets.UTF_8
+      );
+      serviceSpecGenerator.setAllPodsEnv("AUTHENTICATION_CUSTOM_YAML_BLOCK", yamlBlock);
+    }
+
+    return DefaultScheduler.newBuilder(serviceSpecGenerator.build(), schedulerConfig)
         // Disallow changing the DC/Rack. Earlier versions of the Cassandra service didn't set these envvars so
         // we need to allow the case where they may have previously been unset:
         .setCustomConfigValidators(Arrays.asList(

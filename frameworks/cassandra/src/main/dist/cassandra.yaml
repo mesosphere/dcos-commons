@@ -7,7 +7,7 @@ data_file_directories:
 commitlog_directory: {{MESOS_SANDBOX}}/container-path/commitlog
 saved_caches_directory: {{MESOS_SANDBOX}}/container-path/saved_caches
 seed_provider:
-    - class_name: org.apache.cassandra.locator.SimpleSeedProvider
+    - class_name: {{CASSANDRA_SEED_PROVIDER_CLASS}}
       parameters:
           - seeds: "{{LOCAL_SEEDS}},{{REMOTE_SEEDS}}"
 num_tokens: {{CASSANDRA_NUM_TOKENS}}
@@ -25,6 +25,9 @@ key_cache_save_period: {{CASSANDRA_KEY_CACHE_SAVE_PERIOD}}
 row_cache_size_in_mb: {{CASSANDRA_ROW_CACHE_SIZE_IN_MB}}
 row_cache_save_period: {{CASSANDRA_ROW_CACHE_SAVE_PERIOD}}
 commitlog_sync_period_in_ms: {{CASSANDRA_COMMITLOG_SYNC_PERIOD_IN_MS}}
+{{#CASSANDRA_COMMITLOG_SYNC_BATCH_WINDOW_IN_MS}}
+commitlog_sync_batch_window_in_ms: {{CASSANDRA_COMMITLOG_SYNC_BATCH_WINDOW_IN_MS}}
+{{/CASSANDRA_COMMITLOG_SYNC_BATCH_WINDOW_IN_MS}}
 commitlog_segment_size_in_mb: {{CASSANDRA_COMMITLOG_SEGMENT_SIZE_IN_MB}}
 commitlog_total_space_in_mb: {{CASSANDRA_COMMITLOG_TOTAL_SPACE_IN_MB}}
 concurrent_reads: {{CASSANDRA_CONCURRENT_READS}}
@@ -59,9 +62,9 @@ request_timeout_in_ms: {{CASSANDRA_REQUEST_TIMEOUT_IN_MS}}
 dynamic_snitch_update_interval_in_ms: {{CASSANDRA_DYNAMIC_SNITCH_UPDATE_INTERVAL_IN_MS}}
 dynamic_snitch_reset_interval_in_ms: {{CASSANDRA_DYNAMIC_SNITCH_RESET_INTERVAL_IN_MS}}
 dynamic_snitch_badness_threshold: {{CASSANDRA_DYNAMIC_SNITCH_BADNESS_THRESHOLD}}
-unlogged_batch_across_partitions_warn_threshold: 10
-compaction_large_partition_warning_threshold_mb: 100
-request_scheduler: org.apache.cassandra.scheduler.NoScheduler
+unlogged_batch_across_partitions_warn_threshold: {{CASSANDRA_UNLOGGED_BATCH_ACROSS_PARTITIONS_WARN_THRESHOLD}}
+compaction_large_partition_warning_threshold_mb: {{CASSANDRA_COMPACTION_LARGE_PARTITION_WARNING_THRESHOLD_MB}}
+request_scheduler: {{CASSANDRA_REQUEST_SCHEDULER}}
 {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
 server_encryption_options:
     internode_encryption: all
@@ -86,31 +89,31 @@ client_encryption_options:
     protocol: TLSv1.2
     cipher_suites: [TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA256, TLS_RSA_WITH_AES_128_CBC_SHA]
 {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
-inter_dc_tcp_nodelay: false
-tracetype_query_ttl: 86400
-tracetype_repair_ttl: 604800
-gc_warn_threshold_in_ms: 1000
+inter_dc_tcp_nodelay: {{CASSANDRA_INTER_DC_TCP_NODELAY}}
+tracetype_query_ttl: {{CASSANDRA_TRACETYPE_QUERY_TTL}}
+tracetype_repair_ttl: {{CASSANDRA_TRACETYPE_REPAIR_TTL}}
+gc_warn_threshold_in_ms: {{CASSANDRA_GC_WARN_THRESHOLD_IN_MS}}
 enable_user_defined_functions: {{CASSANDRA_ENABLE_USER_DEFINED_FUNCTIONS}}
 enable_scripted_user_defined_functions: {{CASSANDRA_ENABLE_SCRIPTED_USER_DEFINED_FUNCTIONS}}
-windows_timer_interval: 1
-role_manager: CassandraRoleManager
+windows_timer_interval: {{CASSANDRA_WINDOWS_TIMER_INTERVAL}}
+role_manager: {{CASSANDRA_ROLE_MANAGER}}
 roles_validity_in_ms: {{ROLES_VALIDITY_IN_MS}}
 permissions_validity_in_ms: {{PERMISSIONS_VALIDITY_IN_MS}}
 disk_failure_policy: {{CASSANDRA_DISK_FAILURE_POLICY}}
-commit_failure_policy: stop
-key_cache_size_in_mb:
-counter_cache_size_in_mb:
-counter_cache_save_period: 7200
-commitlog_sync: periodic
-index_summary_capacity_in_mb:
-trickle_fsync: false
-trickle_fsync_interval_in_kb: 10240
-rpc_server_type: sync
-incremental_backups: false
-snapshot_before_compaction: false
+commit_failure_policy: {{CASSANDRA_COMMIT_FAILURE_POLICY}}
+key_cache_size_in_mb: {{CASSANDRA_KEY_CACHE_SIZE_IN_MB}}
+counter_cache_size_in_mb: {{CASSANDRA_COUNTER_CACHE_SIZE_IN_MB}}
+counter_cache_save_period: {{CASSANDRA_COUNTER_CACHE_SAVE_PERIOD}}
+commitlog_sync: {{CASSANDRA_COMMITLOG_SYNC}}
+index_summary_capacity_in_mb: {{CASSANDRA_INDEX_SUMMARY_CAPACITY_IN_MB}}
+trickle_fsync: {{CASSANDRA_TRICKLE_FSYNC}}
+trickle_fsync_interval_in_kb: {{CASSANDRA_TRICKLE_FSYNC_INTERVAL_IN_KB}}
+rpc_server_type: {{CASSANDRA_RPC_SERVER_TYPE}}
+incremental_backups: {{CASSANDRA_INCREMENTAL_BACKUPS}}
+snapshot_before_compaction: {{CASSANDRA_SNAPSHOT_BEFORE_COMPACTION}}
 auto_snapshot: {{CASSANDRA_AUTO_SNAPSHOT}}
-cross_node_timeout: false
-endpoint_snitch: GossipingPropertyFileSnitch
+cross_node_timeout: {{CASSANDRA_CROSS_NODE_TIMEOUT}}
+endpoint_snitch: {{CASSANDRA_ENDPOINT_SNITCH}}
 roles_update_interval_in_ms: {{ROLES_UPDATE_INTERVAL_IN_MS}}
 permissions_update_interval_in_ms: {{PERMISSIONS_UPDATE_INTERVAL_IN_MS}}
 key_cache_keys_to_save: {{CASSANDRA_KEY_CACHE_KEYS_TO_SAVE}}
@@ -134,7 +137,7 @@ rpc_recv_buff_size_in_bytes: {{CASSANDRA_RPC_RECV_BUFF_SIZE_IN_BYTES}}
 concurrent_compactors: {{CASSANDRA_CONCURRENT_COMPACTORS}}
 stream_throughput_outbound_megabits_per_sec: {{CASSANDRA_STREAM_THROUGHPUT_OUTBOUND_MEGABITS_PER_SEC}}
 inter_dc_stream_throughput_outbound_megabits_per_sec: {{CASSANDRA_INTER_DC_STREAM_THROUGHPUT_OUTBOUND_MEGABITS_PER_SEC}}
-streaming_socket_timeout_in_ms: {{CASSANDRA_STREAMING_SOCKET_TIMEOUT_IN_MS}}
+streaming_keep_alive_period_in_secs: {{CASSANDRA_STREAMING_KEEP_ALIVE_PERIOD_IN_SECS}}
 phi_convict_threshold: {{CASSANDRA_PHI_CONVICT_THRESHOLD}}
 buffer_pool_use_heap_if_exhausted: {{CASSANDRA_BUFFER_POOL_USE_HEAP_IF_EXHAUSTED}}
 disk_optimization_strategy: {{CASSANDRA_DISK_OPTIMIZATION_STRATEGY}}
@@ -142,3 +145,25 @@ max_value_size_in_mb: {{CASSANDRA_MAX_VALUE_SIZE_IN_MB}}
 otc_coalescing_strategy: {{CASSANDRA_OTC_COALESCING_STRATEGY}}
 credentials_validity_in_ms: {{CREDENTIALS_VALIDITY_IN_MS}}
 credentials_update_interval_in_ms: {{CREDENTIALS_UPDATE_INTERVAL_IN_MS}}
+permissions_cache_max_entries: {{PERMISSIONS_CACHE_MAX_ENTRIES}}
+cdc_enabled: {{CASSANDRA_CDC_ENABLED}}
+{{#CASSANDRA_CDC_ENABLED}}
+cdc_total_space_in_mb: {{CASSANDRA_CDC_FREE_SPACE_CHECK_INTERVAL_MS}}
+cdc_free_space_check_interval_ms: {{CASSANDRA_CDC_TOTAL_SPACE_IN_MB}}
+{{/CASSANDRA_CDC_ENABLED}}
+prepared_statements_cache_size_mb: {{CASSANDRA_PREPARED_STATEMENTS_CACHE_SIZE_MB}}
+thrift_prepared_statements_cache_size_mb: {{CASSANDRA_THRIFT_PREPARED_STATEMENTS_CACHE_SIZE_MB}}
+column_index_cache_size_in_kb: {{CASSANDRA_COLUMN_INDEX_CACHE_SIZE_IN_KB}}
+slow_query_log_timeout_in_ms: {{CASSANDRA_SLOW_QUERY_LOG_TIMEOUT_IN_MS}}
+back_pressure_enabled: {{CASSANDRA_BACK_PRESSURE_ENABLED}}
+{{#CASSANDRA_BACK_PRESSURE_ENABLED}}
+back_pressure_strategy:
+   - class_name: {{CASSANDRA_BACK_PRESSURE_STRATEGY_CLASS}}
+     parameters:
+       - high_ratio: {{CASSANDRA_BACK_PRESSURE_HIGH_RATIO}}
+         factor: {{CASSANDRA_BACK_PRESSURE_FACTOR}}
+         flow: {{CASSANDRA_BACK_PRESSURE_FLOW}}
+{{/CASSANDRA_BACK_PRESSURE_ENABLED}}
+{{#AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
+{{{AUTHENTICATION_CUSTOM_YAML_BLOCK}}}
+{{/AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}

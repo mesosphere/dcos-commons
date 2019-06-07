@@ -113,13 +113,13 @@
             "description": "DC/OS Apache Cassandra authentication settings",
             "properties": {
                 "enabled": {
-                    "description": "Enable Apache Cassandra's native password authentication",
+                    "description": "Enable authentication",
                     "type": "boolean",
                     "default": false
                 },
                 "superuser": {
                     "type": "object",
-                    "description": "Superuser configuration",
+                    "description": "The super user configuration settings. Only valid when using Apache Cassandra's native PasswordAuthenticator.",
                     "properties": {
                             "name": {
                                 "type": "string",
@@ -128,13 +128,31 @@
                             },
                             "password_secret_path": {
                                 "type": "string",
-                                "description": "The path in the DC/OS Secret Store to retrieve the superuser password from" ,
-                                "default": "cassandra/password"
-			    }
+                                "description": "The path in the DC/OS Secret Store to retrieve the superuser password from. If using 'PasswordAuthenticator', you must first create the secret in the Secret Store." ,
+                                "default": ""
+                            }
                         }
-                    }
-                }
-            
+                    },  
+                "authenticator": {
+                    "description": "The name of the authenticator. By default, the value set is Apache Cassandra's native authenticator: PasswordAuthenticator",
+                    "type": "string",
+                    "default": "PasswordAuthenticator"
+                },
+                "role_manager": {
+                    "description": "﻿Part of the Authentication & Authorization backend that implements IRoleManager to maintain grants and memberships between roles, By default, the value set is Apache Cassandra's out of the box Role Manager: CassandraRoleManager",
+                    "type": "string",
+                    "default": "CassandraRoleManager"
+                },
+                "authentication_custom_cassandra_yml": {
+                    "description": "Custom YAML to be appended to cassandra.yml on each node. This field must be base64 encoded.",
+                    "type": "string",
+                    "media": {
+                      "binaryEncoding": "base64",
+                      "type": "application/x-yaml"
+                    },
+                    "default": ""
+                  }
+                }     
         },
         "authorization": {
             "type": "object",
@@ -142,8 +160,13 @@
             "properties": {
                 "enabled": {
                     "type": "boolean",
-                    "description": "Enable Apache Cassandra's native authorization",
+                    "description": "Enable authorization",
                     "default": false
+                },
+                "authorizer": {
+                    "description": "The name of the authorizer. By default, the value set is Apache Cassandra's native authorizer: CassandraAuthorizer",
+                    "type": "string",
+                    "default": "CassandraAuthorizer"
                 },
                 "roles_validity_in_ms": {
                     "type": "integer",
@@ -174,6 +197,11 @@
                     "type": "integer",
                     "description": "If enabled, sets refresh interval for the permissions cache. After this interval, cache entries become eligible for refresh. On next access, Cassandra schedules an async reload and returns the old value until the reload completes. If permissions_validity_in_ms is nonzero, permissions_update_interval_in_ms must also be non-zero.",
                     "default": 2000
+                },
+                "permissions_cache_max_entries": {
+                    "type": "integer",
+                    "description": "The maximum number of entries that are held by the standard authentication cache and row-level access control (RLAC) cache.",
+                    "default": 1000
                 }
 
             }
@@ -225,6 +253,30 @@
                   "minimum": 128000
                 }
               }
+            }
+          }
+        },
+        "check": {
+          "description": "Health check used to determine the scheduler health based on the status of the scheduler plans.",
+          "type": "object",
+          "properties": {
+            "intervalSeconds": {
+              "type": "integer",
+              "description": "The period in seconds to wait after the last check has completed to start the next check.",
+              "default": 30,
+              "minimum": 30
+            },
+            "timeoutSeconds": {
+              "type": "integer",
+              "description": " An amount of time in seconds to wait for check to succeed.",
+              "default": 20,
+              "minimum": 20
+            },
+            "delaySeconds": {
+              "type": "integer",
+              "description": "An amount of time in seconds to wait before starting the check attempts.",
+              "default": 15,
+              "minimum": 15
             }
           }
         }
@@ -327,6 +379,11 @@
           "description": "The JMX port that will be used to interface with the Cassandra application.",
           "default": 7199
         },
+        "seed_provider_class": {
+          "type": "string",
+          "description": "The class within Cassandra that handles the seed logic.",
+          "default": "org.apache.cassandra.locator.SimpleSeedProvider"
+        },
         "num_tokens": {
           "type": "integer",
           "description": "The number of tokens assigned to each node.",
@@ -381,6 +438,11 @@
           "type": "integer",
           "description": "The number of milliseconds between disk fsync calls.",
           "default": 10000
+        },
+        "commitlog_sync_batch_window_in_ms": {
+          "type": "string",
+          "description": "Time to wait between batch fsyncs, if commitlog_sync is in batch mode then default value should be: 2",
+          "default": ""
         },
         "commitlog_segment_size_in_mb": {
           "type": "integer",
@@ -605,7 +667,7 @@
         "memtable_flush_writers": {
           "type": "integer",
           "description": "The number of memtable flush writer threads",
-          "default": 8
+          "default": 2
         },
         "listen_on_broadcast_address": {
           "type": "boolean",
@@ -672,10 +734,10 @@
           "description": "The maximum throughput of all streaming file transfers between datacenters",
           "default": 200
         },
-        "streaming_socket_timeout_in_ms": {
+        "streaming_keep_alive_period_in_secs": {
           "type": "integer",
-          "description": "The socket timeout for streaming operations",
-          "default": 86400000
+          "description": "Interval to send keep-alive messages. The stream session fails when a keep-alive message is not received for 2 keep-alive cycles.",
+          "default": 300
         },
         "phi_convict_threshold": {
           "type": "integer",
@@ -700,7 +762,122 @@
         "otc_coalescing_strategy": {
           "type": "string",
           "description": "The strategy to use for coalescing network messages",
-          "default": "TIMEHORIZON"
+          "default": "DISABLED"
+        },
+        "unlogged_batch_across_partitions_warn_threshold": {
+          "type": "integer",
+          "description": "Causes Cassandra to log a WARN message on any batches not of type LOGGED that span across more partitions than this limit.",
+          "default": 10
+        },
+        "compaction_large_partition_warning_threshold_mb": {
+          "type": "integer",
+          "description": "Cassandra logs a warning when compacting partitions larger than the set value.",
+          "default": 100
+        },
+        "request_scheduler": {
+          "type": "string",
+          "description": "The scheduler to handle incoming client requests according to a defined policy. This scheduler is useful for throttling client requests in single clusters containing multiple keyspaces.",
+          "default": "org.apache.cassandra.scheduler.NoScheduler"
+        },
+        "inter_dc_tcp_nodelay": {
+          "type": "boolean",
+          "description": "Enable this property for inter-datacenter communication.",
+          "default": false
+        },
+        "tracetype_query_ttl": {
+          "type": "integer",
+          "description": "TTL for different trace types used during logging of the query process.",
+          "default": 86400
+        },
+        "tracetype_repair_ttl": {
+          "type": "integer",
+          "description": "TTL for different trace types used during logging of the repair process.",
+          "default": 604800
+        },
+        "gc_warn_threshold_in_ms": {
+          "type": "integer",
+          "description": "Any GC pause longer than this interval is logged at the WARN level.",
+          "default": 1000
+        },
+        "windows_timer_interval": {
+          "type": "integer",
+          "description": "The default Windows kernel timer and scheduling resolution is 15.6ms for power conservation. Lowering this value on Windows can provide much tighter latency and better throughput, however some virtualized environments may see a negative performance impact from changing this setting below their system default.",
+          "default": 1
+        },
+        "counter_cache_save_period": {
+          "type": "integer",
+          "description": "the amount of time after which Cassandra saves the counter cache (keys only).",
+          "default": 7200
+        },
+        "trickle_fsync_interval_in_kb": {
+          "type": "integer",
+          "description": "The size of the fsync in kilobytes.",
+          "default": 10240
+        },
+        "trickle_fsync": {
+          "type": "boolean",
+          "description": "When set to true, causes fsync to force the operating system to flush the dirty buffers at the set interval ",
+          "default": false
+        },
+        "incremental_backups": {
+          "type": "boolean",
+          "description": "Backs up data updated since the last snapshot was taken. When enabled, Cassandra creates a hard link to each SSTable flushed or streamed locally in a backups subdirectory of the keyspace data.",
+          "default": false
+        },
+        "snapshot_before_compaction": {
+          "type": "boolean",
+          "description": "Enables or disables taking a snapshot before each compaction. A snapshot is useful to back up data when there is a data format change.",
+          "default": false
+        },
+        "cross_node_timeout": {
+          "type": "boolean",
+          "description": "operation timeout information exchange between nodes (to accurately measure request timeouts).",
+          "default": false
+        },
+        "commit_failure_policy": {
+          "type": "string",
+          "description": "Policy for commit disk failures.",
+          "enum": [
+            "die",
+            "stop",
+            "stop_commit",
+            "ignore"
+          ],
+          "default": "stop"
+        },
+        "key_cache_size_in_mb": {
+          "type": "string",
+          "description": "A global cache setting for the maximum size of the key cache in memory (for all tables). ",
+          "default": ""
+        },
+        "counter_cache_size_in_mb": {
+          "type": "string",
+          "description": "When no value is set, Cassandra uses the smaller of minimum of 2.5% of Heap or 50MB.",
+          "default": ""
+        },
+        "commitlog_sync": {
+          "type": "string",
+          "description": "The method that Cassandra uses to acknowledge writes in milliseconds",
+          "enum": [
+            "periodic",
+            "batch"
+          ],
+          "default": "periodic"
+        },
+        "index_summary_capacity_in_mb": {
+          "type": "string",
+          "description": "Fixed memory pool size in MB for SSTable index summaries.",
+          "default": ""
+        },
+        "rpc_server_type": {
+          "type": "string",
+          "description": "Cassandra provides three options for the RPC server. sync and hsha performance is about the same, but hsha uses less memory.",
+          "default": "sync"
+        },
+        "endpoint_snitch": {
+          "type": "string",
+          "description": "Set to a class that implements the IEndpointSnitch interface. Cassandra uses the snitch to locate nodes and route requests.",
+          "default": "GossipingPropertyFileSnitch"
         },
         "disk_failure_policy": {
           "type": "string",
@@ -723,7 +900,68 @@
           "type": "boolean",
           "description": "Java UDFs are always enabled, if enable_user_defined_functions is true. Enable this option to use UDFs with language javascript or any custom JSR-223 provider. This option has no effect if enable_user_defined_functions is false",
           "default": false
+        },
+        "cdc_enabled": {
+          "type": "boolean",
+          "description": "Enable / disable CDC functionality on a per-node basis. This modifies the logic used for write path allocation rejection",
+          "default": false
+        },
+        "cdc_total_space_in_mb": {
+          "type": "integer",
+          "description": "Total space to use for change-data-capture (CDC) logs on disk. ",
+          "default": 4096
+        },
+        "cdc_free_space_check_interval_ms": {
+          "type": "integer",
+          "description": "Interval between checks for new available space for CDC-tracked tables when the cdc_total_space_in_mb threshold is reached and the CDCCompactor is running behind or experiencing back pressure.",
+          "default": 250
+        },
+        "prepared_statements_cache_size_mb": {
+          "type": "string",
+          "description": "Maximum size of the native protocol prepared statement cache",
+          "default": ""
+        },
+        "thrift_prepared_statements_cache_size_mb": {
+          "type": "string",
+          "description": "Maximum size of the Thrift prepared statement cache. Leave empty if you do not use Thrift.",
+          "default": ""
+        },
+        "column_index_cache_size_in_kb": {
+          "type": "integer",
+          "description": "A threshold for the total size of all index entries for a partition that the database stores in the partition key cache.",
+          "default": 2
+        },
+        "slow_query_log_timeout_in_ms": {
+          "type": "integer",
+          "description": "How long before a node logs slow queries. Select queries that exceed this value generate an aggregated log message to identify slow queries. To disable, set to 0.",
+          "default": 500
+        },
+        "back_pressure_enabled": {
+          "type": "boolean",
+          "description": "Enable for the coordinator to apply the specified back pressure strategy to each mutation that is sent to replicas.",
+          "default": false
+        },
+        "back_pressure_strategy_class": {
+          "type": "string",
+          "description": "The back-pressure strategy applied. The default implementation, RateBasedBackPressure, takes three arguments: high ratio, factor, and flow type, and uses the ratio between incoming mutation responses and outgoing mutation requests.",
+          "default": "org.apache.cassandra.net.RateBasedBackPressure"
+        },
+        "back_pressure_high_ratio": {
+          "type": "number",
+          "description": "When outgoing mutations are below this value, they are rate limited according to the incoming rate decreased by the factor. When above this value, the rate limiting is increased by the factor.",
+          "default": 0.90
+        },
+        "back_pressure_factor": {
+          "type": "integer",
+          "description": "A number between 1 and 10. Increases or decreases rate limiting.",
+          "default": 5
+        },
+        "back_pressure_flow": {
+          "type": "string",
+          "description": "The flow speed to apply rate limiting: FAST - rate limited to the speed of the fastest replica. SLOW - rate limit to the speed of the slowest replica.",
+          "default": "FAST"
         }
+
       },
       "additionalProperties": false,
       "required": [
@@ -797,7 +1035,6 @@
         "concurrent_compactors",
         "stream_throughput_outbound_megabits_per_sec",
         "inter_dc_stream_throughput_outbound_megabits_per_sec",
-        "streaming_socket_timeout_in_ms",
         "phi_convict_threshold",
         "buffer_pool_use_heap_if_exhausted",
         "disk_optimization_strategy",
