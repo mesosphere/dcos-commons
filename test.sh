@@ -98,9 +98,10 @@ function usage()
   echo "    Full path to a 'dcos-commons'-based project's directory. E.g.: /path/to/dcos-kafka-service, /path/to/dcos-elastic-service"
   echo
   echo "  -m ${pytest_m}"
+  echo "    Only run tests matching given mark expression. Example: -m 'sanity and not azure'"
   echo
   echo "  -k <args>"
-  echo "    Test filters passed through to pytest. Other arguments may be passed with PYTEST_ARGS."
+  echo "    Only run tests which match the given substring expression. Example : -k 'test_tls and not test_tls_soak'"
   echo
   echo "  -s"
   echo "    Using a strict mode cluster: configure/use ACLs."
@@ -285,6 +286,14 @@ if [ "${headless}" != "true" ]; then
   docker_interactive_arg="-i"
 fi
 
+if [ -n "${dcos_files_path}" ]; then
+  container_volumes="${container_volumes} -v ${dcos_files_path}:${dcos_files_path}"
+fi
+
+################################################################################
+################################### pytest #####################################
+################################################################################
+
 if [ -n "${pytest_k}" ]; then
   if [ -n "${PYTEST_ARGS}" ]; then
     PYTEST_ARGS="${PYTEST_ARGS} "
@@ -296,10 +305,6 @@ if [ -n "${pytest_m}" ]; then
     PYTEST_ARGS="${PYTEST_ARGS} "
   fi
   PYTEST_ARGS="${PYTEST_ARGS}-m \"${pytest_m}\""
-fi
-
-if [ -n "${dcos_files_path}" ]; then
-  container_volumes="${container_volumes} -v ${dcos_files_path}:${dcos_files_path}"
 fi
 
 ################################################################################
