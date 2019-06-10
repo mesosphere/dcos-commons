@@ -19,7 +19,7 @@ The four major components are Apache Mesos, Marathon, Universe, and Apache ZooKe
 
 DC/OS is modeled on an operating system with Mesos as its kernel. Mesos provides an abstraction to enable consumption of the resources a datacenter provides.  In a typical case, these resources are CPU, memory, disk space, and ports. Tasks are launched in the datacenter and consume particular subsets of resources. The programs that can receive resource offers and launch tasks that consume are called **frameworks**. The component of a framework that receives offers and launches tasks is called the **scheduler**.
 
-Mesos determines which frameworks should be offered resources at any given time. It sends update events regarding the status of those tasks. These events include *staging, running, failed*,* *etc.  To learn more about Mesos, consult "[Apache Mesos](http://mesos.apache.org/)".
+Mesos determines which frameworks should be offered resources at any given time. It sends update events regarding the status of those tasks. These events include *staging, running, failed*,* *etc.  To learn more about Mesos, consult "[Apache Mesos](https://mesos.apache.org/)".
 
 ## Marathon
 
@@ -96,7 +96,7 @@ pods:
 
             * **cmd**: The command to run to start a task. Here, the task will print "hello world" to stdout and sleep for 1000 seconds. Because its goal state is `RUNNING`, it will be started again upon exit.
 
-            * **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](http://mesos.apache.org/documentation/latest/containerizer/).
+            * **cpus**: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate [see the Mesos documentation here](https://mesos.apache.org/documentation/latest/containerizers/).
 
             * **memory**: This entry defines how much memory will be allocated to the task’s container.
 
@@ -1024,7 +1024,7 @@ pods:
       ...
 ```
 
-You can also pass arguments when invoking CNI plugins, by adding labels in your virtual network definition. These labels are are free-form key-value pairs that are passed in the format of `key0:value0,key1:value1`. Refer to [Mesos CNI Configuration](http://mesos.apache.org/documentation/latest/cni/#mesos-meta-data-to-cni-plugins) for more information about CNI labels. Here is a sample YAML definition with labels:
+You can also pass arguments when invoking CNI plugins, by adding labels in your virtual network definition. These labels are are free-form key-value pairs that are passed in the format of `key0:value0,key1:value1`. Refer to [Mesos CNI Configuration](https://mesos.apache.org/documentation/latest/cni/#mesos-meta-data-to-cni-plugins) for more information about CNI labels. Here is a sample YAML definition with labels:
 
 ```yaml
 pods:
@@ -1202,7 +1202,7 @@ offers_process_count 244.0
 ```
 
 ## Custom Metrics
-A service author may choose to expose custom metrics by using the metrics registry. The popular [dropwizard metrics library](http://metrics.dropwizard.io) is used.  An instance of a [MetricsRegistry](http://metrics.dropwizard.io/3.1.0/apidocs/com/codahale/metrics/MetricRegistry.html) can be acquired in the following way.
+A service author may choose to expose custom metrics by using the metrics registry. The popular [dropwizard metrics library](http://metrics.dropwizard.io) is used.  An instance of a [MetricsRegistry](https://metrics.dropwizard.io/3.1.0/apidocs/com/codahale/metrics/MetricRegistry.html) can be acquired in the following way.
 
 ```java
 MetricsRegistry registry = Metrics.getRegistry();
@@ -1530,7 +1530,7 @@ Unit tests that follow the pattern described above will be automatically run on 
 
 ## Integration tests
 
-Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The SDK provides utilities in its [testing/](http://github.com/mesosphere/dcos-commons/tree/master/testing) directory centered around writing these tests. These make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The reference hello-world framework provides many [example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py) which are used to validate SDK behavior.
+Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The SDK provides utilities in its [testing/](https://github.com/mesosphere/dcos-commons/tree/master/testing) directory centered around writing these tests. These make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The reference hello-world framework provides many [example integration tests](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py) which are used to validate SDK behavior.
 
 You can run integration tests manually using `py.test`.  The
 integration tests assume you have a running DC/OS cluster, and have
@@ -2199,7 +2199,7 @@ pods:
           size: 5000
 ```
 
-The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](http://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
+The path is relative to the sandbox path if not preceded by a leading "/". The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is [documented here](https://mesos.apache.org/documentation/latest/multiple-disk/). The PATH type is not currently supported.
 
 Multiple volumes per pod or task can also be defined in a service YAML file.
 
