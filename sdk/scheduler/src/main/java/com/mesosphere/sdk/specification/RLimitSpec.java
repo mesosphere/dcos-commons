@@ -18,6 +18,12 @@ import java.util.Optional;
  */
 @SuppressWarnings("checkstyle:LocalVariableName")
 public class RLimitSpec {
+
+  /**
+   * The value representing unlimited for resource limits.
+   */
+  public static final long RLIMIT_INFINITY = -1;
+
   private static final Map<String, Protos.RLimitInfo.RLimit.Type> RLIMITS = new HashMap<>();
 
   static {
@@ -78,6 +84,16 @@ public class RLimitSpec {
 
     if (soft != null && soft > hard) {
       throw new InvalidRLimitException("soft rlimit must be less than or equal to the hard rlimit");
+    }
+
+    if ((soft != null && soft < RLIMIT_INFINITY) || (hard != null && hard < RLIMIT_INFINITY)) {
+      throw new InvalidRLimitException("soft and hard rlimits must be positive with the exception"
+          + " of " + RLIMIT_INFINITY + " which represents unlimited.");
+    }
+
+    if ((soft != null && soft == RLIMIT_INFINITY) ^ (hard != null && hard == RLIMIT_INFINITY)) {
+      throw new InvalidRLimitException("both soft and hard limits must be set to "
+      + RLIMIT_INFINITY + " which represents unlimited.");
     }
   }
 
