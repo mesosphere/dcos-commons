@@ -999,6 +999,8 @@ public class ServiceTest {
                 "DEPLOY_STEPS", "[[first, second, third]]"));
         schedulerEnvForExamples.put("pod-profile-mount-volume.yml", toMap(
                 "HELLO_VOLUME_PROFILE", "xfs"));
+        schedulerEnvForExamples.put("profile-mount-volume.yml", toMap(
+                "HELLO_VOLUME_PROFILE", "xfs"));
         schedulerEnvForExamples.put("svc.yml", toMap(
                 "HELLO_LABELS", "label1:label-value1"));
 
