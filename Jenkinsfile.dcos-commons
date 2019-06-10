@@ -53,7 +53,7 @@ pipeline {
 
     post {
         always {
-            setBuildStatus("mesosphere/${IMAGE}")
+            setBuildStatus("mesosphere/dcos_commons_docker_image")
         }
     }
 }
