@@ -479,6 +479,7 @@ cat >> "${env_file}" <<-EOF
 	FRAMEWORK=${framework}
 	PACKAGE_REGISTRY_ENABLED=$package_registry
 	PYTEST_ARGS=${PYTEST_ARGS}
+	PYTHONPATH=${WORK_DIR}/testing
 	S3_BUCKET=${S3_BUCKET}
 	SECURITY=${security}
 	STUB_UNIVERSE_URL=${STUB_UNIVERSE_URL}

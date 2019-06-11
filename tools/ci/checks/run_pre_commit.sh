@@ -9,8 +9,6 @@ function was_run_from_submodule () {
   ! (cd "${DCOS_COMMONS_DIRECTORY}" && test -d .git)
 }
 
-CONTAINER_WORKDIR="/build"
-
 if was_run_from_submodule; then
   PROJECT_DIRECTORY="$(cd "${DCOS_COMMONS_DIRECTORY}/.." && pwd)"
   PROJECT_ARGUMENTS="--project ${PROJECT_DIRECTORY}"
@@ -24,10 +22,7 @@ DOCKER_IMAGE="${DOCKER_IMAGE:-mesosphere/dcos-commons:${DOCKER_TAG}}"
 # shellcheck disable=SC2124,SC2089
 DOCKER_COMMAND="bash -c \"
   set -x;
-
-  export PYTHONPATH=${CONTAINER_WORKDIR}/testing;
-
-  pre-commit run ${@}
+  pre-commit run --verbose ${*}
 \""
 
 export DOCKER_IMAGE
