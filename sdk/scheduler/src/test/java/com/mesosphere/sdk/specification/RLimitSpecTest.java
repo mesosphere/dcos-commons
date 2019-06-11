@@ -35,4 +35,14 @@ public class RLimitSpecTest {
     public void testRLimitRequiresSoftLimitLessThanHard() throws RLimitSpec.InvalidRLimitException {
         new RLimitSpec("RLIMIT_AS", 1L, 0L);
     }
+
+    @Test(expected = RLimitSpec.InvalidRLimitException.class)
+    public void testRLimitInvalidNegativeValues() throws RLimitSpec.InvalidRLimitException {
+        new RLimitSpec("RLIMIT_AS", -2L, -2L);
+    }
+
+   @Test(expected = RLimitSpec.InvalidRLimitException.class)
+   public void testRLimitBothLimitsReversed() throws RLimitSpec.InvalidRLimitException {
+       new RLimitSpec("RLIMIT_AS", -1L, 0L);
+   }
 }
