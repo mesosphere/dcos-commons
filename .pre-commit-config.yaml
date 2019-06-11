@@ -3,7 +3,7 @@ repos:
   rev: stable
   hooks:
   - id: black
-    args: [--diff]
+    args: [--diff, --check]
     language_version: python3
   - id: black
     name: black-format
