@@ -49,6 +49,14 @@ pipeline {
                 }
             }
         }
+        // Dummy stage to make sure the post-step does get run even if the publish stage is skipped.
+        stage('dummy') {
+            steps {
+                script {
+                    sh("date; echo sleeping a little; sleep 300; date; echo this is the end")
+                }
+            }
+        }
     }
 
     post {
