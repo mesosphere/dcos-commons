@@ -8,7 +8,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: "Number of write failures encountered."
+        description: "Number of write failures encountered. A write failure is a non-timeout exception encountered during a write request. Examine the reason map to find to the root cause. The most common cause for this type of error is when batch sizes are too large."
 
     - alert: Client_Request_Read_Failures
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_Read_m1_rate) > 0
@@ -16,7 +16,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'Number of read failures encountered.'
+        description: 'Number of read failures encountered. A read failure is a non-timeout exception encountered during a read request. Investigate the reason map to find to the root cause. The most common cause for this type of error is when too many tombstones are read during the request. '
 
     - alert: Storage_Exceptions
       expr: sum(org_apache_cassandra_metrics_Storage_Exceptions) > 0
@@ -96,7 +96,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'Numeber of Writes that have timed out.'
+        description: 'Read timeouts signal that a timeout exception occurred during the read request. Read timeouts can occur for a variety of reasons. Some possible causes are if the query is requesting a very large amount of data at all once or if there are long server side garbage collection events occurring. This typically indicates issues with the data model or query patterns that are causing poor performance on the server. To debug, first verify in the server logs that garbage collection times are acceptable and then examine the data model and access patterns. The server side read timeout can be altered in cassandra.yaml if no other underlying cause of the timeouts can be diagnosed.'
 
     - alert: ClientRequest_Timeouts_Write
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Write_m1_rate) > 0
@@ -104,7 +104,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'Number of Reads that timed out.'
+        description: 'Write timeouts signal that a timeout exception occurred during the write request.When this happens on a non-idempotent write, such as incrementing a counter, caution must be exercised by the client, as the data may or may not have been written to the table by the node. With an idempotent write, the write can simply be retried. Only batchlog writes are retried by the driver’s default retry policy. A query’s idempotence can be defined in the application. See the individual driver documentation for the API specifics.Depending on the SLAs and application requirements, the default server side write timeout may not be adequate and this value can be adjusted in the cassandra.yaml. One common case when write timeouts surface is when batches are large or span multiple partitions. To address this, consider decreasing the batch size and limiting batch writes to a single partition.'
 
     - alert: Nodes_Down
       expr: sum(mesos_master_frameworks_tasks_terminal{framework_name=~".*cassandra.*",task_state="task_failed"}) > 0
