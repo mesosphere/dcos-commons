@@ -80,7 +80,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'Number of Writes that failed because too many replicas were unavailable.'
+        description: 'Write failures have occurred because too many replicas were unavailable.'
 
     - alert: ClientRequest_Unavailables_Read
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_Read_m1_rate) > 0
@@ -88,7 +88,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'Number of Reads that failed because too many nodes were unavailable.'
+        description: 'Read failures have occurred because too many nodes were unavailable.'
 
     - alert: ClientRequest_Timeouts_Read
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Read_m1_rate) > 0
@@ -104,7 +104,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'Write timeouts signal that a timeout exception occurred during the write request.When this happens on a non-idempotent write, such as incrementing a counter, caution must be exercised by the client, as the data may or may not have been written to the table by the node. With an idempotent write, the write can simply be retried. Only batchlog writes are retried by the driver’s default retry policy. A query’s idempotence can be defined in the application. See the individual driver documentation for the API specifics.Depending on the SLAs and application requirements, the default server side write timeout may not be adequate and this value can be adjusted in the cassandra.yaml. One common case when write timeouts surface is when batches are large or span multiple partitions. To address this, consider decreasing the batch size and limiting batch writes to a single partition.'
+        description: 'Write timeouts signal that a timeout exception occurred during the write request. When this happens on a non-idempotent write, such as incrementing a counter, caution must be exercised by the client, as the data may or may not have been written to the table by the node. With an idempotent write, the write can simply be retried. Only batchlog writes are retried by the driver’s default retry policy. A query’s idempotence can be defined in the application. See the individual driver documentation for the API specifics. Depending on the SLAs and application requirements, the default server side write timeout may not be adequate and this value can be adjusted in the cassandra.yaml. One common case when write timeouts surface is when batches are large or span multiple partitions. To address this, consider decreasing the batch size and limiting batch writes to a single partition.'
 
     - alert: Nodes_Down
       expr: sum(mesos_master_frameworks_tasks_terminal{framework_name=~".*cassandra.*",task_state="task_failed"}) > 0
@@ -120,7 +120,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'There are number of Tasks that cannot yet be queued for processing.'
+        description: 'There are a number of tasks that cannot yet be queued for processing.'
 
     - alert: Cache_HitRate_KeyCache
       expr: org_apache_cassandra_metrics_Cache_HitRate_KeyCache < .85
@@ -128,7 +128,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'Key Cache HitRate is below .85, Please investigate.'
+        description: 'Key Cache HitRate is below 85%. Please investigate.'
 
     - alert: jvm_memory_heap_usage
       expr: jvm_memory_heap_usage{service_name=~".*cassandra.*"} > .80
@@ -136,7 +136,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'Cassandra has heap in used greater then 0.8'
+        description: 'Cassandra heap usage currently greater then 80% of available capacity. Please investigate and if need be increase total capacity'
 
     - alert: Read_Latency
       expr: org_apache_cassandra_metrics_ClientRequest_Latency_Read_p99 > 1000
@@ -144,7 +144,7 @@ groups:
       labels:
         severity: major
       annotations:
-        description: 'p99 Read Latency have reached 1 sec, Please investigate.'
+        description: 'p99 Read Latency has reached 1 second. Please investigate.'
 
     - alert: Write_Latency
       expr: org_apache_cassandra_metrics_ClientRequest_Latency_Write_p99 > 1000
@@ -152,7 +152,7 @@ groups:
       labels:
         severity: major
       annotations:
-        description: 'p99 Write Latency have reached 1 sec, Please investigate.'
+        description: 'p99 Write Latency has reached 1 second. Please investigate.'
 
     - alert: Write_Requests
       expr: org_apache_cassandra_metrics_ClientRequest_Latency_Write_m1_rate > 1000

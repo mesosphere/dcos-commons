@@ -1,11 +1,13 @@
-# Cassandra dashboards for DC/OS
+# Cassandra alerts for DC/OS
 
-This is a folder for Alerts. In order to setup aleert on a cluster, `dcos-monitoring` package need to be installed as well as `cassandra` package itself:
+In order to setup alerts on your cluster, you must install the following two packages:
+- `dcos-monitoring`
+- `cassandra`
 
 1. Install required package: `dcos package install beta-dcos-monitoring` with below configuration in prometheus tab : 
 
 
-     under "Alert Rules Repository"
+     under `Alert Rules Repository`:
      
     `Url : https://github.com/mesosphere/dcos-commons/`
     
@@ -13,8 +15,8 @@ This is a folder for Alerts. In order to setup aleert on a cluster, `dcos-monito
     
     `Reference Name : refs/heads/DCOS-52832-Add-alerts-dcos-monitoring`
 
-2. After deploy is complete, please check, that Prometheus is running:
+2. After deployment is complete, check Prometheus is running by going to the following URL: `http://<cluster-ip>/service/dcos-monitoring/prometheus`
 
     `http://<cluster-ip>/service/dcos-monitoring/prometheus`
 
-3. In Prometheus UI, click on a "Alert" button to check Alerts.
+3. In Prometheus UI, click on the "Alert" button to check Alerts were successfully imported
