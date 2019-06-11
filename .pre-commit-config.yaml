@@ -5,10 +5,6 @@ repos:
   - id: black
     args: [--diff, --check]
     language_version: python3.6
-  - id: black
-    name: black-format
-    language_version: python3.6
-    stages: [manual]
 - repo: https://gitlab.com/pycqa/flake8
   rev: 3.7.7
   hooks:
