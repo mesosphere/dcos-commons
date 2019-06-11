@@ -87,7 +87,7 @@
     "TASKCFG_ALL_PERMISSIONS_UPDATE_INTERVAL_IN_MS": "{{service.security.authorization.permissions_update_interval_in_ms}}",
     "TASKCFG_ALL_PERMISSIONS_CACHE_MAX_ENTRIES": "{{service.security.authorization.permissions_cache_max_entries}}",
     "TASKCFG_ALL_AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64": "{{service.security.authentication.authentication_custom_cassandra_yml}}",
-    "TASKCFG_ALL_ROLE_MANAGER": "{{service.security.authentication.role_manager}}",
+    "TASKCFG_ALL_CASSANDRA_ROLE_MANAGER": "{{service.security.authentication.role_manager}}",
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
 
     "NODES": "{{nodes.count}}",
@@ -123,6 +123,7 @@
     "TASKCFG_ALL_CASSANDRA_ROW_CACHE_SIZE_IN_MB": "{{cassandra.row_cache_size_in_mb}}",
     "TASKCFG_ALL_CASSANDRA_ROW_CACHE_SAVE_PERIOD": "{{cassandra.row_cache_save_period}}",
     "TASKCFG_ALL_CASSANDRA_COMMITLOG_SYNC_PERIOD_IN_MS": "{{cassandra.commitlog_sync_period_in_ms}}",
+    "TASKCFG_ALL_CASSANDRA_COMMITLOG_SYNC_BATCH_WINDOW_IN_MS": "{{cassandra.commitlog_sync_batch_window_in_ms}}",
     "TASKCFG_ALL_CASSANDRA_COMMITLOG_SEGMENT_SIZE_IN_MB": "{{cassandra.commitlog_segment_size_in_mb}}",
     "TASKCFG_ALL_CASSANDRA_CONCURRENT_READS": "{{cassandra.concurrent_reads}}",
     "TASKCFG_ALL_CASSANDRA_CONCURRENT_WRITES": "{{cassandra.concurrent_writes}}",
@@ -181,7 +182,7 @@
     "TASKCFG_ALL_CASSANDRA_CONCURRENT_COMPACTORS": "{{cassandra.concurrent_compactors}}",
     "TASKCFG_ALL_CASSANDRA_STREAM_THROUGHPUT_OUTBOUND_MEGABITS_PER_SEC": "{{cassandra.stream_throughput_outbound_megabits_per_sec}}",
     "TASKCFG_ALL_CASSANDRA_INTER_DC_STREAM_THROUGHPUT_OUTBOUND_MEGABITS_PER_SEC": "{{cassandra.inter_dc_stream_throughput_outbound_megabits_per_sec}}",
-    "TASKCFG_ALL_CASSANDRA_STREAMING_SOCKET_TIMEOUT_IN_MS": "{{cassandra.streaming_socket_timeout_in_ms}}",
+    "TASKCFG_ALL_CASSANDRA_STREAMING_KEEP_ALIVE_PERIOD_IN_SECS": "{{cassandra.streaming_keep_alive_period_in_secs}}",
     "TASKCFG_ALL_CASSANDRA_PHI_CONVICT_THRESHOLD": "{{cassandra.phi_convict_threshold}}",
     "TASKCFG_ALL_CASSANDRA_BUFFER_POOL_USE_HEAP_IF_EXHAUSTED": "{{cassandra.buffer_pool_use_heap_if_exhausted}}",
     "TASKCFG_ALL_CASSANDRA_DISK_OPTIMIZATION_STRATEGY": "{{cassandra.disk_optimization_strategy}}",
@@ -191,6 +192,41 @@
     "TASKCFG_ALL_REMOTE_SEEDS": "{{service.remote_seeds}}",
     "TASKCFG_ALL_CASSANDRA_LOCATION_DATA_CENTER": "{{service.data_center}}",
     "TASKCFG_ALL_CASSANDRA_LOCATION_RACK": "{{service.rack}}",
+    "TASKCFG_ALL_CASSANDRA_UNLOGGED_BATCH_ACROSS_PARTITIONS_WARN_THRESHOLD": "{{cassandra.unlogged_batch_across_partitions_warn_threshold}}",
+    "TASKCFG_ALL_CASSANDRA_COMPACTION_LARGE_PARTITION_WARNING_THRESHOLD_MB": "{{cassandra.compaction_large_partition_warning_threshold_mb}}",
+    "TASKCFG_ALL_CASSANDRA_INTER_DC_TCP_NODELAY": "{{cassandra.inter_dc_tcp_nodelay}}",
+    "TASKCFG_ALL_CASSANDRA_TRACETYPE_QUERY_TTL": "{{cassandra.tracetype_query_ttl}}",
+    "TASKCFG_ALL_CASSANDRA_TRACETYPE_REPAIR_TTL": "{{cassandra.tracetype_repair_ttl}}",
+    "TASKCFG_ALL_CASSANDRA_GC_WARN_THRESHOLD_IN_MS": "{{cassandra.gc_warn_threshold_in_ms}}",
+    "TASKCFG_ALL_CASSANDRA_WINDOWS_TIMER_INTERVAL": "{{cassandra.windows_timer_interval}}",
+    "TASKCFG_ALL_CASSANDRA_COUNTER_CACHE_SAVE_PERIOD": "{{cassandra.counter_cache_save_period}}",
+    "TASKCFG_ALL_CASSANDRA_TRICKLE_FSYNC": "{{cassandra.trickle_fsync}}",
+    "TASKCFG_ALL_CASSANDRA_TRICKLE_FSYNC_INTERVAL_IN_KB": "{{cassandra.trickle_fsync_interval_in_kb}}",
+    "TASKCFG_ALL_CASSANDRA_INCREMENTAL_BACKUPS": "{{cassandra.incremental_backups}}",
+    "TASKCFG_ALL_CASSANDRA_SNAPSHOT_BEFORE_COMPACTION": "{{cassandra.snapshot_before_compaction}}",
+    "TASKCFG_ALL_CASSANDRA_CROSS_NODE_TIMEOUT": "{{cassandra.cross_node_timeout}}",
+    "TASKCFG_ALL_CASSANDRA_COMMIT_FAILURE_POLICY": "{{cassandra.commit_failure_policy}}",
+    "TASKCFG_ALL_CASSANDRA_KEY_CACHE_SIZE_IN_MB": "{{cassandra.key_cache_size_in_mb}}",
+    "TASKCFG_ALL_CASSANDRA_COUNTER_CACHE_SIZE_IN_MB": "{{cassandra.counter_cache_size_in_mb}}",
+    "TASKCFG_ALL_CASSANDRA_COMMITLOG_SYNC": "{{cassandra.commitlog_sync}}",
+    "TASKCFG_ALL_CASSANDRA_INDEX_SUMMARY_CAPACITY_IN_MB": "{{cassandra.index_summary_capacity_in_mb}}",
+    "TASKCFG_ALL_CASSANDRA_RPC_SERVER_TYPE": "{{cassandra.rpc_server_type}}",
+    "TASKCFG_ALL_CASSANDRA_ENDPOINT_SNITCH": "{{cassandra.endpoint_snitch}}",
+    "TASKCFG_ALL_CASSANDRA_REQUEST_SCHEDULER": "{{cassandra.request_scheduler}}",
+    "TASKCFG_ALL_CASSANDRA_SEED_PROVIDER_CLASS": "{{cassandra.seed_provider_class}}",
+    "TASKCFG_ALL_CASSANDRA_CDC_ENABLED": "{{cassandra.cdc_enabled}}",
+    "TASKCFG_ALL_CASSANDRA_CDC_TOTAL_SPACE_IN_MB": "{{cassandra.cdc_total_space_in_mb}}",
+    "TASKCFG_ALL_CASSANDRA_CDC_FREE_SPACE_CHECK_INTERVAL_MS": "{{cassandra.cdc_free_space_check_interval_ms}}",
+    "TASKCFG_ALL_CASSANDRA_PREPARED_STATEMENTS_CACHE_SIZE_MB": "{{cassandra.prepared_statements_cache_size_mb}}",
+    "TASKCFG_ALL_CASSANDRA_THRIFT_PREPARED_STATEMENTS_CACHE_SIZE_MB": "{{cassandra.thrift_prepared_statements_cache_size_mb}}",
+    "TASKCFG_ALL_CASSANDRA_COLUMN_INDEX_CACHE_SIZE_IN_KB": "{{cassandra.column_index_cache_size_in_kb}}",
+    "TASKCFG_ALL_CASSANDRA_SLOW_QUERY_LOG_TIMEOUT_IN_MS": "{{cassandra.slow_query_log_timeout_in_ms}}",
+    "TASKCFG_ALL_CASSANDRA_BACK_PRESSURE_ENABLED": "{{cassandra.back_pressure_enabled}}",
+    "TASKCFG_ALL_CASSANDRA_BACK_PRESSURE_STRATEGY_CLASS": "{{cassandra.back_pressure_strategy_class}}",
+    "TASKCFG_ALL_CASSANDRA_BACK_PRESSURE_HIGH_RATIO": "{{cassandra.back_pressure_high_ratio}}",
+    "TASKCFG_ALL_CASSANDRA_BACK_PRESSURE_FACTOR": "{{cassandra.back_pressure_factor}}",
+    "TASKCFG_ALL_CASSANDRA_BACK_PRESSURE_FLOW": "{{cassandra.back_pressure_flow}}",
+
     "BOOTSTRAP_URI": "{{resource.assets.uris.bootstrap-zip}}",
     "CASSANDRA_URI": "{{resource.assets.uris.cassandra-tar-gz}}",
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
@@ -234,5 +270,14 @@
       "protocol": "tcp",
       "name": "api"
     }
-  ]
+  ],
+  "check": {
+    "http": {
+      "portIndex": 0,
+      "path": "/v1/health"
+    },
+    "intervalSeconds": {{service.check.intervalSeconds}},
+    "timeoutSeconds": {{service.check.timeoutSeconds}},
+    "delaySeconds": {{service.check.delaySeconds}}
+  }
 }
