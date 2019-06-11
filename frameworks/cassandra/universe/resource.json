@@ -7,7 +7,7 @@
       "cassandra-openssl-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/openssl-1.0.2n-libs.tar.gz",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "scheduler-zip": "{{artifact-dir}}/cassandra-scheduler.zip",
-      "cassandra-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-3.11.3-bin-dcos.tar.gz",
+      "cassandra-tar-gz": "https://infinity-artifacts.s3.amazonaws.com/cassandra/apache-cassandra-3.11.4-bin.tar.gz",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip"
     }
   },
