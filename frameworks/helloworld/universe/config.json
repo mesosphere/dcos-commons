@@ -93,6 +93,7 @@
             "pod-profile-mount-volume",
             "pre-reserved",
             "pre-reserved-sidecar",
+            "profile-mount-volume",
             "secrets",
             "share_pid_namespace",
             "sidecar",
