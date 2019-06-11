@@ -1,3 +1,4 @@
+
 groups:
 - name: Cassandra_Alerts
   rules:
@@ -7,7 +8,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: "ClientRequest Write Failed."
+        description: "Number of write failures encountered."
 
     - alert: Client_Request_Read_Failures
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_Read_m1_rate) > 0
@@ -15,7 +16,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest Read Failed.'
+        description: 'Number of read failures encountered.'
 
     - alert: Storage_Exceptions
       expr: sum(org_apache_cassandra_metrics_Storage_Exceptions) > 0
@@ -23,7 +24,7 @@ groups:
       labels:
         severity: major
       annotations:
-        description: 'Storage Exceptions has occurred.'	
+        description: 'Number of internal exceptions caught. Under normal exceptions this should be zero.' 
 
     - alert: ClientRequest_Unavailables_CASWrite_exception
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_CASWrite_m1_rate) > 0
@@ -31,7 +32,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest Unavailables CASWrite exception has occurred.'
+        description: 'Number of lightweight transaction writes that failed because too many nodes were unavailable'
 
     - alert: ClientRequest_Unavailables_CASRead_exception
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_CASRead_m1_rate) > 0
@@ -39,7 +40,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest Unavailables CASRead exception has occurred.'
+        description: 'Number of lightweight transaction reads that failed because too many replicas were unavailable'
 
     - alert: Client_Request_Failures_CASWrite
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_CASWrite_m1_rate) > 0
@@ -47,7 +48,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest CASWrite Failed.'	
+        description: 'Number of lightweight transaction writes that failed.' 
 
     - alert: Client_Request_Failures_CASRead
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_CASRead_m1_rate) > 0
@@ -55,7 +56,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest CASRead Failed.'
+        description: 'Number of lightweight transaction reads that failed.'
 
     - alert: ClientRequest_Timeouts_CASWrite
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_CASWrite_m1_rate) > 0
@@ -63,7 +64,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest CASWrite Timeouts has occurred.'
+        description: 'Number of lightweight transaction writes that timed out.'
 
     - alert: ClientRequest_Timeouts_CASRead
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_CASRead_m1_rate) > 0
@@ -71,7 +72,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest CASRead Timeouts has occurred.'
+        description: 'Number of lightweight transaction read that timed out.'
 
     - alert: ClientRequest_Unavailables_Write
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_Write_m1_rate) > 0
@@ -79,7 +80,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest Write Unavailables.'
+        description: 'Number of Writes that failed because too many replicas were unavailable.'
 
     - alert: ClientRequest_Unavailables_Read
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_Read_m1_rate) > 0
@@ -87,7 +88,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest Read Unavailables.'
+        description: 'Number of Reads that failed because too many nodes were unavailable.'
 
     - alert: ClientRequest_Timeouts_Read
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Read_m1_rate) > 0
@@ -95,7 +96,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest Read Timeouts has occurred. '
+        description: 'Numeber of Writes that have timed out.'
 
     - alert: ClientRequest_Timeouts_Write
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Write_m1_rate) > 0
@@ -103,15 +104,15 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'ClientRequest Write Timeouts has occurred.'
+        description: 'Number of Reads that timed out.'
 
-    - alert: Tasks_Failed
+    - alert: Nodes_Down
       expr: sum(mesos_master_frameworks_tasks_terminal{framework_name=~".*cassandra.*",task_state="task_failed"}) > 0
       for: 1m
       labels:
         severity: major
       annotations:
-        description: 'Cassandra Tasks has Failed, Please investigate.'
+        description: 'Cassandra node(s) down. Investigate immediately.'
 
     - alert: CurrentlyBlockedTasks_internal_MemtableFlushWriter
       expr: org_apache_cassandra_metrics_ThreadPools_CurrentlyBlockedTasks_internal_MemtableFlushWriter > 0
@@ -119,7 +120,7 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'There are number of Tasks that cannot yet be queued for processing'
+        description: 'There are number of Tasks that cannot yet be queued for processing.'
 
     - alert: Cache_HitRate_KeyCache
       expr: org_apache_cassandra_metrics_Cache_HitRate_KeyCache < .85
@@ -127,4 +128,44 @@ groups:
       labels:
         severity: informational
       annotations:
-        description: 'Cache HitRate KeyCache is below .85, Please investigate.'
+        description: 'Key Cache HitRate is below .85, Please investigate.'
+
+    - alert: jvm_memory_heap_usage
+      expr: jvm_memory_heap_usage{service_name=~".*cassandra.*"} > .80
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'Cassandra has heap in used greater then 0.8'
+
+    - alert: Read_Latency
+      expr: org_apache_cassandra_metrics_ClientRequest_Latency_Read_p99 > 1000
+      for: 1m
+      labels:
+        severity: major
+      annotations:
+        description: 'p99 Read Latency have reached 1 sec, Please investigate.'
+
+    - alert: Write_Latency
+      expr: org_apache_cassandra_metrics_ClientRequest_Latency_Write_p99 > 1000
+      for: 1m
+      labels:
+        severity: major
+      annotations:
+        description: 'p99 Write Latency have reached 1 sec, Please investigate.'
+
+    - alert: Write_Requests
+      expr: org_apache_cassandra_metrics_ClientRequest_Latency_Write_m1_rate > 1000
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'The number of write requests per second has reached 1000 ops/sec.'
+
+    - alert: Read_Requests
+      expr: org_apache_cassandra_metrics_ClientRequest_Latency_Read_m1_rate > 1000
+      for: 1m
+      labels:
+        severity: informational
+      annotations:
+        description: 'The number of Read requests per second has reached 1000 ops/sec.'
