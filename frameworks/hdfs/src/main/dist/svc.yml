@@ -224,7 +224,6 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           export LATEST_FSIMAGE_VERSION=-65
           if [[ `cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2` -gt $LATEST_FSIMAGE_VERSION ]]; then
-            echo "==============================inside if============================"
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade prepare
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade query
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -rollingUpgrade started
@@ -238,11 +237,7 @@ pods:
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
             export service_state=`./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME | grep -i 'standby'`
             export LATEST_FSIMAGE_VERSION=-65
-            echo "Service state is $service_state"
-            echo "Status of finalized is $FINALIZED"
-            echo "Pod instance index is $POD_INSTANCE_INDEX"
             if [[ $service_state -eq 'standby' && $FINALIZED -eq false && $POD_INSTANCE_INDEX -eq 1 && `cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2` -gt $LATEST_FSIMAGE_VERSION ]]; then
-              echo "========inside readiness check============"
               ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade finalize
               FINALIZED=true
             fi
