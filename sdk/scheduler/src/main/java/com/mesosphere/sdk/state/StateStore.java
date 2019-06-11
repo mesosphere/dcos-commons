@@ -237,7 +237,8 @@ public class StateStore {
         && TaskUtils.isTerminal(currentStatusOptional.get()))
     {
       throw new StateStoreException(Reason.LOGIC_ERROR,
-          String.format("Skipping task status processing. Ignoring %s as task already in a terminal state %s: %s",
+          String.format("Skipping task status processing. Ignoring %s as task already in a" +
+              " terminal state %s: %s",
               status.getState(), currentStatusOptional.get().getState(), taskName));
     }
 
