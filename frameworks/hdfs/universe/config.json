@@ -1829,6 +1829,10 @@
         "hadoop_util_hash_type": {
           "type": "string",
           "description": "The default implementation of Hash. Currently this can take one of the two values: 'murmur' to select MurmurHash and 'jenkins' to select JenkinsHash.",
+          "enum": [
+            "murmur",
+            "jenkins"
+          ],
           "default": "murmur"
         },
         "ipc_maximum_data_length": {
@@ -2013,7 +2017,7 @@
         },
         "hadoop_http_authentication_cookie_domain": {
           "type": "string",
-          "description": "The domain to use for the HTTP cookie that stores the authentication token. In order to authentiation to work correctly across all Hadoop nodes web-consoles the domain must be correctly set. IMPORTANT: when using IP addresses, browsers ignore cookies with domain settings. For this setting to work properly all nodes in the cluster must be configured to generate URLs with hostname.domain names on it.",
+          "description": "The domain to use for the HTTP cookie that stores the authentication token. In order to authenticate to work correctly across all Hadoop nodes web-consoles the domain must be correctly set. IMPORTANT: when using IP addresses, browsers ignore cookies with domain settings. For this setting to work properly all nodes in the cluster must be configured to generate URLs with hostname.domain names on it.",
           "default": ""
         },
         "hadoop_http_authentication_simple_anonymous_allowed": {
@@ -2128,7 +2132,7 @@
         },
         "hadoop_user_group_static_mapping_overrides": {
           "type": "string",
-          "description": "Static mapping of user to groups. This will override the groups if available in the system for the specified user. In otherwords, groups look-up will not happen for these users, instead groups mapped in this configuration will be used. Mapping should be in this format. user1=group1,group2;user2=;user3=group2; Default, 'dr.who=;' will consider 'dr.who' as user without groups.",
+          "description": "Static mapping of user to groups. This will override the groups if available in the system for the specified user. In other words, groups look-up will not happen for these users, instead groups mapped in this configuration will be used. Mapping should be in this format. user1=group1,group2;user2=;user3=group2; Default, 'dr.who=;' will consider 'dr.who' as user without groups.",
           "default": ""
         },
         "rpc_metrics_quantile_enable": {
