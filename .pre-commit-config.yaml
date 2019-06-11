@@ -1,13 +1,13 @@
 repos:
-- repo: https://github.com/ambv/black
+- repo: https://github.com/python/black
   rev: stable
   hooks:
   - id: black
     args: [--diff, --check]
-    language_version: python3
+    language_version: python3.6
   - id: black
     name: black-format
-    language_version: python3
+    language_version: python3.6
     stages: [manual]
 - repo: https://gitlab.com/pycqa/flake8
   rev: 3.7.7
