@@ -186,7 +186,6 @@ public class DeploymentStep extends AbstractStep {
       //way as TASK_LOST.
       case TASK_GONE:
       case TASK_DROPPED:
-      case TASK_UNKNOWN:
       case TASK_UNREACHABLE:
       case TASK_GONE_BY_OPERATOR:
         setTaskStatus(status.getTaskId(), Status.PENDING);
@@ -226,6 +225,10 @@ public class DeploymentStep extends AbstractStep {
                 "Unsupported goal state %s for task %s",
                 goalState, status.getTaskId().getValue()));
         }
+        break;
+      }
+      case TASK_UNKNOWN: {
+        logger.warn("Discarding task status update for " + status.getState());
         break;
       }
       default:

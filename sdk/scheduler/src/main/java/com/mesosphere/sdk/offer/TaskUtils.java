@@ -585,7 +585,6 @@ public final class TaskUtils {
     }
     // Non-terminal cases which need recovery:
     switch (taskStatus.getState()) {
-      case TASK_UNKNOWN:
       case TASK_LOST:
       case TASK_UNREACHABLE:
         return true;
