@@ -186,6 +186,10 @@
         "disk_type": {
           "description": "Journal node disk type",
           "type": "string",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
           "default": "ROOT"
         },
         "enable_readiness_check": {
@@ -193,8 +197,8 @@
           "type": "boolean",
           "default": true
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -236,20 +240,20 @@
           "default": ""
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -299,6 +303,12 @@
         "logging_level": {
           "type": "string",
           "description": "The logging level for dfs namenode. Other values are 'dir' (trace namespace mutations), 'block'' (trace block under/over replications and block creations/deletions), or 'all'.",
+          "enum": [
+            "info",
+            "dir",
+            "block",
+            "all"
+          ],
           "default": "info"
         },
         "heartbeat_recheck_interval": {
@@ -614,8 +624,8 @@
             "type": "application/x-zone-constraints+json"
           }
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -639,20 +649,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -910,8 +920,8 @@
           "description": "JVM options to specify when running the data node. This overrides HADOOP_HEAPSIZE Xmx value for the data nodes.",
           "default": ""
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -935,20 +945,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -1200,6 +1210,11 @@
         "client_block_write_replace-datanode-on-failure_policy": {
           "type": "string",
           "description": "This property is used only if the value of dfs.client.block.write.replace-datanode-on-failure.enable is true. ALWAYS: always add a new datanode when an existing datanode is removed. NEVER: never add a new datanode. DEFAULT: Let r be the replication number. Let n be the number of existing datanodes. Add a new datanode only if r is greater than or equal to 3 and either (1) floor(r/2) is greater than or equal to n; or (2) r is greater than n and the block is hflushed/appended.",
+          "enum": [
+            "DEFAULT",
+            "ALWAYS",
+            "NEVER"
+          ],
           "default": "DEFAULT"
         },
         "client_block_write_replace-datanode-on-failure_best-effort": {
