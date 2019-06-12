@@ -10,6 +10,11 @@
           "type": "string",
           "default": "hello-world"
         },
+        "namespace" : {
+          "description": "DELEVELOPMENT ONLY! WILL BE REMOVED IN RELEASE. The namespace this service should be deployed under.",
+          "type": "string",
+          "default": ""
+        },
         "user": {
           "description": "The user that the service will run as.",
           "type": "string",
