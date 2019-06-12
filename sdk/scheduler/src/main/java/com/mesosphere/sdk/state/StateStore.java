@@ -229,13 +229,17 @@ public class StateStore {
   public void storeStatus(String taskName, Protos.TaskStatus status) throws StateStoreException {
     Optional<Protos.TaskStatus> currentStatusOptional = fetchStatus(taskName);
     if (currentStatusOptional.isPresent()
-        && (status.getState().equals(Protos.TaskState.TASK_LOST) ||
-        status.getState().equals(Protos.TaskState.TASK_UNKNOWN))
+        && (status.getState().equals(Protos.TaskState.TASK_LOST)
+        || status.getState().equals(Protos.TaskState.TASK_GONE)
+        || status.getState().equals(Protos.TaskState.TASK_DROPPED)
+        || status.getState().equals(Protos.TaskState.TASK_UNKNOWN)
+        || status.getState().equals(Protos.TaskState.TASK_UNREACHABLE))
         && TaskUtils.isTerminal(currentStatusOptional.get()))
     {
       throw new StateStoreException(Reason.LOGIC_ERROR,
-          String.format("Ignoring TASK_LOST for Task already in a terminal state %s: %s",
-              currentStatusOptional.get().getState(), taskName));
+          String.format("Skipping task status processing. Ignoring %s as task already in a" +
+              " terminal state %s: %s",
+              status.getState(), currentStatusOptional.get().getState(), taskName));
     }
 
     if (!status.getState().equals(Protos.TaskState.TASK_STAGING) &&
@@ -244,7 +248,7 @@ public class StateStore {
     {
       throw new StateStoreException(
           Reason.NOT_FOUND,
-          String.format("Dropping TaskStatus with unknnown TaskID: %s", status));
+          String.format("Dropping TaskStatus with unknown TaskID: %s", status));
     }
 
     String path = getTaskStatusPath(namespace, taskName);
