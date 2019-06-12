@@ -1,16 +1,7 @@
 import logging
-import xml.etree.ElementTree as etree
 
 import pytest
-import sdk_cmd
-import sdk_hosts
 import sdk_install
-import sdk_marathon
-import sdk_metrics
-import sdk_networks
-import sdk_plan
-import sdk_recovery
-import sdk_tasks
 import sdk_upgrade
 import sdk_utils
 
