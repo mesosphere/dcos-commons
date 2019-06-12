@@ -1,41 +1,64 @@
 groups:
-- name: critical
-  rules:
+  - name: hdfs_critical
+    rules:
 
-  - alert: InstanceDown
-    expr: up == 0
-    for: 5m
-    labels:
-      severity: page
-    annotations:
-      summary: "Instance {{ $labels.instance }} down"
-      description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
+      - alert: InstanceDown
+        expr: up == 0
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: "Instance {{ $labels.instance }} down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
 
-  # Alert for any instance that has a median request latency > 1s.
-  - alert: APIHighRequestLatency
-    expr: api_http_request_latencies_second{quantile="0.5"} > 1
-    for: 1s
-    annotations:
-      summary: "High request latency on {{ $labels.instance }}"
-      description: "{{ $labels.instance }} has a median request latency above 1s (current value: {{ $value }}s)"
+      - alert: NumInactiveSources
+        expr: (sum({__name__=~".*metricssystem_MetricsSystem_NumAllSources"}) - sum({__name__=~".*metricssystem_MetricsSystem_NumActiveSources"})) > 0
+        for: 5m
+        annotations:
+          summary: "Number of inactive sources for {{ $labels.instance }}"
+          description: "{{ $labels.instance }} has number of inactive sources greater then 0 (current value: {{ $value }})"
 
-  - alert: NumInactiveSources
-    expr: (sum({__name__=~".*metricssystem_MetricsSystem_NumAllSources"}) - sum({__name__=~".*metricssystem_MetricsSystem_NumActiveSources"})) > 0
-    for: 10m
-    annotations:
-      summary: "Number of inactive sources for {{ $labels.instance }}"
-      description: "{{ $labels.instance }} has number of inactive sources greater then 0 (current value: {{ $value }})"
+      - alert: VolumeFailures
+        expr: sum by (service_name,task_name) ({__name__=~".*_dfs_datanode_VolumeFailures"}) > 0
+        for: 5m
+        annotations:
+          summary: "VolumeFailures on {{ $labels.instance }} for {{ $labels.service_name }} for {{ $labels.task_name }}"
+          description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} has volume failure equals to {{ $value }}"
 
-  - alert: MemHeapUsed
-    expr: (sum({__name__=~".*_jvm_JvmMetrics_MemHeapMaxM"}) / sum({__name__=~".*_jvm_JvmMetrics_MemHeapUsedM"})) < 0.8
-    for: 10m
-    annotations:
-      summary: "Total service memory heap in used for {{ $labels.instance }}"
-      description: "{{ $labels.instance }} has heap in used greater then 0.8 (current value: {{ $value }})"
+  - name: hdfs_warning
+    rules:
 
-  - alert: MemUsedPercent
-    expr: mem_used_percent > 80
-    for: 10m
-    annotations:	
-      summary: "Instance memory in used percent for {{ $labels.instance }}"
-      description: "{{ $labels.instance }} has memory in used greater then 80% (current value: {{ $value }}%)"
+      # Alert for any instance that has a median request latency > 1s.
+      - alert: APIHighRequestLatency
+        expr: api_http_request_latencies_second{quantile="0.5"} > 1
+        for: 1s
+        annotations:
+          summary: "High request latency on {{ $labels.instance }}"
+          description: "{{ $labels.instance }} has a median request latency above 1s (current value: {{ $value }}s)"
+
+      - alert: CapacityRemainingGB
+        expr: sum by (service_name,task_name) ({__name__=~".*_FSNamesystem_CapacityRemainingGB"}) < 10
+        for: 10m
+        annotations:
+          summary: "Low capacity remaining in GB on {{ $labels.instance }} for {{ $labels.service_name }} for {{ $labels.task_name }}"
+          description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} has capacity remaining {{ $value }}GB"
+
+      - alert: MissingBlocks
+        expr: rate(sum by (service_name,task_name) ({__name__=~".*_dfs_FSNamesystem_MissingBlocks"})[10m]) > 0
+        annotations:
+          summary: "Missing blocks on {{ $labels.instance }} for {{ $labels.service_name }} for {{ $labels.task_name }}"
+          description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} missed blocks equals to {{ $value }}"
+
+      - alert: MemHeapUsed
+        expr: (sum({__name__=~".*_jvm_JvmMetrics_MemHeapMaxM"}) / sum({__name__=~".*_jvm_JvmMetrics_MemHeapUsedM"})) < 0.8
+        for: 10m
+        annotations:
+          summary: "Total service memory heap in used for {{ $labels.instance }}"
+          description: "{{ $labels.instance }} has heap in used greater then 0.8 (current value: {{ $value }})"
+
+      - alert: MemUsedPercent
+        expr: mem_used_percent > 80
+        for: 10m
+        annotations:
+          summary: "Instance memory in used percent for {{ $labels.instance }}"
+          description: "{{ $labels.instance }} has memory in used greater then 80% (current value: {{ $value }}%)"
