@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
@@ -17,6 +18,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Tests for {@link PlanGenerator}.
@@ -124,6 +127,43 @@ public class PlanGeneratorTest {
                             Arrays.asList("server"),
                             Arrays.asList("once")));
         }
+    }
+
+    @Test
+    public void testOrderedPhases() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("ordered-phase-steps.yml").getFile());
+        RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(file).build();
+        DefaultServiceSpec serviceSpec =
+                DefaultServiceSpec.newGenerator(rawServiceSpec, SCHEDULER_CONFIG, file.getParentFile()).build();
+
+        Persister persister = MemPersister.newBuilder().build();
+        stateStore = new StateStore(persister);
+        configStore = new ConfigStore<>(DefaultServiceSpec.getConfigurationFactory(serviceSpec), persister);
+
+        Assert.assertNotNull(serviceSpec);
+
+        PlanGenerator generator = new PlanGenerator(configStore, stateStore, Optional.empty());
+        Assert.assertEquals(1, rawServiceSpec.getPlans().size());
+        Assert.assertTrue(rawServiceSpec.getPlans().containsKey("deploy"));
+        RawPlan deployPlan = rawServiceSpec.getPlans().get("deploy");
+        Plan plan = generator.generate(deployPlan, "deploy", serviceSpec.getPods());
+        Assert.assertNotNull(plan);
+        Assert.assertEquals(2, plan.getChildren().size());
+
+        List<String> orderedHelloSteps =
+                plan.getChildren().get(0).getChildren().stream().map(Element::getName).collect(Collectors.toList());
+        List<String> orderedWorldSteps =
+                plan.getChildren().get(1).getChildren().stream().map(Element::getName).collect(Collectors.toList());
+        Assert.assertEquals(Arrays.asList(
+                "hello-1:[taskone]",
+                "hello-0:[taskone]"
+        ), orderedHelloSteps);
+        Assert.assertEquals(Arrays.asList(
+                "world-1:[taskone, tasktwo]",
+                "world-0:[tasktwo, taskone]",
+                "world-2:[tasktwo, taskone]"
+        ), orderedWorldSteps);
     }
 
     private void validatePhase(Phase phase, List<List<String>> stepTasks) {
