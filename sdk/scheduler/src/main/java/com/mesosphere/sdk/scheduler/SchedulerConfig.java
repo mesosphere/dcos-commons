@@ -278,6 +278,11 @@ public final class SchedulerConfig {
   private static final AtomicBoolean PRINTED_BUILD_INFO = new AtomicBoolean(false);
 
   /**
+   * When defined, this is the role to use when subscribing to Mesos and for recovering or adding footprint.
+   */
+  private static final String DCOS_NAMESPACE_ENV = "DCOS_NAMESPACE";
+
+  /**
    * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
    */
   public static SchedulerConfig fromEnv() {
@@ -384,6 +389,10 @@ public final class SchedulerConfig {
 
   public Optional<String> getSchedulerRegion() {
     return Optional.ofNullable(envStore.getOptional(SERVICE_REGION_ENV, null));
+  }
+
+  public Optional<String> getSchedulerNamespace() {
+    return Optional.ofNullable(envStore.getOptional(DCOS_NAMESPACE_ENV, null));
   }
 
   public String getSecretsNamespace(String serviceName) {
