@@ -36,7 +36,7 @@
     "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
     "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "SERVICE_NAME": "{{service.name}}",
-    {{service.namespace}}
+    {{#service.namespace}}
         "DCOS_NAMESPACE": "{{service.namespace}}",
     {{/service.namespace}}
     "SERVICE_USER": "{{service.user}}",
