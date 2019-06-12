@@ -29,4 +29,4 @@ export DOCKER_IMAGE
 # shellcheck disable=SC2090
 export DOCKER_COMMAND
 
-exec "${DCOS_COMMONS_DIRECTORY}/run_container.sh" ${PROJECT_ARGUMENTS}
+exec "${DCOS_COMMONS_DIRECTORY}/run_container.sh" --headless ${PROJECT_ARGUMENTS}
