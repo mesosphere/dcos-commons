@@ -11,7 +11,7 @@ In order to setup alerts on your cluster, you must install the following two pac
     "alert_rules_repository": {
       "url": "https://github.com/mesosphere/dcos-commons",
       "path": "/frameworks/cassandra/alerts/",
-      "reference_name": "refs/heads/master"
+      "reference_name": "refs/heads/cassandra-dashboards-and-alerts"
     }
   }
 }
