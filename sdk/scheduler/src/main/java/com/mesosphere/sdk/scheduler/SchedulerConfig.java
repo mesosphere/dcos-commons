@@ -391,7 +391,7 @@ public final class SchedulerConfig {
     return Optional.ofNullable(envStore.getOptional(SERVICE_REGION_ENV, null));
   }
 
-  public Optional<String> getSchedulerNamespace() {
+  public Optional<String> getServiceNamespace() {
     return Optional.ofNullable(envStore.getOptional(DCOS_NAMESPACE_ENV, null));
   }
 
