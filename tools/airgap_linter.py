@@ -180,7 +180,7 @@ def main(argv):
 
     if invalid:
         print(
-            "Airgap check FAILED. The framework's working code directory contains references to non-https URL resources and/or there are http URL references made inside marathon/config JSON files. Please consider replacing these resources to their HTTPS equivalent. In case of internal Mesos DNS URLs, please mention http links as URI under resources.json. This framework will NOT work in an airgap. Fix the detected issues."
+            "Airgap check FAILED. The framework package definition contains references to non-https URL resources and/or there are invalid URL references in the package definition. Please consider replacing these resources to their HTTPS equivalent. In case of DC/OS internal URLs, please move them to service yaml definitions (which will be populated with FQN on the fly). This framework will NOT work in an air-gapped cluster without fixing the detected issues."
         )
         sys.exit(1)
 
