@@ -166,8 +166,10 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
         ));
       }
 
-      if (!supportsSeccomp && ((podSpec.getSeccompUnconfined() != null && podSpec.getSeccompUnconfined()) ||
-              podSpec.getSeccompProfileName().isPresent())) {
+      if (!supportsSeccomp && ((podSpec.getSeccompUnconfined() != null
+              && podSpec.getSeccompUnconfined()) ||
+              podSpec.getSeccompProfileName().isPresent()))
+      {
         errors.add(ConfigValidationError.valueError(
                 "pod:" + podSpec.getType(),
                 "seccomp",
