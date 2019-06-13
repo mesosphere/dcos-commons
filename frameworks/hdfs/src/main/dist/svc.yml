@@ -69,7 +69,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
           {{#SECURITY_KERBEROS_ENABLED}}
-          sh modify-keytab.sh
+          chmod +x fix-keytab-bug.sh
+          ./fix-keytab-bug.sh secrets-hdfs.keytab
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs journalnode
         resource-set: journal-resources
@@ -78,9 +79,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          modify-keytab:
-            template: modify-keytab.sh
-            dest: modify-keytab.sh
+          fix-keytab:
+            template: fix-keytab-bug.sh
+            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -220,10 +221,12 @@ pods:
           chmod u+x {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
           {{/NAME_NODE_PLACEMENT}}
           {{#SECURITY_KERBEROS_ENABLED}}
-          sh modify-keytab.sh
+          chmod +x fix-keytab-bug.sh
+          ./fix-keytab-bug.sh secrets-hdfs.keytab
           {{/SECURITY_KERBEROS_ENABLED}}
           export LATEST_FSIMAGE_VERSION=-65
-          if [[ `cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2` -gt $LATEST_FSIMAGE_VERSION ]]; then
+          export CURRENT_FSIMAGE_VERSION=$(cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2)
+          if [[ $CURRENT_FSIMAGE_VERSION -gt $LATEST_FSIMAGE_VERSION ]]; then
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade prepare
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade query
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -rollingUpgrade started
@@ -235,9 +238,10 @@ pods:
           cmd: |
             set -e
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-            export service_state=`./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME | grep -i 'standby'`
+            export service_state=$(./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME | grep -i 'standby')
             export LATEST_FSIMAGE_VERSION=-65
-            if [[ $service_state -eq 'standby' && $FINALIZED -eq false && $POD_INSTANCE_INDEX -eq 1 && `cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2` -gt $LATEST_FSIMAGE_VERSION ]]; then
+            export CURRENT_FSIMAGE_VERSION=$(cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2)
+            if [[ $service_state -eq 'standby' && $FINALIZED -eq false && $POD_INSTANCE_INDEX -eq 1 && $CURRENT_FSIMAGE_VERSION -gt $LATEST_FSIMAGE_VERSION ]]; then
               ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade finalize
               FINALIZED=true
             fi
@@ -257,9 +261,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          modify-keytab:
-            template: modify-keytab.sh
-            dest: modify-keytab.sh
+          fix-keytab:
+            template: fix-keytab-bug.sh
+            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -299,7 +303,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
           {{#SECURITY_KERBEROS_ENABLED}}
-          sh modify-keytab.sh
+          chmod +x fix-keytab-bug.sh
+          ./fix-keytab-bug.sh secrets-hdfs.keytab
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
@@ -308,9 +313,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          modify-keytab:
-            template: modify-keytab.sh
-            dest: modify-keytab.sh
+          fix-keytab:
+            template: fix-keytab-bug.sh
+            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -341,7 +346,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
           {{#SECURITY_KERBEROS_ENABLED}}
-          sh modify-keytab.sh
+          chmod +x fix-keytab-bug.sh
+          ./fix-keytab-bug.sh secrets-hdfs.keytab
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
         resource-set: name-resources
@@ -350,9 +356,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          modify-keytab:
-            template: modify-keytab.sh
-            dest: modify-keytab.sh
+          fix-keytab:
+            template: fix-keytab-bug.sh
+            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -389,7 +395,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST, name-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST
           {{#SECURITY_KERBEROS_ENABLED}}
-          sh modify-keytab.sh
+          chmod +x fix-keytab-bug.sh
+          ./fix-keytab-bug.sh secrets-hdfs.keytab
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
@@ -398,9 +405,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          modify-keytab:
-            template: modify-keytab.sh
-            dest: modify-keytab.sh
+          fix-keytab:
+            template: fix-keytab-bug.sh
+            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -431,7 +438,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
           {{#SECURITY_KERBEROS_ENABLED}}
-          sh modify-keytab.sh
+          chmod +x fix-keytab-bug.sh
+          ./fix-keytab-bug.sh secrets-hdfs.keytab
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
@@ -440,9 +448,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          modify-keytab:
-            template: modify-keytab.sh
-            dest: modify-keytab.sh
+          fix-keytab:
+            template: fix-keytab-bug.sh
+            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -498,7 +506,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
           {{#SECURITY_KERBEROS_ENABLED}}
-          sh modify-keytab.sh
+          chmod +x fix-keytab-bug.sh
+          ./fix-keytab-bug.sh secrets-hdfs.keytab
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
@@ -523,9 +532,9 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          modify-keytab:
-            template: modify-keytab.sh
-            dest: modify-keytab.sh
+          fix-keytab:
+            template: fix-keytab-bug.sh
+            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
