@@ -435,7 +435,7 @@ page at http://checkstyle.sourceforge.net/config.html -->
             <property name="max" value="42"/>
         </module>
         <module name="LineLength">
-            <property name="max" value="100"/>
+            <property name="max" value="120"/>
             <!--TODO(takirala): We should not ignore line length for javadoc & comments-->
             <property name="ignorePattern"
                       value="^(package .*;\s*)|(import .*;\s*)|( *\* *https?://.*)|(@.*)|(\* .*)|(\/\/ .*)$"/>
