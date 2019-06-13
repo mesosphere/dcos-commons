@@ -437,7 +437,6 @@ else
 			aws_access_key_id = ${AWS_ACCESS_KEY_ID}
 			aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
 		EOF
-    cat "${tmp_aws_credentials_file}"
   else
     echo "Missing AWS credentials file (${aws_credentials_path}) and AWS env (AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY)"
     exit 1
