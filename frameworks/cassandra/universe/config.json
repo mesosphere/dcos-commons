@@ -205,6 +205,10 @@
                 }
 
             }
+        },
+        "custom_domain": {
+          "type": "string",
+          "description": "A custom domain to be used in place of autoip.dcos.thisdcos.directory. This can be used to expose the service securely outside of the cluster, but requires setting up external DNS. See the service documentation for details."
         }
                 }
         },

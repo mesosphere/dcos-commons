@@ -107,6 +107,11 @@
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
+
+    {{#service.security.custom_domain}}
+    "SERVICE_TLD": "{{service.security.custom_domain}}",
+    {{/service.security.custom_domain}}
+    
     {{#service.region}}
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}
