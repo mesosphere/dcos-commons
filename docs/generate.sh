@@ -21,7 +21,7 @@ OUTPUT_DIR=dcos-commons-gh-pages/dcos-commons
 SWAGGER_CODEGEN_VERSION=2.2.2
 SWAGGER_OUTPUT_DIR=reference/swagger-api
 SWAGGER_JAR=swagger-codegen-cli-${SWAGGER_CODEGEN_VERSION}.jar
-SWAGGER_URL=http://central.maven.org/maven2/io/swagger/swagger-codegen-cli/${SWAGGER_CODEGEN_VERSION}/${SWAGGER_JAR}
+SWAGGER_URL=https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/${SWAGGER_CODEGEN_VERSION}/${SWAGGER_JAR}
 
 # Default value, override with "HTTP_PORT" envvar:
 DEFAULT_HTTP_PORT=8888
