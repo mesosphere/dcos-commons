@@ -58,7 +58,7 @@ groups:
         severity: warning
         service: hdfs
       annotations:
-       summary: "Total service memory heap in used for {{ $labels.instance }}"
+       summary: "Total service memory heap in use for {{ $labels.instance }}"
        description: "Total memory heap usage is greater than 80%. Consider increasing memory of the HDFS cluster"
 
     - alert: MemUsedPercent
