@@ -41,13 +41,13 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven {
-            url 'http://downloads.mesosphere.com/maven/'
+            url 'https://downloads.mesosphere.com/maven/'
         }
         maven {
-            url 'http://downloads.mesosphere.com/maven-snapshot/'
+            url 'https://downloads.mesosphere.com/maven-snapshot/'
         }
         maven {
-            url 'http://repository.apache.org/content/repositories/snapshots/'
+            url 'https://repository.apache.org/content/repositories/snapshots/'
         }
     }
 
