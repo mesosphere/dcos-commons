@@ -70,6 +70,10 @@
     "ELASTICSEARCH_HEALTH_PROTOCOL": "http",
     {{/service.security.transport_encryption.enabled}}
 
+    {{#service.security.custom_domain}}
+    "SERVICE_TLD": "{{service.security.custom_domain}}",
+    {{/service.security.custom_domain}}
+
     "DEPLOY_STRATEGY": "{{service.deploy_strategy}}",
     "UPDATE_STRATEGY": "{{service.update_strategy}}",
     "MASTER_NODE_CPUS": "{{master_nodes.cpus}}",
