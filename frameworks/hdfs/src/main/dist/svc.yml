@@ -225,7 +225,7 @@ pods:
           ./fix-keytab-bug.sh secrets-hdfs.keytab
           {{/SECURITY_KERBEROS_ENABLED}}
           export LATEST_FSIMAGE_VERSION=-65
-          export CURRENT_FSIMAGE_VERSION=$(cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2)
+          export CURRENT_FSIMAGE_VERSION=$(grep "layoutVersion" name-data/current/VERSION | cut -d'=' -f2)
           if [[ $CURRENT_FSIMAGE_VERSION -gt $LATEST_FSIMAGE_VERSION ]]; then
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade prepare
             ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade query
@@ -240,7 +240,7 @@ pods:
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
             export service_state=$(./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME | grep -i 'standby')
             export LATEST_FSIMAGE_VERSION=-65
-            export CURRENT_FSIMAGE_VERSION=$(cat name-data/current/VERSION | grep "layoutVersion" | cut -d'=' -f2)
+            export CURRENT_FSIMAGE_VERSION=$(grep "layoutVersion" name-data/current/VERSION | cut -d'=' -f2)
             if [[ $service_state -eq 'standby' && $FINALIZED -eq false && $POD_INSTANCE_INDEX -eq 1 && $CURRENT_FSIMAGE_VERSION -gt $LATEST_FSIMAGE_VERSION ]]; then
               ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade finalize
               FINALIZED=true
