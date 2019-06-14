@@ -247,7 +247,7 @@
 
 <p>DC/OS is modeled on an operating system with Mesos as its kernel. Mesos provides an abstraction to enable consumption of the resources a datacenter provides.  In a typical case, these resources are CPU, memory, disk space, and ports. Tasks are launched in the datacenter and consume particular subsets of resources. The programs that can receive resource offers and launch tasks that consume are called <strong>frameworks</strong>. The component of a framework that receives offers and launches tasks is called the <strong>scheduler</strong>.</p>
 
-<p>Mesos determines which frameworks should be offered resources at any given time. It sends update events regarding the status of those tasks. These events include <em>staging, running, failed</em>,* *etc.  To learn more about Mesos, consult “<a href="http://mesos.apache.org/">Apache Mesos</a>”.</p>
+<p>Mesos determines which frameworks should be offered resources at any given time. It sends update events regarding the status of those tasks. These events include <em>staging, running, failed</em>,* *etc.  To learn more about Mesos, consult “<a href="https://mesos.apache.org/">Apache Mesos</a>”.</p>
 
 <h2 id="marathon">
 <a id="marathon" class="anchor" href="#marathon" aria-hidden="true"><span class="octicon octicon-link"></span></a>Marathon</h2>
@@ -349,7 +349,7 @@
                 <p><strong>cmd</strong>: The command to run to start a task. Here, the task will print “hello world” to stdout and sleep for 1000 seconds. Because its goal state is <code class="highlighter-rouge">RUNNING</code>, it will be started again upon exit.</p>
               </li>
               <li>
-                <p><strong>cpus</strong>: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate <a href="http://mesos.apache.org/documentation/latest/containerizer/">see the Mesos documentation here</a>.</p>
+                <p><strong>cpus</strong>: This entry defines how many CPUs will be allocated to the task’s container.  For discussion of how resources are isolated and allocate <a href="https://mesos.apache.org/documentation/latest/containerizers/">see the Mesos documentation here</a>.</p>
               </li>
               <li>
                 <p><strong>memory</strong>: This entry defines how much memory will be allocated to the task’s container.</p>
@@ -1297,7 +1297,7 @@ The final rendered <code class="highlighter-rouge">ServiceSpec</code> is:</p>
       <span class="s">...</span>
 </code></pre></div></div>
 
-<p>You can also pass arguments when invoking CNI plugins, by adding labels in your virtual network definition. These labels are are free-form key-value pairs that are passed in the format of <code class="highlighter-rouge">key0:value0,key1:value1</code>. Refer to <a href="http://mesos.apache.org/documentation/latest/cni/#mesos-meta-data-to-cni-plugins">Mesos CNI Configuration</a> for more information about CNI labels. Here is a sample YAML definition with labels:</p>
+<p>You can also pass arguments when invoking CNI plugins, by adding labels in your virtual network definition. These labels are are free-form key-value pairs that are passed in the format of <code class="highlighter-rouge">key0:value0,key1:value1</code>. Refer to <a href="https://mesos.apache.org/documentation/latest/cni/#mesos-meta-data-to-cni-plugins">Mesos CNI Configuration</a> for more information about CNI labels. Here is a sample YAML definition with labels:</p>
 
 <div class="language-yaml highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="na">pods</span><span class="pi">:</span>
   <span class="na">pod-on-virtual-network</span><span class="pi">:</span>
@@ -1490,7 +1490,7 @@ offers_process_count 244.0
 
 <h2 id="custom-metrics">
 <a id="custom-metrics" class="anchor" href="#custom-metrics" aria-hidden="true"><span class="octicon octicon-link"></span></a>Custom Metrics</h2>
-<p>A service author may choose to expose custom metrics by using the metrics registry. The popular <a href="http://metrics.dropwizard.io">dropwizard metrics library</a> is used.  An instance of a <a href="http://metrics.dropwizard.io/3.1.0/apidocs/com/codahale/metrics/MetricRegistry.html">MetricsRegistry</a> can be acquired in the following way.</p>
+<p>A service author may choose to expose custom metrics by using the metrics registry. The popular <a href="http://metrics.dropwizard.io">dropwizard metrics library</a> is used.  An instance of a <a href="https://metrics.dropwizard.io/3.1.0/apidocs/com/codahale/metrics/MetricRegistry.html">MetricsRegistry</a> can be acquired in the following way.</p>
 
 <div class="language-java highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">MetricsRegistry</span> <span class="n">registry</span> <span class="o">=</span> <span class="n">Metrics</span><span class="o">.</span><span class="na">getRegistry</span><span class="o">();</span>
 </code></pre></div></div>
@@ -1889,7 +1889,7 @@ DNSName([port-1-vip-prefix].[service-name].l4lb.thisdcos.directory)
 <h2 id="integration-tests">
 <a id="integration-tests" class="anchor" href="#integration-tests" aria-hidden="true"><span class="octicon octicon-link"></span></a>Integration tests</h2>
 
-<p>Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The SDK provides utilities in its <a href="http://github.com/mesosphere/dcos-commons/tree/master/testing">testing/</a> directory centered around writing these tests. These make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The reference hello-world framework provides many <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py">example integration tests</a> which are used to validate SDK behavior.</p>
+<p>Within the context of the SDK, integration tests validate expected service behavior in a DC/OS cluster. The SDK provides utilities in its <a href="https://github.com/mesosphere/dcos-commons/tree/master/testing">testing/</a> directory centered around writing these tests. These make it easy to perform service operations such as install, uninstall, configuration update, software upgrade, rollback, and pod restart. As with unit tests, these tests are run against every pull request and failures blocks merges. The reference hello-world framework provides many <a href="https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/tests/test_sanity.py">example integration tests</a> which are used to validate SDK behavior.</p>
 
 <p>You can run integration tests manually using <code class="highlighter-rouge">py.test</code>.  The
 integration tests assume you have a running DC/OS cluster, and have
@@ -2572,7 +2572,7 @@ hello
           <span class="na">size</span><span class="pi">:</span> <span class="s">5000</span>
 </code></pre></div></div>
 
-<p>The path is relative to the sandbox path if not preceded by a leading “/”. The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is <a href="http://mesos.apache.org/documentation/latest/multiple-disk/">documented here</a>. The PATH type is not currently supported.</p>
+<p>The path is relative to the sandbox path if not preceded by a leading “/”. The sandbox path is always available in the environment variable MESOS_SANDBOX.  The different between ROOT and MOUNT volumes is <a href="https://mesos.apache.org/documentation/latest/multiple-disk/">documented here</a>. The PATH type is not currently supported.</p>
 
 <p>Multiple volumes per pod or task can also be defined in a service YAML file.</p>
 

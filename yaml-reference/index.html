@@ -140,7 +140,7 @@
       <li>
         <p><code class="highlighter-rouge">placement</code></p>
 
-        <p>Any additional constraints to be applied when deciding where to deploy this pod. This field supports all <a href="http://mesosphere.github.io/marathon/docs/constraints.html">Marathon placement operators</a>. For example, <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code> ensures that at most one pod instance is deployed per agent. This value may be exposed to end users via mustache templating to allow customizing placement of the service within their own environment.</p>
+        <p>Any additional constraints to be applied when deciding where to deploy this pod. This field supports all <a href="https://mesosphere.github.io/marathon/docs/constraints.html">Marathon placement operators</a>. For example, <code class="highlighter-rouge">[["hostname", "UNIQUE"]]</code> ensures that at most one pod instance is deployed per agent. This value may be exposed to end users via mustache templating to allow customizing placement of the service within their own environment.</p>
       </li>
       <li>
         <p><code class="highlighter-rouge">count</code></p>
@@ -639,7 +639,7 @@ Note that to avoid name collisions, different pods are not allowed to share the 
               <li>
                 <p><code class="highlighter-rouge">visibility</code></p>
 
-                <p>The default visibility for the discovery information. May be <code class="highlighter-rouge">FRAMEWORK</code>, <code class="highlighter-rouge">CLUSTER</code>, or <code class="highlighter-rouge">EXTERNAL</code>. If unset this defaults to <code class="highlighter-rouge">CLUSTER</code>. See <a href="http://mesos.apache.org/documentation/latest/app-framework-development-guide/">Mesos documentation</a> on service discovery for more information on these visibility values.</p>
+                <p>The default visibility for the discovery information. May be <code class="highlighter-rouge">FRAMEWORK</code>, <code class="highlighter-rouge">CLUSTER</code>, or <code class="highlighter-rouge">EXTERNAL</code>. If unset this defaults to <code class="highlighter-rouge">CLUSTER</code>. See <a href="https://mesos.apache.org/documentation/latest/app-framework-development-guide/">Mesos documentation</a> on service discovery for more information on these visibility values.</p>
               </li>
             </ul>
           </li>
