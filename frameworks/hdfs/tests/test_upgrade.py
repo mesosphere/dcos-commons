@@ -3,7 +3,6 @@ import logging
 import pytest
 import sdk_install
 import sdk_upgrade
-import sdk_utils
 
 from tests import config
 
