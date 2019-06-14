@@ -101,5 +101,5 @@ groups:
         service: hdfs
       annotations:
        summary: "VolumeFailures on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
-       description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} has volume failure equals to {{ $value }}"
+       description: "Volume failures are occurring in the cluster. Please investigate as this can be a sign of faulty hardware that needs replacing."
 
