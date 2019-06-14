@@ -91,7 +91,7 @@ groups:
         service: hdfs
       annotations:
        summary: "Number of inactive sources for {{ $labels.instance }}"
-       description: "{{ $labels.instance }} has number of inactive sources greater then 0 (current value: {{ $value }})"
+       description: "{{ $labels.instance }} has number of inactive sources greater then 0 (current value: {{ $value }}). Please investigate."
 
     - alert: VolumeFailures
       expr: sum by (service_name,task_name) ({__name__=~".*_dfs_datanode_VolumeFailures"}) > 0
