@@ -10,7 +10,7 @@ groups:
         service: hdfs
       annotations:
         summary: "High request latency on {{ $labels.instance }}"
-        description: "{{ $labels.instance }} has a median request latency above 1s (current value: {{ $value }}s)"
+        description: "Request latency is greater then 1s. Please consider to check network and other health cluster metrics"
 
   - name: hdfs_warning
     rules:
@@ -31,7 +31,7 @@ groups:
         service: hdfs
       annotations:
        summary: "Missing blocks on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
-       description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} missed blocks equals to {{ $value }}"
+       description: "MissingBlocks value has increased for the last 10 min, you can lose your data"
 
     - alert: UnderReplicatedBlocks
       expr: sum by(service_name,task_name) (rate({__name__=~".*_dfs_FSNamesystem_UnderReplicatedBlocks"}[10m])) > 0
@@ -40,7 +40,7 @@ groups:
         service: hdfs
       annotations:
        summary: "Under replicated blocks on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
-       description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} has under replicated blocks equals to {{ $value }}"
+       description: "UnderReplicatedBlocks value has increased for the last 10 min, please consider to check the cluster state"
 
     - alert: NumStaleDataNodes
       expr: sum by(service_name,task_name) (rate({__name__=~".*_dfs_FSNamesystem_StaleDataNodes"}[10m])) > 0
@@ -49,7 +49,7 @@ groups:
         service: hdfs
       annotations:
        summary: "Number of stale DataNodes on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
-       description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} has number stale DataNodes equals to {{ $value }}"
+       description: "DataNode might not emit a heartbeat for a number of reasons — network issues or high load are among the more common causes"
 
     - alert: MemHeapUsed
       expr: (sum({__name__=~".*_jvm_JvmMetrics_MemHeapMaxM"}) / sum({__name__=~".*_jvm_JvmMetrics_MemHeapUsedM"})) < 0.8
@@ -58,8 +58,8 @@ groups:
         severity: warning
         service: hdfs
       annotations:
-       summary: "Total service memory heap in used for {{ $labels.instance }}"
-       description: "{{ $labels.instance }} has heap in used greater then 0.8 (current value: {{ $value }})"
+       summary: "Total service memory heap in use for {{ $labels.instance }}"
+       description: "Total memory heap usage is greater than 80%. Consider increasing memory of the HDFS cluster"
 
     - alert: MemUsedPercent
       expr: mem_used_percent > 80
@@ -68,20 +68,11 @@ groups:
         severity: warning
         service: hdfs
       annotations:
-       summary: "Instance memory in used percent for {{ $labels.instance }}"
-       description: "{{ $labels.instance }} has memory in used greater then 80% (current value: {{ $value }}%)"
+       summary: "Instance memory in use percent for {{ $labels.instance }}"
+       description: "Total memory heap usage is greater than 80%. Consider increasing memory of the HDFS cluster"
 
   - name: hdfs_critical
     rules:
-    - alert: InstanceDown
-      expr: up == 0
-      for: 5m
-      labels:
-        severity: critical
-        service: hdfs
-      annotations:
-        summary: "Instance {{ $labels.instance }} down"
-        description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes."
 
     - alert: NumInactiveSources
       expr: (sum({__name__=~".*metricssystem_MetricsSystem_NumAllSources"}) - sum({__name__=~".*metricssystem_MetricsSystem_NumActiveSources"})) > 0
@@ -91,7 +82,7 @@ groups:
         service: hdfs
       annotations:
        summary: "Number of inactive sources for {{ $labels.instance }}"
-       description: "{{ $labels.instance }} has number of inactive sources greater then 0 (current value: {{ $value }})"
+       description: "NumInactiveSources value has increased for the last 5 min, please consider to check the cluster state"
 
     - alert: VolumeFailures
       expr: sum by (service_name,task_name) ({__name__=~".*_dfs_datanode_VolumeFailures"}) > 0
@@ -101,5 +92,5 @@ groups:
         service: hdfs
       annotations:
        summary: "VolumeFailures on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
-       description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} has volume failure equals to {{ $value }}"
+       description: "Hardware failures occur, please consider replace the failed hardware. Failed volume is not a data loss signal"
 
