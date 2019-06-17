@@ -15,7 +15,7 @@ groups:
   - name: hdfs_warning
     rules:
     - alert: CapacityRemainingGB
-      expr: sum by (service_name,task_name) ({__name__=~".*_FSNamesystem_CapacityRemainingGB"}) < 10
+      expr: ({__name__=~".*_FSNamesystem_CapacityUsed"} / {__name__=~".*_FSNamesystem_CapacityTotal"}) > 0.8
       for: 10m
       labels:
        severity: warning
@@ -40,7 +40,7 @@ groups:
         service: hdfs
       annotations:
        summary: "Under replicated blocks on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
-       description: "UnderReplicatedBlocks value has increased for the last 10 min, please consider to check the cluster state"
+       description: "Under replicated blocks represent data blocks of files that have not met their target replication factor. Please check the cluster state and if need be, manually fix. For example: https://community.hortonworks.com/articles/4427/fix-under-replicated-blocks-in-hdfs-manually.html"
 
     - alert: NumStaleDataNodes
       expr: sum by(service_name,task_name) (rate({__name__=~".*_dfs_FSNamesystem_StaleDataNodes"}[10m])) > 0
