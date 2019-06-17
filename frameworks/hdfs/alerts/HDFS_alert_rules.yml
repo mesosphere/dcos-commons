@@ -21,8 +21,8 @@ groups:
        severity: warning
        service: hdfs
       annotations:
-       summary: "Low disk capacity remaining in the cluster (less than 20%). Consider increasing data nodes or migrating data to free up space"
-       description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} has capacity remaining {{ $value }}GB"
+       summary: "Low capacity remaining in GB on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
+       description: "Low disk capacity remaining in cluster (less than 20%). Consider increasing data node count to increase disk capacity and return usage to a healthy state."
 
     - alert: MissingBlocks
       expr: sum by(service_name,task_name) (rate({__name__=~".*_dfs_FSNamesystem_MissingBlocks"}[10m])) > 0
@@ -52,23 +52,13 @@ groups:
        description: "DataNode might not emit a heartbeat for a number of reasons — network issues or high load are among the more common causes"
 
     - alert: MemHeapUsed
-      expr: (sum({__name__=~".*_jvm_JvmMetrics_MemHeapMaxM"}) / sum({__name__=~".*_jvm_JvmMetrics_MemHeapUsedM"})) < 0.8
+      expr: (sum({__name__=~".*_jvm_JvmMetrics_MemHeapMaxM"}) / sum({__name__=~".*_jvm_JvmMetrics_MemHeapUsedM"})) < 0.2
       for: 10m
       labels:
         severity: warning
         service: hdfs
       annotations:
        summary: "Total service memory heap in use for {{ $labels.instance }}"
-       description: "Total memory heap usage is greater than 80%. Consider increasing memory of the HDFS cluster"
-
-    - alert: MemUsedPercent
-      expr: mem_used_percent > 80
-      for: 10m
-      labels:
-        severity: warning
-        service: hdfs
-      annotations:
-       summary: "Instance memory in use percent for {{ $labels.instance }}"
        description: "Total memory heap usage is greater than 80%. Consider increasing memory of the HDFS cluster"
 
   - name: hdfs_critical
