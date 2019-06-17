@@ -59,7 +59,7 @@ pods:
       node:
         goal: RUNNING
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
@@ -69,8 +69,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
           {{#SECURITY_KERBEROS_ENABLED}}
-          chmod +x fix-keytab-bug.sh
-          ./fix-keytab-bug.sh secrets-hdfs.keytab
+          $JAVA_HOME/bin/java -jar krbtest.jar secrets-hdfs.keytab
+          echo "Keytab file fixed due to bug in HDFS version 3.2.0. See HADOOP-16283 {{HDFS_BUG_ISSUE_URI}}"
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs journalnode
         resource-set: journal-resources
@@ -79,9 +79,6 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          fix-keytab:
-            template: fix-keytab-bug.sh
-            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -201,7 +198,7 @@ pods:
       node:
         goal: RUNNING
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
@@ -221,8 +218,8 @@ pods:
           chmod u+x {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
           {{/NAME_NODE_PLACEMENT}}
           {{#SECURITY_KERBEROS_ENABLED}}
-          chmod +x fix-keytab-bug.sh
-          ./fix-keytab-bug.sh secrets-hdfs.keytab
+          $JAVA_HOME/bin/java -jar krbtest.jar secrets-hdfs.keytab
+          echo "Keytab file fixed due to bug in HDFS version 3.2.0. See HADOOP-16283 {{HDFS_BUG_ISSUE_URI}}"
           {{/SECURITY_KERBEROS_ENABLED}}
           export LATEST_FSIMAGE_VERSION=-65
           export CURRENT_FSIMAGE_VERSION=$(grep "layoutVersion" name-data/current/VERSION | cut -d'=' -f2)
@@ -261,9 +258,6 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          fix-keytab:
-            template: fix-keytab-bug.sh
-            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -293,7 +287,7 @@ pods:
       format:
         goal: ONCE
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
@@ -303,8 +297,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
           {{#SECURITY_KERBEROS_ENABLED}}
-          chmod +x fix-keytab-bug.sh
-          ./fix-keytab-bug.sh secrets-hdfs.keytab
+          $JAVA_HOME/bin/java -jar krbtest.jar secrets-hdfs.keytab
+          echo "Keytab file fixed due to bug in HDFS version 3.2.0. See HADOOP-16283 {{HDFS_BUG_ISSUE_URI}}"
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
@@ -313,9 +307,6 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          fix-keytab:
-            template: fix-keytab-bug.sh
-            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -336,7 +327,7 @@ pods:
       bootstrap:
         goal: FINISH
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
@@ -346,8 +337,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
           {{#SECURITY_KERBEROS_ENABLED}}
-          chmod +x fix-keytab-bug.sh
-          ./fix-keytab-bug.sh secrets-hdfs.keytab
+          $JAVA_HOME/bin/java -jar krbtest.jar secrets-hdfs.keytab
+          echo "Keytab file fixed due to bug in HDFS version 3.2.0. See HADOOP-16283 {{HDFS_BUG_ISSUE_URI}}"
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
         resource-set: name-resources
@@ -356,9 +347,6 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          fix-keytab:
-            template: fix-keytab-bug.sh
-            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -385,7 +373,7 @@ pods:
         essential: false
         goal: RUNNING
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
@@ -395,8 +383,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST, name-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST
           {{#SECURITY_KERBEROS_ENABLED}}
-          chmod +x fix-keytab-bug.sh
-          ./fix-keytab-bug.sh secrets-hdfs.keytab
+          $JAVA_HOME/bin/java -jar krbtest.jar secrets-hdfs.keytab
+          echo "Keytab file fixed due to bug in HDFS version 3.2.0. See HADOOP-16283 {{HDFS_BUG_ISSUE_URI}}"
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
@@ -405,9 +393,6 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          fix-keytab:
-            template: fix-keytab-bug.sh
-            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -428,7 +413,7 @@ pods:
       zkfc-format:
         goal: ONCE
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
@@ -438,8 +423,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
           {{#SECURITY_KERBEROS_ENABLED}}
-          chmod +x fix-keytab-bug.sh
-          ./fix-keytab-bug.sh secrets-hdfs.keytab
+          $JAVA_HOME/bin/java -jar krbtest.jar secrets-hdfs.keytab
+          echo "Keytab file fixed due to bug in HDFS version 3.2.0. See HADOOP-16283 {{HDFS_BUG_ISSUE_URI}}"
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
@@ -448,9 +433,6 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          fix-keytab:
-            template: fix-keytab-bug.sh
-            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
@@ -496,7 +478,7 @@ pods:
       node:
         goal: RUNNING
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
@@ -506,8 +488,8 @@ pods:
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
           {{#SECURITY_KERBEROS_ENABLED}}
-          chmod +x fix-keytab-bug.sh
-          ./fix-keytab-bug.sh secrets-hdfs.keytab
+          $JAVA_HOME/bin/java -jar krbtest.jar secrets-hdfs.keytab
+          echo "Keytab file fixed due to bug in HDFS version 3.2.0. See HADOOP-16283 {{HDFS_BUG_ISSUE_URI}}"
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
@@ -532,9 +514,6 @@ pods:
           krb5-conf:
             template: krb5.conf
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf
-          fix-keytab:
-            template: fix-keytab-bug.sh
-            dest: fix-keytab-bug.sh
           {{/SECURITY_KERBEROS_ENABLED}}
           core-site:
             template: core-site.xml
