@@ -845,6 +845,16 @@
           "type": "string",
           "default": "30s"
         },
+        "thread_pool_analyze_queue_size":{
+          "description": "For analyze requests. Thread pool type is fixed with a size of 1, queue size of 16",
+          "type": "string",
+          "default": "16"
+        },
+        "thread_pool_analyze_size": {
+          "description": "For analyze requests. Thread pool type is fixed with a size of 1.",
+          "type": "string",
+          "default": "1"
+        },
         "indices_breaker_total_limit": {
           "description": "Starting limit for overall parent breaker, defaults to 70% of JVM heap. Empty means do not explicity set.",
           "type": "string",

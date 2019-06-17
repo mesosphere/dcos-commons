@@ -328,6 +328,12 @@
     {{#elasticsearch.indices_requests_cache_size}}
     "TASKCFG_ALL_INDICES_REQUESTS_CACHE_SIZE": "{{elasticsearch.indices_requests_cache_size}}",
     {{/elasticsearch.indices_requests_cache_size}}
+    {{#elasticsearch.thread_pool_analyze_queue_size}}
+    "TASKCFG_ALL_THREAD_POOL_ANALYZE_QUEUE_SIZE": "{{elasticsearch.thread_pool_analyze_queue_size}}",
+    {{/elasticsearch.thread_pool_analyze_queue_size}}
+    {{#elasticsearch.thread_pool_analyze_size}}
+    "TASKCFG_ALL_THREAD_POOL_ANALYZE_SIZE": "{{elasticsearch.thread_pool_analyze_size}}",
+    {{/elasticsearch.thread_pool_analyze_size}}
     "CUSTOM_YAML_BLOCK_BASE64": "{{elasticsearch.custom_elasticsearch_yml}}",
 
     "MASTER_NODE_READINESS_CHECK_INTERVAL": "{{master_nodes.readiness_check.interval}}",
