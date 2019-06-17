@@ -82,7 +82,7 @@ groups:
         service: hdfs
       annotations:
        summary: "Number of inactive sources for {{ $labels.instance }}"
-       description: "NumInactiveSources value has increased for the last 5 min, please consider to check the cluster state"
+       description: "The number of inactive metrics sources have increased over the last 5 minutes. Please investigate as metrics are no longer being captured and potentially nodes may be down"
 
     - alert: VolumeFailures
       expr: sum by (service_name,task_name) ({__name__=~".*_dfs_datanode_VolumeFailures"}) > 0
