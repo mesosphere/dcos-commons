@@ -165,15 +165,10 @@ public class FrameworkRunner {
     // The framework ID is not available when we're being started for the first time.
     frameworkId.ifPresent(fwkInfoBuilder::setId);
 
-    if (frameworkConfig.getPreReservedRoles().isEmpty()) {
-      setRole(fwkInfoBuilder, frameworkConfig.getRole());
-    } else {
-      fwkInfoBuilder.addCapabilitiesBuilder()
+    // We set to MULTI_ROLE by default and add all the necessary roles.
+    fwkInfoBuilder.addCapabilitiesBuilder()
           .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE);
-      fwkInfoBuilder
-          .addRoles(frameworkConfig.getRole())
-          .addAllRoles(frameworkConfig.getPreReservedRoles());
-    }
+    fwkInfoBuilder.addAllRoles(frameworkConfig.getAllResourceRoles());
 
     if (!StringUtils.isEmpty(frameworkConfig.getWebUrl())) {
       fwkInfoBuilder.setWebuiUrl(frameworkConfig.getWebUrl());
