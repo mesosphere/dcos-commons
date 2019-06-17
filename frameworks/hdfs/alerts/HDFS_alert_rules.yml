@@ -84,3 +84,14 @@ groups:
        summary: "VolumeFailures on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
        description: "Hardware failures occur, please consider replace the failed hardware. Failed volume is not a data loss signal"
 
+    - alert: FatalLogErrors
+        expr: ({__name__=~".*(DataNode|JournalNode|NamdeNode)*jvm_JvmMetrics_LogFatal"}) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: hdfs
+        annotations:
+          summary: "Fatal log errors have been reported on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
+          description: "A fatal log message has been reported. Please investigate as this may indicate a serious issue"
+
+
