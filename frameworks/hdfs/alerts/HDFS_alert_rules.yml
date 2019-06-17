@@ -21,7 +21,7 @@ groups:
        severity: warning
        service: hdfs
       annotations:
-       summary: "Low capacity remaining in GB on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
+       summary: "Low disk capacity remaining in the cluster (less than 20%). Consider increasing data nodes or migrating data to free up space"
        description: "{{ $labels.instance }} / {{ $labels.service_name }} / {{ $labels.task_name }} has capacity remaining {{ $value }}GB"
 
     - alert: MissingBlocks
