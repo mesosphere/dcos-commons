@@ -15,7 +15,7 @@ groups:
   - name: hdfs_warning
     rules:
     - alert: CapacityRemainingGB
-      expr: sum by (service_name,task_name) ({__name__=~".*_FSNamesystem_CapacityRemainingGB"}) < 10
+      expr: ({__name__=~".*_FSNamesystem_CapacityUsed"} / {__name__=~".*_FSNamesystem_CapacityTotal"}) > 0.8
       for: 10m
       labels:
        severity: warning
