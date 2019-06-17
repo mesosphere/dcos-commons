@@ -19,12 +19,18 @@
         "service_account": {
           "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-service-account+string"
+           }
         },
         "service_account_secret": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-secret+string"
+           }
         },
         "virtual_network_enabled": {
           "description": "Enable virtual networking",
@@ -111,7 +117,10 @@
                 },
                 "keytab_secret": {
                   "type": "string",
-                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers."
+                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
+		  "media": {
+                    "type": "application/x-secret+string"
+                   }
                 },
                 "debug": {
                   "type": "boolean",
