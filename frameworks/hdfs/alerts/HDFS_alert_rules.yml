@@ -31,7 +31,7 @@ groups:
         service: hdfs
       annotations:
        summary: "Missing blocks on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
-       description: "MissingBlocks value has increased for the last 10 min, you can lose your data"
+       description: "The number of missing blocks have increased over the last 10 min. Please investigate as this means you could lose your data"
 
     - alert: UnderReplicatedBlocks
       expr: sum by(service_name,task_name) (rate({__name__=~".*_dfs_FSNamesystem_UnderReplicatedBlocks"}[10m])) > 0
