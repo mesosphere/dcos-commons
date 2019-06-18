@@ -281,7 +281,7 @@ if [ "${interactive}" == "true" ]; then
 fi
 
 # Some automation contexts (e.g. Jenkins) will be unhappy if STDIN is not
-# available. The --headless command accomodates such contexts.
+# available. The --headless command accommodates such contexts.
 if [ "${headless}" != "true" ]; then
   docker_interactive_arg="-i"
 fi
