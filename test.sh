@@ -537,4 +537,5 @@ echo "==========================================================================
 set -x
 
 # shellcheck disable=SC2086
+# https://github.com/koalaman/shellcheck/wiki/SC2086
 eval ${CMD}
