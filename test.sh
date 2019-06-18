@@ -525,6 +525,7 @@ CMD="docker run
 echo "================================================================================"
 echo "Docker command:"
 # shellcheck disable=SC2001
+# https://github.com/koalaman/shellcheck/wiki/SC2001
 echo -e "  $(echo "${CMD}" | sed 's/\([[:alpha:]]\) -v/\1\\n    -v/g')"
 echo
 echo "Environment in --env-file '${env_file}':"
