@@ -20,6 +20,8 @@ fi
 DOCKER_TAG="${DOCKER_TAG:-latest}"
 DOCKER_IMAGE="${DOCKER_IMAGE:-mesosphere/dcos-commons:${DOCKER_TAG}}"
 # shellcheck disable=SC2124,SC2089
+# https://github.com/koalaman/shellcheck/wiki/SC2124
+# https://github.com/koalaman/shellcheck/wiki/SC2089
 DOCKER_COMMAND="bash -c \"
   set -x;
   pre-commit run --verbose ${*}
