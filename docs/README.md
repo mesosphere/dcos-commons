@@ -38,4 +38,4 @@ This site used to also host per-service user documentation, but that was moved i
 
 # Notes
 
-The page uses the [Dropdown](http://code.iamkate.com/javascript/touch-friendly-drop-down-menus/) Javascript library by Kate Morley for rendering the menus. The library is licensed [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/legalcode).
+The page uses the [Dropdown](https://code.iamkate.com/javascript/touch-friendly-drop-down-menus/) Javascript library by Kate Morley for rendering the menus. The library is licensed [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/legalcode).
