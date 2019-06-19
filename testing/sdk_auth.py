@@ -38,6 +38,7 @@ def _get_kdc_task(task_name: str) -> dict:
     """
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
+
     @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
     def _get_kdc_task_inner(task_name: str) -> dict:
         log.info("Getting KDC task")
@@ -54,6 +55,7 @@ def _get_kdc_task(task_name: str) -> dict:
                 tasks=raw_tasks
             )
         )
+
     return dict(_get_kdc_task_inner(task_name=task_name))
 
 
@@ -209,12 +211,19 @@ class KerberosEnvironment:
             sdk_marathon.destroy_app(self.app_definition["id"])
 
         # (re-)create a service account for the KDC service
-        sdk_security.create_service_account(
-            "kdc-admin",  # Account name
-            "kdc-admin"   # Secret name
+        sdk_security.create_service_account("kdc-admin", "kdc-admin")  # Account name  # Secret name
+        sdk_security._grant(
+            "kdc-admin",
+            "dcos:secrets:default:%252F*",
+            "Create any secret in the root path",
+            "create",
         )
-        sdk_security._grant("kdc-admin", "dcos:secrets:default:%252F*", "Create any secret in the root path", "create")
-        sdk_security._grant("kdc-admin", "dcos:secrets:default:%252F*", "Update any secret in the root path", "update")
+        sdk_security._grant(
+            "kdc-admin",
+            "dcos:secrets:default:%252F*",
+            "Update any secret in the root path",
+            "update",
+        )
 
         log.info("Installing KDC Marathon app")
         sdk_marathon.install_app(self.app_definition)
@@ -230,12 +239,11 @@ class KerberosEnvironment:
         """
         Keeps polling the KDC Web endpoint until it becomes available
         """
+
         @retrying.retry(stop_max_attempt_number=30, wait_fixed=2000)
         def probe():
             sdk_cmd.cluster_request(
-                "GET",
-                "{}/".format(self.get_service_path()),
-                raise_on_error=True
+                "GET", "{}/".format(self.get_service_path()), raise_on_error=True
             )
 
         return probe()
@@ -250,24 +258,14 @@ class KerberosEnvironment:
         :raises a generic Exception if the invocation fails.
         """
         url = "{}/api/{}".format(self.get_service_path(), action)
-        log.info(
-            "Performing KDC API {method} query to: {url}".format(
-                method=method,
-                url=url,
-            )
-        )
+        log.info("Performing KDC API {method} query to: {url}".format(method=method, url=url))
 
         # Place the web request to cluster
         return sdk_cmd.cluster_request(
-            method,
-            url,
-            headers={
-                "content-type": "application/json"
-            },
-            json=json
+            method, url, headers={"content-type": "application/json"}, json=json
         )
 
-    def list_principals(self, filter: str = '*') -> List[str]:
+    def list_principals(self, filter: str = "*") -> List[str]:
         """
         Enumerates the principals on the KDC instance that match the given wildcard filter.
         :param filter: the filter expression for the principals to search.
@@ -326,22 +324,27 @@ class KerberosEnvironment:
 
         log.info(
             "Adding the following list of principals to KDC and creating secret {secret}: {principals}".format(
-                principals=self.principals,
-                secret=self.keytab_secret_path,
+                principals=self.principals, secret=self.keytab_secret_path
             )
         )
 
-        res = self.__kdc_api("post", "add", {
-            "principals": self.principals,
-            "secret": self.keytab_secret_path,
-            "binary": self.keytab_secret_binary,
-        })
+        res = self.__kdc_api(
+            "post",
+            "add",
+            {
+                "principals": self.principals,
+                "secret": self.keytab_secret_path,
+                "binary": self.keytab_secret_binary,
+            },
+        )
         if res.status_code != 200:
             raise RuntimeError("Unable to add principals")
 
         parsed = res.json()
-        if parsed['status'] != "ok":
-            raise RuntimeError("Unable to add principals: {}".format(parsed.get("error", "Unknown error")))
+        if parsed["status"] != "ok":
+            raise RuntimeError(
+                "Unable to add principals: {}".format(parsed.get("error", "Unknown error"))
+            )
 
     def finalize(self) -> None:
         """
@@ -361,10 +364,9 @@ class KerberosEnvironment:
 
     def get_service_path(self) -> str:
         # Find the service name
-        service_name_label = list(filter(
-            lambda kv: kv[0] == "DCOS_SERVICE_NAME",
-            self.app_definition["labels"].items()
-        ))
+        service_name_label = list(
+            filter(lambda kv: kv[0] == "DCOS_SERVICE_NAME", self.app_definition["labels"].items())
+        )
         assert len(service_name_label) == 1
 
         # Calculate the endpoint
@@ -423,10 +425,7 @@ class KerberosEnvironment:
             self._temp_working_dir.cleanup()
 
         # Delete secret
-        sdk_security.delete_service_account(
-            "kdc-admin",  # Account name
-            "kdc-admin"   # Secret name
-        )
+        sdk_security.delete_service_account("kdc-admin", "kdc-admin")  # Account name  # Secret name
 
         # TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
