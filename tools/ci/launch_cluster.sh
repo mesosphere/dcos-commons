@@ -17,7 +17,7 @@ while [ x"${LAUNCH_SUCCESS}" == x"False" ]; do
     else
         set -e
     fi
-    /venvs/wrap.sh dcos-launch wait --info-path=${CLUSTER_INFO_FILE} 2>&1 | tee dcos-launch-wait-output.stdout
+    /venvs/wrap.sh dcos-launch dcos-launch wait --info-path=${CLUSTER_INFO_FILE} 2>&1 | tee dcos-launch-wait-output.stdout
 
     # Grep exits with an exit code of 1 if no lines are matched. We thus need to
     # disable exit on errors.
