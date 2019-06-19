@@ -6,23 +6,8 @@
   "user": "nobody",
   "container": {
     "type": "MESOS",
-    "volumes": [
-      {
-        "external": {
-          "name": "kdc-db",
-          "provider": "dvdi",
-          "options": {
-            "dvdi/driver": "rexray"
-          },
-          "size": 1
-        },
-        "mode": "RW",
-        "containerPath": "lib/heimdal-kdc"
-      }
-    ],
     "docker": {
-      "image": "icharalampidis/projects:kdc",
-      "forcePullImage": true
+      "image": "mesosphere/kdc:5636d1733535abc2f958db549dda2732531ad7e4"
     }
   },
   "networks": [
@@ -51,7 +36,7 @@
     }
   },
   "labels": {
-    "DCOS_SERVICE_NAME": "kdc-admin-api",
+    "DCOS_SERVICE_NAME": "kdc",
     "DCOS_SERVICE_PORT_INDEX": "1",
     "DCOS_SERVICE_SCHEME": "http"
   },
