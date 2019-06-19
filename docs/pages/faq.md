@@ -26,7 +26,7 @@ redirect_from: /faq.html
 
 #### __What is a Mesos framework?__
 
-  In Mesos, a framework is the component responsible for the second level of scheduling in the [Apache Mesos two-level scheduler architecture](http://mesos.apache.org/documentation/latest/architecture/). Strictly speaking, the SDK is used to build Mesos frameworks, which appear as “services” in DC/OS.
+  In Mesos, a framework is the component responsible for the second level of scheduling in the [Apache Mesos two-level scheduler architecture](https://mesos.apache.org/documentation/latest/architecture/). Strictly speaking, the SDK is used to build Mesos frameworks, which appear as “services” in DC/OS.
 
 #### __What are the advantages of using the DC/OS SDK vs. building a framework from scratch?__
 

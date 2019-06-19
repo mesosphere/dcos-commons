@@ -53,7 +53,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
   * `placement`
 
-    Any additional constraints to be applied when deciding where to deploy this pod. This field supports all [Marathon placement operators](http://mesosphere.github.io/marathon/docs/constraints.html). For example, `[["hostname", "UNIQUE"]]` ensures that at most one pod instance is deployed per agent. This value may be exposed to end users via mustache templating to allow customizing placement of the service within their own environment.
+    Any additional constraints to be applied when deciding where to deploy this pod. This field supports all [Marathon placement operators](https://mesosphere.github.io/marathon/docs/constraints.html). For example, `[["hostname", "UNIQUE"]]` ensures that at most one pod instance is deployed per agent. This value may be exposed to end users via mustache templating to allow customizing placement of the service within their own environment.
 
   * `count`
 
@@ -489,7 +489,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
       * `visibility`
 
-        The default visibility for the discovery information. May be `FRAMEWORK`, `CLUSTER`, or `EXTERNAL`. If unset this defaults to `CLUSTER`. See [Mesos documentation](http://mesos.apache.org/documentation/latest/app-framework-development-guide/) on service discovery for more information on these visibility values.
+        The default visibility for the discovery information. May be `FRAMEWORK`, `CLUSTER`, or `EXTERNAL`. If unset this defaults to `CLUSTER`. See [Mesos documentation](https://mesos.apache.org/documentation/latest/app-framework-development-guide/) on service discovery for more information on these visibility values.
 
     * `labels`
 

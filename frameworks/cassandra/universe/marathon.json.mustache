@@ -39,7 +39,7 @@
     "SERVICE_USER": "{{service.user}}",
     "SERVICE_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
-    "CASSANDRA_VERSION": "3.11.3",
+    "CASSANDRA_VERSION": "3.11.4",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
 
     {{#service.service_account_secret}}
@@ -95,6 +95,9 @@
     "CASSANDRA_MEMORY_MB": "{{nodes.mem}}",
     "CASSANDRA_DISK_MB": "{{nodes.disk}}",
     "CASSANDRA_DISK_TYPE": "{{nodes.disk_type}}",
+    {{#nodes.volume_profile}}
+    "CASSANDRA_VOLUME_PROFILE": "{{nodes.volume_profile}}",
+    {{/nodes.volume_profile}}
     "TASKCFG_ALL_CASSANDRA_HEAP_SIZE_MB": "{{nodes.heap.size}}",
     "TASKCFG_ALL_CASSANDRA_HEAP_NEW_MB": "{{nodes.heap.new}}",
     "CASSANDRA_JAVA_URI": "{{resource.assets.uris.cassandra-jre-tar-gz}}",
@@ -107,6 +110,11 @@
     "VIRTUAL_NETWORK_NAME": "{{service.virtual_network_name}}",
     "VIRTUAL_NETWORK_PLUGIN_LABELS": "{{service.virtual_network_plugin_labels}}",
     {{/service.virtual_network_enabled}}
+
+    {{#service.security.custom_domain}}
+    "SERVICE_TLD": "{{service.security.custom_domain}}",
+    {{/service.security.custom_domain}}
+    
     {{#service.region}}
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}

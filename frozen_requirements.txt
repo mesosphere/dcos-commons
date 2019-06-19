@@ -82,7 +82,7 @@ pathlib2==2.3.3
 pefile==2018.8.8
 pkginfo==1.2.1
 pluggy==0.8.1
-pre-commit==1.14.4
+pre-commit==1.16.1
 prettytable==0.7.2
 py==1.7.0
 pyasn1==0.4.5

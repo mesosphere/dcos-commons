@@ -673,7 +673,13 @@ public class PodInfoBuilder {
           .setType(rLimit.getEnum());
 
       // RLimit itself validates that both or neither of these are present.
-      if (soft.isPresent() && hard.isPresent()) {
+      if ((soft.isPresent() && hard.isPresent()) && (soft.get() != RLimitSpec.RLIMIT_INFINITY &&
+          hard.get() != RLimitSpec.RLIMIT_INFINITY))
+      {
+        // If RLIMIT_INFINITY is desired, the RLimitInfo Protobuf exists but both
+        // the hard and soft values are unset.
+        //http://mesos.apache.org/api/latest/java/org/apache/mesos/Protos.RLimitInfo.RLimit.Builder.html#setHard-long-
+
         rLimitsBuilder.setSoft(soft.get()).setHard(hard.get());
       }
       rLimitInfoBuilder.addRlimits(rLimitsBuilder);

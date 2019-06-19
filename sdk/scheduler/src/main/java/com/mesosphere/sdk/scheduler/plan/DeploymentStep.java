@@ -181,6 +181,13 @@ public class DeploymentStep extends AbstractStep {
       case TASK_KILLED:
       case TASK_KILLING:
       case TASK_LOST:
+      //Tasks statuses relating to PARTITION_AWARE capability.
+      //Currently these Task statuses are handled in the same
+      //way as TASK_LOST.
+      case TASK_GONE:
+      case TASK_DROPPED:
+      case TASK_UNREACHABLE:
+      case TASK_GONE_BY_OPERATOR:
         setTaskStatus(status.getTaskId(), Status.PENDING);
         break;
       case TASK_STAGING:
@@ -218,6 +225,10 @@ public class DeploymentStep extends AbstractStep {
                 "Unsupported goal state %s for task %s",
                 goalState, status.getTaskId().getValue()));
         }
+        break;
+      }
+      case TASK_UNKNOWN: {
+        logger.warn("Discarding task status update for " + status.getState());
         break;
       }
       default:
