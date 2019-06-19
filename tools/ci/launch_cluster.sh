@@ -7,6 +7,8 @@ set -e
 LAUNCH_SUCCESS="False"
 RETRY_LAUNCH="True"
 
+env
+
 while [ x"${LAUNCH_SUCCESS}" == x"False" ]; do
     rm -f ${CLUSTER_INFO_FILE} # dcos-launch complains if the file already exists
     /venvs/wrap.sh dcos-launch dcos-launch create --config-path=${LAUNCH_CONFIG_FILE} --info-path=${CLUSTER_INFO_FILE}
@@ -15,7 +17,7 @@ while [ x"${LAUNCH_SUCCESS}" == x"False" ]; do
     else
         set -e
     fi
-    /venvs/wrap.sh dcos-launch dcos-launch wait --info-path=${CLUSTER_INFO_FILE} 2>&1 | tee dcos-launch-wait-output.stdout
+    /venvs/wrap.sh dcos-launch wait --info-path=${CLUSTER_INFO_FILE} 2>&1 | tee dcos-launch-wait-output.stdout
 
     # Grep exits with an exit code of 1 if no lines are matched. We thus need to
     # disable exit on errors.
