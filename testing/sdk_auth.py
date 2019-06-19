@@ -220,7 +220,25 @@ class KerberosEnvironment:
         sdk_marathon.install_app(self.app_definition)
         log.info("KDC app installed successfully")
 
+        log.info("Waiting for KDC web API endpoint to become available")
+        self.__wait_for_kdc_api()
+        log.info("KDC web API is now available")
+
         return _get_kdc_task(self.app_definition["id"])
+
+    def __wait_for_kdc_api(self):
+        """
+        Keeps polling the KDC Web endpoint until it becomes available
+        """
+        @retrying.retry(stop_max_attempt_number=30, wait_fixed=2000)
+        def probe():
+            sdk_cmd.cluster_request(
+                "GET",
+                "{}/".format(self.get_service_path()),
+                raise_on_error=True
+            )
+
+        return probe()
 
     def __kdc_api(self, method: str, action: str, json: dict) -> dict:
         """
@@ -231,16 +249,7 @@ class KerberosEnvironment:
         :return (dict):
         :raises a generic Exception if the invocation fails.
         """
-
-        # Find the service name
-        service_name_label = list(filter(
-            lambda kv: kv[0] == "DCOS_SERVICE_NAME",
-            self.app_definition["labels"].items()
-        ))
-        assert len(service_name_label) == 1
-
-        # Calculate the endpoint
-        url = "service/{}/api/{}".format(service_name_label[0][1], action)
+        url = "{}/api/{}".format(self.get_service_path(), action)
         log.info(
             "Performing KDC API {method} query to: {url}".format(
                 method=method,
@@ -350,6 +359,17 @@ class KerberosEnvironment:
         working_filepath = os.path.join(self._working_dir, *args)
         return working_filepath
 
+    def get_service_path(self) -> str:
+        # Find the service name
+        service_name_label = list(filter(
+            lambda kv: kv[0] == "DCOS_SERVICE_NAME",
+            self.app_definition["labels"].items()
+        ))
+        assert len(service_name_label) == 1
+
+        # Calculate the endpoint
+        return "service/{}".format(service_name_label[0][1])
+
     def get_host(self) -> str:
         return sdk_hosts.autoip_host(service_name="marathon", task_name=self.app_definition["id"])
 
@@ -360,7 +380,10 @@ class KerberosEnvironment:
         return str(self.app_definition["portDefinitions"][1]["port"])
 
     def get_keytab_path(self) -> str:
-        return self.keytab_secret_path
+        if self.keytab_secret_binary:
+            return self.keytab_secret_path
+        else:
+            return "__dcos_base64__{}".format(self.keytab_secret_path)
 
     def set_keytab_path(self, secret_path: str, is_binary: bool) -> None:
         self.keytab_secret_path = secret_path
@@ -408,4 +431,4 @@ class KerberosEnvironment:
         # TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
         sdk_security.install_enterprise_cli()
-        sdk_security.delete_secret(self.keytab_secret_path)
+        sdk_security.delete_secret(self.get_keytab_path())
