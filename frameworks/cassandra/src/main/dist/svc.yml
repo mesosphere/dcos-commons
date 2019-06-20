@@ -128,7 +128,7 @@ pods:
                 {{#SECURITY_AUTHENTICATION_ENABLED}}
                 if [ "{{TASKCFG_ALL_CASSANDRA_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
                 export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "DESC SCHEMA" "node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST}" ${CASSANDRA_NATIVE_TRANSPORT_PORT} > container-path/snapshot/schema.cql ;
                 fi
                 {{/SECURITY_AUTHENTICATION_ENABLED}}
                 {{^SECURITY_AUTHENTICATION_ENABLED}}
@@ -218,7 +218,7 @@ pods:
                 {{#SECURITY_AUTHENTICATION_ENABLED}}
                 if [ "{{TASKCFG_ALL_CASSANDRA_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
                 export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT}
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "source 'container-path/snapshot/schema.cql'" node-${POD_INSTANCE_INDEX}-server.${FRAMEWORK_HOST} ${CASSANDRA_NATIVE_TRANSPORT_PORT} ;
                 fi
                 {{/SECURITY_AUTHENTICATION_ENABLED}}
                 {{^SECURITY_AUTHENTICATION_ENABLED}}
