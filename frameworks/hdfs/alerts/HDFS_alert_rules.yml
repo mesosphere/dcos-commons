@@ -1,0 +1,97 @@
+groups:
+  - name: hdfs_info
+    rules:
+      # Alert for any instance that has a median request latency > 1s.
+    - alert: APIHighRequestLatency
+      expr: api_http_request_latencies_second{quantile="0.5"} > 1
+      for: 10m
+      labels:
+        severity: info
+        service: hdfs
+      annotations:
+        summary: "High request latency on {{ $labels.instance }}"
+        description: "Request latency is greater then 1s. Please consider to check network and other health cluster metrics"
+
+  - name: hdfs_warning
+    rules:
+    - alert: CapacityRemainingGB
+      expr: ({__name__=~".*_FSNamesystem_CapacityUsed"} / {__name__=~".*_FSNamesystem_CapacityTotal"}) > 0.8
+      for: 10m
+      labels:
+       severity: warning
+       service: hdfs
+      annotations:
+       summary: "Low capacity remaining in GB on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
+       description: "Low disk capacity remaining in cluster (less than 20%). Consider increasing data node count to increase disk capacity and return usage to a healthy state."
+
+    - alert: MissingBlocks
+      expr: sum by(service_name,task_name) (rate({__name__=~".*_dfs_FSNamesystem_MissingBlocks"}[10m])) > 0
+      labels:
+        severity: warning
+        service: hdfs
+      annotations:
+       summary: "Missing blocks on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
+       description: "The number of missing blocks have increased over the last 10 min. Please investigate as this means you could lose your data"
+
+    - alert: UnderReplicatedBlocks
+      expr: sum by(service_name,task_name) (rate({__name__=~".*_dfs_FSNamesystem_UnderReplicatedBlocks"}[10m])) > 0
+      labels:
+        severity: warning
+        service: hdfs
+      annotations:
+       summary: "Under replicated blocks on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
+       description: "Under replicated blocks represent data blocks of files that have not met their target replication factor. Please check the cluster state and if need be, manually fix. For example: https://community.hortonworks.com/articles/4427/fix-under-replicated-blocks-in-hdfs-manually.html"
+
+    - alert: NumStaleDataNodes
+      expr: sum by(service_name,task_name) (rate({__name__=~".*_dfs_FSNamesystem_StaleDataNodes"}[10m])) > 0
+      labels:
+        severity: warning
+        service: hdfs
+      annotations:
+       summary: "Number of stale DataNodes on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
+       description: "DataNode might not emit a heartbeat for a number of reasons — network issues or high load are among the more common causes"
+
+    - alert: MemHeapUsed
+      expr: (sum({__name__=~".*_jvm_JvmMetrics_MemHeapMaxM"}) / sum({__name__=~".*_jvm_JvmMetrics_MemHeapUsedM"})) < 0.2
+      for: 10m
+      labels:
+        severity: warning
+        service: hdfs
+      annotations:
+       summary: "Total service memory heap in use for {{ $labels.instance }}"
+       description: "Total memory heap usage is greater than 80%. Consider increasing memory of the HDFS cluster"
+
+  - name: hdfs_critical
+    rules:
+
+    - alert: NumInactiveSources
+      expr: (sum({__name__=~".*metricssystem_MetricsSystem_NumAllSources"}) - sum({__name__=~".*metricssystem_MetricsSystem_NumActiveSources"})) > 0
+      for: 5m
+      labels:
+        severity: critical
+        service: hdfs
+      annotations:
+       summary: "Number of inactive sources for {{ $labels.instance }}"
+       description: "The number of inactive metrics sources have increased over the last 5 minutes. Please investigate as metrics are no longer being captured and potentially nodes may be down"
+
+    - alert: VolumeFailures
+      expr: sum by (service_name,task_name) ({__name__=~".*_dfs_datanode_VolumeFailures"}) > 0
+      for: 5m
+      labels:
+        severity: critical
+        service: hdfs
+      annotations:
+       summary: "VolumeFailures on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
+       description: "Hardware failures occur, please consider replace the failed hardware. Failed volume is not a data loss signal"
+
+    - alert: FatalLogErrors
+        expr: ({__name__=~".*(DataNode|JournalNode|NamdeNode)*jvm_JvmMetrics_LogFatal"}) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: hdfs
+        annotations:
+          summary: "Fatal log errors have been reported on {{ $labels.instance }} for {{ $labels.service_name }} / {{ $labels.task_name }}"
+          description: "A fatal log message has been reported. Please investigate as this may indicate a serious issue"
+
+
