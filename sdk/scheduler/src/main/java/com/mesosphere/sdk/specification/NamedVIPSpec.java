@@ -75,6 +75,23 @@ public final class NamedVIPSpec extends PortSpec {
     return new Builder();
   }
 
+  public static Builder newBuilder(NamedVIPSpec copy) {
+    Builder builder = new Builder();
+    builder.protocol(copy.getProtocol())
+      .vipName(copy.getVipName())
+      .vipPort(copy.getVipPort())
+      .envKey(copy.getEnvKey())
+      .portName(copy.getPortName())
+      .visibility(copy.getVisibility())
+      .networkNames(copy.getNetworkNames())
+      .ranges(copy.getRanges())
+      .value(copy.getValue())
+      .role(copy.getRole())
+      .preReservedRole(copy.getPreReservedRole())
+      .principal(copy.getPrincipal());
+    return builder;
+  }
+
   @JsonProperty("protocol")
   public String getProtocol() {
     return protocol;
