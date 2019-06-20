@@ -108,112 +108,111 @@
                 }
               }
             },
-	   "authentication": {
-            "type": "object",
-            "description": "DC/OS Apache Cassandra authentication settings",
-            "properties": {
+            "authentication": {
+              "type": "object",
+              "description": "DC/OS Apache Cassandra authentication settings",
+              "properties": {
                 "enabled": {
-                    "description": "Enable authentication",
-                    "type": "boolean",
-                    "default": false
+                  "description": "Enable authentication",
+                  "type": "boolean",
+                  "default": false
                 },
                 "superuser": {
-                    "type": "object",
-                    "description": "The super user configuration settings. Only valid when using Apache Cassandra's native PasswordAuthenticator.",
-                    "properties": {
-                            "name": {
-                                "type": "string",
-                                "description": "The name of the superuser",
-                                "default": "dcossuperuser"
-                            },
-                            "password_secret_path": {
-                                "type": "string",
-                                "description": "The path in the DC/OS Secret Store to retrieve the superuser password from. If using 'PasswordAuthenticator', you must first create the secret in the Secret Store." ,
-                                "default": ""
-                            }
-                        }
-                    },  
+                  "type": "object",
+                  "description": "The super user configuration settings. Only valid when using Apache Cassandra's native PasswordAuthenticator.",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "description": "The name of the superuser",
+                      "default": "dcossuperuser"
+                    },
+                    "password_secret_path": {
+                      "type": "string",
+                      "description": "The path in the DC/OS Secret Store to retrieve the superuser password from. If using 'PasswordAuthenticator', you must first create the secret in the Secret Store.",
+                      "default": ""
+                    }
+                  }
+                },
                 "authenticator": {
-                    "description": "The name of the authenticator. By default, the value set is Apache Cassandra's native authenticator: PasswordAuthenticator",
-                    "type": "string",
-                    "default": "PasswordAuthenticator"
+                  "description": "The name of the authenticator. By default, the value set is Apache Cassandra's native authenticator: PasswordAuthenticator",
+                  "type": "string",
+                  "default": "PasswordAuthenticator"
                 },
                 "role_manager": {
-                    "description": "﻿Part of the Authentication & Authorization backend that implements IRoleManager to maintain grants and memberships between roles, By default, the value set is Apache Cassandra's out of the box Role Manager: CassandraRoleManager",
-                    "type": "string",
-                    "default": "CassandraRoleManager"
+                  "description": "﻿Part of the Authentication & Authorization backend that implements IRoleManager to maintain grants and memberships between roles, By default, the value set is Apache Cassandra's out of the box Role Manager: CassandraRoleManager",
+                  "type": "string",
+                  "default": "CassandraRoleManager"
                 },
                 "authentication_custom_cassandra_yml": {
-                    "description": "Custom YAML to be appended to cassandra.yml on each node. This field must be base64 encoded.",
-                    "type": "string",
-                    "media": {
-                      "binaryEncoding": "base64",
-                      "type": "application/x-yaml"
-                    },
-                    "default": ""
-                  }
-                }     
-        },
-        "authorization": {
-            "type": "object",
-            "description": "DC/OS Apache Cassandra authorization settings",
-            "properties": {
+                  "description": "Custom YAML to be appended to cassandra.yml on each node. This field must be base64 encoded.",
+                  "type": "string",
+                  "media": {
+                    "binaryEncoding": "base64",
+                    "type": "application/x-yaml"
+                  },
+                  "default": ""
+                }
+              }
+            },
+            "authorization": {
+              "type": "object",
+              "description": "DC/OS Apache Cassandra authorization settings",
+              "properties": {
                 "enabled": {
-                    "type": "boolean",
-                    "description": "Enable authorization",
-                    "default": false
+                  "type": "boolean",
+                  "description": "Enable authorization",
+                  "default": false
                 },
                 "authorizer": {
-                    "description": "The name of the authorizer. By default, the value set is Apache Cassandra's native authorizer: CassandraAuthorizer",
-                    "type": "string",
-                    "default": "CassandraAuthorizer"
+                  "description": "The name of the authorizer. By default, the value set is Apache Cassandra's native authorizer: CassandraAuthorizer",
+                  "type": "string",
+                  "default": "CassandraAuthorizer"
                 },
                 "roles_validity_in_ms": {
-                    "type": "integer",
-                    "description": "Validity period for roles cache; set to 0 to disable",
-                    "default": 2000
+                  "type": "integer",
+                  "description": "Validity period for roles cache; set to 0 to disable",
+                  "default": 2000
                 },
                 "roles_update_interval_in_ms": {
-                    "type": "integer",
-                    "description": "After this interval, cache entries become eligible for refresh. Upon next access, Cassandra schedules an async reload, and returns the old value until the reload completes. If roles_validity_in_ms is non-zero, then this must be also.",
-                    "default": 2000
+                  "type": "integer",
+                  "description": "After this interval, cache entries become eligible for refresh. Upon next access, Cassandra schedules an async reload, and returns the old value until the reload completes. If roles_validity_in_ms is non-zero, then this must be also.",
+                  "default": 2000
                 },
                 "credentials_validity_in_ms": {
-                    "type": "integer",
-                    "description": " This cache is tightly coupled to the provided PasswordAuthenticator implementation of IAuthenticator. If another IAuthenticator implementation is configured, Cassandra does not use this cache, and these settings have no effect. Set to 0 to disable.",
-                    "default": 2000
+                  "type": "integer",
+                  "description": " This cache is tightly coupled to the provided PasswordAuthenticator implementation of IAuthenticator. If another IAuthenticator implementation is configured, Cassandra does not use this cache, and these settings have no effect. Set to 0 to disable.",
+                  "default": 2000
                 },
                 "credentials_update_interval_in_ms": {
-                    "type": "integer",
-                    "description": "After this interval, cache entries become eligible for refresh. The next time the cache is accessed, the system schedules an asynchronous reload of the cache. Until this cache reload is complete, the cache returns the old values. If credentials_validity_in_ms is nonzero, this property must also be nonzero.",
-                    "default": 2000
+                  "type": "integer",
+                  "description": "After this interval, cache entries become eligible for refresh. The next time the cache is accessed, the system schedules an asynchronous reload of the cache. Until this cache reload is complete, the cache returns the old values. If credentials_validity_in_ms is nonzero, this property must also be nonzero.",
+                  "default": 2000
                 },
                 "permissions_validity_in_ms": {
-                    "type": "integer",
-                    "description": "How many milliseconds permissions in cache remain valid. Fetching permissions can be resource intensive. To disable the cache, set this to 0.",
-                    "default": 2000
+                  "type": "integer",
+                  "description": "How many milliseconds permissions in cache remain valid. Fetching permissions can be resource intensive. To disable the cache, set this to 0.",
+                  "default": 2000
                 },
                 "permissions_update_interval_in_ms": {
-                    "type": "integer",
-                    "description": "If enabled, sets refresh interval for the permissions cache. After this interval, cache entries become eligible for refresh. On next access, Cassandra schedules an async reload and returns the old value until the reload completes. If permissions_validity_in_ms is nonzero, permissions_update_interval_in_ms must also be non-zero.",
-                    "default": 2000
+                  "type": "integer",
+                  "description": "If enabled, sets refresh interval for the permissions cache. After this interval, cache entries become eligible for refresh. On next access, Cassandra schedules an async reload and returns the old value until the reload completes. If permissions_validity_in_ms is nonzero, permissions_update_interval_in_ms must also be non-zero.",
+                  "default": 2000
                 },
                 "permissions_cache_max_entries": {
-                    "type": "integer",
-                    "description": "The maximum number of entries that are held by the standard authentication cache and row-level access control (RLAC) cache.",
-                    "default": 1000
+                  "type": "integer",
+                  "description": "The maximum number of entries that are held by the standard authentication cache and row-level access control (RLAC) cache.",
+                  "default": 1000
                 }
-
+              }
+            },
+            "custom_domain": {
+              "type": "string",
+              "description": "A custom domain to be used in place of autoip.dcos.thisdcos.directory. This can be used to expose the service securely outside of the cluster, but requires setting up external DNS. See the service documentation for details."
             }
+          }
         },
-        "custom_domain": {
-          "type": "string",
-          "description": "A custom domain to be used in place of autoip.dcos.thisdcos.directory. This can be used to expose the service securely outside of the cluster, but requires setting up external DNS. See the service documentation for details."
-        }
-                }
-        },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -237,20 +236,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -318,6 +317,10 @@
         "disk_type": {
           "type": "string",
           "description": "Disk type to be used for storing Cassandra data. See documentation. [ROOT, MOUNT]",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
           "default": "ROOT"
         },
         "volume_profile": {
@@ -760,6 +763,10 @@
         "disk_optimization_strategy": {
           "type": "string",
           "description": "The strategy for optimizing disk reads",
+          "enum": [
+            "ssd",
+            "spinning"
+          ],
           "default": "ssd"
         },
         "max_value_size_in_mb": {
@@ -969,7 +976,6 @@
           "description": "The flow speed to apply rate limiting: FAST - rate limited to the speed of the fastest replica. SLOW - rate limit to the speed of the slowest replica.",
           "default": "FAST"
         }
-
       },
       "additionalProperties": false,
       "required": [
