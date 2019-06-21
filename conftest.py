@@ -6,10 +6,11 @@ E.G. py.test frameworks/<your-frameworks>/tests
 """
 import logging
 import os.path
+import pytest
+import retrying
 import sys
 import time
 
-import pytest
 import sdk_diag
 import sdk_repository
 import sdk_package_registry
@@ -82,10 +83,27 @@ def pytest_runtest_makereport(item: pytest.Item, call):  # _pytest.runner.CallIn
     # Execute all other hooks to obtain the report object.
     outcome = yield
 
-    # Handle failures. Must be done here and not in a fixture in order to
-    # properly handle post-yield fixture teardown failures.
+    # Handle failures. Must be done here and not in a fixture in order to properly handle post-yield
+    # fixture teardown failures.
     if INTEGRATION_TEST_LOG_COLLECTION:
-        sdk_diag.handle_test_report(item, outcome.get_result())
+        @retrying.retry(
+            # It is possible that test-related timeouts are triggered while diagnostics-fetching
+            # runs, instead of when the actual test runs. That manifests as an "INTERNALERROR>
+            # Failed: Timeout" that crashes the test process. That is undesirable because then we
+            # get no diagnostics artifacts which would allow us to investigate why the test timed
+            # out in the first place.
+            #
+            # Here, we retry the diagnostics-fetching method in case of pytest exceptions.
+            #
+            # Check DCOS-51362 for more context.
+            stop_max_attempt_number=3,
+            retry_on_exception=lambda e: isinstance(e, pytest.fail.Exception),
+        )
+        def _create_diagnostics_bundle():
+            sdk_diag.handle_test_report(item, outcome.get_result())
+
+        _create_diagnostics_bundle()
+
     else:
         print("INTEGRATION_TEST_LOG_COLLECTION==False. Skipping log collection")
 
