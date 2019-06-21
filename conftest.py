@@ -86,6 +86,7 @@ def pytest_runtest_makereport(item: pytest.Item, call):  # _pytest.runner.CallIn
     # Handle failures. Must be done here and not in a fixture in order to properly handle post-yield
     # fixture teardown failures.
     if INTEGRATION_TEST_LOG_COLLECTION:
+
         @retrying.retry(
             # It is possible that test-related timeouts are triggered while diagnostics-fetching
             # runs, instead of when the actual test runs. That manifests as an "INTERNALERROR>
