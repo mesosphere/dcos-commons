@@ -43,6 +43,10 @@ pods:
           path: journal-data
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
+          {{#JOURNAL_VOLUME_PROFILE}}
+          profiles:
+            - {{JOURNAL_VOLUME_PROFILE}}
+          {{/JOURNAL_VOLUME_PROFILE}}
     placement: '{{{JOURNAL_NODE_PLACEMENT}}}'
     tasks:
       bootstrap:
@@ -178,6 +182,10 @@ pods:
           path: name-data
           size: {{NAME_DISK}}
           type: {{NAME_DISK_TYPE}}
+          {{#NAME_VOLUME_PROFILE}}
+          profiles:
+            - {{NAME_VOLUME_PROFILE}}
+          {{/NAME_VOLUME_PROFILE}}
         ports:
           name-rpc:
             port: {{TASKCFG_ALL_NAME_NODE_RPC_PORT}}
@@ -509,6 +517,10 @@ pods:
           path: data-data
           size: {{DATA_DISK}}
           type: {{DATA_DISK_TYPE}}
+          {{#DATA_VOLUME_PROFILE}}
+          profiles:
+            - {{DATA_VOLUME_PROFILE}}
+          {{/DATA_VOLUME_PROFILE}}
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:

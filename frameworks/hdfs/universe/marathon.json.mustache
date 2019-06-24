@@ -44,11 +44,17 @@
     "JOURNAL_MEM": "{{journal_node.mem}}",
     "JOURNAL_DISK": "{{journal_node.disk}}",
     "JOURNAL_DISK_TYPE": "{{journal_node.disk_type}}",
+    {{#journal_node.volume_profile}}
+    "JOURNAL_VOLUME_PROFILE": "{{journal_node.volume_profile}}",
+    {{/journal_node.volume_profile}}
     "JOURNAL_LAGGING_TX_COUNT": "{{journal_node.lagging_tx_count}}",
     "NAME_CPUS": "{{name_node.cpus}}",
     "NAME_MEM": "{{name_node.mem}}",
     "NAME_DISK": "{{name_node.disk}}",
     "NAME_DISK_TYPE": "{{name_node.disk_type}}",
+    {{#name_node.volume_profile}}
+    "NAME_VOLUME_PROFILE": "{{name_node.volume_profile}}",
+    {{/name_node.volume_profile}}
     "ZKFC_CPUS": "{{zkfc_node.cpus}}",
     "ZKFC_MEM": "{{zkfc_node.mem}}",
     "DATA_COUNT": "{{data_node.count}}",
@@ -56,6 +62,9 @@
     "DATA_MEM": "{{data_node.mem}}",
     "DATA_DISK": "{{data_node.disk}}",
     "DATA_DISK_TYPE": "{{data_node.disk_type}}",
+    {{#data_node.volume_profile}}
+    "DATA_VOLUME_PROFILE": "{{data_node.volume_profile}}",
+    {{/data_node.volume_profile}}
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "HDFS_URI": "{{resource.assets.uris.hdfs-tar-gz}}",
     "HDFS_BIN_URI": "{{resource.assets.uris.hdfs-bin-tar-gz}}",
