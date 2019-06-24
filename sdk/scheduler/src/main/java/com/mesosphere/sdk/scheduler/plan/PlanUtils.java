@@ -79,9 +79,15 @@ public final class PlanUtils {
     if (element instanceof Interruptible && ((Interruptible) element).isInterrupted()) {
       return false;
     }
+    //TODO@kjoshi: return false here in case where our current delay hasn't been met.
+    //@takirala: here's where the logic for determining if we're in backoff gets excercised. 
     if (element instanceof Step) {
       Optional<PodInstanceRequirement> podInstanceRequirement =
           ((Step) element).getPodInstanceRequirement();
+    
+     //Implementation detail: Step will have a expiry time set. Compare expiry time with currentTime
+     //and decide if we've expired or not, include in workset if post expiry. 
+      
       return !podInstanceRequirement.isPresent()
           || !PlanUtils.assetConflicts(podInstanceRequirement.get(), dirtyAssets);
     }

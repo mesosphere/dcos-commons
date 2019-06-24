@@ -135,6 +135,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
   public ClientStatusResponse getClientStatus() {
     // Get the current work, and save it for the following offers() call.
     candidateSteps.clear();
+    //TODO@kjoshi: This is where our upcoming footprint is computed.
     candidateSteps.addAll(getPlanCoordinator().getCandidates());
 
     // Update workSetTracker: detect any new work that triggers the need to revive offers
@@ -147,6 +148,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
     activeWorkSet.addAll(inProgressSteps);
 
     try {
+      //TODO@kjoshi: workSetTracker.hasNewWork() gets called in getStatus() below based on the activeWorkSet here.
       workSetTracker.updateWorkSet(activeWorkSet);
     } catch (NullPointerException e) {
       logger.warn(

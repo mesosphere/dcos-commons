@@ -288,6 +288,7 @@ public class DefaultScheduler extends AbstractScheduler {
     } else if (!deployCompleted
         || isReplacing(recoveryPlanManager))
     {
+      //TODO@kjoshi: workSetTracker.hasNewWork() 
       // Service is acquiring footprint, either via initial deployment or via replacing a task
       return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
     } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> isWorking(pm.getPlan()))) {

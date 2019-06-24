@@ -109,6 +109,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     this.launchConstrainer = launchConstrainer;
     this.namespace = namespace;
     this.recoveryPlanOverriders = recoveryPlanOverriders;
+    //TODO@kjoshi: Recovery plans ARE DefaultPlans, just with a different name
     plan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME, Collections.emptyList());
   }
 
@@ -249,6 +250,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     phases.addAll(inProgressPhases);
     phases.addAll(overridePhases);
 
+    //TODO@kjoshi: This is where an actual RECOVERY plan is created with its constituent Phases.
     return DeployPlanFactory.getPlan(Constants.RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
   }
 
@@ -328,6 +330,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
       logger.info("Pods needing recovery: {}", getPodNames(failedPods));
     }
 
+    //TODO@kjoshi: DELAYED will cause !step.isComplete() here, ensure DELAYED doesn't get added to the plan.
     List<PodInstanceRequirement> incompleteRecoveries = getPlan().getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .filter(step -> !step.isComplete() && step.getPodInstanceRequirement().isPresent())

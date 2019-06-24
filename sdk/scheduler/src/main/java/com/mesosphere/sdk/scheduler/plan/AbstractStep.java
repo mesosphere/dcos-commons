@@ -97,6 +97,8 @@ public abstract class AbstractStep implements Step {
   @Override
   public void restart() {
     logger.warn("Restarting step: '{} [{}]'", getName(), getId());
+    //TODO@kjoshi: Reset backoff status here when issued by command line.
+    //Implementation detail: Set backoff back to zero.
     setStatus(Status.PENDING);
   }
 

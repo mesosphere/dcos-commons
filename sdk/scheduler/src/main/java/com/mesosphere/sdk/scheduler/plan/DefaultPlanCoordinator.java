@@ -71,6 +71,7 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
       }
 
       try {
+        //TODO@kjoshi: This is the set of dirty assets.
         Collection<PodInstanceRequirement> relevantDirtyAssets =
             getRelevantDirtyAssets(planManager, dirtiedAssets);
 

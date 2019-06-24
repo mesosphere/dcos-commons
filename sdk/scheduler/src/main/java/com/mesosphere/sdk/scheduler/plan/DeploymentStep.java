@@ -125,9 +125,13 @@ public class DeploymentStep extends AbstractStep {
         .forEach(taskInfo -> tasks.put(taskInfo.getTaskId(),
             new TaskStatusPair(taskInfo, Status.PREPARED)));
 
+
     if (recommendations.isEmpty()) {
+      //TODO@kjoshi: this line doesn't make sense. if recommendations is empty
+      //tasks.keySet() will be empty as well.
       tasks.keySet().forEach(id -> setTaskStatus(id, Status.PREPARED));
     } else {
+      //TODO@kjoshi: why is TaskStatusPair PREPARED, but set to STARTING here?
       tasks.keySet().forEach(id -> setTaskStatus(id, Status.STARTING));
     }
 
@@ -178,6 +182,9 @@ public class DeploymentStep extends AbstractStep {
     switch (status.getState()) {
       case TASK_ERROR:
       case TASK_FAILED:
+        //TODO@kjoshi: Transition to DELAYED state here
+        //Implementation detail: Move to DELAYED state and update backoff counters.
+        //Call up to AbstractStep to hold TaskId state.
       case TASK_KILLED:
       case TASK_KILLING:
       case TASK_LOST:

@@ -579,6 +579,7 @@ public final class TaskUtils {
    */
   @VisibleForTesting
   static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
+    //TODO@kjoshi: Note here that recovery won't be issued for DELAYED tasks.
     // Note that we include FINISHED as "needs recovery", because we assume the task is supposed to be RUNNING.
     if (isTerminal(taskStatus)) {
       return true;
@@ -623,6 +624,7 @@ public final class TaskUtils {
    * Returns whether the provided {@link TaskStatus} has reached a terminal state.
    */
   public static boolean isTerminal(Protos.TaskStatus taskStatus) {
+    //TODO@kjoshi: This method is called from many areas, needs to reflect the inclusion of DELAYED
     switch (taskStatus.getState()) {
       case TASK_DROPPED:
       case TASK_ERROR:
