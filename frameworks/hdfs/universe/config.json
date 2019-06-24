@@ -192,6 +192,10 @@
           ],
           "default": "ROOT"
         },
+        "volume_profile": {
+          "type": "string",
+          "description": "Volume profile to be used for storing Journal data."
+        },
         "enable_readiness_check": {
           "description": "Determines whether to enable readiness checks for Journal Nodes.",
           "type": "boolean",
@@ -294,6 +298,10 @@
           "description": "Name node disk type",
           "type": "string",
           "default": "ROOT"
+        },
+        "volume_profile": {
+          "type": "string",
+          "description": "Volume profile to be used for storing Name node meta-data."
         },
         "hadoop_namenode_opts": {
           "type": "string",
@@ -786,6 +794,10 @@
           "description": "Data node disk type",
           "type": "string",
           "default": "ROOT"
+        },
+        "volume_profile": {
+          "type": "string",
+          "description": "Volume profile to be used for storing Cassandra data."
         },
         "handler_count": {
           "description": "The number of server threads for the datanode.",
