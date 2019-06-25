@@ -152,7 +152,7 @@ public class FrameworkRunnerTest {
     @SuppressWarnings("deprecation")
     private static void checkRole(Optional<String> expectedRole, Protos.FrameworkInfo info) {
         if (expectedRole.isPresent()) {
-            Assert.assertEquals(info.getRole(), expectedRole.get());
+            Assert.assertEquals(expectedRole.get(), info.getRole());
         } else {
             Assert.assertFalse(info.hasRole());
         }
