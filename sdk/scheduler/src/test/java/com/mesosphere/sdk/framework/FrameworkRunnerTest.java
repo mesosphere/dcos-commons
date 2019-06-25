@@ -136,7 +136,7 @@ public class FrameworkRunnerTest {
         Assert.assertEquals("custom-principal", info.getPrincipal());
         Assert.assertEquals(TestConstants.FRAMEWORK_ID, info.getId());
         checkRole(Optional.empty(), info);
-        Assert.assertEquals(Arrays.asList("path__to__test-service-role", "role1", "role2", "role3"), info.getRolesList());
+        Assert.assertTrue(info.getRolesList().containsAll(Arrays.asList("path__to__test-service-role", "role1", "role2", "role3")));
         Assert.assertEquals(Arrays.asList(
                 getCapability(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE),
                 getCapability(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES),
