@@ -241,6 +241,26 @@ pods:
                 ./bootstrap --resolve=false ;
                 for f in $(find container-path/snapshot/ -maxdepth 1 -mindepth 1 -type d ! -name "system_*" ! -name "system") ; do
                     for t in $(find "$f" -maxdepth 1 -mindepth 1 -type d) ; do
+                {{#SECURITY_AUTHENTICATION_ENABLED}}
+                        if [ "{{TASKCFG_ALL_CASSANDRA_AUTHENTICATOR}}" = "PasswordAuthenticator" ]; then
+                        export NEW_USER_PASSWORD=`cat $MESOS_SANDBOX/new_user_password`;
+                        ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \
+                {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+                            --keystore node.keystore \
+                            --keystore-password notsecure \
+                            --truststore node.truststore \
+                            --truststore-password notsecure \
+                            --ssl-protocol TLSv1.2 \
+                            --ssl-ciphers TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA \
+                {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+                            -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
+                            -d ${LOCAL_SEEDS} \
+                            -u {{TASKCFG_ALL_NEW_SUPERUSER}} \
+                            -pw ${NEW_USER_PASSWORD} \
+                            -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
+                        fi
+                {{/SECURITY_AUTHENTICATION_ENABLED}}
+                {{^SECURITY_AUTHENTICATION_ENABLED}}
                         ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/sstableloader \
                 {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
                             --keystore node.keystore \
@@ -253,6 +273,7 @@ pods:
                             -f ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra.yaml \
                             -d ${LOCAL_SEEDS} \
                             -p ${CASSANDRA_NATIVE_TRANSPORT_PORT} "$t" ;
+                {{/SECURITY_AUTHENTICATION_ENABLED}}
                         result=$?
                         if [ $result != 0 ]
                         then
