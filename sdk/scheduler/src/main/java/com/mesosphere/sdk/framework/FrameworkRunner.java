@@ -168,7 +168,12 @@ public class FrameworkRunner {
     // We set to MULTI_ROLE by default and add all the necessary roles.
     fwkInfoBuilder.addCapabilitiesBuilder()
           .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE);
-    fwkInfoBuilder.addAllRoles(frameworkConfig.getAllResourceRoles());
+
+    if (frameworkConfig.getPreReservedRoles().isEmpty()) {
+      fwkInfoBuilder.setRole(frameworkConfig.getRole());
+    } else {
+      fwkInfoBuilder.addAllRoles(frameworkConfig.getAllResourceRoles());
+    }
 
     if (!StringUtils.isEmpty(frameworkConfig.getWebUrl())) {
       fwkInfoBuilder.setWebuiUrl(frameworkConfig.getWebUrl());

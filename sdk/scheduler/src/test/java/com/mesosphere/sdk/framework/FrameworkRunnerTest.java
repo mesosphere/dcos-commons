@@ -86,7 +86,7 @@ public class FrameworkRunnerTest {
         Assert.assertFalse(info.hasId());
         checkRole(Optional.of("path__to__test-service-role"), info);
         Assert.assertEquals(0, info.getRolesCount());
-        Assert.assertEquals(0, info.getCapabilitiesCount());
+        Assert.assertEquals(1, info.getCapabilitiesCount());
         Assert.assertFalse(info.hasWebuiUrl());
     }
 
@@ -107,7 +107,7 @@ public class FrameworkRunnerTest {
         Assert.assertEquals(TestConstants.FRAMEWORK_ID, info.getId());
         checkRole(Optional.of("path__to__test-service-role"), info);
         Assert.assertEquals(0, info.getRolesCount());
-        Assert.assertEquals(0, info.getCapabilitiesCount());
+        Assert.assertEquals(1, info.getCapabilitiesCount());
         Assert.assertFalse(info.hasWebuiUrl());
     }
 
