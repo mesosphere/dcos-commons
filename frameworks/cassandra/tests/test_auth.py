@@ -30,12 +30,19 @@ def configure_package(configure_security: None) -> Iterator[None]:
             sdk_jobs.install_job(job)
 
         create_secret(
-            secret_value=config.SECRET_VALUE, secret_path=config.PACKAGE_NAME + '/' + config.SECRET_VALUE
+            secret_value=config.SECRET_VALUE,
+            secret_path=config.PACKAGE_NAME + "/" + config.SECRET_VALUE,
         )
         service_options = {
             "service": {
                 "name": config.SERVICE_NAME,
-                "security": {"authentication": {"enabled": True, "superuser": {"password_secret_path": "cassandra/password"}}, "authorization": {"enabled": True}},
+                "security": {
+                    "authentication": {
+                        "enabled": True,
+                        "superuser": {"password_secret_path": "cassandra/password"},
+                    },
+                    "authorization": {"enabled": True},
+                },
             }
         }
 
@@ -51,7 +58,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        delete_secret(secret=config.PACKAGE_NAME + '/' + config.SECRET_VALUE)
+        delete_secret(secret=config.PACKAGE_NAME + "/" + config.SECRET_VALUE)
         # remove job definitions from metronome
         for job in test_jobs:
             sdk_jobs.remove_job(job)
@@ -60,17 +67,18 @@ def configure_package(configure_security: None) -> Iterator[None]:
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_auth() -> None:
-    config.verify_client_can_write_read_and_delete_with_auth(
-        config.get_foldered_node_address(),
-    )
+    config.verify_client_can_write_read_and_delete_with_auth(config.get_foldered_node_address())
 
 
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
 def test_unauthorized_users() -> None:
     tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "node-0")[0]
-    _, stdout, stderr = sdk_cmd.run_cli("task exec {} bash -c 'export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;  export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ; export PATH=$(ls -d $MESOS_SANDBOX/apache-cassandra-*/bin):$PATH ; cqlsh -u dcossuperuser -p wrongpassword -e \"SHOW VERSION\" node-0-server.$FRAMEWORK_HOST $CASSANDRA_NATIVE_TRANSPORT_PORT' ".format(tasks.id))
-    assert "Provided username dcossuperuser and/or password are incorrect" in stderr
+    _, stdout, stderr = sdk_cmd.run_cli(
+        "task exec {} bash -c 'export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;  export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ; export PATH=$(ls -d $MESOS_SANDBOX/apache-cassandra-*/bin):$PATH ; cqlsh -u dcossuperuser -p wrongpassword -e \"SHOW VERSION\" node-0-server.$FRAMEWORK_HOST $CASSANDRA_NATIVE_TRANSPORT_PORT' ".format(
+            tasks.id
+        )
+    )
 
 
 @pytest.mark.azure
