@@ -39,9 +39,7 @@ def get_foldered_node_address() -> str:
 
 
 def _get_cqlsh_tls_rc_config(
-    node_address: str,
-    node_port: str,
-    certfile: str = "/mnt/mesos/sandbox/ca-bundle.crt",
+    node_address: str, node_port: str, certfile: str = "/mnt/mesos/sandbox/ca-bundle.crt"
 ) -> str:
     """
     Returns a content of `cqlshrc` configuration file with provided hostname,
@@ -115,7 +113,9 @@ def _get_test_job(
 
 def _cqlsh(query: str, node_address: str, node_port: str, auth: bool) -> str:
     if auth:
-        return 'cqlsh -u dcossuperuser -p password -e "{}" {} {}'.format(query, node_address, node_port)
+        return 'cqlsh -u dcossuperuser -p password -e "{}" {} {}'.format(
+            query, node_address, node_port
+        )
     else:
         return 'cqlsh -e "{}" {} {}'.format(query, node_address, node_port)
 
@@ -250,8 +250,10 @@ def get_verify_udf_data_job(
 ) -> Dict[str, Any]:
     cmds = [
         "{} | grep 200".format(
-            _cqlsh("SELECT maxof(val1,val2) FROM testspace1.testtable1;", node_address, node_port, auth)
-        ),
+            _cqlsh(
+                "SELECT maxof(val1,val2) FROM testspace1.testtable1;", node_address, node_port, auth
+            )
+        )
     ]
     return _get_test_job(
         "verify-udf-data", cmds, node_address, node_port, dcos_ca_bundle=dcos_ca_bundle
@@ -259,9 +261,7 @@ def get_verify_udf_data_job(
 
 
 def get_all_jobs(
-    node_address: str = DEFAULT_NODE_ADDRESS,
-    node_port: str = DEFAULT_NODE_PORT,
-    auth: bool = False,
+    node_address: str = DEFAULT_NODE_ADDRESS, node_port: str = DEFAULT_NODE_PORT, auth: bool = False
 ) -> List[Dict[str, Any]]:
     return [
         get_write_data_job(node_address, auth=auth),
@@ -272,13 +272,9 @@ def get_all_jobs(
 
 
 def get_udf_jobs(
-    node_address: str = DEFAULT_NODE_ADDRESS,
-    node_port: str = DEFAULT_NODE_PORT,
+    node_address: str = DEFAULT_NODE_ADDRESS, node_port: str = DEFAULT_NODE_PORT
 ) -> List[Dict[str, Any]]:
-    return [
-        get_write_udf_job(node_address),
-        get_verify_udf_data_job(node_address),
-    ]
+    return [get_write_udf_job(node_address), get_verify_udf_data_job(node_address)]
 
 
 def run_backup_and_restore(
@@ -329,9 +325,7 @@ def run_backup_and_restore(
     sdk_jobs.run_job(verify_deletion_job)
 
 
-def verify_client_can_write_read_udf(
-    job_node_address: str = DEFAULT_NODE_ADDRESS,
-) -> None:
+def verify_client_can_write_read_udf(job_node_address: str = DEFAULT_NODE_ADDRESS,) -> None:
 
     write_udf_job = get_write_udf_job(node_address=job_node_address)
     verify_udf_data_job = get_verify_udf_data_job(node_address=job_node_address)
@@ -344,7 +338,11 @@ def verify_client_can_write_read_udf(
     sdk_jobs.run_job(verify_deletion_job)
 
 
-def verify_client_can_write_read_and_delete_with_auth(
+def run_backup_and_restore_with_auth(
+    service_name: str,
+    backup_plan: str,
+    restore_plan: str,
+    plan_parameters: Dict[str, Optional[str]],
     job_node_address: str = DEFAULT_NODE_ADDRESS,
 ) -> None:
     write_data_job = get_write_data_job(node_address=job_node_address, auth=True)
@@ -363,5 +361,24 @@ def verify_client_can_write_read_and_delete_with_auth(
 
     sdk_jobs.run_job(write_data_job)
     sdk_jobs.run_job(verify_data_job)
+
+    # Run backup plan, uploading snapshots and schema to the cloudddd
+    sdk_plan.start_plan(service_name, backup_plan, parameters=plan_parameters)
+    sdk_plan.wait_for_completed_plan(service_name, backup_plan)
+
+    # Delete all keyspaces and tables with a metronome job
+    sdk_jobs.run_job(delete_data_job)
+
+    # Verify that the keyspaces and tables were deleted
+    sdk_jobs.run_job(verify_deletion_job)
+
+    # Run restore plan, retrieving snapshots and schema from S3
+    sdk_plan.start_plan(service_name, restore_plan, parameters=plan_parameters)
+    sdk_plan.wait_for_completed_plan(service_name, restore_plan)
+
+    # Verify that the data we wrote and then deleted has been restored
+    sdk_jobs.run_job(verify_data_job)
+
+    # Delete data in preparation for any other backup tests
     sdk_jobs.run_job(delete_data_job)
     sdk_jobs.run_job(verify_deletion_job)
