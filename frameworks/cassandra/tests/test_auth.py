@@ -82,7 +82,7 @@ def test_backup_and_restore_to_s3_with_auth() -> None:
     }
 
     config.run_backup_and_restore_with_auth(
-        config.get_foldered_service_name(),
+        config.SERVICE_NAME,
         "backup-s3",
         "restore-s3",
         plan_parameters,
@@ -111,7 +111,7 @@ def test_backup_and_restore_to_azure_with_auth() -> None:
     }
 
     config.run_backup_and_restore_with_auth(
-        config.get_foldered_service_name(),
+        config.SERVICE_NAME,
         "backup-azure",
         "restore-azure",
         plan_parameters,
