@@ -66,25 +66,34 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_auth() -> None:
-    config.verify_client_can_write_read_and_delete_with_auth(config.get_foldered_node_address())
+def test_backup_and_restore_to_s3_with_auth() -> None:
+    key_id = os.getenv("AWS_ACCESS_KEY_ID")
+    if not key_id:
+        assert (
+            False
+        ), 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
+    plan_parameters = {
+        "AWS_ACCESS_KEY_ID": key_id,
+        "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
+        "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
+        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
+        "SNAPSHOT_NAME": str(uuid.uuid1()),
+        "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
+    }
 
-
-@sdk_utils.dcos_ee_only
-@pytest.mark.sanity
-def test_unauthorized_users() -> None:
-    tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "node-0")[0]
-    _, stdout, stderr = sdk_cmd.run_cli(
-        "task exec {} bash -c 'export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;  export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ; export PATH=$(ls -d $MESOS_SANDBOX/apache-cassandra-*/bin):$PATH ; cqlsh -u dcossuperuser -p wrongpassword -e \"SHOW VERSION\" node-0-server.$FRAMEWORK_HOST $CASSANDRA_NATIVE_TRANSPORT_PORT' ".format(
-            tasks.id
-        )
+    config.run_backup_and_restore_with_auth(
+        config.get_foldered_service_name(),
+        "backup-s3",
+        "restore-s3",
+        plan_parameters,
+        config.get_foldered_node_address(),
     )
 
 
 @pytest.mark.azure
 @no_strict_for_azure
 @pytest.mark.sanity
-def test_backup_and_restore_to_azure() -> None:
+def test_backup_and_restore_to_azure_with_auth() -> None:
     client_id = os.getenv("AZURE_CLIENT_ID")
     if not client_id:
         assert (
@@ -101,7 +110,7 @@ def test_backup_and_restore_to_azure() -> None:
         "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
     }
 
-    config.run_backup_and_restore(
+    config.run_backup_and_restore_with_auth(
         config.get_foldered_service_name(),
         "backup-azure",
         "restore-azure",
@@ -110,29 +119,14 @@ def test_backup_and_restore_to_azure() -> None:
     )
 
 
-@pytest.mark.aws
+@sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_backup_and_restore_to_s3() -> None:
-    key_id = os.getenv("AWS_ACCESS_KEY_ID")
-    if not key_id:
-        assert (
-            False
-        ), 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
-    plan_parameters = {
-        "AWS_ACCESS_KEY_ID": key_id,
-        "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
-        "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
-        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
-        "SNAPSHOT_NAME": str(uuid.uuid1()),
-        "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
-    }
-
-    config.run_backup_and_restore(
-        config.get_foldered_service_name(),
-        "backup-s3",
-        "restore-s3",
-        plan_parameters,
-        config.get_foldered_node_address(),
+def test_unauthorized_users() -> None:
+    tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "node-0")[0]
+    _, stdout, stderr = sdk_cmd.run_cli(
+        "task exec {} bash -c 'export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;  export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ; export PATH=$(ls -d $MESOS_SANDBOX/apache-cassandra-*/bin):$PATH ; cqlsh -u dcossuperuser -p wrongpassword -e \"SHOW VERSION\" node-0-server.$FRAMEWORK_HOST $CASSANDRA_NATIVE_TRANSPORT_PORT' ".format(
+            tasks.id
+        )
     )
 
 
