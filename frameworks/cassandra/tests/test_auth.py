@@ -24,27 +24,42 @@ no_strict_for_azure = pytest.mark.skipif(
 def configure_package(configure_security: None) -> Iterator[None]:
     test_jobs: List[Dict[str, Any]] = []
     try:
+        secret_path = config.PACKAGE_NAME + "/" + config.SECRET_VALUE
         test_jobs = config.get_all_jobs(auth=True)
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
         for job in test_jobs:
             sdk_jobs.install_job(job)
 
-        create_secret(
-            secret_value=config.SECRET_VALUE,
-            secret_path=config.PACKAGE_NAME + "/" + config.SECRET_VALUE,
-        )
-        service_options = {
-            "service": {
-                "name": config.SERVICE_NAME,
-                "security": {
-                    "authentication": {
-                        "enabled": True,
-                        "superuser": {"password_secret_path": "cassandra/password"},
+        create_secret(secret_value=config.SECRET_VALUE, secret_path=secret_path)
+        # user=root because Azure CLI needs to run in root...
+        # We don't run the Azure tests in strict however, so don't set it then.
+        if os.environ.get("SECURITY") == "strict":
+            service_options = {
+                "service": {
+                    "name": config.SERVICE_NAME,
+                    "security": {
+                        "authentication": {
+                            "enabled": True,
+                            "superuser": {"password_secret_path": "cassandra/password"},
+                        },
+                        "authorization": {"enabled": True},
                     },
-                    "authorization": {"enabled": True},
-                },
+                }
             }
-        }
+        else:
+            service_options = {
+                "service": {
+                    "name": config.SERVICE_NAME,
+                    "user": "root",
+                    "security": {
+                        "authentication": {
+                            "enabled": True,
+                            "superuser": {"password_secret_path": "cassandra/password"},
+                        },
+                        "authorization": {"enabled": True},
+                    },
+                }
+            }
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -58,7 +73,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        delete_secret(secret=config.PACKAGE_NAME + "/" + config.SECRET_VALUE)
+        delete_secret(secret=secret_path)
         # remove job definitions from metronome
         for job in test_jobs:
             sdk_jobs.remove_job(job)
@@ -76,8 +91,8 @@ def test_backup_and_restore_to_s3_with_auth() -> None:
         "AWS_ACCESS_KEY_ID": key_id,
         "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
         "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
-        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
-        "SNAPSHOT_NAME": str(uuid.uuid1()),
+        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-artifacts-ci"),
+        "SNAPSHOT_NAME": '"autodelete7d/cassandra/"',
         "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
     }
 

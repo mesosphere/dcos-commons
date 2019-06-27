@@ -303,7 +303,7 @@ def run_backup_and_restore(
     sdk_jobs.run_job(write_data_job)
     sdk_jobs.run_job(verify_data_job)
 
-    # Run backup plan, uploading snapshots and schema to the cloudddd
+    # Run backup plan, uploading snapshots and schema to the cloud
     sdk_plan.start_plan(service_name, backup_plan, parameters=plan_parameters)
     sdk_plan.wait_for_completed_plan(service_name, backup_plan)
 
@@ -362,7 +362,7 @@ def run_backup_and_restore_with_auth(
     sdk_jobs.run_job(write_data_job)
     sdk_jobs.run_job(verify_data_job)
 
-    # Run backup plan, uploading snapshots and schema to the cloudddd
+    # Run backup plan, uploading snapshots and schema to the cloud
     sdk_plan.start_plan(service_name, backup_plan, parameters=plan_parameters)
     sdk_plan.wait_for_completed_plan(service_name, backup_plan)
 
