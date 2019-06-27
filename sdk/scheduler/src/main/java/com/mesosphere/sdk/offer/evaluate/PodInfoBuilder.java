@@ -710,7 +710,7 @@ public class PodInfoBuilder {
                 // For pxd also add params inline
                 if (dockerVolume.getDriverName().equals("pxd") && dockerVolume.getDriverOptions() != null) {
                     StringBuffer nameBuf = new StringBuffer();
-                    nameBuf.append("name=" + volumeName);
+                    nameBuf.append("name=" + volumeName + ";size=" + sizeGB + ";nodes=LocalNode");
                     for (Map.Entry<String, String> option : dockerVolume.getDriverOptions().entrySet()) {
                         nameBuf.append(";" + option.getKey() + "=" + option.getValue());
                     }
