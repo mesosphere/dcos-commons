@@ -20,7 +20,7 @@ public final class DefaultConfigValidators {
     return Arrays.asList(
         new ServiceNameCannotContainDoubleUnderscores(),
         new PodSpecsCannotShrink(),
-        new TaskVolumesCannotChange(),
+        //new TaskVolumesCannotChange(),
         new PodSpecsCannotUseUnsupportedFeatures(),
         new PodSpecsCannotChangeNetworkRegime(),
         new PreReservationCannotChange(),
