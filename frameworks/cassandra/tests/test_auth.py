@@ -91,8 +91,8 @@ def test_backup_and_restore_to_s3_with_auth() -> None:
         "AWS_ACCESS_KEY_ID": key_id,
         "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
         "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
-        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-artifacts-ci"),
-        "SNAPSHOT_NAME": "autodelete7d/cassandra/" + str(uuid.uuid1()),
+        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
+        "SNAPSHOT_NAME": str(uuid.uuid1()),
         "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
     }
 
