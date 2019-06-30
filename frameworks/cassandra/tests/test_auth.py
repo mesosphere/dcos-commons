@@ -1,3 +1,5 @@
+import os
+import uuid
 import retrying
 from typing import Any, Dict, Iterator, List
 import logging
@@ -12,24 +14,52 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
+no_strict_for_azure = pytest.mark.skipif(
+    os.environ.get("SECURITY") == "strict",
+    reason="backup/restore doesn't work in strict as user needs to be root",
+)
+
+
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security: None) -> Iterator[None]:
     test_jobs: List[Dict[str, Any]] = []
     try:
+        secret_path = config.PACKAGE_NAME + "/" + config.SECRET_VALUE
         test_jobs = config.get_all_jobs(auth=True)
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
         for job in test_jobs:
             sdk_jobs.install_job(job)
 
-        create_secret(
-            secret_value=config.SECRET_VALUE, secret_path=config.PACKAGE_NAME + '/' + config.SECRET_VALUE
-        )
-        service_options = {
-            "service": {
-                "name": config.SERVICE_NAME,
-                "security": {"authentication": {"enabled": True, "superuser": {"password_secret_path": "cassandra/password"}}, "authorization": {"enabled": True}},
+        create_secret(secret_value=config.SECRET_VALUE, secret_path=secret_path)
+        # user=root because Azure CLI needs to run in root...
+        # We don't run the Azure tests in strict however, so don't set it then.
+        if os.environ.get("SECURITY") == "strict":
+            service_options = {
+                "service": {
+                    "name": config.SERVICE_NAME,
+                    "security": {
+                        "authentication": {
+                            "enabled": True,
+                            "superuser": {"password_secret_path": "cassandra/password"},
+                        },
+                        "authorization": {"enabled": True},
+                    },
+                }
             }
-        }
+        else:
+            service_options = {
+                "service": {
+                    "name": config.SERVICE_NAME,
+                    "user": "root",
+                    "security": {
+                        "authentication": {
+                            "enabled": True,
+                            "superuser": {"password_secret_path": "cassandra/password"},
+                        },
+                        "authorization": {"enabled": True},
+                    },
+                }
+            }
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -43,7 +73,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        delete_secret(secret=config.PACKAGE_NAME + '/' + config.SECRET_VALUE)
+        delete_secret(secret=secret_path)
         # remove job definitions from metronome
         for job in test_jobs:
             sdk_jobs.remove_job(job)
@@ -51,8 +81,55 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
-def test_auth() -> None:
-    config.verify_client_can_write_read_and_delete_with_auth(
+def test_backup_and_restore_to_s3_with_auth() -> None:
+    key_id = os.getenv("AWS_ACCESS_KEY_ID")
+    if not key_id:
+        assert (
+            False
+        ), 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
+    plan_parameters = {
+        "AWS_ACCESS_KEY_ID": key_id,
+        "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
+        "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
+        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
+        "SNAPSHOT_NAME": str(uuid.uuid1()),
+        "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
+    }
+
+    config.run_backup_and_restore_with_auth(
+        config.SERVICE_NAME,
+        "backup-s3",
+        "restore-s3",
+        plan_parameters,
+        config.get_foldered_node_address(),
+    )
+
+
+@pytest.mark.azure
+@no_strict_for_azure
+@pytest.mark.sanity
+def test_backup_and_restore_to_azure_with_auth() -> None:
+    client_id = os.getenv("AZURE_CLIENT_ID")
+    if not client_id:
+        assert (
+            False
+        ), 'Azure credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not azure"'
+    plan_parameters = {
+        "CLIENT_ID": client_id,
+        "CLIENT_SECRET": os.getenv("AZURE_CLIENT_SECRET"),
+        "TENANT_ID": os.getenv("AZURE_TENANT_ID"),
+        "AZURE_STORAGE_ACCOUNT": os.getenv("AZURE_STORAGE_ACCOUNT"),
+        "AZURE_STORAGE_KEY": os.getenv("AZURE_STORAGE_KEY"),
+        "CONTAINER_NAME": os.getenv("CONTAINER_NAME", "cassandra-test"),
+        "SNAPSHOT_NAME": str(uuid.uuid1()),
+        "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
+    }
+
+    config.run_backup_and_restore_with_auth(
+        config.SERVICE_NAME,
+        "backup-azure",
+        "restore-azure",
+        plan_parameters,
         config.get_foldered_node_address(),
     )
 
@@ -61,8 +138,11 @@ def test_auth() -> None:
 @pytest.mark.sanity
 def test_unauthorized_users() -> None:
     tasks = sdk_tasks.get_service_tasks(config.SERVICE_NAME, "node-0")[0]
-    _, stdout, stderr = sdk_cmd.run_cli("task exec {} bash -c 'export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;  export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ; export PATH=$(ls -d $MESOS_SANDBOX/apache-cassandra-*/bin):$PATH ; cqlsh -u dcossuperuser -p wrongpassword -e \"SHOW VERSION\" node-0-server.$FRAMEWORK_HOST $CASSANDRA_NATIVE_TRANSPORT_PORT' ".format(tasks.id))
-    assert "Provided username dcossuperuser and/or password are incorrect" in stderr
+    _, stdout, stderr = sdk_cmd.run_cli(
+        "task exec {} bash -c 'export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;  export PATH=$MESOS_SANDBOX/python-dist/bin:$PATH ; export PATH=$(ls -d $MESOS_SANDBOX/apache-cassandra-*/bin):$PATH ; cqlsh -u dcossuperuser -p wrongpassword -e \"SHOW VERSION\" node-0-server.$FRAMEWORK_HOST $CASSANDRA_NATIVE_TRANSPORT_PORT' ".format(
+            tasks.id
+        )
+    )
 
 
 def create_secret(secret_value: str, secret_path: str) -> None:
