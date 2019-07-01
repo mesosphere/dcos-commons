@@ -105,6 +105,7 @@ def test_backup_and_restore_to_s3_with_auth() -> None:
     )
 
 
+@sdk_utils.dcos_ee_only
 @pytest.mark.azure
 @no_strict_for_azure
 @pytest.mark.sanity
