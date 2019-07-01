@@ -79,7 +79,7 @@ public interface Element {
   }
 
   /**
-   * Indicates whether the Element is starting.
+   * Indicates whether the Element is started.
    */
   default boolean isStarted() {
     return getStatus().equals(Status.STARTED);

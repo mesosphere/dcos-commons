@@ -34,6 +34,7 @@ import com.mesosphere.sdk.scheduler.plan.PlanCustomizer;
 import com.mesosphere.sdk.scheduler.plan.PlanFactory;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
+import com.mesosphere.sdk.scheduler.plan.backoff.ExponentialBackOff;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
@@ -59,7 +60,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
-import com.mesosphere.sdk.storage.PersisterException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -106,11 +106,7 @@ public class SchedulerBuilder {
 
   private Collection<Class<?>> additionalDeserializableSubtypes = new ArrayList<>();
 
-  SchedulerBuilder(
-      ServiceSpec serviceSpec,
-      SchedulerConfig schedulerConfig)
-      throws PersisterException
-  {
+  SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) {
     this(
         serviceSpec,
         schedulerConfig,
@@ -388,9 +384,7 @@ public class SchedulerBuilder {
 
       DefaultServiceSpec.Builder builder =
           DefaultServiceSpec.newBuilder(originalServiceSpec).pods(updatedPodSpecs);
-      if (schedulerRegion.isPresent()) {
-        builder.region(schedulerRegion.get());
-      }
+      schedulerRegion.ifPresent(builder::region);
       serviceSpec = builder.build();
     } else {
       serviceSpec = originalServiceSpec;
@@ -448,7 +442,8 @@ public class SchedulerBuilder {
           new FrameworkStore(persister),
           stateStore,
           configStore,
-          namespace
+          namespace,
+          ExponentialBackOff.getInstance()
       );
     } catch (ConfigStoreException e) {
       logger.error("Failed to construct scheduler.", e);
@@ -470,7 +465,8 @@ public class SchedulerBuilder {
       FrameworkStore frameworkStore,
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
-      Optional<String> namespace) throws ConfigStoreException
+      Optional<String> namespace,
+      ExponentialBackOff exponentialBackOff) throws ConfigStoreException
   {
 
     // Determine whether deployment had previously completed BEFORE we update the config.
@@ -566,7 +562,8 @@ public class SchedulerBuilder {
         stateStore,
         configStore,
         plans,
-        namespace);
+        namespace,
+            exponentialBackOff);
     Optional<PlanManager> decommissionPlanManager = getDecommissionPlanManager(
         serviceSpec,
         stateStore,
@@ -606,7 +603,8 @@ public class SchedulerBuilder {
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
       Collection<Plan> plans,
-      Optional<String> namespace)
+      Optional<String> namespace,
+      ExponentialBackOff exponentialBackOff)
   {
 
     List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
@@ -635,7 +633,8 @@ public class SchedulerBuilder {
         launchConstrainer,
         failureMonitor,
         namespace,
-        overrideRecoveryPlanManagers);
+        overrideRecoveryPlanManagers,
+            exponentialBackOff);
   }
 
   /**
@@ -658,10 +657,13 @@ public class SchedulerBuilder {
       plansType = "YAML";
       // Note: Any internal Plan generation must only be AFTER updating/validating the config.
       // Otherwise plans may look at the old config and mistakenly think they're COMPLETE.
-      PlanGenerator planGenerator = new PlanGenerator(configStore, stateStore, namespace);
-      plans = yamlPlans.entrySet().stream()
-          .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
-          .collect(Collectors.toList());
+      PlanGenerator planGenerator = new PlanGenerator(
+              new DefaultStepFactory(configStore, stateStore, namespace));
+      plans = yamlPlans
+        .entrySet()
+        .stream()
+        .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
+        .collect(Collectors.toList());
     } else {
       plansType = "generated";
       try {

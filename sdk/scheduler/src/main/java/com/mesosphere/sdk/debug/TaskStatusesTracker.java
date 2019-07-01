@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.debug;
 
 import com.mesosphere.sdk.http.ResponseUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
@@ -70,7 +71,7 @@ public class TaskStatusesTracker implements DebugEndpoint {
               .findFirst()
               .get();
           TaskStatusResponse taskStatusObject = new TaskStatusResponse();
-          String taskInstanceName = TaskSpec.getInstanceName(
+          String taskInstanceName = CommonIdUtils.getTaskInstanceName(
               step.getPodInstanceRequirement().get().getPodInstance(),
               taskSpec.getName()
           );

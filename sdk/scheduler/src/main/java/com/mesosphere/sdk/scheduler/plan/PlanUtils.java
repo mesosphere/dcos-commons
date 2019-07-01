@@ -53,6 +53,11 @@ public final class PlanUtils {
     if (plan == null) {
       return Collections.emptySet();
     }
+    LOGGER.info(">>>>>>> plan {}", plan.getName());
+    plan.getChildren().forEach(x -> {
+      LOGGER.info(">>>> phase {}", x.getName());
+      x.getChildren().forEach(y -> LOGGER.info(">> step {}", y.getDisplayStatus()));
+    });
 
     return plan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
@@ -79,15 +84,16 @@ public final class PlanUtils {
     if (element instanceof Interruptible && ((Interruptible) element).isInterrupted()) {
       return false;
     }
-    //TODO@kjoshi: return false here in case where our current delay hasn't been met.
-    //@takirala: here's where the logic for determining if we're in backoff gets excercised. 
+    /* TODO@kjoshi: return false here in case where our current delay hasn't been met.
+    @takirala: here's where the logic for determining if we're in backoff gets excercised.
+    */
     if (element instanceof Step) {
       Optional<PodInstanceRequirement> podInstanceRequirement =
           ((Step) element).getPodInstanceRequirement();
-    
-     //Implementation detail: Step will have a expiry time set. Compare expiry time with currentTime
-     //and decide if we've expired or not, include in workset if post expiry. 
-      
+      /*
+      Implementation detail: Step will have a expiry time set. Compare expiry time with currentTime
+      and decide if we've expired or not, include in workset if post expiry.
+      */
       return !podInstanceRequirement.isPresent()
           || !PlanUtils.assetConflicts(podInstanceRequirement.get(), dirtyAssets);
     }

@@ -17,11 +17,11 @@ import java.util.Map;
 public final class PodInstanceRequirement {
   private final PodInstance podInstance;
 
-  private final Collection<String> tasksToLaunch;
-
   private final Map<String, String> environment;
 
   private final RecoveryType recoveryType;
+
+  private Collection<String> tasksToLaunch;
 
   /**
    * Creates a new instance with the provided permanent replacement setting.
@@ -54,6 +54,11 @@ public final class PodInstanceRequirement {
    */
   public Collection<String> getTasksToLaunch() {
     return tasksToLaunch;
+  }
+
+  void filterTasksToLaunch(Collection<String> tasksToLaunchNew) {
+    assert this.tasksToLaunch.containsAll(tasksToLaunchNew);
+    this.tasksToLaunch = tasksToLaunchNew;
   }
 
   /**
@@ -90,9 +95,9 @@ public final class PodInstanceRequirement {
    */
   public boolean conflictsWith(PodInstanceRequirement podInstanceRequirement) {
     boolean podConflicts = podInstanceRequirement.getPodInstance().conflictsWith(getPodInstance());
-    boolean anyTaskConflicts = getTasksToLaunch().stream()
-        .filter(t -> podInstanceRequirement.getTasksToLaunch().contains(t))
-        .count() > 0;
+    boolean anyTaskConflicts = getTasksToLaunch()
+            .stream()
+            .anyMatch(t -> podInstanceRequirement.getTasksToLaunch().contains(t));
     return podConflicts && anyTaskConflicts;
   }
 
@@ -113,7 +118,7 @@ public final class PodInstanceRequirement {
   public static final class Builder {
     private final PodInstance podInstance;
 
-    private final Collection<String> tasksToLaunch;
+    private Collection<String> tasksToLaunch;
 
     private Map<String, String> environment = new HashMap<>();
 
@@ -128,6 +133,11 @@ public final class PodInstanceRequirement {
     private Builder(PodInstance podInstance, Collection<String> tasksToLaunch) {
       this.podInstance = podInstance;
       this.tasksToLaunch = tasksToLaunch;
+    }
+
+    public Builder tasksToLaunch(Collection<String> tasksToLaunch) {
+      this.tasksToLaunch = tasksToLaunch;
+      return this;
     }
 
     public Builder environment(Map<String, String> environment) {

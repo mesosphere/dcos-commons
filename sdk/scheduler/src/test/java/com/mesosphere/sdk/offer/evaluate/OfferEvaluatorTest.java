@@ -1046,7 +1046,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .build();
 
         UUID recoverTaskConfig = UUID.randomUUID();
-        String recoverTaskFullName = TaskSpec.getInstanceName(podInstance, TestConstants.TASK_NAME);
+        String recoverTaskFullName = CommonIdUtils.getTaskInstanceName(podInstance, TestConstants.TASK_NAME);
         Protos.TaskInfo recoverTaskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setName(recoverTaskFullName)
                 .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
@@ -1055,7 +1055,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 .build();
 
         UUID otherTaskConfig = UUID.randomUUID();
-        String otherTaskFullName = TaskSpec.getInstanceName(podInstance, "other");
+        String otherTaskFullName = CommonIdUtils.getTaskInstanceName(podInstance, "other");
         Protos.TaskInfo otherTaskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setName(otherTaskFullName)
                 .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
@@ -1089,7 +1089,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .build();
 
         UUID recoverTaskConfig = UUID.randomUUID();
-        String recoverTaskFullName = TaskSpec.getInstanceName(podInstance, TestConstants.TASK_NAME);
+        String recoverTaskFullName = CommonIdUtils.getTaskInstanceName(podInstance, TestConstants.TASK_NAME);
         Protos.TaskInfo recoverTaskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setName(recoverTaskFullName)
                 .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)
@@ -1098,7 +1098,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                 .build();
 
         UUID otherTaskConfig = UUID.randomUUID();
-        String otherTaskFullName = TaskSpec.getInstanceName(podInstance, "other");
+        String otherTaskFullName = CommonIdUtils.getTaskInstanceName(podInstance, "other");
         Protos.TaskInfo otherTaskInfo = TestConstants.TASK_INFO.toBuilder()
                 .setName(otherTaskFullName)
                 .setLabels(new TaskLabelWriter(TestConstants.TASK_INFO)

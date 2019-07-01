@@ -250,7 +250,7 @@ public class DefaultScheduler extends AbstractScheduler {
     Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(getPlanCoordinator());
     if (decommissionManager.isPresent()) {
       Collection<String> decommissionedTasks = decommissionManager.get().getTasksToDecommission().stream()
-          .map(taskInfo -> taskInfo.getName())
+          .map(Protos.TaskInfo::getName)
           .collect(Collectors.toList());
       activeTasks.addAll(decommissionedTasks);
     }
@@ -285,10 +285,9 @@ public class DefaultScheduler extends AbstractScheduler {
     if (goalState == GoalState.FINISH && deployCompleted && recoveryPlanManager.getPlan().isComplete()) {
       // Service has a FINISH goal state, and deployment+recovery are complete. Tell upstream to uninstall us.
       return ClientStatusResponse.readyToUninstall();
-    } else if (!deployCompleted
-        || isReplacing(recoveryPlanManager))
-    {
-      //TODO@kjoshi: workSetTracker.hasNewWork() 
+    } else if (!deployCompleted || isReplacing(recoveryPlanManager)) {
+      // TODO@kjoshi: workSetTracker.hasNewWork()
+
       // Service is acquiring footprint, either via initial deployment or via replacing a task
       return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
     } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> isWorking(pm.getPlan()))) {

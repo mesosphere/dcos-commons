@@ -162,7 +162,7 @@ public class PodInfoBuilder {
    * it on task relaunch.
    */
   public Optional<Long> getPriorPortForTask(String taskSpecName, PortSpec portSpec) {
-    TaskPortLookup portFinder = portsByTask.get(TaskSpec.getInstanceName(podInstance, taskSpecName));
+    TaskPortLookup portFinder = portsByTask.get(CommonIdUtils.getTaskInstanceName(podInstance, taskSpecName));
     if (portFinder == null) {
       return Optional.empty();
     }
@@ -253,7 +253,7 @@ public class PodInfoBuilder {
 
     PodSpec podSpec = podInstance.getPod();
     Protos.TaskInfo.Builder taskInfoBuilder = Protos.TaskInfo.newBuilder()
-        .setName(TaskSpec.getInstanceName(podInstance, taskSpec))
+        .setName(CommonIdUtils.getTaskInstanceName(podInstance, taskSpec))
         .setTaskId(CommonIdUtils.emptyTaskId())
         .setSlaveId(CommonIdUtils.emptyAgentId());
 
@@ -389,9 +389,9 @@ public class PodInfoBuilder {
     environmentMap.put(EnvConstants.SCHEDULER_API_PORT_TASKENV, String.valueOf(schedulerConfig.getApiServerPort()));
 
     // Inject TASK_NAME as KEY:VALUE
-    environmentMap.put(EnvConstants.TASK_NAME_TASKENV, TaskSpec.getInstanceName(podInstance, taskSpec));
+    environmentMap.put(EnvConstants.TASK_NAME_TASKENV, CommonIdUtils.getTaskInstanceName(podInstance, taskSpec));
     // Inject TASK_NAME as KEY for conditional mustache templating
-    environmentMap.put(TaskSpec.getInstanceName(podInstance, taskSpec), "true");
+    environmentMap.put(CommonIdUtils.getTaskInstanceName(podInstance, taskSpec), "true");
 
     // Inject PLACEMENT_REFERENCED_REGION
     environmentMap.put(

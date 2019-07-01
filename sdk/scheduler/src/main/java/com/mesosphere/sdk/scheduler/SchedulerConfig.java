@@ -571,7 +571,7 @@ public final class SchedulerConfig {
   }
 
   /**
-   * Returns the duration to wait after framework registration before performing the first implicit reconcilation, in
+   * Returns the duration to wait after framework registration before performing the first implicit reconciliation, in
    * milliseconds.
    */
   public long getImplicitReconcileDelayMs() {
@@ -579,7 +579,7 @@ public final class SchedulerConfig {
   }
 
   /**
-   * Returns the duration to wait between implicit reconcilations, in milliseconds.
+   * Returns the duration to wait between implicit reconciliations, in milliseconds.
    */
   public long getImplicitReconcilePeriodMs() {
     return envStore.getOptionalLong(IMPLICIT_RECONCILIATION_PERIOD_MS_ENV, 60 * 60 * 1000 /* 1 hour */);
