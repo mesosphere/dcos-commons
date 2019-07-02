@@ -184,7 +184,7 @@ public class DeploymentStep extends AbstractStep {
       case TASK_ERROR:
       case TASK_FAILED:
         ExponentialBackOff.getInstance().addDelay(status.getTaskId());
-        setTaskStatus(status.getTaskId(), Status.PENDING);
+        setTaskStatus(status.getTaskId(), Status.DELAYED);
         break;
         //TODO@kjoshi: Transition to PENDING_DELAYED state here
         //Implementation detail: Move to PENDING_DELAYED state and update backoff counters.
@@ -361,6 +361,8 @@ public class DeploymentStep extends AbstractStep {
       }
     } else if (statuses.contains(Status.ERROR)) {
       return Optional.of(Status.ERROR);
+    } else if (statuses.contains(Status.DELAYED)) {
+      return Optional.of(Status.DELAYED);
     } else if (statuses.contains(Status.PENDING)) {
       return Optional.of(Status.PENDING);
     } else if (statuses.contains(Status.PREPARED)) {

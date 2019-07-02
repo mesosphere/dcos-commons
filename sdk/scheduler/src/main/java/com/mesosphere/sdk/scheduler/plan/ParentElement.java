@@ -90,14 +90,13 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
   }
 
   /**
-   * Returns all errors from this {@Link Element} and all its children.
+   * Returns all errors from this {@link Element} and all its children.
    *
-   * @param parentErrors Errors from this {@Link Element} itself.
+   * @param parentErrors Errors from this {@link Element} itself.
    * @return a combined list of all errors from the parent and all its children.
    */
   default List<String> getErrors(List<String> parentErrors) {
-    List<String> errors = new ArrayList<>();
-    errors.addAll(parentErrors);
+    List<String> errors = new ArrayList<>(parentErrors);
     Collection<? extends Element> children = getChildren();
     children.forEach(element -> errors.addAll(element.getErrors()));
     return errors;
@@ -106,11 +105,13 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
   @Override
   default Status getStatus() {
     Collection<Status> childStatuses = getChildren().stream()
-        .map(c -> c.getStatus())
+        .map(Element::getStatus)
         .collect(Collectors.toList());
     Collection<Status> candidateStatuses =
-        getStrategy().getCandidates(getChildren(), Collections.emptyList()).stream()
-            .map(cc -> cc.getStatus())
+        getStrategy()
+            .getCandidates(getChildren(), Collections.emptyList())
+            .stream()
+            .map(Element::getStatus)
             .collect(Collectors.toList());
     return PlanUtils.getAggregateStatus(
         getName(), childStatuses, candidateStatuses, getErrors(), isInterrupted());

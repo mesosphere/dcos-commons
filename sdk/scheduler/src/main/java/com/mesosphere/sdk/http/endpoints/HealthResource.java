@@ -1,9 +1,11 @@
 package com.mesosphere.sdk.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
+import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStoreException;
 
@@ -315,44 +317,29 @@ public class HealthResource {
     String reason;
     Optional<ServiceStatusCode> statusCode;
 
-    int totalSteps = evaluatePlan.getChildren().stream()
+    Set<Step> stepSet = evaluatePlan
+        .getChildren()
+        .stream()
         .flatMap(phase -> phase.getChildren().stream())
-        .collect(Collectors.toSet())
-        .size();
+        .collect(Collectors.toSet());
 
-    int pendingSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isPending())
-        .collect(Collectors.toSet())
-        .size();
+    int totalSteps = stepSet.size();
 
-    int preparedSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isPrepared())
-        .collect(Collectors.toSet())
-        .size();
+    long pendingSteps = stepSet.stream().filter(Element::isPending).count();
 
-    int startingSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isStarting())
-        .collect(Collectors.toSet())
-        .size();
+    long delayedSteps = stepSet.stream().filter(Element::isDelayed).count();
 
-    int startedSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isStarted())
-        .collect(Collectors.toSet())
-        .size();
+    long preparedSteps = stepSet.stream().filter(Element::isPrepared).count();
 
-    int completedSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isComplete())
-        .collect(Collectors.toSet())
-        .size();
+    long startingSteps = stepSet.stream().filter(Element::isStarting).count();
+
+    long startedSteps = stepSet.stream().filter(Element::isStarted).count();
+
+    long completedSteps = stepSet.stream().filter(Element::isComplete).count();
 
     // We're biasing pessimistically here, pick cases that are halting the
     // deployment from becoming complete.
-    if (pendingSteps > 0 || preparedSteps > 0) {
+    if (pendingSteps > 0 || preparedSteps > 0 || delayedSteps > 0) {
       statusCode = Optional.of(pending);
     } else if (startingSteps > 0 || startedSteps > 0) {
       statusCode = Optional.of(starting);

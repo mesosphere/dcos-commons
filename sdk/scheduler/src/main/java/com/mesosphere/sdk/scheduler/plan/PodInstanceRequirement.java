@@ -56,11 +56,6 @@ public final class PodInstanceRequirement {
     return tasksToLaunch;
   }
 
-  void filterTasksToLaunch(Collection<String> tasksToLaunchNew) {
-    assert this.tasksToLaunch.containsAll(tasksToLaunchNew);
-    this.tasksToLaunch = tasksToLaunchNew;
-  }
-
   /**
    * Returns the map of environment variable names to values that extend the existing environments of tasks in this
    * pod.
@@ -133,11 +128,6 @@ public final class PodInstanceRequirement {
     private Builder(PodInstance podInstance, Collection<String> tasksToLaunch) {
       this.podInstance = podInstance;
       this.tasksToLaunch = tasksToLaunch;
-    }
-
-    public Builder tasksToLaunch(Collection<String> tasksToLaunch) {
-      this.tasksToLaunch = tasksToLaunch;
-      return this;
     }
 
     public Builder environment(Map<String, String> environment) {

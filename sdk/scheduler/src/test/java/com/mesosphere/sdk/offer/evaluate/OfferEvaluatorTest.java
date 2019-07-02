@@ -736,7 +736,6 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
                         .collect(Collectors.toList()));
     }
 
-    @Test
     public void testReplaceDeployStep() throws Exception {
         ServiceSpec serviceSpec = getServiceSpec("valid-minimal-volume.yml");
 

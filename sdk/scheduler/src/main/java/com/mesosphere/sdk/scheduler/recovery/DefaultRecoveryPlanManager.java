@@ -10,6 +10,7 @@ import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.DeployPlanFactory;
+import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
@@ -140,7 +141,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         } catch (IOException e) {
           List<String> stepNames = plan.getChildren().stream()
               .flatMap(phase -> phase.getChildren().stream())
-              .map(step -> step.getName())
+              .map(Element::getName)
               .collect(Collectors.toList());
           logger.error("Failed to serialize plan to JSON. Recovery plan set to: {}", stepNames);
         }
@@ -212,9 +213,27 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     }
   }
 
-  private Plan createPlan(List<PodInstanceRequirement> defaultRequirements, List<Phase> phases) {
-    phases.addAll(createPhases(defaultRequirements));
-    return updatePhases(phases);
+  private Plan createPlan(List<PodInstanceRequirement> defaultRequirements, List<Phase> overridePhases) {
+    overridePhases.addAll(createPhases(defaultRequirements));
+    Collection<PodInstanceRequirement> newReqs = overridePhases
+            .stream()
+            .flatMap(phase -> phase.getChildren().stream())
+            .map(Step::getPodInstanceRequirement)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
+            .collect(Collectors.toList());
+
+    Collection<Phase> inProgressPhases = getPlan().getChildren().stream()
+            .filter(phase -> !phaseOverridden(phase, newReqs))
+            .collect(Collectors.toList());
+
+    List<Phase> phases = new ArrayList<>();
+    phases.addAll(inProgressPhases);
+    phases.addAll(overridePhases);
+    logger.info("inprogresssteps {} overridephases {}", inProgressPhases, overridePhases);
+
+    //TODO@kjoshi: This is where an actual RECOVERY plan is created with its constituent Phases.
+    return DeployPlanFactory.getPlan(Constants.RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
   }
 
   private List<Phase> createPhases(Collection<PodInstanceRequirement> podInstanceRequirements) {
@@ -228,34 +247,13 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         .collect(Collectors.toList());
   }
 
-  private static boolean phaseOverriden(Phase phase, Collection<PodInstanceRequirement> newReqs) {
+  private static boolean phaseOverridden(Phase phase, Collection<PodInstanceRequirement> newReqs) {
     // If at least 1 new requirement conflicts with the phase's steps, the phase has been overridden
     return phase.getChildren().stream()
-        .map(step -> step.getPodInstanceRequirement())
+        .map(Step::getPodInstanceRequirement)
         .filter(Optional::isPresent)
         .map(Optional::get)
-        .filter(req -> PlanUtils.assetConflicts(req, newReqs))
-        .count() > 0;
-  }
-
-  private Plan updatePhases(List<Phase> overridePhases) {
-    Collection<PodInstanceRequirement> newReqs = overridePhases.stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .map(step -> step.getPodInstanceRequirement())
-        .filter(Optional::isPresent)
-        .map(Optional::get)
-        .collect(Collectors.toList());
-
-    Collection<Phase> inProgressPhases = getPlan().getChildren().stream()
-        .filter(phase -> !phaseOverriden(phase, newReqs))
-        .collect(Collectors.toList());
-
-    List<Phase> phases = new ArrayList<>();
-    phases.addAll(inProgressPhases);
-    phases.addAll(overridePhases);
-
-    //TODO@kjoshi: This is where an actual RECOVERY plan is created with its constituent Phases.
-    return DeployPlanFactory.getPlan(Constants.RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
+        .anyMatch(req -> PlanUtils.assetConflicts(req, newReqs));
   }
 
   private boolean isTaskPermanentlyFailed(Protos.TaskInfo taskInfo) {
@@ -270,7 +268,9 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     List<PodInstanceRequirement> recoveryRequirements = new ArrayList<>();
 
     for (PodInstanceRequirement failedPod : newFailedPods) {
-      List<Protos.TaskInfo> failedPodTaskInfos = failedPod.getTasksToLaunch().stream()
+      List<Protos.TaskInfo> failedPodTaskInfos = failedPod
+          .getTasksToLaunch()
+          .stream()
           .map(taskSpecName -> CommonIdUtils.getTaskInstanceName(failedPod.getPodInstance(), taskSpecName))
           .map(stateStore::fetchTask)
           .filter(Optional::isPresent)
@@ -386,7 +386,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
     List<String> transientlyFailedTasks = failedTasks.stream()
         .filter(taskInfo -> !isTaskPermanentlyFailed(taskInfo))
-        .map(taskInfo -> taskInfo.getName())
+        .map(Protos.TaskInfo::getName)
         .collect(Collectors.toList());
 
     if (!permanentlyFailedTasks.isEmpty() || !transientlyFailedTasks.isEmpty()) {
@@ -462,7 +462,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
   private static List<String> getTaskNames(Collection<Protos.TaskInfo> taskInfos) {
     return taskInfos.stream()
-        .map(taskInfo -> taskInfo.getName())
+        .map(Protos.TaskInfo::getName)
         .collect(Collectors.toList());
   }
 

@@ -53,7 +53,7 @@ public class DeployPlanFactory implements PlanFactory {
             Constants.DEPLOY_PLAN_NAME, phases, strategyGenerator.generate(phases));
   }
 
-  private static class DeploymentPlan extends DefaultPlan {
+  static class DeploymentPlan extends DefaultPlan {
 
     DeploymentPlan(String name, List<Phase> phases, Strategy<Phase> strategy) {
       super(name, phases, strategy);
@@ -68,49 +68,31 @@ public class DeployPlanFactory implements PlanFactory {
             Collection<PodInstanceRequirement> dirtyAssets)
     {
       Collection<? extends Step> candidates = super.getCandidates(dirtyAssets);
-      LOGGER.info("DeployPlanFactory -------->");
-      return filterBackedOffTasks(candidates);
-    }
-
-    private Collection<? extends Step> filterBackedOffTasks(
-            Collection<? extends Step> candidates)
-    {
       ExponentialBackOff exponentialBackOff = ExponentialBackOff.getInstance();
-      LOGGER.info("before {}", candidates);
-      List<? extends Step> filteredCandidates = candidates.stream()
-          .filter(DeploymentStep.class::isInstance)
-          .map(step -> {
-            DeploymentStep deploymentStep = (DeploymentStep) step;
-            List<String> filteredTaskNames = deploymentStep
+      return candidates
+        .stream()
+        .map(step -> {
+          if (step.isDelayed() && step instanceof DeploymentStep) {
+            // verify if this needs to be updated.
+            DeploymentStep depStep = (DeploymentStep) step;
+            boolean noDelay = depStep
                 .podInstanceRequirement
                 .getTasksToLaunch()
                 .stream()
-                .filter(taskId -> {
-                  String task = CommonIdUtils.getTaskInstanceName(
-                          deploymentStep.podInstanceRequirement.getPodInstance(), taskId);
-                  Delay delay = exponentialBackOff.getDelay(task);
-                  if (delay == null) {
-                    LOGGER.info("no delay found for {}", task);
-                    return true;
-                  } else if (delay.isOver()) {
-                    LOGGER.info("Delay elapsed for {}", task);
-                    return true;
-                  }
-                  LOGGER.info("Current delay for {} is {}",
-                          task, delay.getCurrentDelay().toString());
-                  return false;
-                })
-                .collect(Collectors.toList());
-            LOGGER.info("filtered tasks {}", filteredTaskNames);
-            LOGGER.info("old tasks {}", deploymentStep.podInstanceRequirement.getTasksToLaunch());
-            deploymentStep.podInstanceRequirement.filterTasksToLaunch(filteredTaskNames);
-            LOGGER.info("new tasks {}", deploymentStep.podInstanceRequirement.getTasksToLaunch());
-            return deploymentStep;
-          })
-          .filter(step -> !step.podInstanceRequirement.getTasksToLaunch().isEmpty())
-          .collect(Collectors.toList());
-      LOGGER.info("after {}", filteredCandidates);
-      return filteredCandidates;
+                .allMatch(taskName -> {
+                  Delay delay = exponentialBackOff.getDelay(CommonIdUtils.getTaskInstanceName(
+                      depStep.podInstanceRequirement.getPodInstance(), taskName));
+                  return delay != null && delay.isOver();
+                });
+            if (noDelay) {
+              depStep.setStatus(Status.PENDING);
+              return depStep;
+            }
+          }
+          return step;
+        })
+        .filter(step -> !step.isDelayed())
+        .collect(Collectors.toList());
     }
   }
 }

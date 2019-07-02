@@ -12,8 +12,8 @@ import java.util.Optional;
 public interface RecoveryPlanOverrider {
 
   /**
-   * Returns a phase to be used when recovering the pod as described in the provided {@link PodLaunch}, or an empty
-   * Optional if a default recovery phase should be used instead.
+   * Returns a phase to be used when recovering the pod as described in the provided {@link PodInstanceRequirement},
+   * or an empty Optional if a default recovery phase should be used instead.
    *
    * @param podInstanceRequirement specifies the pod to be recovered, and the type of recovery
    */

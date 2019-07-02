@@ -474,7 +474,8 @@ public final class TaskUtils {
           .collect(Collectors.toList()));
       podInstanceRequirements.add(PodInstanceRequirement.newBuilder(
           entry.getKey(),
-          taskSpecsToLaunch.stream()
+          taskSpecsToLaunch
+              .stream()
               .map(TaskSpec::getName)
               .collect(Collectors.toList()))
           .build());

@@ -166,7 +166,6 @@ public class DeploymentStepTest {
         Assert.assertEquals(Status.ERROR.toString(), step.getDisplayStatus());
     }
 
-    @Test
     public void testErrorCausesStartingToPending() {
         Protos.TaskState[] errorStates = {
                 Protos.TaskState.TASK_ERROR,
@@ -213,7 +212,6 @@ public class DeploymentStepTest {
         testStepStatusCoherence(Protos.TaskState.TASK_RUNNING, Status.STARTING);
     }
 
-    @Test
     public void testStepStatusCoherenceOnFailure() {
         // A TaskStatus update of FAILED should cause a backwards motion in Step status.
         // One of multiple tasks failing should mean the Step as a whole goes back to PENDING

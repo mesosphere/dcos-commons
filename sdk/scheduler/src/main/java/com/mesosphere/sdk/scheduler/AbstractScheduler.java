@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanCustomizer;
@@ -75,10 +76,10 @@ public abstract class AbstractScheduler implements MesosEventClient {
 
   private static Set<Step> getInProgressSteps(PlanCoordinator planCoordinator) {
     return planCoordinator.getPlanManagers().stream()
-        .map(planManager -> planManager.getPlan())
+        .map(PlanManager::getPlan)
         .flatMap(plan -> plan.getChildren().stream())
         .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isRunning())
+        .filter(Element::isRunning)
         .collect(Collectors.toSet());
   }
 

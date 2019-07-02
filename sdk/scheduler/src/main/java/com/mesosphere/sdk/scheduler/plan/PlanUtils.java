@@ -1,13 +1,15 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
+import com.mesosphere.sdk.scheduler.plan.backoff.Delay;
+import com.mesosphere.sdk.scheduler.plan.backoff.ExponentialBackOff;
 
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -87,15 +89,21 @@ public final class PlanUtils {
     /* TODO@kjoshi: return false here in case where our current delay hasn't been met.
     @takirala: here's where the logic for determining if we're in backoff gets excercised.
     */
-    if (element instanceof Step) {
-      Optional<PodInstanceRequirement> podInstanceRequirement =
-          ((Step) element).getPodInstanceRequirement();
+    if (element instanceof Step && ((Step) element).getPodInstanceRequirement().isPresent()) {
+      PodInstanceRequirement podInstanceRequirement =
+              ((Step) element).getPodInstanceRequirement().get();
       /*
       Implementation detail: Step will have a expiry time set. Compare expiry time with currentTime
       and decide if we've expired or not, include in workset if post expiry.
       */
-      return !podInstanceRequirement.isPresent()
-          || !PlanUtils.assetConflicts(podInstanceRequirement.get(), dirtyAssets);
+      return podInstanceRequirement.getTasksToLaunch().stream().allMatch(name -> {
+        String taskName = CommonIdUtils.getTaskInstanceName(
+                podInstanceRequirement.getPodInstance(), name);
+        Delay delay = ExponentialBackOff.getInstance().getDelay(taskName);
+        boolean res = delay == null || delay.isOver();
+        LOGGER.info("never ever happens -> {}", res);
+        return res;
+      }) && !PlanUtils.assetConflicts(podInstanceRequirement, dirtyAssets);
     }
     return true;
   }
@@ -116,7 +124,7 @@ public final class PlanUtils {
       "checkstyle:LineLength",
       "checkstyle:MultipleStringLiterals"
   })
-  public static <C extends Element> Status getAggregateStatus(
+  public static Status getAggregateStatus(
       String parentName,
       Collection<Status> childStatuses,
       Collection<Status> candidateStatuses,
@@ -133,6 +141,9 @@ public final class PlanUtils {
     } else if (allMatch(Status.COMPLETE, childStatuses)) {
       result = Status.COMPLETE;
       LOGGER.debug("({} status={}) All children have status: {}", parentName, result, Status.COMPLETE);
+    } else if (allMatch(Status.DELAYED, candidateStatuses) && allMatch(Status.DELAYED, childStatuses)) {
+      result = Status.DELAYED;
+      LOGGER.debug("({} status={}) All candidates and children are {}", parentName, result, Status.DELAYED);
     } else if (isInterrupted) {
       result = Status.WAITING;
       LOGGER.debug("({} status={}) Parent element is interrupted", parentName, result);
