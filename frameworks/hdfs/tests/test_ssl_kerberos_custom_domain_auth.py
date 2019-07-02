@@ -132,16 +132,7 @@ def test_verify_https_ports(hdfs_client, node_type, port):
 
     ca_bundle = transport_encryption.fetch_dcos_ca_bundle(hdfs_client["id"])
 
-    ok, stdout, stderr = config.run_client_command(
-        "curl -v --cacert {} https://{}".format(ca_bundle, host)
-    )
-    assert ok
-
-    assert "server certificate verification OK" in stderr
-    assert "common name: {}.{} (matched)".format(task_id, config.SERVICE_NAME) in stderr
-
-    # In the Kerberos case we expect a 401 error
-    assert "401 Authentication required" in stdout
+    config.verify_https_ports(ca_bundle, host, task_id)
 
 
 @pytest.mark.auth
@@ -150,10 +141,7 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     sdk_auth.kinit(
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")
     )
-
-    test_filename = config.get_unique_filename("test_ssl_kerberos_auth_write_read")
-    config.hdfs_client_write_data(test_filename)
-    config.hdfs_client_read_data(test_filename)
+    config.check_user_can_auth_and_write_and_read()
 
 
 @pytest.mark.auth
@@ -165,22 +153,7 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     )
 
     alice_dir = "/users/alice"
-    config.run_client_command(
-        " && ".join(
-            [
-                config.hdfs_command(c)
-                for c in [
-                    "mkdir -p {}".format(alice_dir),
-                    "chown alice:users {}".format(alice_dir),
-                    "chmod 700 {}".format(alice_dir),
-                ]
-            ]
-        )
-    )
-
-    test_filename = "{}/{}".format(
-        alice_dir, config.get_unique_filename("test_ssl_kerberos_auth_user_permissions")
-    )
+    test_filename = config.check_test_users_have_appropriate_permissions(alice_dir)
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])
