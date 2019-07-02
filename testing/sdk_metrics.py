@@ -117,7 +117,7 @@ def get_metrics(package_name, service_name, task_name):
     app_response = sdk_cmd.cluster_request(
         "GET", "/system/v1/agent/{}/metrics/v0/containers/{}/app".format(agent_id, task_container_id), retry=False)
     app_json = json.loads(app_response.text)
-    if app_json['dimensions']['executor_id'] == executor_id:
+    if app_json['dimensions']['task_name'] == task_name:
         return app_json['datapoints']
 
     raise Exception("No metrics found")
