@@ -124,19 +124,22 @@ def get_metrics(package_name, service_name, task_name):
 
 
 def check_metrics_presence(emitted_metrics, expected_metrics):
-    metrics_exist = True
+    """Check whether a given list contains all
+    """
+    lower_case_emitted_metrics = set(map(lambda m: m.lower(), emitted_metrics))
+
+    missing_metrics = []
     for metric in expected_metrics:
-        if metric not in emitted_metrics:
-            metrics_exist = False
-            log.error("Unable to find metric {}".format(metric))
-            # don't short-circuit to log if multiple metrics are missing
+        if metric.lower() not in lower_case_emitted_metrics:
+            missing_metrics.append(metric)
 
-    if not metrics_exist:
-        log.info("Metrics emitted: {},\nMetrics expected: {}".format(emitted_metrics, expected_metrics))
+    if missing_metrics:
+        log.warning("Expected metrics: %s", expected_metrics)
+        log.warning("Emitted metrics: %s", emitted_metrics)
+        log.warning("The following metrics are missing: %s", missing_metrics)
+        return False
 
-    log.info("Expected metrics exist: {}".format(metrics_exist))
-    return metrics_exist
-
+    return True
 
 def wait_for_service_metrics(package_name, service_name, task_name, timeout, expected_metrics_exist):
     """Checks that the service is emitting the expected values into DC/OS Metrics.
