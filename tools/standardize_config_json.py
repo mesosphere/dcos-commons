@@ -1,17 +1,16 @@
-"""
-A simple script to ensure that the ordering of the "service" section in config.json is standardized.
-NOTE: This overwrites the files.
+#!/usr/bin/env python3
 
-Usage: from the `dcos-commons` root:
+usage = """Standardizes the ordering of sections in config.json files.
 
-$ python tools/update_config_json.py
+Usage:
+$ ./standardize_config_json.py $path_to_config_json"""
 
-"""
 import collections
+import difflib
 import json
 import logging
+import os.path
 import sys
-import difflib
 
 
 logging.basicConfig(
@@ -63,7 +62,7 @@ def reorder(
         if p in original:
             reordered[p] = mapper(original[p])
 
-    for p in remaining:
+    for p in sorted(remaining):
         reordered[p] = mapper(original[p])
 
     for p in tail:
@@ -104,24 +103,57 @@ def print_diff(original: collections.OrderedDict, new: collections.OrderedDict):
     LOG.info("\n".join(diff))
 
 
-def process(filename: str):
-    contents = read_json_file(filename)
-    original = read_json_file(filename)
+def process(config_json_path: str, configuration: list):
+    contents = read_json_file(config_json_path)
+    original = read_json_file(config_json_path)
 
     reordered = reorder_service(contents["properties"]["service"]["properties"])
     contents["properties"]["service"]["properties"] = reordered
 
+    for section_name, head_and_tail in configuration["sections"].items():
+        head = head_and_tail["head"]
+        tail = head_and_tail["tail"]
+        properties = contents["properties"][section_name]["properties"]
+        reordered = reorder(properties, head, tail, reorder_property)
+        contents["properties"][section_name]["properties"] = reordered
+
     print_diff(original, contents)
 
-    write_json_file(filename, contents)
+    write_json_file(config_json_path, contents)
 
 
 if __name__ == "__main__":
-    files = [
-        "frameworks/cassandra/universe/config.json",
-        "frameworks/hdfs/universe/config.json",
-        "frameworks/helloworld/universe/config.json",
-    ]
+    args = sys.argv[1:]
 
-    for f in files:
-        process(f)
+    if args[0] in set(["-h", "-help", "--help"]):
+        print(usage)
+        exit(0)
+
+    if len(args) > 2:
+        print(usage)
+        exit(0)
+
+    config_json_path = args[0]
+
+    if not os.path.isfile(config_json_path):
+        LOG.info("'%s' is not a file, was expecting a config.json file", config_json_path)
+
+    configuration_path = None
+    configuration = None
+    LOG.info("config_json_path: %s", config_json_path)
+
+    if len(args) == 2:
+        configuration_path = args[1]
+
+    LOG.info("configuration_path: %s", configuration_path)
+
+    if configuration_path:
+        if not os.path.isfile(configuration_path):
+            LOG.info(
+                "'%s' is not a file, was expecting a dcos_commons.json file", configuration_path
+            )
+
+        LOG.info("Parsing dcos-commons tooling configuration from '%s'", configuration_path)
+        configuration = json.loads(read_file(configuration_path))
+
+    process(config_json_path, configuration and configuration.get("standardize_config_json"))
