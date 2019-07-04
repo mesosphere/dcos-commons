@@ -103,14 +103,15 @@ def print_diff(original: collections.OrderedDict, new: collections.OrderedDict):
     LOG.info("\n".join(diff))
 
 
-def process(config_json_path: str, configuration: list):
+def process(config_json_path: str, configuration: dict):
     contents = read_json_file(config_json_path)
     original = read_json_file(config_json_path)
 
     reordered = reorder_service(contents["properties"]["service"]["properties"])
     contents["properties"]["service"]["properties"] = reordered
 
-    for section_name, head_and_tail in configuration["sections"].items():
+    sections = configuration.get("sections", {})
+    for section_name, head_and_tail in sections.items():
         head = head_and_tail["head"]
         tail = head_and_tail["tail"]
         properties = contents["properties"][section_name]["properties"]
@@ -139,13 +140,12 @@ if __name__ == "__main__":
         LOG.info("'%s' is not a file, was expecting a config.json file", config_json_path)
 
     configuration_path = None
-    configuration = None
+    configuration: dict = {}
     LOG.info("config_json_path: %s", config_json_path)
 
     if len(args) == 2:
         configuration_path = args[1]
-
-    LOG.info("configuration_path: %s", configuration_path)
+        LOG.info("configuration_path: %s", configuration_path)
 
     if configuration_path:
         if not os.path.isfile(configuration_path):
@@ -156,4 +156,4 @@ if __name__ == "__main__":
         LOG.info("Parsing dcos-commons tooling configuration from '%s'", configuration_path)
         configuration = json.loads(read_file(configuration_path))
 
-    process(config_json_path, configuration and configuration.get("standardize_config_json"))
+    process(config_json_path, configuration.get("standardize_config_json", {}))
