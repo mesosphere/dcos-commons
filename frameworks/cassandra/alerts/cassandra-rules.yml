@@ -6,7 +6,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_Write_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: "Number of write failures encountered. A write failure is a non-timeout exception encountered during a write request. Examine the reason map to find to the root cause. The most common cause for this type of error is when batch sizes are too large."
 
@@ -14,7 +14,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_Read_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Number of read failures encountered. A read failure is a non-timeout exception encountered during a read request. Investigate the reason map to find to the root cause. The most common cause for this type of error is when too many tombstones are read during the request. '
 
@@ -22,7 +22,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_Storage_Exceptions) > 0
       for: 1m
       labels:
-        severity: major
+        severity: critical
       annotations:
         description: 'Number of internal exceptions caught. Under normal exceptions this should be zero.' 
 
@@ -30,7 +30,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_CASWrite_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Number of lightweight transaction writes that failed because too many nodes were unavailable'
 
@@ -38,7 +38,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_CASRead_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Number of lightweight transaction reads that failed because too many replicas were unavailable'
 
@@ -46,7 +46,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_CASWrite_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Number of lightweight transaction writes that failed.' 
 
@@ -54,7 +54,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Failures_CASRead_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Number of lightweight transaction reads that failed.'
 
@@ -62,7 +62,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_CASWrite_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Number of lightweight transaction writes that timed out.'
 
@@ -70,7 +70,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_CASRead_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Number of lightweight transaction read that timed out.'
 
@@ -78,7 +78,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_Write_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Write failures have occurred because too many replicas were unavailable.'
 
@@ -86,7 +86,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Unavailables_Read_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Read failures have occurred because too many nodes were unavailable.'
 
@@ -94,7 +94,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Read_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Read timeouts signal that a timeout exception occurred during the read request. Read timeouts can occur for a variety of reasons. Some possible causes are if the query is requesting a very large amount of data at all once or if there are long server side garbage collection events occurring. This typically indicates issues with the data model or query patterns that are causing poor performance on the server. To debug, first verify in the server logs that garbage collection times are acceptable and then examine the data model and access patterns. The server side read timeout can be altered in cassandra.yaml if no other underlying cause of the timeouts can be diagnosed.'
 
@@ -102,7 +102,7 @@ groups:
       expr: sum(org_apache_cassandra_metrics_ClientRequest_Timeouts_Write_m1_rate) > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Write timeouts signal that a timeout exception occurred during the write request. When this happens on a non-idempotent write, such as incrementing a counter, caution must be exercised by the client, as the data may or may not have been written to the table by the node. With an idempotent write, the write can simply be retried. Only batchlog writes are retried by the driver’s default retry policy. A query’s idempotence can be defined in the application. See the individual driver documentation for the API specifics. Depending on the SLAs and application requirements, the default server side write timeout may not be adequate and this value can be adjusted in the cassandra.yaml. One common case when write timeouts surface is when batches are large or span multiple partitions. To address this, consider decreasing the batch size and limiting batch writes to a single partition.'
 
@@ -110,7 +110,7 @@ groups:
       expr: sum(mesos_master_frameworks_tasks_terminal{framework_name=~".*cassandra.*",task_state="task_failed"}) > 0
       for: 1m
       labels:
-        severity: major
+        severity: critical
       annotations:
         description: 'Cassandra node(s) down. Investigate immediately.'
 
@@ -118,7 +118,7 @@ groups:
       expr: org_apache_cassandra_metrics_ThreadPools_CurrentlyBlockedTasks_internal_MemtableFlushWriter > 0
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'There are a number of tasks that cannot yet be queued for processing.'
 
@@ -126,7 +126,7 @@ groups:
       expr: org_apache_cassandra_metrics_Cache_HitRate_KeyCache < .85
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Key Cache HitRate is below 85%. Please investigate.'
 
@@ -134,7 +134,7 @@ groups:
       expr: jvm_memory_heap_usage{service_name=~".*cassandra.*"} > .80
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'Cassandra heap usage currently greater then 80% of available capacity. Please investigate and if need be increase total capacity'
 
@@ -142,7 +142,7 @@ groups:
       expr: org_apache_cassandra_metrics_ClientRequest_Latency_Read_p99 > 1000
       for: 1m
       labels:
-        severity: major
+        severity: critical
       annotations:
         description: 'p99 Read Latency has reached 1 second. Please investigate.'
 
@@ -150,7 +150,7 @@ groups:
       expr: org_apache_cassandra_metrics_ClientRequest_Latency_Write_p99 > 1000
       for: 1m
       labels:
-        severity: major
+        severity: critical
       annotations:
         description: 'p99 Write Latency has reached 1 second. Please investigate.'
 
@@ -158,7 +158,7 @@ groups:
       expr: org_apache_cassandra_metrics_ClientRequest_Latency_Write_m1_rate > 1000
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'The number of write requests per second has reached 1000 ops/sec.'
 
@@ -166,6 +166,6 @@ groups:
       expr: org_apache_cassandra_metrics_ClientRequest_Latency_Read_m1_rate > 1000
       for: 1m
       labels:
-        severity: informational
+        severity: warning
       annotations:
         description: 'The number of Read requests per second has reached 1000 ops/sec.'
