@@ -3,7 +3,7 @@
 usage = """Standardizes the ordering of sections in config.json files.
 
 Usage:
-$ ./standardize_config_json.py $path_to_config_json"""
+$ ./standardize_config_json.py $path_to_config_json $path_to_dcos_commons_json"""
 
 import collections
 import difflib
