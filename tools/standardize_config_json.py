@@ -1,16 +1,16 @@
 #!/usr/bin/env python3
 
-usage = """Standardizes the ordering of sections in config.json files.
-
-Usage:
-$ ./standardize_config_json.py $path_to_config_json $path_to_dcos_commons_json"""
-
 import collections
 import difflib
 import json
 import logging
 import os.path
 import sys
+
+usage = """Standardizes the ordering of sections in config.json files.
+
+Usage:
+$ ./standardize_config_json.py $path_to_config_json $path_to_dcos_commons_json"""
 
 
 logging.basicConfig(
