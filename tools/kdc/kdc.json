@@ -3,7 +3,6 @@
   "instances": 1,
   "cpus": 0.5,
   "mem": 128,
-  "user": "nobody",
   "container": {
     "type": "MESOS",
     "docker": {
