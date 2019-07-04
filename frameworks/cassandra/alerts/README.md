@@ -9,9 +9,8 @@ In order to setup alerts on your cluster, you must install the following two pac
 {
   "prometheus": {
     "alert_rules_repository": {
-      "url": "https://github.com/mesosphere/dcos-commons",
-      "path": "/frameworks/cassandra/alerts/",
-      "reference_name": "refs/heads/cassandra-dashboards-and-alerts"
+      "url": "https://github.com/dcos/prometheus-alert-rules",
+      "path": "/rules/cassandra/"
     }
   }
 }
