@@ -20,6 +20,21 @@ dcos security org users grant kdc-admin 'dcos:secrets:default:/*' full
 dcos security org users grant kdc-admin 'dcos:secrets:list:default:/*' read
 ```
 
+## Building the KDC Container
+
+There are multiple flavors of KDC you can use:
+
+* `Dockerfile.heimdal-alpine` - Heimdal (HL5) Kerberos, in a low-footprint image (~70MB)
+* `Dockerfile.heimdal-centos7` - Heimdal (HL5) Kerberos, CentOS 7 image for compatibility with DC/OS (~250MB)
+* `Dockerfile.mit-alpine` - MIT Kerberos, in a low-footprint image (~70MB)
+* `Dockerfile.mit-centos7` - MIT Kerberos, CentOS 7 image for compatibility with DC/OS (~250MB)
+
+You can build either version using:
+
+```sh
+docker build -t mesosphere/kdc:heimdal-centos7 -f Dockerfile.heimdal-centos7 .
+```
+
 ## API Reference
 
 This API operates in both "plain text" and "json" encoding based on the `Content-Type`header. The simplest use is with the "plain text" API like so:

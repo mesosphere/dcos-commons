@@ -4,9 +4,9 @@
   "cpus": 0.5,
   "mem": 128,
   "container": {
-    "type": "MESOS",
+    "type": "DOCKER",
     "docker": {
-      "image": "mesosphere/kdc:5636d1733535abc2f958db549dda2732531ad7e4"
+      "image": "mesosphere/kdc:mit-centos7"
     }
   },
   "networks": [

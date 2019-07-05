@@ -6,11 +6,18 @@ import (
 )
 
 func main() {
+	// Allow overriding of kadmin client
+	kadminBin := os.Getenv("KADMIN_BIN")
+	if kadminBin == "" {
+		kadminBin = "/usr/sbin/kadmin"
+	}
+
 	// Create a KAdmin client
-	kadmin, err := createKAdminClient("/usr/sbin/kadmin")
+	kadmin, err := createKAdminClient(kadminBin)
 	if err != nil {
 		log.Fatal(err)
 	}
+	log.Printf("Using %s-flavored kadmin from: %s", kadmin.KAdminApiFlavor, kadmin.KAdminPath)
 
 	// Try to connect to DC/OS based on the environment settings
 	// if this fails, we cannot connect to DC/OS later

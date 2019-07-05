@@ -14,10 +14,17 @@ import (
 )
 
 /**
+ * Constants for the CLI syntax to use
+ */
+const API_HL5 = "heimdal" // Heimdal (HL5) syntax for the CLI commands
+const API_MIT = "mit"     // MIT Kerberos (KRB5) syntax for the CLI commands
+
+/**
  * Kadmin interface
  */
 type KAdminClient struct {
-  KAdminPath string
+  KAdminPath      string
+  KAdminApiFlavor string
 }
 
 /**
@@ -117,28 +124,137 @@ func createKAdminClient(kadmin string) (*KAdminClient, error) {
     return nil, fmt.Errorf("Unable to lookup kadmin")
   }
 
-  return &KAdminClient{
+  client := &KAdminClient{
     KAdminPath: path,
-  }, nil
+  }
+
+  apiFlavor, err := client.detectCliApiFlavor(path)
+  if err != nil {
+    return nil, fmt.Errorf("Unable to detect the API flavor of the kadmin utility")
+  }
+
+  client.KAdminApiFlavor = apiFlavor
+  return client, nil
+}
+
+/**
+ * Tries to find out if this kexec comes from heimdal or MIT kerberos
+ */
+func (c *KAdminClient) detectCliApiFlavor(kadmin string) (string, error) {
+  _, serr, err := c.exec("-v")
+  if err != nil {
+    // Check if the CLI does not support the '-v' command. In this case
+    // it will show an error and a usage prompt.
+    if kerr, ok := err.(*KExecError); ok {
+      if strings.Contains(kerr.Stderr, "Usage: ") {
+        // MIT kadmin does not have a version command
+        return API_MIT, nil
+      }
+    }
+
+    // Otherwise that's a legit error
+    return "", err
+  }
+
+  // Heimdal respects the version query and kindly replies with a version string
+  if strings.Contains(serr, "Heimdal") {
+    return API_HL5, nil
+  }
+
+  // If we reached this point we were not able to detect the API flavor to use
+  return "", fmt.Errorf("Unknown response from kadmin binary")
 }
 
 /**
  * AddPrincipals Adds one or more principals on KDC
  */
-func (c *KAdminClient) AddPrincipals(principals []KPrincipal) error {
-  args := []string{
-    "-l",
-    "add",
-    "--use-defaults",
-    "--random-password",
-  }
-  for _, p := range principals {
-    args = append(args, p.Full())
-  }
 
-  // Call-out to KDC to add the principals
-  _, _, err := c.exec(args...)
-  return err
+func (c *KAdminClient) AddPrincipals(principals []KPrincipal) error {
+  switch c.KAdminApiFlavor {
+  case API_HL5: // Heimdal API Flavor
+    args := []string{
+      "-l",
+      "add",
+      "--use-defaults",
+      "--random-password",
+    }
+    for _, p := range principals {
+      args = append(args, p.Full())
+    }
+
+    // Call-out to KDC to add all the principals at once
+    _, _, err := c.exec(args...)
+    return err
+
+  case API_MIT: // MIT API Flavor
+    for _, p := range principals {
+      args := []string{
+        "-r",
+        "LOCAL",
+        "addprinc",
+        "-randkey",
+        p.Full(),
+      }
+
+      // Call-out to KDC to add a single principal
+      _, _, err := c.exec(args...)
+      if err != nil {
+        return err
+      }
+    }
+
+    // Completed
+    return nil
+
+  default:
+    return fmt.Errorf("Unknown KDC CLI API flavor")
+
+  }
+}
+
+/**
+ * HasPrincipal Checks if the given principal exists
+ */
+func (c *KAdminClient) HasPrincipal(p KPrincipal) (bool, error) {
+  switch c.KAdminApiFlavor {
+  case API_HL5: // Heimdal API Flavor
+    _, _, err := c.exec("-l", "list", "-l", p.Full())
+    if err != nil {
+      // Check for missing principal
+      if kerr, ok := err.(*KExecError); ok {
+        if strings.Contains(kerr.Stderr, "Principal does not exist") {
+          return false, nil
+        }
+      }
+
+      // Anything else is an error
+      return false, err
+    }
+
+    // If it worked out smoothly, the principal exist
+    return true, nil
+
+  case API_MIT: // MIT API Flavor
+    _, _, err := c.exec("-r", "LOCAL", "getprinc", p.Full())
+    if err != nil {
+      // Check for missing principal
+      if kerr, ok := err.(*KExecError); ok {
+        if strings.Contains(kerr.Stderr, "Principal does not exist") {
+          return false, nil
+        }
+      }
+
+      // Anything else is an error
+      return false, err
+    }
+
+    // If it worked out smoothly, the principal exist
+    return true, nil
+
+  default:
+    return false, fmt.Errorf("Unknown KDC CLI API flavor")
+
+  }
 }
 
 /**
@@ -169,27 +285,6 @@ func (c *KAdminClient) AddMissingPrincipals(principals []KPrincipal) error {
 }
 
 /**
- * HasPrincipal Checks if the given principal exists
- */
-func (c *KAdminClient) HasPrincipal(p KPrincipal) (bool, error) {
-  _, _, err := c.exec("-l", "list", "-l", p.Full())
-  if err != nil {
-    // Check for missing principal
-    if kerr, ok := err.(*KExecError); ok {
-      if strings.Contains(kerr.Stderr, "Principal does not exist") {
-        return false, nil
-      }
-    }
-
-    // Anything else is an error
-    return false, err
-  }
-
-  // If it worked out smoothly, the principal exist
-  return true, nil
-}
-
-/**
  * GetKeytab Creates a keytab file for the given principals
  */
 func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, error) {
@@ -201,21 +296,46 @@ func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, 
   defer tmpFile.Close()
   defer os.Remove(tmpFile.Name()) // Don't pollute the filesystem
 
-  // Prepare arguments to generate a keytab file from given princiapls
-  args := []string{
-    "-l",
-    "ext",
-    "-k",
-    tmpFile.Name(),
-  }
-  for _, p := range principals {
-    args = append(args, p.Full())
-  }
+  switch c.KAdminApiFlavor {
+  case API_HL5: // Heimdal API Flavor
+    // Prepare arguments to generate a keytab file from given princiapls
+    args := []string{
+      "-l",
+      "ext",
+      "-k",
+      tmpFile.Name(),
+    }
+    for _, p := range principals {
+      args = append(args, p.Full())
+    }
 
-  // Call-out to KDC
-  _, _, err = c.exec(args...)
-  if err != nil {
-    return nil, err
+    // Call-out to KDC
+    _, _, err = c.exec(args...)
+    if err != nil {
+      return nil, err
+    }
+
+  case API_MIT: // MIT API Flavor
+    args := []string{
+      "-r",
+      "LOCAL",
+      "ktadd",
+      "-k",
+      tmpFile.Name(),
+    }
+    for _, p := range principals {
+      args = append(args, p.Full())
+    }
+
+    // Call-out to KDC
+    _, _, err = c.exec(args...)
+    if err != nil {
+      return nil, err
+    }
+
+  default:
+    return nil, fmt.Errorf("Unknown KDC CLI API flavor")
+
   }
 
   // Collect keytab contents
@@ -232,14 +352,26 @@ func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, 
  * ListPrincipals Lists principals in the kerberos registry, optionally matching the given filter
  */
 func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
+  var list string = ""
+  var err error
   if filter == "" {
     filter = "*"
   }
 
-  // Enumerate the principals in stdout
-  list, _, err := c.exec("-l", "list", "-l", filter)
-  if err != nil {
-    return nil, err
+  switch c.KAdminApiFlavor {
+  case API_HL5: // Heimdal API Flavor
+    list, _, err = c.exec("-l", "list", "-l", filter)
+    if err != nil {
+      return nil, err
+    }
+
+  case API_MIT: // MIT API Flavor
+  default:
+    list, _, err = c.exec("-r", "LOCAL", "listprincs", filter)
+    if err != nil {
+      return nil, err
+    }
+
   }
 
   // Parse kadim STDOUT as principals
