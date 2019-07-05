@@ -91,7 +91,7 @@ func (p *KPrincipal) Full() string {
   if p.Realm != "" {
     str += "@" + p.Realm
   }
-  return fmt.Sprintf("%s/%s@%s", p.Primary, p.Instance, p.Realm)
+  return str
 }
 
 func (p *KPrincipal) String() string {
@@ -293,8 +293,15 @@ func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, 
   if err != nil {
     return nil, fmt.Errorf("Unable to create a temporary keytab file")
   }
-  defer tmpFile.Close()
-  defer os.Remove(tmpFile.Name()) // Don't pollute the filesystem
+
+  // First of all, make sure that the file does not exist beforehand
+  // This is important, because the MIT flavor of KDC will try to read it, if
+  // it already exists, and an empty file is an invalid file!
+  tmpFile.Close()
+  os.Remove(tmpFile.Name())
+
+  // And don't pollute the filesystem when we are done
+  defer os.Remove(tmpFile.Name())
 
   switch c.KAdminApiFlavor {
   case API_HL5: // Heimdal API Flavor
@@ -338,6 +345,13 @@ func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, 
 
   }
 
+  // Re-open th efile for reading
+  tmpFile, err = os.Open(tmpFile.Name())
+  if err != nil {
+    return nil, fmt.Errorf("Unable to find the keytab file")
+  }
+  defer tmpFile.Close()
+
   // Collect keytab contents
   buf := bytes.NewBuffer(nil)
   _, err = io.Copy(buf, tmpFile)
@@ -365,17 +379,21 @@ func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
       return nil, err
     }
 
+    // Parse kadim STDOUT as principals in long format
+    return ParsePrincipalsKadminLong(list)
+
   case API_MIT: // MIT API Flavor
-  default:
     list, _, err = c.exec("-r", "LOCAL", "listprincs", filter)
     if err != nil {
       return nil, err
     }
 
-  }
+    return ParsePrincipalsBytes([]byte(list))
 
-  // Parse kadim STDOUT as principals
-  return ParsePrincipalsKadminLong(list)
+  default:
+    return nil, fmt.Errorf("Unknown KDC CLI API flavor")
+
+  }
 }
 
 /**
@@ -385,12 +403,17 @@ func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
  */
 func (c *KAdminClient) exec(args ...string) (string, string, error) {
   var stdout, stderr bytes.Buffer
+  fmt.Printf("Executing: %s %s\n", c.KAdminPath, strings.Join(args, " "))
 
   // Exec command
   cmd := exec.Command(c.KAdminPath, args...)
   cmd.Stdout = &stdout
   cmd.Stderr = &stderr
   err := cmd.Run()
+
+  fmt.Printf(">>> Stdout\n%s<<<\n", string(stdout.Bytes()))
+  fmt.Printf(">>> Stderr\n%s<<<\n", string(stderr.Bytes()))
+
   if err != nil {
     if exiterr, ok := err.(*exec.ExitError); ok {
       if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
