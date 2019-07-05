@@ -5,8 +5,7 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.plan.backoff.Delay;
-import com.mesosphere.sdk.scheduler.plan.backoff.ExponentialBackOff;
+import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
@@ -391,7 +390,7 @@ public final class TaskUtils {
       Collection<Protos.TaskInfo> allTaskInfos,
       Collection<Protos.TaskStatus> allTaskStatuses,
       Collection<Protos.TaskInfo> failedTasks,
-      ExponentialBackOff exponentialBackOff)
+      BackOff backOff)
   {
 
     // Mapping of pods, to failed tasks within those pods.
@@ -403,13 +402,10 @@ public final class TaskUtils {
         PodInstance podInstance = getPodInstance(configStore, taskInfo);
         Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskInfo.getName());
         if (taskSpec.isPresent()) {
-          Delay delay = exponentialBackOff.getDelay(CommonIdUtils.getTaskInstanceName(podInstance, taskSpec.get()));
-          if (delay == null || delay.isOver()) {
+          if (backOff.isReady(CommonIdUtils.getTaskInstanceName(podInstance, taskSpec.get()))) {
             Collection<TaskSpec> failedTaskSpecs =
                     podsToFailedTasks.computeIfAbsent(podInstance, k -> new ArrayList<>());
             failedTaskSpecs.add(taskSpec.get());
-          } else {
-            LOGGER.info("Delay for {} is {}", taskInfo.getName(), delay);
           }
         } else {
           LOGGER.error("No TaskSpec found for failed task: {}", taskInfo.getName());

@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -52,6 +54,27 @@ public abstract class AbstractStep implements Step {
     synchronized (statusLock) {
       if (interrupted && (status == Status.PENDING || status == Status.PREPARED)) {
         return Status.WAITING;
+      }
+      /**
+       * All steps from all yaml plans are {@link DeploymentStep}s. Only {@link DeploymentStep} and
+       * {@link com.mesosphere.sdk.scheduler.recovery.RecoveryStep}s are relevant for backoff delay. As
+       * {@link com.mesosphere.sdk.scheduler.recovery.RecoveryStep}s are always constructed on the fly, we don't need
+       * to mutate their state. However, {@link DeploymentStep}s are built only once and are used until they are
+       * complete. The {@link DeploymentStep#setStatus(Status)} is called from other places as well upon external
+       * triggers and the same method is called here to indicate that the
+       * step can make progress (or not).
+       */
+      if (status == Status.DELAYED && this instanceof DeploymentStep) {
+        PodInstanceRequirement req = ((DeploymentStep) this).podInstanceRequirement;
+        boolean noDelay = req
+                .getTasksToLaunch()
+                .stream()
+                .allMatch(n -> BackOff
+                        .getInstance()
+                        .isReady(CommonIdUtils.getTaskInstanceName(req.getPodInstance(), n)));
+        if (noDelay) {
+          setStatus(Status.PENDING);
+        }
       }
       return status;
     }

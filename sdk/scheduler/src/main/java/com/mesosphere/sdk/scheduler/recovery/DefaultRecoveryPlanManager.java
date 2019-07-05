@@ -17,7 +17,7 @@ import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.plan.backoff.ExponentialBackOff;
+import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
@@ -73,8 +73,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
   protected final LaunchConstrainer launchConstrainer;
 
-  final ExponentialBackOff exponentialBackOff;
-
   protected final Object planLock = new Object();
 
   public DefaultRecoveryPlanManager(
@@ -92,7 +90,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         launchConstrainer,
         failureMonitor,
         namespace,
-        Collections.emptyList(), ExponentialBackOff.getInstance());
+        Collections.emptyList());
   }
 
   public DefaultRecoveryPlanManager(
@@ -102,8 +100,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
       LaunchConstrainer launchConstrainer,
       FailureMonitor failureMonitor,
       Optional<String> namespace,
-      List<RecoveryPlanOverrider> recoveryPlanOverriders,
-      ExponentialBackOff exponentialBackOff)
+      List<RecoveryPlanOverrider> recoveryPlanOverriders)
   {
     this.logger = LoggingUtils.getLogger(getClass(), namespace);
     this.stateStore = stateStore;
@@ -115,7 +112,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     this.recoveryPlanOverriders = recoveryPlanOverriders;
     //TODO@kjoshi: Recovery plans ARE DefaultPlans, just with a different name
     plan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME, Collections.emptyList());
-    this.exponentialBackOff = exponentialBackOff;
   }
 
   @Override
@@ -130,7 +126,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     throw new UnsupportedOperationException("Setting plans on the RecoveryPlanManager is not allowed.");
   }
 
-  private void setPlanInternal(Plan plan) {
+  protected void setPlanInternal(Plan plan) {
     synchronized (planLock) {
       this.plan = plan;
       // Avoid logging for non-empty completed plan, as is the case when a previous recovery had occurred:
@@ -178,7 +174,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     }
   }
 
-  private void updatePlan(Collection<PodInstanceRequirement> dirtyAssets) {
+  protected void updatePlan(Collection<PodInstanceRequirement> dirtyAssets) {
     if (!dirtyAssets.isEmpty()) {
       logger.info("Dirty assets for recovery plan consideration: {}", dirtyAssets);
     }
@@ -321,8 +317,8 @@ public class DefaultRecoveryPlanManager implements PlanManager {
       logger.info("Tasks needing recovery: {}", getTaskNames(failedTasks));
     }
 
-    List<PodInstanceRequirement> failedPods =
-        TaskUtils.getPodRequirements(configStore, allTaskInfos, allTaskStatuses, failedTasks, exponentialBackOff);
+    List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(
+            configStore, allTaskInfos, allTaskStatuses, failedTasks, BackOff.getInstance());
     if (!failedPods.isEmpty()) {
       logger.info("All failed pods: {}", getPodNames(failedPods));
     }

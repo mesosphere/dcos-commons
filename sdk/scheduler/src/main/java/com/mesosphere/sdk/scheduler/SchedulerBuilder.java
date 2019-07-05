@@ -34,7 +34,6 @@ import com.mesosphere.sdk.scheduler.plan.PlanCustomizer;
 import com.mesosphere.sdk.scheduler.plan.PlanFactory;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
-import com.mesosphere.sdk.scheduler.plan.backoff.ExponentialBackOff;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
@@ -442,8 +441,7 @@ public class SchedulerBuilder {
           new FrameworkStore(persister),
           stateStore,
           configStore,
-          namespace,
-          ExponentialBackOff.getInstance()
+          namespace
       );
     } catch (ConfigStoreException e) {
       logger.error("Failed to construct scheduler.", e);
@@ -465,8 +463,7 @@ public class SchedulerBuilder {
       FrameworkStore frameworkStore,
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
-      Optional<String> namespace,
-      ExponentialBackOff exponentialBackOff) throws ConfigStoreException
+      Optional<String> namespace) throws ConfigStoreException
   {
 
     // Determine whether deployment had previously completed BEFORE we update the config.
@@ -562,8 +559,7 @@ public class SchedulerBuilder {
         stateStore,
         configStore,
         plans,
-        namespace,
-            exponentialBackOff);
+        namespace);
     Optional<PlanManager> decommissionPlanManager = getDecommissionPlanManager(
         serviceSpec,
         stateStore,
@@ -603,8 +599,7 @@ public class SchedulerBuilder {
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
       Collection<Plan> plans,
-      Optional<String> namespace,
-      ExponentialBackOff exponentialBackOff)
+      Optional<String> namespace)
   {
 
     List<RecoveryPlanOverrider> overrideRecoveryPlanManagers = new ArrayList<>();
@@ -633,8 +628,7 @@ public class SchedulerBuilder {
         launchConstrainer,
         failureMonitor,
         namespace,
-        overrideRecoveryPlanManagers,
-            exponentialBackOff);
+        overrideRecoveryPlanManagers);
   }
 
   /**

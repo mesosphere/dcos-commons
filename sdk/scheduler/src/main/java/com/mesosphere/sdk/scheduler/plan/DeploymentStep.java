@@ -5,7 +5,7 @@ import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.plan.backoff.ExponentialBackOff;
+import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
@@ -121,17 +121,14 @@ public class DeploymentStep extends AbstractStep {
   @Override
   public synchronized void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
     tasks.clear();
-    recommendations.stream()
+    recommendations
+        .stream()
         .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
         .map(recommendation -> ((LaunchOfferRecommendation) recommendation).getTaskInfo())
         .forEach(taskInfo -> tasks.put(taskInfo.getTaskId(),
             new TaskStatusPair(taskInfo, Status.PREPARED)));
 
-    if (recommendations.isEmpty()) {
-      //TODO@kjoshi: this line doesn't make sense. if recommendations is empty
-      //tasks.keySet() will be empty as well.
-      tasks.keySet().forEach(id -> setTaskStatus(id, Status.PREPARED));
-    } else {
+    if (!recommendations.isEmpty()) {
       //TODO@kjoshi: why is TaskStatusPair PREPARED, but set to STARTING here?
       tasks.keySet().forEach(id -> setTaskStatus(id, Status.STARTING));
     }
@@ -183,7 +180,7 @@ public class DeploymentStep extends AbstractStep {
     switch (status.getState()) {
       case TASK_ERROR:
       case TASK_FAILED:
-        ExponentialBackOff.getInstance().addDelay(status.getTaskId());
+        BackOff.getInstance().addDelay(status.getTaskId());
         setTaskStatus(status.getTaskId(), Status.DELAYED);
         break;
         //TODO@kjoshi: Transition to PENDING_DELAYED state here
@@ -211,7 +208,7 @@ public class DeploymentStep extends AbstractStep {
         if (goalState.equals(GoalState.RUNNING)
             && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status))
         {
-          ExponentialBackOff.getInstance().clearDelay(status.getTaskId());
+          BackOff.getInstance().clearDelay(status.getTaskId());
           setTaskStatus(status.getTaskId(), Status.COMPLETE);
         } else {
           setTaskStatus(status.getTaskId(), Status.STARTED);

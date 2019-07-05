@@ -95,6 +95,7 @@ public class OfferProcessorTest {
         verify(mockSchedulerDriver, times(sentOfferIds.size())).declineOffer(any(), eq(LONG_INTERVAL));
     }
 
+    @Test
     public void testAcceptedAndUnexpectedResources() throws InterruptedException {
         List<Protos.Offer> sentOffers = Arrays.asList(getOffer(), getOffer(), getOffer());
         List<Protos.OfferID> sentOfferIds = sentOffers.stream().map(o -> o.getId()).collect(Collectors.toList());

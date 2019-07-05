@@ -76,7 +76,7 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
   default void restart() {
     Collection<? extends Element> children = getChildren();
     LOGGER.info("Restarting elements within {}: {}", getName(), children);
-    children.forEach(element -> element.restart());
+    children.forEach(Element::restart);
   }
 
   /**
@@ -86,7 +86,7 @@ public interface ParentElement<C extends Element> extends Element, Interruptible
   default void forceComplete() {
     Collection<? extends Element> children = getChildren();
     LOGGER.info("Forcing completion of elements within {}: {}", getName(), children);
-    children.forEach(element -> element.forceComplete());
+    children.forEach(Element::forceComplete);
   }
 
   /**

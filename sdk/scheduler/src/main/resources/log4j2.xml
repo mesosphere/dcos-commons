@@ -11,6 +11,12 @@
     </Appenders>
 
     <Loggers>
+        <Logger name="org.eclipse.jetty" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
+        <Logger name="org.apache" level="INFO" additivity="false">
+            <AppenderRef ref="Console"/>
+        </Logger>
         <Root level="${env:FRAMEWORK_LOG_LEVEL:-INFO}">
             <AppenderRef ref="STDOUT"/>
         </Root>

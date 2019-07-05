@@ -5,10 +5,12 @@ import com.mesosphere.sdk.http.RequestUtils;
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.http.types.GroupedTasks;
 import com.mesosphere.sdk.http.types.TaskInfoAndStatus;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -290,6 +292,16 @@ public final class PodQueries {
     if (!podTasks.isPresent() || podTasks.get().isEmpty()) {
       // shouldn't ever be empty, but just in case
       return podNotFoundResponse(podInstanceName);
+    } else {
+      // Whenever a pod is restarted, clear all the delays associated with its tasks
+      podTasks.get().forEach(x -> {
+        try {
+          BackOff.getInstance().clearDelay(CommonIdUtils.toTaskName(x.getInfo().getTaskId()));
+        } catch (TaskException te) {
+          LOGGER.error("Failed to clear delay for task [{}] before pod restart",
+                  x.getInfo().getName(), te);
+        }
+      });
     }
 
     // invoke the restart request itself against ALL tasks. this ensures that they're ALL flagged
@@ -300,7 +312,7 @@ public final class PodQueries {
 
     if (recoveryType.equals(RecoveryType.PERMANENT)) {
       Collection<Protos.TaskInfo> taskInfos = podTasks.get().stream()
-          .map(taskInfoAndStatus -> taskInfoAndStatus.getInfo())
+          .map(TaskInfoAndStatus::getInfo)
           .collect(Collectors.toList());
       failureSetter.setFailure(configStore, stateStore, taskInfos);
     }
@@ -376,9 +388,7 @@ public final class PodQueries {
           stateStore,
           task.getInfo().getName(),
           task.getStatus());
-      if (stateString.isPresent()) {
-        jsonTask.put("status", stateString.get());
-      }
+      stateString.ifPresent(s -> jsonTask.put("status", s));
       jsonPod.append("tasks", jsonTask);
     }
     return jsonPod;

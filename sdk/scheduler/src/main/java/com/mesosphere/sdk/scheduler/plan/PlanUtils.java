@@ -1,15 +1,13 @@
 package com.mesosphere.sdk.scheduler.plan;
 
-import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.scheduler.plan.backoff.Delay;
-import com.mesosphere.sdk.scheduler.plan.backoff.ExponentialBackOff;
 
 import org.slf4j.Logger;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -55,12 +53,6 @@ public final class PlanUtils {
     if (plan == null) {
       return Collections.emptySet();
     }
-    LOGGER.info(">>>>>>> plan {}", plan.getName());
-    plan.getChildren().forEach(x -> {
-      LOGGER.info(">>>> phase {}", x.getName());
-      x.getChildren().forEach(y -> LOGGER.info(">> step {}", y.getDisplayStatus()));
-    });
-
     return plan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .filter(step -> (step.isPrepared() || step.isStarting())
@@ -89,21 +81,11 @@ public final class PlanUtils {
     /* TODO@kjoshi: return false here in case where our current delay hasn't been met.
     @takirala: here's where the logic for determining if we're in backoff gets excercised.
     */
-    if (element instanceof Step && ((Step) element).getPodInstanceRequirement().isPresent()) {
-      PodInstanceRequirement podInstanceRequirement =
-              ((Step) element).getPodInstanceRequirement().get();
-      /*
-      Implementation detail: Step will have a expiry time set. Compare expiry time with currentTime
-      and decide if we've expired or not, include in workset if post expiry.
-      */
-      return podInstanceRequirement.getTasksToLaunch().stream().allMatch(name -> {
-        String taskName = CommonIdUtils.getTaskInstanceName(
-                podInstanceRequirement.getPodInstance(), name);
-        Delay delay = ExponentialBackOff.getInstance().getDelay(taskName);
-        boolean res = delay == null || delay.isOver();
-        LOGGER.info("never ever happens -> {}", res);
-        return res;
-      }) && !PlanUtils.assetConflicts(podInstanceRequirement, dirtyAssets);
+    if (element instanceof Step) {
+      Optional<PodInstanceRequirement> podInstanceRequirement =
+              ((Step) element).getPodInstanceRequirement();
+      return !podInstanceRequirement.isPresent()
+              || !PlanUtils.assetConflicts(podInstanceRequirement.get(), dirtyAssets);
     }
     return true;
   }
