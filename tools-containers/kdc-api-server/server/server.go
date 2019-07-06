@@ -23,6 +23,8 @@ type KDCRequestAddPrincipal struct {
 
 type KDCRequestListPrincipals struct {
 	Filter string `json:"filter"`
+	Secret string `json:"secret,omitempty`
+	Binary *bool  `json:"binary"`
 }
 
 type KDCCheckStatus struct {
@@ -264,7 +266,7 @@ func (s *KDCAPIServer) handleAddPrincipal(rw http.ResponseWriter, req *http.Requ
  * Enumerates the installed principals that match a given wildcard
  */
 func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Request) {
-	filterExpr := KDCRequestListPrincipals{"*"}
+	filterExpr := KDCRequestListPrincipals{"*", "", nil}
 
 	// Check if we are parsing JSON or plain text
 	contentType := req.Header.Get("Content-Type")
@@ -285,6 +287,15 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 		if ok && len(filterArg[0]) > 0 {
 			filterExpr.Filter = filterArg[0]
 		}
+		secretName, ok := req.URL.Query()["secret"]
+		if !ok || len(secretName[0]) < 1 {
+			filterExpr.Secret = secretName[0]
+		}
+		useBinary, ok := req.URL.Query()["binary"]
+		if ok && len(secretName[0]) > 0 {
+			useBinaryFlag := useBinary[0] == "1"
+			filterExpr.Binary = &useBinaryFlag
+		}
 	}
 
 	// Enumerate principals
@@ -292,6 +303,55 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 	if err != nil {
 		s.replyReject(rw, req, `Unable to list principals: %s`, err.Error())
 		return
+	}
+
+	// If there was a secret argument in the query, strip-out principals
+	// not present in the secret file given
+	if filterExpr.Secret != "" {
+		// Since our auth token can expire at any time, we are re-connecting on
+		// DC/OS on every request. Since we are not expecting any serious request
+		// rate on this endpoint,  and since the log-in procedure is quite fast
+		// we should be OK
+		dclient, err := createDCOSClientFromEnvironment()
+		if err != nil {
+			s.replyReject(rw, req, `Unable to connect to DC/OS: %s`, err.Error())
+			return
+		}
+
+		// Get binary flag
+		useBinary := false
+		if filterExpr.Binary != nil {
+			useBinary = *filterExpr.Binary
+		}
+
+		// Download the secret from the store
+		ktBytes, err := GetKeytabSecret(dclient, filterExpr.Secret, useBinary)
+		if err != nil {
+			s.replyReject(rw, req, `Unable to read the keytab secret: %s`, err.Error())
+			return
+		}
+
+		// If the secret is empty, raise error
+		if ktBytes == nil {
+			s.replyReject(rw, req, `The secret was empty`)
+			return
+		}
+
+		// Filter-out missing principals
+		var newList []KPrincipal = nil
+		for _, principal := range list {
+			ok, err := s.kadmin.HasPrincipalInKeytab(ktBytes, &principal)
+			if err != nil {
+				s.replyReject(rw, req, `Unable to check if principal %s exists in keytab: %s`, principal.Full(), err.Error())
+				return
+			}
+			if ok {
+				newList = append(newList, principal)
+			}
+		}
+
+		// Replace list
+		list = newList
 	}
 
 	// Reply the list of arguments
@@ -475,7 +535,7 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 		if !ok {
 			// We don't have a required principal -> check failed
 			s.replySuccess(rw, req, &KDCCheckStatus{
-				false, fmt.Sprintf("Principal '%s' does not exist", principal.Full()),
+				false, fmt.Sprintf("Principal '%s' does not exist in kerberos", principal.Full()),
 			})
 			return
 		}
@@ -517,6 +577,7 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 		ok, err := s.kadmin.HasPrincipalInKeytab(ktBytes, &principal)
 		if err != nil {
 			s.replyReject(rw, req, `Unable to check if principal %s exists in keytab: %s`, principal.Full(), err.Error())
+			return
 		}
 		if !ok {
 			// We don't have a required principal in the keytab -> check failed
