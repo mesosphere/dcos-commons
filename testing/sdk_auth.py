@@ -272,7 +272,7 @@ class KerberosEnvironment:
         :raises a generic Exception if the invocation fails.
         """
 
-        res = self.__kdc_api("post", "list", {"filter": filter})
+        res = self.__kdc_api("get", "principals", {"filter": filter})
         if res.status_code != 200:
             raise RuntimeError("Unable to enumerate the principals")
 
@@ -330,7 +330,7 @@ class KerberosEnvironment:
 
         res = self.__kdc_api(
             "post",
-            "add",
+            "principals",
             {
                 "principals": self.principals,
                 "secret": self.keytab_secret_path,

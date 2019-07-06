@@ -25,10 +25,16 @@ type KDCRequestListPrincipals struct {
 	Filter string `json:"filter"`
 }
 
+type KDCCheckStatus struct {
+	Pass   bool   `json:"pass"`
+	Reason string `json:"reason,omitempty"`
+}
+
 type KDCResponse struct {
-	Status string      `json:"status"`
-	Error  string      `json:"error,omitempty"`
-	Data   interface{} `json:"data,omitempty"`
+	Status     string          `json:"status"`
+	Error      string          `json:"error,omitempty"`
+	Principals []KPrincipal    `json:"principals,omitempty"`
+	Check      *KDCCheckStatus `json:"check,omitempty"`
 }
 
 func createKDCAPIServer(kadmin *KAdminClient, port string, host string) *KDCAPIServer {
@@ -45,8 +51,8 @@ func createKDCAPIServer(kadmin *KAdminClient, port string, host string) *KDCAPIS
 	})
 
 	// Register the app routes
-	http.HandleFunc("/api/add", inst.handleAddPrincipal)
-	http.HandleFunc("/api/list", inst.handleListPrincipals)
+	http.HandleFunc("/api/principals", inst.handlePrincipals)
+	http.HandleFunc("/api/check", inst.handleCheckPrincipals)
 	return inst
 }
 
@@ -64,6 +70,7 @@ func (s *KDCAPIServer) replyReject(rw http.ResponseWriter, req *http.Request, fo
 		resp := KDCResponse{
 			"error",
 			fmt.Sprintf(format, args...),
+			nil,
 			nil,
 		}
 
@@ -88,7 +95,16 @@ func (s *KDCAPIServer) replySuccess(rw http.ResponseWriter, req *http.Request, d
 	contentType := req.Header.Get("Content-Type")
 	if contentType == "application/json" {
 		resp := KDCResponse{
-			"ok", "", data,
+			"ok", "", nil, nil,
+		}
+
+		if data != nil {
+			switch x := data.(type) {
+			case []KPrincipal:
+				resp.Principals = x
+			case *KDCCheckStatus:
+				resp.Check = x
+			}
 		}
 
 		// Marshal the data
@@ -110,11 +126,32 @@ func (s *KDCAPIServer) replySuccess(rw http.ResponseWriter, req *http.Request, d
 				for _, v := range x {
 					fmt.Fprintln(rw, v.String())
 				}
-				return
+			case *KDCCheckStatus:
+				if x.Pass {
+					fmt.Fprintln(rw, "pass")
+				} else {
+					fmt.Fprintf(rw, "fail,%s\n", x.Reason)
+				}
 			}
 		}
 
 		fmt.Fprintf(rw, "ok")
+	}
+}
+
+/**
+ * CRUD Entrypoint for /principals endpoint
+ */
+func (s *KDCAPIServer) handlePrincipals(rw http.ResponseWriter, req *http.Request) {
+	switch req.Method {
+	case "POST":
+		s.handleAddPrincipal(rw, req)
+	case "GET":
+		s.handleListPrincipals(rw, req)
+	case "DELETE":
+		s.handleDeletePrincipals(rw, req)
+	default:
+		s.replyReject(rw, req, `Accepting only POST/GET/DELETE requests on this endpoint`)
 	}
 }
 
@@ -124,12 +161,6 @@ func (s *KDCAPIServer) replySuccess(rw http.ResponseWriter, req *http.Request, d
  */
 func (s *KDCAPIServer) handleAddPrincipal(rw http.ResponseWriter, req *http.Request) {
 	var apiReq KDCRequestAddPrincipal
-
-	// We accept only POST
-	if req.Method != "POST" {
-		s.replyReject(rw, req, `Accepting only POST requests on this endpoint`)
-		return
-	}
 
 	// Check if we are parsing JSON or plain text
 	contentType := req.Header.Get("Content-Type")
@@ -235,12 +266,6 @@ func (s *KDCAPIServer) handleAddPrincipal(rw http.ResponseWriter, req *http.Requ
 func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Request) {
 	filterExpr := KDCRequestListPrincipals{"*"}
 
-	// We accept only POST
-	if req.Method != "POST" {
-		s.replyReject(rw, req, `Accepting only POST requests on this endpoint`)
-		return
-	}
-
 	// Check if we are parsing JSON or plain text
 	contentType := req.Header.Get("Content-Type")
 	if contentType == "application/json" {
@@ -271,5 +296,237 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 
 	// Reply the list of arguments
 	s.replySuccess(rw, req, list)
+}
 
+/**
+ * Deletes the secret from DC/OS and revokes the principals from KDC
+ */
+func (s *KDCAPIServer) handleDeletePrincipals(rw http.ResponseWriter, req *http.Request) {
+	var apiReq KDCRequestAddPrincipal
+
+	// Check if we are parsing JSON or plain text
+	contentType := req.Header.Get("Content-Type")
+	if contentType == "application/json" {
+
+		// We are expeting all the interesting data to be in the payload
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&apiReq); err == io.EOF {
+			s.replyReject(rw, req, `Could not decode input`)
+			return
+		} else if err != nil {
+			s.replyReject(rw, req, `Unable to parse request: %s`, err.Error())
+			return
+		}
+
+		// If we were given a raw principals list, parse it now
+		if apiReq.PrincipalsRaw != "" {
+			principalsList, err := ParsePrincipalsFrom(strings.NewReader(apiReq.PrincipalsRaw))
+			if err != nil {
+				s.replyReject(rw, req, `unable to parse principals: %s`, err.Error())
+				return
+			}
+			apiReq.Principals = principalsList
+		}
+
+	} else {
+
+		// Otherwise we expect the secret name to be on the request
+		secretName, ok := req.URL.Query()["secret"]
+		if !ok || len(secretName[0]) < 1 {
+			s.replyReject(rw, req, `missing 'secret=' argument`)
+			return
+		}
+		useBinary, ok := req.URL.Query()["binary"]
+		if ok && len(secretName[0]) > 0 {
+			useBinaryFlag := useBinary[0] == "1"
+			apiReq.Binary = &useBinaryFlag
+		}
+
+		// Parse principals body as plaintext
+		principalsList, err := ParsePrincipalsFrom(req.Body)
+		if err != nil {
+			s.replyReject(rw, req, `unable to parse principals: %s`, err.Error())
+			return
+		}
+
+		// Populate API request struct
+		apiReq.Secret = secretName[0]
+		apiReq.Principals = principalsList
+
+	}
+
+	// Check if we were given an empty string
+	if len(apiReq.Principals) == 0 {
+		s.replyReject(rw, req, `given an empty list of principals`)
+		return
+	}
+
+	// Get binary flag
+	useBinary := false
+	if apiReq.Binary != nil {
+		useBinary = *apiReq.Binary
+	}
+
+	// Since our auth token can expire at any time, we are re-connecting on
+	// DC/OS on every request. Since we are not expecting any serious request
+	// rate on this endpoint,  and since the log-in procedure is quite fast
+	// we should be OK
+	dclient, err := createDCOSClientFromEnvironment()
+	if err != nil {
+		s.replyReject(rw, req, `Unable to connect to DC/OS: %s`, err.Error())
+		return
+	}
+
+	// Delete keytab secret
+	err = DeleteKeytabSecret(dclient, apiReq.Secret, useBinary)
+	if err != nil {
+		s.replyReject(rw, req, `Unable to delete secret: %s`, err.Error())
+		return
+	}
+
+	// Delete kdc principals
+	err = s.kadmin.DeletePrincipals(apiReq.Principals)
+	if err != nil {
+		s.replyReject(rw, req, `Unable to delete principals: %s`, err.Error())
+		return
+	}
+
+	// We are done
+	s.replySuccess(rw, req, nil)
+}
+
+/**
+ * Checks if all the requested principals exists in the respective secret
+ */
+func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.Request) {
+	var apiReq KDCRequestAddPrincipal
+
+	// We accept only POST
+	if req.Method != "POST" {
+		s.replyReject(rw, req, `Accepting only POST requests on this endpoint`)
+		return
+	}
+
+	// Check if we are parsing JSON or plain text
+	contentType := req.Header.Get("Content-Type")
+	if contentType == "application/json" {
+
+		// We are expeting all the interesting data to be in the payload
+		dec := json.NewDecoder(req.Body)
+		if err := dec.Decode(&apiReq); err == io.EOF {
+			s.replyReject(rw, req, `Could not decode input`)
+			return
+		} else if err != nil {
+			s.replyReject(rw, req, `Unable to parse request: %s`, err.Error())
+			return
+		}
+
+		// If we were given a raw principals list, parse it now
+		if apiReq.PrincipalsRaw != "" {
+			principalsList, err := ParsePrincipalsFrom(strings.NewReader(apiReq.PrincipalsRaw))
+			if err != nil {
+				s.replyReject(rw, req, `unable to parse principals: %s`, err.Error())
+				return
+			}
+			apiReq.Principals = principalsList
+		}
+
+	} else {
+
+		// Otherwise we expect the secret name to be on the request
+		secretName, ok := req.URL.Query()["secret"]
+		if !ok || len(secretName[0]) < 1 {
+			s.replyReject(rw, req, `missing 'secret=' argument`)
+			return
+		}
+		useBinary, ok := req.URL.Query()["binary"]
+		if ok && len(secretName[0]) > 0 {
+			useBinaryFlag := useBinary[0] == "1"
+			apiReq.Binary = &useBinaryFlag
+		}
+
+		// Parse principals body as plaintext
+		principalsList, err := ParsePrincipalsFrom(req.Body)
+		if err != nil {
+			s.replyReject(rw, req, `unable to parse principals: %s`, err.Error())
+			return
+		}
+
+		// Populate API request struct
+		apiReq.Secret = secretName[0]
+		apiReq.Principals = principalsList
+
+	}
+
+	// Check if we were given an empty string
+	if len(apiReq.Principals) == 0 {
+		s.replyReject(rw, req, `given an empty list of principals`)
+		return
+	}
+
+	// Before continuing with validating the secret, make sure that all the
+	// principals are present in KDC
+	for _, principal := range apiReq.Principals {
+		ok, err := s.kadmin.HasPrincipal(principal)
+		if err != nil {
+			s.replyReject(rw, req, `Unable to check if principal %s exists: %s`, principal.Full(), err.Error())
+			return
+		}
+		if !ok {
+			// We don't have a required principal -> check failed
+			s.replySuccess(rw, req, &KDCCheckStatus{
+				false, fmt.Sprintf("Principal '%s' does not exist", principal.Full()),
+			})
+			return
+		}
+	}
+
+	// Since our auth token can expire at any time, we are re-connecting on
+	// DC/OS on every request. Since we are not expecting any serious request
+	// rate on this endpoint,  and since the log-in procedure is quite fast
+	// we should be OK
+	dclient, err := createDCOSClientFromEnvironment()
+	if err != nil {
+		s.replyReject(rw, req, `Unable to connect to DC/OS: %s`, err.Error())
+		return
+	}
+
+	// Get binary flag
+	useBinary := false
+	if apiReq.Binary != nil {
+		useBinary = *apiReq.Binary
+	}
+
+	// Download the secret from the store
+	ktBytes, err := GetKeytabSecret(dclient, apiReq.Secret, useBinary)
+	if err != nil {
+		s.replyReject(rw, req, `Unable to read the keytab secret: %s`, err.Error())
+		return
+	}
+
+	// If the secret is empty, fail the check
+	if ktBytes == nil {
+		s.replySuccess(rw, req, &KDCCheckStatus{
+			false, fmt.Sprintf("Secret '%s' does not exist", apiReq.Secret),
+		})
+		return
+	}
+
+	// Check if the requested principals do not exist
+	for _, principal := range apiReq.Principals {
+		ok, err := s.kadmin.HasPrincipalInKeytab(ktBytes, &principal)
+		if err != nil {
+			s.replyReject(rw, req, `Unable to check if principal %s exists in keytab: %s`, principal.Full(), err.Error())
+		}
+		if !ok {
+			// We don't have a required principal in the keytab -> check failed
+			s.replySuccess(rw, req, &KDCCheckStatus{
+				false, fmt.Sprintf("Principal '%s' does not exist in keytab", principal.Full()),
+			})
+			return
+		}
+	}
+
+	// We are done
+	s.replySuccess(rw, req, &KDCCheckStatus{true, ""})
 }

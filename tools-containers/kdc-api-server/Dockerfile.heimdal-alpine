@@ -14,7 +14,8 @@ COPY docker/* /kdc/
 ENV KRB5_CONFIG=/kdc/krb5.conf \
     KRB5_KDC_PROFILE=/kdc/kdc.conf \
     KDC_BIN=/usr/sbin/kdc \
-    KADMIN_BIN=/usr/bin/kadmin
+    KADMIN_BIN=/usr/bin/kadmin \
+    KTUTIL_BIN=/usr/bin/ktutil
 
 RUN apk add --no-cache heimdal supervisor && \
     mkdir -p /var/heimdal && \

@@ -6,14 +6,18 @@ import (
 )
 
 func main() {
-	// Allow overriding of kadmin client
+
+	// Allow overriding of kadmin cli
 	kadminBin := os.Getenv("KADMIN_BIN")
 	if kadminBin == "" {
-		kadminBin = "/usr/sbin/kadmin"
+		kadminBin = "kadmin"
 	}
 
+	// Allow overriding of ktutil cli
+	ktutilBin := os.Getenv("KTUTIL_BIN")
+
 	// Create a KAdmin client
-	kadmin, err := createKAdminClient(kadminBin)
+	kadmin, err := createKAdminClient(kadminBin, ktutilBin)
 	if err != nil {
 		log.Fatal(err)
 	}

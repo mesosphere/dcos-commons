@@ -17,7 +17,7 @@ dcos security secrets create-sa-secret --strict /tmp/priv.pem kdc-admin "/kdc-ad
 
 # Allow the service account to manage secrets
 dcos security org users grant kdc-admin 'dcos:secrets:default:/*' full
-dcos security org users grant kdc-admin 'dcos:secrets:list:default:/*' read
+dcos security org users grant kdc-admin 'dcos:secrets:list:default:/*' full
 ```
 
 ## Building the KDC Container
@@ -39,12 +39,12 @@ docker build -t mesosphere/kdc:heimdal-centos7 -f Dockerfile.heimdal-centos7 .
 
 This API operates in both "plain text" and "json" encoding based on the `Content-Type`header. The simplest use is with the "plain text" API like so:
 
-### `POST /api/add` - Add KDC Principals 
+### `POST /api/principals` - Add KDC Principals 
 
 Plain text API:
 
 ```sh
-curl --data-binary @/path/to/principals.txt http://server:8080/api/add?secret=secret_name
+curl -X POST --data-binary @/path/to/principals.txt http://server:8080/api/principals?secret=secret_name
 ```
 
 JSON API:
@@ -52,8 +52,8 @@ JSON API:
 ```py
 import requests
 
-req = requests.POST(
-    "http://server:8080/api/add",
+req = requests.post(
+    "http://server:8080/api/principals",
     headers={"content-type":"application/json"},
     json={
         "secret": "secret_name",
@@ -66,12 +66,12 @@ req = requests.POST(
 )
 ```
 
-### `POST /api/list` - Enumerate KDC Principals 
+### `GET /api/principals` - Enumerate KDC Principals 
 
 Plain text API:
 
 ```sh
-curl http://server:8080/api/list?filter=*
+curl http://server:8080/api/principals?filter=*
 ```
 
 JSON API:
@@ -79,8 +79,8 @@ JSON API:
 ```py
 import requests
 
-req = requests.POST(
-    "http://server:8080/api/list",
+req = requests.get(
+    "http://server:8080/api/principals",
     headers={"content-type":"application/json"},
     json={
         "filter": "*"
@@ -88,3 +88,29 @@ req = requests.POST(
 )
 ```
 
+### `DELETE /api/principals` - Remove KDC Principals 
+
+Plain text API:
+
+```sh
+curl -X DELETE --data-binary @/path/to/principals.txt http://server:8080/api/principals?secret=secret_name
+```
+
+JSON API:
+
+```py
+import requests
+
+req = requests.delete(
+    "http://server:8080/api/principals",
+    headers={"content-type":"application/json"},
+    json={
+        "secret": "secret_name",
+        "principals": [
+            "principal-1",
+            "principal-2",
+            "principal-3"
+        ]
+    }
+)
+```

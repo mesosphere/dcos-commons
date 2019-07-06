@@ -14,7 +14,8 @@ COPY docker/* /kdc/
 ENV KRB5_CONFIG=/kdc/krb5.conf \
     KRB5_KDC_PROFILE=/kdc/kdc.conf \
     KDC_BIN=/usr/libexec/kdc \
-    KADMIN_BIN=/usr/bin/heimdal-kadmin
+    KADMIN_BIN=/usr/bin/heimdal-kadmin \
+    KTUTIL_BIN=/usr/bin/heimdal-ktutil
 
 RUN yum -y install epel-release && \
     yum install -y heimdal-server heimdal-workstation supervisor && \

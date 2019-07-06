@@ -16,13 +16,14 @@ import (
 /**
  * Constants for the CLI syntax to use
  */
-const API_HL5 = "heimdal" // Heimdal (HL5) syntax for the CLI commands
-const API_MIT = "mit"     // MIT Kerberos (KRB5) syntax for the CLI commands
+const FLAVOR_HL5 = "Heimdal" // Heimdal (HL5) syntax for the CLI commands
+const FLAVOR_MIT = "MIT"     // MIT Kerberos (KRB5) syntax for the CLI commands
 
 /**
  * Kadmin interface
  */
 type KAdminClient struct {
+  KTUtilPath      string
   KAdminPath      string
   KAdminApiFlavor string
 }
@@ -118,17 +119,25 @@ func (p *KPrincipal) UnmarshalJSON(b []byte) error {
 /**
  * CreateKAdminClien Create a KAdmin client using the kadmin binary from the given argument
  */
-func createKAdminClient(kadmin string) (*KAdminClient, error) {
-  path, err := exec.LookPath(kadmin)
+func createKAdminClient(kadmin string, ktutil string) (*KAdminClient, error) {
+  kadmin, err := exec.LookPath(kadmin)
   if err != nil {
     return nil, fmt.Errorf("Unable to lookup kadmin")
   }
 
-  client := &KAdminClient{
-    KAdminPath: path,
+  if ktutil != "" {
+    ktutil, err = exec.LookPath(ktutil)
+    if err != nil {
+      return nil, fmt.Errorf("Unable to lookup ktutil")
+    }
   }
 
-  apiFlavor, err := client.detectCliApiFlavor(path)
+  client := &KAdminClient{
+    KAdminPath: kadmin,
+    KTUtilPath: ktutil,
+  }
+
+  apiFlavor, err := client.detectCliApiFlavor()
   if err != nil {
     return nil, fmt.Errorf("Unable to detect the API flavor of the kadmin utility")
   }
@@ -140,15 +149,15 @@ func createKAdminClient(kadmin string) (*KAdminClient, error) {
 /**
  * Tries to find out if this kexec comes from heimdal or MIT kerberos
  */
-func (c *KAdminClient) detectCliApiFlavor(kadmin string) (string, error) {
-  _, serr, err := c.exec("-v")
+func (c *KAdminClient) detectCliApiFlavor() (string, error) {
+  _, serr, err := c.kadminExec("-v")
   if err != nil {
     // Check if the CLI does not support the '-v' command. In this case
     // it will show an error and a usage prompt.
     if kerr, ok := err.(*KExecError); ok {
       if strings.Contains(kerr.Stderr, "Usage: ") {
         // MIT kadmin does not have a version command
-        return API_MIT, nil
+        return FLAVOR_MIT, nil
       }
     }
 
@@ -158,7 +167,7 @@ func (c *KAdminClient) detectCliApiFlavor(kadmin string) (string, error) {
 
   // Heimdal respects the version query and kindly replies with a version string
   if strings.Contains(serr, "Heimdal") {
-    return API_HL5, nil
+    return FLAVOR_HL5, nil
   }
 
   // If we reached this point we were not able to detect the API flavor to use
@@ -168,10 +177,9 @@ func (c *KAdminClient) detectCliApiFlavor(kadmin string) (string, error) {
 /**
  * AddPrincipals Adds one or more principals on KDC
  */
-
 func (c *KAdminClient) AddPrincipals(principals []KPrincipal) error {
   switch c.KAdminApiFlavor {
-  case API_HL5: // Heimdal API Flavor
+  case FLAVOR_HL5: // Heimdal API Flavor
     args := []string{
       "-l",
       "add",
@@ -183,10 +191,10 @@ func (c *KAdminClient) AddPrincipals(principals []KPrincipal) error {
     }
 
     // Call-out to KDC to add all the principals at once
-    _, _, err := c.exec(args...)
+    _, _, err := c.kadminExec(args...)
     return err
 
-  case API_MIT: // MIT API Flavor
+  case FLAVOR_MIT: // MIT API Flavor
     for _, p := range principals {
       args := []string{
         "-r",
@@ -197,7 +205,50 @@ func (c *KAdminClient) AddPrincipals(principals []KPrincipal) error {
       }
 
       // Call-out to KDC to add a single principal
-      _, _, err := c.exec(args...)
+      _, _, err := c.kadminExec(args...)
+      if err != nil {
+        return err
+      }
+    }
+
+    // Completed
+    return nil
+
+  default:
+    return fmt.Errorf("Unknown KDC CLI API flavor")
+
+  }
+}
+
+/**
+ * DeletePrincipals removes one or more principals
+ */
+func (c *KAdminClient) DeletePrincipals(principals []KPrincipal) error {
+  switch c.KAdminApiFlavor {
+  case FLAVOR_HL5: // Heimdal API Flavor
+    args := []string{
+      "-l",
+      "delete",
+    }
+    for _, p := range principals {
+      args = append(args, p.Full())
+    }
+
+    // Call-out to KDC to add all the principals at once
+    _, _, err := c.kadminExec(args...)
+    return err
+
+  case FLAVOR_MIT: // MIT API Flavor
+    for _, p := range principals {
+      args := []string{
+        "-r",
+        "LOCAL",
+        "delprinc",
+        p.Full(),
+      }
+
+      // Call-out to KDC to add a single principal
+      _, _, err := c.kadminExec(args...)
       if err != nil {
         return err
       }
@@ -217,8 +268,8 @@ func (c *KAdminClient) AddPrincipals(principals []KPrincipal) error {
  */
 func (c *KAdminClient) HasPrincipal(p KPrincipal) (bool, error) {
   switch c.KAdminApiFlavor {
-  case API_HL5: // Heimdal API Flavor
-    _, _, err := c.exec("-l", "list", "-l", p.Full())
+  case FLAVOR_HL5: // Heimdal API Flavor
+    _, _, err := c.kadminExec("-l", "list", "-l", p.Full())
     if err != nil {
       // Check for missing principal
       if kerr, ok := err.(*KExecError); ok {
@@ -234,8 +285,8 @@ func (c *KAdminClient) HasPrincipal(p KPrincipal) (bool, error) {
     // If it worked out smoothly, the principal exist
     return true, nil
 
-  case API_MIT: // MIT API Flavor
-    _, _, err := c.exec("-r", "LOCAL", "getprinc", p.Full())
+  case FLAVOR_MIT: // MIT API Flavor
+    _, _, err := c.kadminExec("-r", "LOCAL", "getprinc", p.Full())
     if err != nil {
       // Check for missing principal
       if kerr, ok := err.(*KExecError); ok {
@@ -304,7 +355,7 @@ func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, 
   defer os.Remove(tmpFile.Name())
 
   switch c.KAdminApiFlavor {
-  case API_HL5: // Heimdal API Flavor
+  case FLAVOR_HL5: // Heimdal API Flavor
     // Prepare arguments to generate a keytab file from given princiapls
     args := []string{
       "-l",
@@ -317,12 +368,12 @@ func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, 
     }
 
     // Call-out to KDC
-    _, _, err = c.exec(args...)
+    _, _, err = c.kadminExec(args...)
     if err != nil {
       return nil, err
     }
 
-  case API_MIT: // MIT API Flavor
+  case FLAVOR_MIT: // MIT API Flavor
     args := []string{
       "-r",
       "LOCAL",
@@ -335,7 +386,7 @@ func (c *KAdminClient) GetKeytabForPrincipals(principals []KPrincipal) ([]byte, 
     }
 
     // Call-out to KDC
-    _, _, err = c.exec(args...)
+    _, _, err = c.kadminExec(args...)
     if err != nil {
       return nil, err
     }
@@ -373,8 +424,8 @@ func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
   }
 
   switch c.KAdminApiFlavor {
-  case API_HL5: // Heimdal API Flavor
-    list, _, err = c.exec("-l", "list", "-l", filter)
+  case FLAVOR_HL5: // Heimdal API Flavor
+    list, _, err = c.kadminExec("-l", "list", "-l", filter)
     if err != nil {
       return nil, err
     }
@@ -382,8 +433,8 @@ func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
     // Parse kadim STDOUT as principals in long format
     return ParsePrincipalsKadminLong(list)
 
-  case API_MIT: // MIT API Flavor
-    list, _, err = c.exec("-r", "LOCAL", "listprincs", filter)
+  case FLAVOR_MIT: // MIT API Flavor
+    list, _, err = c.kadminExec("-r", "LOCAL", "listprincs", filter)
     if err != nil {
       return nil, err
     }
@@ -397,16 +448,113 @@ func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
 }
 
 /**
+ * Checks if the given principal exists in the keytab file
+ */
+func (c *KAdminClient) HasPrincipalInKeytab(keytabContents []byte, principal *KPrincipal) (bool, error) {
+  // Create a temporary file for the keytab
+  tmpFile, err := ioutil.TempFile("", "keytab")
+  if err != nil {
+    return false, fmt.Errorf("Unable to create a temporary keytab file")
+  }
+  defer os.Remove(tmpFile.Name())
+
+  // Write the contents to the temp file
+  _, err = tmpFile.Write(keytabContents)
+  if err != nil {
+    tmpFile.Close()
+    return false, fmt.Errorf("Unable to write the temporary keytab file contents")
+  }
+  tmpFile.Close()
+
+  switch c.KAdminApiFlavor {
+  case FLAVOR_HL5: // Heimdal API Flavor
+    // For Heimdal KDC se *MUST* use the keytab util. The simplest thing we
+    // can try is to enumerate all the keys and look for the principal in the list
+    sout, _, err := c.ktutilExec("-k", tmpFile.Name(), "list")
+    if err != nil {
+      return false, err
+    }
+
+    return strings.Contains(sout, principal.Full()), nil
+
+  case FLAVOR_MIT: // MIT API Flavor
+    // Since we only know of the `kadmin` utility, we can use the `ktrem` command
+    // to try removing a principal from a keytab file.
+    _, serr, err := c.kadminExec("-r", "LOCAL", "ktrem", "-k", tmpFile.Name(), principal.Full())
+    if err != nil {
+      // Handle explicitly the error when the principal does not exist
+      // The error looks like:
+      //
+      // "kadmin.local: No entry for principal ... exists in keytab WRFILE:keytab"
+      //
+      if kerr, ok := err.(*KExecError); ok {
+        if strings.Contains(kerr.Stderr, "No entry") {
+          return false, nil
+        }
+      }
+      return false, err
+    }
+
+    return !strings.Contains(serr, "No entry"), nil
+  }
+
+  return false, fmt.Errorf("Unknown KDC CLI API flavor")
+}
+
+/**
  * exec Forward a command to KAdmin CLI utility
  *
  * @param exec ...string - The arguments to pass to kadmin)
  */
-func (c *KAdminClient) exec(args ...string) (string, string, error) {
+func (c *KAdminClient) kadminExec(args ...string) (string, string, error) {
   var stdout, stderr bytes.Buffer
-  fmt.Printf("Executing: %s %s\n", c.KAdminPath, strings.Join(args, " "))
 
   // Exec command
+  fmt.Printf("Executing: %s %s\n", c.KAdminPath, strings.Join(args, " "))
   cmd := exec.Command(c.KAdminPath, args...)
+  cmd.Stdout = &stdout
+  cmd.Stderr = &stderr
+  err := cmd.Run()
+
+  fmt.Printf(">>> Stdout\n%s<<<\n", string(stdout.Bytes()))
+  fmt.Printf(">>> Stderr\n%s<<<\n", string(stderr.Bytes()))
+
+  if err != nil {
+    if exiterr, ok := err.(*exec.ExitError); ok {
+      if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+        return "", "", &KExecError{
+          ExitCode: status.ExitStatus(),
+          Stderr:   string(stderr.Bytes()),
+          Cmdline:  args,
+        }
+      }
+    }
+
+    return "", "", &KExecError{
+      ExitCode: -1,
+      Stderr:   err.Error(),
+      Cmdline:  args,
+    }
+  }
+
+  // Return (stdout, stderr) pair
+  return string(stdout.Bytes()), string(stderr.Bytes()), nil
+}
+
+/**
+ * exec Forward a command to KTUtil CLI utility
+ *
+ * @param exec ...string - The arguments to pass to kadmin)
+ */
+func (c *KAdminClient) ktutilExec(args ...string) (string, string, error) {
+  var stdout, stderr bytes.Buffer
+  if c.KTUtilPath == "" {
+    return "", "", fmt.Errorf("Path to KTUtil was not provided!")
+  }
+
+  // Exec command
+  fmt.Printf("Executing: %s %s\n", c.KTUtilPath, strings.Join(args, " "))
+  cmd := exec.Command(c.KTUtilPath, args...)
   cmd.Stdout = &stdout
   cmd.Stderr = &stderr
   err := cmd.Run()

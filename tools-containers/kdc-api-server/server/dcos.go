@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/dcos/client-go/dcos"
+	"net/http"
 	"net/url"
 	"os"
 	"strings"
@@ -82,6 +83,60 @@ func CreateKeytabSecret(client *dcos.APIClient, secretName string, keytab []byte
 		}
 
 		return err
+	}
+
+	return nil
+}
+
+/**
+ * Downloads the contents of the given secret file
+ */
+func GetKeytabSecret(client *dcos.APIClient, secretName string, binary bool) ([]byte, error) {
+	if !binary {
+		secretName = fmt.Sprintf("__dcos_base64__%s", secretName)
+	}
+
+	// Try to create the secret on DC/OS
+	secret, resp, err := client.Secrets.GetSecret(context.TODO(), "default", secretName, nil)
+	if err != nil {
+		return nil, fmt.Errorf("Error reading secret: %s", err)
+	}
+
+	// Check if the secret does not exist, in which case we should not raise
+	// an error, rather return an empty byte array
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
+
+	if binary {
+		return []byte(secret.Value), nil
+	} else {
+		bytes, err := base64.StdEncoding.DecodeString(secret.Value)
+		if err != nil {
+			return nil, fmt.Errorf("Error decoding secret: %s", err)
+		}
+
+		return bytes, nil
+	}
+}
+
+/**
+ * Delete the keytab secret
+ */
+func DeleteKeytabSecret(client *dcos.APIClient, secretName string, binary bool) error {
+	if !binary {
+		secretName = fmt.Sprintf("__dcos_base64__%s", secretName)
+	}
+
+	// Try to delete the secret
+	resp, err := client.Secrets.DeleteSecret(context.TODO(), "default", secretName)
+	if err != nil {
+		return fmt.Errorf("Error deleting secret: %s", err)
+	}
+
+	// If the secret was missing, we are OK
+	if resp.StatusCode == http.StatusNotFound {
+		return nil
 	}
 
 	return nil
