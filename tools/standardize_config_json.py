@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 
+import argparse
 import collections
 import difflib
 import json
 import logging
 import os.path
 import sys
-
-usage = """Standardizes the ordering of sections in config.json files.
-
-Usage:
-$ ./standardize_config_json.py $path_to_config_json $path_to_dcos_commons_json"""
 
 
 logging.basicConfig(
@@ -103,14 +99,14 @@ def print_diff(original: collections.OrderedDict, new: collections.OrderedDict):
     LOG.info("\n".join(diff))
 
 
-def process(config_json_path: str, configuration: dict):
-    contents = read_json_file(config_json_path)
-    original = read_json_file(config_json_path)
+def process(service_config_json_path: str, sdk_tools_config: dict):
+    contents = read_json_file(service_config_json_path)
+    original = read_json_file(service_config_json_path)
 
     reordered = reorder_service(contents["properties"]["service"]["properties"])
     contents["properties"]["service"]["properties"] = reordered
 
-    sections = configuration.get("sections", {})
+    sections = sdk_tools_config.get("sections", {})
     for section_name, head_and_tail in sections.items():
         head = head_and_tail["head"]
         tail = head_and_tail["tail"]
@@ -120,40 +116,51 @@ def process(config_json_path: str, configuration: dict):
 
     print_diff(original, contents)
 
-    write_json_file(config_json_path, contents)
+    write_json_file(service_config_json_path, contents)
+
+
+def main(argv):
+    parser = argparse.ArgumentParser(
+        description="Standardizes the ordering of sections in SDK service config.json files."
+    )
+
+    parser.add_argument(
+        "--service-config-json",
+        type=str,
+        required=True,
+        default=None,
+        help="Path to the service configuration JSON file to be standardized",
+    )
+
+    parser.add_argument(
+        "--sdk-tools-config",
+        type=str,
+        required=False,
+        default=None,
+        help="Path to the SDK Tools configuration file",
+    )
+
+    args = parser.parse_args()
+
+    service_config_json_path = args.service_config_json
+    sdk_tools_config_path = args.sdk_tools_config
+
+    if not os.path.isfile(service_config_json_path):
+        LOG.info("'%s' is not a file, was expecting a 'config.json' file", service_config_json_path)
+
+    if sdk_tools_config_path:
+        if not os.path.isfile(sdk_tools_config_path):
+            LOG.info(
+                "'%s' is not a file, was expecting a 'sdk-tools.json' file", sdk_tools_config_path
+            )
+
+        LOG.info("Parsing SDK tooling configuration from '%s'", sdk_tools_config_path)
+        sdk_tools_config = json.loads(read_file(sdk_tools_config_path))
+    else:
+        sdk_tools_config: dict = {}
+
+    process(service_config_json_path, sdk_tools_config.get("standardize_config_json", {}))
 
 
 if __name__ == "__main__":
-    args = sys.argv[1:]
-
-    if args[0] in set(["-h", "-help", "--help"]):
-        print(usage)
-        exit(0)
-
-    if len(args) > 2:
-        print(usage)
-        exit(0)
-
-    config_json_path = args[0]
-
-    if not os.path.isfile(config_json_path):
-        LOG.info("'%s' is not a file, was expecting a config.json file", config_json_path)
-
-    configuration_path = None
-    configuration: dict = {}
-    LOG.info("config_json_path: %s", config_json_path)
-
-    if len(args) == 2:
-        configuration_path = args[1]
-        LOG.info("configuration_path: %s", configuration_path)
-
-    if configuration_path:
-        if not os.path.isfile(configuration_path):
-            LOG.info(
-                "'%s' is not a file, was expecting a dcos_commons.json file", configuration_path
-            )
-
-        LOG.info("Parsing dcos-commons tooling configuration from '%s'", configuration_path)
-        configuration = json.loads(read_file(configuration_path))
-
-    process(config_json_path, configuration.get("standardize_config_json", {}))
+    sys.exit(main(sys.argv))
