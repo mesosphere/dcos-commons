@@ -123,10 +123,12 @@ def process(service_config_json_path: str, sdk_tools_config: dict):
 
     write_json_file(service_config_json_path, contents)
 
+    return 0
+
 
 def main(argv):
     parser = argparse.ArgumentParser(
-        description="Standardizes the ordering of sections in SDK service config.json files."
+        description="Standardizes the ordering of sections in SDK service JSON configuration files."
     )
 
     parser.add_argument(
@@ -134,7 +136,7 @@ def main(argv):
         type=str,
         required=True,
         default=None,
-        help="Path to the service configuration JSON file to be standardized",
+        help="Path to the SDK service configuration file to be standardized (e.g. config.json)",
     )
 
     parser.add_argument(
@@ -142,7 +144,7 @@ def main(argv):
         type=str,
         required=False,
         default=None,
-        help="Path to the SDK Tools configuration file",
+        help="Path to the SDK Tools configuration file (e.g. sdk-tools.json)",
     )
 
     args = parser.parse_args()
@@ -151,20 +153,26 @@ def main(argv):
     sdk_tools_config_path = args.sdk_tools_config
 
     if not os.path.isfile(service_config_json_path):
-        LOG.info("'%s' is not a file, was expecting a 'config.json' file", service_config_json_path)
+        LOG.info(
+            "'%s' is not a file, was expecting an SDK service configuration file",
+            service_config_json_path,
+        )
+        return 1
 
     if sdk_tools_config_path:
         if not os.path.isfile(sdk_tools_config_path):
             LOG.info(
-                "'%s' is not a file, was expecting a 'sdk-tools.json' file", sdk_tools_config_path
+                "'%s' is not a file, was expecting an SDK Tools configuration file",
+                sdk_tools_config_path,
             )
+            return 1
 
-        LOG.info("Parsing SDK tooling configuration from '%s'", sdk_tools_config_path)
+        LOG.info("Parsing SDK Tools configuration from '%s'", sdk_tools_config_path)
         sdk_tools_config = json.loads(read_file(sdk_tools_config_path))
     else:
         sdk_tools_config: dict = {}
 
-    process(service_config_json_path, sdk_tools_config.get("standardize_config_json", {}))
+    return process(service_config_json_path, sdk_tools_config.get("standardize_config_json", {}))
 
 
 if __name__ == "__main__":
