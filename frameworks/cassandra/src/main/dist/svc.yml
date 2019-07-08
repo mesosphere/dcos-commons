@@ -17,6 +17,29 @@ pods:
         secret: {{TASKCFG_ALL_PASSWORD_SECRET_PATH}}
         file: new_user_password
     {{/TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+    {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+    secrets:
+      jmxPasswordFile:
+        secret: {{SECURE_JMX_PWD_FILE}}
+        file: jmx/key_file
+      jmxAccessFile:
+        secret: {{SECURE_JMX_ACCESS_FILE}}
+        file: jmx/access_file
+      {{#SECURE_JMX_TRUST_STORE_ENABLED}}
+      jmxTrustStore:
+        secret: {{SECURE_JMX_TRUST_STORE}}
+        file: jmx/trust_store
+      jmxTrustStorePass:
+        secret: {{SECURE_JMX_TRUST_STORE_PASSWORD}}
+        file: jmx/trust_store_pass
+      {{/SECURE_JMX_TRUST_STORE_ENABLED}}
+      jmxKeyStore:
+        secret: {{SECURE_JMX_KEY_STORE}}
+        file: jmx/key_store
+      jmxKeyStorePass:
+        secret: {{SECURE_JMX_KEY_STORE_PASSWORD}}
+        file: jmx/key_store_pass
+    {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
@@ -54,6 +77,12 @@ pods:
             port: {{TASKCFG_ALL_CASSANDRA_RPC_PORT}}
             advertise: true
           {{/TASKCFG_ALL_CASSANDRA_START_RPC}}
+          {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+          jmx-port:
+            port: {{SECURE_JMX_PORT}}
+          rmi-port:
+            port: {{SECURE_JMX_RMI_PORT}}
+          {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       sidecar-resources:
         cpus: 1
         memory: 1024
@@ -93,6 +122,11 @@ pods:
           rack:
             template: cassandra-rackdc.properties
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
+        {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+          jmx-config:
+            template: jmx-ssl-properties.sh
+            dest: .ssl/jmx-ssl-properties.sh
+        {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
         readiness-check:
           cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
