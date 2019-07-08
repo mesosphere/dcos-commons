@@ -112,11 +112,12 @@ def process(service_config_json_path: str, sdk_tools_config: dict):
 
     sections = sdk_tools_config.get("sections", {})
     for section_name, head_and_tail in sections.items():
-        head = head_and_tail["head"]
-        tail = head_and_tail["tail"]
-        properties = contents["properties"][section_name]["properties"]
-        reordered = reorder(properties, head, tail, reorder_property)
-        contents["properties"][section_name]["properties"] = reordered
+        if section_name in contents["properties"]:
+            head = head_and_tail.get("head")
+            tail = head_and_tail.get("tail")
+            properties = contents["properties"][section_name]["properties"]
+            reordered = reorder(properties, head, tail, reorder_property)
+            contents["properties"][section_name]["properties"] = reordered
 
     print_diff(original, contents)
 
