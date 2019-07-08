@@ -1,29 +1,7 @@
-#!/usr/bin/env bash
+import json
 
-# This script is used by the build system to check all Jason files in the
-# repository.
-#
-# By default, the BASE_BRANCH is determined using the get_base_branch script,
-# but this can be overridden by setting the BASE_BRANCH environment variable
-# before invoking this script
-
-set -x
-
-TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}" )/../checks" && pwd)"
-
-# Determine the target branch for the diff calculation.
-BASE_BRANCH="${BASE_BRANCH:-$("${TOOL_DIR}/get_base_branch.sh")}"
-
-# Get the list of changed .json files relative to the base branch.
-CHANGESET="$("${TOOL_DIR}/get_applicable_changes.py" --extensions ".json" --from-git "${BASE_BRANCH}")"
-
-if [[ -n ${CHANGESET} ]]; then
-  echo "Changeset:"
-  echo "${CHANGESET}"
-
-  exec "${TOOL_DIR}/check_json_format.sh" --files ${CHANGESET}
-
-  exit $?
+if jq -e . >/dev/null 2>&1 <<< `cat ${CHANGESET}`; then
+    echo "Parsed JSON successfully and got something other than false/null"
 else
-  echo "No Json files in changeset."
+    echo "Json check failed"
 fi
