@@ -1,0 +1,11 @@
+name: "seccomp-profile-name"
+pods:
+  meta-data:
+    shared-memory: "PRIVATE"
+    shared-memory-size: 1024
+    count: 2
+    tasks:
+      some-task:
+        goal: RUNNING
+        cmd: "some command"
+        cpus: 1

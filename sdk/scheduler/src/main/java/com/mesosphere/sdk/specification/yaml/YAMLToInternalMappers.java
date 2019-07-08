@@ -288,7 +288,9 @@ public final class YAMLToInternalMappers {
         .sharePidNamespace(rawPod.getSharePidNamespace())
         .allowDecommission(rawPod.getAllowDecommission())
         .seccompUnconfined(rawPod.getSeccompUnconfined())
-        .seccompProfileName(rawPod.getSeccompProfileName());
+        .seccompProfileName(rawPod.getSeccompProfileName())
+        .sharedMemory(rawPod.getSharedMemory())
+        .sharedMemorySize(rawPod.getSharedMemorySize());
 
     List<String> networkNames = new ArrayList<>();
     List<RLimitSpec> rlimits = new ArrayList<>();

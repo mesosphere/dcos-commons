@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.collections.CollectionUtils;
 
+import java.beans.IntrospectionException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -50,25 +51,31 @@ public final class RawPod {
 
   private final String seccompProfileName;
 
+  private final String sharedMemory;
+
+  private final Integer sharedMemorySize;
+
 
   private RawPod(
-      @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
-      @JsonProperty("placement") String placement,
-      @JsonProperty("count") Integer count,
-      @JsonProperty("image") String image,
-      @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
-      @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
-      @JsonProperty("uris") Collection<String> uris,
-      @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
-      @JsonProperty("volume") RawVolume volume,
-      @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
-      @JsonProperty("pre-reserved-role") String preReservedRole,
-      @JsonProperty("secrets") WriteOnceLinkedHashMap<String, RawSecret> secrets,
-      @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
-      @JsonProperty("allow-decommission") Boolean allowDecommission,
-      @JsonProperty("host-volumes") WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes,
-      @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
-      @JsonProperty("seccomp-profile-name") String seccompProfileName) throws Exception
+          @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
+          @JsonProperty("placement") String placement,
+          @JsonProperty("count") Integer count,
+          @JsonProperty("image") String image,
+          @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
+          @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
+          @JsonProperty("uris") Collection<String> uris,
+          @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
+          @JsonProperty("volume") RawVolume volume,
+          @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
+          @JsonProperty("pre-reserved-role") String preReservedRole,
+          @JsonProperty("secrets") WriteOnceLinkedHashMap<String, RawSecret> secrets,
+          @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
+          @JsonProperty("allow-decommission") Boolean allowDecommission,
+          @JsonProperty("host-volumes") WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes,
+          @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
+          @JsonProperty("seccomp-profile-name") String seccompProfileName,
+          @JsonProperty("shared-memory") String sharedMemory,
+          @JsonProperty("shared-memory-size") Integer sharedMemorySize) throws Exception
   {
     this.placement = placement;
     this.count = count;
@@ -87,6 +94,8 @@ public final class RawPod {
     this.hostVolumes = hostVolumes == null ? new WriteOnceLinkedHashMap<>() : hostVolumes;
     this.seccompUnconfined = seccompUnconfined;
     this.seccompProfileName = seccompProfileName;
+    this.sharedMemory = sharedMemory;
+    this.sharedMemorySize = sharedMemorySize;
     validateSeccomp();
   }
 
@@ -163,5 +172,13 @@ public final class RawPod {
 
   public String getSeccompProfileName() {
     return seccompProfileName;
+  }
+
+  public String getSharedMemory() {
+    return sharedMemory;
+  }
+
+  public Integer getSharedMemorySize() {
+    return sharedMemorySize;
   }
 }

@@ -595,6 +595,14 @@ public class PodInfoBuilder {
             .setProfileName(podSpec.getSeccompProfileName().get())
             .build());
       }
+
+      if (podSpec.getSharedMemory().isPresent()) {
+        containerInfo.getLinuxInfoBuilder().setIpcMode(Protos.LinuxInfo.IpcMode.valueOf(podSpec.getSharedMemory().get()));
+      }
+
+      if (podSpec.getSharedMemorySize().isPresent()) {
+        containerInfo.getLinuxInfoBuilder().setShmSize(podSpec.getSharedMemorySize().get());
+      }
     }
 
     for (Protos.Volume hostVolume : hostVolumes) {

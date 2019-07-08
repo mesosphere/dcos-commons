@@ -166,20 +166,30 @@ public class DefaultServiceSpecTest {
 
     @Test(expected = Exception.class)
     public void invalidSeccompInfo() throws Exception {
-        //cannot specify both seccomp-unconfined and seccomp-profile at the sane ti
+        //cannot specify both seccomp-unconfined and seccomp-profile at the same time
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-seccomp-info.yml").getFile());
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
+    @Test
     public void validSeccompInfoAndProfile() throws Exception {
-        //cannot specify both seccomp-unconfined and seccomp-profile at the sane ti
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-seccomp-info.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         PodSpec spec = serviceSpec.getPods().get(0);
         Assert.assertEquals(spec.getSeccompUnconfined(), false);
         Assert.assertEquals(spec.getSeccompProfileName().get(), "foobar");
+    }
+
+    @Test
+    public void validSharedMemory() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-shared-memory-pod.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        PodSpec spec = serviceSpec.getPods().get(0);
+        Assert.assertEquals("PRIVATE", spec.getSharedMemory().get());
+        Assert.assertTrue(spec.getSharedMemorySize().get().equals(1024));
     }
 
     @Test

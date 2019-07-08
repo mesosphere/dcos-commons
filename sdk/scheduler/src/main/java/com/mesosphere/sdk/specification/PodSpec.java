@@ -62,7 +62,6 @@ public interface PodSpec {
 
   @JsonProperty("share-pid-namespace")
   Boolean getSharePidNamespace();
-
   @JsonProperty("host-volumes")
   Collection<HostVolumeSpec> getHostVolumes();
 
@@ -71,4 +70,10 @@ public interface PodSpec {
 
   @JsonProperty("seccomp-profile-name")
   Optional<String> getSeccompProfileName();
+
+  @JsonProperty("shared-memory")
+  Optional<String> getSharedMemory();
+
+  @JsonProperty("shared-memory-size")
+  Optional<Integer> getSharedMemorySize();
 }
