@@ -176,7 +176,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
   }
 
   @Override
-  public UpdateResult updateConfiguration(ServiceSpec prospectiveConfig) throws ConfigStoreException {
+  public UpdateResult updateConfiguration(ServiceSpec candidateConfig) throws ConfigStoreException {
     // Get the currently stored target configuration
     UUID targetConfigId;
     try {
@@ -193,9 +193,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     } else {
       targetConfig = Optional.empty();
     }
-
-    // Detect role changes, but don't propagate to the new candidateConfig.
-    ServiceSpec candidateConfig = fixRoleChange(targetConfig, prospectiveConfig);
 
     // Log the config state (with diff of changes vs prior state) before proceeding with checks.
 
@@ -281,112 +278,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     cleanupDuplicateAndUnusedConfigs(targetConfig.get(), targetConfigId);
 
     return new ConfigurationUpdater.UpdateResult(targetConfigId, errors);
-  }
-
-
-  /**
-   * Detects whether we had a role change between the candidate and previous {@link ServiceSpec}
-   * In the event that the currently applied role has changed, reset the role to the previous
-   * installation such that only a pod-replace operation will change the PodSpec's role.
-   *
-   * @param previousConfig The previous service spec from the config
-   */
-  private ServiceSpec fixRoleChange(Optional<ServiceSpec> previousConfig, ServiceSpec candidateConfig)
-      throws ConfigStoreException
-  {
-
-    //If this is the first launch, nothing to do.
-    if (!previousConfig.isPresent()) {
-      return candidateConfig;
-    }
-
-    boolean rolesChanged = !previousConfig.get().getRole().equals(candidateConfig.getRole());
-
-    //Roles haven't changed between current and previous config, all good.
-    if (!rolesChanged) {
-      return candidateConfig;
-    }
-
-    logger.info("Detected role change from {} to {}. Fixing candidate config to use role {}.",
-        previousConfig.get().getRole(), candidateConfig.getRole(), previousConfig.get().getRole());
-
-    return candidateConfig;
-//    String previousRole = previousConfig.get().getRole();
-//
-//    // Create builder
-//    DefaultServiceSpec.Builder candidateConfigWithRolesChanged = DefaultServiceSpec
-//        .newBuilder(candidateConfig)
-//        .role(previousRole);
-//
-//    List<PodSpec> podsWithRoleChanged = new ArrayList<>();
-//    for (PodSpec podSpec: candidateConfig.getPods()) {
-//
-//      DefaultPodSpec.Builder podSpecBuilder = DefaultPodSpec.newBuilder(podSpec);
-//
-//      List<TaskSpec> tasksWithRoleChanged = new ArrayList<>();
-//      for (TaskSpec task: podSpec.getTasks()) {
-//
-//        DefaultResourceSet taskResourceSet = (DefaultResourceSet) task.getResourceSet();
-//        DefaultResourceSet.Builder taskResourceSetBuilder = DefaultResourceSet.newBuilder(
-//            previousRole,
-//            taskResourceSet.getPreReservedRole(),
-//            taskResourceSet.getPrincipal());
-//        taskResourceSetBuilder.id(taskResourceSet.getId());
-//
-//        //Add Resources to taskResourceSetBuilder.
-//        // SUPPRESS CHECKSTYLE NestedForDepth
-//        for (ResourceSpec resourceSpec: taskResourceSet.getResources()) {
-//          if (resourceSpec instanceof DefaultResourceSpec) {
-//            DefaultResourceSpec.Builder resourceSpecBuilder = DefaultResourceSpec.newBuilder(resourceSpec);
-//            resourceSpecBuilder.role(previousRole);
-//            taskResourceSetBuilder.addResource(resourceSpecBuilder.build());
-//          } else if (resourceSpec instanceof PortSpec) {
-//            PortSpec portSpec = (PortSpec) resourceSpec;
-//            PortSpec.Builder portSpecBuilder = PortSpec.newBuilder(portSpec);
-//            portSpecBuilder.role(previousRole);
-//            taskResourceSetBuilder.addResource(portSpecBuilder.build());
-//          } else if (resourceSpec instanceof NamedVIPSpec) {
-//            NamedVIPSpec vipSpec = (NamedVIPSpec) resourceSpec;
-//            NamedVIPSpec.Builder vipSpecBuilder = NamedVIPSpec.newBuilder(vipSpec);
-//            vipSpecBuilder.role(previousRole);
-//            taskResourceSetBuilder.addResource(vipSpecBuilder.build());
-//          } else {
-//            throw new ConfigStoreException(Reason.LOGIC_ERROR, String.format(
-//                "Configuration failed when replacing roles. Unsupported ResourceSpec instance."));
-//          }
-//        }
-//
-//        //Add Volumes to taskResourceSetBuilder.
-//        // SUPPRESS CHECKSTYLE NestedForDepth
-//        for (VolumeSpec volumeSpec: taskResourceSet.getVolumes()) {
-//          switch(volumeSpec.getType()) {
-//            case ROOT:
-//              taskResourceSetBuilder.addVolume("ROOT",
-//                  volumeSpec.getValue().getScalar().getValue(),
-//                  volumeSpec.getContainerPath(),
-//                  volumeSpec.getProfiles());
-//              break;
-//            case MOUNT:
-//              taskResourceSetBuilder.addVolume("MOUNT",
-//                  volumeSpec.getValue().getScalar().getValue(),
-//                  volumeSpec.getContainerPath(),
-//                  volumeSpec.getProfiles());
-//              break;
-//            default:
-//              throw new ConfigStoreException(Reason.LOGIC_ERROR, String.format(
-//                  "Configuration failed when replacing roles. Unsupported PATH Volume Type."));
-//          }
-//        }
-//
-//        DefaultTaskSpec.Builder taskSpecBuilder = DefaultTaskSpec.newBuilder(task);
-//        taskSpecBuilder.resourceSet(taskResourceSetBuilder.build());
-//        tasksWithRoleChanged.add(taskSpecBuilder.build());
-//      }
-//      podSpecBuilder.tasks(tasksWithRoleChanged);
-//      podsWithRoleChanged.add(podSpecBuilder.build());
-//    }
-//    candidateConfigWithRolesChanged.pods(podsWithRoleChanged);
-//    return candidateConfigWithRolesChanged.build();
   }
 
   /**
