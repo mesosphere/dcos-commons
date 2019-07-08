@@ -94,9 +94,13 @@ def print_diff(original: collections.OrderedDict, new: collections.OrderedDict):
     o = json.dumps(original, indent=2)
     c = json.dumps(new, indent=2)
 
-    diff = difflib.unified_diff(o.split("\n"), c.split("\n"))
+    diff = list(difflib.unified_diff(o.split("\n"), c.split("\n")))
 
-    LOG.info("\n".join(diff))
+    if len(diff) == 0:
+        LOG.info("No changes")
+    else:
+        LOG.info("Applied diff:")
+        LOG.info("\n".join(diff))
 
 
 def process(service_config_json_path: str, sdk_tools_config: dict):
