@@ -284,6 +284,7 @@ public final class FrameworkConfig {
   public Set<String> getAllResourceRoles() {
     Set<String> roles = new HashSet<>(preReservedRoles);
     roles.add(role);
+    roles.add(getNonNamespacedRole());
     return roles;
   }
 
