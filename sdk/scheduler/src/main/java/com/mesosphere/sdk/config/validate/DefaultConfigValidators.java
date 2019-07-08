@@ -5,6 +5,7 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Catalog of {@link ConfigValidator}s to be enabled in services by default.
@@ -20,7 +21,6 @@ public final class DefaultConfigValidators {
     return Arrays.asList(
         new ServiceNameCannotContainDoubleUnderscores(),
         new PodSpecsCannotShrink(),
-        //new TaskVolumesCannotChange(),
         new PodSpecsCannotUseUnsupportedFeatures(),
         new PodSpecsCannotChangeNetworkRegime(),
         new PreReservationCannotChange(),
@@ -30,5 +30,18 @@ public final class DefaultConfigValidators {
         new PlacementRuleIsValid(),
         new RegionCannotChange(),
         new ServiceNameCannotBreakDNS());
+  }
+
+  public static Collection<ConfigValidator<ServiceSpec>> getRoleValidators(boolean hasRoleChanged,
+      boolean hasCompletedDeployment)
+  {
+    //Conditionally include addtional validators here for role related changes.
+    if (hasRoleChanged && hasCompletedDeployment) {
+      return Collections.emptyList();
+    } else if (hasRoleChanged && !hasCompletedDeployment) {
+      return Arrays.asList(new ServiceRoleCannotChangeOnIncompleteDeployment());
+    } else {
+      return Arrays.asList(new TaskVolumesCannotChange());
+    }
   }
 }
