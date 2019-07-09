@@ -290,10 +290,9 @@ public class DefaultScheduler extends AbstractScheduler {
       // Service has a FINISH goal state, and deployment+recovery are complete. Tell upstream to uninstall us.
       return ClientStatusResponse.readyToUninstall();
     } else if (allDelayedOrCompleted) {
-      logger.info("all are complete or delayed - return idle");
+      // All plans are in state of {COMPLETE, DELAYED} - There is no pending work currently.
       return ClientStatusResponse.idle();
     } else if (!deployCompleted || isReplacing(recoveryPlanManager)) {
-      // TODO@kjoshi: workSetTracker.hasNewWork()
       // Service is acquiring footprint, either via initial deployment or via replacing a task
       return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
     } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> isWorking(pm.getPlan()))) {

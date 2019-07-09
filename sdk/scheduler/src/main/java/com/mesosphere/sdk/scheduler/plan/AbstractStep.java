@@ -61,17 +61,17 @@ public abstract class AbstractStep implements Step {
        * {@link com.mesosphere.sdk.scheduler.recovery.RecoveryStep}s are always constructed on the fly, we don't need
        * to mutate their state. However, {@link DeploymentStep}s are built only once and are used until they are
        * complete. The {@link DeploymentStep#setStatus(Status)} is called from other places as well upon external
-       * triggers and the same method is called here to indicate that the
-       * step can make progress (or not).
+       * triggers and the same method is called here to indicate that the step can make progress.
        */
       if (status == Status.DELAYED && this instanceof DeploymentStep) {
         PodInstanceRequirement req = ((DeploymentStep) this).podInstanceRequirement;
         boolean noDelay = req
                 .getTasksToLaunch()
                 .stream()
-                .allMatch(n -> BackOff
+                .noneMatch(taskName -> BackOff
                         .getInstance()
-                        .isReady(CommonIdUtils.getTaskInstanceName(req.getPodInstance(), n)));
+                        .getDelay(CommonIdUtils.getTaskInstanceName(req.getPodInstance(), taskName))
+                        .isPresent());
         if (noDelay) {
           setStatus(Status.PENDING);
         }
@@ -117,11 +117,21 @@ public abstract class AbstractStep implements Step {
     }
   }
 
+  /**
+   * Restarts the step involves two steps:
+   *  1. Reset delay for any of its given tasks.
+   *  2. Set its status back to {@link Status#PENDING}.
+   */
   @Override
   public void restart() {
     logger.warn("Restarting step: '{} [{}]'", getName(), getId());
-    //TODO@kjoshi: Reset backoff status here when issued by command line.
-    //Implementation detail: Set backoff back to zero.
+    getPodInstanceRequirement().ifPresent(podInstanceRequirement -> podInstanceRequirement
+            .getTasksToLaunch()
+            .forEach(taskName -> {
+              String taskInstanceName = CommonIdUtils.getTaskInstanceName(
+                      podInstanceRequirement.getPodInstance(), taskName);
+              BackOff.getInstance().clearDelay(taskInstanceName);
+            }));
     setStatus(Status.PENDING);
   }
 

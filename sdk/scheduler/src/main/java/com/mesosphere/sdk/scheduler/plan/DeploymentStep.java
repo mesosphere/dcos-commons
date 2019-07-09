@@ -123,7 +123,7 @@ public class DeploymentStep extends AbstractStep {
     tasks.clear();
     recommendations
         .stream()
-        .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
+        .filter(LaunchOfferRecommendation.class::isInstance)
         .map(recommendation -> ((LaunchOfferRecommendation) recommendation).getTaskInfo())
         .forEach(taskInfo -> tasks.put(taskInfo.getTaskId(),
             new TaskStatusPair(taskInfo, Status.PREPARED)));
@@ -183,9 +183,6 @@ public class DeploymentStep extends AbstractStep {
         BackOff.getInstance().addDelay(status.getTaskId());
         setTaskStatus(status.getTaskId(), Status.DELAYED);
         break;
-        //TODO@kjoshi: Transition to PENDING_DELAYED state here
-        //Implementation detail: Move to PENDING_DELAYED state and update backoff counters.
-        //Call up to AbstractStep to hold TaskId state.
       case TASK_KILLED:
       case TASK_KILLING:
       case TASK_LOST:

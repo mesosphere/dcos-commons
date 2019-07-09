@@ -144,6 +144,11 @@
           "enum": [0, 1],
           "default": 1
         },
+        "disable_backoff": {
+          "description": "Disable the task backoff",
+          "type": "boolean",
+          "default": false
+        },
         "check" : {
           "description": "Checks are a way to understand the health of a service. These HTTP checks are intended to be consumed by services external to Mesos/Marathon which will take appropriate action on them.",
           "type": "object",

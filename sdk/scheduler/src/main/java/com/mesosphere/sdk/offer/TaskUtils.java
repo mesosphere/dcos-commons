@@ -402,7 +402,7 @@ public final class TaskUtils {
         PodInstance podInstance = getPodInstance(configStore, taskInfo);
         Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskInfo.getName());
         if (taskSpec.isPresent()) {
-          if (backOff.isReady(CommonIdUtils.getTaskInstanceName(podInstance, taskSpec.get()))) {
+          if (!backOff.getDelay(CommonIdUtils.getTaskInstanceName(podInstance, taskSpec.get())).isPresent()) {
             Collection<TaskSpec> failedTaskSpecs =
                     podsToFailedTasks.computeIfAbsent(podInstance, k -> new ArrayList<>());
             failedTaskSpecs.add(taskSpec.get());

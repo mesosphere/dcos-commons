@@ -3,8 +3,12 @@ package com.mesosphere.sdk.scheduler.plan.backoff;
 import com.mesosphere.sdk.framework.EnvStore;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
+
+import java.time.Duration;
+import java.util.Optional;
 
 /**
  * Abstract class that has contracts on how delay can be set/advanced/cleared. Helper methods are used to
@@ -17,7 +21,7 @@ public abstract class BackOff {
 
   private static final String FRAMEWORK_MAX_LAUNCH_DELAY = "FRAMEWORK_MAX_LAUNCH_DELAY";
 
-  private static final String DISABLE_BACKOFF = "DISABLE_BACKOFF";
+  private static final String ENABLE_BACKOFF = "ENABLE_BACKOFF";
 
   private static final Object lock = new Object();
 
@@ -25,15 +29,24 @@ public abstract class BackOff {
 
   private static volatile BackOff instance;
 
+  /**
+   * Backoff is enabled only by explicit Opt-In. We adhere to following configuration:
+   *  * Set {@link #ENABLE_BACKOFF} to non blank value.
+   *  * Set one or more of {@link #FRAMEWORK_BACKOFF_FACTOR} or
+   *    {@link #FRAMEWORK_INITIAL_BACKOFF} and/or {@link #FRAMEWORK_MAX_LAUNCH_DELAY}.
+   *    If more than zero params are initialized, defaults are used for the uninitialized params.
+   *  * Absence of {@link #ENABLE_BACKOFF} and other environment params would be considered
+   *    as hint to disable backoff
+   */
   public static BackOff getInstance() {
     if (instance == null) {
       synchronized (lock) {
         EnvStore envStore = EnvStore.fromEnv();
-        if (envStore.isPresent(DISABLE_BACKOFF)) {
-          logger.warn("Disabling backoff as {} is set to {}",
-                  DISABLE_BACKOFF, envStore.getRequired(DISABLE_BACKOFF));
-          instance = new DisabledBackOff();
-        } else {
+        if (envStore.isPresent(ENABLE_BACKOFF)
+                || envStore.isPresent(FRAMEWORK_BACKOFF_FACTOR)
+                || envStore.isPresent(FRAMEWORK_MAX_LAUNCH_DELAY)
+                || envStore.isPresent(FRAMEWORK_INITIAL_BACKOFF))
+        {
           // CHECKSTYLE:OFF MagicNumberCheck
           instance = new ExponentialBackOff(
                   envStore.getOptionalDouble(FRAMEWORK_BACKOFF_FACTOR, 1.15),
@@ -41,6 +54,9 @@ public abstract class BackOff {
                   envStore.getOptionalLong(FRAMEWORK_MAX_LAUNCH_DELAY, 300)
           );
           // CHECKSTYLE:ON MagicNumberCheck
+        } else {
+          logger.warn("Disabling backoff");
+          instance = new DisabledBackOff();
         }
       }
     }
@@ -51,9 +67,16 @@ public abstract class BackOff {
 
   public abstract void addDelay(Protos.TaskID taskID);
 
-  public abstract boolean isReady(String taskInstanceName);
+  public abstract Optional<Duration> getDelay(String taskInstanceName);
 
   public abstract boolean clearDelay(String taskInstanceName);
 
   public abstract boolean clearDelay(Protos.TaskID taskID);
+
+  @VisibleForTesting
+  final void reset() {
+    synchronized (lock) {
+      instance = null;
+    }
+  }
 }

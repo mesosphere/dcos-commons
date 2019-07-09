@@ -16,7 +16,11 @@ def test_finish_install_on_failure():
             foldered_name,
             1,
             additional_options={
-                "service": {"name": foldered_name, "yaml": "non_recoverable_state"}
+                "service": {
+                    "name": foldered_name,
+                    "yaml": "non_recoverable_state",
+                    "disable_backoff": True
+                }
             },
         )
     sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)

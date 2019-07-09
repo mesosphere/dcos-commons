@@ -122,6 +122,19 @@ def start_plan(
     )
 
 
+def force_complete_step(
+    service_name: str,
+    plan: str,
+    phase: str,
+    step: str,
+) -> None:
+    sdk_cmd.service_request(
+        "POST",
+        service_name,
+        "/v1/plans/{}/forceComplete?phase={}&step={}".format(plan, phase, step)
+    )
+
+
 def wait_for_completed_recovery(
     service_name: str,
     timeout_seconds: int = TIMEOUT_SECONDS,

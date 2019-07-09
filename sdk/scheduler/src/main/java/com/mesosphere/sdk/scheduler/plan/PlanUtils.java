@@ -67,6 +67,9 @@ public final class PlanUtils {
    * @param element     the element to be checked
    * @param dirtyAssets list of current dirty assets which are already being worked on
    * @return whether this element may proceed with work
+   *
+   * Implementation detail:
+   *  The input to this method is fed to
    */
   public static boolean isEligible(
       Element element,
@@ -78,9 +81,6 @@ public final class PlanUtils {
     if (element instanceof Interruptible && ((Interruptible) element).isInterrupted()) {
       return false;
     }
-    /* TODO@kjoshi: return false here in case where our current delay hasn't been met.
-    @takirala: here's where the logic for determining if we're in backoff gets excercised.
-    */
     if (element instanceof Step) {
       Optional<PodInstanceRequirement> podInstanceRequirement =
               ((Step) element).getPodInstanceRequirement();
