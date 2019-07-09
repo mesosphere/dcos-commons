@@ -1,7 +1,7 @@
-name: "valid-shared-memory-pod"
+name: "invalid-share-parent-pod"
 pods:
   meta-data:
-    shared-memory: PRIVATE
+    shared-memory: SHARE_PARENT
     shared-memory-size: 1024
     count: 2
     tasks:

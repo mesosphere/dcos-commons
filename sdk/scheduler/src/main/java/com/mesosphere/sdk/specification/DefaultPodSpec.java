@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.mesos.Protos;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -57,7 +58,7 @@ public final class DefaultPodSpec implements PodSpec {
 
   private final Optional<String> seccompProfileName;
 
-  private final Optional<String> sharedMemory;
+  private final Optional<Protos.LinuxInfo.IpcMode> sharedMemory;
 
   private final Optional<Integer> sharedMemorySize;
 
@@ -80,7 +81,7 @@ public final class DefaultPodSpec implements PodSpec {
       @JsonProperty("host-volumes") Collection<HostVolumeSpec> hostVolumes,
       @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
       @JsonProperty("seccomp-profile-name") Optional<String> seccompProfileName,
-      @JsonProperty("shared-memory") Optional<String> sharedMemory,
+      @JsonProperty("shared-memory") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
       @JsonProperty("shared-memory-size") Optional<Integer> sharedMemorySize)
   {
     this.type = type;
@@ -262,7 +263,7 @@ public final class DefaultPodSpec implements PodSpec {
   }
 
   @Override
-  public Optional<String> getSharedMemory() {
+  public Optional<Protos.LinuxInfo.IpcMode> getSharedMemory() {
     return sharedMemory;
   }
 
@@ -324,7 +325,7 @@ public final class DefaultPodSpec implements PodSpec {
 
     private Optional<String> seccompProfileName = Optional.empty();
 
-    private Optional<String> sharedMemory = Optional.empty();
+    private Optional<Protos.LinuxInfo.IpcMode> sharedMemory = Optional.empty();
 
     private Optional<Integer> sharedMemorySize = Optional.empty();
 
@@ -606,8 +607,21 @@ public final class DefaultPodSpec implements PodSpec {
      * @return a reference to this Builder
      */
     public Builder sharedMemory(String sharedMemory) {
-      this.sharedMemory = Optional.ofNullable(sharedMemory);
-      return this;
+      if (sharedMemory == null) {
+        this.sharedMemory = Optional.empty();
+        return this;
+      }
+
+      switch (sharedMemory) {
+        case "PRIVATE":
+          this.sharedMemory = Optional.ofNullable(Protos.LinuxInfo.IpcMode.PRIVATE);
+          return this;
+        case "SHARE_PARENT":
+          throw new IllegalArgumentException("Cannot specify SHARE_PARENT at pod level");
+        default:
+          this.sharedMemory = Optional.empty();
+          return this;
+      }
     }
 
     /**

@@ -597,7 +597,7 @@ public class PodInfoBuilder {
       }
 
       if (podSpec.getSharedMemory().isPresent()) {
-        containerInfo.getLinuxInfoBuilder().setIpcMode(Protos.LinuxInfo.IpcMode.valueOf(podSpec.getSharedMemory().get()));
+        containerInfo.getLinuxInfoBuilder().setIpcMode(podSpec.getSharedMemory().get());
       }
 
       if (podSpec.getSharedMemorySize().isPresent()) {

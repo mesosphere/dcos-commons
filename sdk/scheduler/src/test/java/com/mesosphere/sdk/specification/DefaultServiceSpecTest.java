@@ -188,8 +188,15 @@ public class DefaultServiceSpecTest {
         File file = new File(classLoader.getResource("valid-shared-memory-pod.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         PodSpec spec = serviceSpec.getPods().get(0);
-        Assert.assertEquals("PRIVATE", spec.getSharedMemory().get());
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.PRIVATE, spec.getSharedMemory().get());
         Assert.assertTrue(spec.getSharedMemorySize().get().equals(1024));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidShareParent() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-share-parent-pod.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
     @Test

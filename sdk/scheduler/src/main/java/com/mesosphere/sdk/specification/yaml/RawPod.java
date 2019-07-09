@@ -6,7 +6,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.collections.CollectionUtils;
 
-import java.beans.IntrospectionException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
