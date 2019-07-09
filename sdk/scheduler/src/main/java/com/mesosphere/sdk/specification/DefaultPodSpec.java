@@ -174,6 +174,8 @@ public final class DefaultPodSpec implements PodSpec {
     builder.hostVolumes = copy.getHostVolumes();
     builder.seccompUnconfined = copy.getSeccompUnconfined();
     builder.seccompProfileName = copy.getSeccompProfileName();
+    builder.sharedMemory = copy.getSharedMemory();
+    builder.sharedMemorySize = copy.getSharedMemorySize();
     return builder;
   }
 
@@ -603,7 +605,7 @@ public final class DefaultPodSpec implements PodSpec {
      * Sets the {@code sharedMemory} and returns a reference to this Builder so that the methods can be
      * chained together.
      *
-     * @param sharedMemory the enum to set
+     * @param sharedMemory the IPC Mode, PRIVATE is the only allowed value at pod level
      * @return a reference to this Builder
      */
     public Builder sharedMemory(String sharedMemory) {

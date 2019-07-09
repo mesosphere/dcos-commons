@@ -126,7 +126,7 @@ public class PodSpecsCannotUseUnsupportedFeaturesTest {
                 .build();
         checkValidationPasses(serviceSpec);
     }
-    
+
     @Test
     public void testSpecSucceedsWithoutRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);

@@ -200,6 +200,29 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validFullShmSpec() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-shm-spec.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+
+        PodSpec spec = serviceSpec.getPods().get(0);
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.PRIVATE, spec.getSharedMemory().get());
+        Assert.assertTrue(spec.getSharedMemorySize().get().equals(1024));
+
+        TaskSpec spec1 = serviceSpec.getPods().get(0).getTasks().get(0);
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.PRIVATE, spec1.getSharedMemory().get());
+        Assert.assertTrue(spec1.getSharedMemorySize().get().equals(256));
+
+        TaskSpec spec2 = serviceSpec.getPods().get(0).getTasks().get(1);
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.SHARE_PARENT, spec2.getSharedMemory().get());
+        Assert.assertEquals(Optional.empty(), spec2.getSharedMemorySize());
+
+        TaskSpec spec3 = serviceSpec.getPods().get(0).getTasks().get(2);
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.SHARE_PARENT, spec3.getSharedMemory().get());
+        Assert.assertEquals(Optional.empty(), spec3.getSharedMemorySize());
+    }
+
+    @Test
     public void validPortRangesTest() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("ranges.yml").getFile());

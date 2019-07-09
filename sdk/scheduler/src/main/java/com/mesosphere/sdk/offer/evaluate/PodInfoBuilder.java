@@ -322,6 +322,15 @@ public class PodInfoBuilder {
 
     taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), true, true));
 
+    if (taskSpec.getSharedMemory().isPresent()) {
+      taskInfoBuilder.getContainerBuilder().getLinuxInfoBuilder().setIpcMode(taskSpec.getSharedMemory().get()).build();
+    }
+    if (taskSpec.getSharedMemorySize().isPresent()) {
+      taskInfoBuilder.getContainerBuilder()
+          .getLinuxInfoBuilder()
+          .setShmSize(taskSpec.getSharedMemorySize().get())
+          .build();
+    }
     setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
     setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
     setTaskKillGracePeriod(taskInfoBuilder, taskSpec);

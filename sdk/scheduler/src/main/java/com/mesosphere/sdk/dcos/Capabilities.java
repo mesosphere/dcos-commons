@@ -12,6 +12,7 @@ import java.io.IOException;
  * This class represents a set of capabilities that may or may not be supported in a given version
  * of DC/OS.
  */
+@SuppressWarnings("checkstyle:MethodCount")
 public class Capabilities {
   private static final Logger LOGGER = LoggingUtils.getLogger(Capabilities.class);
 
@@ -120,12 +121,12 @@ public class Capabilities {
   }
 
   public boolean supportsSeccomp() {
-    // Seccomp fields supported 1.13 and above
+    // Seccomp fields supported 1.13 and above (Mesos 1.8)
     return hasOrExceedsVersion(1, 13);
   }
 
   public boolean supportsShm() {
-    // Shared Mem fields supported 1.14 and above
+    // Shared Mem fields supported 1.14 and above (Mesos 1.9)
     return hasOrExceedsVersion(1, 14);
   }
 

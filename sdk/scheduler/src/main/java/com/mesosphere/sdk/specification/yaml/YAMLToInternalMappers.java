@@ -481,6 +481,8 @@ public final class YAMLToInternalMappers {
         .name(taskName)
         .taskKillGracePeriodSeconds(rawTask.getTaskKillGracePeriodSeconds())
         .setTransportEncryption(transportEncryption)
+        .sharedMemory(rawTask.getSharedMemory())
+        .sharedMemorySize(rawTask.getSharedMemorySize())
         .name(taskName);
 
     if (!Strings.isNullOrEmpty(rawTask.getLabelsCsv())) {

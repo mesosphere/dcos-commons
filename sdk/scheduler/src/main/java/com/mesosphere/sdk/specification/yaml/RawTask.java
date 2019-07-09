@@ -47,6 +47,10 @@ public final class RawTask {
 
   private final List<RawTransportEncryption> transportEncryption;
 
+  private final String sharedMemory;
+
+  private final Integer sharedMemorySize;
+
   private RawTask(
       @JsonProperty("goal") String goal,
       @JsonProperty("essential") Boolean essential,
@@ -65,7 +69,9 @@ public final class RawTask {
       @JsonProperty("resource-set") String resourceSet,
       @JsonProperty("discovery") RawDiscovery discovery,
       @JsonProperty("kill-grace-period") Integer taskKillGracePeriodSeconds,
-      @JsonProperty("transport-encryption") List<RawTransportEncryption> transportEncryption)
+      @JsonProperty("transport-encryption") List<RawTransportEncryption> transportEncryption,
+      @JsonProperty("shared-memory") String sharedMemory,
+      @JsonProperty("shared-memory-size") Integer sharedMemorySize)
   {
     this.goal = goal;
     this.essential = essential;
@@ -85,6 +91,8 @@ public final class RawTask {
     this.discovery = discovery;
     this.taskKillGracePeriodSeconds = taskKillGracePeriodSeconds;
     this.transportEncryption = transportEncryption;
+    this.sharedMemory = sharedMemory;
+    this.sharedMemorySize = sharedMemorySize;
   }
 
   public Double getCpus() {
@@ -158,5 +166,13 @@ public final class RawTask {
   public List<RawTransportEncryption> getTransportEncryption() {
     return transportEncryption == null ?
         Collections.emptyList() : transportEncryption;
+  }
+
+  public String getSharedMemory() {
+    return sharedMemory;
+  }
+
+  public Integer getSharedMemorySize() {
+    return sharedMemorySize;
   }
 }
