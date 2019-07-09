@@ -225,7 +225,7 @@ public class ServiceTest {
     /**
      * Checks that if an essential task in a pod fails, that all tasks in the pod are relaunched.
      */
-    //@Test
+    @Test
     public void testEssentialTaskFailure() throws Exception {
         testRecoverEssentialOrNonessential(true);
     }

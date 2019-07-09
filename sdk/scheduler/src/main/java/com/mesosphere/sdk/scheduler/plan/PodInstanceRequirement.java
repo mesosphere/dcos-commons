@@ -21,7 +21,7 @@ public final class PodInstanceRequirement {
 
   private final RecoveryType recoveryType;
 
-  private Collection<String> tasksToLaunch;
+  private final Collection<String> tasksToLaunch;
 
   /**
    * Creates a new instance with the provided permanent replacement setting.

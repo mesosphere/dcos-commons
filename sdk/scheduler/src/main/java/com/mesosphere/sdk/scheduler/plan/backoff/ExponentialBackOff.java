@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler.plan.backoff;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
@@ -38,6 +39,7 @@ public final class ExponentialBackOff extends BackOff {
 
   private Logger logger;
 
+  @VisibleForTesting
   ExponentialBackOff(double backoffFactor, long backoffSeconds, long maxLaunchDelaySeconds) {
     this.logger = LoggingUtils.getLogger(ExponentialBackOff.class);
     this.backoffFactor = backoffFactor;

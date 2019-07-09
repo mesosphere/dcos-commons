@@ -110,7 +110,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     this.launchConstrainer = launchConstrainer;
     this.namespace = namespace;
     this.recoveryPlanOverriders = recoveryPlanOverriders;
-    //TODO@kjoshi: Recovery plans ARE DefaultPlans, just with a different name
     plan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME, Collections.emptyList());
   }
 
@@ -148,7 +147,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
   @Override
   public Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
     synchronized (planLock) {
-      logger.info("getCandidates method called 8");
       updatePlan(dirtyAssets);
       return getPlan().getCandidates(dirtyAssets).stream()
           .filter(step ->

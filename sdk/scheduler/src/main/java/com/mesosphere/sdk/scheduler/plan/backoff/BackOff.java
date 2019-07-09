@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.plan.backoff;
 import com.mesosphere.sdk.framework.EnvStore;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
@@ -72,11 +71,4 @@ public abstract class BackOff {
   public abstract boolean clearDelay(String taskInstanceName);
 
   public abstract boolean clearDelay(Protos.TaskID taskID);
-
-  @VisibleForTesting
-  final void reset() {
-    synchronized (lock) {
-      instance = null;
-    }
-  }
 }

@@ -67,9 +67,6 @@ public final class PlanUtils {
    * @param element     the element to be checked
    * @param dirtyAssets list of current dirty assets which are already being worked on
    * @return whether this element may proceed with work
-   *
-   * Implementation detail:
-   *  The input to this method is fed to
    */
   public static boolean isEligible(
       Element element,
@@ -83,9 +80,9 @@ public final class PlanUtils {
     }
     if (element instanceof Step) {
       Optional<PodInstanceRequirement> podInstanceRequirement =
-              ((Step) element).getPodInstanceRequirement();
+          ((Step) element).getPodInstanceRequirement();
       return !podInstanceRequirement.isPresent()
-              || !PlanUtils.assetConflicts(podInstanceRequirement.get(), dirtyAssets);
+          || !PlanUtils.assetConflicts(podInstanceRequirement.get(), dirtyAssets);
     }
     return true;
   }

@@ -1,7 +1,5 @@
 import logging
-
 import pytest
-import retrying
 
 import sdk_install
 import sdk_plan
@@ -30,16 +28,12 @@ def test_deploy_plan_backoff():
         expected_running_tasks=0,
         additional_options={"service": {"yaml": "crash-loop"}},
         wait_for_deployment=False,
-        wait_for_all_conditions=False
+        wait_for_all_conditions=False,
     )
     for state in ["DELAYED", "STARTED", "DELAYED"]:
         # State transition should be STARTING -> STARTED -> DELAYED in a loop.
         # As STARTING lasts for a very short duration, we test the switch between other two states.
-        sdk_plan.wait_for_plan_status(
-            foldered_name,
-            "deploy",
-            state
-        )
+        sdk_plan.wait_for_plan_status(foldered_name, "deploy", state)
     # We can't make further progress, this is the end of the test.
 
 
@@ -51,7 +45,7 @@ def test_recovery_backoff():
         expected_running_tasks=0,
         additional_options={"service": {"yaml": "crash-loop"}},
         wait_for_deployment=False,
-        wait_for_all_conditions=False
+        wait_for_all_conditions=False,
     )
     sdk_plan.wait_for_plan_status(foldered_name, "deploy", "DELAYED")
     # Deploy plan is complete. Recovery plan should take over.

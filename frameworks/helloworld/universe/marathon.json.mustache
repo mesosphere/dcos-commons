@@ -79,10 +79,9 @@
     "MESOS_AUTHENTICATEE": "com_mesosphere_dcos_ClassicRPCAuthenticatee",
     "MESOS_HTTP_AUTHENTICATEE": "com_mesosphere_dcos_http_Authenticatee",
     {{/service.service_account_secret}}
-    {{#service.disable_backoff}}
-    "DISABLE_BACKOFF": "{{service.disable_backoff}}",
-    {{/service.disable_backoff}}
-
+    {{#service.enable_backoff}}
+    "ENABLE_BACKOFF": "{{service.enable_backoff}}",
+    {{/service.enable_backoff}}
     {{#hello.secret1}}
     "HELLO_SECRET1" : "{{hello.secret1}}",
     {{/hello.secret1}}

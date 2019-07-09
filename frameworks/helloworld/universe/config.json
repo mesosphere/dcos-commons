@@ -144,8 +144,8 @@
           "enum": [0, 1],
           "default": 1
         },
-        "disable_backoff": {
-          "description": "Disable the task backoff",
+        "enable_backoff": {
+          "description": "Enable exponential task backoff for failed tasks",
           "type": "boolean",
           "default": false
         },
