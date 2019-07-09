@@ -72,6 +72,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -519,9 +520,13 @@ public class SchedulerBuilder {
       }
     }
 
+    // Determine if we had a role change.
+    boolean hasRoleChanged = hasRoleChanged(configStore, serviceSpec);
+
     // Update/validate config as needed to reflect the new service spec:
     Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
     configValidators.addAll(DefaultConfigValidators.getValidators(schedulerConfig));
+    configValidators.addAll(DefaultConfigValidators.getRoleValidators(hasRoleChanged, hasCompletedDeployment));
     configValidators.addAll(customConfigValidators);
     final ConfigurationUpdater.UpdateResult configUpdateResult =
         updateConfig(serviceSpec, stateStore, configStore, configValidators, namespace);
@@ -761,5 +766,41 @@ public class SchedulerBuilder {
       logger.error("Fatal error when performing configuration update. Service exiting.", e);
       throw new IllegalStateException(e);
     }
+  }
+
+  /**
+   * Determine if the role for the Service has changed across scheduler restarts.
+   * The role is neccesarily unchanged on the first launch of the service.
+   * @return true iff the role has changed.
+   */
+  private boolean hasRoleChanged(ConfigStore<ServiceSpec> configStore,
+      ServiceSpec currentConfig) throws ConfigStoreException
+  {
+    // Get the currently stored target configuration
+    UUID targetConfigId;
+    try {
+      targetConfigId = configStore.getTargetConfig();
+    } catch (ConfigStoreException e) {
+      logger.debug("No target configuration ID was set. First launch?");
+      targetConfigId = null;
+    }
+
+    Optional<ServiceSpec> targetConfig;
+    if (targetConfigId != null) {
+      logger.info("Loading current target configuration: {}", targetConfigId);
+      //Note: This throws ConfigStoreException if targetConfigId is not found.
+      //let the exception ripple upwards as this is a fatal error.
+      targetConfig = Optional.of(configStore.fetch(targetConfigId));
+    } else {
+      targetConfig = Optional.empty();
+    }
+
+    //If there is no target config, this was a first launch scenario.
+    if (!targetConfig.isPresent()) {
+      return false;
+    }
+
+    //Target is found, compare to see if the roles have changed.
+    return !currentConfig.getRole().equals(targetConfig.get().getRole());
   }
 }
