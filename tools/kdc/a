@@ -1,8 +1,0 @@
-{
-  "auths": {
-      "https://index.docker.io/v1/": {
-          "auth": "aWNoYXJhbGFtcGlkaXNAbWVzb3NwaGVyZS5jb206d2F2ZSQwZnQwMzUyMjIzMzI=",
-          "email": "icharalampidis@mesosphere.com"
-      }
-  }
-}

@@ -9,7 +9,7 @@ import (
 )
 
 /**
- * Parses the given principals file to an array of principals
+ * Parses the given principals file to a slice of principals
  */
 func ParsePrincipalsFile(filename string) ([]KPrincipal, error) {
   file, err := os.Open(filename)
@@ -22,14 +22,14 @@ func ParsePrincipalsFile(filename string) ([]KPrincipal, error) {
 }
 
 /**
- * Parses the given principals string to an array of principals
+ * Parses the given principals byte slice to an slice of principals
  */
 func ParsePrincipalsBytes(contents []byte) ([]KPrincipal, error) {
   return ParsePrincipalsFrom(bytes.NewReader(contents))
 }
 
 /**
- * Parses the given principals string to an array of principals
+ * Parses the given principals from a reader to an slice of principals
  */
 func ParsePrincipalsFrom(contents io.Reader) ([]KPrincipal, error) {
   var principals []KPrincipal

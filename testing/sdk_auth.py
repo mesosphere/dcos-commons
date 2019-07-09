@@ -260,7 +260,6 @@ class KerberosEnvironment:
         url = "{}/api/{}".format(self.get_service_path(), action)
         log.info("Performing KDC API {method} query to: {url}".format(method=method, url=url))
 
-        # Place the web request to cluster
         return sdk_cmd.cluster_request(
             method, url, headers={"content-type": "application/json"}, json=json
         )
@@ -279,8 +278,6 @@ class KerberosEnvironment:
         parsed = res.json()
         print(parsed)
 
-        # if parsed['status'] != "ok":
-        #     raise RuntimeError("Unable to add principals: {}".format(parsed.get("error", "Unknown error")))
         return parsed.get("data", [])
 
     def add_principals(self, principals: List[str]) -> None:
@@ -424,7 +421,6 @@ class KerberosEnvironment:
             log.info("Deleting temporary working directory")
             self._temp_working_dir.cleanup()
 
-        # Delete secret
         sdk_security.delete_service_account("kdc-admin", "kdc-admin")  # Account name  # Secret name
 
         # TODO: separate secrets handling into another module

@@ -451,7 +451,7 @@ func (c *KAdminClient) ListPrincipals(filter string) ([]KPrincipal, error) {
  * Checks if the given principal exists in the keytab file
  */
 func (c *KAdminClient) HasPrincipalInKeytab(keytabContents []byte, principal *KPrincipal) (bool, error) {
-  // Create a temporary file for the keytab
+  // Create a temporary file with the keytab
   tmpFile, err := ioutil.TempFile("", "keytab")
   if err != nil {
     return false, fmt.Errorf("Unable to create a temporary keytab file")
@@ -479,7 +479,7 @@ func (c *KAdminClient) HasPrincipalInKeytab(keytabContents []byte, principal *KP
 
   case FLAVOR_MIT: // MIT API Flavor
     // Since we only know of the `kadmin` utility, we can use the `ktrem` command
-    // to try removing a principal from a keytab file.
+    // to try removing a principal from a keytab file. If it works, it's there.
     _, serr, err := c.kadminExec("-r", "LOCAL", "ktrem", "-k", tmpFile.Name(), principal.Full())
     if err != nil {
       // Handle explicitly the error when the principal does not exist
@@ -495,6 +495,8 @@ func (c *KAdminClient) HasPrincipalInKeytab(keytabContents []byte, principal *KP
       return false, err
     }
 
+    // Surprise! Some kadmin flavors don't return an error if an entry does
+    // not exist. They just echo it!
     return !strings.Contains(serr, "No entry"), nil
   }
 

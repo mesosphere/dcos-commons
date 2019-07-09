@@ -98,14 +98,15 @@ func GetKeytabSecret(client *dcos.APIClient, secretName string, binary bool) ([]
 
 	// Try to create the secret on DC/OS
 	secret, resp, err := client.Secrets.GetSecret(context.TODO(), "default", secretName, nil)
-	if err != nil {
-		return nil, fmt.Errorf("Error reading secret: %s", err)
-	}
 
 	// Check if the secret does not exist, in which case we should not raise
 	// an error, rather return an empty byte array
-	if resp.StatusCode == http.StatusNotFound {
+	if resp != nil && resp.StatusCode == http.StatusNotFound {
 		return nil, nil
+	}
+
+	if err != nil {
+		return nil, fmt.Errorf("Error reading secret: %s", err)
 	}
 
 	if binary {
@@ -130,13 +131,13 @@ func DeleteKeytabSecret(client *dcos.APIClient, secretName string, binary bool) 
 
 	// Try to delete the secret
 	resp, err := client.Secrets.DeleteSecret(context.TODO(), "default", secretName)
-	if err != nil {
-		return fmt.Errorf("Error deleting secret: %s", err)
+	// If the secret was missing, we are OK
+	if resp != nil && resp.StatusCode == http.StatusNotFound {
+		return nil
 	}
 
-	// If the secret was missing, we are OK
-	if resp.StatusCode == http.StatusNotFound {
-		return nil
+	if err != nil {
+		return fmt.Errorf("Error deleting secret: %s", err)
 	}
 
 	return nil

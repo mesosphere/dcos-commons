@@ -69,6 +69,7 @@ func (s *KDCAPIServer) Start() {
 func (s *KDCAPIServer) replyReject(rw http.ResponseWriter, req *http.Request, format string, args ...interface{}) {
 	contentType := req.Header.Get("Content-Type")
 	if contentType == "application/json" {
+		// If the body contains a JSON payload, respond with JSON payload
 		resp := KDCResponse{
 			"error",
 			fmt.Sprintf(format, args...),
@@ -76,18 +77,17 @@ func (s *KDCAPIServer) replyReject(rw http.ResponseWriter, req *http.Request, fo
 			nil,
 		}
 
-		// Marshal the data
 		js, err := json.Marshal(resp)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// Respond with JSON-encoded text
 		rw.Header().Set("Content-Type", "application/json")
 		rw.Write(js)
+
 	} else {
-		// Otherwise respond with raw text
+		// Otherwise respond with plain text
 		rw.Header().Set("Content-Type", "text/plain")
 		fmt.Fprintf(rw, "errr: "+format, args...)
 	}
@@ -95,7 +95,9 @@ func (s *KDCAPIServer) replyReject(rw http.ResponseWriter, req *http.Request, fo
 
 func (s *KDCAPIServer) replySuccess(rw http.ResponseWriter, req *http.Request, data interface{}) {
 	contentType := req.Header.Get("Content-Type")
+
 	if contentType == "application/json" {
+		// If the body contains a JSON payload, respond with JSON payload
 		resp := KDCResponse{
 			"ok", "", nil, nil,
 		}
@@ -109,18 +111,17 @@ func (s *KDCAPIServer) replySuccess(rw http.ResponseWriter, req *http.Request, d
 			}
 		}
 
-		// Marshal the data
 		js, err := json.Marshal(resp)
 		if err != nil {
 			http.Error(rw, err.Error(), http.StatusInternalServerError)
 			return
 		}
 
-		// Respond with JSON-encoded text
 		rw.Header().Set("Content-Type", "application/json")
 		rw.Write(js)
+
 	} else {
-		// Otherwise respond with raw text
+		// Otherwise respond with plain text
 		rw.Header().Set("Content-Type", "text/plain")
 		if data != nil {
 			switch x := data.(type) {
@@ -215,7 +216,6 @@ func (s *KDCAPIServer) handleAddPrincipal(rw http.ResponseWriter, req *http.Requ
 
 	}
 
-	// Check if we were given an empty string
 	if len(apiReq.Principals) == 0 {
 		s.replyReject(rw, req, `given an empty list of principals`)
 		return
@@ -231,27 +231,23 @@ func (s *KDCAPIServer) handleAddPrincipal(rw http.ResponseWriter, req *http.Requ
 		return
 	}
 
-	// Install missing principals using defaults
 	err = s.kadmin.AddMissingPrincipals(apiReq.Principals)
 	if err != nil {
 		s.replyReject(rw, req, `Unable to add principals: %s`, err.Error())
 		return
 	}
 
-	// Collect keytab contents
 	keytab, err := s.kadmin.GetKeytabForPrincipals(apiReq.Principals)
 	if err != nil {
 		s.replyReject(rw, req, `Unable to export keytab: %s`, err.Error())
 		return
 	}
 
-	// Get binary flag
 	useBinary := false
 	if apiReq.Binary != nil {
 		useBinary = *apiReq.Binary
 	}
 
-	// Upload to DC/OS secret store
 	err = CreateKeytabSecret(dclient, apiReq.Secret, keytab, useBinary)
 	if err != nil {
 		s.replyReject(rw, req, `Unable to upload to secret store: %s`, err.Error())
@@ -298,7 +294,6 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 		}
 	}
 
-	// Enumerate principals
 	list, err := s.kadmin.ListPrincipals(filterExpr.Filter)
 	if err != nil {
 		s.replyReject(rw, req, `Unable to list principals: %s`, err.Error())
@@ -318,20 +313,17 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 			return
 		}
 
-		// Get binary flag
 		useBinary := false
 		if filterExpr.Binary != nil {
 			useBinary = *filterExpr.Binary
 		}
 
-		// Download the secret from the store
 		ktBytes, err := GetKeytabSecret(dclient, filterExpr.Secret, useBinary)
 		if err != nil {
 			s.replyReject(rw, req, `Unable to read the keytab secret: %s`, err.Error())
 			return
 		}
 
-		// If the secret is empty, raise error
 		if ktBytes == nil {
 			s.replyReject(rw, req, `The secret was empty`)
 			return
@@ -349,12 +341,9 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 				newList = append(newList, principal)
 			}
 		}
-
-		// Replace list
 		list = newList
 	}
 
-	// Reply the list of arguments
 	s.replySuccess(rw, req, list)
 }
 
@@ -421,7 +410,6 @@ func (s *KDCAPIServer) handleDeletePrincipals(rw http.ResponseWriter, req *http.
 		return
 	}
 
-	// Get binary flag
 	useBinary := false
 	if apiReq.Binary != nil {
 		useBinary = *apiReq.Binary
@@ -437,21 +425,18 @@ func (s *KDCAPIServer) handleDeletePrincipals(rw http.ResponseWriter, req *http.
 		return
 	}
 
-	// Delete keytab secret
 	err = DeleteKeytabSecret(dclient, apiReq.Secret, useBinary)
 	if err != nil {
 		s.replyReject(rw, req, `Unable to delete secret: %s`, err.Error())
 		return
 	}
 
-	// Delete kdc principals
 	err = s.kadmin.DeletePrincipals(apiReq.Principals)
 	if err != nil {
 		s.replyReject(rw, req, `Unable to delete principals: %s`, err.Error())
 		return
 	}
 
-	// We are done
 	s.replySuccess(rw, req, nil)
 }
 
@@ -471,7 +456,7 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 	contentType := req.Header.Get("Content-Type")
 	if contentType == "application/json" {
 
-		// We are expeting all the interesting data to be in the payload
+		// We are expecting all the interesting data to be in the payload
 		dec := json.NewDecoder(req.Body)
 		if err := dec.Decode(&apiReq); err == io.EOF {
 			s.replyReject(rw, req, `Could not decode input`)
@@ -493,7 +478,7 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 
 	} else {
 
-		// Otherwise we expect the secret name to be on the request
+		// In the plaintext case, we expect the secret name to be on the request
 		secretName, ok := req.URL.Query()["secret"]
 		if !ok || len(secretName[0]) < 1 {
 			s.replyReject(rw, req, `missing 'secret=' argument`)
@@ -512,13 +497,11 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 			return
 		}
 
-		// Populate API request struct
 		apiReq.Secret = secretName[0]
 		apiReq.Principals = principalsList
 
 	}
 
-	// Check if we were given an empty string
 	if len(apiReq.Principals) == 0 {
 		s.replyReject(rw, req, `given an empty list of principals`)
 		return
@@ -551,13 +534,11 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 		return
 	}
 
-	// Get binary flag
 	useBinary := false
 	if apiReq.Binary != nil {
 		useBinary = *apiReq.Binary
 	}
 
-	// Download the secret from the store
 	ktBytes, err := GetKeytabSecret(dclient, apiReq.Secret, useBinary)
 	if err != nil {
 		s.replyReject(rw, req, `Unable to read the keytab secret: %s`, err.Error())
