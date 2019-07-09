@@ -18,8 +18,8 @@ RECOVERY_TIMEOUT_SECONDS = 20 * 60
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        # this config produces 1 hello's + 0 world's:
-        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 1)
+        # this config produces 1 hello's + 2 world's:
+        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, 3)
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
