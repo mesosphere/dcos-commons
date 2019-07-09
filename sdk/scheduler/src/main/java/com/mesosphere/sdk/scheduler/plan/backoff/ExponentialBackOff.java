@@ -1,10 +1,10 @@
 package com.mesosphere.sdk.scheduler.plan.backoff;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
