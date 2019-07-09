@@ -56,25 +56,25 @@ public final class RawPod {
 
 
   private RawPod(
-          @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
-          @JsonProperty("placement") String placement,
-          @JsonProperty("count") Integer count,
-          @JsonProperty("image") String image,
-          @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
-          @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
-          @JsonProperty("uris") Collection<String> uris,
-          @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
-          @JsonProperty("volume") RawVolume volume,
-          @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
-          @JsonProperty("pre-reserved-role") String preReservedRole,
-          @JsonProperty("secrets") WriteOnceLinkedHashMap<String, RawSecret> secrets,
-          @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
-          @JsonProperty("allow-decommission") Boolean allowDecommission,
-          @JsonProperty("host-volumes") WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes,
-          @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
-          @JsonProperty("seccomp-profile-name") String seccompProfileName,
-          @JsonProperty("shared-memory") String sharedMemory,
-          @JsonProperty("shared-memory-size") Integer sharedMemorySize) throws Exception
+      @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
+      @JsonProperty("placement") String placement,
+      @JsonProperty("count") Integer count,
+      @JsonProperty("image") String image,
+      @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
+      @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
+      @JsonProperty("uris") Collection<String> uris,
+      @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
+      @JsonProperty("volume") RawVolume volume,
+      @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes,
+      @JsonProperty("pre-reserved-role") String preReservedRole,
+      @JsonProperty("secrets") WriteOnceLinkedHashMap<String, RawSecret> secrets,
+      @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
+      @JsonProperty("allow-decommission") Boolean allowDecommission,
+      @JsonProperty("host-volumes") WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes,
+      @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
+      @JsonProperty("seccomp-profile-name") String seccompProfileName,
+      @JsonProperty("shared-memory") String sharedMemory,
+      @JsonProperty("shared-memory-size") Integer sharedMemorySize) throws Exception
   {
     this.placement = placement;
     this.count = count;
