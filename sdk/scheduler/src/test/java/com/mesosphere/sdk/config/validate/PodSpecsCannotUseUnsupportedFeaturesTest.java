@@ -105,7 +105,28 @@ public class PodSpecsCannotUseUnsupportedFeaturesTest {
         checkValidationPasses(serviceSpec);
     }
 
+    @Test
+    public void testSpecFailsWithShm() throws Exception {
+        when(mockCapabilities.supportsShm()).thenReturn(false);
+        Capabilities.overrideCapabilities(mockCapabilities);
 
+        File file = new File(getClass().getClassLoader().getResource("valid-shared-memory-pod.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
+                .build();
+        checkValidationErrorWithValue(serviceSpec, "shm");
+    }
+
+    @Test
+    public void testSpecSucceedsWithShm() throws Exception {
+        when(mockCapabilities.supportsShm()).thenReturn(true);
+        Capabilities.overrideCapabilities(mockCapabilities);
+
+        File file = new File(getClass().getClassLoader().getResource("valid-shared-memory-pod.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG)
+                .build();
+        checkValidationPasses(serviceSpec);
+    }
+    
     @Test
     public void testSpecSucceedsWithoutRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);

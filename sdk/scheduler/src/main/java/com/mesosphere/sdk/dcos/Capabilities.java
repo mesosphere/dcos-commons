@@ -124,6 +124,11 @@ public class Capabilities {
     return hasOrExceedsVersion(1, 13);
   }
 
+  public boolean supportsShm() {
+    // Shared Mem fields supported 1.14 and above
+    return hasOrExceedsVersion(1, 14);
+  }
+
 
   private boolean hasOrExceedsVersion(int major, int minor) {
     DcosVersion.Elements versionElements = dcosVersion.getElements();

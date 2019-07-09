@@ -109,6 +109,7 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
     boolean supportsFileBasedSecrets = capabilities.supportsFileBasedSecrets();
     boolean supportsProfileMountVolumes = capabilities.supportsProfileMountVolumes();
     boolean supportsSeccomp = capabilities.supportsSeccomp();
+    boolean supportsShm = capabilities.supportsShm();
 
     for (PodSpec podSpec : newConfig.getPods()) {
       if (!supportsGpus && podRequestsGpuResources(podSpec)) {
@@ -174,6 +175,16 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
                 "pod:" + podSpec.getType(),
                 "seccomp",
                 "This DC/OS cluster does not support seccomp"
+        ));
+      }
+
+      if (!supportsShm && (podSpec.getSharedMemory().isPresent() ||
+              podSpec.getSharedMemorySize().isPresent()))
+      {
+        errors.add(ConfigValidationError.valueError(
+                "pod:" + podSpec.getType(),
+                "shm",
+                "This DC/OS cluster does not support shared memory"
         ));
       }
     }
