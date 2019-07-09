@@ -1,11 +1,9 @@
 import logging
 
-import json
 import pytest
 import sdk_cmd
 import sdk_install
 import sdk_plan
-import sdk_upgrade
 import sdk_marathon
 from tests import config
 
@@ -14,6 +12,7 @@ MARATHON_TASK_ROLE = "test-role"
 MARATHON_TASK_ROLE_ENV = "DCOS_NAMESPACE"
 
 RECOVERY_TIMEOUT_SECONDS = 20 * 60
+
 
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
@@ -44,24 +43,24 @@ def test_apply_new_scheduler_role():
     # haven't been affected.
 
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    marathon_config["env"][MARATHON_TASK_ROLE_ENV] = MARATHON_TASK_ROLE; 
-    
+    marathon_config["env"][MARATHON_TASK_ROLE_ENV] = MARATHON_TASK_ROLE
+
     # Update the app
     sdk_marathon.update_app(marathon_config)
 
     # Wait for scheduler to restart.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
-    # Assert the deployment plans are complete. 
+    # Assert the deployment plans are complete.
     deployment_plan = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
     assert deployment_plan["status"] == "COMPLETE"
     log.info(sdk_plan.plan_string("deploy", deployment_plan))
 
     # Get the current service state to verify roles have applied.
     current_task_roles = _get_service_task_roles()
-    
+
     # We must have some role!
-    assert len(current_task_roles) > 0 
+    assert len(current_task_roles) > 0
     # Ensure that role change hasn't started yet.
     assert MARATHON_TASK_ROLE not in current_task_roles.values()
 
@@ -71,9 +70,9 @@ def test_apply_new_scheduler_role():
 @pytest.mark.sanity
 def test_replace_pods_to_new_role():
     # Incrementally deploy pods with new role.
-    # Ensure we're fully deployed.     
+    # Ensure we're fully deployed.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-    
+
     # Issue pod replace operations till we move the pods to the new role.
     replace_pods = ['hello-0', 'world-0', 'world-1']
 
@@ -110,17 +109,17 @@ def test_add_pods_with_new_role():
 
     # Add new pods to service which should be launched with the new role.
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    
-    # Add an extra pod to each. 
-    marathon_config["env"]["HELLO_COUNT"] = "2" 
-    marathon_config["env"]["WORLD_COUNT"] = "3" 
-    
+
+    # Add an extra pod to each.
+    marathon_config["env"]["HELLO_COUNT"] = "2"
+    marathon_config["env"]["WORLD_COUNT"] = "3"
+
     # Update the app
     sdk_marathon.update_app(marathon_config)
 
     # Wait for scheduler to restart.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-        
+
     # Get the current service state to verify roles have applied.
     current_task_roles = _get_service_task_roles()
 
@@ -136,7 +135,7 @@ def test_add_pods_with_new_role():
     assert MARATHON_TASK_ROLE in roles_set
 
 
-def _get_service_task_roles() -> dict: 
+def _get_service_task_roles() -> dict:
     # Get the current service state to verify roles have applied.
     mesos_state = sdk_cmd.cluster_request("GET", "/mesos/master/state").json()
 
