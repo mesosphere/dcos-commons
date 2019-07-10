@@ -147,7 +147,7 @@
         "enable_backoff": {
           "description": "Enable exponential task backoff for failed tasks",
           "type": "boolean",
-          "default": false
+          "default": true
         },
         "check" : {
           "description": "Checks are a way to understand the health of a service. These HTTP checks are intended to be consumed by services external to Mesos/Marathon which will take appropriate action on them.",
