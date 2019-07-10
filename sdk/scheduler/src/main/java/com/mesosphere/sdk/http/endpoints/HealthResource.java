@@ -163,7 +163,7 @@ public class HealthResource {
     Set<Plan> restorePlans = planCoordinator.getPlanManagers()
         .stream()
         .filter(planManager -> planManager.getPlan().getName().matches(RESTORE_PLAN_REGEXP))
-        .map(planManager -> planManager.getPlan())
+        .map(PlanManager::getPlan)
         .collect(Collectors.toSet());
 
     if (restorePlans.isEmpty()) {
@@ -174,13 +174,13 @@ public class HealthResource {
     } else {
       // Found plan name with "restore" in it, check if any are running, if so get their names.
       Set<String> runningRestorePlans = restorePlans.stream()
-          .filter(plan -> plan.isRunning())
-          .map(plan -> plan.getName())
+          .filter(Element::isRunning)
+          .map(Element::getName)
           .collect(Collectors.toSet());
 
       if (runningRestorePlans.isEmpty()) {
         Set<String> notRunningRestorePlans = restorePlans.stream()
-            .map(plan -> plan.getName())
+            .map(Element::getName)
             .collect(Collectors.toSet());
 
         reason = String.format("Priority %d. Status Code %s is FALSE. Following restore plans not running: %s",
@@ -208,7 +208,7 @@ public class HealthResource {
     Set<Plan> backupPlans = planCoordinator.getPlanManagers()
         .stream()
         .filter(planManager -> planManager.getPlan().getName().matches(BACKUP_PLAN_REGEXP))
-        .map(planManager -> planManager.getPlan())
+        .map(PlanManager::getPlan)
         .collect(Collectors.toSet());
 
     if (backupPlans.isEmpty()) {
@@ -219,13 +219,13 @@ public class HealthResource {
     } else {
       // Found plan name with "backup" in it, check if any are running, if so get their names.
       Set<String> runningBackupPlans = backupPlans.stream()
-          .filter(plan -> plan.isRunning())
-          .map(plan -> plan.getName())
+          .filter(Element::isRunning)
+          .map(Element::getName)
           .collect(Collectors.toSet());
 
       if (runningBackupPlans.isEmpty()) {
         Set<String> notRunningBackupPlans = backupPlans.stream()
-            .map(plan -> plan.getName())
+            .map(Element::getName)
             .collect(Collectors.toSet());
 
         reason = String.format("Priority %d. Status Code %s is FALSE. Following backup plans not running: %s",
@@ -309,10 +309,11 @@ public class HealthResource {
         ServiceStatusCode.DEPLOYING_PENDING.priority);
   }
 
-  private ServiceStatusEvaluationStage evaluatePendingOrStartingStatusCode(Plan evaluatePlan,
-                                                                          ServiceStatusCode pending,
-                                                                          ServiceStatusCode starting,
-                                                                          final int priority)
+  private ServiceStatusEvaluationStage evaluatePendingOrStartingStatusCode(
+      Plan evaluatePlan,
+      ServiceStatusCode pending,
+      ServiceStatusCode starting,
+      final int priority)
   {
     String reason;
     Optional<ServiceStatusCode> statusCode;
@@ -426,7 +427,7 @@ public class HealthResource {
             .get()
             .getPlan().getChildren().stream()
             .flatMap(phase -> phase.getChildren().stream())
-            .anyMatch(step -> step.isInterrupted());
+            .anyMatch(Step::isInterrupted);
 
     if (isPlanInterrupted || isAnyStepInterrupted) {
       reason = String.format("Priority %d. Status Code %s is TRUE. Service deploy plan is awaiting user input to proceed.",
@@ -508,18 +509,18 @@ public class HealthResource {
 
     private final String statusReason;
 
-    public ServiceStatusEvaluationStage(Optional<ServiceStatusCode> serviceStatusCode,
-                                        String statusReason)
+    ServiceStatusEvaluationStage(Optional<ServiceStatusCode> serviceStatusCode,
+                                 String statusReason)
     {
       this.serviceStatusCode = serviceStatusCode;
       this.statusReason = statusReason;
     }
 
-    public Optional<ServiceStatusCode> getServiceStatusCode() {
+    Optional<ServiceStatusCode> getServiceStatusCode() {
       return serviceStatusCode;
     }
 
-    public String getStatusReason() {
+    String getStatusReason() {
       return statusReason;
     }
   }
