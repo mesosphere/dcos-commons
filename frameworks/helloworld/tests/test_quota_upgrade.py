@@ -74,13 +74,11 @@ def test_replace_pods_to_new_role():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
     # Issue pod replace operations till we move the pods to the new role.
-    replace_pods = ['hello-0', 'world-0', 'world-1']
+    replace_pods = ["hello-0", "world-0", "world-1"]
 
     for pod in replace_pods:
         # start replace and wait for it to finish
-        sdk_cmd.svc_cli(
-            config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace {}".format(pod)
-        )
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace {}".format(pod))
         sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
         sdk_plan.wait_for_completed_recovery(
             config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS
@@ -143,7 +141,7 @@ def _get_service_task_roles() -> dict:
     current_task_roles = {}
 
     # Find our service.
-    for service in mesos_state['frameworks']:
+    for service in mesos_state["frameworks"]:
         if service["name"] == config.SERVICE_NAME:
             service_state = service
 
