@@ -3,7 +3,8 @@
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
-      "hdfs-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hadoop-2.6.0-cdh5.11.0.tar.gz",
+      "keytab-zip": "https://downloads.mesosphere.com/hdfs/assets/keytab-fix.tar.gz",
+      "hdfs-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hadoop-3.2.0.tar.gz",
       "hdfs-bin-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hdfs-bin.tar.gz",
       "hdfs-jre-tar-gz": "{{jre-url}}",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",

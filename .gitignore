@@ -19,7 +19,6 @@ tools/shakedown_env/
 tools/*/shakedown_env/
 tools/cassandra
 tools/hdfs
-tools/elastic
 tools/helloworld
 tools/template
 /test_*.json

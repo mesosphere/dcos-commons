@@ -81,7 +81,7 @@ def main():
     setuptools.setup(
         name=output_name,
         version=version,
-        url="http://github.com/mesosphere/dcos-commons",
+        url="https://github.com/mesosphere/dcos-commons",
         packages=[output_name],
         entry_points={
             "console_scripts": [

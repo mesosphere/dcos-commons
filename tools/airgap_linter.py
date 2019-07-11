@@ -26,7 +26,7 @@ def readlines_if_text_file(filename):
 def extract_uris(file_name):
     lines = readlines_if_text_file(file_name)
 
-    matcher = re.compile(r".*https?:\/\/([^\?\s]*)", re.IGNORECASE)
+    matcher = re.compile(r".*http?:\/\/([^\?\s]*)", re.IGNORECASE)
     matches = []
     for line in lines:
         line = line.strip()
@@ -95,6 +95,8 @@ def get_files_to_check_for_uris(framework_directory):
     files = [
         os.path.join(framework_directory, "universe", "config.json"),
         os.path.join(framework_directory, "universe", "marathon.json.mustache"),
+        os.path.join(framework_directory, "universe", "resource.json"),
+        os.path.join(framework_directory, "universe", "package.json")
     ]
 
     # Always check every file in the `dist` directory of the scheduler.
@@ -178,7 +180,7 @@ def main(argv):
 
     if invalid:
         print(
-            "Airgap check FAILED. This framework will NOT work in an airgap. Fix the detected issues."
+            "Airgap check FAILED. The framework package definition contains references to non-https URL resources and/or there are invalid URL references in the package definition. Please consider replacing these resources to their HTTPS equivalent. In case of DC/OS internal URLs, please move them to service yaml definitions (which will be populated with FQN on the fly). This framework will NOT work in an air-gapped cluster without fixing the detected issues."
         )
         sys.exit(1)
 

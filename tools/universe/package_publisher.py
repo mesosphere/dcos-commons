@@ -18,7 +18,7 @@ beta_index_multiplier = 1
 
 
 class UniversePackagePublisher(object):
-    """Creates a PR for a release against the Universe repository at http://github.com/mesosphere/universe.
+    """Creates a PR for a release against the Universe repository at https://github.com/mesosphere/universe.
     """
 
     def __init__(self, package_name, package_version, commit_desc, beta_release, dry_run=False):

@@ -10,6 +10,7 @@ pods:
       - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{KEYTAB_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{JOURNAL_NODE_RLIMIT_NOFILE_SOFT}}
@@ -18,7 +19,7 @@ pods:
     secrets:
       keytab:
         secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
-        file: hdfs.keytab
+        file: secrets-hdfs.keytab # This will be changed back to hdfs.keytab after Hdfs release with keytab bug fix.
     {{/SECURITY_KERBEROS_ENABLED}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -42,6 +43,10 @@ pods:
           path: journal-data
           size: {{JOURNAL_DISK}}
           type: {{JOURNAL_DISK_TYPE}}
+          {{#JOURNAL_VOLUME_PROFILE}}
+          profiles:
+            - {{JOURNAL_VOLUME_PROFILE}}
+          {{/JOURNAL_VOLUME_PROFILE}}
     placement: '{{{JOURNAL_NODE_PLACEMENT}}}'
     tasks:
       bootstrap:
@@ -58,9 +63,8 @@ pods:
       node:
         goal: RUNNING
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -68,6 +72,10 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
+          {{#SECURITY_KERBEROS_ENABLED}}
+          # Fix keytab file due to bug in HDFS version 3.2.0. See HADOOP-16283 https://issues.apache.org/jira/browse/HADOOP-16283
+          $JAVA_HOME/bin/java -jar keytab-fix.jar secrets-hdfs.keytab 
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs journalnode
         resource-set: journal-resources
         configs:
@@ -150,6 +158,7 @@ pods:
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{ZONE_RESOLVER}}
+      - {{KEYTAB_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{NAME_NODE_RLIMIT_NOFILE_SOFT}}
@@ -158,7 +167,7 @@ pods:
     secrets:
       keytab:
         secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
-        file: hdfs.keytab
+        file: secrets-hdfs.keytab # This will be changed back to hdfs.keytab after Hdfs release with keytab bug fix.
     {{/SECURITY_KERBEROS_ENABLED}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -173,6 +182,10 @@ pods:
           path: name-data
           size: {{NAME_DISK}}
           type: {{NAME_DISK_TYPE}}
+          {{#NAME_VOLUME_PROFILE}}
+          profiles:
+            - {{NAME_VOLUME_PROFILE}}
+          {{/NAME_VOLUME_PROFILE}}
         ports:
           name-rpc:
             port: {{TASKCFG_ALL_NAME_NODE_RPC_PORT}}
@@ -193,9 +206,8 @@ pods:
       node:
         goal: RUNNING
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -213,12 +225,31 @@ pods:
           cp -v zone-resolver.sh {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
           chmod u+x {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/zone-resolver.sh
           {{/NAME_NODE_PLACEMENT}}
-          ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
+          {{#SECURITY_KERBEROS_ENABLED}}
+          # Fix keytab file due to bug in HDFS version 3.2.0. See HADOOP-16283 https://issues.apache.org/jira/browse/HADOOP-16283
+          $JAVA_HOME/bin/java -jar keytab-fix.jar secrets-hdfs.keytab
+          {{/SECURITY_KERBEROS_ENABLED}}
+          export LATEST_FSIMAGE_VERSION=-65 # HDFS version 3.2.0 contains fsimage version -65
+          export CURRENT_FSIMAGE_VERSION=$(grep "layoutVersion" name-data/current/VERSION | cut -d'=' -f2)
+          if [[ $CURRENT_FSIMAGE_VERSION -gt $LATEST_FSIMAGE_VERSION ]]; then
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade prepare
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade query
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -rollingUpgrade started
+          else
+            ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode
+          fi
         resource-set: name-resources
         readiness-check:
           cmd: |
             set -e
             export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
+            export service_state=$(./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME | grep -i 'standby')
+            export LATEST_FSIMAGE_VERSION=-65
+            export CURRENT_FSIMAGE_VERSION=$(grep "layoutVersion" name-data/current/VERSION | cut -d'=' -f2)
+            if [[ $service_state -eq 'standby' && $FINALIZED -eq false && $POD_INSTANCE_INDEX -eq 1 && $CURRENT_FSIMAGE_VERSION -gt $LATEST_FSIMAGE_VERSION ]]; then
+              ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs dfsadmin -rollingUpgrade finalize
+              FINALIZED=true
+            fi
             {{#SECURITY_KERBEROS_ENABLED}}
             export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
             {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -255,6 +286,7 @@ pods:
           {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         env:
           NAMENODE: true
+          FINALIZED: false
         {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: node
@@ -263,9 +295,8 @@ pods:
       format:
         goal: ONCE
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -273,6 +304,10 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
+          {{#SECURITY_KERBEROS_ENABLED}}
+          # Fix keytab file due to bug in HDFS version 3.2.0. See HADOOP-16283 https://issues.apache.org/jira/browse/HADOOP-16283
+          $JAVA_HOME/bin/java -jar keytab-fix.jar secrets-hdfs.keytab
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -format
         resource-set: name-resources
         configs:
@@ -298,11 +333,10 @@ pods:
         env:
           NAMENODE: true
       bootstrap:
-        goal: ONCE
+        goal: FINISH
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -310,6 +344,10 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
+          {{#SECURITY_KERBEROS_ENABLED}}
+          # Fix keytab file due to bug in HDFS version 3.2.0. See HADOOP-16283 https://issues.apache.org/jira/browse/HADOOP-16283
+          $JAVA_HOME/bin/java -jar keytab-fix.jar secrets-hdfs.keytab
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs namenode -bootstrapStandby -skipSharedEditsCheck
         resource-set: name-resources
         configs:
@@ -343,9 +381,8 @@ pods:
         essential: false
         goal: RUNNING
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -353,6 +390,10 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap --resolve-hosts $TASK_NAME.$FRAMEWORK_HOST, name-$POD_INSTANCE_INDEX-node.$FRAMEWORK_HOST
+          {{#SECURITY_KERBEROS_ENABLED}}
+          # Fix keytab file due to bug in HDFS version 3.2.0. See HADOOP-16283 https://issues.apache.org/jira/browse/HADOOP-16283
+          $JAVA_HOME/bin/java -jar keytab-fix.jar secrets-hdfs.keytab
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc
         resource-set: zkfc-resources
         configs:
@@ -380,9 +421,8 @@ pods:
       zkfc-format:
         goal: ONCE
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -390,6 +430,10 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap -resolve=false
+          {{#SECURITY_KERBEROS_ENABLED}}
+          # Fix keytab file due to bug in HDFS version 3.2.0. See HADOOP-16283 https://issues.apache.org/jira/browse/HADOOP-16283
+          $JAVA_HOME/bin/java -jar keytab-fix.jar secrets-hdfs.keytab
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs zkfc -formatZK
         resource-set: zkfc-resources
         configs:
@@ -421,6 +465,7 @@ pods:
       - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{KEYTAB_URI}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{DATA_NODE_RLIMIT_NOFILE_SOFT}}
@@ -429,7 +474,7 @@ pods:
     secrets:
       keytab:
         secret: {{SECURITY_KERBEROS_KEYTAB_SECRET}}
-        file: hdfs.keytab
+        file: secrets-hdfs.keytab # This will be changed back to hdfs.keytab after Hdfs release with keytab bug fix.
     {{/SECURITY_KERBEROS_ENABLED}}
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -441,9 +486,8 @@ pods:
       node:
         goal: RUNNING
         cmd: |
-          set -e
+          set -ex
           export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
-          cp -v hdfs {{TASKCFG_ALL_HDFS_VERSION}}/bin/
           {{#SECURITY_KERBEROS_ENABLED}}
           export HADOOP_OPTS="-Djava.security.krb5.conf=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf $HADOOP_OPTS"
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
@@ -451,6 +495,10 @@ pods:
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
           ./bootstrap
+          {{#SECURITY_KERBEROS_ENABLED}}
+          # Fix keytab file due to bug in HDFS version 3.2.0. See HADOOP-16283 https://issues.apache.org/jira/browse/HADOOP-16283
+          $JAVA_HOME/bin/java -jar keytab-fix.jar secrets-hdfs.keytab
+          {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs datanode
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
@@ -469,6 +517,10 @@ pods:
           path: data-data
           size: {{DATA_DISK}}
           type: {{DATA_DISK_TYPE}}
+          {{#DATA_VOLUME_PROFILE}}
+          profiles:
+            - {{DATA_VOLUME_PROFILE}}
+          {{/DATA_VOLUME_PROFILE}}
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:

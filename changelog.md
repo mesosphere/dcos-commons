@@ -16,7 +16,7 @@
 
 - [DCOS-51019](https://jira.mesosphere.com/browse/DCOS-51019) Support passing seccomp-undefined and seccomp-profile-name in svc yml.
 
-    _Note : This version of SDK uses the mesos 1.8.0 `org.apache.mesos:mesos:1.8.0-SNAPSHOT` artifact located in `http://repository.apache.org/content/repositories/snapshots/` maven repo. Please update your build file to add this repository._
+    _Note : This version of SDK uses the mesos 1.8.0 `org.apache.mesos:mesos:1.8.0-SNAPSHOT` artifact located in `https://repository.apache.org/content/repositories/snapshots/` maven repo. Please update your build file to add this repository._
 
 ## Changes to v0.55.4
 
