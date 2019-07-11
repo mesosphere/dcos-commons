@@ -19,12 +19,18 @@
         "service_account": {
           "description": "The service account for DC/OS service authentication. This is typically left empty to use the default unless service authentication is needed. The value given here is passed as the principal of Mesos framework.",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-service-account+string"
+          }
         },
         "service_account_secret": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
           "type": "string",
-          "default": ""
+          "default": "",
+          "media": {
+            "type": "application/x-secret+string"
+          }
         },
         "virtual_network_enabled": {
           "description": "Enable virtual networking",
@@ -111,7 +117,10 @@
                 },
                 "keytab_secret": {
                   "type": "string",
-                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers."
+                  "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
+		  "media": {
+                    "type": "application/x-secret+string"
+                  }
                 },
                 "debug": {
                   "type": "boolean",
@@ -186,15 +195,23 @@
         "disk_type": {
           "description": "Journal node disk type",
           "type": "string",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
           "default": "ROOT"
+        },
+        "volume_profile": {
+          "type": "string",
+          "description": "Volume profile to be used for storing JournalNode data."
         },
         "enable_readiness_check": {
           "description": "Determines whether to enable readiness checks for Journal Nodes.",
           "type": "boolean",
           "default": true
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -236,20 +253,20 @@
           "default": ""
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -291,6 +308,10 @@
           "type": "string",
           "default": "ROOT"
         },
+        "volume_profile": {
+          "type": "string",
+          "description": "Volume profile to be used for storing NameNode data."
+        },
         "hadoop_namenode_opts": {
           "type": "string",
           "description": "JVM options to specify when running the name node. This overrides HADOOP_HEAPSIZE Xmx value for the name nodes.",
@@ -299,6 +320,12 @@
         "logging_level": {
           "type": "string",
           "description": "The logging level for dfs namenode. Other values are 'dir' (trace namespace mutations), 'block'' (trace block under/over replications and block creations/deletions), or 'all'.",
+          "enum": [
+            "info",
+            "dir",
+            "block",
+            "all"
+          ],
           "default": "info"
         },
         "heartbeat_recheck_interval": {
@@ -614,8 +641,8 @@
             "type": "application/x-zone-constraints+json"
           }
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -639,20 +666,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -776,6 +803,10 @@
           "description": "Data node disk type",
           "type": "string",
           "default": "ROOT"
+        },
+        "volume_profile": {
+          "type": "string",
+          "description": "Volume profile to be used for storing DataNode data."
         },
         "handler_count": {
           "description": "The number of server threads for the datanode.",
@@ -910,8 +941,8 @@
           "description": "JVM options to specify when running the data node. This overrides HADOOP_HEAPSIZE Xmx value for the data nodes.",
           "default": ""
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -935,20 +966,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -1200,6 +1231,11 @@
         "client_block_write_replace-datanode-on-failure_policy": {
           "type": "string",
           "description": "This property is used only if the value of dfs.client.block.write.replace-datanode-on-failure.enable is true. ALWAYS: always add a new datanode when an existing datanode is removed. NEVER: never add a new datanode. DEFAULT: Let r be the replication number. Let n be the number of existing datanodes. Add a new datanode only if r is greater than or equal to 3 and either (1) floor(r/2) is greater than or equal to n; or (2) r is greater than n and the block is hflushed/appended.",
+          "enum": [
+            "DEFAULT",
+            "ALWAYS",
+            "NEVER"
+          ],
           "default": "DEFAULT"
         },
         "client_block_write_replace-datanode-on-failure_best-effort": {
@@ -1514,8 +1550,8 @@
         },
         "security_authorization": {
           "type": "boolean",
-          "description": "Is service-level authorization enabled?",
-          "default": false
+          "description": "Service-level authorization for Hadoop",
+          "default": true
         },
         "security_group_mapping": {
           "type": "string",
@@ -1829,6 +1865,10 @@
         "hadoop_util_hash_type": {
           "type": "string",
           "description": "The default implementation of Hash. Currently this can take one of the two values: 'murmur' to select MurmurHash and 'jenkins' to select JenkinsHash.",
+          "enum": [
+            "murmur",
+            "jenkins"
+          ],
           "default": "murmur"
         },
         "ipc_maximum_data_length": {
@@ -2013,7 +2053,7 @@
         },
         "hadoop_http_authentication_cookie_domain": {
           "type": "string",
-          "description": "The domain to use for the HTTP cookie that stores the authentication token. In order to authentiation to work correctly across all Hadoop nodes web-consoles the domain must be correctly set. IMPORTANT: when using IP addresses, browsers ignore cookies with domain settings. For this setting to work properly all nodes in the cluster must be configured to generate URLs with hostname.domain names on it.",
+          "description": "The domain to use for the HTTP cookie that stores the authentication token. In order to authenticate to work correctly across all Hadoop nodes web-consoles the domain must be correctly set. IMPORTANT: when using IP addresses, browsers ignore cookies with domain settings. For this setting to work properly all nodes in the cluster must be configured to generate URLs with hostname.domain names on it.",
           "default": ""
         },
         "hadoop_http_authentication_simple_anonymous_allowed": {
@@ -2128,7 +2168,7 @@
         },
         "hadoop_user_group_static_mapping_overrides": {
           "type": "string",
-          "description": "Static mapping of user to groups. This will override the groups if available in the system for the specified user. In otherwords, groups look-up will not happen for these users, instead groups mapped in this configuration will be used. Mapping should be in this format. user1=group1,group2;user2=;user3=group2; Default, 'dr.who=;' will consider 'dr.who' as user without groups.",
+          "description": "Static mapping of user to groups. This will override the groups if available in the system for the specified user. In other words, groups look-up will not happen for these users, instead groups mapped in this configuration will be used. Mapping should be in this format. user1=group1,group2;user2=;user3=group2; Default, 'dr.who=;' will consider 'dr.who' as user without groups.",
           "default": ""
         },
         "rpc_metrics_quantile_enable": {

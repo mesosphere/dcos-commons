@@ -526,7 +526,7 @@
     </property>
     <property>
         <name>hadoop.security.authorization</name>
-        <value>true</value>
+        <value>{{HADOOP_SECURITY_AUTHORIZATION}}</value>
     </property>
     <property>
         <name>hadoop.rpc.protection</name>

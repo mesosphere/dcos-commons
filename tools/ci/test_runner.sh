@@ -10,7 +10,7 @@ export PACKAGE_REGISTRY_ENABLED
 export PACKAGE_REGISTRY_STUB_URL
 export DCOS_FILES_PATH
 
-BUILD_TOOL_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+BUILD_TOOL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT_DIR="${REPO_ROOT:-$1}"
 
 SINGLE_FRAMEWORK="True"
@@ -74,8 +74,12 @@ function get_public_master_url()
     # We retry, since sometimes the cluster is created, but dcos-launch has intermittent problems describing it.
     for attempt in $(seq 1 ${attempts}); do
         # Careful to not use a pipeline!
+        #
+        # The first parameter to wrap.sh is the name of the virtual environment
+        # the command should run in. The rest of the parameters is the command
+        # itself.
         if /venvs/wrap.sh dcos-launch dcos-launch describe --info-path="${REPO_ROOT_DIR}/cluster_info.json" > "${cluster_description_file}" &&
-           master_ip=$(jq --raw-output --exit-status '.masters[0].public_ip' < "${cluster_description_file}")
+            master_ip=$(jq --raw-output --exit-status '.masters[0].public_ip' < "${cluster_description_file}")
         then
             echo "https://${master_ip}"
             return 0
