@@ -280,7 +280,12 @@ public final class SchedulerConfig {
   /**
    * When defined, this is the role to use when subscribing to Mesos and for recovering or adding footprint.
    */
-  private static final String DCOS_NAMESPACE_ENV = "DCOS_NAMESPACE";
+  private static final String MESOS_ALLOCATION_ROLE = "MESOS_ALLOCATION_ROLE";
+
+  /**
+   * When set to true, the MESOS_ALLOCATION_ROLE value should be used to subscribe and recover or add footprint.
+   */
+  private static final String MARATHON_ENFORCE_GROUP_ROLE = "MARATHON_ENFORCE_GROUP_ROLE";
 
   /**
    * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -392,7 +397,12 @@ public final class SchedulerConfig {
   }
 
   public Optional<String> getServiceNamespace() {
-    return Optional.ofNullable(envStore.getOptional(DCOS_NAMESPACE_ENV, null));
+    boolean enforceRole = envStore.getOptionalBoolean(MARATHON_ENFORCE_GROUP_ROLE, false);
+    if (enforceRole) {
+      return Optional.ofNullable(envStore.getOptional(MESOS_ALLOCATION_ROLE, null));
+    } else {
+      return Optional.empty();
+    }
   }
 
   public String getSecretsNamespace(String serviceName) {
