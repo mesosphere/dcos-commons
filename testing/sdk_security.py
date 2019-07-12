@@ -75,7 +75,7 @@ def _revoke(user: str, acl: str, description: str, action: str) -> None:
 
 
 def get_default_permissions(
-    service_account_name: str, role: str, linux_user: str,
+    service_account_name: str, role: str, linux_user: str
 ) -> List[Dict[str, str]]:
     return [
         # registration permissions
@@ -145,10 +145,7 @@ def get_default_permissions(
 
 
 def grant_permissions(
-    linux_user: str,
-    role_name: str,
-    service_account_name: str,
-    permissions: List[Dict[str, str]],
+    linux_user: str, role_name: str, service_account_name: str, permissions: List[Dict[str, str]]
 ) -> List[Dict[str, str]]:
     log.info("Granting permissions to {account}".format(account=service_account_name))
 
@@ -176,9 +173,7 @@ def revoke_permissions(
     log.info("Permission cleanup completed for %s (role: %s)", service_account_name, role_name)
 
 
-def create_service_account(
-    service_account_name: str, service_account_secret: str
-) -> None:
+def create_service_account(service_account_name: str, service_account_secret: str) -> None:
     """
     Creates a service account. If it already exists, it is deleted.
     """
