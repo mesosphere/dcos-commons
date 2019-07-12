@@ -247,15 +247,36 @@ def delete_secret(secret: str) -> None:
     sdk_cmd.run_cli("security secrets delete {}".format(secret))
 
 
-def _get_service_role(service_name: str) -> List[str]:
+def _get_service_role(service_name: str):
     # TODO: spark_utils uses:
     # app_id_encoded = urllib.parse.quote(
     #     urllib.parse.quote(app_id, safe=''),
     #     safe=''
     # )
-    role_basename = service_name.strip("/").replace("/", "__")
+    # We'll include the following roles
+    # 1. Service name based role. (always included)
+    # 2. slave_public (if no top level group exists)
+    # 3. Quota based role (if top level group exists)
 
-    return ["{}-role".format(role_basename), "slave_public%252F{}-role".format(role_basename)]
+    # Final list of roles.
+    roles_list = []
+
+    # Role based on service name (legacy compatibility)
+    role_basename = service_name.strip("/").replace("/", "__")
+    service_name_role = "{}-role".format(role_basename)
+    roles_list.append(service_name_role)
+    # Refined role for slave_public
+    roles_list.append("slave_public%252F{}-role".format(role_basename))
+
+    # Find if we have a top-level group role.
+    if service_name.partition("/")[1]:
+        # Add top level group role.
+        roles_list.append(service_name.partition("/")[0])
+    else:
+        # No top level groups exist, add default slave_public role.
+        roles_list.append("slave_public")
+
+    return roles_list
 
 
 def _get_integration_test_foldered_role(service_name: str) -> List[str]:
