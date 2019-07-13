@@ -21,11 +21,11 @@ def configure_package(configure_security):
 
 
 back_off_crash_loop_options = {
-    "service": {"yaml": "crash-loop", "enable_backoff": True, "sleep": 60}
+    "service": {"yaml": "crash-loop", "sleep": 60, "task_failure_backoff": {"enabled": True}}
 }
 
 
-@pytest.mark.tarun
+@pytest.mark.sanity
 def test_default_plan_backoff():
     sdk_install.install(
         config.PACKAGE_NAME,
@@ -43,7 +43,7 @@ def test_default_plan_backoff():
     # We can't make further progress, this is the end of the test.
 
 
-@pytest.mark.tarun
+@pytest.mark.sanity
 def test_recovery_backoff():
     sdk_install.install(
         config.PACKAGE_NAME,
@@ -59,6 +59,7 @@ def test_recovery_backoff():
     # by default, it should go from STARTED -> DELAYED.
     sdk_plan.wait_for_plan_status(foldered_name, "recovery", "STARTED")
     check_delayed_and_suppressed("recovery")
+    sdk_plan.wait_for_plan_status(foldered_name, "recovery", "STARTED")
 
 
 def check_delayed_and_suppressed(plan_name: str):

@@ -11,9 +11,9 @@ import java.util.Optional;
 
 /**
  * Abstract class that has contracts on how delay can be set/advanced/cleared. Helper methods are used to
- * instantiate either a {@link ExponentialBackOff} or {@link DisabledBackOff} based on environment.
+ * instantiate either a {@link ExponentialBackoff} or {@link DisabledBackoff} based on environment.
  */
-public abstract class BackOff {
+public abstract class Backoff {
   private static final String FRAMEWORK_BACKOFF_FACTOR = "FRAMEWORK_BACKOFF_FACTOR";
 
   private static final String FRAMEWORK_INITIAL_BACKOFF = "FRAMEWORK_INITIAL_BACKOFF";
@@ -24,9 +24,9 @@ public abstract class BackOff {
 
   private static final Object lock = new Object();
 
-  private static Logger logger = LoggingUtils.getLogger(BackOff.class);
+  private static Logger logger = LoggingUtils.getLogger(Backoff.class);
 
-  private static volatile BackOff instance;
+  private static volatile Backoff instance;
 
   /**
    * Backoff is enabled only by explicit Opt-In. We adhere to following configuration:
@@ -37,25 +37,23 @@ public abstract class BackOff {
    *  * Absence of {@link #ENABLE_BACKOFF} and other environment params would be considered
    *    as hint to disable backoff
    */
-  public static BackOff getInstance() {
+  public static Backoff getInstance() {
     if (instance == null) {
       synchronized (lock) {
-        EnvStore envStore = EnvStore.fromEnv();
-        if (envStore.isPresent(ENABLE_BACKOFF)
-                || envStore.isPresent(FRAMEWORK_BACKOFF_FACTOR)
-                || envStore.isPresent(FRAMEWORK_MAX_LAUNCH_DELAY)
-                || envStore.isPresent(FRAMEWORK_INITIAL_BACKOFF))
-        {
-          // CHECKSTYLE:OFF MagicNumberCheck
-          instance = new ExponentialBackOff(
-                  envStore.getOptionalDouble(FRAMEWORK_BACKOFF_FACTOR, 1.15),
-                  envStore.getOptionalLong(FRAMEWORK_INITIAL_BACKOFF, 60),
-                  envStore.getOptionalLong(FRAMEWORK_MAX_LAUNCH_DELAY, 300)
-          );
-          // CHECKSTYLE:ON MagicNumberCheck
-        } else {
-          logger.warn("Disabling backoff");
-          instance = new DisabledBackOff();
+        if (instance == null) {
+          EnvStore envStore = EnvStore.fromEnv();
+          if (envStore.getOptionalBoolean(ENABLE_BACKOFF, false)) {
+            // CHECKSTYLE:OFF MagicNumberCheck
+            instance = new ExponentialBackoff(
+                    envStore.getOptionalDouble(FRAMEWORK_BACKOFF_FACTOR, 1.15),
+                    envStore.getOptionalLong(FRAMEWORK_INITIAL_BACKOFF, 60),
+                    envStore.getOptionalLong(FRAMEWORK_MAX_LAUNCH_DELAY, 300)
+            );
+            // CHECKSTYLE:ON MagicNumberCheck
+          } else {
+            logger.warn("Disabling backoff as {} is not set", ENABLE_BACKOFF);
+            instance = new DisabledBackoff();
+          }
         }
       }
     }

@@ -10,7 +10,7 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
+import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -293,13 +293,13 @@ public final class PodQueries {
       // shouldn't ever be empty, but just in case
       return podNotFoundResponse(podInstanceName);
     } else {
-      // Whenever a pod is restarted, clear all the delays associated with its tasks
+      // Whenever a pod is restarted/replaced, clear all the delays associated with its tasks
       podTasks.get().forEach(x -> {
         try {
-          BackOff.getInstance().clearDelay(CommonIdUtils.toTaskName(x.getInfo().getTaskId()));
+          Backoff.getInstance().clearDelay(CommonIdUtils.toTaskName(x.getInfo().getTaskId()));
         } catch (TaskException te) {
-          LOGGER.error("Failed to clear delay for task [{}] before pod restart",
-                  x.getInfo().getName(), te);
+          LOGGER.error("Failed to clear delay for task [{}] before pod {}",
+                  x.getInfo().getName(), recoveryType == RecoveryType.PERMANENT ? "replace" : "restart", te);
         }
       });
     }

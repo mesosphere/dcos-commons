@@ -13,21 +13,21 @@ import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Implementation of {@link BackOff} with back off increasing exponentially.
+ * Implementation of {@link Backoff} with back off increasing exponentially.
  * This is an example of how this works:
  * step 0 : Task A is seen by scheduler for the first time ever.
  *          No back off. Launched on the first offer match.
  * step 1 : Task A has failed and mesos sends us a status update.
- *          Backoff is created with value of {@link ExponentialBackOff#initialBackoff}.
+ *          Backoff is created with value of {@link ExponentialBackoff#initialBackoff}.
  *          Task will launch after this duration is elapsed.
  * step 2 : Task A is re-launched after the backoff has elapsed. Task A fails again.
  * step 3 : Task A is backed off with new duration of
- *            {@link ExponentialBackOff#initialBackoff} * {@link ExponentialBackOff#backoffFactor}
- *          The above value is capped at {@link ExponentialBackOff#maxLaunchDelay}
+ *            {@link ExponentialBackoff#initialBackoff} * {@link ExponentialBackoff#backoffFactor}
+ *          The above value is capped at {@link ExponentialBackoff#maxLaunchDelay}
  * steps 2 and 3 above are repeated in a loop until Task A is reported as healthy at which point the
  * delay is reset (cleared). If the task fails again, step 1 is followed.
  */
-public final class ExponentialBackOff extends BackOff {
+public final class ExponentialBackoff extends Backoff {
 
   private ConcurrentHashMap<String, Delay> delays;
 
@@ -40,15 +40,15 @@ public final class ExponentialBackOff extends BackOff {
   private Logger logger;
 
   @VisibleForTesting
-  ExponentialBackOff(double backoffFactor, long backoffSeconds, long maxLaunchDelaySeconds) {
-    this.logger = LoggingUtils.getLogger(ExponentialBackOff.class);
+  ExponentialBackoff(double backoffFactor, long initialiBackoff, long maxLaunchDelaySeconds) {
+    this.logger = LoggingUtils.getLogger(ExponentialBackoff.class);
     this.backoffFactor = backoffFactor;
-    this.initialBackoff = Duration.ofSeconds(backoffSeconds);
+    this.initialBackoff = Duration.ofSeconds(initialiBackoff);
     this.maxLaunchDelay = Duration.ofSeconds(maxLaunchDelaySeconds);
     delays = new ConcurrentHashMap<>();
     logger.info("Instantiating exponential back off with \n" +
-            "backOffFactor : {}, initialBackOff : {} and maxLaunchDelay : {} ",
-            backoffFactor, backoffSeconds, maxLaunchDelaySeconds);
+            "backOffFactor : {}, initialBackoff : {} and maxLaunchDelay : {} ",
+            backoffFactor, initialiBackoff, maxLaunchDelaySeconds);
   }
 
   @Override

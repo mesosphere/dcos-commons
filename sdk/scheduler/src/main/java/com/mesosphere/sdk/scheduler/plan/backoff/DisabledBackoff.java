@@ -6,9 +6,9 @@ import java.time.Duration;
 import java.util.Optional;
 
 /**
- * Implementation of {@link BackOff} with zero backoff.
+ * Implementation of {@link Backoff} with zero backoff.
  */
-public class DisabledBackOff extends BackOff {
+public class DisabledBackoff extends Backoff {
 
   @Override
   public void addDelay(String taskInstanceName) {}

@@ -17,7 +17,7 @@ import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
+import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
@@ -224,9 +224,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     List<Phase> phases = new ArrayList<>();
     phases.addAll(inProgressPhases);
     phases.addAll(overridePhases);
-    logger.info("inprogresssteps {} overridephases {}", inProgressPhases, overridePhases);
-
-    //TODO@kjoshi: This is where an actual RECOVERY plan is created with its constituent Phases.
     return DeployPlanFactory.getPlan(Constants.RECOVERY_PLAN_NAME, phases, new ParallelStrategy<>());
   }
 
@@ -316,7 +313,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     }
 
     List<PodInstanceRequirement> failedPods = TaskUtils.getPodRequirements(
-            configStore, allTaskInfos, allTaskStatuses, failedTasks, BackOff.getInstance());
+            configStore, allTaskInfos, allTaskStatuses, failedTasks, Backoff.getInstance());
     if (!failedPods.isEmpty()) {
       logger.info("All failed pods: {}", getPodNames(failedPods));
     }
@@ -328,7 +325,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
       logger.info("Pods needing recovery: {}", getPodNames(failedPods));
     }
 
-    //TODO@kjoshi: PENDING_DELAYED will cause !step.isComplete() here, ensure PENDING_DELAYED doesn't get added to the plan.
     List<PodInstanceRequirement> incompleteRecoveries = getPlan().getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .filter(step -> !step.isComplete() && step.getPodInstanceRequirement().isPresent())

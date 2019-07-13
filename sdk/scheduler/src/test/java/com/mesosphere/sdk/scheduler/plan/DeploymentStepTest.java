@@ -174,22 +174,11 @@ public class DeploymentStepTest {
         Assert.assertEquals(Status.ERROR.toString(), step.getDisplayStatus());
     }
 
-
     @Test
     public void testErrorCausesStartingToDelayed() {
         Protos.TaskState[] errorStates = {
                 Protos.TaskState.TASK_ERROR,
-                Protos.TaskState.TASK_FAILED};
-
-        for (Protos.TaskState state : errorStates) {
-            Step step = getStartingStep();
-            testStepTransition(step, state, Status.STARTING, Status.PENDING); //TODO
-        }
-    }
-
-    @Test
-    public void testKilledOrLostCausesStartingToPending() {
-        Protos.TaskState[] errorStates = {
+                Protos.TaskState.TASK_FAILED,
                 Protos.TaskState.TASK_KILLED,
                 Protos.TaskState.TASK_KILLING,
                 Protos.TaskState.TASK_LOST};

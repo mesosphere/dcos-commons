@@ -3,7 +3,7 @@ package com.mesosphere.sdk.offer;
 import com.google.common.collect.ImmutableList;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
-import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
+import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -378,7 +378,7 @@ public class TaskUtilsTest {
                 getTaskStatuses(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
                 filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                         "server-0-essential0", "server-0-essential1", "server-1-essential1"),
-                BackOff.getInstance());
+                Backoff.getInstance());
 
         Assert.assertEquals(2, reqs.size());
         PodInstanceRequirement req = reqs.get(0);
@@ -399,7 +399,7 @@ public class TaskUtilsTest {
                 getTaskStatuses(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
                 filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                         "server-0-nonessential0", "server-0-nonessential1", "server-1-nonessential1"),
-                BackOff.getInstance());
+                Backoff.getInstance());
 
         Assert.assertEquals(2, reqs.size());
         PodInstanceRequirement req = reqs.get(0);
@@ -420,7 +420,7 @@ public class TaskUtilsTest {
                 getTaskStatuses(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
                 filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
                         "server-0-essential0", "server-0-nonessential0", "server-1-nonessential1"),
-                BackOff.getInstance());
+                Backoff.getInstance());
 
         Assert.assertEquals(2, reqs.size());
         PodInstanceRequirement req = reqs.get(0);
@@ -441,7 +441,7 @@ public class TaskUtilsTest {
                 getTaskStatuses(TWO_ESSENTIAL_TASKS),
                 filterTasksByName(TWO_ESSENTIAL_TASKS,
                         "server-0-essential0", "server-0-essential1", "server-1-essential1"),
-                BackOff.getInstance());
+                Backoff.getInstance());
 
         Assert.assertEquals(reqs.toString(), 2, reqs.size());
         PodInstanceRequirement req = reqs.get(0);
@@ -462,7 +462,7 @@ public class TaskUtilsTest {
                 getTaskStatuses(TWO_NONESSENTIAL_TASKS),
                 filterTasksByName(TWO_NONESSENTIAL_TASKS,
                         "server-0-nonessential0", "server-0-nonessential1", "server-1-nonessential1"),
-                BackOff.getInstance());
+                Backoff.getInstance());
 
         Assert.assertEquals(reqs.toString(), 2, reqs.size());
         PodInstanceRequirement req = reqs.get(0);

@@ -6,9 +6,9 @@ import org.junit.Test;
 import java.time.Duration;
 import java.util.Optional;
 
-public class ExponentialBackOffTest {
+public class ExponentialBackoffTest {
 
-  private ExponentialBackOff backOff = new ExponentialBackOff(1.15, 60, 300);
+  private ExponentialBackoff backOff = new ExponentialBackoff(1.15, 60, 300);
 
   @Test
   public void testChangingDelay() {

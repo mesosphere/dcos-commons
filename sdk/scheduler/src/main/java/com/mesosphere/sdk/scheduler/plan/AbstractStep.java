@@ -2,7 +2,7 @@ package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
+import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -68,7 +68,7 @@ public abstract class AbstractStep implements Step {
         boolean noDelay = req
                 .getTasksToLaunch()
                 .stream()
-                .noneMatch(taskName -> BackOff
+                .noneMatch(taskName -> Backoff
                         .getInstance()
                         .getDelay(CommonIdUtils.getTaskInstanceName(req.getPodInstance(), taskName))
                         .isPresent());
@@ -130,7 +130,7 @@ public abstract class AbstractStep implements Step {
             .forEach(taskName -> {
               String taskInstanceName = CommonIdUtils.getTaskInstanceName(
                       podInstanceRequirement.getPodInstance(), taskName);
-              BackOff.getInstance().clearDelay(taskInstanceName);
+              Backoff.getInstance().clearDelay(taskInstanceName);
             }));
     setStatus(Status.PENDING);
   }

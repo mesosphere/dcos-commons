@@ -120,12 +120,12 @@ public final class PlanUtils {
     } else if (allMatch(Status.COMPLETE, childStatuses)) {
       result = Status.COMPLETE;
       LOGGER.debug("({} status={}) All children have status: {}", parentName, result, Status.COMPLETE);
-    } else if (allMatch(Status.DELAYED, candidateStatuses) && allMatch(Status.DELAYED, childStatuses)) {
-      result = Status.DELAYED;
-      LOGGER.debug("({} status={}) All candidates and children are {}", parentName, result, Status.DELAYED);
     } else if (isInterrupted) {
       result = Status.WAITING;
       LOGGER.debug("({} status={}) Parent element is interrupted", parentName, result);
+    } else if (allMatch(Status.DELAYED, candidateStatuses) && allMatch(Status.DELAYED, childStatuses)) {
+      result = Status.DELAYED;
+      LOGGER.debug("({} status={}) All candidates and children are {}", parentName, result, Status.DELAYED);
     } else if (anyMatch(Status.PREPARED, childStatuses)) {
       result = Status.IN_PROGRESS;
       LOGGER.debug("({} status={}) At least one child has status: {}", parentName, result, Status.PREPARED);

@@ -5,7 +5,7 @@ import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
-import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
+import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
@@ -129,10 +129,8 @@ public class DeploymentStep extends AbstractStep {
             new TaskStatusPair(taskInfo, Status.PREPARED)));
 
     if (!recommendations.isEmpty()) {
-      //TODO@kjoshi: why is TaskStatusPair PREPARED, but set to STARTING here?
       tasks.keySet().forEach(id -> setTaskStatus(id, Status.STARTING));
     }
-
     prepared.set(true);
     updateStatus();
   }
@@ -180,7 +178,7 @@ public class DeploymentStep extends AbstractStep {
     switch (status.getState()) {
       case TASK_ERROR:
       case TASK_FAILED:
-        BackOff.getInstance().addDelay(status.getTaskId());
+        Backoff.getInstance().addDelay(status.getTaskId());
         setTaskStatus(status.getTaskId(), Status.DELAYED);
         break;
       case TASK_KILLED:
@@ -192,7 +190,10 @@ public class DeploymentStep extends AbstractStep {
       case TASK_GONE:
       case TASK_DROPPED:
       case TASK_UNREACHABLE:
+        setTaskStatus(status.getTaskId(), Status.PENDING);
+        break;
       case TASK_GONE_BY_OPERATOR:
+        Backoff.getInstance().clearDelay(status.getTaskId());
         setTaskStatus(status.getTaskId(), Status.PENDING);
         break;
       case TASK_STAGING:
@@ -205,7 +206,7 @@ public class DeploymentStep extends AbstractStep {
         if (goalState.equals(GoalState.RUNNING)
             && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status))
         {
-          BackOff.getInstance().clearDelay(status.getTaskId());
+          Backoff.getInstance().clearDelay(status.getTaskId());
           setTaskStatus(status.getTaskId(), Status.COMPLETE);
         } else {
           setTaskStatus(status.getTaskId(), Status.STARTED);

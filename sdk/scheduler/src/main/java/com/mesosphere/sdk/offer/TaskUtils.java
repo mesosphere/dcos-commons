@@ -5,7 +5,7 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
-import com.mesosphere.sdk.scheduler.plan.backoff.BackOff;
+import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
@@ -390,7 +390,7 @@ public final class TaskUtils {
       Collection<Protos.TaskInfo> allTaskInfos,
       Collection<Protos.TaskStatus> allTaskStatuses,
       Collection<Protos.TaskInfo> failedTasks,
-      BackOff backOff)
+      Backoff backOff)
   {
 
     // Mapping of pods, to failed tasks within those pods.
@@ -578,7 +578,6 @@ public final class TaskUtils {
    */
   @VisibleForTesting
   static boolean isRecoveryNeeded(Protos.TaskStatus taskStatus) {
-    //TODO@kjoshi: Note here that recovery won't be issued for PENDING_DELAYED tasks.
     // Note that we include FINISHED as "needs recovery", because we assume the task is supposed to be RUNNING.
     if (isTerminal(taskStatus)) {
       return true;
@@ -623,7 +622,6 @@ public final class TaskUtils {
    * Returns whether the provided {@link Protos.TaskStatus} has reached a terminal state.
    */
   public static boolean isTerminal(Protos.TaskStatus taskStatus) {
-    //TODO@kjoshi: This method is called from many areas, needs to reflect the inclusion of PENDING_DELAYED
     switch (taskStatus.getState()) {
       case TASK_DROPPED:
       case TASK_ERROR:

@@ -165,8 +165,8 @@ public class CanaryStrategy implements Strategy<Step> {
      * following the provided {@code postCanaryStrategy}.
      *
      * @param postCanaryStrategyGenerator the generator of the strategy to use after the canary stage has completed
-     * @param requiredProceeds            the number of {@link #proceed()} calls to require before the provided strategy is
-     *                                    executed
+     * @param requiredProceeds            the number of {@link #proceed()} calls to require before the provided strategy
+     *                                    is executed
      */
     public Generator(StrategyGenerator<Step> postCanaryStrategyGenerator, int requiredProceeds) {
       this.requiredProceeds = requiredProceeds;
