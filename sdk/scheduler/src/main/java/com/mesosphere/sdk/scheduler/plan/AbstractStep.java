@@ -6,6 +6,7 @@ import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import java.util.Objects;
@@ -49,32 +50,38 @@ public abstract class AbstractStep implements Step {
     return name;
   }
 
+  /**
+   * All steps from all yaml plans are {@link DeploymentStep}s. Only {@link DeploymentStep} and
+   * {@link com.mesosphere.sdk.scheduler.recovery.RecoveryStep}s are relevant for backoff delay. As
+   * {@link com.mesosphere.sdk.scheduler.recovery.RecoveryStep}s are always constructed on the fly, we don't need
+   * to mutate their state. However, {@link DeploymentStep}s are built only once and are used until they are
+   * complete. The {@link DeploymentStep#setStatus(Status)} is called from other places as well upon external
+   * triggers and the same method is called here to indicate that the step can make progress.
+   *
+   * However, we don't check for sub class hierarchy explicitly as we want this functionality to be applicable for
+   * all sub classes. If some custom sub class decides to skip the {@link Status#DELAYED} (by overriding the
+   * {@link #update(Protos.TaskStatus)} method), then those steps should be unaffected by this.
+   */
   @Override
   public Status getStatus() {
     synchronized (statusLock) {
       if (interrupted && (status == Status.PENDING || status == Status.PREPARED)) {
         return Status.WAITING;
       }
-      /**
-       * All steps from all yaml plans are {@link DeploymentStep}s. Only {@link DeploymentStep} and
-       * {@link com.mesosphere.sdk.scheduler.recovery.RecoveryStep}s are relevant for backoff delay. As
-       * {@link com.mesosphere.sdk.scheduler.recovery.RecoveryStep}s are always constructed on the fly, we don't need
-       * to mutate their state. However, {@link DeploymentStep}s are built only once and are used until they are
-       * complete. The {@link DeploymentStep#setStatus(Status)} is called from other places as well upon external
-       * triggers and the same method is called here to indicate that the step can make progress.
-       */
-      if (status == Status.DELAYED && this instanceof DeploymentStep) {
-        PodInstanceRequirement req = ((DeploymentStep) this).podInstanceRequirement;
-        boolean noDelay = req
-                .getTasksToLaunch()
-                .stream()
-                .noneMatch(taskName -> Backoff
-                        .getInstance()
-                        .getDelay(CommonIdUtils.getTaskInstanceName(req.getPodInstance(), taskName))
-                        .isPresent());
-        if (noDelay) {
-          setStatus(Status.PENDING);
-        }
+      if (status == Status.DELAYED) {
+        getPodInstanceRequirement().ifPresent(podInstanceReq -> {
+          boolean noDelay = podInstanceReq
+                  .getTasksToLaunch()
+                  .stream()
+                  .noneMatch(taskName -> Backoff
+                          .getInstance()
+                          .getDelay(CommonIdUtils.getTaskInstanceName(podInstanceReq.getPodInstance(), taskName))
+                          .isPresent());
+          if (noDelay) {
+            // Step was DELAYED previously but the configured delay has elapsed now - move back to PENDING
+            setStatus(Status.PENDING);
+          }
+        });
       }
       return status;
     }
