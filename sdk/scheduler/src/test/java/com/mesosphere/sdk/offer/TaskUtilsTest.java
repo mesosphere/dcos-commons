@@ -19,11 +19,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -390,7 +392,7 @@ public class TaskUtilsTest {
     }
 
     @Test
-    public void testRelaunchFailedNonEssentialTaskInMixedPod() throws ConfigStoreException {
+    public void testRelaunchFailedNonEssentialTaskInMixedPod() {
         // layout: 3 'server' pod instances, each with 2 essential + 2 nonessential tasks
         // failed: server-0-nonessential0, server-0-nonessential1, server-1-nonessential1
         List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
@@ -411,7 +413,7 @@ public class TaskUtilsTest {
     }
 
     @Test
-    public void testRelaunchFailedMixedTasksInMixedPod() throws ConfigStoreException {
+    public void testRelaunchFailedMixedTasksInMixedPod() {
         // layout: 3 'server' pod instances, each with 2 essential + 2 nonessential tasks
         // failed: server-0-essential0, server-0-nonessential0, server-1-nonessential1
         List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
@@ -432,7 +434,7 @@ public class TaskUtilsTest {
     }
 
     @Test
-    public void testRelaunchFailedEssentialTasksInEssentialPod() throws ConfigStoreException {
+    public void testRelaunchFailedEssentialTasksInEssentialPod() {
         // layout: 3 'server' pod instances, each with 2 essential tasks (only)
         // failed: server-0-essential0, server-0-essential1, server-1-essential1
         List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
@@ -453,7 +455,7 @@ public class TaskUtilsTest {
     }
 
     @Test
-    public void testRelaunchFailedNonessentialTasksInNonessentialPod() throws ConfigStoreException {
+    public void testRelaunchFailedNonessentialTasksInNonessentialPod() {
         // layout: 3 'server' pod instances, each with 2 nonessential tasks (only)
         // failed: server-0-nonessential0, server-0-nonessential1, server-1-nonessential1
         List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
@@ -471,6 +473,84 @@ public class TaskUtilsTest {
         req = reqs.get(1);
         Assert.assertEquals("server-1:[nonessential1]", req.getName());
         Assert.assertEquals(Arrays.asList("nonessential1"), req.getTasksToLaunch());
+    }
+
+    @Test
+    public void testDoNotRelaunchDelayedFailedEssentialTask() {
+        Backoff backoff = mock(Backoff.class);
+        when(backoff.getDelay(anyString())).thenReturn(Optional.empty());
+        List<String> delayedTasks = Arrays.asList("server-0-essential0", "server-1-essential0");
+        delayedTasks.forEach(taskName -> when(backoff.getDelay(taskName)).thenReturn(Optional.of(Duration.ofSeconds(1))));
+
+        List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
+                TWO_ESSENTIAL_TWO_NONESSENTIAL,
+                TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
+                getTaskStatuses(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
+                filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
+                        "server-0-essential0",
+                        "server-1-essential0",
+                        "server-0-nonessential0",
+                        "server-1-nonessential0",
+                        "server-2-nonessential0",
+                        "server-0-nonessential1",
+                        "server-1-nonessential1",
+                        "server-2-nonessential1"
+                        ),
+                backoff);
+        Assert.assertEquals(1, reqs.size());
+        Assert.assertEquals("server-2:[nonessential0, nonessential1]", reqs.get(0).getName());
+    }
+
+    @Test
+    public void testDoNotRelaunchFailedEssentialTaskOnDelayedNonEssentialTask() {
+        Backoff backoff = mock(Backoff.class);
+        when(backoff.getDelay(anyString())).thenReturn(Optional.empty());
+        List<String> delayedTasks = Arrays.asList("server-0-nonessential0", "server-1-nonessential0");
+        delayedTasks.forEach(taskName -> when(backoff.getDelay(taskName)).thenReturn(Optional.of(Duration.ofSeconds(1))));
+
+        List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
+                TWO_ESSENTIAL_TWO_NONESSENTIAL,
+                TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
+                getTaskStatuses(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS),
+                filterTasksByName(TWO_ESSENTIAL_TWO_NONESSENTIAL_TASKS,
+                        "server-0-essential0",
+                        "server-1-essential0",
+                        "server-2-nonessential0",
+                        "server-2-nonessential1"
+                ),
+                backoff);
+        Assert.assertEquals(1, reqs.size());
+        Assert.assertEquals("server-2:[nonessential0, nonessential1]", reqs.get(0).getName());
+    }
+
+    @Test
+    public void testDoNotRelaunchDelayedNonEssentialTasks() {
+        Backoff backoff = mock(Backoff.class);
+        when(backoff.getDelay(anyString())).thenReturn(Optional.empty());
+        List<String> delayedTasks = Arrays.asList(
+                "server-0-nonessential0",
+                "server-0-nonessential1",
+                "server-1-nonessential0",
+                "server-2-nonessential1"
+        );
+        delayedTasks.forEach(taskName -> when(backoff.getDelay(taskName)).thenReturn(Optional.of(Duration.ofSeconds(1))));
+
+        List<PodInstanceRequirement> reqs = TaskUtils.getPodRequirements(
+                TWO_NONESSENTIAL,
+                TWO_NONESSENTIAL_TASKS,
+                getTaskStatuses(TWO_NONESSENTIAL_TASKS),
+                filterTasksByName(TWO_NONESSENTIAL_TASKS,
+                        "server-0-nonessential0",
+                        "server-1-nonessential0",
+                        "server-2-nonessential0",
+                        "server-0-nonessential1",
+                        "server-1-nonessential1",
+                        "server-2-nonessential1"
+                ),
+                backoff);
+        Assert.assertEquals(2, reqs.size());
+        Assert.assertEquals("server-1:[nonessential1]", reqs.get(0).getName());
+        Assert.assertEquals("server-2:[nonessential0]", reqs.get(1).getName());
     }
 
     @Test

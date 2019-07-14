@@ -401,15 +401,12 @@ public final class TaskUtils {
       try {
         PodInstance podInstance = getPodInstance(configStore, taskInfo);
         Optional<TaskSpec> taskSpec = getTaskSpec(podInstance, taskInfo.getName());
-        if (taskSpec.isPresent()) {
-          if (!backOff.getDelay(CommonIdUtils.getTaskInstanceName(podInstance, taskSpec.get())).isPresent()) {
-            Collection<TaskSpec> failedTaskSpecs =
-                    podsToFailedTasks.computeIfAbsent(podInstance, k -> new ArrayList<>());
-            failedTaskSpecs.add(taskSpec.get());
-          }
-        } else {
+        if (!taskSpec.isPresent()) {
           LOGGER.error("No TaskSpec found for failed task: {}", taskInfo.getName());
+          continue;
         }
+        Collection<TaskSpec> failedTaskSpecs = podsToFailedTasks.computeIfAbsent(podInstance, k -> new ArrayList<>());
+        failedTaskSpecs.add(taskSpec.get());
       } catch (TaskException e) {
         LOGGER.error(String.format("Failed to get pod instance for task: %s", taskInfo.getName()), e);
       }
@@ -439,16 +436,39 @@ public final class TaskUtils {
 
     List<PodInstanceRequirement> podInstanceRequirements = new ArrayList<>();
     for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
+      /**
+       * Each {@link PodInstance} in {@link podsToFailedTasks} have some tasks associated with it. If any of these tasks
+       * are marked as essential tasks, then ALL the tasks associated with the pod instance are launched.
+       *
+       * - If none of the failed tasks are essential then launch only those tasks which are not delayed.
+       * - If there are some failed tasks that are essential, do not launch anything in the pod as ALL the tasks would
+       *    be relaunched once the delay on essential tasks elapses.
+       */
       boolean anyFailedTasksAreEssential = entry.getValue().stream().anyMatch(TaskSpec::isEssential);
       Collection<TaskSpec> taskSpecsToLaunch;
       if (anyFailedTasksAreEssential) {
+        boolean anyTasksAreDelayed = entry
+                .getKey()
+                .getPod()
+                .getTasks()
+                .stream()
+                .anyMatch(taskSpec -> backOff
+                        .getDelay(CommonIdUtils.getTaskInstanceName(entry.getKey(), taskSpec))
+                        .isPresent());
         // One or more of the failed tasks in this pod are marked as 'essential'.
-        // Relaunch all applicable tasks in the pod.
-        taskSpecsToLaunch = entry.getKey().getPod().getTasks();
+        // Relaunch all applicable (if not delayed) tasks in the pod.
+        taskSpecsToLaunch = anyTasksAreDelayed ? Collections.emptyList() : entry.getKey().getPod().getTasks();
       } else {
         // None of the failed tasks in this pod are 'essential'.
-        // Only recover the failed task(s), leave others in the pod as-is.
-        taskSpecsToLaunch = entry.getValue();
+        // Only recover the failed task(s) that are not delayed, leave others in the pod as-is.
+        taskSpecsToLaunch = entry.getValue().stream().filter(taskSpec ->
+          !backOff.getDelay(CommonIdUtils.getTaskInstanceName(entry.getKey(), taskSpec)).isPresent()
+        ).collect(Collectors.toList());
+        if (taskSpecsToLaunch.size() != entry.getValue().size()) {
+          LOGGER.info("Delayed tasks in pod {} are : {}",
+                  entry.getKey().getName(),
+                  CollectionUtils.subtract(entry.getValue(), taskSpecsToLaunch));
+        }
       }
 
       // Additional filtering:
