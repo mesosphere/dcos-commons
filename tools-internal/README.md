@@ -1,3 +1,5 @@
-# DC/OS Commons Docker Images
+# Tools and scripts that are *NOT* used directly by consumers of dcos-commons
 
-This directory contains the docker files and sources that are required in order to build tool containers used by the DC/OS commons project.
+Unlike the `tools` directory, files in this directory are *NOT* to be used directly by consumers of the DC/OS SDK. Examples include:
+
+- `Docker` files and sources that are required in order to build docker containers used by this or other projects.
