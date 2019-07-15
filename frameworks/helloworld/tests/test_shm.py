@@ -14,13 +14,14 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        options = {
-            "service": {
-                "yaml": "shm"
-            }
-        }
+        options = {"service": {"yaml": "shm"}}
 
-        sdk_install.install(config.PACKAGE_NAME, config.SERVICE_NAME, expected_running_tasks=1 , additional_options=options)
+        sdk_install.install(
+            config.PACKAGE_NAME,
+            config.SERVICE_NAME,
+            expected_running_tasks=1 ,
+            additional_options=options
+        )
 
         yield  # let the test session execute
     finally:
