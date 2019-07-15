@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -88,7 +89,7 @@ public class PlanGenerator {
    */
   private static boolean isValidStep(PodSpec podSpec, List<String> tasksToLaunch) {
     Set<String> allTaskNames = podSpec.getTasks().stream()
-        .map(taskSpec -> taskSpec.getName())
+        .map(TaskSpec::getName)
         .collect(Collectors.toSet());
     return allTaskNames.containsAll(tasksToLaunch);
   }
@@ -96,7 +97,7 @@ public class PlanGenerator {
   /**
    * Processes and flattens the step entries in the provided {@link RawPhase}.
    */
-  private static Map<String, List<List<String>>> mapPodIndexesToTasks(
+  private static LinkedHashMap<String, List<List<String>>> mapPodIndexesToTasks(
       String phaseName, List<WriteOnceLinkedHashMap<String, List<List<String>>>> rawSteps)
   {
     // Check that each YAML step "map" entry has exactly one element
@@ -110,10 +111,12 @@ public class PlanGenerator {
 
     // Flatten map data: pod index (or 'default') to task deployment within that pod
     return rawSteps.stream()
-        .map(stepMap -> stepMap.entrySet().stream().findFirst().get())
-        .collect(Collectors.toMap(
-            stringListEntry -> stringListEntry.getKey(),
-            stringListEntry -> stringListEntry.getValue()));
+      .map(stepMap -> stepMap.entrySet().stream().findFirst().get())
+      .collect(Collectors.toMap(
+          Map.Entry::getKey,
+          Map.Entry::getValue,
+          (u, v) -> { throw new IllegalStateException(String.format("Duplicate key %s", u)); },
+          LinkedHashMap::new));
   }
 
   private static StrategyGenerator<Phase> getPlanStrategyGenerator(String strategyType) {
@@ -169,26 +172,27 @@ public class PlanGenerator {
       return generatePhaseWithDefaultSteps(rawPhase.getStrategy(), phaseName, podSpec);
     }
     // Flatten map data: pod index (or 'default') to task deployment within that pod
-    Map<String, List<List<String>>> podIndexToTasks =
+    LinkedHashMap<String, List<List<String>>> podIndexToTasks =
         mapPodIndexesToTasks(phaseName, rawPhase.getSteps());
 
-    if (PARALLEL_STRATEGY_TYPES.contains(rawPhase.getStrategy())) {
-      // Custom steps with a parallel strategy: Custom dependencies are required
-      return generatePhaseWithCustomParallelSteps(
+    DefaultPhase result = PARALLEL_STRATEGY_TYPES.contains(rawPhase.getStrategy()) ?
+        // Custom steps with a parallel strategy: Custom dependencies are required
+        generatePhaseWithCustomParallelSteps(
           rawPhase.getStrategy(),
           phaseName,
           podSpec,
           podIndexToTasks
-      );
-    } else {
-      // Custom steps with a serial strategy: No custom dependencies needed
-      return generatePhaseWithCustomSerialSteps(
+        ) :
+        // Custom steps with a serial strategy: No custom dependencies needed
+        generatePhaseWithCustomSerialSteps(
           rawPhase.getStrategy(),
           phaseName,
           podSpec,
           podIndexToTasks
-      );
-    }
+        );
+    LOGGER.info("Generated phase : {} with {} step(s) in {} strategy",
+            result.getName(), result.getChildren().size(), result.getStrategy().getName());
+    return result;
   }
 
   /**
@@ -201,7 +205,7 @@ public class PlanGenerator {
     List<Step> steps = new ArrayList<>();
     for (int i = 0; i < podSpec.getCount(); i++) {
       List<String> allTaskNames = podSpec.getTasks().stream()
-          .map(taskSpec -> taskSpec.getName())
+          .map(TaskSpec::getName)
           .collect(Collectors.toList());
       steps.add(generateStep(new DefaultPodInstance(podSpec, i), allTaskNames));
     }
@@ -217,29 +221,31 @@ public class PlanGenerator {
    * Custom steps are defined, but with a serial (or serial-canary) phase. We can make do without needing any custom
    * dependency logic. The phase steps will each launch one or more tasks in the various pods.
    */
-  private Phase generatePhaseWithCustomSerialSteps(
+  private DefaultPhase generatePhaseWithCustomSerialSteps(
       String strategy,
       String phaseName,
       PodSpec podSpec,
-      Map<String, List<List<String>>> podIndexToTasks)
+      LinkedHashMap<String, List<List<String>>> podIndexToTasks)
   {
     List<Step> steps = new ArrayList<>();
-    for (int i = 0; i < podSpec.getCount(); ++i) {
-      List<List<String>> taskLists = podIndexToTasks.get(String.valueOf(i));
-      if (taskLists == null) {
-        taskLists = podIndexToTasks.get(DEFAULT_POD_INDEX_LABEL);
-        if (taskLists == null) {
-          // Missing both matching pod index and 'default'
-          throw new IllegalStateException(String.format(
-              "Malformed steps in phase '%s': Missing '%d' step entry, and no 'default' defined",
-              phaseName,
-              i
-          ));
+    podIndexToTasks.forEach((index, s) -> {
+      try {
+        int i = Integer.parseInt(index);
+        List<List<String>> taskLists = getPhaseTasks(phaseName, podIndexToTasks, i);
+        for (List<String> taskNames : taskLists) {
+          steps.add(generateStep(new DefaultPodInstance(podSpec, i), taskNames));
         }
+      } catch (NumberFormatException e) {
+        // ignore the case where the key is "default"
+      }
+    });
+    for (int i = 0; i < podSpec.getCount(); ++i) {
+      if (podIndexToTasks.containsKey(Integer.toString(i))) {
+        continue;
       }
       // Add steps to the sequence, where each step may launch one or more tasks. Because the phase strategy
       // is serial, this is all we need to do. For example, [[a, b], c] => step[a, b], step[c]
-      for (List<String> taskNames : taskLists) {
+      for (List<String> taskNames : getPhaseTasks(phaseName, podIndexToTasks, i)) {
         steps.add(generateStep(new DefaultPodInstance(podSpec, i), taskNames));
       }
     }
@@ -257,7 +263,7 @@ public class PlanGenerator {
    * graph that enforces any serial deployment within each of the pods, while still allowing cross-pod deployment to
    * run in parallel.
    */
-  private Phase generatePhaseWithCustomParallelSteps(
+  private DefaultPhase generatePhaseWithCustomParallelSteps(
       String strategy,
       String phaseName,
       PodSpec podSpec,
@@ -268,16 +274,7 @@ public class PlanGenerator {
     List<Step> phaseSteps = new ArrayList<>();
     for (int i = 0; i < podSpec.getCount(); ++i) {
       List<Step> podSteps = new ArrayList<>();
-      List<List<String>> taskLists = podIndexToTasks.get(String.valueOf(i));
-      if (taskLists == null) {
-        taskLists = podIndexToTasks.get(DEFAULT_POD_INDEX_LABEL);
-        if (taskLists == null) {
-          // Missing both matching pod index and 'default'
-          throw new IllegalStateException(String.format(
-              "Malformed steps in phase '%s': Missing '%d' step entry, and no 'default' defined",
-              phaseName, i));
-        }
-      }
+      List<List<String>> taskLists = getPhaseTasks(phaseName, podIndexToTasks, i);
       for (List<String> taskNames : taskLists) {
         Step step = generateStep(new DefaultPodInstance(podSpec, i), taskNames);
         if (podSteps.isEmpty()) {
@@ -299,6 +296,24 @@ public class PlanGenerator {
       phaseStrategy = new CanaryStrategy(phaseStrategy, phaseSteps);
     }
     return new DefaultPhase(phaseName, phaseSteps, phaseStrategy, Collections.emptyList());
+  }
+
+  private List<List<String>> getPhaseTasks(
+          String phaseName,
+          Map<String, List<List<String>>> podIndexToTasks,
+          int index)
+  {
+    List<List<String>> taskLists = podIndexToTasks.get(String.valueOf(index));
+    if (taskLists == null) {
+      taskLists = podIndexToTasks.get(DEFAULT_POD_INDEX_LABEL);
+      if (taskLists == null) {
+        // Missing both matching pod index and 'default'
+        throw new IllegalStateException(String.format(
+            "Malformed steps in phase '%s': Missing '%d' step entry, and no 'default' defined",
+            phaseName, index));
+      }
+    }
+    return taskLists;
   }
 
   private Step generateStep(PodInstance podInstance, List<String> tasksToLaunch) {

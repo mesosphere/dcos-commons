@@ -1,0 +1,39 @@
+name: "ordered-phase-steps"
+pods:
+  hello:
+    count: 2
+    tasks:
+      taskone:
+        goal: RUNNING
+        cmd: "sleep 1000"
+        cpus: 0.1
+        memory: 512
+  world:
+    count: 3
+    tasks:
+      taskone:
+        goal: RUNNING
+        cmd: "sleep 1000"
+        cpus: 0.1
+        memory: 512
+      tasktwo:
+        goal: RUNNING
+        cmd: "sleep 1000"
+        cpus: 0.1
+        memory: 512
+plans:
+  deploy:
+    strategy: serial
+    phases:
+      hello-deploy:
+        strategy: serial
+        pod: hello
+        steps:
+          - 1: [[taskone]]
+          - 0: [[taskone]]
+      world-deploy:
+        strategy: serial
+        pod: world
+        steps:
+          - 1: [[taskone, tasktwo]]
+          - default: [[tasktwo, taskone]]
