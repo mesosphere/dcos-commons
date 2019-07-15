@@ -54,7 +54,6 @@ def test_metrics_cli_for_scheduler_metrics(configure_package):
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics_for_task_metrics(configure_package):
-
     def write_metric_to_statsd_counter(metric_name: str, value: int):
         """
         Write a metric with the specified value to statsd.
@@ -62,14 +61,13 @@ def test_metrics_for_task_metrics(configure_package):
         This is done by echoing the statsd string through ncat to the statsd host an port.
         """
         metric_echo = 'echo \\"{}:{}|c\\"'.format(metric_name, value)
-        ncat_command = 'ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT'
+        ncat_command = "ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT"
         pipe = " | "
 
-        bash_command = sdk_cmd.get_bash_command(
-            metric_echo + pipe + ncat_command,
-            environment=None,
+        bash_command = sdk_cmd.get_bash_command(metric_echo + pipe + ncat_command, environment=None)
+        sdk_cmd.service_task_exec(
+            configure_package["service"]["name"], "hello-0-server", bash_command
         )
-        sdk_cmd.service_task_exec(configure_package["service"]["name"], "hello-0-server", bash_command)
 
     metric_name = "test.metrics.CamelCaseMetric"
     write_metric_to_statsd_counter(metric_name, 1)
