@@ -585,13 +585,13 @@ public class PodInfoBuilder {
       // switch to SANDBOX SELF after dc/os 1.13
 
       containerInfo.addVolumes(Protos.Volume.newBuilder()
-          .setContainerPath("/tmp")
-          .setHostPath("tmp")
-          .setMode(Protos.Volume.Mode.RW));
+              .setContainerPath("/tmp")
+              .setHostPath("tmp")
+              .setMode(Protos.Volume.Mode.RW));
 
       LOGGER.info("Setting seccomp info unconfined: {} profile: {}",
-            podSpec.getSeccompUnconfined(),
-            podSpec.getSeccompProfileName());
+              podSpec.getSeccompUnconfined(),
+              podSpec.getSeccompProfileName());
 
       if (podSpec.getSeccompUnconfined() != null && podSpec.getSeccompUnconfined()) {
         containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
@@ -601,9 +601,10 @@ public class PodInfoBuilder {
 
       if (podSpec.getSeccompProfileName().isPresent()) {
         containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
-            .setProfileName(podSpec.getSeccompProfileName().get())
-            .build());
+                .setProfileName(podSpec.getSeccompProfileName().get())
+                .build());
       }
+    } else {
 
       if (podSpec.getSharedMemory().isPresent()) {
         containerInfo.getLinuxInfoBuilder().setIpcMode(podSpec.getSharedMemory().get());
