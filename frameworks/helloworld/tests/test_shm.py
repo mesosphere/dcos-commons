@@ -20,7 +20,7 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
             expected_running_tasks=1,
-            additional_options=options
+            additional_options=options,
         )
 
         yield  # let the test session execute
