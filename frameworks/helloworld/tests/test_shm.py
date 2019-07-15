@@ -19,7 +19,7 @@ def configure_package(configure_security):
         sdk_install.install(
             config.PACKAGE_NAME,
             config.SERVICE_NAME,
-            expected_running_tasks=1 ,
+            expected_running_tasks=1,
             additional_options=options
         )
 
