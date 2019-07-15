@@ -9,6 +9,7 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
+
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
