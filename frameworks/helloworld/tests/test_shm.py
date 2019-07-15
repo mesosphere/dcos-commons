@@ -9,9 +9,6 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
-
-
-
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
@@ -37,5 +34,3 @@ def test_shm():
     # rather than 256MB, It is in the same IPC namespace with its parent container,
     # and then write its IPC namespace inode to a file under /dev/shm.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-
-
