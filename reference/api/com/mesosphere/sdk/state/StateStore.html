@@ -562,7 +562,10 @@ extends java.lang.Object</pre>
 <div class="block">Stores TaskInfo objects representing tasks which are desired by the framework. This must be
  called before <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeStatus-java.lang.String-Protos.TaskStatus-"><code>storeStatus(String, Protos.TaskStatus)</code></a> for any given task id, and it
  must behave as an atomic transaction: On success, everything is written, while on failure
- nothing is written.</div>
+ nothing is written.
+
+ If the number of taskInfo objects to write is greater than MAX_TRANSACTION_SIZE,
+ taskInfos will be written atomically in groups of MAX_TRANSACTION_SIZE.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>tasks</code> - Tasks to be stored, which each meet the above requirements</dd>
@@ -583,7 +586,7 @@ extends java.lang.Object</pre>
                  throws <a href="../../../../com/mesosphere/sdk/state/StateStoreException.html" title="class in com.mesosphere.sdk.state">StateStoreException</a></pre>
 <div class="block">Stores the TaskStatus of a particular Task. The <code>Protos.TaskInfo</code> for this exact task MUST have already
  been written via <a href="../../../../com/mesosphere/sdk/state/StateStore.html#storeTasks-java.util.Collection-"><code>storeTasks(Collection)</code></a> beforehand. The TaskId must be well-formatted as produced by
- <code>com.mesosphere.sdk.offer.CommonIdUtils#toTaskId(String)</code>.</div>
+ <a href="../../../../com/mesosphere/sdk/offer/CommonIdUtils.html#toTaskId-java.lang.String-java.lang.String-"><code>CommonIdUtils.toTaskId(String, String)</code></a>.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>status</code> - The status to be stored, which meets the above requirements</dd>
