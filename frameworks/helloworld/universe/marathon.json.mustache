@@ -37,9 +37,9 @@
     "PACKAGE_BUILD_TIME_EPOCH_MS": "{{package-build-time-epoch-ms}}",
     "PACKAGE_BUILD_TIME_STR": "{{package-build-time-str}}",
     "FRAMEWORK_NAME": "{{service.name}}",
-    {{#service.namespace}}
-        "DCOS_NAMESPACE": "{{service.namespace}}",
-    {{/service.namespace}}
+    {{#service.marathon_enforce_group_role}}
+        "MARATHON_ENFORCE_GROUP_ROLE": "{{service.marathon_enforce_group_role}}",
+    {{/service.marathon_enforce_group_role}}
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
     "FRAMEWORK_PRINCIPAL": "{{service.service_account}}",
     "FRAMEWORK_USER": "{{service.user}}",

@@ -8,8 +8,10 @@ import sdk_marathon
 from tests import config
 
 log = logging.getLogger(__name__)
-MARATHON_TASK_ROLE = "test-role"
-MARATHON_TASK_ROLE_ENV = "DCOS_NAMESPACE"
+MARATHON_ENFORCE_GROUP_ROLE = "true"
+MARATHON_ENFORCE_GROUP_ROLE_ENV = "MARATHON_ENFORCE_GROUP_ROLE"
+MESOS_ALLOCATION_ROLE_ENV = "MESOS_ALLOCATION_ROLE"
+MESOS_ALLOCATION_ROLE = "slave_public"
 
 RECOVERY_TIMEOUT_SECONDS = 20 * 60
 
@@ -42,8 +44,11 @@ def test_apply_new_scheduler_role():
     # Apply the new role and ensure that the previous deployment and pods
     # haven't been affected.
 
+    # Get the current allocation role from Mesos.
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
-    marathon_config["env"][MARATHON_TASK_ROLE_ENV] = MARATHON_TASK_ROLE
+
+    # Ensure we enforce and deploy via the group role now.
+    marathon_config["env"][MARATHON_ENFORCE_GROUP_ROLE_ENV] = MARATHON_ENFORCE_GROUP_ROLE
 
     # Update the app
     sdk_marathon.update_app(marathon_config)
@@ -62,13 +67,14 @@ def test_apply_new_scheduler_role():
     # We must have some role!
     assert len(current_task_roles) > 0
     # Ensure that role change hasn't started yet.
-    assert MARATHON_TASK_ROLE not in current_task_roles.values()
+    assert MESOS_ALLOCATION_ROLE not in current_task_roles.values()
 
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
 def test_replace_pods_to_new_role():
+
     # Incrementally deploy pods with new role.
     # Ensure we're fully deployed.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
@@ -89,15 +95,13 @@ def test_replace_pods_to_new_role():
         task_name = "{}-server".format(pod)
 
         # Ensure we have transitioned over to the new role.
-        assert current_task_roles[task_name] == MARATHON_TASK_ROLE
+        assert current_task_roles[task_name] == MESOS_ALLOCATION_ROLE
 
-        # Force restart of the app to ensure that the scheduler can be restarted
-        # at any point during the migration.
-        sdk_marathon.restart_app(config.SERVICE_NAME)
-
-    # Ensure on the last restart that the scheduler is backup
+    # Ensure we have recovered before
     # before continuing with the tests.
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+    sdk_plan.wait_for_completed_recovery(
+        config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS
+    )
 
 
 @pytest.mark.quota
@@ -130,7 +134,74 @@ def test_add_pods_with_new_role():
     assert len(roles_set) == 1
 
     # Ensure that role is what we expect.
-    assert MARATHON_TASK_ROLE in roles_set
+    assert MESOS_ALLOCATION_ROLE in roles_set
+
+
+@pytest.mark.quota
+@pytest.mark.dcos_min_version("1.14")
+@pytest.mark.sanity
+def test_downgrade_scheduler_to_previous_role():
+    # Simulate a downgrade by forcing the old role ensure
+    # haven't been affected.
+
+    # Get the current allocation role from Mesos.
+    marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
+
+    # Ensure we revert to the old role.
+    marathon_config["env"][MARATHON_ENFORCE_GROUP_ROLE_ENV] = "false"
+
+    # Update the app
+    sdk_marathon.update_app(marathon_config)
+
+    # Wait for scheduler to restart.
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+
+    # Get the current service state to verify roles have applied.
+    current_task_roles = _get_service_task_roles()
+
+    # Ensure we have all tasks.
+    assert len(current_task_roles) == 5
+
+    roles_set = set(current_task_roles.values())
+
+    # Ensure we only have one role.
+    assert len(roles_set) == 1
+
+    # Ensure that role is what we expect.
+    assert MESOS_ALLOCATION_ROLE in roles_set
+
+
+@pytest.mark.quota
+@pytest.mark.dcos_min_version("1.14")
+@pytest.mark.sanity
+def test_downgrade_pods_to_previous_role():
+    # Incrementally deploy pods with new role.
+    # Ensure we're fully deployed.
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+
+    # Issue pod replace operations till we move the pods to the new role.
+    replace_pods = ["hello-0", "hello-1", "world-0", "world-1", "world-2"]
+
+    for pod in replace_pods:
+        # start replace and wait for it to finish
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, "pod replace {}".format(pod))
+        sdk_plan.wait_for_kicked_off_recovery(config.SERVICE_NAME)
+        sdk_plan.wait_for_completed_recovery(
+            config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS
+        )
+
+        # Get the current service state to verify roles have applied.
+        current_task_roles = _get_service_task_roles()
+        task_name = "{}-server".format(pod)
+
+        # Ensure we have transitioned over to the old role.
+        assert current_task_roles[task_name] != MESOS_ALLOCATION_ROLE
+
+    # Ensure we have recovered before
+    # before continuing with the tests.
+    sdk_plan.wait_for_completed_recovery(
+        config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS
+    )
 
 
 def _get_service_task_roles() -> dict:

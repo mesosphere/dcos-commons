@@ -10,10 +10,10 @@
           "type": "string",
           "default": "hello-world"
         },
-        "namespace" : {
-          "description": "DELEVELOPMENT ONLY! WILL BE REMOVED IN RELEASE. The namespace this service should be deployed under.",
-          "type": "string",
-          "default": ""
+        "marathon_enforce_group_role" : {
+          "description": "DELEVELOPMENT ONLY! WILL BE REMOVED IN RELEASE. Whether to allocate using Mesos allocation role or use the legacy role subscription behaviour.",
+          "type": "boolean",
+          "default": false
         },
         "user": {
           "description": "The user that the service will run as.",
