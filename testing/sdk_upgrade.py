@@ -215,8 +215,14 @@ def _wait_for_deployment(
         log.info("No config change detected. Tasks should not be restarted")
         sdk_tasks.check_tasks_not_updated(service_name, "", task_ids)
     else:
-        log.info("Checking that all tasks have restarted")
-        sdk_tasks.check_tasks_updated(service_name, "", task_ids)
+        deployment_is_complete = sdk_plan.get_deployment_plan(service_name)["status"] == "COMPLETE"
+        recovery_is_complete = sdk_plan.get_recovery_plan(service_name)["status"] == "COMPLETE"
+
+        # A difference between configs might be trivial that the scheduler doesn't consider the deployment
+        # to have become incomplete. Check the plan status before waiting for updates.
+        if not (deployment_is_complete and recovery_is_complete):
+            log.info("Checking that all tasks have restarted")
+            sdk_tasks.check_tasks_updated(service_name, "", task_ids)
 
     # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
     # total task count via ONCE tasks, without actually completing deployment
