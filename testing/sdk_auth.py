@@ -29,6 +29,8 @@ log = logging.getLogger(__name__)
 
 KERBEROS_APP_ID = os.getenv("KERBEROS_APP_ID", "kdc")
 REALM = os.getenv("REALM", "LOCAL")
+KDC_SERVICE_ACCOUNT = os.getenv("KDC_SERVICE_ACCOUNT", "kdc-admin")
+KDC_SERVICE_ACCOUNT_SECRET = os.getenv("KDC_SERVICE_ACCOUNT_SECRET", "kdc-admin")
 
 # Note: Some of the helper functions in this module are wrapped in basic retry logic to provide some
 # resiliency towards possible intermittent network failures.
@@ -215,15 +217,17 @@ class KerberosEnvironment:
             sdk_marathon.destroy_app(self.app_definition["id"])
 
         # (re-)create a service account for the KDC service
-        sdk_security.create_service_account("kdc-admin", "kdc-admin")  # Account name  # Secret name
+        sdk_security.create_service_account(
+            service_account_name=KDC_SERVICE_ACCOUNT, service_account_secret=KDC_SERVICE_ACCOUNT_SECRET
+        )
         sdk_security._grant(
-            "kdc-admin",
+            KDC_SERVICE_ACCOUNT,
             "dcos:secrets:default:%252F*",
             "Create any secret in the root path",
             "create",
         )
         sdk_security._grant(
-            "kdc-admin",
+            KDC_SERVICE_ACCOUNT,
             "dcos:secrets:default:%252F*",
             "Update any secret in the root path",
             "update",
@@ -425,7 +429,9 @@ class KerberosEnvironment:
             log.info("Deleting temporary working directory")
             self._temp_working_dir.cleanup()
 
-        sdk_security.delete_service_account("kdc-admin", "kdc-admin")  # Account name  # Secret name
+        sdk_security.delete_service_account(
+            service_account_name=KDC_SERVICE_ACCOUNT, service_account_secret=KDC_SERVICE_ACCOUNT_SECRET
+        )
 
         # TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
