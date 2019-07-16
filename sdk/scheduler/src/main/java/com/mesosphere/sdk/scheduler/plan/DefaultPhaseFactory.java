@@ -4,6 +4,7 @@ import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.Strategy;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -40,7 +41,7 @@ public class DefaultPhaseFactory implements PhaseFactory {
       PodInstance podInstance = new DefaultPodInstance(podSpec, i);
 
       List<String> tasksToLaunch = podInstance.getPod().getTasks().stream()
-          .map(taskSpec -> taskSpec.getName())
+          .map(TaskSpec::getName)
           .collect(Collectors.toList());
 
       steps.add(stepFactory.getStep(podInstance, tasksToLaunch));

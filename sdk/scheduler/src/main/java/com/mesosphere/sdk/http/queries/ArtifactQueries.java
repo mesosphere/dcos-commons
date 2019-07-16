@@ -38,7 +38,8 @@ public final class ArtifactQueries {
    * IDs.
    *
    * @param configurationId   the id of the configuration set to be retrieved from -- this should match the
-   *                          configuration the task is on. this allows old tasks to continue retrieving old configurations
+   *                          configuration the task is on. this allows old tasks to continue retrieving old
+   *                          configurations
    * @param podType           the name/type of the pod, eg 'index' or 'data'
    * @param taskName          the name of the task
    * @param configurationName the name of the configuration to be retrieved

@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.scheduler;
 
+import com.mesosphere.sdk.framework.TokenBucket;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
@@ -71,7 +72,7 @@ public class WorkSetTracker {
    */
   public void updateWorkSet(Collection<Step> activeWorkSet) {
     Set<WorkItem> currCandidates = activeWorkSet.stream()
-        .map(step -> new WorkItem(step))
+        .map(WorkItem::new)
         .collect(Collectors.toSet());
     Set<WorkItem> newCandidates = new HashSet<>(currCandidates);
     newCandidates.removeAll(this.candidates);

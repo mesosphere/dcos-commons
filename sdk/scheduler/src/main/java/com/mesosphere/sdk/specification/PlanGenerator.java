@@ -3,7 +3,6 @@ package com.mesosphere.sdk.specification;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
-import com.mesosphere.sdk.scheduler.plan.DefaultStepFactory;
 import com.mesosphere.sdk.scheduler.plan.DeployPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -19,8 +18,6 @@ import com.mesosphere.sdk.scheduler.plan.strategy.StrategyGenerator;
 import com.mesosphere.sdk.specification.yaml.RawPhase;
 import com.mesosphere.sdk.specification.yaml.RawPlan;
 import com.mesosphere.sdk.specification.yaml.WriteOnceLinkedHashMap;
-import com.mesosphere.sdk.state.ConfigTargetStore;
-import com.mesosphere.sdk.state.StateStore;
 
 import org.slf4j.Logger;
 
@@ -70,15 +67,6 @@ public class PlanGenerator {
 
   private final StepFactory stepFactory;
 
-
-  public PlanGenerator(
-      ConfigTargetStore configTargetStore,
-      StateStore stateStore,
-      Optional<String> namespace)
-  {
-    this(new DefaultStepFactory(configTargetStore, stateStore, namespace));
-  }
-
   public PlanGenerator(StepFactory stepFactory) {
     this.stepFactory = stepFactory;
   }
@@ -88,7 +76,7 @@ public class PlanGenerator {
    */
   private static boolean isValidStep(PodSpec podSpec, List<String> tasksToLaunch) {
     Set<String> allTaskNames = podSpec.getTasks().stream()
-        .map(taskSpec -> taskSpec.getName())
+        .map(TaskSpec::getName)
         .collect(Collectors.toSet());
     return allTaskNames.containsAll(tasksToLaunch);
   }
@@ -111,9 +99,7 @@ public class PlanGenerator {
     // Flatten map data: pod index (or 'default') to task deployment within that pod
     return rawSteps.stream()
         .map(stepMap -> stepMap.entrySet().stream().findFirst().get())
-        .collect(Collectors.toMap(
-            stringListEntry -> stringListEntry.getKey(),
-            stringListEntry -> stringListEntry.getValue()));
+        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
 
   private static StrategyGenerator<Phase> getPlanStrategyGenerator(String strategyType) {

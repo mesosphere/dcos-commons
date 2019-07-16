@@ -18,10 +18,7 @@ import sdk_tasks
 log = logging.getLogger(__name__)
 
 
-def get_scheduler_metrics(
-    service_name: str,
-    timeout_seconds: int = 15 * 60
-) -> Dict[str, Any]:
+def get_scheduler_metrics(service_name: str, timeout_seconds: int = 15 * 60) -> Dict[str, Any]:
     """Returns a dict tree of Scheduler metrics fetched directly from the scheduler.
     Returned data will match the content of /service/<svc_name>/v1/metrics.
     """
@@ -32,9 +29,7 @@ def get_scheduler_metrics(
 
 
 def get_scheduler_counter(
-    service_name: str,
-    counter_name: str,
-    timeout_seconds: int = 15 * 60,
+    service_name: str, counter_name: str, timeout_seconds: int = 15 * 60
 ) -> int:
     """Waits for and returns the specified counter value from the scheduler"""
 
@@ -71,10 +66,7 @@ def get_scheduler_counter(
 
 
 def wait_for_scheduler_counter_value(
-    service_name: str,
-    counter_name: str,
-    min_value: int,
-    timeout_seconds: int = 15 * 60,
+    service_name: str, counter_name: str, min_value: int, timeout_seconds: int = 15 * 60
 ) -> bool:
     """Waits for the specified counter value to be reached by the scheduler
     For example, check that `offers.processed` is equal or greater to 1."""
@@ -87,6 +79,55 @@ def wait_for_scheduler_counter_value(
         return value >= min_value
 
     return bool(check_for_value())
+
+
+def get_scheduler_gauge(service_name: str, gauge_name: str, timeout_seconds: int = 15 * 60) -> Any:
+    """Waits for and returns the specified gauge value from the scheduler"""
+
+    @retrying.retry(
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
+    )
+    def check_for_value() -> Optional[Any]:
+        try:
+            sched_metrics = get_scheduler_metrics(service_name)
+            if "gauges" not in sched_metrics:
+                log.info(
+                    "No gauges present for service {}. Types were: {}".format(
+                        service_name, sched_metrics.keys()
+                    )
+                )
+                return None
+            sched_gauges = sched_metrics["gauges"]
+            if gauge_name not in sched_gauges:
+                log.info(
+                    "No gauge named '{}' was found for service {}. Gauges were: {}".format(
+                        gauge_name, service_name, sched_gauges.keys()
+                    )
+                )
+                return None
+            value = sched_gauges[gauge_name]["value"]
+            log.info("{} metric gauge: {}={}".format(service_name, gauge_name, value))
+            return value
+        except Exception as e:
+            log.error("Caught exception trying to get metrics: {}".format(e))
+            return None
+
+    return check_for_value()
+
+
+def wait_for_scheduler_gauge_value(
+    service_name: str, gauge_name: str, condition: lambda res: bool, timeout_seconds: int = 15 * 60
+) -> bool:
+    """Waits for the specified gauge value to be reached by the scheduler
+    For example, check that `is_suppressed` is set to true."""
+
+    @retrying.retry(
+        wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
+    )
+    def check_for_value() -> bool:
+        return condition(get_scheduler_gauge(service_name, gauge_name, timeout_seconds))
+
+    return check_for_value()
 
 
 def wait_for_metrics_from_cli(task_name: str, timeout_seconds: int) -> List[Dict[str, Any]]:

@@ -2,6 +2,7 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.debug.OfferOutcomeTrackerV2;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.MesosResourcePool;
@@ -134,7 +135,7 @@ public class OfferEvaluator {
       for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
         GoalStateOverride override =
             stateStore.fetchGoalOverrideStatus(
-                TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
+                CommonIdUtils.getTaskInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
                 .target;
 
         overrideMap.put(taskSpec, override);
@@ -687,7 +688,7 @@ public class OfferEvaluator {
     // of the resources assigned to the resource set.
     Collection<String> taskInfoNames = taskSpecNamesInResourceSet.stream()
         .map(taskSpecName ->
-            TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpecName))
+            CommonIdUtils.getTaskInstanceName(podInstanceRequirement.getPodInstance(), taskSpecName))
         .collect(Collectors.toList());
     Optional<Protos.TaskInfo> taskInfo = taskInfoNames.stream()
         .map(allTasksInPod::get)
@@ -782,7 +783,7 @@ public class OfferEvaluator {
           // Task isn't included in the recovery operation, skip.
           continue;
         }
-        final String taskName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
+        final String taskName = CommonIdUtils.getTaskInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
         Protos.TaskInfo taskInfo = existingPodTasksByName.get(taskName);
         if (taskInfo == null) {
           // Task hasn't been launched yet, but is marked to be recovered...

@@ -14,6 +14,7 @@ import java.util.UUID;
  * have Strategies (see: {@link Strategy} associated with them which describe when child elements should be presented as
  * candidates for execution.
  */
+@SuppressWarnings("checkstyle:MethodCount")
 public interface Element {
   /**
    * Returns the unique identifier of this Element.
@@ -79,7 +80,7 @@ public interface Element {
   }
 
   /**
-   * Indicates whether the Element is starting.
+   * Indicates whether the Element is started.
    */
   default boolean isStarted() {
     return getStatus().equals(Status.STARTED);
@@ -90,6 +91,10 @@ public interface Element {
    */
   default boolean isComplete() {
     return getStatus().equals(Status.COMPLETE);
+  }
+
+  default boolean isDelayed() {
+    return getStatus().equals(Status.DELAYED);
   }
 
   /**

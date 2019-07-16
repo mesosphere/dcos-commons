@@ -59,7 +59,6 @@ import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
-import com.mesosphere.sdk.storage.PersisterException;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.slf4j.Logger;
@@ -106,11 +105,7 @@ public class SchedulerBuilder {
 
   private Collection<Class<?>> additionalDeserializableSubtypes = new ArrayList<>();
 
-  SchedulerBuilder(
-      ServiceSpec serviceSpec,
-      SchedulerConfig schedulerConfig)
-      throws PersisterException
-  {
+  SchedulerBuilder(ServiceSpec serviceSpec, SchedulerConfig schedulerConfig) {
     this(
         serviceSpec,
         schedulerConfig,
@@ -388,9 +383,7 @@ public class SchedulerBuilder {
 
       DefaultServiceSpec.Builder builder =
           DefaultServiceSpec.newBuilder(originalServiceSpec).pods(updatedPodSpecs);
-      if (schedulerRegion.isPresent()) {
-        builder.region(schedulerRegion.get());
-      }
+      schedulerRegion.ifPresent(builder::region);
       serviceSpec = builder.build();
     } else {
       serviceSpec = originalServiceSpec;
@@ -658,10 +651,13 @@ public class SchedulerBuilder {
       plansType = "YAML";
       // Note: Any internal Plan generation must only be AFTER updating/validating the config.
       // Otherwise plans may look at the old config and mistakenly think they're COMPLETE.
-      PlanGenerator planGenerator = new PlanGenerator(configStore, stateStore, namespace);
-      plans = yamlPlans.entrySet().stream()
-          .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
-          .collect(Collectors.toList());
+      PlanGenerator planGenerator = new PlanGenerator(
+              new DefaultStepFactory(configStore, stateStore, namespace));
+      plans = yamlPlans
+        .entrySet()
+        .stream()
+        .map(e -> planGenerator.generate(e.getValue(), e.getKey(), serviceSpec.getPods()))
+        .collect(Collectors.toList());
     } else {
       plansType = "generated";
       try {

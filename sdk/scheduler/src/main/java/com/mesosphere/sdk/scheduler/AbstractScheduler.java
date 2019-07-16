@@ -3,6 +3,7 @@ package com.mesosphere.sdk.scheduler;
 import com.mesosphere.sdk.framework.ProcessExit;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanCustomizer;
@@ -75,10 +76,10 @@ public abstract class AbstractScheduler implements MesosEventClient {
 
   private static Set<Step> getInProgressSteps(PlanCoordinator planCoordinator) {
     return planCoordinator.getPlanManagers().stream()
-        .map(planManager -> planManager.getPlan())
+        .map(PlanManager::getPlan)
         .flatMap(plan -> plan.getChildren().stream())
         .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isRunning())
+        .filter(Element::isRunning)
         .collect(Collectors.toSet());
   }
 
@@ -142,7 +143,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
     Collection<Step> inProgressSteps = getInProgressSteps(getPlanCoordinator());
     if (!inProgressSteps.isEmpty()) {
       logger.info("Steps in progress: {}",
-          inProgressSteps.stream().map(step -> step.getMessage()).collect(Collectors.toList()));
+          inProgressSteps.stream().map(Step::getMessage).collect(Collectors.toList()));
     }
     activeWorkSet.addAll(inProgressSteps);
 
@@ -150,10 +151,9 @@ public abstract class AbstractScheduler implements MesosEventClient {
       workSetTracker.updateWorkSet(activeWorkSet);
     } catch (NullPointerException e) {
       logger.warn(
-          "workset tracker is uninitialized, scheduler has his a null reference and is exiting."
+          "WorkSetTracker is uninitialized, scheduler has hit a null reference and is exiting."
       );
       ProcessExit.exit(ProcessExit.ERROR, e);
-
     }
 
     return getStatus();

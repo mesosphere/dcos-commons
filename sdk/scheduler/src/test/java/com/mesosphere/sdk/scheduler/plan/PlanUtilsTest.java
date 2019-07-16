@@ -66,6 +66,14 @@ public class PlanUtilsTest {
     }
 
     @Test
+    public void testAggregateStatusDelayed() {
+        Assert.assertEquals(Status.WAITING, PlanUtils.getAggregateStatus("foo",
+                Collections.singletonList(Status.DELAYED), Collections.emptyList(), Collections.emptyList(), true));
+        Assert.assertEquals(Status.DELAYED, PlanUtils.getAggregateStatus("foo",
+                Arrays.asList(Status.DELAYED, Status.DELAYED), Collections.emptyList(), Collections.emptyList(), false));
+    }
+
+    @Test
     public void testAggregateStatusWaiting() {
         Assert.assertEquals(Status.WAITING, PlanUtils.getAggregateStatus("foo",
                 Arrays.asList(Status.COMPLETE, Status.PENDING), Collections.emptyList(), Collections.emptyList(), true));
