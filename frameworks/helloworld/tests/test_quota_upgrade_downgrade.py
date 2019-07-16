@@ -5,6 +5,7 @@ import sdk_cmd
 import sdk_install
 import sdk_plan
 import sdk_marathon
+import sdk_upgrade
 from tests import config
 
 log = logging.getLogger(__name__)
@@ -202,6 +203,52 @@ def test_downgrade_pods_to_previous_role():
     sdk_plan.wait_for_completed_recovery(
         config.SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS
     )
+
+
+@pytest.mark.quota
+@pytest.mark.dcos_min_version("1.14")
+@pytest.mark.sanity
+def test_downgrade_to_previous_version():
+    # Ensure we're fully deployed before downgrading to old version
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+
+    to_options = {"hello": {"count": 2}, "world": {"count": 3}}
+
+    # Downgrade to latest universe release.
+    sdk_upgrade.test_downgrade(
+        config.SERVICE_NAME,
+        config.SERVICE_NAME,
+        expected_running_tasks=5,
+        from_version="stub-universe",
+        to_options=to_options,
+    )
+
+    # Add new pods to service which should be launched with the new role.
+    marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
+
+    # Add an extra pod to each.
+    marathon_config["env"]["HELLO_COUNT"] = "3"
+    marathon_config["env"]["WORLD_COUNT"] = "4"
+
+    # Update the app
+    sdk_marathon.update_app(marathon_config)
+
+    # Wait for scheduler to restart.
+    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
+
+    # Get the current service state to verify roles have applied.
+    current_task_roles = _get_service_task_roles()
+
+    # Ensure we have all tasks.
+    assert len(current_task_roles) == 7
+
+    roles_set = set(current_task_roles.values())
+
+    # Ensure we only have one role.
+    assert len(roles_set) == 1
+
+    # Ensure that role is what we expect.
+    assert MESOS_ALLOCATION_ROLE not in roles_set
 
 
 def _get_service_task_roles() -> dict:
