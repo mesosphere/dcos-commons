@@ -136,7 +136,7 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i1" class="rowColor">
-<td class="colFirst"><code>static &lt;C extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt;<br><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a></code></td>
+<td class="colFirst"><code>static <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/PlanUtils.html#getAggregateStatus-java.lang.String-java.util.Collection-java.util.Collection-java.util.Collection-boolean-">getAggregateStatus</a></span>(java.lang.String&nbsp;parentName,
                   java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;childStatuses,
                   java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;candidateStatuses,
@@ -240,11 +240,11 @@ extends java.lang.Object</pre>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>getAggregateStatus</h4>
-<pre>public static&nbsp;&lt;C extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan">Element</a>&gt;&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;getAggregateStatus(java.lang.String&nbsp;parentName,
-                                                            java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;childStatuses,
-                                                            java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;candidateStatuses,
-                                                            java.util.Collection&lt;java.lang.String&gt;&nbsp;errors,
-                                                            boolean&nbsp;isInterrupted)</pre>
+<pre>public static&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&nbsp;getAggregateStatus(java.lang.String&nbsp;parentName,
+                                        java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;childStatuses,
+                                        java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a>&gt;&nbsp;candidateStatuses,
+                                        java.util.Collection&lt;java.lang.String&gt;&nbsp;errors,
+                                        boolean&nbsp;isInterrupted)</pre>
 <div class="block">Returns the overall status to display by a parent element of the provided children.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>

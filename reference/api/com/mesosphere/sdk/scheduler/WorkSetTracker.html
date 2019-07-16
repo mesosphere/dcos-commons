@@ -129,7 +129,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/scheduler/WorkSetTracker.html#WorkSetTracker-java.util.Optional-">WorkSetTracker</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>
-<div class="block">Creates an instance which will use the configured singleton <code>TokenBucket</code> for rate limiting.</div>
+<div class="block">Creates an instance which will use the configured singleton <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> for rate limiting.</div>
 </td>
 </tr>
 </table>
@@ -189,8 +189,8 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>WorkSetTracker</h4>
 <pre>public&nbsp;WorkSetTracker(java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
-<div class="block">Creates an instance which will use the configured singleton <code>TokenBucket</code> for rate limiting. The
- <code>TokenBucket</code> is a shared singleton because we want revive rate limits to be enforced across all running
+<div class="block">Creates an instance which will use the configured singleton <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> for rate limiting. The
+ <a href="../../../../com/mesosphere/sdk/framework/TokenBucket.html" title="class in com.mesosphere.sdk.framework"><code>TokenBucket</code></a> is a shared singleton because we want revive rate limits to be enforced across all running
  services in the scheduler process.</div>
 </li>
 </ul>

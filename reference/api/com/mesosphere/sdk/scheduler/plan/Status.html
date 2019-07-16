@@ -158,39 +158,44 @@ extends java.lang.Enum&lt;<a href="../../../../../com/mesosphere/sdk/scheduler/p
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#DELAYED">DELAYED</a></span></code>
+<div class="block">Task has been delayed due to previous launch failures - delay is controlled by exponential backoff.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#ERROR">ERROR</a></span></code>
 <div class="block">Execution experienced an error.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#IN_PROGRESS">IN_PROGRESS</a></span></code>
 <div class="block">Only returned by Phase and Plan getStatus, to state that at least one child is complete and at
  least one child is in progress (either PENDING or PREPARED).</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING">PENDING</a></span></code>
 <div class="block">Execution is waiting for suitable offers.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PREPARED">PREPARED</a></span></code>
 <div class="block">The Element has been evaluated, and any Tasks relevant to it have been killed if necessary.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#STARTED">STARTED</a></span></code>
 <div class="block">Execution has performed <code>org.apache.mesos.Protos.Offer.Operation</code>s and has received feedback, but not all
  success requirements (e.g.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#STARTING">STARTING</a></span></code>
 <div class="block">Execution has performed <code>org.apache.mesos.Protos.Offer.Operation</code>s and is waiting to determine the success
  of those Operations.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#WAITING">WAITING</a></span></code>
 <div class="block">Execution has been interrupted.</div>
 </td>
@@ -337,7 +342,7 @@ the order they are declared.</div>
 <a name="IN_PROGRESS">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>IN_PROGRESS</h4>
 <pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a> IN_PROGRESS</pre>
@@ -345,6 +350,16 @@ the order they are declared.</div>
  least one child is in progress (either PENDING or PREPARED).
  <p>
  This value is only returned and never set to a variable.</div>
+</li>
+</ul>
+<a name="DELAYED">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>DELAYED</h4>
+<pre>public static final&nbsp;<a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan">Status</a> DELAYED</pre>
+<div class="block">Task has been delayed due to previous launch failures - delay is controlled by exponential backoff.</div>
 </li>
 </ul>
 </li>
