@@ -59,7 +59,7 @@ def test_metrics_for_task_metrics(configure_package):
         """
         Write a metric with the specified value to statsd.
 
-        This is done by echoing the statsd string through ncat to the statsd host an port.o
+        This is done by echoing the statsd string through ncat to the statsd host an port.
         """
         metric_echo = 'echo \\"{}:{}|c\\"'.format(metric_name, value)
         ncat_command = 'ncat -w 1 -u \\$STATSD_UDP_HOST \\$STATSD_UDP_PORT'
