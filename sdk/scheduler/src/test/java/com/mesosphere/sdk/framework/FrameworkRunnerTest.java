@@ -136,7 +136,7 @@ public class FrameworkRunnerTest {
         Assert.assertEquals("custom-principal", info.getPrincipal());
         Assert.assertEquals(TestConstants.FRAMEWORK_ID, info.getId());
         checkRole(Optional.empty(), info);
-        Assert.assertEquals(Arrays.asList("path__to__test-service-role", "role1", "role2", "role3"), info.getRolesList());
+        Assert.assertTrue(info.getRolesList().containsAll(Arrays.asList("path__to__test-service-role", "role1", "role2", "role3")));
         Assert.assertEquals(Arrays.asList(
                 getCapability(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE),
                 getCapability(Protos.FrameworkInfo.Capability.Type.GPU_RESOURCES),
@@ -145,6 +145,94 @@ public class FrameworkRunnerTest {
         Assert.assertEquals("custom-url", info.getWebuiUrl());
     }
 
+     
+    @Test
+    public void testEnabledMesosAllocationRole() {
+      
+      final String MESOS_ALLOCATION_ROLE = "quota-role";
+
+      Map<String, String> env = getMinimalMap();
+      env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
+      env.put("MARATHON_ENFORCE_GROUP_ROLE", "true");
+      EnvStore envStore = EnvStore.fromMap(env);
+
+      SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
+      FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
+
+      FrameworkRunner runner = new FrameworkRunner(schedulerConfig, frameworkConfig, false, false);
+
+      Protos.FrameworkInfo info = runner.getFrameworkInfo(Optional.of(TestConstants.FRAMEWORK_ID));
+      Assert.assertEquals("/path/to/test-service", info.getName());
+      Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, info.getUser());
+      Assert.assertEquals(1209600, info.getFailoverTimeout(), 0.1);
+      Assert.assertTrue(info.getCheckpoint());
+      Assert.assertEquals("/path/to/test-service-principal", info.getPrincipal());
+      Assert.assertEquals(TestConstants.FRAMEWORK_ID, info.getId());
+      Assert.assertTrue(info.getRolesList().containsAll(Arrays.asList("path__to__test-service-role", MESOS_ALLOCATION_ROLE)));
+      Assert.assertEquals(2, info.getRolesCount());
+      Assert.assertEquals(1, info.getCapabilitiesCount()); //MULTI_ROLE gets enabled.
+      Assert.assertFalse(info.hasWebuiUrl());
+    }   
+     
+    @Test
+    public void testPreReservedAndEnabledMesosAllocationRole() {
+      
+      final String MESOS_ALLOCATION_ROLE = "quota-role";
+
+      Map<String, String> env = getMinimalMap();
+      env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
+      env.put("MARATHON_ENFORCE_GROUP_ROLE", "true");
+      env.put("FRAMEWORK_PRERESERVED_ROLES", "role1,role2,role3");
+      EnvStore envStore = EnvStore.fromMap(env);
+
+      SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
+      FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
+        
+      when(mockCapabilities.supportsPreReservedResources()).thenReturn(true);
+
+      FrameworkRunner runner = new FrameworkRunner(schedulerConfig, frameworkConfig, false, false);
+
+      Protos.FrameworkInfo info = runner.getFrameworkInfo(Optional.of(TestConstants.FRAMEWORK_ID));
+      Assert.assertEquals("/path/to/test-service", info.getName());
+      Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, info.getUser());
+      Assert.assertEquals(1209600, info.getFailoverTimeout(), 0.1);
+      Assert.assertTrue(info.getCheckpoint());
+      Assert.assertEquals("/path/to/test-service-principal", info.getPrincipal());
+      Assert.assertEquals(TestConstants.FRAMEWORK_ID, info.getId());
+      Assert.assertTrue(info.getRolesList().containsAll(Arrays.asList("path__to__test-service-role", MESOS_ALLOCATION_ROLE, "role1", "role2", "role3")));
+      Assert.assertEquals(5, info.getRolesCount());
+      Assert.assertEquals(2, info.getCapabilitiesCount()); //MULTI_ROLE gets enabled.
+      Assert.assertFalse(info.hasWebuiUrl());
+    }   
+     
+    @Test
+    public void testDisabledMesosAllocationRole() {
+      
+      final String MESOS_ALLOCATION_ROLE = "quota-role";
+
+      Map<String, String> env = getMinimalMap();
+      env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
+      env.put("MARATHON_ENFORCE_GROUP_ROLE", "false");
+      EnvStore envStore = EnvStore.fromMap(env);
+
+      SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
+      FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
+
+      FrameworkRunner runner = new FrameworkRunner(schedulerConfig, frameworkConfig, false, false);
+
+      Protos.FrameworkInfo info = runner.getFrameworkInfo(Optional.of(TestConstants.FRAMEWORK_ID));
+      Assert.assertEquals("/path/to/test-service", info.getName());
+      Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, info.getUser());
+      Assert.assertEquals(1209600, info.getFailoverTimeout(), 0.1);
+      Assert.assertTrue(info.getCheckpoint());
+      Assert.assertEquals("/path/to/test-service-principal", info.getPrincipal());
+      Assert.assertEquals(TestConstants.FRAMEWORK_ID, info.getId());
+      checkRole(Optional.of("path__to__test-service-role"), info);
+      Assert.assertEquals(0, info.getRolesCount());
+      Assert.assertEquals(0, info.getCapabilitiesCount()); //MULTI_ROLE gets disabled.
+      Assert.assertFalse(info.hasWebuiUrl());
+    }
+    
     private static Protos.FrameworkInfo.Capability getCapability(Protos.FrameworkInfo.Capability.Type type) {
         return Protos.FrameworkInfo.Capability.newBuilder().setType(type).build();
     }
@@ -152,7 +240,7 @@ public class FrameworkRunnerTest {
     @SuppressWarnings("deprecation")
     private static void checkRole(Optional<String> expectedRole, Protos.FrameworkInfo info) {
         if (expectedRole.isPresent()) {
-            Assert.assertEquals(info.getRole(), expectedRole.get());
+            Assert.assertEquals(expectedRole.get(), info.getRole());
         } else {
             Assert.assertFalse(info.hasRole());
         }

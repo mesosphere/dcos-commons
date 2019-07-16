@@ -8,9 +8,17 @@ import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
+import com.mesosphere.sdk.specification.DefaultResourceSet;
+import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.DefaultTaskSpec;
+import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodSpec;
+import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
+import com.mesosphere.sdk.specification.TaskSpec;
+import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.state.ConfigStore;
 import com.mesosphere.sdk.state.ConfigStoreException;
 import com.mesosphere.sdk.state.StateStore;
@@ -98,13 +106,73 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
    * @return a new {@link PodSpec} with irrelevant parameters filtered out
    */
   private static PodSpec filterIrrelevantFieldsForUpdateComparison(PodSpec podSpec) {
-    // Set arbitrary values. We just want the two spec copies to be equivalent where these fields
-    // are concerned:
-    return DefaultPodSpec.newBuilder(podSpec)
+
+    DefaultPodSpec.Builder podSpecBuilder = DefaultPodSpec.newBuilder(podSpec)
         .count(0)
         .placementRule(null)
-        .allowDecommission(false)
-        .build();
+        .allowDecommission(false);
+
+    // Replace the role across pod resources with a dummy role.
+    final String dummyRole = "dummy-role";
+    List<TaskSpec> tasksWithRoleChanged = new ArrayList<>();
+    for (TaskSpec task: podSpec.getTasks()) {
+      DefaultResourceSet taskResourceSet = (DefaultResourceSet) task.getResourceSet();
+      DefaultResourceSet.Builder taskResourceSetBuilder = DefaultResourceSet.newBuilder(
+          dummyRole,
+          taskResourceSet.getPreReservedRole(),
+          taskResourceSet.getPrincipal());
+      taskResourceSetBuilder.id(taskResourceSet.getId());
+
+      //Add Resources to taskResourceSetBuilder.
+      // SUPPRESS CHECKSTYLE NestedForDepth
+      for (ResourceSpec resourceSpec: taskResourceSet.getResources()) {
+        if (resourceSpec instanceof DefaultResourceSpec) {
+          DefaultResourceSpec.Builder resourceSpecBuilder = DefaultResourceSpec.newBuilder(resourceSpec);
+          resourceSpecBuilder.role(dummyRole);
+          taskResourceSetBuilder.addResource(resourceSpecBuilder.build());
+        } else if (resourceSpec instanceof PortSpec) {
+          PortSpec portSpec = (PortSpec) resourceSpec;
+          PortSpec.Builder portSpecBuilder = PortSpec.newBuilder(portSpec);
+          portSpecBuilder.role(dummyRole);
+          taskResourceSetBuilder.addResource(portSpecBuilder.build());
+        } else if (resourceSpec instanceof NamedVIPSpec) {
+          NamedVIPSpec vipSpec = (NamedVIPSpec) resourceSpec;
+          NamedVIPSpec.Builder vipSpecBuilder = NamedVIPSpec.newBuilder(vipSpec);
+          vipSpecBuilder.role(dummyRole);
+          taskResourceSetBuilder.addResource(vipSpecBuilder.build());
+        }
+      }
+
+      //Add Volumes to taskResourceSetBuilder.
+      // SUPPRESS CHECKSTYLE NestedForDepth
+      for (VolumeSpec volumeSpec: taskResourceSet.getVolumes()) {
+        switch(volumeSpec.getType()) {
+          case ROOT:
+            // SUPPRESS CHECKSTYLE MultipleStringLiterals
+            taskResourceSetBuilder.addVolume("ROOT",
+                volumeSpec.getValue().getScalar().getValue(),
+                volumeSpec.getContainerPath(),
+                volumeSpec.getProfiles());
+            break;
+          case MOUNT:
+            // SUPPRESS CHECKSTYLE MultipleStringLiterals
+            taskResourceSetBuilder.addVolume("MOUNT",
+                volumeSpec.getValue().getScalar().getValue(),
+                volumeSpec.getContainerPath(),
+                volumeSpec.getProfiles());
+            break;
+          default:
+            break;
+        }
+      }
+
+      DefaultTaskSpec.Builder taskSpecBuilder = DefaultTaskSpec.newBuilder(task);
+      taskSpecBuilder.resourceSet(taskResourceSetBuilder.build());
+      tasksWithRoleChanged.add(taskSpecBuilder.build());
+    }
+    podSpecBuilder.tasks(tasksWithRoleChanged);
+
+    return podSpecBuilder.build();
   }
 
   @Override
@@ -135,7 +203,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
       logger.info("New prospective config:\n{}", candidateConfigJson);
     } catch (ConfigStoreException e) {
       logger.error(String.format(
-          "Unable to get JSON representation of new prospective config object: %s",
+          "Unable to get JSON representation of new candidate config object: %s",
           candidateConfig), e);
       errors.add(ConfigValidationError.valueError(
           "NewConfigAsJson",
@@ -212,6 +280,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
     return new ConfigurationUpdater.UpdateResult(targetConfigId, errors);
   }
 
+
   /**
    * Detects whether the previous {@link ServiceSpec} set the user. If it didn't, we set it to
    * "root" as Mesos treats a non-set user as "root".
@@ -272,6 +341,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         try {
           final ServiceSpec taskConfig = configStore.fetch(taskConfigId);
           if (!needsConfigUpdate(taskInfo, targetConfig, taskConfig)) {
+            // DELETEME@kjoshi, this sets TaskLabelWriter, but this codepath currently doesn't get executed.
             // Task is effectively already on the target config. Update task's config ID to match
             // target, and allow the duplicate config to be dropped from configStore.
             TaskInfo.Builder taskBuilder = taskInfo.toBuilder();

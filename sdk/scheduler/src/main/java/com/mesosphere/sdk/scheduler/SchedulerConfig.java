@@ -278,6 +278,16 @@ public final class SchedulerConfig {
   private static final AtomicBoolean PRINTED_BUILD_INFO = new AtomicBoolean(false);
 
   /**
+   * When defined, this is the role to use when subscribing to Mesos and for recovering or adding footprint.
+   */
+  private static final String MESOS_ALLOCATION_ROLE = "MESOS_ALLOCATION_ROLE";
+
+  /**
+   * When set to true, the MESOS_ALLOCATION_ROLE value should be used to subscribe and recover or add footprint.
+   */
+  private static final String MARATHON_ENFORCE_GROUP_ROLE = "MARATHON_ENFORCE_GROUP_ROLE";
+
+  /**
    * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
    */
   public static SchedulerConfig fromEnv() {
@@ -384,6 +394,15 @@ public final class SchedulerConfig {
 
   public Optional<String> getSchedulerRegion() {
     return Optional.ofNullable(envStore.getOptional(SERVICE_REGION_ENV, null));
+  }
+
+  public Optional<String> getServiceNamespace() {
+    boolean enforceRole = envStore.getOptionalBoolean(MARATHON_ENFORCE_GROUP_ROLE, false);
+    if (enforceRole) {
+      return Optional.ofNullable(envStore.getOptional(MESOS_ALLOCATION_ROLE, null));
+    } else {
+      return Optional.empty();
+    }
   }
 
   public String getSecretsNamespace(String serviceName) {

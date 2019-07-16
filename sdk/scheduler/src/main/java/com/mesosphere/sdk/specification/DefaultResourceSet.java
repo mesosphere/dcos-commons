@@ -84,6 +84,10 @@ public final class DefaultResourceSet implements ResourceSet {
     return role;
   }
 
+  public String getPreReservedRole() {
+    return preReservedRole;
+  }
+
   public String getPrincipal() {
     return principal;
   }
@@ -278,6 +282,17 @@ public final class DefaultResourceSet implements ResourceSet {
      */
     public DefaultResourceSet build() {
       return new DefaultResourceSet(this);
+    }
+
+    /**
+     * Sets the role {@code role} and returns a reference to this Builder so that the methods can be chained together.
+     *
+     * @param role the {@code role} to use
+     * @return a reference to this Builder
+     */
+    public Builder role(String role) {
+      this.role = role;
+      return this;
     }
   }
 }
