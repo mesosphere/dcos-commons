@@ -56,7 +56,11 @@ def _get_kdc_task(task_name: str) -> dict:
             )
         )
 
-    return dict(_get_kdc_task_inner(task_name=task_name))
+    # we need to convert task_name in case it is foldered to adopt to Marathon conventions
+    # e.g. /folder/kdc app id becomes kdc.folder taskid
+    foldered_task_name = '.'.join(task_name.split('/')[::-1]).rstrip('.')
+
+    return dict(_get_kdc_task_inner(task_name=foldered_task_name))
 
 
 @retrying.retry(stop_max_attempt_number=2, wait_fixed=1000)
