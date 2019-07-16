@@ -1,14 +1,12 @@
 {
   "id": "/kdc",
   "instances": 1,
-  "cpus": 1,
-  "mem": 512,
-  "user": "nobody",
+  "cpus": 0.5,
+  "mem": 128,
   "container": {
-    "type": "MESOS",
+    "type": "DOCKER",
     "docker": {
-      "image": "nvaziri/kdc:mesosphere",
-      "forcePullImage": true
+      "image": "mesosphere/kdc:mit-centos7"
     }
   },
   "networks": [
@@ -20,7 +18,26 @@
     {
       "port": 2500,
       "name": "kdc"
+    },
+    {
+      "port": 2501,
+      "name": "web"
     }
   ],
+  "secrets": {
+    "secret0": {
+      "source": "kdc-admin"
+    }
+  },
+  "env": {
+    "SERVICE_ACCOUNT_SECRET": {
+      "secret": "secret0"
+    }
+  },
+  "labels": {
+    "DCOS_SERVICE_NAME": "kdc",
+    "DCOS_SERVICE_PORT_INDEX": "1",
+    "DCOS_SERVICE_SCHEME": "http"
+  },
   "requirePorts": true
 }

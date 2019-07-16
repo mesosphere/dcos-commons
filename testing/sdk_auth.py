@@ -12,13 +12,10 @@ SHOULD ALSO BE APPLIED TO sdk_auth IN ANY OTHER PARTNER REPOS
 """
 import tempfile
 
-import base64
 import json
 import logging
 import os
-import uuid
 import retrying
-import subprocess
 
 from typing import Any, Dict, List, Optional
 
@@ -31,7 +28,6 @@ import sdk_security
 log = logging.getLogger(__name__)
 
 KERBEROS_APP_ID = "kdc"
-DCOS_BASE64_PREFIX = "__dcos_base64__"
 REALM = "LOCAL"
 
 # Note: Some of the helper functions in this module are wrapped in basic retry logic to provide some
@@ -42,6 +38,7 @@ def _get_kdc_task(task_name: str) -> dict:
     """
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
+
     @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
     def _get_kdc_task_inner(task_name: str) -> dict:
         log.info("Getting KDC task")
@@ -58,6 +55,7 @@ def _get_kdc_task(task_name: str) -> dict:
                 tasks=raw_tasks
             )
         )
+
     return dict(_get_kdc_task_inner(task_name=task_name))
 
 
@@ -177,6 +175,10 @@ class KerberosEnvironment:
         # TODO: Ideally, we should not install this service in the constructor.
         kdc_task_info = self.install()
 
+        # The target keytab location
+        self.keytab_secret_path = None
+        self.keytab_secret_binary = False
+
         # Running task information
         self.framework_id = kdc_task_info["framework_id"]
         self.task_id = kdc_task_info["id"]
@@ -208,33 +210,75 @@ class KerberosEnvironment:
             log.info("Found installed KDC app, destroying it first")
             sdk_marathon.destroy_app(self.app_definition["id"])
 
+        # (re-)create a service account for the KDC service
+        sdk_security.create_service_account("kdc-admin", "kdc-admin")  # Account name  # Secret name
+        sdk_security._grant(
+            "kdc-admin",
+            "dcos:secrets:default:%252F*",
+            "Create any secret in the root path",
+            "create",
+        )
+        sdk_security._grant(
+            "kdc-admin",
+            "dcos:secrets:default:%252F*",
+            "Update any secret in the root path",
+            "update",
+        )
+
         log.info("Installing KDC Marathon app")
         sdk_marathon.install_app(self.app_definition)
         log.info("KDC app installed successfully")
 
+        log.info("Waiting for KDC web API endpoint to become available")
+        self.__wait_for_kdc_api()
+        log.info("KDC web API is now available")
+
         return _get_kdc_task(self.app_definition["id"])
 
-    def __run_kadmin(self, options: List[str], cmd: str, args: List[str]) -> None:
+    def __wait_for_kdc_api(self):
         """
-        Invokes Kerberos' kadmin binary inside the container to run some command.
-        :param options: A list of options given to kadmin.
-        :param cmd: The name of the sub command to run.
-        :param args: A list of arguments passed to the sub command. This should also include any flags
-                     needed to be set for the sub command.
+        Keeps polling the KDC Web endpoint until it becomes available
+        """
+
+        @retrying.retry(stop_max_attempt_number=30, wait_fixed=2000)
+        def probe():
+            sdk_cmd.cluster_request(
+                "GET", "{}/".format(self.get_service_path()), raise_on_error=True
+            )
+
+        return probe()
+
+    def __kdc_api(self, method: str, action: str, json: dict) -> dict:
+        """
+        Invokes a KDC API command to the remote endpoint
+        :param method: 'get' or 'post'
+        :param url: The API action to perform
+        :param request: The JSON payload to send
+        :return (dict):
         :raises a generic Exception if the invocation fails.
         """
-        kadmin_cmd = "/usr/sbin/kadmin {options} {cmd} {args}".format(
-            options=" ".join(options), cmd=cmd, args=" ".join(args)
+        url = "{}/api/{}".format(self.get_service_path(), action)
+        log.info("Performing KDC API {method} query to: {url}".format(method=method, url=url))
+
+        return sdk_cmd.cluster_request(
+            method, url, headers={"content-type": "application/json"}, json=json
         )
 
-        log.info("Running kadmin: {}".format(kadmin_cmd))
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(self.task_id, kadmin_cmd)
-        if rc != 0:
-            raise RuntimeError(
-                "Failed ({}) to invoke kadmin: {}\nstdout: {}\nstderr: {}".format(
-                    rc, kadmin_cmd, stdout, stderr
-                )
-            )
+    def list_principals(self, filter: str = "*") -> List[str]:
+        """
+        Enumerates the principals on the KDC instance that match the given wildcard filter.
+        :param filter: the filter expression for the principals to search.
+        :raises a generic Exception if the invocation fails.
+        """
+
+        res = self.__kdc_api("get", "principals", {"filter": filter})
+        if res.status_code != 200:
+            raise RuntimeError("Unable to enumerate the principals")
+
+        parsed = res.json()
+        print(parsed)
+
+        return parsed.get("data", [])
 
     def add_principals(self, principals: List[str]) -> None:
         """
@@ -258,169 +302,53 @@ class KerberosEnvironment:
         """
         # TODO: Perform sanitation check against validity of format for all given principals and raise an
         # exception when the format of a principal is invalid.
-        self.principals = list(map(lambda x: x.strip(), principals))
+        newPrincipals = list(map(lambda x: x.strip(), principals))
+        log.info(
+            "Queuing the following list of principals for addition to KDC: {principals}".format(
+                principals=newPrincipals
+            )
+        )
+
+        # Just stack the principal names on the array until the user calls `finalize`
+        self.principals += newPrincipals
+
+    def save_keytab_secret(self) -> None:
+        """
+        Commits the previously added principals using `add_principal`, extracts a keytab fo the
+        specific principals and then uploads it as a secret on DC/OS.
+        :param secret_path: The path of the secret where to upload the keytab to
+        """
 
         log.info(
-            "Adding the following list of principals to the KDC: {principals}".format(
-                principals=self.principals
+            "Adding the following list of principals to KDC and creating secret {secret}: {principals}".format(
+                principals=self.principals, secret=self.keytab_secret_path
             )
         )
-        kadmin_options = ["-l"]
-        kadmin_cmd = "add"
-        kadmin_args = ["--use-defaults", "--random-password"]
 
-        try:
-            kadmin_args.extend(self.principals)
-            self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
-        except Exception as e:
+        res = self.__kdc_api(
+            "post",
+            "principals",
+            {
+                "principals": self.principals,
+                "secret": self.keytab_secret_path,
+                "binary": self.keytab_secret_binary,
+            },
+        )
+        if res.status_code != 200:
+            raise RuntimeError("Unable to add principals")
+
+        parsed = res.json()
+        if parsed["status"] != "ok":
             raise RuntimeError(
-                "Failed to add principals {principals}: {err_msg}".format(
-                    principals=self.principals, err_msg=repr(e)
-                )
+                "Unable to add principals: {}".format(parsed.get("error", "Unknown error"))
             )
-
-        log.info("Principals successfully added to KDC")
-
-    def create_remote_keytab(self, keytab_id: str, principals: List[str] = []) -> Optional[str]:
-        """
-        Create a remote keytab for the specified list of principals
-        """
-        name = "{}.{}.keytab".format(keytab_id, str(uuid.uuid4()))
-
-        log.info("Creating keytab: %s", name)
-
-        if not principals:
-            log.info("Using predefined principals")
-            principals = self.principals
-
-        if not principals:
-            log.error("No principals specified not creating keytab")
-            return None
-
-        log.info("Deleting any previous keytab just in case (kadmin will append to it)")
-        sdk_cmd.marathon_task_exec(self.task_id, "rm {}".format(name))
-
-        kadmin_options = ["-l"]
-        kadmin_cmd = "ext"
-        kadmin_args = ["-k", name]
-        kadmin_args.extend(principals)
-
-        self.__run_kadmin(kadmin_options, kadmin_cmd, kadmin_args)
-
-        keytab_absolute_path = os.path.join(
-            "/var/lib/mesos/slave/slaves",
-            self.kdc_host_id,
-            "frameworks",
-            self.framework_id,
-            "executors",
-            self.task_id,
-            "runs/latest",
-            name,
-        )
-        return keytab_absolute_path
-
-    @retrying.retry(stop_max_attempt_number=2, wait_fixed=5000)
-    def get_keytab_for_principals(self, keytab_id: str, principals: List[str]) -> str:
-        """
-        Download a generated keytab for the specified list of principals
-        """
-        remote_keytab_path = self.create_remote_keytab(keytab_id, principals=principals)
-        assert isinstance(remote_keytab_path, str)
-        local_keytab_path = self.get_working_file_path(os.path.basename(remote_keytab_path))
-
-        _copy_file_to_localhost(self.kdc_host_id, remote_keytab_path, local_keytab_path)
-
-        # In a fun twist, at least in the HDFS tests, we sometimes wind up with a _bad_ keytab. I know, right?
-        # We can validate if it is good or bad by checking it with some internal Java APIs.
-        #
-        # See HDFS-493 if you'd like to learn more. Personally, I'd like to forget about this.
-        command = "java -jar {} {}".format(
-            os.path.join(
-                os.path.dirname(os.path.realpath(__file__)),
-                "security",
-                "keytab-validator",
-                "keytab-validator.jar",
-            ),
-            local_keytab_path,
-        )
-        result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-
-        log.info(result.stdout)
-        if result.returncode != 0:
-            # reverse the principal list before generating again.
-            principals.reverse()
-            raise Exception(
-                "The keytab is bad :(. "
-                "We're going to retry generating this keytab with reversed principals. "
-                "What fun."
-            )
-
-        return local_keytab_path
-
-    def __create_and_fetch_keytab(self) -> str:
-        """
-        Creates the keytab file that holds the info about all the principals
-        that have been added to the KDC. It also fetches it locally so that
-        the keytab can be uploaded to the secret store later.
-        """
-        keytab_id = self.get_keytab_path().replace("/", "_")
-        keytab = self.get_keytab_for_principals(keytab_id, self.principals)
-        assert isinstance(keytab, str)
-        return keytab
-
-    def __encode_secret(self, keytab_path: str) -> List[str]:
-        if self.get_keytab_path().startswith(DCOS_BASE64_PREFIX):
-            try:
-                base64_encoded_keytab_path = "{}.base64".format(keytab_path)
-                with open(keytab_path, "rb") as f:
-                    keytab = f.read()
-
-                base64_encoding = base64.b64encode(keytab).decode("utf-8")
-                with open(base64_encoded_keytab_path, "w") as base64_encoded_keytab_file:
-                    base64_encoded_keytab_file.write(base64_encoding)
-
-                log.info(
-                    "Finished base64-encoding secret content (%d bytes): %s",
-                    len(base64_encoding),
-                    base64_encoding,
-                )
-
-                return ["--value-file", base64_encoded_keytab_path]
-            except Exception as e:
-                raise Exception("Failed to base64-encode the keytab file: {}".format(repr(e)))
-
-        log.info("Creating binary secret from %s", keytab_path)
-        return ["-f", keytab_path]
-
-    def __create_and_upload_secret(self, keytab_path: str) -> None:
-        """
-        This method base64 encodes the keytab file and creates a secret with this encoded content so the
-        tasks can fetch it.
-        """
-        log.info("Creating and uploading the keytab file %s to the secret store", keytab_path)
-
-        encoding_options = self.__encode_secret(keytab_path)
-
-        sdk_security.install_enterprise_cli()
-        # try to delete any preexisting secret data:
-        sdk_security.delete_secret(self.keytab_secret_path)
-        # create new secret:
-
-        cmd_list = ["security", "secrets", "create", self.get_keytab_path()]
-        cmd_list.extend(encoding_options)
-
-        create_secret_cmd = " ".join(cmd_list)
-        log.info("Creating secret %s: %s", self.get_keytab_path(), create_secret_cmd)
-        sdk_cmd.run_cli(create_secret_cmd, check=True)
-        log.info("Successfully uploaded a base64-encoded keytab file to the secret store")
 
     def finalize(self) -> None:
         """
         Once the principals have been added, the rest of the environment setup does not ask for more info and can be
         automated, hence this method.
         """
-        local_keytab_path = self.__create_and_fetch_keytab()
-        self.__create_and_upload_secret(local_keytab_path)
+        self.save_keytab_secret()
 
     def get_working_file_path(self, *args: str) -> str:
         if not self._working_dir:
@@ -431,28 +359,46 @@ class KerberosEnvironment:
         working_filepath = os.path.join(self._working_dir, *args)
         return working_filepath
 
+    def get_service_path(self) -> str:
+        # Find the service name
+        service_name_label = list(
+            filter(lambda kv: kv[0] == "DCOS_SERVICE_NAME", self.app_definition["labels"].items())
+        )
+        assert len(service_name_label) == 1
+
+        # Calculate the endpoint
+        return "service/{}".format(service_name_label[0][1])
+
     def get_host(self) -> str:
         return sdk_hosts.autoip_host(service_name="marathon", task_name=self.app_definition["id"])
 
     def get_port(self) -> str:
         return str(self.app_definition["portDefinitions"][0]["port"])
 
+    def get_api_port(self) -> str:
+        return str(self.app_definition["portDefinitions"][1]["port"])
+
     def get_keytab_path(self) -> str:
-        return self.keytab_secret_path
+        if self.keytab_secret_binary:
+            return self.keytab_secret_path
+        else:
+            return "__dcos_base64__{}".format(self.keytab_secret_path)
 
     def set_keytab_path(self, secret_path: str, is_binary: bool) -> None:
-        if is_binary:
-            prefix = ""
-        else:
-            prefix = DCOS_BASE64_PREFIX
-
-        self.keytab_secret_path = "{}{}".format(prefix, secret_path)
+        self.keytab_secret_path = secret_path
+        self.keytab_secret_binary = is_binary
 
     def get_realm(self) -> str:
         return self.kdc_realm
 
     def get_kdc_address(self) -> str:
         return ":".join(str(p) for p in [self.get_host(), self.get_port()])
+
+    def get_kdc_api_address(self) -> str:
+        """
+        The KDC API is exposed as an AdminRouter service on DC/OS
+        """
+        return ":".join(str(p) for p in [self.get_host(), self.get_api_port()])
 
     def get_principal(self, primary: str, instance: Optional[str] = None) -> str:
 
@@ -475,6 +421,9 @@ class KerberosEnvironment:
             log.info("Deleting temporary working directory")
             self._temp_working_dir.cleanup()
 
+        sdk_security.delete_service_account("kdc-admin", "kdc-admin")  # Account name  # Secret name
+
         # TODO: separate secrets handling into another module
         log.info("Deleting keytab secret")
-        sdk_security.delete_secret(self.keytab_secret_path)
+        sdk_security.install_enterprise_cli()
+        sdk_security.delete_secret(self.get_keytab_path())
