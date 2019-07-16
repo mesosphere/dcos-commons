@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.apache.mesos.Protos;
 
 import java.net.URI;
 import java.util.Collection;
@@ -71,4 +72,10 @@ public interface PodSpec {
 
   @JsonProperty("seccomp-profile-name")
   Optional<String> getSeccompProfileName();
+
+  @JsonProperty("shared-memory")
+  Optional<Protos.LinuxInfo.IpcMode> getSharedMemory();
+
+  @JsonProperty("shared-memory-size")
+  Optional<Integer> getSharedMemorySize();
 }

@@ -29,7 +29,8 @@ public final class DefaultConfigValidators {
         new DomainCapabilityValidator(),
         new PlacementRuleIsValid(),
         new RegionCannotChange(),
-        new ServiceNameCannotBreakDNS());
+        new ServiceNameCannotBreakDNS(),
+        new TaskSpecsCannotUseUnsupportedFeatures());
   }
 
   public static Collection<ConfigValidator<ServiceSpec>> getRoleValidators(boolean hasRoleChanged,

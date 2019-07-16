@@ -2,6 +2,7 @@ package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import org.apache.mesos.Protos;
 
 import java.util.Collection;
 import java.util.Map;
@@ -48,4 +49,10 @@ public interface TaskSpec {
 
   @JsonProperty("transport-encryption")
   Collection<TransportEncryptionSpec> getTransportEncryption();
+
+  @JsonProperty("shared-memory")
+  Optional<Protos.LinuxInfo.IpcMode> getSharedMemory();
+
+  @JsonProperty("shared-memory-size")
+  Optional<Integer> getSharedMemorySize();
 }

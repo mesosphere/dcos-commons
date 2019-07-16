@@ -166,20 +166,60 @@ public class DefaultServiceSpecTest {
 
     @Test(expected = Exception.class)
     public void invalidSeccompInfo() throws Exception {
-        //cannot specify both seccomp-unconfined and seccomp-profile at the sane ti
+        //cannot specify both seccomp-unconfined and seccomp-profile at the same time
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-seccomp-info.yml").getFile());
         DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
     }
 
+    @Test
     public void validSeccompInfoAndProfile() throws Exception {
-        //cannot specify both seccomp-unconfined and seccomp-profile at the sane ti
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("valid-seccomp-info.yml").getFile());
         DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
         PodSpec spec = serviceSpec.getPods().get(0);
         Assert.assertEquals(spec.getSeccompUnconfined(), false);
         Assert.assertEquals(spec.getSeccompProfileName().get(), "foobar");
+    }
+
+    @Test
+    public void validSharedMemory() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-shared-memory-pod.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        PodSpec spec = serviceSpec.getPods().get(0);
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.PRIVATE, spec.getSharedMemory().get());
+        Assert.assertTrue(spec.getSharedMemorySize().get().equals(1024));
+    }
+
+    @Test(expected = IllegalArgumentException.class)
+    public void invalidShareParent() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-share-parent-pod.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
+    @Test
+    public void validFullShmSpec() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-shm-spec.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+
+        PodSpec spec = serviceSpec.getPods().get(0);
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.PRIVATE, spec.getSharedMemory().get());
+        Assert.assertTrue(spec.getSharedMemorySize().get().equals(1024));
+
+        TaskSpec spec1 = serviceSpec.getPods().get(0).getTasks().get(0);
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.PRIVATE, spec1.getSharedMemory().get());
+        Assert.assertTrue(spec1.getSharedMemorySize().get().equals(256));
+
+        TaskSpec spec2 = serviceSpec.getPods().get(0).getTasks().get(1);
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.SHARE_PARENT, spec2.getSharedMemory().get());
+        Assert.assertEquals(Optional.empty(), spec2.getSharedMemorySize());
+
+        TaskSpec spec3 = serviceSpec.getPods().get(0).getTasks().get(2);
+        Assert.assertEquals(Protos.LinuxInfo.IpcMode.SHARE_PARENT, spec3.getSharedMemory().get());
+        Assert.assertEquals(Optional.empty(), spec3.getSharedMemorySize());
     }
 
     @Test

@@ -1,0 +1,26 @@
+name: valid-shm-spec
+pods:
+  hello:
+    shared-memory: PRIVATE
+    shared-memory-size: 1024
+    count: 2
+    tasks:
+      foo:
+        goal: RUNNING
+        shared-memory: PRIVATE
+        shared-memory-size: 256
+        cpus: 0.1
+        memory: 256
+        cmd: "some command"
+      bar:
+        shared-memory: SHARE_PARENT
+        goal: RUNNING
+        cpus: 0.1
+        memory: 256
+        cmd: "some command"
+      baz:
+        shared-memory: SHARE_PARENT
+        goal: RUNNING
+        cpus: 0.1
+        memory: 256
+        cmd: "some command"

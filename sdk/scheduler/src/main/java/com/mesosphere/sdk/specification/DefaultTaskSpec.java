@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.Protos;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -52,6 +53,10 @@ public final class DefaultTaskSpec implements TaskSpec {
 
   private Collection<TransportEncryptionSpec> transportEncryption;
 
+  private final Optional<Protos.LinuxInfo.IpcMode> sharedMemory;
+
+  private final Optional<Integer> sharedMemorySize;
+
   @SuppressWarnings("PMD.SimplifiedTernary")
   @JsonCreator
   private DefaultTaskSpec(
@@ -66,7 +71,9 @@ public final class DefaultTaskSpec implements TaskSpec {
       @JsonProperty("config-files") Collection<ConfigFileSpec> configFiles,
       @JsonProperty("discovery-spec") DiscoverySpec discoverySpec,
       @JsonProperty("kill-grace-period") Integer taskKillGracePeriodSeconds,
-      @JsonProperty("transport-encryption") Collection<TransportEncryptionSpec> transportEncryption)
+      @JsonProperty("transport-encryption") Collection<TransportEncryptionSpec> transportEncryption,
+      @JsonProperty("shared-memory") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
+      @JsonProperty("shared-memory-size") Optional<Integer> sharedMemorySize)
   {
     this.name = name;
     this.goalState = goalState;
@@ -85,6 +92,8 @@ public final class DefaultTaskSpec implements TaskSpec {
     this.transportEncryption = (transportEncryption != null) ?
         transportEncryption :
         Collections.emptyList();
+    this.sharedMemory = sharedMemory;
+    this.sharedMemorySize = sharedMemorySize;
   }
 
   private DefaultTaskSpec(Builder builder) {
@@ -100,7 +109,9 @@ public final class DefaultTaskSpec implements TaskSpec {
         builder.configFiles,
         builder.discoverySpec,
         builder.taskKillGracePeriodSeconds,
-        builder.transportEncryption);
+        builder.transportEncryption,
+        builder.sharedMemory,
+        builder.sharedMemorySize);
     ValidationUtils.nonEmpty(this, "name", name);
     ValidationUtils.nonNull(this, "goalState", goalState);
     ValidationUtils.nonNull(this, "essential", essential);
@@ -149,6 +160,8 @@ public final class DefaultTaskSpec implements TaskSpec {
     builder.discoverySpec = copy.getDiscovery().orElse(null);
     builder.taskKillGracePeriodSeconds = copy.getTaskKillGracePeriodSeconds();
     builder.transportEncryption = copy.getTransportEncryption();
+    builder.sharedMemory = copy.getSharedMemory();
+    builder.sharedMemorySize = copy.getSharedMemorySize();
     return builder;
   }
 
@@ -213,6 +226,16 @@ public final class DefaultTaskSpec implements TaskSpec {
   }
 
   @Override
+  public Optional<Protos.LinuxInfo.IpcMode> getSharedMemory() {
+    return sharedMemory;
+  }
+
+  @Override
+  public Optional<Integer> getSharedMemorySize() {
+    return sharedMemorySize;
+  }
+
+  @Override
   public String toString() {
     return ReflectionToStringBuilder.toString(this);
   }
@@ -258,6 +281,10 @@ public final class DefaultTaskSpec implements TaskSpec {
     private Integer taskKillGracePeriodSeconds;
 
     private Collection<TransportEncryptionSpec> transportEncryption;
+
+    private Optional<Protos.LinuxInfo.IpcMode> sharedMemory = Optional.empty();
+
+    private Optional<Integer> sharedMemorySize = Optional.empty();
 
     private Builder() {
     }
@@ -393,6 +420,43 @@ public final class DefaultTaskSpec implements TaskSpec {
       this.taskKillGracePeriodSeconds = taskKillGracePeriodSeconds;
       return this;
     }
+
+    /**
+     * Sets the {@code sharedMemory} and returns a reference to this Builder so that methods
+     * can be chained together.
+     *
+     * @param sharedMemory The IPC mode. SHARE_PARENT and PRIVATE are supported values
+     */
+    public Builder sharedMemory(String sharedMemory) {
+      if (sharedMemory == null) {
+        this.sharedMemory = Optional.empty();
+        return this;
+      }
+
+      switch (sharedMemory) {
+        case "PRIVATE":
+          this.sharedMemory = Optional.of(Protos.LinuxInfo.IpcMode.PRIVATE);
+          return this;
+        case "SHARE_PARENT":
+          this.sharedMemory = Optional.of(Protos.LinuxInfo.IpcMode.SHARE_PARENT);
+          return this;
+        default:
+          this.sharedMemory = Optional.empty();
+          return this;
+      }
+    }
+
+    /**
+     * Sets the {@code sharedMemorySize} and returns a reference to this Builder so that methods
+     * can be chained together.
+     *
+     * @param sharedMemorySize the size of the shared memory.
+     */
+    public Builder sharedMemorySize(Integer sharedMemorySize) {
+      this.sharedMemorySize = Optional.ofNullable(sharedMemorySize);
+      return this;
+    }
+
 
     /**
      * Returns a {@code DefaultTaskSpec} built from the parameters previously set.

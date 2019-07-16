@@ -1,0 +1,22 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    shared-memory: PRIVATE
+    shared-memory-size: 128
+    tasks:
+      server:
+        shared-memory-size: 256
+        shared-memory: SHARE_PARENT
+        goal: RUNNING
+        cmd: |
+              df -m /dev/shm | grep -w 128 &&
+              stat -Lc %i /proc/self/ns/ipc > /dev/shm/child1 &&
+              sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
