@@ -91,50 +91,61 @@ class ServiceBundle(Bundle):
 
     @config.retry
     def create_offers_file(self):
-        warnings.warn("The v1/debug/offers endpoint will be deprecated in favour of the newer "
-                      "v2/debug/offers endpoint.", PendingDeprecationWarning)
-        response = sdk_cmd.service_request("GET", self.service_name, "/v1/debug/offers",
-                                           raise_on_error=False)
+        warnings.warn(
+            "The v1/debug/offers endpoint will be deprecated in favour of the newer "
+            "v2/debug/offers endpoint.",
+            PendingDeprecationWarning,
+        )
+        response = sdk_cmd.service_request(
+            "GET", self.service_name, "/v1/debug/offers", raise_on_error=False
+        )
         if not response.ok:
             log.error(
                 "Could not get scheduler offers\nstatus_code: '%s'\nstderr: '%s'",
-                response.status_code, response.text
+                response.status_code,
+                response.text,
             )
         else:
             self.write_file("service_v1_debug_offers.html", response.text)
 
     @config.retry
     def create_v2_offers_file(self):
-        response = sdk_cmd.service_request("GET", self.service_name, "/v2/debug/offers",
-                                           raise_on_error=False)
+        response = sdk_cmd.service_request(
+            "GET", self.service_name, "/v2/debug/offers", raise_on_error=False
+        )
         if not response.ok:
             log.error(
                 "Could not get v2 scheduler offers\nstatus_code: '%s'\nstderr: '%s'",
-                response.status_code, response.text
+                response.status_code,
+                response.text,
             )
         else:
             self.write_file("service_v2_debug_offers.json", response.text)
 
     @config.retry
     def create_plans_file(self):
-        response = sdk_cmd.service_request("GET", self.service_name, "/v1/debug/plans",
-                                           raise_on_error=False)
+        response = sdk_cmd.service_request(
+            "GET", self.service_name, "/v1/debug/plans", raise_on_error=False
+        )
         if not response.ok:
             log.error(
                 "Could not get scheduler plans\nstatus_code: '%s'\nstderr: '%s'",
-                response.status_code, response.text
+                response.status_code,
+                response.text,
             )
         else:
             self.write_file("service_v1_debug_plans.json", response.text)
 
     @config.retry
     def create_taskstatuses_file(self):
-        response = sdk_cmd.service_request("GET", self.service_name, "/v1/debug/taskStatuses",
-                                           raise_on_error=False)
+        response = sdk_cmd.service_request(
+            "GET", self.service_name, "/v1/debug/taskStatuses", raise_on_error=False
+        )
         if not response.ok:
             log.error(
                 "Could not get scheduler task-statuses\nstatus_code: '%s'\nstderr: '%s'",
-                response.status_code, response.text
+                response.status_code,
+                response.text,
             )
         else:
             self.write_file("service_v1_debug_taskStatuses.json", response.text)
@@ -142,12 +153,14 @@ class ServiceBundle(Bundle):
     @functools.lru_cache()
     @config.retry
     def configuration_ids(self) -> List[str]:
-        response = sdk_cmd.service_request("GET", self.service_name, "/v1/configurations",
-                                           raise_on_error=False)
+        response = sdk_cmd.service_request(
+            "GET", self.service_name, "/v1/configurations", raise_on_error=False
+        )
         if not response.ok:
             log.error(
                 "Could not get scheduler configurations\nstatus_code: '%s'\nstderr: '%s'",
-                response.status_code, response.text
+                response.status_code,
+                response.text,
             )
         else:
             return json.loads(response.text)
@@ -155,12 +168,14 @@ class ServiceBundle(Bundle):
     @functools.lru_cache()
     @config.retry
     def configuration_target_id(self) -> List[str]:
-        response = sdk_cmd.service_request("GET", self.service_name, "/v1/configurations/targetId",
-                                           raise_on_error=False)
+        response = sdk_cmd.service_request(
+            "GET", self.service_name, "/v1/configurations/targetId", raise_on_error=False
+        )
         if not response.ok:
             log.error(
                 "Could not get scheduler configuration target id\nstatus_code: '%s'\nstderr: '%s'",
-                response.status_code, response.text
+                response.status_code,
+                response.text,
             )
         else:
             return json.loads(response.text)
@@ -168,14 +183,20 @@ class ServiceBundle(Bundle):
     @functools.lru_cache()
     @config.retry
     def configuration(self, configuration_id) -> dict:
-        response = sdk_cmd.service_request("GET", self.service_name,
-                                           "/v1/configurations/{}".format(configuration_id),
-                                           raise_on_error=False)
+        response = sdk_cmd.service_request(
+            "GET",
+            self.service_name,
+            "/v1/configurations/{}".format(configuration_id),
+            raise_on_error=False,
+        )
         if not response.ok:
-            log.error("Could not get scheduler configuration with ID '%s'"
-                      "\nstatus_code: '%s'\nstderr: '%s'",
-                      configuration_id, response.status_code, response.text
-                      )
+            log.error(
+                "Could not get scheduler configuration with ID '%s'"
+                "\nstatus_code: '%s'\nstderr: '%s'",
+                configuration_id,
+                response.status_code,
+                response.text,
+            )
         else:
             return json.loads(response.text)
 
@@ -188,7 +209,9 @@ class ServiceBundle(Bundle):
     @config.retry
     def create_configuration_target_id_file(self):
         self.write_file(
-            "service_v1_configuration_target_id.json", self.configuration_target_id(), serialize_to_json=True
+            "service_v1_configuration_target_id.json",
+            self.configuration_target_id(),
+            serialize_to_json=True,
         )
 
     @config.retry

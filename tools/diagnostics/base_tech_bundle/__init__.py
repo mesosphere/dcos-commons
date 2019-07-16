@@ -9,7 +9,6 @@ log = logging.getLogger(__name__)
 
 
 class BaseTechBundle(ServiceBundle):
-
     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
         self.package_name = package_name
         self.service_name = service_name
@@ -36,7 +35,10 @@ class BaseTechBundle(ServiceBundle):
         if rc != 0:
             log.error(
                 "Could not get service configuration. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -51,8 +53,10 @@ class BaseTechBundle(ServiceBundle):
 
         if rc != 0:
             log.error(
-                "Could not get pod status. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "Could not get pod status. return-code: '%s'\n" "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -70,8 +74,10 @@ class BaseTechBundle(ServiceBundle):
 
         if rc != 0:
             log.error(
-                "Could not get plan status. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "Could not get plan status. return-code: '%s'\n" "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -86,8 +92,10 @@ class BaseTechBundle(ServiceBundle):
 
         if rc != 0:
             log.error(
-                "Could not get plan list. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "Could not get plan list. return-code: '%s'\n" "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -99,8 +107,7 @@ class BaseTechBundle(ServiceBundle):
                     self.create_plan_status_file(plan)
             except Exception:
                 log.error(
-                    "Could not parse plan list json.\nstdout: '%s'\nstderr: '%s'",
-                    stdout, stderr
+                    "Could not parse plan list json.\nstdout: '%s'\nstderr: '%s'", stdout, stderr
                 )
 
     def task_exec(self):
@@ -117,8 +124,8 @@ from .cassandra_bundle import CassandraBundle  # noqa: E402
 from .elastic_bundle import ElasticBundle  # noqa: E402
 from .hdfs_bundle import HdfsBundle  # noqa: E402
 from .kafka_bundle import KafkaBundle  # noqa: E402
-from .kubernetes_bundle import KubernetesBundle   # noqa: E402
-from .edgelb_bundle import EdgeLBBundle   # noqa: E402
+from .kubernetes_bundle import KubernetesBundle  # noqa: E402
+from .edgelb_bundle import EdgeLBBundle  # noqa: E402
 
 
 BASE_TECH_BUNDLE = {

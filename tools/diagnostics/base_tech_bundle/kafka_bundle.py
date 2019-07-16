@@ -10,13 +10,8 @@ logger = logging.getLogger(__name__)
 
 
 class KafkaBundle(BaseTechBundle):
-
     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
-        super().__init__(package_name,
-                         service_name,
-                         scheduler_tasks,
-                         service,
-                         output_directory)
+        super().__init__(package_name, service_name, scheduler_tasks, service, output_directory)
 
     def create(self):
         logger.info("Creating Kafka bundle")
@@ -37,8 +32,10 @@ class KafkaBundle(BaseTechBundle):
         broker_list = None
         if rc != 0:
             logger.error(
-                "Could not perform broker list. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "Could not perform broker list. return-code: '%s'\n" "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -49,7 +46,9 @@ class KafkaBundle(BaseTechBundle):
             except Exception:
                 logger.error(
                     "Could not parse broker list json. Writing to service_broker_list.json\n"
-                    "stdout: '%s'\nstderr: '%s'", stdout, stderr
+                    "stdout: '%s'\nstderr: '%s'",
+                    stdout,
+                    stderr,
                 )
             finally:
                 self.write_file("service_broker_list.json", stdout)
@@ -63,8 +62,11 @@ class KafkaBundle(BaseTechBundle):
 
         if rc != 0:
             logger.error(
-                "Could not perform broker get %s. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", broker_id, rc, stdout, stderr
+                "Could not perform broker get %s. return-code: '%s'\n" "stdout: '%s'\nstderr: '%s'",
+                broker_id,
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:

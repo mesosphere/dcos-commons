@@ -9,13 +9,8 @@ logger = logging.getLogger(__name__)
 
 
 class ElasticBundle(BaseTechBundle):
-
     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
-        super().__init__(package_name,
-                         service_name,
-                         scheduler_tasks,
-                         service,
-                         output_directory)
+        super().__init__(package_name, service_name, scheduler_tasks, service, output_directory)
 
     @config.retry
     def task_exec(self, task_id, cmd):
@@ -37,7 +32,10 @@ class ElasticBundle(BaseTechBundle):
         if rc != 0:
             logger.error(
                 "Could not get Elasticsearch /_stats. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
