@@ -40,7 +40,9 @@ def service_account(configure_security):
 @pytest.fixture(scope="module", autouse=True)
 def kerberos(configure_security):
     try:
-        principals = auth.get_service_principals(config.SERVICE_NAME, sdk_auth.REALM)
+        principals = auth.get_service_principals(
+            config.SERVICE_NAME, sdk_auth.REALM, sdk_hosts.get_crypto_id_domain()
+        )
 
         kerberos_env = sdk_auth.KerberosEnvironment()
         kerberos_env.add_principals(principals)
@@ -64,6 +66,7 @@ def hdfs_server(kerberos, service_account):
             "service_account": service_account["name"],
             "service_account_secret": service_account["secret"],
             "security": {
+                "custom_domain": sdk_hosts.get_crypto_id_domain(),
                 "kerberos": {
                     "enabled": True,
                     "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
@@ -102,7 +105,6 @@ def hdfs_client(kerberos, hdfs_server):
         sdk_marathon.destroy_app(client["id"])
 
 
-# TODO(elezar) Is there a better way to determine this?
 DEFAULT_JOURNAL_NODE_TLS_PORT = 8481
 DEFAULT_NAME_NODE_TLS_PORT = 9003
 DEFAULT_DATA_NODE_TLS_PORT = 9006
@@ -124,7 +126,9 @@ def test_verify_https_ports(hdfs_client, node_type, port):
     """
 
     task_id = "{}-0-node".format(node_type)
-    host = sdk_hosts.autoip_host(config.SERVICE_NAME, task_id, port)
+    host = sdk_hosts.custom_host(
+        config.SERVICE_NAME, task_id, sdk_hosts.get_crypto_id_domain(), port
+    )
 
     ca_bundle = transport_encryption.fetch_dcos_ca_bundle(hdfs_client["id"])
 
