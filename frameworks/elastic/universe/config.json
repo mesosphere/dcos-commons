@@ -168,6 +168,10 @@
         "disk_type": {
           "type": "string",
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
           "default": "ROOT"
         },
         "transport_port": {
@@ -183,8 +187,8 @@
             "type": "application/x-zone-constraints+json"
           }
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -208,20 +212,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -282,6 +286,10 @@
         "disk_type": {
           "type": "string",
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
           "default": "ROOT"
         },
         "placement": {
@@ -292,8 +300,8 @@
             "type": "application/x-zone-constraints+json"
           }
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -317,20 +325,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -391,6 +399,10 @@
         "disk_type": {
           "type": "string",
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
           "default": "ROOT"
         },
         "placement": {
@@ -401,8 +413,8 @@
             "type": "application/x-zone-constraints+json"
           }
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -426,20 +438,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -500,6 +512,10 @@
         "disk_type": {
           "type": "string",
           "description": "Disk type to be used for storing data. [ROOT, MOUNT]",
+          "enum": [
+            "ROOT",
+            "MOUNT"
+          ],
           "default": "ROOT"
         },
         "placement": {
@@ -510,8 +526,8 @@
             "type": "application/x-zone-constraints+json"
           }
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -535,20 +551,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -557,7 +573,7 @@
               }
             }
           }
-        }     
+        }
       },
       "required": [
         "cpus",
@@ -608,11 +624,24 @@
         "script_allowed_types": {
           "description": "By default all script types (inline,file,stored) are allowed to be executed. This can be modified using the setting script_allowed_types. Only the types specified as part of the setting will be allowed to be executed. To specify no types are allowed, set script.allowed_types to be none. Empty string \"\" means all types (default).",
           "type": "string",
+          "enum": [
+            "",
+            "inline",
+            "file",
+            "stored"
+          ],
           "default": ""
         },
         "script_allowed_contexts": {
           "description": "By default all script contexts (search,update,aggs,plugin) are allowed to be executed. This can be modified using the setting script_allowed_contexts. Only the contexts specified as part of the setting will be allowed to be executed. To specify no contexts are allowed, set script_allowed_contexts to be none. Empty string \"\" means all contexts (default).",
           "type": "string",
+          "enum": [
+            "",
+            "search",
+            "update",
+            "aggs",
+            "plugin"
+          ],
           "default": ""
         },
         "repositories_url_allowed_urls": {
@@ -736,7 +765,7 @@
           "default": 10000
         },
         "thread_pool_search_size": {
-          "description": "For count/search/suggest operations. Thread pool type is fixed with a size of int((# of available_processors * 3) / 2) + 1. Empty means do not explicity set.",
+          "description": "For count/search/suggest operations. Thread pool type is fixed with a size of int((# of available_processors * 3) / 2) + 1. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -746,7 +775,7 @@
           "default": 1000
         },
         "thread_pool_index_size": {
-          "description": "For index/delete operations. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicity set.",
+          "description": "For index/delete operations. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -756,7 +785,7 @@
           "default": 200
         },
         "thread_pool_get_size": {
-          "description": "For get operations. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicity set.",
+          "description": "For get operations. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -766,7 +795,7 @@
           "default": 200
         },
         "thread_pool_bulk_size": {
-          "description": "For bulk operations. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicity set.",
+          "description": "For bulk operations. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -776,7 +805,7 @@
           "default": 200
         },
         "thread_pool_listener_size": {
-          "description": "Mainly for java client executing of action when listener threaded is set to true. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicity set.",
+          "description": "Mainly for java client executing of action when listener threaded is set to true. Thread pool type is fixed with a size of # of available processors. The size parameter controls the number of threads. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -786,12 +815,12 @@
           "default": ""
         },
         "thread_pool_warmer_core": {
-          "description": "For segment warm-up operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "description": "For segment warm-up operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "thread_pool_warmer_max": {
-          "description": "For segment warm-up operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "description": "For segment warm-up operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -801,12 +830,12 @@
           "default": "5m"
         },
         "thread_pool_snapshot_core": {
-          "description": "For snapshot/restore operations. Thread pool type is scaling with a keep-alive of 5m and a max of min(5, (# of available processors)/2). This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "description": "For snapshot/restore operations. Thread pool type is scaling with a keep-alive of 5m and a max of min(5, (# of available processors)/2). This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "thread_pool_snapshot_max": {
-          "description": "For snapshot/restore operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "description": "For snapshot/restore operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -816,12 +845,12 @@
           "default": "5m"
         },
         "thread_pool_refresh_core": {
-          "description": "For refresh operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "description": "For refresh operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "thread_pool_refresh_max": {
-          "description": "For refresh operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "description": "For refresh operations. The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -831,12 +860,12 @@
           "default": "5m"
         },
         "thread_pool_generic_core": {
-          "description": "For generic operations (e.g., background node discovery). The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "description": "For generic operations (e.g., background node discovery). The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "thread_pool_generic_max": {
-          "description": "For generic operations (e.g., background node discovery). The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicity set.",
+          "description": "For generic operations (e.g., background node discovery). The scaling thread pool holds a dynamic number of threads. This number is proportional to the workload and varies between the value of the core and max parameters. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
@@ -846,82 +875,82 @@
           "default": "30s"
         },
         "indices_breaker_total_limit": {
-          "description": "Starting limit for overall parent breaker, defaults to 70% of JVM heap. Empty means do not explicity set.",
+          "description": "Starting limit for overall parent breaker, defaults to 70% of JVM heap. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "indices_breaker_fielddata_limit": {
-          "description": "Limit for fielddata breaker, defaults to 60% of JVM heap. Empty means do not explicity set. Empty means do not explicity set.",
+          "description": "Limit for fielddata breaker, defaults to 60% of JVM heap. Empty means do not explicitly set. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "indices_breaker_fielddata_overhead": {
-          "description": "A constant that all field data estimations are multiplied with to determine a final estimation. Defaults to 1.03. Empty means do not explicity set. Empty means do not explicity set.",
+          "description": "A constant that all field data estimations are multiplied with to determine a final estimation. Defaults to 1.03. Empty means do not explicitly set. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "network_breaker_inflight_requests_limit": {
-          "description": "Limit for in flight requests breaker, defaults to 100% of JVM heap. This means that it is bound by the limit configured for the parent circuit breaker. Empty means do not explicity set.",
+          "description": "Limit for in flight requests breaker, defaults to 100% of JVM heap. This means that it is bound by the limit configured for the parent circuit breaker. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "network_breaker_inflight_requests_overhead": {
-          "description": "A constant that all in flight requests estimations are multiplied with to determine a final estimation. Defaults to 1. Empty means do not explicity set.",
+          "description": "A constant that all in flight requests estimations are multiplied with to determine a final estimation. Defaults to 1. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "script_max_compilations_per_minute": {
-          "description": "Limit for the number of unique dynamic scripts within a minute that are allowed to be compiled. Defaults to 15. Empty means do not explicity set.",
+          "description": "Limit for the number of unique dynamic scripts within a minute that are allowed to be compiled. Defaults to 15. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "indices_fielddata_cache_size": {
-          "description": "The max size of the field data cache, eg 30% of node heap space, or an absolute value, eg 12GB. Defaults to unbounded. Empty means do not explicity set.",
+          "description": "The max size of the field data cache, eg 30% of node heap space, or an absolute value, eg 12GB. Defaults to unbounded. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "indices_queries_cache_size": {
-          "description": "Controls the memory size for the filter cache , defaults to 10%. Accepts either a percentage value, like 5%, or an exact value, like 512mb. Empty means do not explicity set.",
+          "description": "Controls the memory size for the filter cache , defaults to 10%. Accepts either a percentage value, like 5%, or an exact value, like 512mb. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "indices_memory_index_buffer_size": {
-          "description": "Accepts either a percentage or a byte size value. It defaults to 10%, meaning that 10% of the total heap allocated to a node will be used as the indexing buffer size shared across all shards. Empty means do not explicity set.",
+          "description": "Accepts either a percentage or a byte size value. It defaults to 10%, meaning that 10% of the total heap allocated to a node will be used as the indexing buffer size shared across all shards. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "indices_memory_min_index_buffer_size": {
-          "description": "If the index_buffer_size is specified as a percentage, then this setting can be used to specify an absolute minimum. Defaults to 48mb. Empty means do not explicity set.",
+          "description": "If the index_buffer_size is specified as a percentage, then this setting can be used to specify an absolute minimum. Defaults to 48mb. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "indices_memory_max_index_buffer_size": {
-          "description": "If the index_buffer_size is specified as a percentage, then this setting can be used to specify an absolute maximum. Defaults to unbounded. Empty means do not explicity set.",
+          "description": "If the index_buffer_size is specified as a percentage, then this setting can be used to specify an absolute maximum. Defaults to unbounded. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "indices_recovery_max_bytes_per_sec": {
-          "description": "This can be set to manage the recovery policy. Defaults to 40mb. Empty means do not explicity set.",
+          "description": "This can be set to manage the recovery policy. Defaults to 40mb. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "search_remote_connections_per_cluster": {
-          "description": "The number of nodes to connect to per remote cluster. The default is 3. Empty means do not explicity set.",
+          "description": "The number of nodes to connect to per remote cluster. The default is 3. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "search_remote_initial_connect_timeout": {
-          "description": "The time to wait for remote connections to be established when the node starts. The default is 30s. Empty means do not explicity set.",
+          "description": "The time to wait for remote connections to be established when the node starts. The default is 30s. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "search_remote_node_attr": {
-          "description": "A node attribute to filter out nodes that are eligible as a gateway node in the remote cluster. For instance a node can have a node attribute node_attr_gateway: true such that only nodes with this attribute will be connected to if search_remote_node_attr is set to gateway. Empty means do not explicity set.",
+          "description": "A node attribute to filter out nodes that are eligible as a gateway node in the remote cluster. For instance a node can have a node attribute node_attr_gateway: true such that only nodes with this attribute will be connected to if search_remote_node_attr is set to gateway. Empty means do not explicitly set.",
           "type": "string",
           "default": ""
         },
         "search_remote_connect": {
-          "description": "By default, any node in the cluster can act as a cross-cluster client and connect to remote clusters. The search_remote_connect setting can be set to false (defaults to true) to prevent certain nodes from connecting to remote clusters. Cross-cluster search requests must be sent to a node that is allowed to act as a cross-cluster client. Empty means do not explicity set.",
+          "description": "By default, any node in the cluster can act as a cross-cluster client and connect to remote clusters. The search_remote_connect setting can be set to false (defaults to true) to prevent certain nodes from connecting to remote clusters. Cross-cluster search requests must be sent to a node that is allowed to act as a cross-cluster client. Empty means do not explicitly set.",
           "type": "string",
           "default": "false"
         },
@@ -953,6 +982,11 @@
         "discovery_zen_no_master_block": {
           "description": "Controls what operations should be rejected when there is no active master. There are two valid operations: all and write (defaut). Empty means do not explicitly set.",
           "type": "string",
+          "enum": [
+            "",
+            "all",
+            "write"
+          ],
           "default": ""
         },
         "cluster_blocks_read_only": {

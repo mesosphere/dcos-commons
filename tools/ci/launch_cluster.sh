@@ -7,14 +7,23 @@ set -e
 LAUNCH_SUCCESS="False"
 RETRY_LAUNCH="True"
 
+env
+
 while [ x"${LAUNCH_SUCCESS}" == x"False" ]; do
     rm -f ${CLUSTER_INFO_FILE} # dcos-launch complains if the file already exists
+
+    # The first parameter to wrap.sh is the name of the virtual environment the
+    # command should run in. The rest of the parameters is the command itself.
     /venvs/wrap.sh dcos-launch dcos-launch create --config-path=${LAUNCH_CONFIG_FILE} --info-path=${CLUSTER_INFO_FILE}
+
     if [ x"$RETRY_LAUNCH" == x"True" ]; then
         set +e
     else
         set -e
     fi
+
+    # The first parameter to wrap.sh is the name of the virtual environment the
+    # command should run in. The rest of the parameters is the command itself.
     /venvs/wrap.sh dcos-launch dcos-launch wait --info-path=${CLUSTER_INFO_FILE} 2>&1 | tee dcos-launch-wait-output.stdout
 
     # Grep exits with an exit code of 1 if no lines are matched. We thus need to
@@ -35,7 +44,12 @@ while [ x"${LAUNCH_SUCCESS}" == x"False" ]; do
         RETRY_LAUNCH="False"
         set -e
 
-        # We need to wait for the current stack to be deleted
+
+        # We need to wait for the current stack to be deleted.
+        #
+        # The first parameter to wrap.sh is the name of the virtual environment
+        # the command should run in. The rest of the parameters is the command
+        # itself.
         /venvs/wrap.sh dcos-launch dcos-launch delete --info-path=${CLUSTER_INFO_FILE}
         rm -f ${CLUSTER_INFO_FILE}
         echo "Cluster creation failed. Retrying after 30 seconds"

@@ -3,9 +3,6 @@ rootProject.name = 'dcos-commons'
 include 'frameworks/cassandra'
 project(':frameworks/cassandra').name = 'cassandra'
 
-include 'frameworks/elastic'
-project(':frameworks/elastic').name = 'elastic'
-
 include 'frameworks/hdfs'
 project(':frameworks/hdfs').name = 'hdfs'
 

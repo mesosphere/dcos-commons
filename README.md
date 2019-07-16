@@ -7,7 +7,7 @@
 [__FAQ__](docs/pages/faq.md) |
 [__Javadocs__](https://mesosphere.github.io/dcos-commons/reference/api/) |
 [__Contributing__](CONTRIBUTING.md) |
-[__Slack__](http://chat.dcos.io)
+[__Slack__](https://chat.dcos.io)
 
 ---
 __DC/OS SDK__ is a collection of tools, libraries, and documentation for easy integration of technologies such as Kafka, Cassandra, HDFS, Spark, and TensorFlow with DC/OS.
