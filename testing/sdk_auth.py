@@ -27,8 +27,8 @@ import sdk_security
 
 log = logging.getLogger(__name__)
 
-KERBEROS_APP_ID = "kdc"
-REALM = "LOCAL"
+KERBEROS_APP_ID = os.getenv("KERBEROS_APP_ID", "kdc")
+REALM = os.getenv("REALM", "LOCAL")
 
 # Note: Some of the helper functions in this module are wrapped in basic retry logic to provide some
 # resiliency towards possible intermittent network failures.
