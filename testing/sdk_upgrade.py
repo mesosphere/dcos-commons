@@ -215,8 +215,8 @@ def _wait_for_deployment(
         log.info("No config change detected. Tasks should not be restarted")
         sdk_tasks.check_tasks_not_updated(service_name, "", task_ids)
     else:
-        # If we have hello-0, world-0 and world-1 and the upgrade only affects hello pod only the hello-0 task will
-        # be relaunched.
+        # if we have hello-0, world-0 and world-1 and the upgrade only affects hello pod only the hello pod will
+        # be relaunched, checking all task_ids is an error here.
         # log.info("Checking that all tasks have restarted")
         # sdk_tasks.check_tasks_updated(service_name, "", task_ids)
 

@@ -322,10 +322,10 @@ public class PodInfoBuilder {
 
     taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), true, true));
 
-    if (taskSpec.getSharedMemorySize() != null && taskSpec.getSharedMemory().isPresent()) {
+    if (taskSpec.getSharedMemory().isPresent()) {
       taskInfoBuilder.getContainerBuilder().getLinuxInfoBuilder().setIpcMode(taskSpec.getSharedMemory().get()).build();
     }
-    if (podSpec.getSharedMemorySize() != null && taskSpec.getSharedMemorySize().isPresent()) {
+    if (taskSpec.getSharedMemorySize().isPresent()) {
       taskInfoBuilder.getContainerBuilder()
           .getLinuxInfoBuilder()
           .setShmSize(taskSpec.getSharedMemorySize().get())
@@ -606,11 +606,11 @@ public class PodInfoBuilder {
       }
     } else {
 
-      if (podSpec.getSharedMemorySize() != null && podSpec.getSharedMemory().isPresent()) {
+      if (podSpec.getSharedMemory().isPresent()) {
         containerInfo.getLinuxInfoBuilder().setIpcMode(podSpec.getSharedMemory().get());
       }
 
-      if (podSpec.getSharedMemorySize() != null && podSpec.getSharedMemorySize().isPresent()) {
+      if (podSpec.getSharedMemorySize().isPresent()) {
         containerInfo.getLinuxInfoBuilder().setShmSize(podSpec.getSharedMemorySize().get());
       }
     }
