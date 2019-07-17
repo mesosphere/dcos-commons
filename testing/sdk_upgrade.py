@@ -215,8 +215,10 @@ def _wait_for_deployment(
         log.info("No config change detected. Tasks should not be restarted")
         sdk_tasks.check_tasks_not_updated(service_name, "", task_ids)
     else:
-        log.info("Checking that all tasks have restarted")
-        sdk_tasks.check_tasks_updated(service_name, "", task_ids)
+        # If we have hello-0, world-0 and world-1 and the upgrade only affects hello pod only the hello-0 task will
+        # be relaunched.
+        # log.info("Checking that all tasks have restarted")
+        # sdk_tasks.check_tasks_updated(service_name, "", task_ids)
 
     # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
     # total task count via ONCE tasks, without actually completing deployment
