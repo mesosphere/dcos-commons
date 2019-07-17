@@ -59,8 +59,8 @@ def _get_kdc_task(task_name: str) -> dict:
         )
 
     # we need to convert task_name in case it is foldered to adopt to Marathon conventions
-    # e.g. /folder/kdc app id becomes kdc.folder taskid
-    foldered_task_name = '.'.join(task_name.split('/')[::-1]).rstrip('.')
+    # e.g. /folder/kdc Marathon App ID becomes kdc.folder Mesos Task ID
+    foldered_task_name = ".".join(task_name.split("/")[::-1]).rstrip(".")
 
     return dict(_get_kdc_task_inner(task_name=foldered_task_name))
 
@@ -218,7 +218,8 @@ class KerberosEnvironment:
 
         # (re-)create a service account for the KDC service
         sdk_security.create_service_account(
-            service_account_name=KDC_SERVICE_ACCOUNT, service_account_secret=KDC_SERVICE_ACCOUNT_SECRET
+            service_account_name=KDC_SERVICE_ACCOUNT,
+            service_account_secret=KDC_SERVICE_ACCOUNT_SECRET,
         )
         sdk_security._grant(
             KDC_SERVICE_ACCOUNT,
@@ -430,7 +431,8 @@ class KerberosEnvironment:
             self._temp_working_dir.cleanup()
 
         sdk_security.delete_service_account(
-            service_account_name=KDC_SERVICE_ACCOUNT, service_account_secret=KDC_SERVICE_ACCOUNT_SECRET
+            service_account_name=KDC_SERVICE_ACCOUNT,
+            service_account_secret=KDC_SERVICE_ACCOUNT_SECRET,
         )
 
         # TODO: separate secrets handling into another module
