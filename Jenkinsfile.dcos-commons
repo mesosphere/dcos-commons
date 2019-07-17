@@ -30,14 +30,14 @@ pipeline {
         stage('docker login') {
             steps {
                 // Login to the Docker registry.
-                sh("echo WOULD docker login -u ${DOCKER_USR} -p ${DOCKER_PSW}")
+                sh("docker login -u ${DOCKER_USR} -p ${DOCKER_PSW}")
             }
         }
  
         stage('build') {
             steps {
                 // Build Docker image.
-                sh("echo WOULD docker build -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
+                sh("docker build -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
             }
         }
  
@@ -49,7 +49,7 @@ pipeline {
   
             steps {
                 script {
-                    sh("echo WOULD docker push mesosphere/${IMAGE}:latest")
+                    sh("docker push mesosphere/${IMAGE}:latest")
                 }
             }
         }
