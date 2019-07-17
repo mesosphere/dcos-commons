@@ -621,8 +621,7 @@ public final class DefaultPodSpec implements PodSpec {
         case "SHARE_PARENT":
           throw new IllegalArgumentException("Cannot specify SHARE_PARENT at pod level");
         default:
-          this.sharedMemory = Optional.empty();
-          return this;
+          throw new IllegalArgumentException("Invalid IPC Mode");
       }
     }
 

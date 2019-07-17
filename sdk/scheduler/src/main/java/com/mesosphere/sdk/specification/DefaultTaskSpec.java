@@ -441,8 +441,7 @@ public final class DefaultTaskSpec implements TaskSpec {
           this.sharedMemory = Optional.of(Protos.LinuxInfo.IpcMode.SHARE_PARENT);
           return this;
         default:
-          this.sharedMemory = Optional.empty();
-          return this;
+          throw new IllegalArgumentException("Invalid IPC Mode");
       }
     }
 
