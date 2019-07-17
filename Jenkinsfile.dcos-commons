@@ -6,7 +6,6 @@ void setBuildStatus(String context, String message, String state) {
             $class: "GitHubCommitStatusSetter",
             contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
             reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/mesosphere/dcos-commons"],
-//            errorHandlers: [[$class: "ChangingBuildStatusErrorHandler", result: "UNSTABLE"]],
             statusResultSource: [
                 $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]
             ]
