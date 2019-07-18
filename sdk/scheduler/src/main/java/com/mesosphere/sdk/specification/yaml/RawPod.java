@@ -73,8 +73,8 @@ public final class RawPod {
       @JsonProperty("host-volumes") WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes,
       @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
       @JsonProperty("seccomp-profile-name") String seccompProfileName,
-      @JsonProperty("shared-memory") String sharedMemory,
-      @JsonProperty("shared-memory-size") Integer sharedMemorySize) throws Exception
+      @JsonProperty("ipc-mode") String sharedMemory,
+      @JsonProperty("shm-size") Integer sharedMemorySize) throws Exception
   {
     this.placement = placement;
     this.count = count;

@@ -72,8 +72,8 @@ public final class DefaultTaskSpec implements TaskSpec {
       @JsonProperty("discovery-spec") DiscoverySpec discoverySpec,
       @JsonProperty("kill-grace-period") Integer taskKillGracePeriodSeconds,
       @JsonProperty("transport-encryption") Collection<TransportEncryptionSpec> transportEncryption,
-      @JsonProperty("shared-memory") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
-      @JsonProperty("shared-memory-size") Optional<Integer> sharedMemorySize)
+      @JsonProperty("ipc-mode") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
+      @JsonProperty("shm-size") Optional<Integer> sharedMemorySize)
   {
     this.name = name;
     this.goalState = goalState;

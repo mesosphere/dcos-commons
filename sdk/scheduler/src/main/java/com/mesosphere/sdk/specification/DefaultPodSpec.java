@@ -81,8 +81,8 @@ public final class DefaultPodSpec implements PodSpec {
       @JsonProperty("host-volumes") Collection<HostVolumeSpec> hostVolumes,
       @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
       @JsonProperty("seccomp-profile-name") Optional<String> seccompProfileName,
-      @JsonProperty("shared-memory") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
-      @JsonProperty("shared-memory-size") Optional<Integer> sharedMemorySize)
+      @JsonProperty("ipc-mode") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
+      @JsonProperty("shm-size") Optional<Integer> sharedMemorySize)
   {
     this.type = type;
     this.user = user;

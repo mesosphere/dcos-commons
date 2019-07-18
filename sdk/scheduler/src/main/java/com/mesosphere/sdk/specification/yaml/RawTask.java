@@ -70,8 +70,8 @@ public final class RawTask {
       @JsonProperty("discovery") RawDiscovery discovery,
       @JsonProperty("kill-grace-period") Integer taskKillGracePeriodSeconds,
       @JsonProperty("transport-encryption") List<RawTransportEncryption> transportEncryption,
-      @JsonProperty("shared-memory") String sharedMemory,
-      @JsonProperty("shared-memory-size") Integer sharedMemorySize)
+      @JsonProperty("ipc-mode") String sharedMemory,
+      @JsonProperty("shm-size") Integer sharedMemorySize)
   {
     this.goal = goal;
     this.essential = essential;

@@ -73,9 +73,9 @@ public interface PodSpec {
   @JsonProperty("seccomp-profile-name")
   Optional<String> getSeccompProfileName();
 
-  @JsonProperty("shared-memory")
+  @JsonProperty("ipc-mode")
   Optional<Protos.LinuxInfo.IpcMode> getSharedMemory();
 
-  @JsonProperty("shared-memory-size")
+  @JsonProperty("shm-size")
   Optional<Integer> getSharedMemorySize();
 }
