@@ -5,12 +5,12 @@ scheduler:
 pods:
   hello:
     count: {{HELLO_COUNT}}
-    shared-memory: PRIVATE
-    shared-memory-size: 128
+    ipc-mode: PRIVATE
+    shm-size: 128
     tasks:
       server:
-        shared-memory-size: 256
-        shared-memory: SHARE_PARENT
+        shm-size: 256
+        ipc-mode: SHARE_PARENT
         goal: RUNNING
         cmd: |
               df -m /dev/shm | grep -w 128 &&

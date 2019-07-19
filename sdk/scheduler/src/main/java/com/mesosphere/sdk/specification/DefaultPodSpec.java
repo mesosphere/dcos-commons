@@ -81,8 +81,8 @@ public final class DefaultPodSpec implements PodSpec {
       @JsonProperty("host-volumes") Collection<HostVolumeSpec> hostVolumes,
       @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
       @JsonProperty("seccomp-profile-name") Optional<String> seccompProfileName,
-      @JsonProperty("shared-memory") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
-      @JsonProperty("shared-memory-size") Optional<Integer> sharedMemorySize)
+      @JsonProperty("ipc-mode") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
+      @JsonProperty("shm-size") Optional<Integer> sharedMemorySize)
   {
     this.type = type;
     this.user = user;
@@ -621,8 +621,7 @@ public final class DefaultPodSpec implements PodSpec {
         case "SHARE_PARENT":
           throw new IllegalArgumentException("Cannot specify SHARE_PARENT at pod level");
         default:
-          this.sharedMemory = Optional.empty();
-          return this;
+          throw new IllegalArgumentException("Invalid IPC Mode");
       }
     }
 

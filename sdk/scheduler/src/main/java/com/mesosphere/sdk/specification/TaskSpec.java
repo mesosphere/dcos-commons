@@ -50,9 +50,9 @@ public interface TaskSpec {
   @JsonProperty("transport-encryption")
   Collection<TransportEncryptionSpec> getTransportEncryption();
 
-  @JsonProperty("shared-memory")
+  @JsonProperty("ipc-mode")
   Optional<Protos.LinuxInfo.IpcMode> getSharedMemory();
 
-  @JsonProperty("shared-memory-size")
+  @JsonProperty("shm-size")
   Optional<Integer> getSharedMemorySize();
 }
