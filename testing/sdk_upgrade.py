@@ -223,9 +223,6 @@ def _wait_for_deployment(
         if not (deployment_is_complete and recovery_is_complete):
             log.info("Checking that all tasks have restarted")
             sdk_tasks.check_tasks_updated(service_name, "", task_ids)
-    else:
-        log.info("Checking that all tasks have restarted")
-        sdk_tasks.check_tasks_updated(service_name, "", task_ids)
 
     # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
     # total task count via ONCE tasks, without actually completing deployment
