@@ -94,6 +94,35 @@
             "type": "application/x-region+string"
           }
         },
+        "task_failure_backoff": {
+          "description": "Configuration for back off of failed/error tasks",
+          "type": "object",
+          "properties" : {
+            "enabled": {
+              "description": "Enable backoff delay",
+              "type": "boolean",
+              "default": true
+            },
+            "backoff_factor": {
+              "description": "The rate of advancing the backoff delay on a failing task",
+              "type": "number",
+              "default": 1.15
+            },
+            "initial_backoff": {
+              "description": "Initial backoff delay for a task that failed for the first time (in seconds)",
+              "type": "integer",
+              "default": 60
+            },
+            "max_launch_delay": {
+              "description": "Maximum launch delay for any task (in seconds)",
+              "type": "integer",
+              "default": 300
+            }
+          },
+          "required": [
+            "enabled"
+          ]
+        },
         "security": {
           "description": "Cassandra security settings",
           "type": "object",
