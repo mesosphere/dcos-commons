@@ -54,11 +54,8 @@ pods:
           fi &&
           printf "[couchdb]\ndatabase_dir = $MESOS_SANDBOX/couchdb-container\n" >> /opt/couchdb/etc/local.d/container.ini &&
           printf "view_index_dir = $MESOS_SANDBOX/couchdb-container\n" >> /opt/couchdb/etc/local.d/container.ini &&
-          if [ "{{COUCHDB_USER}}" ] && [ "{{COUCHDB_PASSWORD}}" ] && [ -z "{{COUCHDB_HASHED_PASSWORD}}" ]; then
+          if [ "{{COUCHDB_USER}}" ] && [ "{{COUCHDB_PASSWORD}}" ]; then
               printf "[admins]\n{{COUCHDB_USER}} = {{COUCHDB_PASSWORD}}\n" >> /opt/couchdb/etc/local.d/container.ini
-          fi &&
-          if [ "{{COUCHDB_USER}}" ] && [ "{{COUCHDB_HASHED_PASSWORD}}" ]; then
-              printf "[admins]\n{{COUCHDB_USER}} = {{COUCHDB_HASHED_PASSWORD}}\n" >> /opt/couchdb/etc/local.d/container.ini
           fi &&
           if [ "{{COUCHDB_SECRET}}" ]; then
               printf "[couch_httpd_auth]\nsecret = {{COUCHDB_SECRET}}\n" >> /opt/couchdb/etc/local.d/container.ini
