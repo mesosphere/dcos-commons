@@ -11,6 +11,11 @@
           "pattern": "^(\\/?((\\.\\.)|(([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])\\.)*([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9]))?($|\\/))+$",
           "default": "cassandra"
         },
+        "marathon_enforce_group_role" : {
+          "description": "DELEVELOPMENT ONLY! WILL BE REMOVED IN RELEASE. Whether to allocate using Mesos allocation role or use the legacy role subscription behaviour.",
+          "type": "boolean",
+          "default": false
+        },
         "user": {
           "description": "The user that runs the Cassandra nodes and owns the Mesos sandbox.",
           "type": "string",
