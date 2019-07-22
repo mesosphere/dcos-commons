@@ -5,6 +5,8 @@ scheduler:
 pods:
   node:
     count: {{NODES}}
+    ipc-mode: PRIVATE
+    shm-size: 128
     placement: '{{{PLACEMENT_CONSTRAINT}}}'
     {{#ENABLE_VIRTUAL_NETWORK}}
     networks:
@@ -59,9 +61,14 @@ pods:
         memory: 1024
     tasks:
       server:
+        shm-size: 256
+        ipc-mode: SHARE_PARENT
         goal: RUNNING
         resource-set: server-resources
         cmd: |
+                df -m /dev/shm | grep -w 128 &&
+                stat -Lc %i /proc/self/ns/ipc > /dev/shm/child1 &&
+                sleep $SLEEP_DURATION
                 set -e
 
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)

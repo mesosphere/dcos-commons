@@ -99,6 +99,11 @@
             "type": "application/x-region+string"
           }
         },
+        "sleep": {
+          "description": "The sleep duration in seconds before tasks exit.",
+          "type": "number",
+          "default": 1000
+        },
         "task_failure_backoff": {
           "description": "Configuration for back off of failed/error tasks",
           "type": "object",
