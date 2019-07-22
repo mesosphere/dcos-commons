@@ -9,7 +9,6 @@ pods:
     shm-size: 128
     tasks:
       server:
-        shm-size: 256
         ipc-mode: SHARE_PARENT
         goal: RUNNING
         cmd: |
