@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.offer.evaluate.security;
 
 import com.mesosphere.sdk.http.EndpointUtils;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodInstance;
@@ -58,7 +59,7 @@ public class CertificateNamesGenerator {
   {
     this.schedulerConfig = schedulerConfig;
     this.serviceName = serviceName;
-    this.taskInstanceName = TaskSpec.getInstanceName(podInstance, taskSpec);
+    this.taskInstanceName = CommonIdUtils.getTaskInstanceName(podInstance, taskSpec);
     // Task can specify its own service discovery name
     if (taskSpec.getDiscovery().isPresent() &&
         taskSpec.getDiscovery().get().getPrefix().isPresent())

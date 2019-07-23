@@ -27,6 +27,7 @@ public interface Plan extends ParentElement<Phase> {
         .stream()
         .map(phase -> phase.getStrategy().getCandidates(phase.getChildren(), dirtyAssets))
         .flatMap(Collection::stream)
+        .filter(step -> !step.isDelayed())
         .collect(Collectors.toList());
   }
 

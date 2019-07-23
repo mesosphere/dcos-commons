@@ -185,7 +185,7 @@ public class PersistentLaunchRecorder {
         // Avoid returning sourceTask itself:
         .filter(taskSpec -> !taskSpec.getName().equals(sourceTaskSpec.getName()))
         .filter(taskSpec -> taskSpec.getResourceSet().equals(sourceTaskSpec.getResourceSet()))
-        .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+        .map(taskSpec -> CommonIdUtils.getTaskInstanceName(podInstance, taskSpec))
         .collect(Collectors.toList());
 
     // Fetch any existing matching TaskInfos from the state store

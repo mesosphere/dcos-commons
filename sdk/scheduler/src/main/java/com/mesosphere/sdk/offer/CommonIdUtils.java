@@ -1,5 +1,8 @@
 package com.mesosphere.sdk.offer;
 
+import com.mesosphere.sdk.specification.PodInstance;
+import com.mesosphere.sdk.specification.TaskSpec;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.mesos.Protos;
 
@@ -251,5 +254,13 @@ public final class CommonIdUtils {
       // Earlier delim found, return range from that delim until endIndex
       return id.substring(beginIndex + NAME_ID_DELIM.length(), endIndex);
     }
+  }
+
+  public static String getTaskInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
+    return getTaskInstanceName(podInstance, taskSpec.getName());
+  }
+
+  public static String getTaskInstanceName(PodInstance podInstance, String taskName) {
+    return podInstance.getName() + "-" + taskName;
   }
 }

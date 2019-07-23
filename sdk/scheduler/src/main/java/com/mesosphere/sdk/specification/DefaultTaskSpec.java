@@ -386,8 +386,8 @@ public final class DefaultTaskSpec implements TaskSpec {
      * can be chained together.
      *
      * @param taskKillGracePeriodSeconds The number of seconds to await the service to cleanly (gracefully)
-     *                                   shutdown following a SIGTERM signal. If the value is null or zero (0), the underlying service will be
-     *                                   sent a SIGKILL immediately.
+     *                                   shutdown following a SIGTERM signal. If the value is null or zero (0), the
+     *                                   underlying service will be sent a SIGKILL immediately.
      */
     public Builder taskKillGracePeriodSeconds(Integer taskKillGracePeriodSeconds) {
       this.taskKillGracePeriodSeconds = taskKillGracePeriodSeconds;

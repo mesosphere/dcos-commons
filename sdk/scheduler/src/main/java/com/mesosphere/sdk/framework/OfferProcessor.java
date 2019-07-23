@@ -344,7 +344,7 @@ class OfferProcessor {
       synchronized (inProgressLock) {
         offersInProgress.removeAll(
             offers.stream()
-                .map(offer -> offer.getId())
+                .map(Protos.Offer::getId)
                 .collect(Collectors.toList()));
         if (!offers.isEmpty()) {
           LOGGER.info("Processed {} queued offer{}. {} {} in progress: {}",

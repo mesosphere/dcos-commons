@@ -101,10 +101,10 @@ public final class PlansQueries {
   }
 
   /**
-   * Idempotently stops a plan.  If a plan is in progress, it is interrupted and the plan is reset such that all
-   * elements are pending.  If a plan is already stopped, it has no effect.
+   * Idempotently stops a plan. If a plan is in progress, it is interrupted and the plan is reset such that all
+   * elements are pending. If a plan is already stopped, it has no effect.
    *
-   * @see #interruptCommand(String, String) for the distinctions between Stop and Interrupt actions.
+   * @see #interrupt(Collection, String, String) for the distinctions between Stop and Interrupt actions.
    */
   public static Response stop(Collection<PlanManager> planManagers, String planName) {
     final Optional<PlanManager> planManagerOptional = getPlanManager(planManagers, planName);

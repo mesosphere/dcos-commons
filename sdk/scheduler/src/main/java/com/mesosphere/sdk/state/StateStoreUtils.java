@@ -5,7 +5,6 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.storage.StorageError.Reason;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -70,7 +69,7 @@ public final class StateStoreUtils {
       throws StateStoreException
   {
     Collection<String> taskInfoNames = podInstance.getPod().getTasks().stream()
-        .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+        .map(taskSpec -> CommonIdUtils.getTaskInstanceName(podInstance, taskSpec))
         .collect(Collectors.toList());
 
     return taskInfoNames.stream()

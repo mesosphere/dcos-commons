@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.scheduler.plan;
 
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
+import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
@@ -53,6 +55,33 @@ public abstract class AbstractStep implements Step {
       if (interrupted && (status == Status.PENDING || status == Status.PREPARED)) {
         return Status.WAITING;
       }
+      /**
+       * All steps from all yaml plans are {@link DeploymentStep}s. Only {@link DeploymentStep} and
+       * {@link com.mesosphere.sdk.scheduler.recovery.RecoveryStep}s are relevant for backoff delay. As
+       * {@link com.mesosphere.sdk.scheduler.recovery.RecoveryStep}s are always constructed on the fly, we don't need
+       * to mutate their state. However, {@link DeploymentStep}s are built only once and are used until they are
+       * complete. The {@link DeploymentStep#setStatus(Status)} is called from other places as well upon external
+       * triggers and the same method is called here to indicate that the step can make progress.
+       *
+       * However, we don't check for sub class hierarchy explicitly as we want this functionality to be applicable for
+       * all sub classes. If a sub class skips the {@link Status#DELAYED} (by overriding the
+       * {@link #update(org.apache.mesos.Protos.TaskStatus)} method), then those should be unaffected by this.
+       */
+      if (status == Status.DELAYED) {
+        getPodInstanceRequirement().ifPresent(podInstanceReq -> {
+          boolean noDelay = podInstanceReq
+                  .getTasksToLaunch()
+                  .stream()
+                  .noneMatch(taskName -> Backoff
+                          .getInstance()
+                          .getDelay(CommonIdUtils.getTaskInstanceName(podInstanceReq.getPodInstance(), taskName))
+                          .isPresent());
+          if (noDelay) {
+            // Step was DELAYED previously but the configured delay has elapsed now - move back to PENDING
+            setStatus(Status.PENDING);
+          }
+        });
+      }
       return status;
     }
   }
@@ -94,9 +123,21 @@ public abstract class AbstractStep implements Step {
     }
   }
 
+  /**
+   * Restarts the step involves two steps:
+   *  1. Reset delay for any of its given tasks.
+   *  2. Set its status back to {@link Status#PENDING}.
+   */
   @Override
   public void restart() {
     logger.warn("Restarting step: '{} [{}]'", getName(), getId());
+    getPodInstanceRequirement().ifPresent(podInstanceRequirement -> podInstanceRequirement
+            .getTasksToLaunch()
+            .forEach(taskName -> {
+              String taskInstanceName = CommonIdUtils.getTaskInstanceName(
+                      podInstanceRequirement.getPodInstance(), taskName);
+              Backoff.getInstance().clearDelay(taskInstanceName);
+            }));
     setStatus(Status.PENDING);
   }
 

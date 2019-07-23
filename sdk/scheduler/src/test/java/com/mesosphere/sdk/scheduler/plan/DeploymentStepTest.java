@@ -17,6 +17,7 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
@@ -46,7 +47,7 @@ public class DeploymentStepTest {
         when(mockPodInstance.getPod()).thenReturn(mockPodSpec);
         String podInstanceName = PodInstance.getName(TestConstants.POD_TYPE, 0);
         when(mockPodInstance.getName()).thenReturn(podInstanceName);
-        taskName = TaskSpec.getInstanceName(mockPodInstance, mockTaskSpec);
+        taskName = CommonIdUtils.getTaskInstanceName(mockPodInstance, mockTaskSpec);
         taskID = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, taskName);
 
         when(mockStateStore.fetchGoalOverrideStatus(podInstanceName + "-" + TASK_NAME_0))
@@ -61,11 +62,16 @@ public class DeploymentStepTest {
     public void testGetStatusReturnsMinimumState() {
         Assert.assertEquals(Status.PENDING, DeploymentStep.getStatus(Collections.emptySet(), false, false).get());
         Assert.assertEquals(Status.PREPARED, DeploymentStep.getStatus(Collections.emptySet(), false, true).get());
+        Assert.assertEquals(Status.DELAYED, DeploymentStep.getStatus(toSet(Status.DELAYED), false, true).get());
+
         Assert.assertEquals(Status.ERROR, DeploymentStep.getStatus(Collections.emptySet(), true, false).get());
         Assert.assertEquals(Status.ERROR, DeploymentStep.getStatus(Collections.emptySet(), true, true).get());
 
         Assert.assertEquals(Status.ERROR,
                 DeploymentStep.getStatus(toSet(Status.PREPARED, Status.ERROR, Status.COMPLETE), false, false).get());
+
+        Assert.assertEquals(Status.DELAYED,
+                DeploymentStep.getStatus(toSet(Status.DELAYED, Status.PREPARED, Status.COMPLETE), false, true).get());
 
         Assert.assertEquals(Status.PENDING,
                 DeploymentStep.getStatus(toSet(Status.PREPARED, Status.PENDING, Status.PENDING), false, false).get());
@@ -101,6 +107,8 @@ public class DeploymentStepTest {
                 DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS, Collections.emptyList()));
         Assert.assertEquals("COMPLETE",
                 DeploymentStep.getDisplayStatus(mockStateStore, Status.COMPLETE, Collections.emptyList()));
+        Assert.assertEquals("DELAYED",
+                DeploymentStep.getDisplayStatus(mockStateStore, Status.DELAYED, Collections.emptyList()));
 
         Assert.assertEquals("PAUSING", DeploymentStep.getDisplayStatus(mockStateStore, Status.IN_PROGRESS,
                 Arrays.asList("paused-0")));
@@ -167,7 +175,7 @@ public class DeploymentStepTest {
     }
 
     @Test
-    public void testErrorCausesStartingToPending() {
+    public void testErrorCausesStartingToDelayed() {
         Protos.TaskState[] errorStates = {
                 Protos.TaskState.TASK_ERROR,
                 Protos.TaskState.TASK_FAILED,
@@ -234,8 +242,8 @@ public class DeploymentStepTest {
                 DefaultPodSpec.newBuilder(TestConstants.POD_TYPE, 1, Arrays.asList(taskSpec0, taskSpec1)).build();
         PodInstance podInstance = new DefaultPodInstance(podSpec, 0);
 
-        Protos.TaskID taskId0 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance, taskName0));
-        Protos.TaskID taskId1 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, TaskSpec.getInstanceName(podInstance, taskName1));
+        Protos.TaskID taskId0 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, CommonIdUtils.getTaskInstanceName(podInstance, taskName0));
+        Protos.TaskID taskId1 = CommonIdUtils.toTaskId(TestConstants.SERVICE_NAME, CommonIdUtils.getTaskInstanceName(podInstance, taskName1));
 
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
@@ -295,7 +303,15 @@ public class DeploymentStepTest {
     private DeploymentStep getPendingStep() {
         return new DeploymentStep(
                 TEST_STEP_NAME,
-                PodInstanceRequirement.newBuilder(mockPodInstance, TaskUtils.getTaskNames(mockPodInstance)).build(),
+                PodInstanceRequirement.newBuilder(
+                  mockPodInstance,
+                  mockPodInstance
+                    .getPod()
+                    .getTasks()
+                    .stream()
+                    .map(TaskSpec::getName)
+                    .collect(Collectors.toList())
+                ).build(),
                 mockStateStore,
                 Optional.empty());
     }
