@@ -5,6 +5,11 @@ from typing import Any, Dict, Iterator, List
 import pytest
 import sdk_install
 import sdk_jobs
+import sdk_cmd
+import sdk_marathon
+import subprocess
+
+# import json
 from tests import config
 
 
@@ -97,6 +102,50 @@ def test_backup_and_restore_to_s3() -> None:
         "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
         "SNAPSHOT_NAME": str(uuid.uuid1()),
         "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
+    }
+
+    config.run_backup_and_restore(
+        config.get_foldered_service_name(),
+        "backup-s3",
+        "restore-s3",
+        plan_parameters,
+        config.get_foldered_node_address(),
+    )
+
+
+@pytest.mark.aws
+@pytest.mark.sanity
+def test_backup_and_restore_to_s3_compatible_storage() -> None:
+    # _, raw_nodes, _ = sdk_cmd.run_cli("node --json", print_output=False)
+    # public_nodes = json.loads(raw_nodes)
+    # for node in public_nodes:
+    #     if (
+    #         "attributes" in node
+    #         and "public_ip" in node["attributes"]
+    #         and node["attributes"]["public_ip"] == "true"
+    #     ):
+    #         public_node_id = node["id"]
+    # _, public_node_ip , _ = sdk_cmd.run_cli('node ssh --option StrictHostKeyChecking=no --option LogLevel=quiet --master-proxy --mesos-id={} \"curl -s ifconfig.co\" '.format(public_node_id))
+    # print ("public_node_ip", public_node_ip)
+    host = sdk_marathon.get_scheduler_host("marathon-lb")
+    print("host", host)
+    _, public_node_ip, _ = sdk_cmd.agent_ssh(host, "curl -s ifconfig.co")
+    print("public_node_ip", public_node_ip)
+    minio_endpoint_url = "http://" + public_node_ip + ":9000"
+    os.environ["AWS_ACCESS_KEY_ID"] = config.MINIO_AWS_ACCESS_KEY_ID
+    os.environ["AWS_SECRET_ACCESS_KEY"] = config.MINIO_AWS_SECRET_ACCESS_KEY
+    subprocess.run(
+        ["aws", "s3", "mb", "s3://" + config.MINIO_BUCKET_NAME, "--endpoint", minio_endpoint_url]
+    )
+
+    plan_parameters = {
+        "AWS_ACCESS_KEY_ID": os.getenv("AWS_ACCESS_KEY_ID"),
+        "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
+        "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
+        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "miniobackup"),
+        "SNAPSHOT_NAME": str(uuid.uuid1()),
+        "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
+        "S3_ENDPOINT_URL": minio_endpoint_url,
     }
 
     config.run_backup_and_restore(
