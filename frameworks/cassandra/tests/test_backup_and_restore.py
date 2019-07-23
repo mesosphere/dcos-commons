@@ -23,6 +23,10 @@ no_strict_for_azure = pytest.mark.skipif(
 def configure_package(configure_security: None) -> Iterator[None]:
     test_jobs: List[Dict[str, Any]] = []
     try:
+        sdk_cmd.run_cli("package install minio --yes")
+        sdk_cmd.run_cli("package install marathon-lb --yes")
+        sdk_marathon.wait_for_deployment("marathon-lb", 1200, None)
+        sdk_marathon.wait_for_deployment("minio", 1200, None)
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
         for job in test_jobs:
@@ -47,6 +51,8 @@ def configure_package(configure_security: None) -> Iterator[None]:
 
         yield  # let the test session execute
     finally:
+        sdk_cmd.run_cli("package uninstall minio --yes")
+        sdk_cmd.run_cli("package uninstall marathon-lb --yes")
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
         # remove job definitions from metronome
