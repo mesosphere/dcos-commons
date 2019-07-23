@@ -120,9 +120,9 @@ public final class FrameworkConfig {
     // The only required value is FRAMEWORK_NAME.
     String frameworkName = envStore.getRequired("FRAMEWORK_NAME");
 
-    // We can only use MESOS_ALLOCATION_ROLE if MARATHON_ENFORCE_GROUP_ROLE is true..
+    // We can only use MESOS_ALLOCATION_ROLE if MARATHON_APP_ENFORCE_GROUP_ROLE is true..
     Optional<String> serviceNamespace;
-    boolean enforceRole = envStore.getOptionalBoolean("MARATHON_ENFORCE_GROUP_ROLE", false);
+    boolean enforceRole = envStore.getOptionalBoolean("MARATHON_APP_ENFORCE_GROUP_ROLE", false);
     if (enforceRole) {
       serviceNamespace = Optional.ofNullable(envStore.getOptional("MESOS_ALLOCATION_ROLE", null));
     } else {
@@ -147,7 +147,7 @@ public final class FrameworkConfig {
   /**
    * Returns the configured Mesos role to use for running the service.
    * Priority is given to the role specified by MESOS_ALLOCATION_ROLE environment variable set by Mesos.
-   * If no such environment-variable is found, or MARATHON_ENFORCE_GROUP_ROLE is false we revert to the legacy
+   * If no such environment-variable is found, or MARATHON_APP_ENFORCE_GROUP_ROLE is false we revert to the legacy
    * version which uses the service name. Leading slashes are removed and intermediate slashes are escaped.
    */
   private static String getServiceRole(String frameworkName, Optional<String> serviceNamespace) {

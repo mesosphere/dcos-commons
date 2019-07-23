@@ -153,7 +153,7 @@ public class FrameworkRunnerTest {
 
       Map<String, String> env = getMinimalMap();
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
-      env.put("MARATHON_ENFORCE_GROUP_ROLE", "true");
+      env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "true");
       EnvStore envStore = EnvStore.fromMap(env);
 
       SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
@@ -181,7 +181,7 @@ public class FrameworkRunnerTest {
 
       Map<String, String> env = getMinimalMap();
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
-      env.put("MARATHON_ENFORCE_GROUP_ROLE", "true");
+      env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "true");
       env.put("FRAMEWORK_PRERESERVED_ROLES", "role1,role2,role3");
       EnvStore envStore = EnvStore.fromMap(env);
 
@@ -212,7 +212,7 @@ public class FrameworkRunnerTest {
 
       Map<String, String> env = getMinimalMap();
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
-      env.put("MARATHON_ENFORCE_GROUP_ROLE", "false");
+      env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "false");
       EnvStore envStore = EnvStore.fromMap(env);
 
       SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
