@@ -4,6 +4,7 @@ import com.mesosphere.sdk.dcos.DcosHttpClientBuilder;
 import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.clients.CertificateAuthorityClient;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.evaluate.security.CertificateNamesGenerator;
@@ -127,7 +128,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             schedulerConfig);
     TLSArtifactPaths tlsArtifactPaths = new TLSArtifactPaths(
         namespace,
-        TaskSpec.getInstanceName(podInfoBuilder.getPodInstance(), taskName),
+        CommonIdUtils.getTaskInstanceName(podInfoBuilder.getPodInstance(), taskName),
         certificateNamesGenerator.getSANsHash());
 
     Collection<TransportEncryptionSpec> transportEncryptionSpecs =

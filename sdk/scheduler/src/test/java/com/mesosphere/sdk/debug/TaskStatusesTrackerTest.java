@@ -132,17 +132,17 @@ public class TaskStatusesTrackerTest {
     world2Step.updateInitialStatus(Status.IN_PROGRESS);
 
 
-    String helloStepInstance = TaskSpec.getInstanceName(
+    String helloStepInstance = CommonIdUtils.getTaskInstanceName(
         helloStep.getPodInstanceRequirement().get().getPodInstance(),
         TASK_HELLO_NAME
     );
 
-    String world1StepInstance = TaskSpec.getInstanceName(
+    String world1StepInstance = CommonIdUtils.getTaskInstanceName(
         world1Step.getPodInstanceRequirement().get().getPodInstance(),
         TASK_WORLD_NAME
     );
 
-    String world2StepInstance = TaskSpec.getInstanceName(
+    String world2StepInstance = CommonIdUtils.getTaskInstanceName(
         world2Step.getPodInstanceRequirement().get().getPodInstance(),
         TASK_WORLD_NAME
     );

@@ -99,6 +99,10 @@
     "TASKCFG_ALL_DATA_NODE_HTTPS_PORT":"{{hdfs.data_node_https_port}}",
     {{/service.security.transport_encryption.enabled}}
 
+    {{#service.security.custom_domain}}
+    "SERVICE_TLD": "{{service.security.custom_domain}}",
+    {{/service.security.custom_domain}}
+
     {{#journal_node.enable_readiness_check}}
     "JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",
     "TASKCFG_ALL_JOURNAL_READINESS_CHECK_ENABLED": "{{journal_node.enable_readiness_check}}",

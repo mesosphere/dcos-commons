@@ -60,10 +60,12 @@ public class DefaultStepFactory implements StepFactory {
           tasksToLaunch);
       validate(podInstance, tasksToLaunch);
 
-      List<Protos.TaskInfo> taskInfos = TaskUtils.getTaskNames(podInstance, tasksToLaunch).stream()
-          .map(taskName -> stateStore.fetchTask(taskName))
-          .filter(taskInfoOptional -> taskInfoOptional.isPresent())
-          .map(taskInfoOptional -> taskInfoOptional.get())
+      List<Protos.TaskInfo> taskInfos = TaskUtils
+          .getTaskNames(podInstance, tasksToLaunch)
+          .stream()
+          .map(stateStore::fetchTask)
+          .filter(Optional::isPresent)
+          .map(Optional::get)
           .collect(Collectors.toList());
 
       return new DeploymentStep(

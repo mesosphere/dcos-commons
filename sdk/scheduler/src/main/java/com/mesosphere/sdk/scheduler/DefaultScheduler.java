@@ -250,7 +250,7 @@ public class DefaultScheduler extends AbstractScheduler {
     Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(getPlanCoordinator());
     if (decommissionManager.isPresent()) {
       Collection<String> decommissionedTasks = decommissionManager.get().getTasksToDecommission().stream()
-          .map(taskInfo -> taskInfo.getName())
+          .map(Protos.TaskInfo::getName)
           .collect(Collectors.toList());
       activeTasks.addAll(decommissionedTasks);
     }
@@ -274,6 +274,10 @@ public class DefaultScheduler extends AbstractScheduler {
   protected ClientStatusResponse getStatus() {
     // Take this opportunity to store whether we've completed our deploy plan.
     // This ensures that we correctly select the custom update plan if one is provided during an update.
+    boolean allDelayedOrCompleted = planCoordinator
+            .getPlanManagers()
+            .stream()
+            .allMatch(mgr -> mgr.getPlan().isComplete() || mgr.getPlan().isDelayed());
     boolean deployCompleted = deploymentPlanManager.getPlan().isComplete();
     if (deployCompleted && !deploymentCompletionWasStored) {
       logger.info("Marking deployment as completed");
@@ -285,9 +289,10 @@ public class DefaultScheduler extends AbstractScheduler {
     if (goalState == GoalState.FINISH && deployCompleted && recoveryPlanManager.getPlan().isComplete()) {
       // Service has a FINISH goal state, and deployment+recovery are complete. Tell upstream to uninstall us.
       return ClientStatusResponse.readyToUninstall();
-    } else if (!deployCompleted
-        || isReplacing(recoveryPlanManager))
-    {
+    } else if (allDelayedOrCompleted) {
+      // All plans are in state of {COMPLETE, DELAYED} - There is no pending work currently.
+      return ClientStatusResponse.idle();
+    } else if (!deployCompleted || isReplacing(recoveryPlanManager)) {
       // Service is acquiring footprint, either via initial deployment or via replacing a task
       return ClientStatusResponse.footprint(workSetTracker.hasNewWork());
     } else if (getPlanCoordinator().getPlanManagers().stream().anyMatch(pm -> isWorking(pm.getPlan()))) {
@@ -312,6 +317,7 @@ public class DefaultScheduler extends AbstractScheduler {
       case STARTING:
         // The plan has work left to do, or is currently actively doing work.
         return true;
+      case DELAYED:
       case COMPLETE:
       case ERROR:
       case WAITING:

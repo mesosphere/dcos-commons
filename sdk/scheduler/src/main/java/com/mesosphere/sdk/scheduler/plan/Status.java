@@ -69,7 +69,12 @@ public enum Status {
    * <p>
    * This value is only returned and never set to a variable.
    */
-  IN_PROGRESS;
+  IN_PROGRESS,
+
+  /**
+   * Task has been delayed due to previous launch failures - delay is controlled by exponential backoff.
+   */
+  DELAYED;
 
   /**
    * Status is in one of the running states.

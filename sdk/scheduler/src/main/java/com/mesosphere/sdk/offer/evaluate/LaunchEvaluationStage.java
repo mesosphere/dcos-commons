@@ -29,8 +29,8 @@ public class LaunchEvaluationStage implements OfferEvaluationStage {
    * @param serviceName  The name of the service that's being launched into
    * @param taskSpecName The name of the task (as from the TaskSpec)
    * @param shouldLaunch Whether a Launch recommendation should actually be emitted. If false, then the StateStore
-   *                     will be updated with the resulting TaskInfo, but no launch will actually occur. This is used for updating
-   *                     local information about tasks
+   *                     will be updated with the resulting TaskInfo, but no launch will actually occur. This is used
+   *                     for updating local information about tasks
    */
   public LaunchEvaluationStage(String serviceName, String taskSpecName, boolean shouldLaunch) {
     this.serviceName = serviceName;

@@ -183,3 +183,43 @@ def expect_recovery(service_name):
 def get_pod_type_instances(pod_type_prefix, service_name=SERVICE_NAME):
     _, stdout, _ = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, "pod list", check=True)
     return [pod_type for pod_type in json.loads(stdout) if pod_type.startswith(pod_type_prefix)]
+
+
+def verify_https_ports(ca_bundle, host, task_id):
+    ok, stdout, stderr = run_client_command(
+        "curl -v --cacert {} https://{}".format(ca_bundle, host)
+    )
+    assert ok
+
+    assert "server certificate verification OK" in stderr
+    assert "common name: {}.{} (matched)".format(task_id, SERVICE_NAME) in stderr
+
+    # In the Kerberos case we expect a 401 error
+    assert "401 Authentication required" in stdout
+
+
+def check_user_can_auth_and_write_and_read():
+    test_filename = get_unique_filename("test_ssl_kerberos_auth_write_read")
+    hdfs_client_write_data(test_filename)
+    hdfs_client_read_data(test_filename)
+
+
+def check_test_users_have_appropriate_permissions(alice_dir) -> str:
+    run_client_command(
+        " && ".join(
+            [
+                hdfs_command(c)
+                for c in [
+                    "mkdir -p {}".format(alice_dir),
+                    "chown alice:users {}".format(alice_dir),
+                    "chmod 700 {}".format(alice_dir),
+                ]
+            ]
+        )
+    )
+
+    test_filename = "{}/{}".format(
+        alice_dir, get_unique_filename("test_ssl_kerberos_auth_user_permissions")
+    )
+
+    return test_filename

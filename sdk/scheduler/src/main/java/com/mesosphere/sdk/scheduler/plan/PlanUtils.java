@@ -53,7 +53,6 @@ public final class PlanUtils {
     if (plan == null) {
       return Collections.emptySet();
     }
-
     return plan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
         .filter(step -> (step.isPrepared() || step.isStarting())
@@ -104,7 +103,7 @@ public final class PlanUtils {
       "checkstyle:LineLength",
       "checkstyle:MultipleStringLiterals"
   })
-  public static <C extends Element> Status getAggregateStatus(
+  public static Status getAggregateStatus(
       String parentName,
       Collection<Status> childStatuses,
       Collection<Status> candidateStatuses,
@@ -124,6 +123,9 @@ public final class PlanUtils {
     } else if (isInterrupted) {
       result = Status.WAITING;
       LOGGER.debug("({} status={}) Parent element is interrupted", parentName, result);
+    } else if (allMatch(Status.DELAYED, candidateStatuses) && allMatch(Status.DELAYED, childStatuses)) {
+      result = Status.DELAYED;
+      LOGGER.debug("({} status={}) All candidates and children are {}", parentName, result, Status.DELAYED);
     } else if (anyMatch(Status.PREPARED, childStatuses)) {
       result = Status.IN_PROGRESS;
       LOGGER.debug("({} status={}) At least one child has status: {}", parentName, result, Status.PREPARED);
