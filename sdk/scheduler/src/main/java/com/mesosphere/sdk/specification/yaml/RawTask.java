@@ -100,7 +100,8 @@ public final class RawTask {
   private void validateShm() throws Exception{
     if (sharedMemory != null
         && sharedMemory.equals(Protos.LinuxInfo.IpcMode.SHARE_PARENT.toString())
-        && sharedMemorySize != null) {
+        && sharedMemorySize != null)
+    {
       throw new Exception("shm size does not apply when IPC Mode is SHARE_PARENT");
     }
   }
