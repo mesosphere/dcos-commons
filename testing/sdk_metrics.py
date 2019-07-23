@@ -18,10 +18,7 @@ import sdk_tasks
 log = logging.getLogger(__name__)
 
 
-def get_scheduler_metrics(
-    service_name: str,
-    timeout_seconds: int = 15 * 60
-) -> Dict[str, Any]:
+def get_scheduler_metrics(service_name: str, timeout_seconds: int = 15 * 60) -> Dict[str, Any]:
     """Returns a dict tree of Scheduler metrics fetched directly from the scheduler.
     Returned data will match the content of /service/<svc_name>/v1/metrics.
     """
@@ -32,9 +29,7 @@ def get_scheduler_metrics(
 
 
 def get_scheduler_counter(
-    service_name: str,
-    counter_name: str,
-    timeout_seconds: int = 15 * 60,
+    service_name: str, counter_name: str, timeout_seconds: int = 15 * 60
 ) -> int:
     """Waits for and returns the specified counter value from the scheduler"""
 
@@ -71,10 +66,7 @@ def get_scheduler_counter(
 
 
 def wait_for_scheduler_counter_value(
-    service_name: str,
-    counter_name: str,
-    min_value: int,
-    timeout_seconds: int = 15 * 60,
+    service_name: str, counter_name: str, min_value: int, timeout_seconds: int = 15 * 60
 ) -> bool:
     """Waits for the specified counter value to be reached by the scheduler
     For example, check that `offers.processed` is equal or greater to 1."""

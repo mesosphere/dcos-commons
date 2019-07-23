@@ -177,7 +177,7 @@ class UniversePackageBuilder(object):
             "documentation-path": self._get_documentation_path(),
             "issues-path": self._get_issues_path(),
             "jre-url": _jre_url,
-            "libmesos-bundle-url": _libmesos_bundle_url
+            "libmesos-bundle-url": _libmesos_bundle_url,
         }
 
         # import any custom "TEMPLATE_SOME_PARAM" environment variables as "some-param":

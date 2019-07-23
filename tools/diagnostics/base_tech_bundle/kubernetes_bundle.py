@@ -11,11 +11,7 @@ logging = logging.getLogger(__name__)
 
 class KubernetesBundle(BaseTechBundle):
     def __init__(self, package_name, service_name, scheduler_tasks, service, output_directory):
-        super().__init__(package_name,
-                         service_name,
-                         scheduler_tasks,
-                         service,
-                         output_directory)
+        super().__init__(package_name, service_name, scheduler_tasks, service, output_directory)
 
     @config.retry
     def create_configuration_file(self):
@@ -26,7 +22,10 @@ class KubernetesBundle(BaseTechBundle):
         if rc != 0:
             logging.error(
                 "Could not get service configuration. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -41,8 +40,10 @@ class KubernetesBundle(BaseTechBundle):
 
         if rc != 0:
             logging.error(
-                "Could not get pod status. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "Could not get pod status. return-code: '%s'\n" "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -60,8 +61,10 @@ class KubernetesBundle(BaseTechBundle):
 
         if rc != 0:
             logging.error(
-                "Could not get pod status. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "Could not get pod status. return-code: '%s'\n" "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -76,8 +79,10 @@ class KubernetesBundle(BaseTechBundle):
 
         if rc != 0:
             logging.error(
-                "Could not get plan list. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "Could not get plan list. return-code: '%s'\n" "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -89,8 +94,7 @@ class KubernetesBundle(BaseTechBundle):
                     self.create_plan_status_file(plan)
             except Exception:
                 logging.error(
-                    "Could not parse plan list json.\nstdout: '%s'\nstderr: '%s'",
-                    stdout, stderr
+                    "Could not parse plan list json.\nstdout: '%s'\nstderr: '%s'", stdout, stderr
                 )
 
     @config.retry
@@ -101,8 +105,10 @@ class KubernetesBundle(BaseTechBundle):
 
         if rc != 0:
             logging.error(
-                "Could not get cluster list. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "Could not get cluster list. return-code: '%s'\n" "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -112,13 +118,19 @@ class KubernetesBundle(BaseTechBundle):
     @config.retry
     def create_cluster_debug_state_properties(self):
         rc, stdout, stderr = sdk_cmd.svc_cli(
-            self.package_name, self.service_name, "cluster debug state properties", print_output=False
+            self.package_name,
+            self.service_name,
+            "cluster debug state properties",
+            print_output=False,
         )
 
         if rc != 0:
             logging.error(
                 "Could not get cluster state properties. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -134,7 +146,10 @@ class KubernetesBundle(BaseTechBundle):
         if rc != 0:
             logging.error(
                 "Could not get cluster debug endpoints. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:
@@ -144,13 +159,19 @@ class KubernetesBundle(BaseTechBundle):
     @config.retry
     def create_cluster_pod_status(self):
         rc, stdout, stderr = sdk_cmd.svc_cli(
-            self.package_name, self.service_name, "cluster debug pod status --json", print_output=False
+            self.package_name,
+            self.service_name,
+            "cluster debug pod status --json",
+            print_output=False,
         )
 
         if rc != 0:
             logging.error(
                 "Could not get cluster pod status. return-code: '%s'\n"
-                "stdout: '%s'\nstderr: '%s'", rc, stdout, stderr
+                "stdout: '%s'\nstderr: '%s'",
+                rc,
+                stdout,
+                stderr,
             )
         else:
             if stderr:

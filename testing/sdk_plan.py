@@ -27,36 +27,19 @@ log = logging.getLogger(__name__)
 
 
 def get_deployment_plan(
-    service_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
+    service_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
-    return get_plan(
-        service_name=service_name,
-        plan="deploy",
-        timeout_seconds=timeout_seconds,
-    )
+    return get_plan(service_name=service_name, plan="deploy", timeout_seconds=timeout_seconds)
 
 
-def get_recovery_plan(
-    service_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
-) -> Dict[str, Any]:
-    return get_plan(
-        service_name=service_name,
-        plan="recovery",
-        timeout_seconds=timeout_seconds,
-    )
+def get_recovery_plan(service_name: str, timeout_seconds: int = TIMEOUT_SECONDS) -> Dict[str, Any]:
+    return get_plan(service_name=service_name, plan="recovery", timeout_seconds=timeout_seconds)
 
 
 def get_decommission_plan(
-    service_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
+    service_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
-    return get_plan(
-        service_name=service_name,
-        plan="decommission",
-        timeout_seconds=timeout_seconds,
-    )
+    return get_plan(service_name=service_name, plan="decommission", timeout_seconds=timeout_seconds)
 
 
 def list_plans(
@@ -76,9 +59,7 @@ def list_plans(
 
 
 def get_plan_once(
-    service_name: str,
-    plan: str,
-    multiservice_name: Optional[str] = None,
+    service_name: str, plan: str, multiservice_name: Optional[str] = None
 ) -> Dict[str, Any]:
     if multiservice_name is None:
         path = "/v1/plans/{}".format(plan)
@@ -86,7 +67,9 @@ def get_plan_once(
         path = "/v1/service/{}/plans/{}".format(multiservice_name, plan)
 
     response = sdk_cmd.service_request("GET", service_name, path, retry=False, raise_on_error=False)
-    if response.status_code != 417:  # Plan has errors: Avoid throwing an exception, return plan as-is.
+    if (
+        response.status_code != 417
+    ):  # Plan has errors: Avoid throwing an exception, return plan as-is.
         response.raise_for_status()
 
     result = response.json()
@@ -98,7 +81,7 @@ def get_plan(
     service_name: str,
     plan: str,
     timeout_seconds: int = TIMEOUT_SECONDS,
-    multiservice_name: Optional[str] = None
+    multiservice_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     @retrying.retry(wait_fixed=1000, stop_max_delay=timeout_seconds * 1000)
     def wait_for_plan() -> Dict[str, Any]:
@@ -109,11 +92,7 @@ def get_plan(
     return result
 
 
-def start_plan(
-    service_name: str,
-    plan: str,
-    parameters: Optional[Dict[str, Any]] = None,
-) -> None:
+def start_plan(service_name: str, plan: str, parameters: Optional[Dict[str, Any]] = None) -> None:
     sdk_cmd.service_request(
         "POST",
         service_name,
@@ -131,22 +110,19 @@ def wait_for_completed_recovery(
 
 
 def wait_for_in_progress_recovery(
-    service_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
+    service_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
     return wait_for_in_progress_plan(service_name, "recovery", timeout_seconds)
 
 
 def wait_for_kicked_off_deployment(
-    service_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
+    service_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
     return wait_for_kicked_off_plan(service_name, "deploy", timeout_seconds)
 
 
 def wait_for_kicked_off_recovery(
-    service_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
+    service_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
     return wait_for_kicked_off_plan(service_name, "recovery", timeout_seconds)
 
@@ -171,10 +147,7 @@ def wait_for_completed_plan(
 
 
 def wait_for_completed_phase(
-    service_name: str,
-    plan_name: str,
-    phase_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
+    service_name: str, plan_name: str, phase_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
     return wait_for_phase_status(service_name, plan_name, phase_name, "COMPLETE", timeout_seconds)
 
@@ -192,9 +165,7 @@ def wait_for_completed_step(
 
 
 def wait_for_kicked_off_plan(
-    service_name: str,
-    plan_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
+    service_name: str, plan_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
     return wait_for_plan_status(
         service_name, plan_name, ["PENDING", "STARTING", "IN_PROGRESS"], timeout_seconds
@@ -202,17 +173,13 @@ def wait_for_kicked_off_plan(
 
 
 def wait_for_in_progress_plan(
-    service_name: str,
-    plan_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
+    service_name: str, plan_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
     return wait_for_plan_status(service_name, plan_name, "IN_PROGRESS", timeout_seconds)
 
 
 def wait_for_starting_plan(
-    service_name: str,
-    plan_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
+    service_name: str, plan_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
     return wait_for_plan_status(service_name, plan_name, "STARTING", timeout_seconds)
 

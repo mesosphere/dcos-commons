@@ -42,6 +42,7 @@ def _get_kdc_task(task_name: str) -> dict:
     """
     :return (dict): The task object of the KDC app with desired properties to be retrieved by other methods.
     """
+
     @retrying.retry(stop_max_attempt_number=3, wait_fixed=2000)
     def _get_kdc_task_inner(task_name: str) -> dict:
         log.info("Getting KDC task")
@@ -58,6 +59,7 @@ def _get_kdc_task(task_name: str) -> dict:
                 tasks=raw_tasks
             )
         )
+
     return dict(_get_kdc_task_inner(task_name=task_name))
 
 

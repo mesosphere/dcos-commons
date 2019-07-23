@@ -67,7 +67,9 @@ def is_service_scheduler_task(package_name: str, service_name: str, task: dict) 
     dcos_service_name = next(
         iter([l.get("value") for l in labels if l.get("key") == "DCOS_SERVICE_NAME"]), ""
     )
-    return dcos_package_name == package_name and service_names_match(service_name, dcos_service_name)
+    return dcos_package_name == package_name and service_names_match(
+        service_name, dcos_service_name
+    )
 
 
 def directory_date_string() -> str:
@@ -125,7 +127,9 @@ class FullBundle(Bundle):
 
         # An SDK service might have multiple DC/OS service entries. We expect that at most one is
         # "active".
-        services = [s for s in all_services if service_names_match(self.service_name, s.get("name"))]
+        services = [
+            s for s in all_services if service_names_match(self.service_name, s.get("name"))
+        ]
         # TODO: handle inactive services too.
         active_services = [s for s in services if is_service_active(s)]
 
@@ -138,7 +142,9 @@ class FullBundle(Bundle):
 
         active_service = active_services[0]
 
-        marathon_services = [s for s in all_services if service_names_match("marathon", s.get("name"))]
+        marathon_services = [
+            s for s in all_services if service_names_match("marathon", s.get("name"))
+        ]
         # TODO: handle the possibility of having no active Marathon services?
         if len(marathon_services) > 1:
             log.warn("More than one marathon services: %s", len(marathon_services))

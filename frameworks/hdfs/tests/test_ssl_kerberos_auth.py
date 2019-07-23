@@ -20,8 +20,7 @@ log = logging.getLogger(__name__)
 pytestmark = [
     sdk_utils.dcos_ee_only,
     pytest.mark.skipif(
-        sdk_utils.dcos_version_less_than("1.10"),
-        reason="TLS tests require DC/OS 1.10+"
+        sdk_utils.dcos_version_less_than("1.10"), reason="TLS tests require DC/OS 1.10+"
     ),
 ]
 
@@ -130,7 +129,9 @@ def test_verify_https_ports(hdfs_client, node_type, port):
 
     ca_bundle = transport_encryption.fetch_dcos_ca_bundle(hdfs_client["id"])
 
-    ok, stdout, stderr = config.run_client_command("curl -v --cacert {} https://{}".format(ca_bundle, host))
+    ok, stdout, stderr = config.run_client_command(
+        "curl -v --cacert {} https://{}".format(ca_bundle, host)
+    )
     assert ok
 
     assert "server certificate verification OK" in stderr
@@ -161,15 +162,22 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     )
 
     alice_dir = "/users/alice"
-    config.run_client_command(" && ".join([
-        config.hdfs_command(c) for c in [
-            "mkdir -p {}".format(alice_dir),
-            "chown alice:users {}".format(alice_dir),
-            "chmod 700 {}".format(alice_dir),
-        ]
-    ]))
+    config.run_client_command(
+        " && ".join(
+            [
+                config.hdfs_command(c)
+                for c in [
+                    "mkdir -p {}".format(alice_dir),
+                    "chown alice:users {}".format(alice_dir),
+                    "chmod 700 {}".format(alice_dir),
+                ]
+            ]
+        )
+    )
 
-    test_filename = "{}/{}".format(alice_dir, config.get_unique_filename("test_ssl_kerberos_auth_user_permissions"))
+    test_filename = "{}/{}".format(
+        alice_dir, config.get_unique_filename("test_ssl_kerberos_auth_user_permissions")
+    )
 
     # alice has read/write access to her directory
     sdk_auth.kdestroy(hdfs_client["id"])
@@ -186,5 +194,9 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     sdk_auth.kdestroy(hdfs_client["id"])
     sdk_auth.kinit(hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("bob"))
 
-    config.hdfs_client_write_data(test_filename, expect_failure_message="put: Permission denied: user=bob")
-    config.hdfs_client_read_data(test_filename, expect_failure_message="cat: Permission denied: user=bob")
+    config.hdfs_client_write_data(
+        test_filename, expect_failure_message="put: Permission denied: user=bob"
+    )
+    config.hdfs_client_read_data(
+        test_filename, expect_failure_message="cat: Permission denied: user=bob"
+    )
