@@ -285,7 +285,7 @@ public final class SchedulerConfig {
   /**
    * When set to true, the MESOS_ALLOCATION_ROLE value should be used to subscribe and recover or add footprint.
    */
-  private static final String MARATHON_ENFORCE_GROUP_ROLE = "MARATHON_ENFORCE_GROUP_ROLE";
+  private static final String MARATHON_APP_ENFORCE_GROUP_ROLE = "MARATHON_APP_ENFORCE_GROUP_ROLE";
 
   /**
    * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -397,7 +397,7 @@ public final class SchedulerConfig {
   }
 
   public Optional<String> getServiceNamespace() {
-    boolean enforceRole = envStore.getOptionalBoolean(MARATHON_ENFORCE_GROUP_ROLE, false);
+    boolean enforceRole = envStore.getOptionalBoolean(MARATHON_APP_ENFORCE_GROUP_ROLE, false);
     if (enforceRole) {
       return Optional.ofNullable(envStore.getOptional(MESOS_ALLOCATION_ROLE, null));
     } else {

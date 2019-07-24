@@ -8,8 +8,8 @@ import sdk_marathon
 from tests import config
 
 log = logging.getLogger(__name__)
-MARATHON_ENFORCE_GROUP_ROLE = "true"
-MARATHON_ENFORCE_GROUP_ROLE_ENV = "MARATHON_ENFORCE_GROUP_ROLE"
+MARATHON_APP_ENFORCE_GROUP_ROLE = "true"
+MARATHON_APP_ENFORCE_GROUP_ROLE_ENV = "MARATHON_APP_ENFORCE_GROUP_ROLE"
 MESOS_ALLOCATION_ROLE_ENV = "MESOS_ALLOCATION_ROLE"
 MESOS_ALLOCATION_ROLE = "slave_public"
 
@@ -48,7 +48,7 @@ def test_apply_new_scheduler_role():
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
 
     # Ensure we enforce and deploy via the group role now.
-    marathon_config["env"][MARATHON_ENFORCE_GROUP_ROLE_ENV] = MARATHON_ENFORCE_GROUP_ROLE
+    marathon_config["env"][MARATHON_APP_ENFORCE_GROUP_ROLE_ENV] = MARATHON_APP_ENFORCE_GROUP_ROLE
 
     # Update the app
     sdk_marathon.update_app(marathon_config)
@@ -148,7 +148,7 @@ def test_downgrade_scheduler_to_previous_role():
     marathon_config = sdk_marathon.get_config(config.SERVICE_NAME)
 
     # Ensure we revert to the old role.
-    marathon_config["env"][MARATHON_ENFORCE_GROUP_ROLE_ENV] = "false"
+    marathon_config["env"][MARATHON_APP_ENFORCE_GROUP_ROLE_ENV] = "false"
 
     # Update the app
     sdk_marathon.update_app(marathon_config)

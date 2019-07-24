@@ -264,9 +264,9 @@ def _get_service_role(service_name: str):
     roles_list.append("slave_public%252F{}-role".format(role_basename))
 
     # Find if we have a top-level group role.
-    if service_name.partition("/")[1]:
+    if role_basename.partition("__")[1]:
         # Add top level group role.
-        roles_list.append(service_name.partition("/")[0])
+        roles_list.append(service_name.partition("__")[0])
     else:
         # No top level groups exist, add default slave_public role.
         roles_list.append("slave_public")
