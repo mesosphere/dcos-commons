@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.mesos.Protos;
 
 import java.util.Collections;
 import java.util.List;
@@ -71,7 +72,7 @@ public final class RawTask {
       @JsonProperty("kill-grace-period") Integer taskKillGracePeriodSeconds,
       @JsonProperty("transport-encryption") List<RawTransportEncryption> transportEncryption,
       @JsonProperty("ipc-mode") String sharedMemory,
-      @JsonProperty("shm-size") Integer sharedMemorySize)
+      @JsonProperty("shm-size") Integer sharedMemorySize) throws Exception
   {
     this.goal = goal;
     this.essential = essential;
@@ -93,6 +94,16 @@ public final class RawTask {
     this.transportEncryption = transportEncryption;
     this.sharedMemory = sharedMemory;
     this.sharedMemorySize = sharedMemorySize;
+    validateShm();
+  }
+
+  private void validateShm() throws Exception{
+    if (sharedMemory != null
+        && sharedMemory.equals(Protos.LinuxInfo.IpcMode.SHARE_PARENT.toString())
+        && sharedMemorySize != null)
+    {
+      throw new Exception("shm size does not apply when IPC Mode is SHARE_PARENT");
+    }
   }
 
   public Double getCpus() {

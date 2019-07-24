@@ -222,6 +222,13 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(Optional.empty(), spec3.getSharedMemorySize());
     }
 
+    @Test(expected = Exception.class)
+    public void invalidShareParentWithShmSize() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("invalid-share-parent-shm-size.yml").getFile());
+        DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
+
     @Test
     public void validPortRangesTest() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();

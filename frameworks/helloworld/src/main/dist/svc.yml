@@ -15,7 +15,6 @@ pods:
     tasks:
       server:
         ipc-mode: SHARE_PARENT
-        shm-size: 256
         goal: RUNNING
         cmd: env && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
