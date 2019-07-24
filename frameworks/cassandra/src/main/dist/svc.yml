@@ -105,6 +105,38 @@ pods:
                     ARGS="$ARGS -R"
                 fi
 
+            {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                export SECURE_JMX_KEY_STORE_KEY=`cat $MESOS_SANDBOX/jmx/key_store_pass`
+                export KEY_STORE_PATH=$MESOS_SANDBOX/jmx/key_store
+                if [ -f "$MESOS_SANDBOX/jmx/trust_store" ]; then
+                    # load user provided trust store
+                    export TRUST_STORE_PATH=$MESOS_SANDBOX/jmx/trust_store
+                    export SECURE_JMX_TRUST_STORE_KEY=`cat $MESOS_SANDBOX/jmx/trust_store_pass`
+                else
+                    # load user provided keystore certs to default truststore
+                    export TRUST_STORE_PATH=$JAVA_HOME/lib/security/cacerts
+                    export SECURE_JMX_TRUST_STORE_KEY="changeit"
+                    ${JAVA_HOME}/bin/keytool -noprompt -importkeystore -srckeystore $KEY_STORE_PATH -srcstorepass $SECURE_JMX_KEY_STORE_KEY -destkeystore $TRUST_STORE_PATH -deststorepass $SECURE_JMX_TRUST_STORE_KEY
+                fi
+
+                export JMX_PORT={{SECURE_JMX_PORT}}
+                export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+                export KAFKA_JMX_OPTS="-Djava.rmi.server.hostname=$MESOS_CONTAINER_IP -Dcom.sun.management.config.file=$MESOS_SANDBOX/jmx_properties/jmx.properties"
+      
+                if [ ! -f "$MESOS_SANDBOX/jmx/key_file" ] ; then
+                    echo "Secure JMX is enabled but no JMX password file was provided. Exiting." >&2
+                    exit 1
+                fi
+                if [ ! -f "$MESOS_SANDBOX/jmx/access_file" ] ; then
+                    echo "Secure JMX is enabled but no JMX access file was provided. Exiting." >&2
+                    exit 1
+                fi
+                mkdir jmx_properties
+                (umask u=rw,g=,o= && cp $MESOS_SANDBOX/jmx/key_file $MESOS_SANDBOX/jmx_properties/key_file)
+                chmod +x $MESOS_SANDBOX/.ssl/jmx-ssl-properties.sh
+                $MESOS_SANDBOX/.ssl/jmx-ssl-properties.sh
+            {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+
                 # Honor jmx_port config otherwise Cassandra will hardcode to 7199
                 sed -i 's/JMX_PORT=.*/JMX_PORT="{{TASKCFG_ALL_JMX_PORT}}"/' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
 
