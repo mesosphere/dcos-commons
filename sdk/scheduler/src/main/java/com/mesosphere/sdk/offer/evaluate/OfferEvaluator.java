@@ -417,6 +417,15 @@ public class OfferEvaluator {
         return builder.build();
     }
 
+    private boolean taskIsActive(Protos.TaskInfo taskInfo) {
+        Optional<Protos.TaskStatus> taskStatus = stateStore.fetchStatus(taskInfo.getName());
+        if (!taskStatus.isPresent()) {
+            return false;
+        }
+
+        return !TaskUtils.isTerminal(taskStatus.get());
+    }
+
     private List<OfferEvaluationStage> getExistingEvaluationPipeline(
             PodInstanceRequirement podInstanceRequirement,
             Map<String, Protos.TaskInfo> podTasks,
@@ -438,8 +447,11 @@ public class OfferEvaluator {
         }
 
         if (podInstanceRequirement.getPodInstance().getPod().getPlacementRule().isPresent()) {
+            Collection<Protos.TaskInfo> activeTasks = allTasks.stream()
+                .filter(taskInfo -> taskIsActive(taskInfo))
+                .collect(Collectors.toList());
             evaluationStages.add(new PlacementRuleEvaluationStage(
-                    allTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
+                    activeTasks, podInstanceRequirement.getPodInstance().getPod().getPlacementRule().get()));
         }
 
         ResourceSpec firstResource = taskSpecs.get(0).getResourceSet().getResources().iterator().next();
