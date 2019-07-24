@@ -23,10 +23,6 @@ no_strict_for_azure = pytest.mark.skipif(
 def configure_package(configure_security: None) -> Iterator[None]:
     test_jobs: List[Dict[str, Any]] = []
     try:
-        sdk_cmd.run_cli("package install minio --yes")
-        sdk_cmd.run_cli("package install marathon-lb --yes")
-        sdk_marathon.wait_for_deployment("marathon-lb", 1200, None)
-        sdk_marathon.wait_for_deployment("minio", 1200, None)
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
         # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
         for job in test_jobs:
@@ -122,6 +118,10 @@ def test_backup_and_restore_to_s3() -> None:
 @pytest.mark.aws
 @pytest.mark.sanity
 def test_backup_and_restore_to_s3_compatible_storage() -> None:
+    sdk_cmd.run_cli("package install minio --yes")
+    sdk_cmd.run_cli("package install marathon-lb --yes")
+    sdk_marathon.wait_for_deployment("marathon-lb", 1200, None)
+    sdk_marathon.wait_for_deployment("minio", 1200, None)
     # _, raw_nodes, _ = sdk_cmd.run_cli("node --json", print_output=False)
     # public_nodes = json.loads(raw_nodes)
     # for node in public_nodes:
