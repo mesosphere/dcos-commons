@@ -8,6 +8,9 @@ import sdk_jobs
 import sdk_cmd
 import sdk_marathon
 import subprocess
+import tempfile
+import json
+from security import transport_encryption
 
 # import json
 from tests import config
@@ -32,6 +35,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
         # user=root because Azure CLI needs to run in root...
         # We don't run the Azure tests in strict however, so don't set it then.
         if os.environ.get("SECURITY") == "strict":
+            service_account_info = transport_encryption.setup_service_account("marathon-lb")
             additional_options = {"service": {"name": config.get_foldered_service_name()}}
         else:
             additional_options = {
@@ -49,6 +53,7 @@ def configure_package(configure_security: None) -> Iterator[None]:
     finally:
         sdk_cmd.run_cli("package uninstall minio --yes")
         sdk_cmd.run_cli("package uninstall marathon-lb --yes")
+        transport_encryption.cleanup_service_account("marathon-lb", service_account_info)
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
         # remove job definitions from metronome
@@ -119,20 +124,24 @@ def test_backup_and_restore_to_s3() -> None:
 @pytest.mark.sanity
 def test_backup_and_restore_to_s3_compatible_storage() -> None:
     sdk_cmd.run_cli("package install minio --yes")
-    sdk_cmd.run_cli("package install marathon-lb --yes")
+
+    if os.environ.get("SECURITY") == "strict":
+        options = {
+            "marathon-lb": {
+                "secret_name": "marathon-lb",
+                "marathon-uri": "https://marathon.mesos:8443",
+            }
+        }
+
+        options_file = tempfile.NamedTemporaryFile("w")
+        json.dump(options, options_file)
+        options_file.flush()
+        sdk_cmd.run_cli("package install marathon-lb --yes --options={}".format(options_file.name))
+    else:
+        sdk_cmd.run_cli("package install marathon-lb --yes")
+
     sdk_marathon.wait_for_deployment("marathon-lb", 1200, None)
     sdk_marathon.wait_for_deployment("minio", 1200, None)
-    # _, raw_nodes, _ = sdk_cmd.run_cli("node --json", print_output=False)
-    # public_nodes = json.loads(raw_nodes)
-    # for node in public_nodes:
-    #     if (
-    #         "attributes" in node
-    #         and "public_ip" in node["attributes"]
-    #         and node["attributes"]["public_ip"] == "true"
-    #     ):
-    #         public_node_id = node["id"]
-    # _, public_node_ip , _ = sdk_cmd.run_cli('node ssh --option StrictHostKeyChecking=no --option LogLevel=quiet --master-proxy --mesos-id={} \"curl -s ifconfig.co\" '.format(public_node_id))
-    # print ("public_node_ip", public_node_ip)
     host = sdk_marathon.get_scheduler_host("marathon-lb")
     print("host", host)
     _, public_node_ip, _ = sdk_cmd.agent_ssh(host, "curl -s ifconfig.co")
