@@ -283,7 +283,7 @@ public final class SchedulerConfig {
   private static final String MESOS_ALLOCATION_ROLE = "MESOS_ALLOCATION_ROLE";
 
   /**
-   * When set to true, the MESOS_ALLOCATION_ROLE value should be used to subscribe and recover or add footprint.
+   * When set to true, the {@link #MESOS_ALLOCATION_ROLE} value should be used to subscribe and recover or add footprint.
    */
   private static final String MARATHON_APP_ENFORCE_GROUP_ROLE = "MARATHON_APP_ENFORCE_GROUP_ROLE";
 
