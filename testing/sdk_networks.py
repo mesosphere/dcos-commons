@@ -129,3 +129,38 @@ def check_endpoint_on_overlay(package_name: str, service_name: str, endpoint_to_
 
     for dns in endpoint_dns:
         assert "autoip.dcos.thisdcos.directory" in dns, "Expected 'autoip.dcos.thisdcos.directory' in DNS entry"
+
+
+def get_task_host(task):
+    agent_id = task['slave_id']
+    log.info("Retrieving agents information for {}".format(agent_id))
+    agents = sdk_cmd.cluster_request("GET", "/mesos/slaves?slave_id={}".format(agent_id)).json()
+    assert len(agents['slaves']) == 1, "Agent's details do not match the expectations for agent ID {}".format(agent_id)
+    return agents['slaves'][0]['hostname']
+
+
+def get_task_ip(task):
+    task_running_status = None
+    for status in task['statuses']:
+        if status['state'] == "TASK_RUNNING":
+            task_running_status = status
+            break
+
+    assert task_running_status is not None, "No TASK_RUNNING status found for task: {}".format(task)
+
+    ip_address = task_running_status['container_status']['network_infos'][0]['ip_addresses'][0]['ip_address']
+    assert ip_address is not None and ip_address, \
+        "Running task IP address is not defined for task status: {}".format(task_running_status)
+    return ip_address
+
+
+def get_overlay_subnet(network_name='dcos'):
+    subnet = None
+    network_info = sdk_cmd.cluster_request("GET", "/mesos/overlay-master/state").json()
+    for network in network_info['network']['overlays']:
+        if network['name'] == network_name:
+            subnet = network['subnet']
+            break
+
+    assert subnet is not None, "Unable to find subnet information for provided network name: {}".format(network_name)
+    return subnet
