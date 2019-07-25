@@ -42,6 +42,7 @@ public class HealthResource {
     ERROR_CREATING_SERVICE(500, 1),
     DEPLOYING_PENDING(204, 2),
     DEPLOYING_STARTING(202, 2),
+    DELAYED(208, 1),
     DEPLOYING_WAITING_USER(207, 2),
     DEGRADED(206, 3),
     RECOVERING_PENDING(203, 4),
@@ -273,6 +274,7 @@ public class HealthResource {
         return evaluatePendingOrStartingStatusCode(recoveryPlan,
             ServiceStatusCode.RECOVERING_PENDING,
             ServiceStatusCode.RECOVERING_STARTING,
+            ServiceStatusCode.DELAYED,
             ServiceStatusCode.RECOVERING_PENDING.priority);
       }
     } else {
@@ -306,13 +308,17 @@ public class HealthResource {
     return evaluatePendingOrStartingStatusCode(deploymentPlan,
         ServiceStatusCode.DEPLOYING_PENDING,
         ServiceStatusCode.DEPLOYING_STARTING,
+        ServiceStatusCode.DELAYED,
         ServiceStatusCode.DEPLOYING_PENDING.priority);
   }
+
+
 
   private ServiceStatusEvaluationStage evaluatePendingOrStartingStatusCode(
       Plan evaluatePlan,
       ServiceStatusCode pending,
       ServiceStatusCode starting,
+      ServiceStatusCode delayed,
       final int priority)
   {
     String reason;
@@ -340,10 +346,12 @@ public class HealthResource {
 
     // We're biasing pessimistically here, pick cases that are halting the
     // deployment from becoming complete.
-    if (pendingSteps > 0 || preparedSteps > 0 || delayedSteps > 0) {
+    if (pendingSteps > 0 || preparedSteps > 0) {
       statusCode = Optional.of(pending);
     } else if (startingSteps > 0 || startedSteps > 0) {
       statusCode = Optional.of(starting);
+    } else if  (delayedSteps > 0) {
+      statusCode = Optional.of(delayed);
     } else {
       // Implies deployment is complete.
       statusCode = Optional.empty();
@@ -358,7 +366,7 @@ public class HealthResource {
           starting.statusCode);
     }
 
-    reason = String.format("Priority %d. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d)",
+    reason = String.format("Priority %d. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d) Delayed(%d)",
         priority,
         statusCodeString,
         totalSteps,
@@ -366,7 +374,8 @@ public class HealthResource {
         preparedSteps,
         startingSteps,
         startedSteps,
-        completedSteps);
+        completedSteps,
+        delayedSteps);
 
     return new ServiceStatusEvaluationStage(statusCode, reason);
   }
