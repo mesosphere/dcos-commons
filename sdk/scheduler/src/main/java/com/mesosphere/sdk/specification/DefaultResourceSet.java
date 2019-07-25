@@ -285,7 +285,7 @@ public final class DefaultResourceSet implements ResourceSet {
     }
 
     /**
-     * Sets the role {@code role} and returns a reference to this Builder so that the methods can be chained together.
+     * Sets the {@code role} and returns a reference to this Builder so that the methods can be chained together.
      *
      * @param the {@code role} to use
      * @return a reference to this Builder
