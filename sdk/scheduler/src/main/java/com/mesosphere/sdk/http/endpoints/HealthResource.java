@@ -350,7 +350,7 @@ public class HealthResource {
       statusCode = Optional.of(pending);
     } else if (startingSteps > 0 || startedSteps > 0) {
       statusCode = Optional.of(starting);
-    } else if  (delayedSteps > 0) {
+    } else if (delayedSteps > 0) {
       statusCode = Optional.of(delayed);
     } else {
       // Implies deployment is complete.
