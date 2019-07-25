@@ -9,9 +9,9 @@ redirect_from:
 
 <!-- {% raw %} disable mustache templating in this file: retain templated examples as-is -->
 
-This reference document is a field-by-field listing of the YAML schema used for [Service Specifications](../developer-guide/#introduction-to-dcos-service-definitions). For an example of a real-world YAML Service Spec, see the [svc.yml for hello-world](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml). For several smaller examples, see the [SDK Developer Guide](../developer-guide/).
+This reference document is a field-by-field listing of the YAML schema used for [Service Specifications](../developer-guide.md/#introduction-to-dcos-service-definitions). For an example of a real-world YAML Service Spec, see the [svc.yml for hello-world](https://github.com/mesosphere/dcos-commons/blob/master/frameworks/helloworld/src/main/dist/svc.yml). For several smaller examples, see the [SDK Developer Guide](../developer-guide.md).
 
-This documentation effectively reflects the Java object tree under [RawServiceSpec](../reference/api/?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html), which is what's used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the [SDK Developer Guide](../developer-guide/).
+This documentation effectively reflects the Java object tree under [RawServiceSpec](../reference/api/?com/mesosphere/sdk/specification/yaml/RawServiceSpec.html), which is what's used as the schema to parse YAML Service Specifications. What follows is a field-by-field explanation of everything within that tree. For more information about service development in general, see the [SDK Developer Guide](../developer-guide.md).
 
 ## Fields
 
@@ -21,7 +21,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
 * `web-url`
 
-  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Reproxy](../developer-guide/#proxy-fallback) in your service so that the scheduler API endpoints are still available.
+  Where requests should be sent when a user goes to `http://theircluster.com/service/<name>` to view the service. By default this will go to the scheduler API endpoints. If you wish to expose additional custom endpoints via this URL, you should consider configuring [Reproxy](../developer-guide.md/#proxy-fallback) in your service so that the scheduler API endpoints are still available.
 
 * `scheduler`
 
