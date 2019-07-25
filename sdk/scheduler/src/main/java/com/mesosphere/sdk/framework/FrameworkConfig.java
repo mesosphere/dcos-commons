@@ -311,7 +311,7 @@ public final class FrameworkConfig {
 
   /**
    * Returns the non-namespaced role used in earlier versions.
-   * Can be compared with {@code getRole} to determine which role
+   * Can be compared with {@link #getRole()} to determine which role
    * the current footprint has been deployed with.
    */
   public String getNonNamespacedRole() {
