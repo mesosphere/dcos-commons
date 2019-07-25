@@ -148,7 +148,7 @@ def test_backup_and_restore_to_s3_compatible_storage() -> None:
         "AWS_ACCESS_KEY_ID": os.getenv("AWS_ACCESS_KEY_ID"),
         "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
         "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
-        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "miniobackup"),
+        "S3_BUCKET_NAME": config.MINIO_BUCKET_NAME,
         "SNAPSHOT_NAME": str(uuid.uuid1()),
         "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
         "S3_ENDPOINT_URL": minio_endpoint_url,
