@@ -311,9 +311,7 @@ public class HealthResource {
         ServiceStatusCode.DELAYED,
         ServiceStatusCode.DEPLOYING_PENDING.priority);
   }
-
-
-
+  
   private ServiceStatusEvaluationStage evaluatePendingOrStartingStatusCode(
       Plan evaluatePlan,
       ServiceStatusCode pending,
