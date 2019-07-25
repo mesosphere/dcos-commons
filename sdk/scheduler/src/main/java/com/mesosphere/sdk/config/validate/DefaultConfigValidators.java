@@ -35,7 +35,7 @@ public final class DefaultConfigValidators {
   public static Collection<ConfigValidator<ServiceSpec>> getRoleValidators(boolean hasRoleChanged,
       boolean hasCompletedDeployment)
   {
-    //Conditionally include addtional validators here for role related changes.
+    // Conditionally include additional validators here for role related changes.
     if (hasRoleChanged && hasCompletedDeployment) {
       return Collections.emptyList();
     } else if (hasRoleChanged && !hasCompletedDeployment) {
