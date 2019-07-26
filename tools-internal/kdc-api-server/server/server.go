@@ -195,7 +195,7 @@ func (s *KDCAPIServer) replySuccess(rw http.ResponseWriter, req *http.Request, d
  */
 func getPrincipalsChecksum(keytabBytes []byte, principals []KPrincipal) (string, error) {
 	var kt keytab.Keytab
-	var principalKeys map[string]KTKeyList = nil
+	var principalKeys map[string]KTKeyList = make(map[string]KTKeyList)
 	var sortedPrincipals KPrincipalList = nil
 	var csumContents string = ""
 
