@@ -61,7 +61,6 @@ pods:
         memory: 1024
     tasks:
       server:
-        shm-size: 256
         ipc-mode: SHARE_PARENT
         goal: RUNNING
         resource-set: server-resources
