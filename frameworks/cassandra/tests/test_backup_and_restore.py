@@ -53,7 +53,9 @@ def configure_package(configure_security: None) -> Iterator[None]:
     finally:
         sdk_cmd.run_cli("package uninstall minio --yes")
         sdk_cmd.run_cli("package uninstall marathon-lb --yes")
-        transport_encryption.cleanup_service_account("marathon-lb", service_account_info)
+        if os.environ.get("SECURITY") == "strict":
+            transport_encryption.cleanup_service_account("marathon-lb", service_account_info)
+
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
 
         # remove job definitions from metronome
@@ -143,9 +145,7 @@ def test_backup_and_restore_to_s3_compatible_storage() -> None:
     sdk_marathon.wait_for_deployment("marathon-lb", 1200, None)
     sdk_marathon.wait_for_deployment("minio", 1200, None)
     host = sdk_marathon.get_scheduler_host("marathon-lb")
-    print("host", host)
     _, public_node_ip, _ = sdk_cmd.agent_ssh(host, "curl -s ifconfig.co")
-    print("public_node_ip", public_node_ip)
     minio_endpoint_url = "http://" + public_node_ip + ":9000"
     os.environ["AWS_ACCESS_KEY_ID"] = config.MINIO_AWS_ACCESS_KEY_ID
     os.environ["AWS_SECRET_ACCESS_KEY"] = config.MINIO_AWS_SECRET_ACCESS_KEY
