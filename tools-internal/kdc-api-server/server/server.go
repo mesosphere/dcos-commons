@@ -1,12 +1,16 @@
 package main
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"sort"
 	"strings"
+
+	"gopkg.in/jcmturner/gokrb5.v7/keytab"
 )
 
 type KDCAPIServer struct {
@@ -27,18 +31,61 @@ type KDCRequestListPrincipals struct {
 	Binary *bool  `json:"binary"`
 }
 
+type KDCListPrincipalsResponse struct {
+	List     []KPrincipal `json:"list,omitempty"`
+	Checksum string       `json:"checksum,omitempty"`
+}
+
 type KDCCheckStatus struct {
-	Pass   bool   `json:"pass"`
-	Reason string `json:"reason,omitempty"`
+	Pass     bool   `json:"pass"`
+	Reason   string `json:"reason,omitempty"`
+	Checksum string `json:"checksum,omitempty"`
 }
 
 type KDCResponse struct {
-	Status     string          `json:"status"`
-	Error      string          `json:"error,omitempty"`
-	Principals []KPrincipal    `json:"principals,omitempty"`
-	Check      *KDCCheckStatus `json:"check,omitempty"`
+	Status     string                     `json:"status"`
+	Error      string                     `json:"error,omitempty"`
+	Principals *KDCListPrincipalsResponse `json:"principals,omitempty"`
+	Check      *KDCCheckStatus            `json:"check,omitempty"`
 }
 
+/**
+ * Sortable list of principals
+ */
+type KPrincipalList []KPrincipal
+
+func (p KPrincipalList) Len() int {
+	return len(p)
+}
+func (p KPrincipalList) Less(i, j int) bool {
+	return p[i].Full() < p[j].Full()
+}
+func (p KPrincipalList) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+/**
+ * Sortable list of encryption keys
+ */
+type KTKey struct {
+	Type         int32
+	HashContents string
+}
+type KTKeyList []KTKey
+
+func (p KTKeyList) Len() int {
+	return len(p)
+}
+func (p KTKeyList) Less(i, j int) bool {
+	return p[i].Type < p[j].Type
+}
+func (p KTKeyList) Swap(i, j int) {
+	p[i], p[j] = p[j], p[i]
+}
+
+/**
+ * createKDCAPIServer creates a configured instance of a server interface
+ */
 func createKDCAPIServer(kadmin *KAdminClient, port string, host string) *KDCAPIServer {
 	inst := &KDCAPIServer{
 		kadmin:   kadmin,
@@ -104,7 +151,7 @@ func (s *KDCAPIServer) replySuccess(rw http.ResponseWriter, req *http.Request, d
 
 		if data != nil {
 			switch x := data.(type) {
-			case []KPrincipal:
+			case *KDCListPrincipalsResponse:
 				resp.Principals = x
 			case *KDCCheckStatus:
 				resp.Check = x
@@ -125,8 +172,8 @@ func (s *KDCAPIServer) replySuccess(rw http.ResponseWriter, req *http.Request, d
 		rw.Header().Set("Content-Type", "text/plain")
 		if data != nil {
 			switch x := data.(type) {
-			case []KPrincipal:
-				for _, v := range x {
+			case *KDCListPrincipalsResponse:
+				for _, v := range x.List {
 					fmt.Fprintln(rw, v.String())
 				}
 			case *KDCCheckStatus:
@@ -140,6 +187,75 @@ func (s *KDCAPIServer) replySuccess(rw http.ResponseWriter, req *http.Request, d
 
 		fmt.Fprintf(rw, "ok")
 	}
+}
+
+/**
+ * getPrincipalsChecksum calculates a checksum with the contents of the keys
+ * of all the principals given, as found in the keytab given.
+ */
+func getPrincipalsChecksum(keytabBytes []byte, principals []KPrincipal) (string, error) {
+	var kt keytab.Keytab
+	var principalKeys map[string]KTKeyList = nil
+	var sortedPrincipals KPrincipalList = nil
+	var csumContents string = ""
+
+	// Parse the keytab contents and create a sorted list of keys for each principal
+	err := kt.Unmarshal(keytabBytes)
+	if err != nil {
+		return "", fmt.Errorf(`Unable to parse keytab contents: %s`, err.Error())
+	}
+	for _, entry := range kt.Entries {
+		var p KPrincipal
+		p.Realm = entry.Principal.Realm
+		if len(entry.Principal.Components) > 0 {
+			p.Primary = entry.Principal.Components[0]
+		}
+		if len(entry.Principal.Components) > 1 {
+			p.Instance = entry.Principal.Components[1]
+		}
+
+		var k KTKey
+		k.Type = entry.Key.KeyType
+		k.HashContents = fmt.Sprintf("%d:%x", entry.Key.KeyType, entry.Key.KeyValue)
+
+		var list KTKeyList = nil
+		if l, ok := principalKeys[p.Full()]; ok {
+			list = l
+		} else {
+			list = nil
+		}
+
+		list = append(list, k)
+		sort.Sort(list)
+		principalKeys[p.Full()] = list
+	}
+
+	// Create a sorted list of principals and calculate a unique checksum
+	// in the order they appear
+	for _, principal := range principals {
+		sortedPrincipals = append(sortedPrincipals, principal)
+	}
+	sort.Sort(sortedPrincipals)
+	for _, principal := range sortedPrincipals {
+		// If the entry was not found, raise an error since in the previous steps
+		// we made sure that the principal should be included in the keytab
+		keyList, ok := principalKeys[principal.Full()]
+		if !ok {
+			return "", fmt.Errorf("Could not located principal '%s' in the parsed keytab", principal.Full())
+		}
+
+		// Include the keys of this principal
+		for _, key := range keyList {
+			if csumContents != "" {
+				csumContents += ","
+			}
+			csumContents += key.HashContents
+		}
+	}
+
+	// Hash the checksum
+	sum := sha256.Sum256([]byte(csumContents))
+	return fmt.Sprintf("%x", sum), nil
 }
 
 /**
@@ -262,6 +378,7 @@ func (s *KDCAPIServer) handleAddPrincipal(rw http.ResponseWriter, req *http.Requ
  * Enumerates the installed principals that match a given wildcard
  */
 func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Request) {
+	var resp KDCListPrincipalsResponse
 	filterExpr := KDCRequestListPrincipals{"*", "", nil}
 
 	// Check if we are parsing JSON or plain text
@@ -342,9 +459,19 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 			}
 		}
 		list = newList
+
+		// Calculate checksum of found principals
+		csum, err := getPrincipalsChecksum(ktBytes, list)
+		if err != nil {
+			s.replyReject(rw, req, err.Error())
+			return
+		}
+		resp.Checksum = csum
 	}
 
-	s.replySuccess(rw, req, list)
+	// Prepare list response
+	resp.List = list
+	s.replySuccess(rw, req, &resp)
 }
 
 /**
@@ -518,7 +645,7 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 		if !ok {
 			// We don't have a required principal -> check failed
 			s.replySuccess(rw, req, &KDCCheckStatus{
-				false, fmt.Sprintf("Principal '%s' does not exist in kerberos", principal.Full()),
+				false, fmt.Sprintf("Principal '%s' does not exist in kerberos", principal.Full()), "",
 			})
 			return
 		}
@@ -548,7 +675,7 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 	// If the secret is empty, fail the check
 	if ktBytes == nil {
 		s.replySuccess(rw, req, &KDCCheckStatus{
-			false, fmt.Sprintf("Secret '%s' does not exist", apiReq.Secret),
+			false, fmt.Sprintf("Secret '%s' does not exist", apiReq.Secret), "",
 		})
 		return
 	}
@@ -563,12 +690,18 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 		if !ok {
 			// We don't have a required principal in the keytab -> check failed
 			s.replySuccess(rw, req, &KDCCheckStatus{
-				false, fmt.Sprintf("Principal '%s' does not exist in keytab", principal.Full()),
+				false, fmt.Sprintf("Principal '%s' does not exist in keytab", principal.Full()), "",
 			})
 			return
 		}
 	}
 
-	// We are done
-	s.replySuccess(rw, req, &KDCCheckStatus{true, ""})
+	// Calculate the principals checksum from the keytab contents
+	csum, err := getPrincipalsChecksum(ktBytes, apiReq.Principals)
+	if err != nil {
+		s.replyReject(rw, req, err.Error())
+		return
+	}
+
+	s.replySuccess(rw, req, &KDCCheckStatus{true, "", csum})
 }
