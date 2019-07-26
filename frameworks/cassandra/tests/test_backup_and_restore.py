@@ -10,7 +10,7 @@ import sdk_marathon
 import subprocess
 import tempfile
 import json
-from security import transport_encryption
+import sdk_security
 
 # import json
 from tests import config
@@ -32,10 +32,15 @@ def configure_package(configure_security: None) -> Iterator[None]:
             sdk_jobs.install_job(job)
 
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
+        temp_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+        if not temp_key_id:
+            assert (
+                False
+            ), 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
+        temp_secret_Access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
         # user=root because Azure CLI needs to run in root...
         # We don't run the Azure tests in strict however, so don't set it then.
         if os.environ.get("SECURITY") == "strict":
-            service_account_info = transport_encryption.setup_service_account("marathon-lb")
             additional_options = {"service": {"name": config.get_foldered_service_name()}}
         else:
             additional_options = {
@@ -53,10 +58,9 @@ def configure_package(configure_security: None) -> Iterator[None]:
     finally:
         sdk_cmd.run_cli("package uninstall minio --yes")
         sdk_cmd.run_cli("package uninstall marathon-lb --yes")
-        if os.environ.get("SECURITY") == "strict":
-            transport_encryption.cleanup_service_account("marathon-lb", service_account_info)
-
         sdk_install.uninstall(config.PACKAGE_NAME, config.get_foldered_service_name())
+        os.environ["AWS_ACCESS_KEY_ID"] = temp_key_id
+        os.environ["AWS_SECRET_ACCESS_KEY"] = temp_secret_Access_key
 
         # remove job definitions from metronome
         for job in test_jobs:
@@ -128,9 +132,19 @@ def test_backup_and_restore_to_s3_compatible_storage() -> None:
     sdk_cmd.run_cli("package install minio --yes")
 
     if os.environ.get("SECURITY") == "strict":
+        sdk_security.create_service_account(
+            service_account_name="marathon-lb-sa",
+            service_account_secret="marathon-lb/service-account-secret",
+        )
+        sdk_cmd.run_cli(
+            "security org users grant marathon-lb-sa dcos:service:marathon:marathon:services:/ read"
+        )
+        sdk_cmd.run_cli(
+            'security org users grant marathon-lb-sa dcos:service:marathon:marathon:admin:events read --description "Allows access to Marathon events"'
+        )
         options = {
             "marathon-lb": {
-                "secret_name": "marathon-lb",
+                "secret_name": "marathon-lb/service-account-secret",
                 "marathon-uri": "https://marathon.mesos:8443",
             }
         }
