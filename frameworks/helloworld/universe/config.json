@@ -20,6 +20,11 @@
           "type": "string",
           "default": ""
         },
+        "service_role": {
+          "description": "The service role used to subscribe to Mesos and to deploy this service's footprint. The specified value is validated by Marathon when enforce-role is set on the group where this service is deployed.",
+          "type": "string",
+          "default": ""
+        },
         "service_account_secret": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
           "type": "string",
