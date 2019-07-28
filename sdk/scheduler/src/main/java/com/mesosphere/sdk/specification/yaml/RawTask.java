@@ -19,8 +19,6 @@ public final class RawTask {
 
   private final String labelsCsv;
 
-  private final String ipcmode;
-
   private final Map<String, String> env;
 
   private final WriteOnceLinkedHashMap<String, RawConfig> configs;
@@ -30,8 +28,6 @@ public final class RawTask {
   private final Double gpus;
 
   private final Integer memory;
-
-  private final Integer shmsize;
 
   private final WriteOnceLinkedHashMap<String, RawPort> ports;
 
@@ -55,14 +51,12 @@ public final class RawTask {
       @JsonProperty("goal") String goal,
       @JsonProperty("essential") Boolean essential,
       @JsonProperty("cmd") String cmd,
-      @JsonProperty("ipc-mode") String ipcmode,
       @JsonProperty("labels") String labels,
       @JsonProperty("env") Map<String, String> env,
       @JsonProperty("configs") WriteOnceLinkedHashMap<String, RawConfig> configs,
       @JsonProperty("cpus") Double cpus,
       @JsonProperty("gpus") Double gpus,
       @JsonProperty("memory") Integer memory,
-      @JsonProperty("shm-size") Integer shmsize,
       @JsonProperty("ports") WriteOnceLinkedHashMap<String, RawPort> ports,
       @JsonProperty("health-check") RawHealthCheck healthCheck,
       @JsonProperty("readiness-check") RawReadinessCheck readinessCheck,
@@ -76,14 +70,12 @@ public final class RawTask {
     this.goal = goal;
     this.essential = essential;
     this.cmd = cmd;
-    this.ipcmode = ipcmode;
     this.labelsCsv = labels;
     this.env = env;
     this.configs = configs;
     this.cpus = cpus;
     this.gpus = gpus;
     this.memory = memory;
-    this.shmsize = shmsize;
     this.ports = ports;
     this.healthCheck = healthCheck;
     this.readinessCheck = readinessCheck;
@@ -105,10 +97,6 @@ public final class RawTask {
 
   public Integer getMemory() {
     return memory;
-  }
-
-  public Integer getShmsize() {
-    return shmsize;
   }
 
   public String getResourceSet() {
@@ -141,10 +129,6 @@ public final class RawTask {
 
   public String getCmd() {
     return cmd;
-  }
-
-  public String getIpcmode() {
-    return ipcmode;
   }
 
   public String getLabelsCsv() {
