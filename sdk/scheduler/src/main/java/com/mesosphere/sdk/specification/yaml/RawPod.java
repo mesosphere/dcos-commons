@@ -50,6 +50,10 @@ public final class RawPod {
 
   private final String seccompProfileName;
 
+  private final String sharedMemory;
+
+  private final Integer sharedMemorySize;
+
 
   private RawPod(
       @JsonProperty("resource-sets") WriteOnceLinkedHashMap<String, RawResourceSet> resourceSets,
@@ -68,7 +72,9 @@ public final class RawPod {
       @JsonProperty("allow-decommission") Boolean allowDecommission,
       @JsonProperty("host-volumes") WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes,
       @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
-      @JsonProperty("seccomp-profile-name") String seccompProfileName) throws Exception
+      @JsonProperty("seccomp-profile-name") String seccompProfileName,
+      @JsonProperty("ipc-mode") String sharedMemory,
+      @JsonProperty("shm-size") Integer sharedMemorySize) throws Exception
   {
     this.placement = placement;
     this.count = count;
@@ -87,6 +93,8 @@ public final class RawPod {
     this.hostVolumes = hostVolumes == null ? new WriteOnceLinkedHashMap<>() : hostVolumes;
     this.seccompUnconfined = seccompUnconfined;
     this.seccompProfileName = seccompProfileName;
+    this.sharedMemory = sharedMemory;
+    this.sharedMemorySize = sharedMemorySize;
     validateSeccomp();
   }
 
@@ -163,5 +171,13 @@ public final class RawPod {
 
   public String getSeccompProfileName() {
     return seccompProfileName;
+  }
+
+  public String getSharedMemory() {
+    return sharedMemory;
+  }
+
+  public Integer getSharedMemorySize() {
+    return sharedMemorySize;
   }
 }

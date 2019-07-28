@@ -67,6 +67,8 @@ public class DefaultPodSpecTest {
                         .filePath("filePath")
                         .build()))
                 .sharePidNamespace(true)
+                .sharedMemory("PRIVATE")
+                .sharedMemorySize(256)
                 .build();
     }
 }

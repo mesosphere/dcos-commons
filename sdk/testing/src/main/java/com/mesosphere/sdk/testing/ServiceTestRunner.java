@@ -306,6 +306,7 @@ public class ServiceTestRunner {
         Mockito.when(mockSchedulerConfig.isSuppressEnabled()).thenReturn(true);
         Mockito.when(mockSchedulerConfig.getExecutorResources())
                 .thenReturn(Collections.singletonMap(Constants.CPUS_RESOURCE_TYPE, EXECUTOR_CPUS));
+        Mockito.when(mockSchedulerConfig.getServiceNamespace()).thenReturn(Optional.of("test-namespace"));
 
         Capabilities mockCapabilities = Mockito.mock(Capabilities.class);
         Mockito.when(mockCapabilities.supportsGpuResource()).thenReturn(true);
@@ -318,6 +319,8 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsEnvBasedSecretsDirectiveLabel()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsDomains()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsProfileMountVolumes()).thenReturn(true);
+        Mockito.when(mockCapabilities.supportsSeccomp()).thenReturn(true);
+        Mockito.when(mockCapabilities.supportsShm()).thenReturn(true);
         Capabilities.overrideCapabilities(mockCapabilities);
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations
@@ -348,7 +351,7 @@ public class ServiceTestRunner {
         AbstractScheduler abstractScheduler = schedulerBuilder.build();
         FrameworkScheduler frameworkScheduler =
                 new FrameworkScheduler(
-                        FrameworkConfig.fromRawServiceSpec(rawServiceSpec).getAllResourceRoles(),
+                        FrameworkConfig.fromRawServiceSpec(rawServiceSpec, mockSchedulerConfig.getServiceNamespace()).getAllResourceRoles(),
                         mockSchedulerConfig,
                         persister,
                         new FrameworkStore(persister),

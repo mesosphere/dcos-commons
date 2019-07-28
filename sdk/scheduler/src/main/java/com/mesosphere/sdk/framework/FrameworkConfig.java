@@ -15,6 +15,7 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -77,8 +78,8 @@ public final class FrameworkConfig {
    * Creates a {@link FrameworkConfig} instance based off the contents of the provided
    * {@link RawServiceSpec}.
    */
-  public static FrameworkConfig fromRawServiceSpec(RawServiceSpec rawServiceSpec) {
-    String serviceRole = getServiceRole(rawServiceSpec.getName());
+  public static FrameworkConfig fromRawServiceSpec(RawServiceSpec rawServiceSpec, Optional<String> serviceNamespace) {
+    String serviceRole = getServiceRole(rawServiceSpec.getName(), serviceNamespace);
     return new FrameworkConfig(
         rawServiceSpec.getName(),
         serviceRole,
@@ -96,10 +97,11 @@ public final class FrameworkConfig {
    * Creates a {@link FrameworkConfig} instance based off the contents of the provided
    * {@link ServiceSpec}.
    */
-  public static FrameworkConfig fromServiceSpec(ServiceSpec serviceSpec) {
+  public static FrameworkConfig fromServiceSpec(ServiceSpec serviceSpec, Optional<String> serviceNamespace) {
+    String serviceRole = getServiceRole(serviceSpec.getName(), serviceNamespace);
     return new FrameworkConfig(
         serviceSpec.getName(),
-        serviceSpec.getRole(),
+        serviceRole,
         serviceSpec.getPrincipal(),
         serviceSpec.getUser(),
         serviceSpec.getZookeeperConnection(),
@@ -117,9 +119,19 @@ public final class FrameworkConfig {
   public static FrameworkConfig fromEnvStore(EnvStore envStore) {
     // The only required value is FRAMEWORK_NAME.
     String frameworkName = envStore.getRequired("FRAMEWORK_NAME");
+
+    // We can only use MESOS_ALLOCATION_ROLE if MARATHON_APP_ENFORCE_GROUP_ROLE is true..
+    Optional<String> serviceNamespace;
+    boolean enforceRole = envStore.getOptionalBoolean("MARATHON_APP_ENFORCE_GROUP_ROLE", false);
+    if (enforceRole) {
+      serviceNamespace = Optional.ofNullable(envStore.getOptional("MESOS_ALLOCATION_ROLE", null));
+    } else {
+      serviceNamespace = Optional.empty();
+    }
+
     return new FrameworkConfig(
         frameworkName,
-        getServiceRole(frameworkName),
+        getServiceRole(frameworkName, serviceNamespace),
         envStore.getOptionalNonEmpty(
             "FRAMEWORK_PRINCIPAL", frameworkName + DEFAULT_PRINCIPAL_SUFFIX),
         envStore.getOptionalNonEmpty("FRAMEWORK_USER", DcosConstants.DEFAULT_SERVICE_USER),
@@ -130,6 +142,20 @@ public final class FrameworkConfig {
                 .distinct()
                 .collect(Collectors.toList()),
         envStore.getOptionalNonEmpty("FRAMEWORK_WEB_URL", ""));
+  }
+
+  /**
+   * Returns the configured Mesos role to use for running the service.
+   * Priority is given to the role specified by MESOS_ALLOCATION_ROLE environment variable set by Mesos.
+   * If no such environment-variable is found, or MARATHON_APP_ENFORCE_GROUP_ROLE is false we revert to the legacy
+   * version which uses the service name. Leading slashes are removed and intermediate slashes are escaped.
+   */
+  private static String getServiceRole(String frameworkName, Optional<String> serviceNamespace) {
+    if (serviceNamespace.isPresent()) {
+      return SchedulerUtils.withEscapedSlashes(serviceNamespace.get());
+    } else {
+      return getServiceRole(frameworkName);
+    }
   }
 
   /**
@@ -267,6 +293,7 @@ public final class FrameworkConfig {
   public Set<String> getAllResourceRoles() {
     Set<String> roles = new HashSet<>(preReservedRoles);
     roles.add(role);
+    roles.add(getNonNamespacedRole());
     return roles;
   }
 
@@ -280,5 +307,14 @@ public final class FrameworkConfig {
   @Override
   public String toString() {
     return ReflectionToStringBuilder.toString(this);
+  }
+
+  /**
+   * Returns the non-namespaced role used in earlier versions.
+   * Can be compared with {@code getRole} to determine which role
+   * the current footprint has been deployed with.
+   */
+  public String getNonNamespacedRole() {
+    return SchedulerUtils.withEscapedSlashes(frameworkName) + DEFAULT_ROLE_SUFFIX;
   }
 }
