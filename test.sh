@@ -60,7 +60,7 @@ interactive="false"
 package_registry="false"
 docker_command=${DOCKER_COMMAND:="bash /build-tools/test_runner.sh $WORK_DIR"}
 #docker_image=${DOCKER_IMAGE:-"mesosphere/dcos-commons:latest"}
-docker_image="vespian/dcos-commons:prozlach-tst"
+docker_image="vespian/dcos-commons:prozlach-tst2"
 env_passthrough=
 envfile_input=
 
