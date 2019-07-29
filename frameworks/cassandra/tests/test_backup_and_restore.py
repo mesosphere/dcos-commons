@@ -8,8 +8,6 @@ import sdk_jobs
 import sdk_cmd
 import sdk_marathon
 import subprocess
-import tempfile
-import json
 import sdk_security
 import sdk_utils
 
@@ -121,7 +119,13 @@ def test_backup_and_restore_to_s3() -> None:
 @pytest.mark.sanity
 def test_backup_and_restore_to_s3_compatible_storage() -> None:
     try:
-        sdk_cmd.run_cli("package install minio --yes")
+        sdk_install.install(
+            "minio",
+            "minio",
+            expected_running_tasks=0,
+            package_version="0.0.13-RELEASE.2018-10-06T00-15-16Z",
+            wait_for_deployment=False,
+        )
         temp_key_id = os.getenv("AWS_ACCESS_KEY_ID")
 
         if not temp_key_id:
@@ -148,18 +152,24 @@ def test_backup_and_restore_to_s3_compatible_storage() -> None:
                 }
             }
 
-            options_file = tempfile.NamedTemporaryFile("w")
-            json.dump(options, options_file)
-            options_file.flush()
-            sdk_cmd.run_cli(
-                "package install marathon-lb --yes --options={}".format(options_file.name)
+            sdk_install.install(
+                "marathon-lb",
+                "marathon-lb",
+                expected_running_tasks=0,
+                additional_options=options,
+                package_version="1.14.0",
+                wait_for_deployment=False,
             )
 
         else:
-            sdk_cmd.run_cli("package install marathon-lb --yes")
+            sdk_install.install(
+                "marathon-lb",
+                "marathon-lb",
+                expected_running_tasks=0,
+                package_version="1.14.0",
+                wait_for_deployment=False,
+            )
 
-        sdk_marathon.wait_for_deployment("marathon-lb", 1200, None)
-        sdk_marathon.wait_for_deployment("minio", 1200, None)
         host = sdk_marathon.get_scheduler_host("marathon-lb")
         _, public_node_ip, _ = sdk_cmd.agent_ssh(host, "curl -s ifconfig.co")
         minio_endpoint_url = "http://" + public_node_ip + ":9000"
