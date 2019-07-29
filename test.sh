@@ -420,7 +420,7 @@ dig @198.51.100.3 services.gradle.org
 
 
 echo "MARYNA iptables-save PRE"
-docker inspect bridge
+iptables-save -c
 
 echo "MARYNA sysctl -a"
 sysctl -a
@@ -457,5 +457,9 @@ sysctl -a
 
 $CMD
 
+STATUS=$?
+
 echo "MARYNA iptables-save POST"
-docker inspect bridge
+iptables-save -c
+
+exit $?
