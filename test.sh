@@ -59,7 +59,8 @@ headless="false"
 interactive="false"
 package_registry="false"
 docker_command=${DOCKER_COMMAND:="bash /build-tools/test_runner.sh $WORK_DIR"}
-docker_image=${DOCKER_IMAGE:-"mesosphere/dcos-commons:latest"}
+#docker_image=${DOCKER_IMAGE:-"mesosphere/dcos-commons:latest"}
+docker_image="vespian/dcos-commons:prozlach-tst"
 env_passthrough=
 envfile_input=
 
@@ -390,5 +391,54 @@ while read line; do
     echo "  $line"
 done <$envfile
 echo "==="
+
+echo "MARYNA ping"
+ping -c 3 198.51.100.1
+ping -c 3 198.51.100.2
+ping -c 3 198.51.100.3
+
+echo "MARYNA ip a sh"
+ip a sh
+
+echo "MARYNA ip r sh"
+ip r sh
+
+echo "MARYNA env:"
+env
+
+echo "MARYNA docker info:"
+docker info
+
+echo "MARYNA docker ls:"
+docker network ls
+
+echo "MARYNA docker bridge"
+docker inspect bridge
+
+echo "MARYNA fetch plain"
+curl -v http://services.gradle.org/distributions/gradle-5.3.1-all.zip -o /dev/null
+
+echo "MARYNA fetch https"
+curl -v https://services.gradle.org/distributions/gradle-5.3.1-all.zip -o /dev/null
+
+echo "MARYNA install tooling"
+apt-get update
+apt-get install -y dnsutils
+
+echo "MARYNA dig +trace services"
+dig +trace services.gradle.org
+
+echo "MARYNA dig +trace download"
+dig +trace downloads.gradle.org
+
+echo "MARYNA resolv.conf"
+cat /etc/resolv.conf
+
+echo "MARYNA: certs services"
+openssl s_client -showcerts services.gradle.org:443 < /dev/null | openssl x509 -noout -text
+
+echo "MARYNA: certs download"
+openssl s_client -showcerts downloads.gradle.org:443 < /dev/null | openssl x509 -noout -text
+
 
 $CMD
