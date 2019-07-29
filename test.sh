@@ -404,9 +404,6 @@ ip a sh
 echo "MARYNA ip r sh"
 ip r sh
 
-echo "MARYNA env:"
-env
-
 echo "MARYNA docker info:"
 docker info
 
@@ -416,31 +413,49 @@ docker network ls
 echo "MARYNA docker bridge"
 docker inspect bridge
 
-echo "MARYNA fetch plain"
-curl -v http://services.gradle.org/distributions/gradle-5.3.1-all.zip -o /dev/null
+echo "MARYNA dig@dcos-net"
+dig @198.51.100.1 services.gradle.org
+dig @198.51.100.2 services.gradle.org
+dig @198.51.100.3 services.gradle.org
 
-echo "MARYNA fetch https"
-curl -v https://services.gradle.org/distributions/gradle-5.3.1-all.zip -o /dev/null
 
-echo "MARYNA install tooling"
-apt-get update
-apt-get install -y dnsutils
+echo "MARYNA iptables-save PRE"
+docker inspect bridge
 
-echo "MARYNA dig +trace services"
-dig +trace services.gradle.org
+echo "MARYNA sysctl -a"
+sysctl -a
 
-echo "MARYNA dig +trace download"
-dig +trace downloads.gradle.org
+#echo "MARYNA env:"
+#env
 
-echo "MARYNA resolv.conf"
-cat /etc/resolv.conf
+#echo "MARYNA fetch plain"
+#curl -v http://services.gradle.org/distributions/gradle-5.3.1-all.zip -o /dev/null
 
-echo "MARYNA: certs services"
-openssl s_client -showcerts services.gradle.org:443 < /dev/null | openssl x509 -noout -text
+#echo "MARYNA fetch https"
+#curl -v https://services.gradle.org/distributions/gradle-5.3.1-all.zip -o /dev/null
 
-echo "MARYNA: certs download"
-openssl s_client -showcerts downloads.gradle.org:443 < /dev/null | openssl x509 -noout -text
-set -e
+#echo "MARYNA install tooling"
+#apt-get update
+#apt-get install -y dnsutils
+
+#echo "MARYNA dig +trace services"
+#dig +trace services.gradle.org
+
+#echo "MARYNA dig +trace download"
+#dig +trace downloads.gradle.org
+
+#echo "MARYNA resolv.conf"
+#cat /etc/resolv.conf
+
+#echo "MARYNA: certs services"
+#openssl s_client -showcerts services.gradle.org:443 < /dev/null | openssl x509 -noout -text
+
+#echo "MARYNA: certs download"
+#openssl s_client -showcerts downloads.gradle.org:443 < /dev/null | openssl x509 -noout -text
+#set +e
 
 
 $CMD
+
+echo "MARYNA iptables-save POST"
+docker inspect bridge
