@@ -392,6 +392,7 @@ while read line; do
 done <$envfile
 echo "==="
 
+set +e
 echo "MARYNA ping"
 ping -c 3 198.51.100.1
 ping -c 3 198.51.100.2
@@ -439,6 +440,7 @@ openssl s_client -showcerts services.gradle.org:443 < /dev/null | openssl x509 -
 
 echo "MARYNA: certs download"
 openssl s_client -showcerts downloads.gradle.org:443 < /dev/null | openssl x509 -noout -text
+set -e
 
 
 $CMD
