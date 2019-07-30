@@ -36,7 +36,7 @@ pipeline {
         stage('build') {
             steps {
                 // Build Docker image.
-                sh("docker build -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
+                sh("docker build --squash -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
             }
         }
  
