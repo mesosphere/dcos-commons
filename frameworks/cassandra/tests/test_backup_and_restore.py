@@ -11,7 +11,6 @@ import subprocess
 import sdk_security
 import sdk_utils
 
-# import json
 from tests import config
 
 
@@ -132,9 +131,9 @@ def test_backup_and_restore_to_s3_compatible_storage() -> None:
             assert (
                 False
             ), 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
-        temp_secret_Access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
-        is_strict = sdk_utils.is_strict_mode()
-        if is_strict:
+        temp_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        options = ""
+        if sdk_utils.is_strict_mode():
             sdk_security.create_service_account(
                 service_account_name="marathon-lb-sa",
                 service_account_secret="marathon-lb/service-account-secret",
@@ -152,24 +151,14 @@ def test_backup_and_restore_to_s3_compatible_storage() -> None:
                 }
             }
 
-            sdk_install.install(
-                "marathon-lb",
-                "marathon-lb",
-                expected_running_tasks=0,
-                additional_options=options,
-                package_version="1.14.0",
-                wait_for_deployment=False,
-            )
-
-        else:
-            sdk_install.install(
-                "marathon-lb",
-                "marathon-lb",
-                expected_running_tasks=0,
-                package_version="1.14.0",
-                wait_for_deployment=False,
-            )
-
+        sdk_install.install(
+            "marathon-lb",
+            "marathon-lb",
+            expected_running_tasks=0,
+            additional_options=options,
+            package_version="1.14.0",
+            wait_for_deployment=False,
+        )
         host = sdk_marathon.get_scheduler_host("marathon-lb")
         _, public_node_ip, _ = sdk_cmd.agent_ssh(host, "curl -s ifconfig.co")
         minio_endpoint_url = "http://" + public_node_ip + ":9000"
@@ -207,4 +196,4 @@ def test_backup_and_restore_to_s3_compatible_storage() -> None:
         sdk_install.uninstall("minio", "minio")
         sdk_install.uninstall("marathon-lb", "marathon-lb")
         os.environ["AWS_ACCESS_KEY_ID"] = temp_key_id
-        os.environ["AWS_SECRET_ACCESS_KEY"] = temp_secret_Access_key
+        os.environ["AWS_SECRET_ACCESS_KEY"] = temp_secret_access_key
