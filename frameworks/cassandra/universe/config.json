@@ -11,11 +11,6 @@
           "pattern": "^(\\/?((\\.\\.)|(([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9])\\.)*([a-z0-9]|[a-z0-9][a-z0-9\\-]*[a-z0-9]))?($|\\/))+$",
           "default": "cassandra"
         },
-        "namespace" : {
-          "description": "DELEVELOPMENT ONLY! WILL BE REMOVED IN RELEASE. The namespace this service should be deployed under.",
-          "type": "string",
-          "default": ""
-        },
         "user": {
           "description": "The user that runs the Cassandra nodes and owns the Mesos sandbox.",
           "type": "string",
