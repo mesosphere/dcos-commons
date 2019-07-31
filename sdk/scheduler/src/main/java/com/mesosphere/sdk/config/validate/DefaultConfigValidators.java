@@ -38,7 +38,7 @@ public final class DefaultConfigValidators {
     // Conditionally include additional validators here for role related changes.
     if (hasRoleChanged && hasCompletedDeployment) {
       return Collections.emptyList();
-    } else if (hasRoleChanged && !hasCompletedDeployment) {
+    } else if (hasRoleChanged) {
       return Arrays.asList(new ServiceRoleCannotChangeOnIncompleteDeployment());
     } else {
       return Arrays.asList(new TaskVolumesCannotChange());
