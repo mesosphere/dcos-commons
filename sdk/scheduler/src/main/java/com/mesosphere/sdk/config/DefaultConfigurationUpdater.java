@@ -100,6 +100,11 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
    * <li>
    * Allow decommission: Does not affect the pods themselves, only how we treat them
    * </li>
+   * <li>
+   * Role changes: To migrate old services to new roles for quota changes, we're relaxing the constraint
+   * that roles on pods cannot change. Here we replace the role to a dummy one to make the roles irrelevant
+   * across the PodSpec.
+   * </li>
    * </ol>
    * As such, ignore these fields when checking for differences.
    *
