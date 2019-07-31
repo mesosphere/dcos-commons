@@ -11,14 +11,13 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
-    {{#TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+    {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
     secrets:
+    {{#TASKCFG_ALL_PASSWORD_SECRET_PATH}}
       publicapikey:
         secret: {{TASKCFG_ALL_PASSWORD_SECRET_PATH}}
         file: new_user_password
     {{/TASKCFG_ALL_PASSWORD_SECRET_PATH}}
-    {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
-    secrets:
       jmxPasswordFile:
         secret: {{SECURE_JMX_PWD_FILE}}
         file: jmx/key_file
@@ -39,6 +38,14 @@ pods:
       jmxKeyStorePass:
         secret: {{SECURE_JMX_KEY_STORE_PASSWORD}}
         file: jmx/key_store_pass
+    {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+    {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
+    {{#TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+    secrets:
+      publicapikey:
+        secret: {{TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+        file: new_user_password
+    {{/TASKCFG_ALL_PASSWORD_SECRET_PATH}}
     {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
     volume:
       path: container-path
@@ -121,7 +128,6 @@ pods:
 
                 export JMX_PORT={{SECURE_JMX_PORT}}
                 export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
-                export KAFKA_JMX_OPTS="-Djava.rmi.server.hostname=$MESOS_CONTAINER_IP -Dcom.sun.management.config.file=$MESOS_SANDBOX/jmx_properties/jmx.properties"
       
                 if [ ! -f "$MESOS_SANDBOX/jmx/key_file" ] ; then
                     echo "Secure JMX is enabled but no JMX password file was provided. Exiting." >&2
@@ -134,12 +140,24 @@ pods:
                 mkdir jmx_properties
                 (umask u=rw,g=,o= && cp $MESOS_SANDBOX/jmx/key_file $MESOS_SANDBOX/jmx_properties/key_file)
                 chmod +x $MESOS_SANDBOX/.ssl/jmx-ssl-properties.sh
-                $MESOS_SANDBOX/.ssl/jmx-ssl-properties.sh
+                $MESOS_SANDBOX/.ssl/jmx-ssl-properties.sh   
+                LOCAL_JMX="no"
+                sed -i 's/    LOCAL_JMX=yes*/    LOCAL_JMX=no/' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                sed -i '/  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.rmi.port*/s/$JMX_PORT/"{{SECURE_JMX_PORT}}"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh 
+                sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true*/s/^  #/  /g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl.need.client.auth=true*/s/^  #/  /g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                #sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl.enabled.protocols*/s/^  #/  /g;s/<enabled-protocols>/TLSv1.2/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                sed -i '/  #JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.keyStore=\/path\/to\/keystore*/s/^  #/  /g;s/=\/path\/to\/keystore/=jmx\/key_store/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                sed -i '/  #JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.keyStorePassword=*/s/^  #/  /g;s/<keystore-password>/jmx\/key_store_pass/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                sed -i '/  #JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.trustStore=\/path\/to\/truststore*/s/^  #/  /g;s/\/path\/to\/truststore/jmx\/trust_store/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                sed -i '/  #JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.trustStorePassword*/s/^  #/  /g;s/<truststore-password>/jmx\/trust_store_pass/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                sed -i '/JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=*/s/\/etc\/cassandra\/jmxremote.password/jmx_properties\/key_file/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                sed -i '/#JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.access.file*/s/^#//g;s/\/etc\/cassandra\/jmxremote.access/jmx\/access_file/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+
             {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
 
                 # Honor jmx_port config otherwise Cassandra will hardcode to 7199
                 sed -i 's/JMX_PORT=.*/JMX_PORT="{{TASKCFG_ALL_JMX_PORT}}"/' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
         configs:
           cassandra:
