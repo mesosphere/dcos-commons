@@ -344,12 +344,12 @@ public class HealthResource {
 
     // We're biasing pessimistically here, pick cases that are halting the
     // deployment from becoming complete.
-    if (pendingSteps > 0 || preparedSteps > 0) {
+    if (delayedSteps > 0) {
+      statusCode = Optional.of(delayed);
+    } else if (pendingSteps > 0 || preparedSteps > 0) {
       statusCode = Optional.of(pending);
     } else if (startingSteps > 0 || startedSteps > 0) {
       statusCode = Optional.of(starting);
-    } else if (delayedSteps > 0) {
-      statusCode = Optional.of(delayed);
     } else {
       // Implies deployment is complete.
       statusCode = Optional.empty();
