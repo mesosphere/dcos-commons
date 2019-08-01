@@ -145,7 +145,8 @@ def test_kill_data_node():
 @pytest.mark.sanity
 @pytest.mark.recovery
 def test_kill_scheduler():
-    sdk_cmd.kill_task_with_pattern('hdfs.scheduler.Main', shakedown.get_service_ips('marathon').pop())
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    sdk_cmd.kill_task_with_pattern('hdfs.scheduler.Main', sdk_marathon.get_scheduler_host(foldered_name))
     config.check_healthy(service_name=sdk_utils.get_foldered_name(config.SERVICE_NAME))
 
 

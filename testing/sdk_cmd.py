@@ -178,7 +178,7 @@ def kill_task_with_pattern(pattern, agent_host=None, timeout_seconds=DEFAULT_TIM
         if agent_host is None:
             exit_status, _ = shakedown.run_command_on_master(command)
         else:
-            exit_status, _ = shakedown.run_command_on_agent(agent_host, command)
+            exit_status, _ = shakedown.run_command_on_agent(agent_host, command, 'vagrant', '/ssh/key')
 
         return exit_status
 
