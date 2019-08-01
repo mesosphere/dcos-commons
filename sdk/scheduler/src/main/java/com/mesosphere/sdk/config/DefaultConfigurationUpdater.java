@@ -12,10 +12,7 @@ import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.DefaultTaskSpec;
-import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.PortSpec;
-import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
@@ -130,9 +127,9 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
 
       //Add Resources to taskResourceSetBuilder.
       taskResourceSet.getResources()
-        .stream()
-        .filter(DefaultResourceSpec.class::isInstance).forEach(resourceSpec -> taskResourceSetBuilder
-            .addResource(DefaultResourceSpec.newBuilder(resourceSpec).role(dummyRole).build()));
+          .stream()
+          .filter(DefaultResourceSpec.class::isInstance).forEach(resourceSpec -> taskResourceSetBuilder
+              .addResource(DefaultResourceSpec.newBuilder(resourceSpec).role(dummyRole).build()));
 
       //Add Volumes to taskResourceSetBuilder.
       for (VolumeSpec volumeSpec: taskResourceSet.getVolumes()) {
