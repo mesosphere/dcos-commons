@@ -129,39 +129,17 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
       taskResourceSetBuilder.id(taskResourceSet.getId());
 
       //Add Resources to taskResourceSetBuilder.
-      // SUPPRESS CHECKSTYLE NestedForDepth
-      for (ResourceSpec resourceSpec: taskResourceSet.getResources()) {
-        if (resourceSpec instanceof DefaultResourceSpec) {
-          DefaultResourceSpec.Builder resourceSpecBuilder = DefaultResourceSpec.newBuilder(resourceSpec);
-          resourceSpecBuilder.role(dummyRole);
-          taskResourceSetBuilder.addResource(resourceSpecBuilder.build());
-        } else if (resourceSpec instanceof PortSpec) {
-          PortSpec portSpec = (PortSpec) resourceSpec;
-          PortSpec.Builder portSpecBuilder = PortSpec.newBuilder(portSpec);
-          portSpecBuilder.role(dummyRole);
-          taskResourceSetBuilder.addResource(portSpecBuilder.build());
-        } else if (resourceSpec instanceof NamedVIPSpec) {
-          NamedVIPSpec vipSpec = (NamedVIPSpec) resourceSpec;
-          NamedVIPSpec.Builder vipSpecBuilder = NamedVIPSpec.newBuilder(vipSpec);
-          vipSpecBuilder.role(dummyRole);
-          taskResourceSetBuilder.addResource(vipSpecBuilder.build());
-        }
-      }
+      taskResourceSet.getResources()
+        .stream()
+        .filter(DefaultResourceSpec.class::isInstance).forEach(resourceSpec -> taskResourceSetBuilder
+            .addResource(DefaultResourceSpec.newBuilder(resourceSpec).role(dummyRole).build()));
 
       //Add Volumes to taskResourceSetBuilder.
-      // SUPPRESS CHECKSTYLE NestedForDepth
       for (VolumeSpec volumeSpec: taskResourceSet.getVolumes()) {
         switch(volumeSpec.getType()) {
           case ROOT:
-            // SUPPRESS CHECKSTYLE MultipleStringLiterals
-            taskResourceSetBuilder.addVolume("ROOT",
-                volumeSpec.getValue().getScalar().getValue(),
-                volumeSpec.getContainerPath(),
-                volumeSpec.getProfiles());
-            break;
           case MOUNT:
-            // SUPPRESS CHECKSTYLE MultipleStringLiterals
-            taskResourceSetBuilder.addVolume("MOUNT",
+            taskResourceSetBuilder.addVolume(volumeSpec.getType().name(),
                 volumeSpec.getValue().getScalar().getValue(),
                 volumeSpec.getContainerPath(),
                 volumeSpec.getProfiles());
