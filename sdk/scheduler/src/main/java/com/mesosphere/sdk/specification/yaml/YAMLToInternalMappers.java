@@ -590,6 +590,7 @@ public final class YAMLToInternalMappers {
     return DefaultHostVolumeSpec.newBuilder()
         .hostPath(rawHostVolume.getHostPath())
         .containerPath(rawHostVolume.getContainerPath())
+        .mode(rawHostVolume.getMode())
         .build();
   }
 

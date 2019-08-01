@@ -85,4 +85,15 @@ public class VerifyHostVolumePathTest {
                 .hostPath("/etc")
                 .build();
     }
+
+    @Test(expected = Exception.class)
+    public void testInvalidMode() {
+        DefaultHostVolumeSpec.newBuilder()
+                .hostPath("/etc")
+                .containerPath("etc")
+                .mode("FOO")
+                .build();
+    }
+
+
 }

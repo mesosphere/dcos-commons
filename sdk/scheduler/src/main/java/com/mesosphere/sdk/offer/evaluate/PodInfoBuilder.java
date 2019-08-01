@@ -767,11 +767,21 @@ public class PodInfoBuilder {
     Collection<Protos.Volume> volumes = new ArrayList<>();
 
     for (HostVolumeSpec hostVolumeSpec : hostVolumeSpecs) {
-      volumes.add(Protos.Volume.newBuilder()
-          .setHostPath(hostVolumeSpec.getHostPath())
-          .setContainerPath(hostVolumeSpec.getContainerPath())
-          .setMode(Protos.Volume.Mode.RW)
-          .build());
+      if (hostVolumeSpec.getMode().isPresent()) {
+        //set mode on host volume if defined or revert to RW as default
+        volumes.add(Protos.Volume.newBuilder()
+            .setHostPath(hostVolumeSpec.getHostPath())
+            .setContainerPath(hostVolumeSpec.getContainerPath())
+            .setMode(hostVolumeSpec.getMode().get())
+            .build());
+
+      } else {
+        volumes.add(Protos.Volume.newBuilder()
+            .setHostPath(hostVolumeSpec.getHostPath())
+            .setContainerPath(hostVolumeSpec.getContainerPath())
+            .setMode(Protos.Volume.Mode.RW)
+            .build());
+      }
     }
 
     return volumes;
