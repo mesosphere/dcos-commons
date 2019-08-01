@@ -62,7 +62,6 @@ public class Main {
                 .build();
 
         return DefaultScheduler.newBuilder(setPlacementRules(serviceSpec), schedulerConfig)
-                .setRecoveryManagerFactory(new HdfsRecoveryPlanOverriderFactory())
                 .setPlansFrom(rawServiceSpec)
                 .setEndpointProducer(HDFS_SITE_XML, EndpointProducer.constant(
                         renderTemplate(new File(configDir, HDFS_SITE_XML), serviceSpec.getName())))
