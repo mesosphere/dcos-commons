@@ -22,12 +22,38 @@
 #
 FROM ubuntu:18.10@sha256:1da669e3481b6c2c8bb25ad287b75202871b1511249000e3bc35679d02e007f4
 
+# Docker and DIND
+# links to commit hashes are listed inside posted Dockerfiles at
+# https://hub.docker.com/r/library/docker/
+# NOTE: must match engine version that is directly pulled from
+# Alpine's Dockerfile:
+# - go to https://hub.docker.com/r/library/docker/
+# - click on the matching alpine version tag (eg, 17.12.0-dind)
+# - pull the DIND_COMMIT hash from the Dockerfile that opens
+ARG DOCKER_VERSION=5:18.09.8
+ARG DIND_COMMIT=37498f009d8bf25fbb6199e8ccd34bed84f2874b
+
+COPY dind-wrapper.sh /usr/local/bin/dind-wrapper.sh
 RUN apt-get update && \
-    apt-get install -y python3-software-properties software-properties-common && \
+    apt-get install -y \
+        wget \
+        gnupg && \
+    wget -O - "https://download.docker.com/linux/ubuntu/gpg" \
+        | apt-key add -qq - \
+    && echo "deb [arch=amd64] \
+        https://download.docker.com/linux/ubuntu \
+        bionic \
+        stable" > /etc/apt/sources.list.d/docker.list \
+    && wget -O /usr/local/bin/dind "https://raw.githubusercontent.com/docker/docker/${DIND_COMMIT}/hack/dind" \
+    && chmod a+x /usr/local/bin/dind \
+    && chmod a+x /usr/local/bin/dind-wrapper.sh
+
+RUN apt-get install -y python3-software-properties software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
     apt-get update && \
     apt-get install -y \
     curl \
+    docker-ce="${DOCKER_VERSION}~3-0~ubuntu-bionic" \
     git \
     jq \
     libcairo2-dev \
