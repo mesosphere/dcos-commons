@@ -56,6 +56,7 @@ ssh_user="core"
 aws_creds_path="${HOME}/.aws/credentials"
 enterprise="true"
 headless="false"
+dind="false"
 interactive="false"
 package_registry="false"
 docker_command=${DOCKER_COMMAND:="bash /build-tools/test_runner.sh $WORK_DIR"}
@@ -97,6 +98,8 @@ function usage()
     echo "    Path to an AWS credentials file. Overrides any AWS_* env credentials."
     echo "  --aws-profile ${AWS_PROFILE:=NAME}"
     echo "    The AWS profile to use. Only required when using an AWS credentials file with multiple profiles."
+    echo "  --dind ${dind}"
+    echo "    launch docker daemon inside the container"
     echo ""
     echo "Environment:"
     echo "  CLUSTER_URL"
@@ -175,6 +178,9 @@ case $key in
     ;;
     --package-registry)
     package_registry="true"
+    ;;
+    --dind)
+    dind="true"
     ;;
     --dcos-files-path)
     if [[ ! -d "$2" ]]; then echo "Directory not found: --dcos-files-path $2"; exit 1; fi
@@ -299,6 +305,11 @@ if [ x"$interactive" == x"true" ]; then
     docker_command="bash"
 fi
 
+if [ x"$dind" == x"true" ]; then
+    docker_command="/usr/local/bin/dind-wrapper.sh ${docker_command}"
+    docker_privileged_arg="--privileged"
+fi
+
 # Some automation contexts (e.g. Jenkins) will be unhappy if STDIN is not available. The --headless command accomodates such contexts.
 if [ x"$headless" != x"true" ]; then
     docker_interactive_arg="-i"
@@ -375,6 +386,7 @@ fi
 CMD="docker run --rm \
 -t \
 ${docker_interactive_arg} \
+${docker_privileged_arg} \
 --env-file $envfile \
 ${volume_args} \
 -w $WORK_DIR \
