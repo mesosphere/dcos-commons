@@ -281,5 +281,5 @@ docker run --rm \
     -t \
     $DOCKER_INTERACTIVE_FLAGS \
     $DOCKER_ARGS \
-    mesosphere/dcos-commons:latest \
+    portworx/dcos-commons:1.3-0.40.5 \
     $DOCKER_COMMAND
