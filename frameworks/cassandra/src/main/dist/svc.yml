@@ -126,7 +126,8 @@ pods:
                     ${JAVA_HOME}/bin/keytool -noprompt -importkeystore -srckeystore $KEY_STORE_PATH -srcstorepass $SECURE_JMX_KEY_STORE_KEY -destkeystore $TRUST_STORE_PATH -deststorepass $SECURE_JMX_TRUST_STORE_KEY
                 fi
 
-                export JMX_PORT={{SECURE_JMX_PORT}}
+                #export JMX_PORT={{SECURE_JMX_PORT}}
+                export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
                 export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
       
                 if [ ! -f "$MESOS_SANDBOX/jmx/key_file" ] ; then
@@ -141,9 +142,9 @@ pods:
                 (umask u=rw,g=,o= && cp $MESOS_SANDBOX/jmx/key_file $MESOS_SANDBOX/jmx_properties/key_file)
                 chmod +x $MESOS_SANDBOX/.ssl/jmx-ssl-properties.sh
                 $MESOS_SANDBOX/.ssl/jmx-ssl-properties.sh   
-                LOCAL_JMX="no"
+                export LOCAL_JMX="no"
                 sed -i 's/    LOCAL_JMX=yes*/    LOCAL_JMX=no/' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.rmi.port*/s/$JMX_PORT/"{{SECURE_JMX_PORT}}"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh 
+                sed -i '/  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.rmi.port*/s/$JMX_PORT/"{{SECURE_JMX_RMI_PORT}}"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh 
                 sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"/s/true"/true"\n  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.host='$MESOS_CONTAINER_IP'"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
                 sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"/s/true"/true"\n  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote=true"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
                 sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"/s/true"/true"\n  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.registry.ssl=true"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
@@ -187,8 +188,7 @@ pods:
         readiness-check:
           cmd: >
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
-                export TASK_IP=$(./bootstrap --get-task-ip) &&
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
+                export TASK_IP=$(./bootstrap --get-task-ip) 
           interval: {{READINESS_CHECK_INTERVAL}}
           delay: {{READINESS_CHECK_DELAY}}
           timeout: {{READINESS_CHECK_TIMEOUT}}
