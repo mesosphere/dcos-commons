@@ -24,13 +24,13 @@ def install_jmx_configured_cassandra(self_signed_trust_store: bool = True):
     install_jmx_secrets()
     service_options = {"service":
                        {"name": foldered_name, "jmx":
-                        {"enabled": True, "port": 31199, "rmi_port": 31198,
+                        {"enabled": True, "rmi_port": 31198,
                             "password_file": PASSWORD_FILE,
                             "access_file": ACCESS_FILE,
                             "key_store": KEY_STORE,
                             "key_store_password_file": KEY_STORE_PASS
                          }
-                        },"cassandra": {"jmx_port": 31297}}
+                        }}
 
     if self_signed_trust_store:
         service_options = sdk_utils.merge_dictionaries(
@@ -109,7 +109,7 @@ def test_secure_jmx_configuration(self_signed_trust_store):
               "-Djavax.net.ssl.trustStorePassword={trust_store_password} " \
               "-Djavax.net.ssl.keyStore=$MESOS_SANDBOX/jmx/key_store -Djavax.net.ssl.keyStorePassword=deleteme " \
               "-Djavax.net.ssl.trustStoreType=JKS -Djavax.net.ssl.keyStoreType=JKS -jar jmxterm-1.0.1-uber.jar " \
-              "-l service:jmx:rmi:///jndi/rmi://$MESOS_CONTAINER_IP:31297/jmxrmi -u admin -p adminpassword " \
+              "-l service:jmx:rmi:///jndi/rmi://$MESOS_CONTAINER_IP:7199/jmxrmi -u admin -p adminpassword " \
               "-s -v silent -n".format(trust_store=trust_store, trust_store_password=trust_store_password)
 
         input_jmx_commands = " < jmx_beans_command.txt"

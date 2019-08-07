@@ -217,6 +217,11 @@
             }
           }
         },
+        "jmx_port": {
+          "type": "integer",
+          "description": "The JMX port that will be used to interface with the Cassandra application.",
+          "default": 7199
+        },
         "jmx": {
           "title": "Secure JMX configuration",
           "description": "Configure the secure JMX settings.",
@@ -250,12 +255,7 @@
                       "enum": [
                         true
                       ]
-                    },
-                    "port": {
-                      "description": "JMX port to expose.",
-                      "type": "integer",
-                      "default": 31419
-                    },
+                    },                    
                     "rmi_port": {
                       "description": "RMI port to expose.",
                       "type": "integer",
@@ -424,7 +424,8 @@
       },
       "required": [
         "name",
-        "user"
+        "user",
+        "jmx_port"
       ]
     },
     "nodes": {
@@ -522,11 +523,6 @@
           "type": "string",
           "description": "The name of the cluster managed by the Service",
           "default": "cassandra"
-        },
-        "jmx_port": {
-          "type": "integer",
-          "description": "The JMX port that will be used to interface with the Cassandra application.",
-          "default": 7199
         },
         "seed_provider_class": {
           "type": "string",
@@ -1118,7 +1114,6 @@
       "additionalProperties": false,
       "required": [
         "cluster_name",
-        "jmx_port",
         "num_tokens",
         "max_hint_window_in_ms",
         "hinted_handoff_enabled",

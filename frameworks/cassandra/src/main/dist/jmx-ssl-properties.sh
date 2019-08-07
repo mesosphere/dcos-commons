@@ -33,3 +33,18 @@ com.sun.management.jmxremote.local.only=false
 
 
 EOF
+
+NODETOOL_SSL_PROPERTIES_FILE=$MESOS_SANDBOX/.cassandra/nodetool-ssl.properties
+
+tee $NODETOOL_SSL_PROPERTIES_FILE <<EOF >/dev/null
+
+-Dcom.sun.management.jmxremote.ssl=true
+-Dcom.sun.management.jmxremote.ssl.need.client.auth=true
+-Dcom.sun.management.jmxremote.registry.ssl=true 
+-Djavax.net.ssl.keyStore=$KEY_STORE_PATH
+-Djavax.net.ssl.keyStorePassword=$SECURE_JMX_KEY_STORE_KEY 
+-Djavax.net.ssl.trustStore=$TRUST_STORE_PATH
+-Djavax.net.ssl.trustStorePassword=$SECURE_JMX_TRUST_STORE_KEY 
+-Djavax.rmi.ssl.client.enabledProtocols=TLSv1.2
+
+EOF
