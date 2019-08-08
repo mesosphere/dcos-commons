@@ -91,8 +91,7 @@ def test_metrics() -> None:
 
     def expected_metrics_exist(emitted_metrics: List[str]) -> bool:
         return sdk_metrics.check_metrics_presence(
-            emitted_metrics=emitted_metrics,
-            expected_metrics=expected_metrics,
+            emitted_metrics=emitted_metrics, expected_metrics=expected_metrics
         )
 
     sdk_metrics.wait_for_service_metrics(
@@ -109,7 +108,7 @@ def test_metrics() -> None:
 def test_custom_jmx_port() -> None:
     expected_open_port = ":7200 (LISTEN)"
 
-    new_config = {"cassandra": {"jmx_port": 7200}}
+    new_config = {"service": {"jmx": {"jmx_port": 7200}}}
 
     sdk_service.update_configuration(
         config.PACKAGE_NAME,
@@ -148,9 +147,7 @@ def test_udf() -> None:
             new_config,
             config.DEFAULT_TASK_COUNT,
         )
-        config.verify_client_can_write_read_udf(
-            config.get_foldered_node_address(),
-        )
+        config.verify_client_can_write_read_udf(config.get_foldered_node_address())
     finally:
         # remove job definitions from metronome
         for job in test_jobs:

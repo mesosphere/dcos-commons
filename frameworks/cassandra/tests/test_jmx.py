@@ -26,12 +26,14 @@ def install_jmx_configured_cassandra(self_signed_trust_store: bool = True):
         "service": {
             "name": foldered_name,
             "jmx": {
-                "enabled": True,
-                "rmi_port": 31198,
-                "password_file": PASSWORD_FILE,
-                "access_file": ACCESS_FILE,
-                "key_store": KEY_STORE,
-                "key_store_password_file": KEY_STORE_PASS,
+                "secure_jmx": {
+                    "enabled": True,
+                    "rmi_port": 31198,
+                    "password_file": PASSWORD_FILE,
+                    "access_file": ACCESS_FILE,
+                    "key_store": KEY_STORE,
+                    "key_store_password_file": KEY_STORE_PASS,
+                }
             },
         }
     }
@@ -41,9 +43,11 @@ def install_jmx_configured_cassandra(self_signed_trust_store: bool = True):
             {
                 "service": {
                     "jmx": {
-                        "add_trust_store": True,
-                        "trust_store": TRUST_STORE,
-                        "trust_store_password_file": TRUST_STORE_PASS,
+                        "secure_jmx": {
+                            "add_trust_store": True,
+                            "trust_store": TRUST_STORE,
+                            "trust_store_password_file": TRUST_STORE_PASS,
+                        }
                     }
                 }
             },
@@ -81,7 +85,7 @@ def install_jmx_secrets():
 
     subprocess.check_output(create_keystore_cmd)
 
-    create_keystore_cmd = [
+    keystore_list_cmd = [
         "keytool",
         "-list",
         "-v",
@@ -91,7 +95,7 @@ def install_jmx_secrets():
         "deleteme",
     ]
 
-    subprocess.check_output(create_keystore_cmd)
+    subprocess.check_output(keystore_list_cmd)
 
     write_to_file("deleteme", "/tmp/{}-keystorepass".format(test_run))
     write_to_file("admin adminpassword", "/tmp/{}-passwordfile".format(test_run))
@@ -141,7 +145,8 @@ def test_secure_jmx_configuration(self_signed_trust_store):
             "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) && "
             "$JAVA_HOME/bin/java "
             "-Duser.home=$MESOS_SANDBOX "
-            "-Djdk.tls.client.protocols=TLSv1.2 -Djavax.net.ssl.trustStore={trust_store} "
+            "-Djdk.tls.client.protocols=TLSv1.2 "
+            "-Djavax.net.ssl.trustStore={trust_store} "
             "-Djavax.net.ssl.trustStorePassword={trust_store_password} "
             "-Djavax.net.ssl.keyStore=$MESOS_SANDBOX/jmx/key_store -Djavax.net.ssl.keyStorePassword=deleteme "
             "-Djavax.net.ssl.trustStoreType=JKS -Djavax.net.ssl.keyStoreType=JKS -jar jmxterm-1.0.1-uber.jar "
