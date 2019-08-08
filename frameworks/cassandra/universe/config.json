@@ -154,7 +154,7 @@
         "placement_constraint": {
           "type": "string",
           "description": "Placement constraints for nodes (e.g., [[\"hostname\", \"MAX_PER\", \"1\"]]).",
-          "default": "",
+          "default": "[[\"hostname\", \"MAX_PER\", \"1\"]]",
           "media": {
             "type": "application/x-zone-constraints+json"
           }

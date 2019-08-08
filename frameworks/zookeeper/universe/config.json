@@ -79,7 +79,7 @@
             "title": "Placement constraint",
             "description": "Placement constraints for nodes (e.g., [[\"hostname\", \"MAX_PER\", \"1\"]]).",
             "type": "string",
-            "default": "",
+            "default": "hostname:UNIQUE",
             "media": {
               "type": "application/x-zone-constraints+json"
             }
