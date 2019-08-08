@@ -280,18 +280,25 @@ public final class SchedulerConfig {
   /**
    * When defined, this is the role to use when subscribing to Mesos and for recovering or adding footprint.
    */
-  private static final String MESOS_ALLOCATION_ROLE = "MESOS_ALLOCATION_ROLE";
+  private static final String MESOS_ALLOCATION_ROLE_ENV = "MESOS_ALLOCATION_ROLE";
 
   /**
    * When set to true, the {@link #MESOS_ALLOCATION_ROLE} value should be used to subscribe and recover or
    * add footprint.
    */
-  private static final String MARATHON_APP_ENFORCE_GROUP_ROLE = "MARATHON_APP_ENFORCE_GROUP_ROLE";
+  private static final String MARATHON_APP_ENFORCE_GROUP_ROLE_ENV = "MARATHON_APP_ENFORCE_GROUP_ROLE";
 
   /**
-   * Default role that the scheuduler gets created under via Marathon without any other options.
+   * Default role that the scheduler gets created under via Marathon without any other options.
    */
   private static final String DEFAULT_SCHEDULER_ROLE = "slave_public";
+
+  /*
+   * Determines if the scheduler should subscribe with the legacy role. Setting this to true is harmless
+   * and might incur a slight startup penalty as Mesos offers with this role get declined if the pod is
+   * looking for offers with the group role instead.
+   */
+  private static final String SUBSCRIBE_LEGACY_ROLE_ENV = "SUBSCRIBE_LEGACY_ROLE";
 
   /**
    * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -403,13 +410,13 @@ public final class SchedulerConfig {
   }
 
   public Optional<String> getServiceNamespace() {
-    boolean enforceRole = envStore.getOptionalBoolean(MARATHON_APP_ENFORCE_GROUP_ROLE, false);
+    boolean enforceRole = envStore.getOptionalBoolean(MARATHON_APP_ENFORCE_GROUP_ROLE_ENV, false);
     if (enforceRole) {
       // If enforceRole is set, we *must* use the value mandated by MESOS_ALLOCATION_ROLE
-      return Optional.of(envStore.getRequired(MESOS_ALLOCATION_ROLE));
+      return Optional.of(envStore.getRequired(MESOS_ALLOCATION_ROLE_ENV));
     } else {
       // We're not in a Marathon group with enforced roles, see if the user has specified a preferred role.
-      String preferredServiceRole = envStore.getOptional(MESOS_ALLOCATION_ROLE, null);
+      String preferredServiceRole = envStore.getOptional(MESOS_ALLOCATION_ROLE_ENV, null);
 
       // If the user specifies an invalid role, ie `service.service_role=prod` when the
       // service name is `dev/foo-service` and is under the group `dev`.
@@ -424,6 +431,10 @@ public final class SchedulerConfig {
         return Optional.empty();
       }
     }
+  }
+
+  public boolean subscribeLegacyRole() {
+    return envStore.getOptionalBoolean(SUBSCRIBE_LEGACY_ROLE_ENV, false);
   }
 
   public String getSecretsNamespace(String serviceName) {

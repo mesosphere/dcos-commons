@@ -2,6 +2,7 @@ package com.mesosphere.sdk.framework;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -120,10 +121,7 @@ public final class FrameworkConfig {
     // The only required value is FRAMEWORK_NAME.
     String frameworkName = envStore.getRequired("FRAMEWORK_NAME");
 
-    // We can only use MESOS_ALLOCATION_ROLE if MARATHON_APP_ENFORCE_GROUP_ROLE is true.
-    Optional<String> serviceNamespace = envStore.getOptionalBoolean("MARATHON_APP_ENFORCE_GROUP_ROLE", false) ?
-        Optional.ofNullable(envStore.getOptional("MESOS_ALLOCATION_ROLE", null)) : Optional.empty();
-
+    Optional<String> serviceNamespace = SchedulerConfig.fromEnvStore(envStore).getServiceNamespace();
     return new FrameworkConfig(
         frameworkName,
         getServiceRole(frameworkName, serviceNamespace),
@@ -268,7 +266,6 @@ public final class FrameworkConfig {
   public Set<String> getAllResourceRoles() {
     Set<String> roles = new HashSet<>(preReservedRoles);
     roles.add(role);
-    roles.add(getNonNamespacedRole());
     return roles;
   }
 

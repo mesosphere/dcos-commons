@@ -25,6 +25,11 @@
           "type": "string",
           "default": ""
         },
+        "subscribe_legacy_role": {
+          "description": "When service role is used, setting this flag to true makes the scheduler subscribe with the legacy role in addition to the service-role. This is useful for downgrade compatibility with schedulers that aren't aware of the service-role.",
+          "type": "boolean",
+          "default": false
+        },
         "service_account_secret": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
           "type": "string",
