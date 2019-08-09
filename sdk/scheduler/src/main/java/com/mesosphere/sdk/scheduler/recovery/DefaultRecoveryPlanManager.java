@@ -19,7 +19,6 @@ import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
-import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -48,9 +47,8 @@ import java.util.stream.Collectors;
  * generates a new {@link RecoveryStep} for them and adds them to the recovery Plan, if not already added.
  */
 @SuppressWarnings({
-    "checkstyle:LineLength",
     "checkstyle:DeclarationOrder",
-    "checkstyle:HiddenField",
+    "checkstyle:HiddenField"
 })
 public class DefaultRecoveryPlanManager implements PlanManager {
   public static final String DEFAULT_RECOVERY_PHASE_NAME = "default";
@@ -71,15 +69,12 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
   protected final FailureMonitor failureMonitor;
 
-  protected final LaunchConstrainer launchConstrainer;
-
   protected final Object planLock = new Object();
 
   public DefaultRecoveryPlanManager(
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
       Set<String> recoverableTaskNames,
-      LaunchConstrainer launchConstrainer,
       FailureMonitor failureMonitor,
       Optional<String> namespace)
   {
@@ -87,7 +82,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
         stateStore,
         configStore,
         recoverableTaskNames,
-        launchConstrainer,
         failureMonitor,
         namespace,
         Collections.emptyList());
@@ -97,7 +91,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
       Set<String> recoverableTaskNames,
-      LaunchConstrainer launchConstrainer,
       FailureMonitor failureMonitor,
       Optional<String> namespace,
       List<RecoveryPlanOverrider> recoveryPlanOverriders)
@@ -107,7 +100,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     this.configStore = configStore;
     this.recoverableTaskNames = recoverableTaskNames;
     this.failureMonitor = failureMonitor;
-    this.launchConstrainer = launchConstrainer;
     this.namespace = namespace;
     this.recoveryPlanOverriders = recoveryPlanOverriders;
     plan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME, Collections.emptyList());
@@ -148,10 +140,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
   public Collection<? extends Step> getCandidates(Collection<PodInstanceRequirement> dirtyAssets) {
     synchronized (planLock) {
       updatePlan(dirtyAssets);
-      return getPlan().getCandidates(dirtyAssets).stream()
-          .filter(step ->
-              launchConstrainer.canLaunch(((RecoveryStep) step).getRecoveryType()))
-          .collect(Collectors.toList());
+      return getPlan().getCandidates(dirtyAssets);
     }
   }
 
@@ -440,7 +429,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     return new RecoveryStep(
         podInstanceRequirement.getName(),
         podInstanceRequirement,
-        launchConstrainer,
         stateStore,
         namespace);
   }
