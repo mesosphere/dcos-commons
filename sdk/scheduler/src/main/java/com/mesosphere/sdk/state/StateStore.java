@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.stream.IntStream;
 
 /**
  * A {@code StateStore} stores the state of a service, including tasks' TaskInfo and TaskStatus
@@ -56,7 +57,7 @@ import java.util.TreeMap;
 @SuppressWarnings("checkstyle:MethodCount")
 public class StateStore {
 
-  private static final int MAX_VALUE_LENGTH_BYTES = 1024 * 1024;
+  private static final int MAX_VALUE_LENGTH_BYTES = 1000 * 1000;
 
   private static final String TASK_INFO_PATH_NAME = "TaskInfo";
 
@@ -231,14 +232,18 @@ public class StateStore {
     if (batchedTasks.size() > 1) {
       logger.warn("Grouped {} TaskInfo writes in to {} batches", tasks.size(), batchedTasks.size());
     }
-    batchedTasks.forEach(taskBytesMap -> {
-      try {
-        persister.setMany(taskBytesMap);
-      } catch (PersisterException e) {
-        throw new StateStoreException(e,
-                String.format("Failed to store %d TaskInfos", taskBytesMap.size()));
-      }
-    });
+    IntStream
+      .range(0, batchedTasks.size())
+      .forEachOrdered(idx -> {
+        Map<String, byte[]> taskBytesMap = batchedTasks.get(idx);
+        try {
+            logger.info("Batch {} payload is {}B", idx, taskBytesMap.values().stream().mapToInt(b -> b.length).sum());
+            persister.setMany(taskBytesMap);
+          } catch (PersisterException e) {
+            throw new StateStoreException(e,
+                    String.format("Failed to store %d TaskInfos", taskBytesMap.size()));
+          }
+        });
   }
 
   /**
