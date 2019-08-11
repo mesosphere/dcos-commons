@@ -46,51 +46,6 @@ public class ServiceTest {
         Assert.assertTrue(StateStoreUtils.getDeploymentWasCompleted(new StateStore(result.getPersister())));
     }
 
-    /**
-     * Validates service deployment in the default configuration case, but within custom namespaces.
-     */
-    @Test
-    public void testDefaultDeploymentWithNamespace() throws Exception {
-        // Exercise slashes in name:
-        ServiceTestResult result = new ServiceTestRunner()
-                .enableMultiService("frameworkName")
-                .setOptions("service.name", "/path/to/namespace")
-                .run(getDefaultDeploymentTicks());
-        // Validate that nothing was stored under the default root persister paths:
-        checkNotFound(result.getPersister(), "/Tasks");
-        checkNotFound(result.getPersister(), "/Configurations");
-        byte[] frameworkId = result.getPersister().get("/FrameworkID");
-        checkNamespace(result, "path.to.namespace", "/path/to/namespace", "/Services/path__to__namespace");
-
-        // A different service name (and namespace) should ignore the state of the first namespace:
-        result = new ServiceTestRunner()
-                .setState(result)
-                .enableMultiService("frameworkName")
-                .setOptions("service.name", "test-namespace")
-                .run(getDefaultDeploymentTicks());
-        // Again, nothing stored under the default root persister paths, but prior namespace IS present:
-        checkNotFound(result.getPersister(), "/Tasks");
-        checkNotFound(result.getPersister(), "/Configurations");
-        Assert.assertEquals(3, result.getPersister().getChildren("/Services/path__to__namespace/Tasks").size());
-        Assert.assertEquals(1, result.getPersister().getChildren("/Services/path__to__namespace/Configurations").size());
-        Assert.assertArrayEquals(frameworkId, result.getPersister().get("/FrameworkID"));
-        checkNamespace(result, "test-namespace", "test-namespace", "/Services/test-namespace");
-
-        // No-namespace should ignore both of the above:
-        result = new ServiceTestRunner()
-                .setState(result)
-                // default service name: hello-world
-                .run(getDefaultDeploymentTicks());
-        // Finally, all three sets should be present. In practice this can't happen because of a schema version check in
-        // ServiceRunner, but this test suite doesn't exercise that code.
-        Assert.assertEquals(3, result.getPersister().getChildren("/Services/path__to__namespace/Tasks").size());
-        Assert.assertEquals(1, result.getPersister().getChildren("/Services/path__to__namespace/Configurations").size());
-        Assert.assertEquals(3, result.getPersister().getChildren("/Services/test-namespace/Tasks").size());
-        Assert.assertEquals(1, result.getPersister().getChildren("/Services/test-namespace/Configurations").size());
-        Assert.assertArrayEquals(frameworkId, result.getPersister().get("/FrameworkID"));
-        checkNamespace(result, "hello-world", null, "");
-    }
-
     private static void checkNotFound(Persister persister, String path) {
         try {
             persister.getChildren(path);

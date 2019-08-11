@@ -9,9 +9,6 @@ import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerRunner;
-import com.mesosphere.sdk.scheduler.multi.MultiServiceEventClient;
-import com.mesosphere.sdk.scheduler.multi.MultiServiceManager;
-import com.mesosphere.sdk.scheduler.multi.MultiServiceRunner;
 import com.mesosphere.sdk.specification.DefaultCommandSpec;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
@@ -23,18 +20,14 @@ import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterCache;
 import com.mesosphere.sdk.storage.PersisterException;
-import com.mesosphere.sdk.storage.PersisterUtils;
 
-import com.google.common.base.Splitter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * Main entry point for the Scheduler.
@@ -48,6 +41,11 @@ public final class Main {
   private static final String HELLO_CPUS_ENV_KEY = "HELLO_CPUS";
 
   private static final String FRAMEWORK_GPUS_ENV_KEY = "FRAMEWORK_GPUS";
+
+  private static final String YAML_DIR = "hello-world-scheduler/";
+
+  private static final String YAML_EXT = ".yml";
+
 
   private Main() {}
 
@@ -64,20 +62,11 @@ public final class Main {
       return;
     }
 
-    Collection<File> yamlFiles = getYamlFiles(args);
-    if (yamlFiles.size() == 1) {
+    if (args.length == 1) {
+      File yamlFile = new File(YAML_DIR, args[0] + YAML_EXT);
       // One YAML file: Mono-Scheduler
-      LOGGER.info("Starting mono-scheduler using: {}", yamlFiles.iterator().next());
-      runSingleYamlService(schedulerConfig, yamlFiles.iterator().next(), scenarios);
-    } else if (yamlFiles.isEmpty()) {
-      // No YAML files (and not in JAVA scenario): Dynamic Multi-Scheduler
-      // (user adds/removes services)
-      LOGGER.info("Starting dynamic multi-scheduler");
-      runDynamicMultiService(schedulerConfig, envStore, scenarios);
-    } else {
-      // Multiple YAML files: Static Multi-Scheduler (one service per provided yaml file)
-      LOGGER.info("Starting static multi-scheduler using: {}", yamlFiles);
-      runFixedMultiYamlService(schedulerConfig, envStore, yamlFiles, scenarios);
+      LOGGER.info("Starting mono-scheduler using: {}", yamlFile);
+      runSingleYamlService(schedulerConfig, yamlFile, scenarios);
     }
   }
 
@@ -112,105 +101,6 @@ public final class Main {
         .run();
   }
 
-  /**
-   * Starts a scheduler which allows dynamically adding and removing services. This scheduler is
-   * initially in an empty state; services must be manually added before any work is actually
-   * performed. If the scheduler is restarted, it will automatically recover its previously-added
-   * services.
-   */
-  private static void runDynamicMultiService(
-      SchedulerConfig schedulerConfig,
-      EnvStore envStore,
-      Collection<Scenario.Type> scenarios) throws Exception
-  {
-    FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
-    Persister persister = getPersister(schedulerConfig, frameworkConfig);
-    MultiServiceManager multiServiceManager = new MultiServiceManager(schedulerConfig);
-
-    ExampleMultiServiceResource httpResource = new ExampleMultiServiceResource(
-        schedulerConfig, frameworkConfig, persister, scenarios, multiServiceManager);
-
-    // Recover any previously added services. This MUST be performed to recover the set of active
-    // services following a scheduler restart. It also MUST be performed BEFORE we start running
-    // the framework thread below.
-    httpResource.recover();
-
-    // Set up the client and run the framework:
-    MultiServiceEventClient client = new MultiServiceEventClient(
-        frameworkConfig.getFrameworkName(),
-        schedulerConfig,
-        multiServiceManager,
-        persister,
-        Collections.singleton(httpResource),
-        httpResource.getUninstallCallback());
-
-    MultiServiceRunner.Builder runnerBuilder =
-        MultiServiceRunner.newBuilder(schedulerConfig, frameworkConfig, persister, client);
-    if (envStore.getOptionalBoolean(FRAMEWORK_GPUS_ENV_KEY, false)) {
-      runnerBuilder.enableGpus();
-    }
-    runnerBuilder.build().run();
-  }
-
-  /**
-   * Starts a scheduler which runs a fixed list of services.
-   */
-  private static void runFixedMultiYamlService(
-      SchedulerConfig schedulerConfig,
-      EnvStore envStore,
-      Collection<File> yamlFiles,
-      Collection<Scenario.Type> scenarios
-  ) throws Exception
-  {
-    FrameworkConfig frameworkConfig = FrameworkConfig.fromEnvStore(envStore);
-    Persister persister = getPersister(schedulerConfig, frameworkConfig);
-    PersisterUtils.checkAndMigrate(frameworkConfig, persister);
-    MultiServiceManager multiServiceManager = new MultiServiceManager(schedulerConfig);
-
-    // Add services represented by YAML files to the service manager:
-    for (File yamlFile : yamlFiles) {
-      RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
-      ServiceSpec serviceSpec =
-          DefaultServiceSpec
-              .newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile())
-              // Override any framework-level params in the servicespec (role, principal, ...) with
-              // ours:
-              .setMultiServiceFrameworkConfig(frameworkConfig)
-              .build();
-      SchedulerBuilder builder = DefaultScheduler
-          .newBuilder(serviceSpec, schedulerConfig, persister)
-          .setPlansFrom(rawServiceSpec)
-          .enableMultiService(frameworkConfig.getFrameworkName());
-      multiServiceManager.putService(
-          Scenario.customize(
-              builder,
-              Optional.of(frameworkConfig.getFrameworkName()),
-              scenarios
-          ).build()
-      );
-    }
-
-    // Set up the client and run the framework:
-    MultiServiceEventClient client = new MultiServiceEventClient(
-        frameworkConfig.getFrameworkName(),
-        schedulerConfig,
-        multiServiceManager,
-        persister,
-        Collections.emptyList(),
-        name -> {
-          // Should only happen when the entire framework is being uninstalled, as we do not expose
-          // a way to remove added services here.
-          LOGGER.info("Service has completed uninstall: {}", name);
-        });
-
-    MultiServiceRunner.Builder runnerBuilder =
-        MultiServiceRunner.newBuilder(schedulerConfig, frameworkConfig, persister, client);
-    if (envStore.getOptionalBoolean(FRAMEWORK_GPUS_ENV_KEY, false)) {
-      runnerBuilder.enableGpus();
-    }
-    runnerBuilder.build().run();
-  }
-
   private static Persister getPersister(
       SchedulerConfig schedulerConfig,
       FrameworkConfig frameworkConfig)
@@ -222,20 +112,6 @@ public final class Main {
       persister = new PersisterCache(persister, schedulerConfig);
     }
     return persister;
-  }
-
-  private static Collection<File> getYamlFiles(String[] args) {
-    Collection<String> yamlPaths = new ArrayList<>();
-    // Support both space-separated or comma-separated files:
-    //   ./hello-world foo.yml bar.yml baz.yml
-    //   ./hello-world foo.yml,bar.yml,baz.yml
-    for (String arg : args) {
-      yamlPaths.addAll(Splitter.on(',').trimResults().splitToList(arg));
-    }
-    LOGGER.info("Using YAML examples: {}", yamlPaths);
-    return yamlPaths.stream()
-        .map(ExampleMultiServiceResource::getYamlFile)
-        .collect(Collectors.toList());
   }
 
   /**
