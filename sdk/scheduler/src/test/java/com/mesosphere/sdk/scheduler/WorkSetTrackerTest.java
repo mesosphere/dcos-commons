@@ -10,7 +10,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -21,14 +20,14 @@ public class WorkSetTrackerTest {
 
     @Test
     public void testNewWork() {
-        WorkSetTracker tracker = new WorkSetTracker(Optional.empty());
+        WorkSetTracker tracker = new WorkSetTracker();
         tracker.updateWorkSet(getSteps(0));
         Assert.assertTrue(tracker.hasNewWork());
     }
 
     @Test
     public void testSameWork() {
-        WorkSetTracker tracker = new WorkSetTracker(Optional.empty());
+        WorkSetTracker tracker = new WorkSetTracker();
         tracker.updateWorkSet(getSteps(0));
         Assert.assertTrue(tracker.hasNewWork());
         tracker.updateWorkSet(getSteps(0));
@@ -37,7 +36,7 @@ public class WorkSetTrackerTest {
 
     @Test
     public void testSameWorkShowsUpLater() {
-        WorkSetTracker tracker = new WorkSetTracker(Optional.empty());
+        WorkSetTracker tracker = new WorkSetTracker();
         tracker.updateWorkSet(getSteps(0));
         Assert.assertTrue(tracker.hasNewWork());
         tracker.updateWorkSet(Collections.emptyList());
@@ -48,7 +47,7 @@ public class WorkSetTrackerTest {
 
     @Test
     public void testNewWorkSurvivesAcrossWorkSets() {
-        WorkSetTracker tracker = new WorkSetTracker(Optional.empty());
+        WorkSetTracker tracker = new WorkSetTracker();
         tracker.updateWorkSet(getSteps(0));
         tracker.updateWorkSet(Collections.emptyList());
         Assert.assertTrue(tracker.hasNewWork());
@@ -60,7 +59,7 @@ public class WorkSetTrackerTest {
 
     @Test
     public void testAdditionalNewWork() {
-        WorkSetTracker tracker = new WorkSetTracker(Optional.empty());
+        WorkSetTracker tracker = new WorkSetTracker();
         tracker.updateWorkSet(getSteps(0));
         Assert.assertTrue(tracker.hasNewWork());
         tracker.updateWorkSet(getSteps(1));
@@ -69,7 +68,7 @@ public class WorkSetTrackerTest {
 
     @Test
     public void testEmptyWork() {
-        WorkSetTracker tracker = new WorkSetTracker(Optional.empty());
+        WorkSetTracker tracker = new WorkSetTracker();
         tracker.updateWorkSet(Collections.emptyList());
         Assert.assertFalse(tracker.hasNewWork());
     }

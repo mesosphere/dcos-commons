@@ -15,16 +15,16 @@ public class TestStep extends AbstractStep {
     private PodInstanceRequirement podInstanceRequirement;
 
     public TestStep() {
-        super("test-step", Optional.empty());
+        super("test-step");
     }
 
     public TestStep(String name, PodInstanceRequirement podInstanceRequirement) {
-        super(name, Optional.empty());
+        super(name);
         this.podInstanceRequirement = podInstanceRequirement;
     }
 
     public TestStep(UUID id, String name, PodInstanceRequirement podInstanceRequirement) {
-        super(name, Optional.empty());
+        super(name);
         this.id = id;
         this.podInstanceRequirement = podInstanceRequirement;
     }

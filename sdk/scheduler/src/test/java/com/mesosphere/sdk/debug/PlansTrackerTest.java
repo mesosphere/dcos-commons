@@ -27,7 +27,6 @@ import com.mesosphere.sdk.testutils.TestPodFactory;
 
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Optional;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -94,18 +93,9 @@ public class PlansTrackerTest {
     frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
     stateStore = new StateStore(persister);
     
-    DeploymentStep helloStep = new DeploymentStep("hello-step",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+    DeploymentStep helloStep = new DeploymentStep("hello-step", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
     
     //Decorate various parts for verification later..
     helloStep.updateInitialStatus(Status.COMPLETE);
@@ -126,7 +116,7 @@ public class PlansTrackerTest {
         Collections.emptyList());
     
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
-    coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager));
+    coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager));
   }
       
   private PodInstanceRequirement getPodInstanceRequirement(PodSpec podSpec, int index) {

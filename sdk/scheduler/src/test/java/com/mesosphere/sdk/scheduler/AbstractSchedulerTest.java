@@ -100,7 +100,6 @@ public class AbstractSchedulerTest {
                     SchedulerConfigTestUtils.getTestSchedulerConfig(),
                     stateStore,
                     null,
-                    Optional.empty(),
                     Optional.empty());
             when(mockPlanCoordinator.getPlanManagers()).thenReturn(Collections.emptyList());
             when(mockPlanCoordinator.getCandidates()).thenReturn(Collections.emptyList());

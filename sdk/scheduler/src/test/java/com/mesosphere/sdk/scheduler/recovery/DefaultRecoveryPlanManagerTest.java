@@ -105,8 +105,7 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 stateStore,
                 configStore,
                 new HashSet<>(Arrays.asList(taskInfo.getName())),
-                failureMonitor,
-                Optional.empty()));
+                failureMonitor));
         mockDeployManager = mock(PlanManager.class);
         final Plan mockDeployPlan = mock(Plan.class);
         when(mockDeployManager.getPlan()).thenReturn(mockDeployPlan);
@@ -119,12 +118,10 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         serviceSpec.getName(),
                         configTarget,
                         PodTestUtils.getTemplateUrlFactory(),
-                        SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                        Optional.empty()),
-                stateStore,
-                Optional.empty());
+                        SchedulerConfigTestUtils.getTestSchedulerConfig()),
+                stateStore);
         planCoordinator =
-                new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(mockDeployManager, recoveryManager));
+                new DefaultPlanCoordinator(Arrays.asList(mockDeployManager, recoveryManager));
     }
 
     @Test

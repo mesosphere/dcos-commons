@@ -251,7 +251,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.empty(),
-                Optional.empty(),
                 Optional.of(mockSecretsClient),
                 new TestTimeFetcher());
         uninstallScheduler.registered(false);
@@ -343,7 +342,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(getReversingPlanCustomizer()),
-                Optional.empty(),
                 Optional.of(mockSecretsClient),
                 new TestTimeFetcher());
 
@@ -398,7 +396,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(mockPlanCustomizer),
-                Optional.empty(),
                 Optional.of(mockSecretsClient),
                 timeFetcher);
         uninstallScheduler.registered(false);

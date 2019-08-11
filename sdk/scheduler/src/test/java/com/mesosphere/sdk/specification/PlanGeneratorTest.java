@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 /**
  * Tests for {@link PlanGenerator}.
@@ -44,7 +43,7 @@ public class PlanGeneratorTest {
         Assert.assertNotNull(serviceSpec);
 
         PlanGenerator generator =
-                new PlanGenerator(new DefaultStepFactory(configStore, stateStore, Optional.empty()));
+                new PlanGenerator(new DefaultStepFactory(configStore, stateStore));
         for (Map.Entry<String, RawPlan> entry : rawServiceSpec.getPlans().entrySet()) {
             Plan plan = generator.generate(entry.getValue(), entry.getKey(), serviceSpec.getPods());
             Assert.assertNotNull(plan);

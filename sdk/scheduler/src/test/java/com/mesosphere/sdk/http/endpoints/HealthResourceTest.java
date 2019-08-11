@@ -107,18 +107,9 @@ public class HealthResourceTest {
     }
     StateStore stateStore = new StateStore(persister);
 
-    DeploymentStep helloStep = new DeploymentStep("hello-step",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());  
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+    DeploymentStep helloStep = new DeploymentStep("hello-step", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
 
     //Decorate various parts for verification later..
     helloStep.updateInitialStatus(Status.PENDING);
@@ -144,7 +135,7 @@ public class HealthResourceTest {
 
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
   
     return new HealthResourceTestScenario(coordinator, frameworkStore);
   }
@@ -187,18 +178,9 @@ public class HealthResourceTest {
     
     StateStore stateStore = new StateStore(persister);
 
-    DeploymentStep helloStep = new DeploymentStep("hello-step",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+    DeploymentStep helloStep = new DeploymentStep("hello-step", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
 
     //Decorate various parts for verification later..
     helloStep.updateInitialStatus(Status.ERROR);
@@ -225,7 +207,7 @@ public class HealthResourceTest {
 
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
 
     //Setup complete, verify result.
 
@@ -246,26 +228,11 @@ public class HealthResourceTest {
     frameworkStore.get().storeFrameworkId(TestConstants.FRAMEWORK_ID);
     StateStore stateStore = new StateStore(persister);
 
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
 
 
     //We have 3 starting but 2 in Pending/Prepared.
@@ -295,7 +262,7 @@ public class HealthResourceTest {
 
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
     
     //Setup complete, verify result.
      
@@ -318,26 +285,11 @@ public class HealthResourceTest {
  
     StateStore stateStore = new StateStore(persister);
 
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
 
     //Pessimistically we expect a service status of STARTING.
     hello1Step.updateInitialStatus(Status.STARTING);
@@ -365,7 +317,7 @@ public class HealthResourceTest {
 
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
 
     //Setup complete, verify result.
     
@@ -388,26 +340,11 @@ public class HealthResourceTest {
  
     StateStore stateStore = new StateStore(persister);
 
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
 
     //Pessimistically we expect a service status of STARTING.
     hello1Step.updateInitialStatus(Status.COMPLETE);
@@ -435,7 +372,7 @@ public class HealthResourceTest {
 
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
 
     //Setup complete, verify result.
     
@@ -457,40 +394,22 @@ public class HealthResourceTest {
     frameworkStore.get().storeFrameworkId(TestConstants.FRAMEWORK_ID);
     
     StateStore stateStore = new StateStore(persister);
- 
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
 
     DeploymentStep recoveryWorld1Step = new DeploymentStep("world-step-1",
         worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+        stateStore);
     DeploymentStep recoveryWorld2Step = new DeploymentStep("world-step-2",
         worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+        stateStore);
     DeploymentStep recoveryWorld3Step = new DeploymentStep("world-step-3",
         worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+        stateStore);
 
     
     //Simulate a pod-replace on the world pod.
@@ -528,7 +447,7 @@ public class HealthResourceTest {
 
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
 
     //Setup complete, verify result.
     
@@ -550,40 +469,22 @@ public class HealthResourceTest {
     frameworkStore.get().storeFrameworkId(TestConstants.FRAMEWORK_ID);
     
     StateStore stateStore = new StateStore(persister);
- 
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
 
     DeploymentStep recoveryWorld1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+            worldPodInstanceRequirement,
+            stateStore);
     DeploymentStep recoveryWorld2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+            worldPodInstanceRequirement,
+            stateStore);
     DeploymentStep recoveryWorld3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+            worldPodInstanceRequirement,
+            stateStore);
 
     
     //Simulate a pod-replace on the world pod.
@@ -621,7 +522,7 @@ public class HealthResourceTest {
 
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
 
     //Setup complete, verify result.
     
@@ -643,40 +544,22 @@ public class HealthResourceTest {
     frameworkStore.get().storeFrameworkId(TestConstants.FRAMEWORK_ID);
     
     StateStore stateStore = new StateStore(persister);
- 
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
 
     DeploymentStep backupWorld1Step = new DeploymentStep("backup-world-step-1",
         worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+        stateStore);
     DeploymentStep backupWorld2Step = new DeploymentStep("backup-world-step-2",
         worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+        stateStore);
     DeploymentStep backupWorld3Step = new DeploymentStep("backup-world-step-3",
         worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+        stateStore);
 
     
     //Simulate a pod-replace on the world pod.
@@ -719,7 +602,7 @@ public class HealthResourceTest {
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
     PlanManager backupPlanManager = DefaultPlanManager.createProceeding(backupPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager, backupPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager, backupPlanManager));
 
     //Setup complete, verify result.
     
@@ -741,40 +624,22 @@ public class HealthResourceTest {
     frameworkStore.get().storeFrameworkId(TestConstants.FRAMEWORK_ID);
     
     StateStore stateStore = new StateStore(persister);
- 
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
 
     DeploymentStep restoreWorld1Step = new DeploymentStep("restore-world-step-1",
         worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+        stateStore);
     DeploymentStep restoreWorld2Step = new DeploymentStep("restore-world-step-2",
         worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+        stateStore);
     DeploymentStep restoreWorld3Step = new DeploymentStep("restore-world-step-3",
         worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+        stateStore);
 
     
     //Simulate a pod-replace on the world pod.
@@ -818,7 +683,8 @@ public class HealthResourceTest {
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
     PlanManager restorePlanManager = DefaultPlanManager.createProceeding(restorePlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager, restorePlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(
+            Arrays.asList(helloWorldPlanManager, recoveryPlanManager, restorePlanManager));
 
     //Setup complete, verify result.
     
@@ -840,53 +706,31 @@ public class HealthResourceTest {
     frameworkStore.get().storeFrameworkId(TestConstants.FRAMEWORK_ID);
     
     StateStore stateStore = new StateStore(persister);
- 
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
+
+    DeploymentStep recoveryWorld1Step = new DeploymentStep("world-step-1",
+            worldPodInstanceRequirement,
+            stateStore);
+    DeploymentStep recoveryWorld2Step = new DeploymentStep("world-step-2",
+            worldPodInstanceRequirement,
+            stateStore);
+    DeploymentStep recoveryWorld3Step = new DeploymentStep("world-step-3",
+            worldPodInstanceRequirement,
+            stateStore);
 
     DeploymentStep restoreWorld1Step = new DeploymentStep("restore-world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+            worldPodInstanceRequirement,
+            stateStore);
     DeploymentStep restoreWorld2Step = new DeploymentStep("restore-world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+            worldPodInstanceRequirement,
+            stateStore);
     DeploymentStep restoreWorld3Step = new DeploymentStep("restore-world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-
-    DeploymentStep recoveryWorld1Step = new DeploymentStep("recovery-world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep recoveryWorld2Step = new DeploymentStep("recovery-world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep recoveryWorld3Step = new DeploymentStep("recovery-world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+            worldPodInstanceRequirement,
+            stateStore);
 
    
     //Simulate a pod-replace during a restore, the recovery plan must have precedence.
@@ -937,7 +781,8 @@ public class HealthResourceTest {
     PlanManager helloWorldPlanManager = DefaultPlanManager.createProceeding(helloWorldPlan);
     PlanManager restorePlanManager = DefaultPlanManager.createProceeding(restorePlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, restorePlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(
+            Arrays.asList(helloWorldPlanManager, restorePlanManager, recoveryPlanManager));
 
     //Setup complete, verify result.
     
@@ -961,44 +806,17 @@ public class HealthResourceTest {
     
     StateStore stateStore = new StateStore(persister);
  
-    DeploymentStep hello0Step = new DeploymentStep("hello-step-0",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello3Step = new DeploymentStep("hello-step-3",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());   
-    DeploymentStep hello4Step = new DeploymentStep("hello-step-4",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());   
+    DeploymentStep hello0Step = new DeploymentStep("hello-step-0", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello3Step = new DeploymentStep("hello-step-3", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello4Step = new DeploymentStep("hello-step-4", helloPodInstanceRequirement, stateStore);
     
    
-    DeploymentStep world0Step = new DeploymentStep("world-step-0",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());   
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
+    DeploymentStep world0Step = new DeploymentStep("world-step-0", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
 
    
     //Simulate a canary-plan where one step is waiting on user input.
@@ -1036,7 +854,7 @@ public class HealthResourceTest {
 
     PlanManager helloWorldPlanManager = DefaultPlanManager.createInterrupted(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
 
     //Setup complete, verify result.
     
@@ -1060,45 +878,15 @@ public class HealthResourceTest {
 
     StateStore stateStore = new StateStore(persister);
 
-    DeploymentStep hello0Step = new DeploymentStep("hello-step-0",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello1Step = new DeploymentStep("hello-step-1",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello2Step = new DeploymentStep("hello-step-2",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello3Step = new DeploymentStep("hello-step-3",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep hello4Step = new DeploymentStep("hello-step-4",
-        helloPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-
-
-    DeploymentStep world0Step = new DeploymentStep("world-step-0",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world1Step = new DeploymentStep("world-step-1",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world2Step = new DeploymentStep("world-step-2",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-    DeploymentStep world3Step = new DeploymentStep("world-step-3",
-        worldPodInstanceRequirement,
-        stateStore,
-        Optional.empty());
-
+    DeploymentStep hello0Step = new DeploymentStep("hello-step-0", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello1Step = new DeploymentStep("hello-step-1", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello2Step = new DeploymentStep("hello-step-2", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello3Step = new DeploymentStep("hello-step-3", helloPodInstanceRequirement, stateStore);
+    DeploymentStep hello4Step = new DeploymentStep("hello-step-4", helloPodInstanceRequirement, stateStore);
+    DeploymentStep world0Step = new DeploymentStep("world-step-0", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world1Step = new DeploymentStep("world-step-1", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world2Step = new DeploymentStep("world-step-2", worldPodInstanceRequirement, stateStore);
+    DeploymentStep world3Step = new DeploymentStep("world-step-3", worldPodInstanceRequirement, stateStore);
 
     //Simulate a canary-plan where one step is waiting on user input.
     hello0Step.updateInitialStatus(Status.COMPLETE);
@@ -1135,7 +923,7 @@ public class HealthResourceTest {
 
     PlanManager helloWorldPlanManager = DefaultPlanManager.createInterrupted(helloWorldPlan);
     PlanManager recoveryPlanManager = DefaultPlanManager.createProceeding(recoveryPlan);
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(), Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Arrays.asList(helloWorldPlanManager, recoveryPlanManager));
 
     //Setup complete, verify result.
 
