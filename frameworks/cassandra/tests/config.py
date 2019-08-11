@@ -132,14 +132,14 @@ def get_verify_deletion_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT
 
 def get_write_data_job(node_address=DEFAULT_NODE_ADDRESS, node_port=DEFAULT_NODE_PORT, dcos_ca_bundle=None):
     cql = ' '.join([
-        "CREATE KEYSPACE testspace1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
+        "CREATE KEYSPACE IF NOT EXISTS testspace1 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
         "USE testspace1;",
-        "CREATE TABLE testtable1 (key varchar, value varchar, PRIMARY KEY(key));",
+        "CREATE TABLE IF NOT EXISTS testtable1 (key varchar, value varchar, PRIMARY KEY(key));",
         "INSERT INTO testspace1.testtable1(key, value) VALUES('testkey1', 'testvalue1');",
 
-        "CREATE KEYSPACE testspace2 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
+        "CREATE KEYSPACE IF NOT EXISTS testspace2 WITH REPLICATION = { 'class' : 'SimpleStrategy', 'replication_factor' : 3 };",
         "USE testspace2;",
-        "CREATE TABLE testtable2 (key varchar, value varchar, PRIMARY KEY(key));",
+        "CREATE TABLE IF NOT EXISTS testtable2 (key varchar, value varchar, PRIMARY KEY(key));",
         "INSERT INTO testspace2.testtable2(key, value) VALUES('testkey2', 'testvalue2');"])
     return _get_test_job(
         'write-data',
