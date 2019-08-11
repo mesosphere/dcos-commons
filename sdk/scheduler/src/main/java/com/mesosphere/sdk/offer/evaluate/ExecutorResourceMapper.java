@@ -31,8 +31,6 @@ public class ExecutorResourceMapper {
 
   private final Collection<Protos.Resource> executorResources;
 
-  private final Optional<String> resourceNamespace;
-
   private final List<Protos.Resource> orphanedResources = new ArrayList<>();
 
   private final List<OfferEvaluationStage> evaluationStages;
@@ -40,14 +38,12 @@ public class ExecutorResourceMapper {
   ExecutorResourceMapper(
       PodSpec podSpec,
       Collection<ResourceSpec> resourceSpecs,
-      Collection<Protos.Resource> executorResources,
-      Optional<String> resourceNamespace)
+      Collection<Protos.Resource> executorResources)
   {
-    logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
+    logger = LoggingUtils.getLogger(getClass());
     this.volumeSpecs = podSpec.getVolumes();
     this.resourceSpecs = resourceSpecs;
     this.executorResources = executorResources;
-    this.resourceNamespace = resourceNamespace;
     this.evaluationStages = getEvaluationStagesInternal();
   }
 
@@ -71,13 +67,11 @@ public class ExecutorResourceMapper {
       if (resource.getName().equals(Constants.DISK_RESOURCE_TYPE) && resource.hasDisk()) {
         matchingResource = ResourceMapperUtils.findMatchingDiskSpec(
             resource,
-            remainingResourceSpecs,
-            resourceNamespace);
+            remainingResourceSpecs);
       } else {
         matchingResource = ResourceMapperUtils.findMatchingResourceSpec(
             resource,
-            remainingResourceSpecs,
-            resourceNamespace);
+            remainingResourceSpecs);
       }
 
       if (matchingResource.isPresent()) {
@@ -132,7 +126,6 @@ public class ExecutorResourceMapper {
           (VolumeSpec) resourceSpec,
           Collections.emptyList(),
           resourceId,
-          resourceLabels.getResourceNamespace(),
           resourceLabels.getPersistenceId(),
           resourceLabels.getProviderId(),
           resourceLabels.getDiskSource());
@@ -140,19 +133,16 @@ public class ExecutorResourceMapper {
       return new ResourceEvaluationStage(
           resourceSpec,
           Collections.emptyList(),
-          resourceId,
-          resourceLabels.getResourceNamespace()
+          resourceId
       );
     }
   }
 
   private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
     if (resourceSpec instanceof VolumeSpec) {
-      return VolumeEvaluationStage.getNew(
-          (VolumeSpec) resourceSpec, Collections.emptyList(), resourceNamespace);
+      return VolumeEvaluationStage.getNew((VolumeSpec) resourceSpec, Collections.emptyList());
     } else {
-      return new ResourceEvaluationStage(
-          resourceSpec, Collections.emptyList(), Optional.empty(), resourceNamespace);
+      return new ResourceEvaluationStage(resourceSpec, Collections.emptyList(), Optional.empty());
     }
   }
 }

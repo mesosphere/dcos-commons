@@ -4,8 +4,6 @@ import com.mesosphere.sdk.scheduler.plan.Status;
 import com.mesosphere.sdk.scheduler.uninstall.UninstallStep;
 import com.mesosphere.sdk.state.StateStore;
 
-import java.util.Optional;
-
 /**
  * A step which erases a specified task's state from zookeeper.
  */
@@ -15,8 +13,8 @@ public class EraseTaskStateStep extends UninstallStep {
 
   private final String taskName;
 
-  public EraseTaskStateStep(StateStore stateStore, String taskName, Optional<String> namespace) {
-    super("erase-" + taskName, namespace);
+  public EraseTaskStateStep(StateStore stateStore, String taskName) {
+    super("erase-" + taskName);
     this.stateStore = stateStore;
     this.taskName = taskName;
   }

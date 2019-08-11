@@ -32,11 +32,8 @@ public class PlanScheduler {
 
   private final StateStore stateStore;
 
-  public PlanScheduler(OfferEvaluator offerEvaluator,
-                       StateStore stateStore,
-                       Optional<String> namespace)
-  {
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+  public PlanScheduler(OfferEvaluator offerEvaluator, StateStore stateStore) {
+    this.logger = LoggingUtils.getLogger(getClass());
     this.offerEvaluator = offerEvaluator;
     this.stateStore = stateStore;
   }

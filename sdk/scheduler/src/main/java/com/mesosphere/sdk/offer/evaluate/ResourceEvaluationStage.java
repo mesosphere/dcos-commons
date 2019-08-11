@@ -29,8 +29,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
   private final Optional<String> requiredResourceId;
 
-  private final Optional<String> resourceNamespace;
-
   /**
    * Creates a new instance for basic resource evaluation.
    *
@@ -38,19 +36,16 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
    * @param taskNames          the name of the tasks which will use this resource: multiple when they share a
    *                           ResourceSet
    * @param requiredResourceId any previously reserved resource ID to be required, or empty for a new reservation
-   * @param resourceNamespace  the namespace label, if any, to store in the resource
    */
   public ResourceEvaluationStage(
       ResourceSpec resourceSpec,
       Collection<String> taskNames,
-      Optional<String> requiredResourceId,
-      Optional<String> resourceNamespace)
+      Optional<String> requiredResourceId)
   {
-    this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.resourceSpec = resourceSpec;
     this.taskNames = taskNames;
     this.requiredResourceId = requiredResourceId;
-    this.resourceNamespace = resourceNamespace;
   }
 
   @Override
@@ -66,7 +61,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
       OfferEvaluationUtils.setProtos(
           podInfoBuilder,
-          ResourceBuilder.fromSpec(resourceSpec, requiredResourceId, resourceNamespace).build(),
+          ResourceBuilder.fromSpec(resourceSpec, requiredResourceId).build(),
           Optional.empty());
       return EvaluationOutcome.pass(
           this,
@@ -84,7 +79,6 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             this,
             resourceSpec,
             requiredResourceId,
-            resourceNamespace,
             mesosResourcePool);
 
     EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
@@ -100,7 +94,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
       OfferEvaluationUtils.setProtos(
           podInfoBuilder,
           ResourceBuilder.fromSpec(
-              resourceSpec, reserveEvaluationOutcome.getResourceId(), resourceNamespace).build(),
+              resourceSpec, reserveEvaluationOutcome.getResourceId()).build(),
           Optional.of(taskName));
     }
     // If it's instead an executor-level resource, we need to update the (shared) executor info:
@@ -108,7 +102,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
       OfferEvaluationUtils.setProtos(
           podInfoBuilder,
           ResourceBuilder.fromSpec(
-              resourceSpec, reserveEvaluationOutcome.getResourceId(), resourceNamespace).build(),
+              resourceSpec, reserveEvaluationOutcome.getResourceId()).build(),
           Optional.empty());
     }
 

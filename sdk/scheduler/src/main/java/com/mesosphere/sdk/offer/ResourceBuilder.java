@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 /**
- * Constructs Mesos {@link Resource} protobufs.
+ * Constructs Mesos {@link Protos.Resource} protobufs.
  */
 public final class ResourceBuilder {
   private final String resourceName;
@@ -29,8 +29,6 @@ public final class ResourceBuilder {
   private Optional<String> role;
 
   private Optional<String> resourceId;
-
-  private Optional<String> resourceNamespace;
 
   private Optional<String> diskContainerPath;
 
@@ -49,7 +47,6 @@ public final class ResourceBuilder {
     this.role = Optional.empty();
     this.principal = Optional.empty();
     this.resourceId = Optional.empty();
-    this.resourceNamespace = Optional.empty();
     this.diskContainerPath = Optional.empty();
     this.diskPersistenceId = Optional.empty();
     this.providerId = Optional.empty();
@@ -57,27 +54,23 @@ public final class ResourceBuilder {
     this.mesosResource = Optional.empty();
   }
 
-  public static ResourceBuilder fromSpec(
-      ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace)
-  {
+  public static ResourceBuilder fromSpec(ResourceSpec spec, Optional<String> resourceId) {
     ResourceBuilder builder =
         new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
             .setRole(Optional.of(spec.getRole()))
             .setPrincipal(Optional.of(spec.getPrincipal()));
     resourceId.ifPresent(builder::setResourceId);
-    resourceNamespace.ifPresent(builder::setResourceNamespace);
     return builder;
   }
 
   public static ResourceBuilder fromSpec(
       VolumeSpec spec,
       Optional<String> resourceId,
-      Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
       Optional<Protos.Resource.DiskInfo.Source> diskSource)
   {
-    ResourceBuilder resourceBuilder = fromSpec(spec, resourceId, resourceNamespace);
+    ResourceBuilder resourceBuilder = fromSpec(spec, resourceId);
 
     providerId.ifPresent(resourceBuilder::setProviderId);
 
@@ -100,15 +93,11 @@ public final class ResourceBuilder {
 
   public static ResourceBuilder fromExistingResource(Protos.Resource resource) {
     if (!resource.hasDisk()) {
-      return fromSpec(
-          getResourceSpec(resource),
-          ResourceUtils.getResourceId(resource),
-          ResourceUtils.getNamespace(resource));
+      return fromSpec(getResourceSpec(resource), ResourceUtils.getResourceId(resource));
     } else {
       return fromSpec(
           getVolumeSpec(resource),
           ResourceUtils.getResourceId(resource),
-          ResourceUtils.getNamespace(resource),
           ResourceUtils.getPersistenceId(resource),
           ResourceUtils.getProviderId(resource),
           ResourceUtils.getDiskSource(resource));
@@ -190,14 +179,6 @@ public final class ResourceBuilder {
    */
   public ResourceBuilder setResourceId(String resourceId) {
     this.resourceId = Optional.of(resourceId);
-    return this;
-  }
-
-  /**
-   * Assigns the resource namespace to the provided value.
-   */
-  private ResourceBuilder setResourceNamespace(String resourceNamespace) {
-    this.resourceNamespace = Optional.of(resourceNamespace);
     return this;
   }
 
@@ -335,7 +316,6 @@ public final class ResourceBuilder {
         reservationBuilder,
         resourceId.orElseGet(() -> UUID.randomUUID().toString())
     );
-    resourceNamespace.ifPresent(s -> AuxLabelAccess.setResourceNamespace(reservationBuilder, s));
     return reservationBuilder.build();
   }
 

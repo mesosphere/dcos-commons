@@ -40,16 +40,12 @@ public class DefaultStepFactory implements StepFactory {
 
   private final StateStore stateStore;
 
-  private final Optional<String> namespace;
-
   public DefaultStepFactory(
       ConfigTargetStore configTargetStore,
-      StateStore stateStore,
-      Optional<String> namespace)
+      StateStore stateStore)
   {
     this.configTargetStore = configTargetStore;
     this.stateStore = stateStore;
-    this.namespace = namespace;
   }
 
   @Override
@@ -71,8 +67,7 @@ public class DefaultStepFactory implements StepFactory {
       return new DeploymentStep(
           TaskUtils.getStepName(podInstance, tasksToLaunch),
           PodInstanceRequirement.newBuilder(podInstance, tasksToLaunch).build(),
-          stateStore,
-          namespace)
+          stateStore)
           .updateInitialStatus(taskInfos.isEmpty() ?
               Status.PENDING : getStatus(podInstance, taskInfos));
     } catch (Exception e) {
@@ -80,8 +75,7 @@ public class DefaultStepFactory implements StepFactory {
       return new DeploymentStep(
           podInstance.getName(),
           PodInstanceRequirement.newBuilder(podInstance, Collections.emptyList()).build(),
-          stateStore,
-          namespace)
+          stateStore)
           .addError(ExceptionUtils.getStackTrace(e));
     }
   }

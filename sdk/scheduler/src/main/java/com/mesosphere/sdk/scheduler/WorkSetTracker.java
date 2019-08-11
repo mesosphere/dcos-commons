@@ -32,8 +32,8 @@ public class WorkSetTracker {
    * {@link TokenBucket} is a shared singleton because we want revive rate limits to be enforced across all running
    * services in the scheduler process.
    */
-  public WorkSetTracker(Optional<String> namespace) {
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+  public WorkSetTracker() {
+    this.logger = LoggingUtils.getLogger(getClass());
   }
 
   // CHECKSTYLE:OFF AtclauseOrder

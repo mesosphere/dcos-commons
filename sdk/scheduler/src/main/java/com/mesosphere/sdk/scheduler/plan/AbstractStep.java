@@ -9,7 +9,6 @@ import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.slf4j.Logger;
 
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -32,8 +31,8 @@ public abstract class AbstractStep implements Step {
 
   private boolean interrupted;
 
-  protected AbstractStep(String name, Optional<String> namespace) {
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+  protected AbstractStep(String name) {
+    this.logger = LoggingUtils.getLogger(getClass());
     this.name = name;
     this.status = Status.PENDING;
     this.interrupted = false;

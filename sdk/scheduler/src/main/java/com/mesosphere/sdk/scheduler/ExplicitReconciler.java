@@ -18,7 +18,6 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -63,11 +62,10 @@ public class ExplicitReconciler {
 
   public ExplicitReconciler(
       StateStore stateStore,
-      Optional<String> namespace,
       SchedulerConfig schedulerConfig)
   {
     this.isComplete = new AtomicBoolean(false);
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.stateStore = stateStore;
 
     ReadWriteLock lock = CycleDetectingLockUtils.newLock(schedulerConfig, ExplicitReconciler.class);

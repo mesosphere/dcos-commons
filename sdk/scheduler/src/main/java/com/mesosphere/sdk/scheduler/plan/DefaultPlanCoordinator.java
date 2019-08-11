@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -21,8 +20,8 @@ public class DefaultPlanCoordinator implements PlanCoordinator {
 
   private final List<PlanManager> planManagers = new LinkedList<>();
 
-  public DefaultPlanCoordinator(Optional<String> namespace, Collection<PlanManager> planManagers) {
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+  public DefaultPlanCoordinator(Collection<PlanManager> planManagers) {
+    this.logger = LoggingUtils.getLogger(getClass());
     if (CollectionUtils.isEmpty(planManagers)) {
       throw new IllegalArgumentException("At least one plan manager is required");
     }

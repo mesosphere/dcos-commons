@@ -38,10 +38,9 @@ public class PersistentLaunchRecorder {
 
   public PersistentLaunchRecorder(
       StateStore stateStore,
-      ServiceSpec serviceSpec,
-      Optional<String> namespace)
+      ServiceSpec serviceSpec)
   {
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.stateStore = stateStore;
     this.serviceSpec = serviceSpec;
   }
@@ -61,11 +60,9 @@ public class PersistentLaunchRecorder {
       taskBuilder
           .clearResources()
           .addAllResources(taskResources);
-      if (executorResources.isPresent()) {
-        taskBuilder.getExecutorBuilder()
-            .clearResources()
-            .addAllResources(executorResources.get());
-      }
+      executorResources.ifPresent(resources -> taskBuilder.getExecutorBuilder()
+              .clearResources()
+              .addAllResources(resources));
       updatedTaskInfos.add(taskBuilder.build());
     }
     return updatedTaskInfos;

@@ -17,8 +17,6 @@ class ResourceLabels {
 
   private final String resourceId;
 
-  private final Optional<String> resourceNamespace;
-
   private final Optional<String> persistenceId;
 
   private final Optional<Protos.ResourceProviderID> providerId;
@@ -30,7 +28,6 @@ class ResourceLabels {
         resourceSpec,
         resourceSpec,
         resourceId,
-        resourceNamespace,
         Optional.empty(),
         Optional.empty(),
         Optional.empty());
@@ -52,7 +49,6 @@ class ResourceLabels {
       ResourceSpec original,
       ResourceSpec updated,
       String resourceId,
-      Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
       Optional<Protos.Resource.DiskInfo.Source> diskSource)
@@ -60,7 +56,6 @@ class ResourceLabels {
     this.original = original;
     this.updated = updated;
     this.resourceId = resourceId;
-    this.resourceNamespace = resourceNamespace;
     this.persistenceId = persistenceId;
     this.providerId = providerId;
     this.diskSource = diskSource;
@@ -76,10 +71,6 @@ class ResourceLabels {
 
   public String getResourceId() {
     return resourceId;
-  }
-
-  public Optional<String> getResourceNamespace() {
-    return resourceNamespace;
   }
 
   public Optional<String> getPersistenceId() {

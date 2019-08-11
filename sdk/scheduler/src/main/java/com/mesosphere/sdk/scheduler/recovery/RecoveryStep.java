@@ -29,7 +29,7 @@ public class RecoveryStep extends DeploymentStep {
       StateStore stateStore,
       Optional<String> namespace)
   {
-    super(name, podInstanceRequirement, stateStore, namespace);
+    super(name, podInstanceRequirement, stateStore);
   }
 
   @Override

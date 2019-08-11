@@ -58,10 +58,9 @@ public class DeploymentStep extends AbstractStep {
   public DeploymentStep(
       String name,
       PodInstanceRequirement podInstanceRequirement,
-      StateStore stateStore,
-      Optional<String> namespace)
+      StateStore stateStore)
   {
-    super(name, namespace);
+    super(name);
     this.stateStore = stateStore;
     this.podInstanceRequirement = podInstanceRequirement;
     this.goalStateByTaskName = new HashMap<>();

@@ -68,8 +68,6 @@ public class UninstallScheduler extends AbstractScheduler {
 
   private final long uninstallTimeoutSecs;
 
-  private final SchedulerConfig schedulerConfig;
-
   /**
    * Creates a new {@link UninstallScheduler} using the provided components. The {@link UninstallScheduler} builds an
    * uninstall {@link Plan} which will clean up the service's reservations, TLS artifacts, zookeeper data, and any
@@ -80,8 +78,7 @@ public class UninstallScheduler extends AbstractScheduler {
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
       SchedulerConfig schedulerConfig,
-      Optional<PlanCustomizer> planCustomizer,
-      Optional<String> namespace)
+      Optional<PlanCustomizer> planCustomizer)
   {
     this(
         serviceSpec,
@@ -89,7 +86,6 @@ public class UninstallScheduler extends AbstractScheduler {
         configStore,
         schedulerConfig,
         planCustomizer,
-        namespace,
         Optional.empty(),
         new TimeFetcher());
   }
@@ -101,14 +97,12 @@ public class UninstallScheduler extends AbstractScheduler {
       ConfigStore<ServiceSpec> configStore,
       SchedulerConfig schedulerConfig,
       Optional<PlanCustomizer> planCustomizer,
-      Optional<String> namespace,
       Optional<SecretsClient> customSecretsClientForTests,
       TimeFetcher timeFetcher)
   {
-    super(serviceSpec, schedulerConfig, stateStore, null, planCustomizer, namespace);
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+    super(serviceSpec, schedulerConfig, stateStore, null, planCustomizer);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.configStore = configStore;
-    this.schedulerConfig = schedulerConfig;
 
     if (!StateStoreUtils.isUninstalling(stateStore)) {
       logger.info("Service has been told to uninstall. Marking this in the " +
@@ -119,7 +113,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     // Construct a plan for uninstalling any remaining resources
     UninstallPlanFactory planFactory = new UninstallPlanFactory(
-        serviceSpec, stateStore, schedulerConfig, namespace, customSecretsClientForTests);
+        serviceSpec, stateStore, schedulerConfig, customSecretsClientForTests);
     this.recorder = new UninstallRecorder(stateStore, planFactory.getResourceCleanupSteps());
     this.deregisterStubStep = planFactory.getDeregisterStep();
 
@@ -208,7 +202,7 @@ public class UninstallScheduler extends AbstractScheduler {
     {
       // Configured uninstall timeout has passed, and we're still uninstalling. Tell upstream that we're "done".
       Optional<Plan> deployPlan = getPlans().stream()
-          .filter(plan -> plan.isDeployPlan())
+          .filter(Plan::isDeployPlan)
           .findAny();
       logger.error("Failed to complete uninstall within {}s timeout, " +
               "forcing cleanup. Deploy plan was: {}",
@@ -248,7 +242,7 @@ public class UninstallScheduler extends AbstractScheduler {
             // In addition, checking for a valid resource_id label is a good sanity check to avoid
             // potentially unreserving any resources that weren't originally created by the SDK.
             // This is in addition to separate filtering in FrameworkScheduler of reserved Marathon volumes.
-            .filter(resource -> ResourceUtils.hasResourceId(resource))
+            .filter(ResourceUtils::hasResourceId)
             .collect(Collectors.toList())))
         .collect(Collectors.toList());
     try {
@@ -263,7 +257,7 @@ public class UninstallScheduler extends AbstractScheduler {
   }
 
   @Override
-  protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
+  protected void processStatusUpdate(Protos.TaskStatus status) {
     stateStore.storeStatus(StateStoreUtils.fetchTaskInfo(stateStore, status).getName(), status);
   }
 
