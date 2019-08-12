@@ -9,6 +9,8 @@ import sdk_security
 import sdk_utils
 import subprocess
 from tests import config
+from tests import test_sanity
+from tests import test_backup_and_restore
 
 PASSWORD_FILE = "/test/integration/cassandra/passwordfile"
 ACCESS_FILE = "/test/integration/cassandra/access"
@@ -140,6 +142,8 @@ def test_secure_jmx_configuration(self_signed_trust_store):
         else:
             trust_store = "$JAVA_HOME/lib/security/cacerts"
             trust_store_password = "changeit"
+        test_sanity.test_repair_cleanup_plans_complete()
+        test_backup_and_restore.test_backup_and_restore_to_s3()
 
         cmd = (
             "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) && "
