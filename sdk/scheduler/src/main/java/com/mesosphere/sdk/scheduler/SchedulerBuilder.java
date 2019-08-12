@@ -465,53 +465,6 @@ public class SchedulerBuilder {
       ConfigStore<ServiceSpec> configStore,
       Optional<String> namespace) throws ConfigStoreException
   {
-
-    // Determine whether deployment had previously completed BEFORE we update the config.
-    // Plans may be generated from the config content.
-    boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
-    if (!hasCompletedDeployment) {
-      /*
-       * TODO(takirala): Remove this check after we have reached 0.60.x or so. See DCOS-38586.
-       * As of SDK 0.51.0+, the deployment-completed bit is immediately set when deployment completes, rather than
-       * here at startup, but we still need to check it here when upgrading from services using SDK 0.40.x.
-       *
-       * In SDK 40.x schedulers we do not set the deploy bit, and thus when SDK upgrades from 40.x to 50.x,
-       * SDK sees that the previous deploy plan has not been completed and try to parse the OLD config target and OLD
-       * ServiceSpec and try to validate it against the NEW yamlPlans loaded from the svc.yml. If the NEW plans have
-       * tasks that were absent in the OLD ServiceSpec, we fail fast as we see something unexpected. To workaround this,
-       * we only send the deploy plan. See DCOS-49350 for more details. This entire code-block CAN/SHOULD be deleted in
-       * SDK 0.60.x
-       */
-      try {
-        // Check for completion against the PRIOR service spec. For example, if the new service spec has n+1
-        // nodes, then we want to check that the prior n nodes had successfully deployed.
-        ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
-        Map<String, RawPlan> rawPlanMap = yamlPlans.containsKey(Constants.DEPLOY_PLAN_NAME) ?
-                Collections.singletonMap(
-                        Constants.DEPLOY_PLAN_NAME,
-                        yamlPlans.get(Constants.DEPLOY_PLAN_NAME)
-                ) : yamlPlans;
-        Optional<Plan> deployPlan = getDeployPlan(
-                getPlans(stateStore, configStore, lastServiceSpec, namespace, rawPlanMap));
-        if (deployPlan.isPresent()) {
-          logger.info("Previous deploy plan state: {}", deployPlan.get().toString());
-          if (deployPlan.get().isComplete()) {
-            logger.info("Marking deployment as having been previously completed");
-            StateStoreUtils.setDeploymentWasCompleted(stateStore);
-            hasCompletedDeployment = true;
-          } else {
-            logger.info("Deployment has not previously completed");
-          }
-        } else {
-          logger.warn("No previous deploy plan was found");
-        }
-      } catch (ConfigStoreException e) {
-        // This is expected during initial deployment, when there is no prior configuration.
-        logger.info("Unable to retrieve last configuration. " +
-            "Assuming that no prior deployment has completed");
-      }
-    }
-
     // Update/validate config as needed to reflect the new service spec:
     Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
     configValidators.addAll(DefaultConfigValidators.getValidators(schedulerConfig));
@@ -535,6 +488,8 @@ public class SchedulerBuilder {
 
     // Now that a ServiceSpec has been chosen, generate the plans.
     Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, namespace, yamlPlans);
+    // Determine whether deployment had previously completed BEFORE we update the config.
+    boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
     plans = selectDeployPlan(plans, hasCompletedDeployment);
     Optional<Plan> deployPlan = getDeployPlan(plans);
     if (!deployPlan.isPresent()) {
