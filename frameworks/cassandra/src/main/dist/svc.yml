@@ -128,6 +128,7 @@ pods:
 
                 export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
                 export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+                export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
                 export LOCAL_JMX="no"
 
                 if [ ! -f "jmx/key_file" ] ; then
@@ -143,23 +144,6 @@ pods:
                 (umask u=rw,g=,o= && cp jmx/key_file jmx_properties/key_file)
                 chmod +x .ssl/jmx-ssl-properties.sh
                 .ssl/jmx-ssl-properties.sh   
-
-                sed -i 's/    LOCAL_JMX=yes*/    LOCAL_JMX=no/' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.rmi.port*/s/$JMX_PORT/"{{SECURE_JMX_RMI_PORT}}"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh 
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"/s/true"/true"\n  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.host='$MESOS_CONTAINER_IP'"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"/s/true"/true"\n  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote=true"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"/s/true"/true"\n  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.registry.ssl=true"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"/s/true"/true"\n  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.local.only=false"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"/s/true"/true"\n  JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.enabled.protocols=TLSv1.2"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i 's/# JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"/JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname='$MESOS_CONTAINER_IP'"/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true*/s/^  #/  /g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.ssl.need.client.auth=true*/s/^  #/  /g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.keyStore=\/path\/to\/keystore*/s/^  #/  /g;s/\/path\/to\/keystore/\$KEY_STORE_PATH/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.keyStorePassword=*/s/^  #/  /g;s/<keystore-password>/'$SECURE_JMX_KEY_STORE_KEY'/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.trustStore=\/path\/to\/truststore*/s/^  #/  /g;s/\/path\/to\/truststore/\$TRUST_STORE_PATH/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/  #JVM_OPTS="$JVM_OPTS -Djavax.net.ssl.trustStorePassword*/s/^  #/  /g;s/<truststore-password>/'$SECURE_JMX_TRUST_STORE_KEY'/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=*/s/\/etc\/cassandra\/jmxremote.password/jmx_properties\/key_file/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-                sed -i '/#JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.access.file*/s/^#//g;s/\/etc\/cassandra\/jmxremote.access/jmx\/access_file/g' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
 
             {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
 

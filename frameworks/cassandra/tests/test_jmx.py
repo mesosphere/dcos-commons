@@ -7,6 +7,7 @@ import sdk_tasks
 import sdk_install
 import sdk_security
 import sdk_utils
+import sdk_jobs
 import subprocess
 from tests import config
 from tests import test_sanity
@@ -129,8 +130,13 @@ def uninstall_jmx_secrets():
 @pytest.mark.parametrize("self_signed_trust_store", [True, False])
 def test_secure_jmx_configuration(self_signed_trust_store):
     foldered_name = config.get_foldered_service_name()
-
+    test_jobs: List[Dict[str, Any]] = []
     try:
+        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
+        # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
+        for job in test_jobs:
+            sdk_jobs.install_job(job)
+
         install_jmx_configured_cassandra(self_signed_trust_store=self_signed_trust_store)
         node_task_id_0 = sdk_tasks.get_task_ids(foldered_name)[0]
         install_jmxterm(task_id=node_task_id_0)
