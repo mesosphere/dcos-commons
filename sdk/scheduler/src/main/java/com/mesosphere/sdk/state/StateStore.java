@@ -233,15 +233,14 @@ public class StateStore {
       logger.warn("Grouped {} TaskInfo writes in to {} batches", tasks.size(), batchedTasks.size());
     }
     IntStream
-      .range(0, batchedTasks.size())
-      .forEachOrdered(idx -> {
-        Map<String, byte[]> taskBytesMap = batchedTasks.get(idx);
-        try {
+        .range(0, batchedTasks.size())
+        .forEachOrdered(idx -> {
+          Map<String, byte[]> taskBytesMap = batchedTasks.get(idx);
+          try {
             logger.info("Batch {} payload is {}B", idx, taskBytesMap.values().stream().mapToInt(b -> b.length).sum());
             persister.setMany(taskBytesMap);
           } catch (PersisterException e) {
-            throw new StateStoreException(e,
-                    String.format("Failed to store %d TaskInfos", taskBytesMap.size()));
+            throw new StateStoreException(e, String.format("Failed to store %d TaskInfos", taskBytesMap.size()));
           }
         });
   }
