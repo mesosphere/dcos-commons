@@ -190,7 +190,7 @@ pods:
                 export TASK_IP=$(./bootstrap --get-task-ip)
                 {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
                 export HOME=$MESOS_SANDBOX
-                user=$(sed -nr '0,/readwrite/s/.(^)(.+) readwrite./\2/p' $MESOS_SANDBOX/jmx/access_file)
+                user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
                 {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
                 {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -231,7 +231,7 @@ pods:
               chmod +x .ssl/jmx-ssl-properties.sh
               .ssl/jmx-ssl-properties.sh
               export HOME=$MESOS_SANDBOX
-              user=$(sed -nr '0,/readwrite/s/.(^)(.+) readwrite./\2/p' $MESOS_SANDBOX/jmx/access_file)
+              user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
               ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
               {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
               {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -271,7 +271,7 @@ pods:
               chmod +x .ssl/jmx-ssl-properties.sh
               .ssl/jmx-ssl-properties.sh
               export HOME=$MESOS_SANDBOX
-              user=$(sed -nr '0,/readwrite/s/.(^)(.+) readwrite./\2/p' $MESOS_SANDBOX/jmx/access_file)
+              user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
               ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
               {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
               {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -341,7 +341,7 @@ pods:
                 chmod +x .ssl/jmx-ssl-properties.sh
                 .ssl/jmx-ssl-properties.sh
                 export HOME=$MESOS_SANDBOX
-                user=$(sed -nr '0,/readwrite/s/.(^)(.+) readwrite./\2/p' $MESOS_SANDBOX/jmx/access_file)
+                user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
                 {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
                 {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}                
@@ -407,7 +407,7 @@ pods:
                 chmod +x .ssl/jmx-ssl-properties.sh
                 .ssl/jmx-ssl-properties.sh
                 export HOME=$MESOS_SANDBOX
-                user=$(sed -nr '0,/readwrite/s/.(^)(.+) readwrite./\2/p' $MESOS_SANDBOX/jmx/access_file)
+                user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
                 {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
                 {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -573,7 +573,7 @@ pods:
                     chmod +x .ssl/jmx-ssl-properties.sh
                     .ssl/jmx-ssl-properties.sh
                     export HOME=$MESOS_SANDBOX &&
-                    user=$(sed -nr '0,/readwrite/s/.(^)(.+) readwrite./\2/p' $MESOS_SANDBOX/jmx/access_file) &&
+                    user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file) &&
                     nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file repair system_auth &&                
                     {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
                     {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
