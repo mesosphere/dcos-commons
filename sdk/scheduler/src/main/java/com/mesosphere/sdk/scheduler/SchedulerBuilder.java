@@ -419,35 +419,9 @@ public class SchedulerBuilder {
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore) throws ConfigStoreException
   {
-
     // Determine whether deployment had previously completed BEFORE we update the config.
     // Plans may be generated from the config content.
     boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
-    if (!hasCompletedDeployment) {
-      try {
-        // Check for completion against the PRIOR service spec. For example, if the new service spec has n+1
-        // nodes, then we want to check that the prior n nodes had successfully deployed.
-        ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
-        Optional<Plan> deployPlan = getDeployPlan(
-                getPlans(stateStore, configStore, lastServiceSpec, yamlPlans));
-        if (deployPlan.isPresent()) {
-          logger.info("Previous deploy plan state: {}", deployPlan.get().toString());
-          if (deployPlan.get().isComplete()) {
-            logger.info("Marking deployment as having been previously completed");
-            StateStoreUtils.setDeploymentWasCompleted(stateStore);
-            hasCompletedDeployment = true;
-          } else {
-            logger.info("Deployment has not previously completed");
-          }
-        } else {
-          logger.warn("No previous deploy plan was found");
-        }
-      } catch (ConfigStoreException e) {
-        // This is expected during initial deployment, when there is no prior configuration.
-        logger.info("Unable to retrieve last configuration. " +
-            "Assuming that no prior deployment has completed");
-      }
-    }
 
     // Update/validate config as needed to reflect the new service spec:
     Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
