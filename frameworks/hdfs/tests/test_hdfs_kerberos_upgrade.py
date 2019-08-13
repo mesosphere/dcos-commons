@@ -65,11 +65,14 @@ def test_install_kerberised_hdfs_service(kerberos, service_account):
                         "kerberos": {
                             "enabled": True,
                             "debug": True,
-                            "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
+                            "kdc": {
+                                "hostname": kerberos.get_host(),
+                                "port": int(kerberos.get_port()),
+                            },
                             "realm": kerberos.get_realm(),
                             "keytab_secret": kerberos.get_keytab_path(),
                         }
-                    }
+                    },
                 }
             },
             timeout_seconds=30 * 60,
