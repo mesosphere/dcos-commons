@@ -167,8 +167,10 @@ def test_secure_jmx_configuration(self_signed_trust_store, authentication):
         else:
             trust_store = "$JAVA_HOME/lib/security/cacerts"
             trust_store_password = "changeit"
-        test_sanity.test_repair_cleanup_plans_complete()
-        test_backup_and_restore.test_backup_and_restore_to_s3()
+
+        if not authentication:
+            test_sanity.test_repair_cleanup_plans_complete()
+            test_backup_and_restore.test_backup_and_restore_to_s3()
 
         cmd = (
             "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) && "
