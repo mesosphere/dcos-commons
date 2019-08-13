@@ -228,7 +228,7 @@ def shutdown_agent(agent_ip, timeout_seconds=DEFAULT_TIMEOUT_SECONDS):
         stop_max_delay=timeout_seconds*1000,
         retry_on_result=lambda res: not res)
     def fn():
-        ok, stdout = shakedown.run_command_on_agent(agent_ip, 'sudo shutdown -h +1')
+        ok, stdout = shakedown.run_command_on_agent(agent_ip, 'sudo shutdown -h +1', 'vagrant', '/ssh/key')
         log.info('Shutdown agent {}: ok={}, stdout="{}"'.format(agent_ip, ok, stdout))
         return ok
     # Might not be able to connect to the agent on first try so we repeat until we can
