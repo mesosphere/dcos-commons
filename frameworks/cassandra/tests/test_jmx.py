@@ -21,7 +21,9 @@ TRUST_STORE = "/test/integration/cassandra/keystore"
 TRUST_STORE_PASS = "/test/integration/cassandra/keypass"
 
 
-def install_jmx_configured_cassandra(self_signed_trust_store: bool = True):
+def install_jmx_configured_cassandra(
+    self_signed_trust_store: bool = True, authentication: bool = True
+):
     foldered_name = config.get_foldered_service_name()
     sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
     install_jmx_secrets()
@@ -29,14 +31,12 @@ def install_jmx_configured_cassandra(self_signed_trust_store: bool = True):
         "service": {
             "name": foldered_name,
             "jmx": {
-                "secure_jmx": {
-                    "enabled": True,
-                    "rmi_port": 31198,
-                    "password_file": PASSWORD_FILE,
-                    "access_file": ACCESS_FILE,
-                    "key_store": KEY_STORE,
-                    "key_store_password_file": KEY_STORE_PASS,
-                }
+                "enabled": True,
+                "rmi_port": 31198,
+                "password_file": PASSWORD_FILE,
+                "access_file": ACCESS_FILE,
+                "key_store": KEY_STORE,
+                "key_store_password_file": KEY_STORE_PASS,
             },
         }
     }
@@ -46,11 +46,27 @@ def install_jmx_configured_cassandra(self_signed_trust_store: bool = True):
             {
                 "service": {
                     "jmx": {
-                        "secure_jmx": {
-                            "add_trust_store": True,
-                            "trust_store": TRUST_STORE,
-                            "trust_store_password_file": TRUST_STORE_PASS,
-                        }
+                        "add_trust_store": True,
+                        "trust_store": TRUST_STORE,
+                        "trust_store_password_file": TRUST_STORE_PASS,
+                    }
+                }
+            },
+            service_options,
+        )
+
+    if authentication:
+        secret_path = foldered_name + "/" + config.SECRET_VALUE
+        create_secret(secret_value=config.SECRET_VALUE, secret_path=secret_path)
+        service_options = sdk_utils.merge_dictionaries(
+            {
+                "service": {
+                    "security": {
+                        "authentication": {
+                            "enabled": True,
+                            "superuser": {"password_secret_path": secret_path},
+                        },
+                        "authorization": {"enabled": True},
                     }
                 }
             },
@@ -128,7 +144,8 @@ def uninstall_jmx_secrets():
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.parametrize("self_signed_trust_store", [True, False])
-def test_secure_jmx_configuration(self_signed_trust_store):
+@pytest.mark.parametrize("authentication", [True, False])
+def test_secure_jmx_configuration(self_signed_trust_store, authentication):
     foldered_name = config.get_foldered_service_name()
     test_jobs: List[Dict[str, Any]] = []
     try:
@@ -137,7 +154,9 @@ def test_secure_jmx_configuration(self_signed_trust_store):
         for job in test_jobs:
             sdk_jobs.install_job(job)
 
-        install_jmx_configured_cassandra(self_signed_trust_store=self_signed_trust_store)
+        install_jmx_configured_cassandra(
+            self_signed_trust_store=self_signed_trust_store, authentication=authentication
+        )
         node_task_id_0 = sdk_tasks.get_task_ids(foldered_name)[0]
         install_jmxterm(task_id=node_task_id_0)
         generate_jmx_command_files(task_id=node_task_id_0)
@@ -189,6 +208,8 @@ def test_secure_jmx_configuration(self_signed_trust_store):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
         uninstall_jmx_secrets()
+        for job in test_jobs:
+            sdk_jobs.remove_job(job)
 
 
 def random_string(length=10):
@@ -221,3 +242,18 @@ def install_jmxterm(task_id: string):
         "task exec {} {}".format(task_id, full_cmd), print_output=True
     )
     assert rc == 0, "Error downloading jmxterm {}".format(jmx_term_url)
+
+
+def create_secret(secret_value: str, secret_path: str) -> None:
+
+    delete_secret(secret=secret_path)
+    sdk_cmd.run_cli(
+        'security secrets create --value="{account}" "{secret}"'.format(
+            account=secret_value, secret=secret_path
+        )
+    )
+
+
+def delete_secret(secret: str) -> None:
+
+    sdk_cmd.run_cli("security secrets delete {}".format(secret))

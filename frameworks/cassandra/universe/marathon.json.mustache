@@ -90,18 +90,17 @@
     "TASKCFG_ALL_CASSANDRA_ROLE_MANAGER": "{{service.security.authentication.role_manager}}",
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
 
-    "TASKCFG_ALL_SECURE_JMX_ENABLED": "{{service.jmx.secure_jmx.enabled}}",
-    "TASKCFG_ALL_JMX_PORT": "{{service.jmx.jmx_port}}",
-    {{#service.jmx.secure_jmx.enabled}}
-    "SECURE_JMX_RMI_PORT" : "{{service.jmx.secure_jmx.rmi_port}}",
-    "SECURE_JMX_PWD_FILE" : "{{service.jmx.secure_jmx.password_file}}",
-    "SECURE_JMX_ACCESS_FILE" : "{{service.jmx.secure_jmx.access_file}}",
-    "SECURE_JMX_TRUST_STORE_ENABLED" : "{{service.jmx.secure_jmx.add_trust_store}}",
-    "SECURE_JMX_TRUST_STORE" : "{{service.jmx.secure_jmx.trust_store}}",
-    "SECURE_JMX_TRUST_STORE_PASSWORD" : "{{service.jmx.secure_jmx.trust_store_password_file}}",
-    "SECURE_JMX_KEY_STORE" : "{{service.jmx.secure_jmx.key_store}}",
-    "SECURE_JMX_KEY_STORE_PASSWORD" : "{{service.jmx.secure_jmx.key_store_password_file}}",
-    {{/service.jmx.secure_jmx.enabled}}
+    "TASKCFG_ALL_SECURE_JMX_ENABLED": "{{service.jmx.enabled}}",
+    {{#service.jmx.enabled}}
+    "SECURE_JMX_RMI_PORT" : "{{service.jmx.rmi_port}}",
+    "SECURE_JMX_PWD_FILE" : "{{service.jmx.password_file}}",
+    "SECURE_JMX_ACCESS_FILE" : "{{service.jmx.access_file}}",
+    "SECURE_JMX_TRUST_STORE_ENABLED" : "{{service.jmx.add_trust_store}}",
+    "SECURE_JMX_TRUST_STORE" : "{{service.jmx.trust_store}}",
+    "SECURE_JMX_TRUST_STORE_PASSWORD" : "{{service.jmx.trust_store_password_file}}",
+    "SECURE_JMX_KEY_STORE" : "{{service.jmx.key_store}}",
+    "SECURE_JMX_KEY_STORE_PASSWORD" : "{{service.jmx.key_store_password_file}}",
+    {{/service.jmx.enabled}}
 
     "NODES": "{{nodes.count}}",
     "CASSANDRA_CPUS": "{{nodes.cpus}}",
@@ -132,6 +131,7 @@
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}
     "TASKCFG_ALL_CASSANDRA_USER": "{{service.user}}",
+    "TASKCFG_ALL_JMX_PORT": "{{cassandra.jmx_port}}",
     "TASKCFG_ALL_CASSANDRA_NUM_TOKENS": "{{cassandra.num_tokens}}",
     "TASKCFG_ALL_CASSANDRA_HINTED_HANDOFF_ENABLED": "{{cassandra.hinted_handoff_enabled}}",
     "TASKCFG_ALL_CASSANDRA_MAX_HINT_WINDOW_IN_MS": "{{cassandra.max_hint_window_in_ms}}",
