@@ -49,7 +49,7 @@ def kerberos(configure_security):
 
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_install_without_additional_principal_to_user_mapping(kerberos, service_account):
+def test_install_hdfs_kerberised_service(kerberos, service_account):
     try:
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
