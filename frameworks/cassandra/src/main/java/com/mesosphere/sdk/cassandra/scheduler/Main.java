@@ -45,8 +45,7 @@ public class Main {
                         new TaskEnvCannotChange("node", "server", "CASSANDRA_LOCATION_DATA_CENTER",
                                 TaskEnvCannotChange.Rule.ALLOW_UNSET_TO_SET)))
                 .setPlansFrom(rawServiceSpec)
-                .setCustomResources(getResources(localSeeds))
-                .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory());
+                .setCustomResources(getResources(localSeeds));
     }
 
     private static Collection<Object> getResources(List<String> localSeeds) {
