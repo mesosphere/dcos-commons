@@ -19,13 +19,14 @@ pytestmark = [
 
 foldered_name = config.FOLDERED_SERVICE_NAME
 
+
 @pytest.fixture(scope="module", autouse=True)
 def service_account(configure_security):
     """
     Sets up a service account for use with TLS.
     """
     try:
-        name = foldered_name 
+        name = foldered_name
         service_account_info = transport_encryption.setup_service_account(name)
         yield service_account_info
     finally:
@@ -49,30 +50,29 @@ def kerberos(configure_security):
 
 @pytest.mark.auth
 @pytest.mark.sanity
-def test_install_hdfs_kerberised_service(kerberos, service_account):
+def test_install_kerberised_hdfs_service(kerberos, service_account):
     try:
         sdk_upgrade.test_upgrade(
             config.PACKAGE_NAME,
             foldered_name,
             config.DEFAULT_TASK_COUNT,
             from_options={
-             "service": { 
-                 "name": foldered_name,
-                 "service_account": service_account["name"],
-                 "service_account_secret": service_account["secret"],
-                 "security": {
-                     "kerberos": {
-                         "enabled": True,
-                         "debug": True,
-                         "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
-                         "realm": kerberos.get_realm(),
-                         "keytab_secret": kerberos.get_keytab_path(),
-                     } 
-                 }
-             }
+                "service": {
+                    "name": foldered_name,
+                    "service_account": service_account["name"],
+                    "service_account_secret": service_account["secret"],
+                    "security": {
+                        "kerberos": {
+                            "enabled": True,
+                            "debug": True,
+                            "kdc": {"hostname": kerberos.get_host(), "port": int(kerberos.get_port())},
+                            "realm": kerberos.get_realm(),
+                            "keytab_secret": kerberos.get_keytab_path(),
+                        }
+                    }
+                }
             },
             timeout_seconds=30 * 60,
         )
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-
