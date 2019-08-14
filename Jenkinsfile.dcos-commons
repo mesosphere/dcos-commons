@@ -38,7 +38,7 @@ pipeline {
                 // Prevent indefinite hangs: DCOS-57576
                 timeout(activity: true, time: 1, unit: 'HOURS') {
                     // Build Docker image.
-                    sh("docker build --squash -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
+                    sh("echo sleeping 10m;sleep 600;echo sleeping 2h;sleep 7200;docker build --squash -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
                 }
             }
         }
