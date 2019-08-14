@@ -82,7 +82,7 @@ def install_jmx_configured_cassandra(
 
 
 def install_jmx_secrets():
-    test_run = random_string()
+    test_run_id = random_string()
     create_keystore_cmd = [
         "keytool",
         "-genkey",
@@ -93,7 +93,7 @@ def install_jmx_secrets():
         "-dname",
         "CN=myhost.example.com,O=Example Company,C=US",
         "-keystore",
-        "/tmp/{}-self-signed-keystore.ks".format(test_run),
+        "/tmp/{}-self-signed-keystore.ks".format(test_run_id),
         "-storepass",
         "deleteme",
         "-keypass",
@@ -109,29 +109,29 @@ def install_jmx_secrets():
         "-list",
         "-v",
         "-keystore",
-        "/tmp/{}-self-signed-keystore.ks".format(test_run),
+        "/tmp/{}-self-signed-keystore.ks".format(test_run_id),
         "-storepass",
         "deleteme",
     ]
 
     subprocess.check_output(keystore_list_cmd)
 
-    write_to_file("deleteme", "/tmp/{}-keystorepass".format(test_run))
-    write_to_file("admin adminpassword", "/tmp/{}-passwordfile".format(test_run))
-    write_to_file("admin readwrite", "/tmp/{}-access".format(test_run))
+    write_to_file("deleteme", "/tmp/{}-keystorepass".format(test_run_id))
+    write_to_file("admin adminpassword", "/tmp/{}-passwordfile".format(test_run_id))
+    write_to_file("admin readwrite", "/tmp/{}-access".format(test_run_id))
 
     sdk_security.install_enterprise_cli(False)
 
     sdk_cmd.run_cli(
-        "security secrets create -f /tmp/{}-self-signed-keystore.ks {}".format(test_run, KEY_STORE)
+        "security secrets create -f /tmp/{}-self-signed-keystore.ks {}".format(test_run_id, KEY_STORE)
     )
     sdk_cmd.run_cli(
-        "security secrets create -f /tmp/{}-passwordfile {}".format(test_run, PASSWORD_FILE)
+        "security secrets create -f /tmp/{}-passwordfile {}".format(test_run_id, PASSWORD_FILE)
     )
     sdk_cmd.run_cli(
-        "security secrets create -f /tmp/{}-keystorepass {}".format(test_run, KEY_STORE_PASS)
+        "security secrets create -f /tmp/{}-keystorepass {}".format(test_run_id, KEY_STORE_PASS)
     )
-    sdk_cmd.run_cli("security secrets create -f /tmp/{}-access {}".format(test_run, ACCESS_FILE))
+    sdk_cmd.run_cli("security secrets create -f /tmp/{}-access {}".format(test_run_id, ACCESS_FILE))
 
 
 def uninstall_jmx_secrets():
@@ -143,8 +143,12 @@ def uninstall_jmx_secrets():
 
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-@pytest.mark.parametrize("self_signed_trust_store", [True, False])
-@pytest.mark.parametrize("authentication", [True, False])
+@pytest.mark.parametrize("self_signed_trust_store,authentication", [
+    (True, True),
+    (True, False),
+    (False, True),
+    (False, False)
+])
 def test_secure_jmx_configuration(self_signed_trust_store, authentication):
     foldered_name = config.get_foldered_service_name()
     test_jobs: List[Dict[str, Any]] = []
@@ -247,7 +251,6 @@ def install_jmxterm(task_id: string):
 
 
 def create_secret(secret_value: str, secret_path: str) -> None:
-
     delete_secret(secret=secret_path)
     sdk_cmd.run_cli(
         'security secrets create --value="{account}" "{secret}"'.format(
@@ -257,5 +260,4 @@ def create_secret(secret_value: str, secret_path: str) -> None:
 
 
 def delete_secret(secret: str) -> None:
-
     sdk_cmd.run_cli("security secrets delete {}".format(secret))

@@ -22,8 +22,7 @@ tee $NODETOOL_SSL_PROPERTIES_FILE <<EOF >/dev/null
 EOF
 
 sed -i 's/    LOCAL_JMX=yes*/    LOCAL_JMX=no/' apache-cassandra-$CASSANDRA_VERSION/conf/cassandra-env.sh
-sed -i '/  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.rmi.port*/s/$JMX_PORT/"'$SECURE_JMX_RMI_PORT'"/g' apache-cassandra-$CASSANDRA_VERSION/conf/cassandra-env.sh 
-#sed -i 's/# JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname=<public name>"/JVM_OPTS="$JVM_OPTS -Djava.rmi.server.hostname='$MESOS_CONTAINER_IP'"/g' apache-cassandra-$CASSANDRA_VERSION/conf/cassandra-env.sh
+sed -i '/  JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.rmi.port*/s/$JMX_PORT/"'$SECURE_JMX_RMI_PORT'"/g' apache-cassandra-$CASSANDRA_VERSION/conf/cassandra-env.sh
 sed -i '/JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=*/s/\/etc\/cassandra\/jmxremote.password/jmx_properties\/key_file/g' apache-cassandra-$CASSANDRA_VERSION/conf/cassandra-env.sh
 
 NODETOOL_SSL_PROPERTIES_FILE=$MESOS_SANDBOX/apache-cassandra-$CASSANDRA_VERSION/conf/cassandra-env.sh
@@ -31,12 +30,12 @@ NODETOOL_SSL_PROPERTIES_FILE=$MESOS_SANDBOX/apache-cassandra-$CASSANDRA_VERSION/
 tee -a $NODETOOL_SSL_PROPERTIES_FILE <<EOF
 
 JVM_OPTS="\$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"
-JVM_OPTS="\$JVM_OPTS -Djavax.net.ssl.enabled.protocols=TLSv1.2"
 JVM_OPTS="\$JVM_OPTS -Dcom.sun.management.jmxremote.local.only=false"
 JVM_OPTS="\$JVM_OPTS -Dcom.sun.management.jmxremote.registry.ssl=true"
 JVM_OPTS="\$JVM_OPTS -Dcom.sun.management.jmxremote=true"
 JVM_OPTS="\$JVM_OPTS -Dcom.sun.management.jmxremote.host=$MESOS_CONTAINER_IP"
 JVM_OPTS="\$JVM_OPTS -Dcom.sun.management.jmxremote.ssl.need.client.auth=true"
+JVM_OPTS="\$JVM_OPTS -Djavax.net.ssl.enabled.protocols=TLSv1.2"
 JVM_OPTS="\$JVM_OPTS -Djavax.net.ssl.keyStore=$KEY_STORE_PATH"
 JVM_OPTS="\$JVM_OPTS -Djavax.net.ssl.keyStorePassword=$SECURE_JMX_KEY_STORE_KEY"
 JVM_OPTS="\$JVM_OPTS -Djavax.net.ssl.trustStore=$TRUST_STORE_PATH"

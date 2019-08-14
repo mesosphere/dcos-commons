@@ -108,7 +108,7 @@ def test_metrics() -> None:
 def test_custom_jmx_port() -> None:
     expected_open_port = ":7200 (LISTEN)"
 
-    new_config = {"service": {"jmx": {"jmx_port": 7200}}}
+    new_config = {"cassandra": {"jmx_port": 7200}}
 
     sdk_service.update_configuration(
         config.PACKAGE_NAME,
