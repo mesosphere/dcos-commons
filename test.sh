@@ -302,8 +302,8 @@ if [ "${interactive}" == "true" ]; then
 fi
 
 if [ x"$dind" == x"true" ]; then
-    docker_command="/usr/local/bin/dind-wrapper.sh ${docker_command}"
-    docker_privileged_arg="--privileged"
+  docker_command="/usr/local/bin/dind-wrapper.sh ${docker_command}"
+  docker_privileged_arg="--privileged"
 fi
 
 # Some automation contexts (e.g. Jenkins) will be unhappy if STDIN is not
