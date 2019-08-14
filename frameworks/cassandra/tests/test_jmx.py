@@ -123,7 +123,9 @@ def install_jmx_secrets():
     sdk_security.install_enterprise_cli(False)
 
     sdk_cmd.run_cli(
-        "security secrets create -f /tmp/{}-self-signed-keystore.ks {}".format(test_run_id, KEY_STORE)
+        "security secrets create -f /tmp/{}-self-signed-keystore.ks {}".format(
+            test_run_id, KEY_STORE
+        )
     )
     sdk_cmd.run_cli(
         "security secrets create -f /tmp/{}-passwordfile {}".format(test_run_id, PASSWORD_FILE)
@@ -143,12 +145,10 @@ def uninstall_jmx_secrets():
 
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-@pytest.mark.parametrize("self_signed_trust_store,authentication", [
-    (True, True),
-    (True, False),
-    (False, True),
-    (False, False)
-])
+@pytest.mark.parametrize(
+    "self_signed_trust_store,authentication",
+    [(True, True), (True, False), (False, True), (False, False)],
+)
 def test_secure_jmx_configuration(self_signed_trust_store, authentication):
     foldered_name = config.get_foldered_service_name()
     test_jobs: List[Dict[str, Any]] = []
