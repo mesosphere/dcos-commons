@@ -46,11 +46,24 @@ function cleanup {
 trap cleanup EXIT
 
 DCOS_COMMONS_DIRECTORY=${DCOS_COMMONS_DIRECTORY:="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"}
+
 # Where $DCOS_COMMONS_DIRECTORY is mounted in the container.
 #
 # If this script is run with the '--project' flag, the project's "frameworks"
 # directory will be mounted at '$WORK_DIR/frameworks' in the container.
 WORK_DIR="/build"
+
+# This defines whether or not the script should point the GIT_DIR and
+# GIT_WORK_TREE environment variables in the container to a project's
+# '.git/modules/dcos-commons' so that all git commands are run in the context of
+# the project's dcos-commons repository.
+#
+# This defaults to 'true' because most usages of this script expect to be
+# running in the context of a dcos-commons repository. At least in one case
+# that's not true: 'tools/universe/package_publisher.py'. That script clones and
+# runs commands against the Universe git repository, so it requires this
+# environment variable to be set to 'false'.
+FIX_CONTAINER_DCOS_COMMONS_GIT_DIR=${FIX_CONTAINER_DCOS_COMMONS_GIT_DIR:="true"}
 
 ################################################################################
 #################### Default values for CLI parameters #########################
@@ -165,6 +178,8 @@ function usage()
   echo "  DCOS_COMMONS_DIRECTORY=${DCOS_COMMONS_DIRECTORY}"
   echo "    Allows for overriding the location of the repository's root directory. Autodetected by default."
   echo "    Must be an absolute path."
+  echo "  FIX_CONTAINER_DCOS_COMMONS_GIT_DIR=${FIX_CONTAINER_DCOS_COMMONS_GIT_DIR}"
+  echo "    Whether or not to point GIT_DIR and GIT_WORK_TREE to a project's dcos-commons git directory"
   echo "  PYTEST_ARGS"
   echo "    Additional arguments (other than -m or -k) to pass to pytest."
   echo "  TEST_SH_*"
@@ -287,8 +302,8 @@ if [ "${interactive}" == "true" ]; then
 fi
 
 if [ x"$dind" == x"true" ]; then
-    docker_command="/usr/local/bin/dind-wrapper.sh ${docker_command}"
-    docker_privileged_arg="--privileged"
+  docker_command="/usr/local/bin/dind-wrapper.sh ${docker_command}"
+  docker_privileged_arg="--privileged"
 fi
 
 # Some automation contexts (e.g. Jenkins) will be unhappy if STDIN is not
@@ -368,16 +383,19 @@ if [ -n "${project}" ]; then
   # Because of this it is needed that the GIT_DIR and GIT_WORK_TREE environment
   # variables are set and point to the actual dcos-commons git directory
   # ('.git/modules/dcos-commons') so that git commands like 'git rev-parse HEAD'
-  # work.
+  # work in the context of a project's dcos-common's git repository.
   #
   # The commands below cause '.git/modules/dcos-commons' to be mounted as a
-  # volume, and set the environment variables.
-  container_dcos_commons_git_dir="/dcos-commons-git-dir"
-  container_volumes="${container_volumes} -v ${PROJECT_ROOT}/.git/modules/dcos-commons:${container_dcos_commons_git_dir}"
-  cat >> "${env_file}" <<-EOF
-		GIT_DIR=${container_dcos_commons_git_dir}
-		GIT_WORK_TREE=${container_dcos_commons_git_dir}
-	EOF
+  # volume, and set a couple of environment variables. Check the declaration of
+  # 'FIX_CONTAINER_DCOS_COMMONS_GIT_DIR' for more details.
+  if [ "${FIX_CONTAINER_DCOS_COMMONS_GIT_DIR}" == "true" ]; then
+    container_dcos_commons_git_dir="/dcos-commons-git-dir"
+    container_volumes="${container_volumes} -v ${PROJECT_ROOT}/.git/modules/dcos-commons:${container_dcos_commons_git_dir}"
+    cat >> "${env_file}" <<-EOF
+			GIT_DIR=${container_dcos_commons_git_dir}
+			GIT_WORK_TREE=${container_dcos_commons_git_dir}
+		EOF
+  fi
 fi
 
 if [ -z "${CLUSTER_URL}" ] && [ "${interactive}" == "true" ]; then
