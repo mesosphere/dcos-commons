@@ -360,6 +360,10 @@ if [ -n "${project}" ]; then
   # Mount $PROJECT_ROOT/frameworks into $WORK_DIR/frameworks.
   container_volumes="${container_volumes} -v ${PROJECT_ROOT}/frameworks:${WORK_DIR}/frameworks"
 
+  # Override dcos-commons' settings.gradle file.
+  gradle_settings_file="${PROJECT_ROOT}/frameworks/${framework}/settings.gradle"
+  container_volumes="${container_volumes} -v ${gradle_settings_file}:${WORK_DIR}/settings.gradle"
+
   # In the case of a project using dcos-commons as a submodule, the dcos-commons
   # git directory will be located in '.git/modules/dcos-commons' under the
   # project root instead of being located in the checked out dcos-commons
