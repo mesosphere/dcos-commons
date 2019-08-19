@@ -12,6 +12,7 @@ import subprocess
 from tests import config
 from tests import test_sanity
 from tests import test_backup_and_restore
+from tests import test_auth
 
 PASSWORD_FILE = "/test/integration/cassandra/passwordfile"
 ACCESS_FILE = "/test/integration/cassandra/access"
@@ -25,6 +26,12 @@ def install_jmx_configured_cassandra(
     self_signed_trust_store: bool = True, authentication: bool = True
 ):
     foldered_name = config.get_foldered_service_name()
+    test_jobs: List[Dict[str, Any]] = []
+    test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
+    # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
+    for job in test_jobs:
+        sdk_jobs.install_job(job)
+
     sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
     install_jmx_secrets()
     service_options = {
@@ -145,77 +152,90 @@ def uninstall_jmx_secrets():
 
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-@pytest.mark.parametrize(
-    "self_signed_trust_store,authentication",
-    [(True, True), (True, False), (False, True), (False, False)],
-)
-def test_secure_jmx_configuration(self_signed_trust_store, authentication):
+def secure_jmx_configuration(self_signed_trust_store, authentication):
     foldered_name = config.get_foldered_service_name()
-    test_jobs: List[Dict[str, Any]] = []
-    try:
-        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
-        # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
-        for job in test_jobs:
-            sdk_jobs.install_job(job)
 
-        install_jmx_configured_cassandra(
-            self_signed_trust_store=self_signed_trust_store, authentication=authentication
-        )
-        node_task_id_0 = sdk_tasks.get_task_ids(foldered_name)[0]
-        install_jmxterm(task_id=node_task_id_0)
-        generate_jmx_command_files(task_id=node_task_id_0)
+    node_task_id_0 = sdk_tasks.get_task_ids(foldered_name)[0]
+    install_jmxterm(task_id=node_task_id_0)
+    generate_jmx_command_files(task_id=node_task_id_0)
 
-        if self_signed_trust_store:
-            trust_store = "$MESOS_SANDBOX/jmx/trust_store"
-            trust_store_password = "deleteme"
-        else:
-            trust_store = "$JAVA_HOME/lib/security/cacerts"
-            trust_store_password = "changeit"
+    if self_signed_trust_store:
+        trust_store = "$MESOS_SANDBOX/jmx/trust_store"
+        trust_store_password = "deleteme"
+    else:
+        trust_store = "$JAVA_HOME/lib/security/cacerts"
+        trust_store_password = "changeit"
 
-        if not authentication:
-            test_sanity.test_repair_cleanup_plans_complete()
-            test_backup_and_restore.test_backup_and_restore_to_s3()
+    cmd = (
+        "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) && "
+        "$JAVA_HOME/bin/java "
+        "-Duser.home=$MESOS_SANDBOX "
+        "-Djdk.tls.client.protocols=TLSv1.2 "
+        "-Djavax.net.ssl.trustStore={trust_store} "
+        "-Djavax.net.ssl.trustStorePassword={trust_store_password} "
+        "-Djavax.net.ssl.keyStore=$MESOS_SANDBOX/jmx/key_store -Djavax.net.ssl.keyStorePassword=deleteme "
+        "-Djavax.net.ssl.trustStoreType=JKS -Djavax.net.ssl.keyStoreType=JKS -jar jmxterm-1.0.1-uber.jar "
+        "-l service:jmx:rmi:///jndi/rmi://$MESOS_CONTAINER_IP:7199/jmxrmi -u admin -p adminpassword "
+        "-s -v silent -n".format(trust_store=trust_store, trust_store_password=trust_store_password)
+    )
 
-        cmd = (
-            "export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) && "
-            "$JAVA_HOME/bin/java "
-            "-Duser.home=$MESOS_SANDBOX "
-            "-Djdk.tls.client.protocols=TLSv1.2 "
-            "-Djavax.net.ssl.trustStore={trust_store} "
-            "-Djavax.net.ssl.trustStorePassword={trust_store_password} "
-            "-Djavax.net.ssl.keyStore=$MESOS_SANDBOX/jmx/key_store -Djavax.net.ssl.keyStorePassword=deleteme "
-            "-Djavax.net.ssl.trustStoreType=JKS -Djavax.net.ssl.keyStoreType=JKS -jar jmxterm-1.0.1-uber.jar "
-            "-l service:jmx:rmi:///jndi/rmi://$MESOS_CONTAINER_IP:7199/jmxrmi -u admin -p adminpassword "
-            "-s -v silent -n".format(
-                trust_store=trust_store, trust_store_password=trust_store_password
-            )
-        )
+    input_jmx_commands = " < jmx_beans_command.txt"
 
-        input_jmx_commands = " < jmx_beans_command.txt"
+    full_cmd = "bash -c '{}{}'".format(cmd, input_jmx_commands)
 
-        full_cmd = "bash -c '{}{}'".format(cmd, input_jmx_commands)
+    _, output, _ = sdk_cmd.run_cli(
+        "task exec {} {}".format(node_task_id_0, full_cmd), print_output=True
+    )
 
-        _, output, _ = sdk_cmd.run_cli(
-            "task exec {} {}".format(node_task_id_0, full_cmd), print_output=True
-        )
+    assert "org.apache.cassandra.net:type=FailureDetector" in output
+    assert "org.apache.cassandra.net:type=Gossiper" in output
 
-        assert "org.apache.cassandra.net:type=FailureDetector" in output
-        assert "org.apache.cassandra.net:type=Gossiper" in output
+    input_jmx_commands = " < jmx_domains_command.txt"
+    full_cmd = "bash -c '{}{}'".format(cmd, input_jmx_commands)
+    rc, output, stderr = sdk_cmd.run_cli(
+        "task exec {} {}".format(node_task_id_0, full_cmd), print_output=True
+    )
 
-        input_jmx_commands = " < jmx_domains_command.txt"
-        full_cmd = "bash -c '{}{}'".format(cmd, input_jmx_commands)
-        rc, output, stderr = sdk_cmd.run_cli(
-            "task exec {} {}".format(node_task_id_0, full_cmd), print_output=True
-        )
+    assert "org.apache.cassandra.metrics" in output
+    assert "org.apache.cassandra.service" in output
 
-        assert "org.apache.cassandra.metrics" in output
-        assert "org.apache.cassandra.service" in output
 
-    finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
-        uninstall_jmx_secrets()
-        for job in test_jobs:
-            sdk_jobs.remove_job(job)
+@pytest.mark.sanity
+@sdk_utils.dcos_ee_only
+@pytest.mark.parametrize("self_signed_trust_store", [False, True])
+def test_secure_jmx_cmd_without_auth(self_signed_trust_store):
+    install_jmx_configured_cassandra(
+        self_signed_trust_store=self_signed_trust_store, authentication=False
+    )
+    secure_jmx_configuration(self_signed_trust_store=self_signed_trust_store, authentication=False)
+
+
+@pytest.mark.sanity
+@sdk_utils.dcos_ee_only
+def test_repair_cleanup_plans_with_jmx():
+    test_sanity.test_repair_cleanup_plans_complete()
+
+
+@pytest.mark.sanity
+@sdk_utils.dcos_ee_only
+def test_backup_and_restore_to_s3_with_jmx_without_auth():
+    test_backup_and_restore.test_backup_and_restore_to_s3()
+
+
+@pytest.mark.sanity
+@sdk_utils.dcos_ee_only
+@pytest.mark.parametrize("self_signed_trust_store", [False, True])
+def test_secure_jmx_cmd_with_auth(self_signed_trust_store):
+    install_jmx_configured_cassandra(
+        self_signed_trust_store=self_signed_trust_store, authentication=True
+    )
+    secure_jmx_configuration(self_signed_trust_store=self_signed_trust_store, authentication=True)
+
+
+@pytest.mark.sanity
+@sdk_utils.dcos_ee_only
+def test_backup_and_restore_to_s3_with_jmx_with_auth():
+    test_auth.test_backup_and_restore_to_s3_with_auth()
 
 
 def random_string(length=10):
