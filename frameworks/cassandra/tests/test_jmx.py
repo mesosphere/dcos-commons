@@ -30,7 +30,7 @@ def install_jmx_configured_cassandra(
 
     if authentication:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address(), auth=True)
-    else:    
+    else:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
     # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
     for job in test_jobs:
