@@ -40,9 +40,7 @@ def get_unique_filename(prefix: str) -> str:
 
 
 def hdfs_client_write_data(
-        filename,
-        expect_failure_message=None,
-        content_to_write=TEST_CONTENT_SMALL,
+    filename, expect_failure_message=None, content_to_write=TEST_CONTENT_SMALL
 ) -> tuple:
     def success_check(rc, stdout, stderr):
         if rc == 0 and not stderr:
@@ -57,7 +55,9 @@ def hdfs_client_write_data(
             # If the command returned an error of "File exists", then assume the write had succeeded on a previous run.
             # This can happen when e.g. the write succeeded in a previous attempt, but then the connection flaked, or
             # if hdfs had previously successfully completed the write when also outputting some warning on stderr.
-            log.info("Ignoring failure: Looks like the data was successfully written in a previous attempt")
+            log.info(
+                "Ignoring failure: Looks like the data was successfully written in a previous attempt"
+            )
             return True
         elif "but this CLI only supports" in stderr and "Exception" not in stderr:
             # Ignore warnings about CLI being outdated compared to DC/OS version
@@ -75,9 +75,7 @@ def hdfs_client_write_data(
 
 
 def hdfs_client_read_data(
-        filename,
-        expect_failure_message=None,
-        content_to_verify=TEST_CONTENT_SMALL,
+    filename, expect_failure_message=None, content_to_verify=TEST_CONTENT_SMALL
 ) -> tuple:
     def success_check(rc, stdout, stderr):
         if rc == 0 and stdout.rstrip() == content_to_verify:
@@ -98,10 +96,11 @@ def hdfs_client_read_data(
             return False
 
     success, stdout, stderr = run_client_command(
-        hdfs_command("cat {}".format(filename)),
-        success_check=success_check,
+        hdfs_command("cat {}".format(filename)), success_check=success_check
     )
-    assert success, "Failed to read {}, or content didn't match expected value '{}': {}".format(filename, content_to_verify, stderr)
+    assert success, "Failed to read {}, or content didn't match expected value '{}': {}".format(
+        filename, content_to_verify, stderr
+    )
     return (success, stdout, stderr)
 
 
@@ -138,16 +137,9 @@ def get_hdfs_client_app(service_name, kerberos=None) -> dict:
         # Insert kerberos-related configuration into the client:
         app["env"]["REALM"] = kerberos.get_realm()
         app["env"]["KDC_ADDRESS"] = kerberos.get_kdc_address()
-        app["secrets"] = {
-            "hdfs_keytab": {
-                "source": kerberos.get_keytab_path()
-            }
-        }
+        app["secrets"] = {"hdfs_keytab": {"source": kerberos.get_keytab_path()}}
         app["container"]["volumes"] = [
-            {
-                "containerPath": "/{}/hdfs.keytab".format(HADOOP_VERSION),
-                "secret": "hdfs_keytab"
-            }
+            {"containerPath": "/{}/hdfs.keytab".format(HADOOP_VERSION), "secret": "hdfs_keytab"}
         ]
 
     return app
@@ -158,13 +150,16 @@ def run_client_command(hdfs_command, success_check=lambda rc, stdout, stderr: rc
     Execute the provided shell command within the HDFS Docker client.
     Client app must have first been installed to marathon, see using get_hdfs_client_app().
     """
+
     @retrying.retry(
         wait_fixed=1000,
         stop_max_delay=DEFAULT_HDFS_TIMEOUT * 1000,
         retry_on_result=lambda res: not res[0],
     )
     def _run_client_command():
-        rc, stdout, stderr = sdk_cmd.marathon_task_exec(CLIENT_APP_NAME, "/bin/bash -c '{}'".format(hdfs_command))
+        rc, stdout, stderr = sdk_cmd.marathon_task_exec(
+            CLIENT_APP_NAME, "/bin/bash -c '{}'".format(hdfs_command)
+        )
         return (success_check(rc, stdout, stderr), stdout, stderr)
 
     return _run_client_command()
@@ -188,3 +183,43 @@ def expect_recovery(service_name):
 def get_pod_type_instances(pod_type_prefix, service_name=SERVICE_NAME):
     _, stdout, _ = sdk_cmd.svc_cli(PACKAGE_NAME, service_name, "pod list", check=True)
     return [pod_type for pod_type in json.loads(stdout) if pod_type.startswith(pod_type_prefix)]
+
+
+def verify_https_ports(ca_bundle, host, task_id):
+    ok, stdout, stderr = run_client_command(
+        "curl -v --cacert {} https://{}".format(ca_bundle, host)
+    )
+    assert ok
+
+    assert "server certificate verification OK" in stderr
+    assert "common name: {}.{} (matched)".format(task_id, SERVICE_NAME) in stderr
+
+    # In the Kerberos case we expect a 401 error
+    assert "401 Authentication required" in stdout
+
+
+def check_user_can_auth_and_write_and_read():
+    test_filename = get_unique_filename("test_ssl_kerberos_auth_write_read")
+    hdfs_client_write_data(test_filename)
+    hdfs_client_read_data(test_filename)
+
+
+def check_test_users_have_appropriate_permissions(alice_dir) -> str:
+    run_client_command(
+        " && ".join(
+            [
+                hdfs_command(c)
+                for c in [
+                    "mkdir -p {}".format(alice_dir),
+                    "chown alice:users {}".format(alice_dir),
+                    "chmod 700 {}".format(alice_dir),
+                ]
+            ]
+        )
+    )
+
+    test_filename = "{}/{}".format(
+        alice_dir, get_unique_filename("test_ssl_kerberos_auth_user_permissions")
+    )
+
+    return test_filename

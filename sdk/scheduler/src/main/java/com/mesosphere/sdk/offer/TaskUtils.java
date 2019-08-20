@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.plan.DefaultPodInstance;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.plan.Step;
+import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
@@ -86,7 +87,7 @@ public final class TaskUtils {
    */
   public static List<String> getTaskNames(PodInstance podInstance) {
     return podInstance.getPod().getTasks().stream()
-        .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+        .map(taskSpec -> CommonIdUtils.getTaskInstanceName(podInstance, taskSpec))
         .collect(Collectors.toList());
   }
 
@@ -101,7 +102,7 @@ public final class TaskUtils {
     LOGGER.debug("PodInstance tasks: {}", TaskUtils.getTaskNames(podInstance));
     return podInstance.getPod().getTasks().stream()
         .filter(taskSpec -> tasksToLaunch.contains(taskSpec.getName()))
-        .map(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec))
+        .map(taskSpec -> CommonIdUtils.getTaskInstanceName(podInstance, taskSpec))
         .collect(Collectors.toList());
   }
 
@@ -375,7 +376,7 @@ public final class TaskUtils {
 
   public static Optional<TaskSpec> getTaskSpec(PodInstance podInstance, String taskName) {
     return podInstance.getPod().getTasks().stream()
-        .filter(taskSpec -> TaskSpec.getInstanceName(podInstance, taskSpec).equals(taskName))
+        .filter(taskSpec -> CommonIdUtils.getTaskInstanceName(podInstance, taskSpec).equals(taskName))
         .findFirst();
   }
 
@@ -404,7 +405,8 @@ public final class TaskUtils {
       ConfigStore<ServiceSpec> configStore,
       Collection<Protos.TaskInfo> allTaskInfos,
       Collection<Protos.TaskStatus> allTaskStatuses,
-      Collection<Protos.TaskInfo> failedTasks)
+      Collection<Protos.TaskInfo> failedTasks,
+      Backoff backOff)
   {
 
     // Mapping of pods, to failed tasks within those pods.
@@ -419,11 +421,7 @@ public final class TaskUtils {
           LOGGER.error("No TaskSpec found for failed task: {}", taskInfo.getName());
           continue;
         }
-        Collection<TaskSpec> failedTaskSpecs = podsToFailedTasks.get(podInstance);
-        if (failedTaskSpecs == null) {
-          failedTaskSpecs = new ArrayList<>();
-          podsToFailedTasks.put(podInstance, failedTaskSpecs);
-        }
+        Collection<TaskSpec> failedTaskSpecs = podsToFailedTasks.computeIfAbsent(podInstance, k -> new ArrayList<>());
         failedTaskSpecs.add(taskSpec.get());
       } catch (TaskException e) {
         LOGGER.error(String.format("Failed to get pod instance for task: %s", taskInfo.getName()), e);
@@ -437,7 +435,7 @@ public final class TaskUtils {
     // Log failed pod map
     for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
       List<String> taskNames = entry.getValue().stream()
-          .map(taskSpec -> taskSpec.getName())
+          .map(TaskSpec::getName)
           .collect(Collectors.toList());
       LOGGER.info("Failed pod: {} with tasks: {}", entry.getKey().getName(), taskNames);
     }
@@ -449,29 +447,52 @@ public final class TaskUtils {
 
     Set<String> allLaunchedTaskNames = allTaskInfos.stream()
         .filter(taskInfo -> allLaunchedTaskIds.contains(taskInfo.getTaskId().getValue()))
-        .map(taskInfo -> taskInfo.getName())
+        .map(TaskInfo::getName)
         .collect(Collectors.toSet());
 
     List<PodInstanceRequirement> podInstanceRequirements = new ArrayList<>();
     for (Map.Entry<PodInstance, Collection<TaskSpec>> entry : podsToFailedTasks.entrySet()) {
-      boolean anyFailedTasksAreEssential = entry.getValue().stream().anyMatch(taskSpec -> taskSpec.isEssential());
+      /**
+       * Each {@link PodInstance} in {@link podsToFailedTasks} have some tasks associated with it. If any of these tasks
+       * are marked as essential tasks, then ALL the tasks associated with the pod instance are launched.
+       *
+       * - If none of the failed tasks are essential then launch only those tasks which are not delayed.
+       * - If there are some failed tasks that are essential, do not launch anything in the pod as ALL the tasks would
+       *    be relaunched once the delay on essential tasks elapses.
+       */
+      boolean anyFailedTasksAreEssential = entry.getValue().stream().anyMatch(TaskSpec::isEssential);
       Collection<TaskSpec> taskSpecsToLaunch;
       if (anyFailedTasksAreEssential) {
+        boolean anyTasksAreDelayed = entry
+                .getKey()
+                .getPod()
+                .getTasks()
+                .stream()
+                .anyMatch(taskSpec -> backOff
+                        .getDelay(CommonIdUtils.getTaskInstanceName(entry.getKey(), taskSpec))
+                        .isPresent());
         // One or more of the failed tasks in this pod are marked as 'essential'.
-        // Relaunch all applicable tasks in the pod.
-        taskSpecsToLaunch = entry.getKey().getPod().getTasks();
+        // Relaunch all applicable (if not delayed) tasks in the pod.
+        taskSpecsToLaunch = anyTasksAreDelayed ? Collections.emptyList() : entry.getKey().getPod().getTasks();
       } else {
         // None of the failed tasks in this pod are 'essential'.
-        // Only recover the failed task(s), leave others in the pod as-is.
-        taskSpecsToLaunch = entry.getValue();
+        // Only recover the failed task(s) that are not delayed, leave others in the pod as-is.
+        taskSpecsToLaunch = entry.getValue().stream().filter(taskSpec ->
+          !backOff.getDelay(CommonIdUtils.getTaskInstanceName(entry.getKey(), taskSpec)).isPresent()
+        ).collect(Collectors.toList());
+        if (taskSpecsToLaunch.size() != entry.getValue().size()) {
+          LOGGER.info("Delayed tasks in pod {} are : {}",
+                  entry.getKey().getName(),
+                  CollectionUtils.subtract(entry.getValue(), taskSpecsToLaunch));
+        }
       }
 
       // Additional filtering:
-      // - Only relaunch tasks that aren't eligible for recovery. Those are instead handled by the deploy plan.
+      // - Don't relaunch tasks that aren't eligible for recovery. Those are instead handled by the deploy plan.
       // - Don't relaunch tasks that haven't been launched yet (as indicated by presence in allLaunchedTasks)
       taskSpecsToLaunch = taskSpecsToLaunch.stream()
           .filter(taskSpec -> isEligibleForRecovery(taskSpec) &&
-              allLaunchedTaskNames.contains(TaskSpec.getInstanceName(entry.getKey(), taskSpec.getName())))
+              allLaunchedTaskNames.contains(CommonIdUtils.getTaskInstanceName(entry.getKey(), taskSpec.getName())))
           .collect(Collectors.toList());
 
       if (taskSpecsToLaunch.isEmpty()) {
@@ -485,8 +506,9 @@ public final class TaskUtils {
           .collect(Collectors.toList()));
       podInstanceRequirements.add(PodInstanceRequirement.newBuilder(
           entry.getKey(),
-          taskSpecsToLaunch.stream()
-              .map(taskSpec -> taskSpec.getName())
+          taskSpecsToLaunch
+              .stream()
+              .map(TaskSpec::getName)
               .collect(Collectors.toList()))
           .build());
     }
@@ -578,9 +600,6 @@ public final class TaskUtils {
         return true;
       case ONCE:
       case FINISH:
-        // Tasks with a ONCE or FINISH goal state are effectively managed by the deploy plan, and are not the
-        // responsibility of the recovery plan. Recovery only applies to tasks that had reached their goal state
-        // of RUNNING and then later failed.
         return false;
       case UNKNOWN:
       default:
@@ -589,7 +608,7 @@ public final class TaskUtils {
   }
 
   /**
-   * Returns whether the provided {@link TaskStatus} shows that the task needs to recover.
+   * Returns whether the provided {@link Protos.TaskStatus} shows that the task needs to recover.
    * <p>
    * This assumes that the task is not supposed to be {@code FINISHED}.
    */
@@ -610,7 +629,7 @@ public final class TaskUtils {
   }
 
   /**
-   * Marks the TaskInfo for replacement if the agent has been decomissioned.
+   * Marks the TaskInfo for replacement if the agent has been decommissioned.
    */
   public static Collection<Protos.TaskInfo> getTasksForReplacement(
       Collection<Protos.TaskStatus> alltaskStatuses,
@@ -636,7 +655,7 @@ public final class TaskUtils {
   }
 
   /**
-   * Returns whether the provided {@link TaskStatus} has reached a terminal state.
+   * Returns whether the provided {@link Protos.TaskStatus} has reached a terminal state.
    */
   public static boolean isTerminal(Protos.TaskStatus taskStatus) {
     switch (taskStatus.getState()) {
@@ -658,12 +677,9 @@ public final class TaskUtils {
       case TASK_UNKNOWN:
         // mesos.proto: "may or may not still be running"
       case TASK_UNREACHABLE:
-        break;
       default:
         return false;
     }
-
-    return false;
   }
 
   /**
@@ -702,7 +718,7 @@ public final class TaskUtils {
   /**
    * Gets the IP address associated with the task.
    *
-   * @param taskStatus the {@link TaskStatus} to get the IP address from.
+   * @param taskStatus the {@link Protos.TaskStatus} to get the IP address from.
    * @return A String indicating the IP address associated with the task.
    */
   public static String getTaskIPAddress(Protos.TaskStatus taskStatus) throws IllegalStateException {

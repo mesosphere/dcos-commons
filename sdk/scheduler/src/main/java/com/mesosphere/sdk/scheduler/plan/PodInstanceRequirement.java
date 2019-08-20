@@ -17,11 +17,11 @@ import java.util.Map;
 public final class PodInstanceRequirement {
   private final PodInstance podInstance;
 
-  private final Collection<String> tasksToLaunch;
-
   private final Map<String, String> environment;
 
   private final RecoveryType recoveryType;
+
+  private final Collection<String> tasksToLaunch;
 
   /**
    * Creates a new instance with the provided permanent replacement setting.
@@ -90,9 +90,9 @@ public final class PodInstanceRequirement {
    */
   public boolean conflictsWith(PodInstanceRequirement podInstanceRequirement) {
     boolean podConflicts = podInstanceRequirement.getPodInstance().conflictsWith(getPodInstance());
-    boolean anyTaskConflicts = getTasksToLaunch().stream()
-        .filter(t -> podInstanceRequirement.getTasksToLaunch().contains(t))
-        .count() > 0;
+    boolean anyTaskConflicts = getTasksToLaunch()
+            .stream()
+            .anyMatch(t -> podInstanceRequirement.getTasksToLaunch().contains(t));
     return podConflicts && anyTaskConflicts;
   }
 
@@ -113,7 +113,7 @@ public final class PodInstanceRequirement {
   public static final class Builder {
     private final PodInstance podInstance;
 
-    private final Collection<String> tasksToLaunch;
+    private Collection<String> tasksToLaunch;
 
     private Map<String, String> environment = new HashMap<>();
 

@@ -13,13 +13,6 @@ import java.util.Optional;
  */
 @JsonDeserialize(as = DefaultTaskSpec.class)
 public interface TaskSpec {
-  static String getInstanceName(PodInstance podInstance, TaskSpec taskSpec) {
-    return getInstanceName(podInstance, taskSpec.getName());
-  }
-
-  static String getInstanceName(PodInstance podInstance, String taskName) {
-    return podInstance.getName() + "-" + taskName;
-  }
 
   @JsonProperty("name")
   String getName();

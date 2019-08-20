@@ -1,12 +1,12 @@
 package com.mesosphere.sdk.scheduler.plan;
 
 import com.mesosphere.sdk.framework.TaskKiller;
+import com.mesosphere.sdk.offer.CommonIdUtils;
 import com.mesosphere.sdk.offer.InvalidRequirementException;
 import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.TaskUtils;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos;
@@ -59,7 +59,7 @@ public class PlanScheduler {
 
       // Remove the consumed offers from the list of available offers
       Set<Protos.OfferID> usedOfferIds = stepRecommendations.stream()
-          .map(rec -> rec.getOfferId())
+          .map(OfferRecommendation::getOfferId)
           .collect(Collectors.toSet());
       availableOffers = availableOffers.stream()
           .filter(offer -> !usedOfferIds.contains(offer.getId()))
@@ -88,8 +88,8 @@ public class PlanScheduler {
     }
 
     PodInstanceRequirement podInstanceRequirement = podInstanceRequirementOptional.get();
-    // It is harmless to attempt to kill tasks which have never been launched.  This call attempts to Kill all Tasks
-    // with a Task name which is equivalent to that expressed by the OfferRequirement.  If no such Task is currently
+    // It is harmless to attempt to kill tasks which have never been launched. This call attempts to Kill all Tasks
+    // with a Task name which is equivalent to that expressed by the OfferRequirement. If no such Task is currently
     // running no operation occurs.
     killTasks(podInstanceRequirement);
 
@@ -133,14 +133,13 @@ public class PlanScheduler {
     List<String> tasksToKill = podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
         .filter(taskSpec -> resourceSetsToConsume.contains(taskSpec.getResourceSet().getId()))
         .map(taskSpec ->
-            TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
+            CommonIdUtils.getTaskInstanceName(podInstanceRequirement.getPodInstance(), taskSpec))
         .collect(Collectors.toList());
     logger.info("Killing {} for pod instance requirement {}:{}, with resource sets to consume {}",
         tasksToKill,
         podInstanceRequirement.getPodInstance().getName(),
         podInstanceRequirement.getTasksToLaunch(),
-        resourceSetsToConsume,
-        tasksToKill);
+        resourceSetsToConsume);
 
     for (String taskName : tasksToKill) {
       Optional<Protos.TaskInfo> taskInfo = stateStore.fetchTask(taskName);

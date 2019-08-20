@@ -446,6 +446,21 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validHostVolumeMode() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-host-volume.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        PodSpec spec = serviceSpec.getPods().get(0);
+
+        for (HostVolumeSpec volumeSpec : spec.getHostVolumes()) {
+            Assert.assertEquals("host-volume-etc", volumeSpec.getContainerPath());
+            Assert.assertEquals("/etc", volumeSpec.getHostPath());
+            Assert.assertEquals(Protos.Volume.Mode.RO, volumeSpec.getMode().get());
+        }
+    }
+
+
+    @Test
     public void invalidVolumeAndVolumes() throws Exception {
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("invalid-volume-and-volumes.yml").getFile());

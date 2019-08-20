@@ -1,11 +1,14 @@
 #!/usr/bin/env groovy
 // Configuration for https://jenkins.mesosphere.com/service/jenkins/job/dcos-commons-base%20docker%20image/
 
-void setBuildStatus(String context) {
+void setBuildStatus(String context, String message, String state) {
     step([
             $class: "GitHubCommitStatusSetter",
             contextSource: [$class: "ManuallyEnteredCommitContextSource", context: context],
-            reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/mesosphere/dcos-commons"]
+            reposSource: [$class: "ManuallyEnteredRepositorySource", url: "https://github.com/mesosphere/dcos-commons"],
+            statusResultSource: [
+                $class: "ConditionalStatusResultSource", results: [[$class: "AnyBuildResult", message: message, state: state]]
+            ]
     ])
 }
 
@@ -32,8 +35,11 @@ pipeline {
  
         stage('build') {
             steps {
-                // Build Docker image.
-                sh("docker build -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
+                // Prevent indefinite hangs: DCOS-57576
+                timeout(activity: true, time: 1, unit: 'HOURS') {
+                    // Build Docker image.
+                    sh("docker build --squash -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
+                }
             }
         }
  
@@ -52,8 +58,17 @@ pipeline {
     }
 
     post {
-        always {
-            setBuildStatus("mesosphere/${IMAGE}")
+        success {
+            setBuildStatus("mesosphere/${IMAGE}", "Docker image build/push succeeded", "SUCCESS");
+        }
+        failure {
+            setBuildStatus("mesosphere/${IMAGE}", "Docker image build/push failed", "FAILURE");
+        }
+        aborted {
+            setBuildStatus("mesosphere/${IMAGE}", "Docker image build/push aborted", "ERROR");
+        }
+        unstable {
+            setBuildStatus("mesosphere/${IMAGE}", "Docker image build/push unstable", "ERROR");
         }
     }
 }

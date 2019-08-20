@@ -2,6 +2,8 @@ package com.mesosphere.sdk.debug;
 
 import com.mesosphere.sdk.http.ResponseUtils;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.plan.Element;
+import com.mesosphere.sdk.scheduler.plan.ParentElement;
 import com.mesosphere.sdk.scheduler.plan.Phase;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
@@ -255,7 +257,7 @@ public class PlansTracker implements DebugEndpoint {
 
     int completedSteps = plan.getChildren().stream()
         .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isComplete())
+        .filter(Element::isComplete)
         .collect(Collectors.toSet())
         .size();
 

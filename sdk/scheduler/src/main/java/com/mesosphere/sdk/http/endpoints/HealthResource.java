@@ -1,9 +1,11 @@
 package com.mesosphere.sdk.http.endpoints;
 
 import com.mesosphere.sdk.http.ResponseUtils;
+import com.mesosphere.sdk.scheduler.plan.Element;
 import com.mesosphere.sdk.scheduler.plan.Plan;
 import com.mesosphere.sdk.scheduler.plan.PlanCoordinator;
 import com.mesosphere.sdk.scheduler.plan.PlanManager;
+import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStoreException;
 
@@ -40,6 +42,7 @@ public class HealthResource {
     ERROR_CREATING_SERVICE(500, 1),
     DEPLOYING_PENDING(204, 2),
     DEPLOYING_STARTING(202, 2),
+    DELAYED(208, 1),
     DEPLOYING_WAITING_USER(207, 2),
     DEGRADED(206, 3),
     RECOVERING_PENDING(203, 4),
@@ -161,7 +164,7 @@ public class HealthResource {
     Set<Plan> restorePlans = planCoordinator.getPlanManagers()
         .stream()
         .filter(planManager -> planManager.getPlan().getName().matches(RESTORE_PLAN_REGEXP))
-        .map(planManager -> planManager.getPlan())
+        .map(PlanManager::getPlan)
         .collect(Collectors.toSet());
 
     if (restorePlans.isEmpty()) {
@@ -172,13 +175,13 @@ public class HealthResource {
     } else {
       // Found plan name with "restore" in it, check if any are running, if so get their names.
       Set<String> runningRestorePlans = restorePlans.stream()
-          .filter(plan -> plan.isRunning())
-          .map(plan -> plan.getName())
+          .filter(Element::isRunning)
+          .map(Element::getName)
           .collect(Collectors.toSet());
 
       if (runningRestorePlans.isEmpty()) {
         Set<String> notRunningRestorePlans = restorePlans.stream()
-            .map(plan -> plan.getName())
+            .map(Element::getName)
             .collect(Collectors.toSet());
 
         reason = String.format("Priority %d. Status Code %s is FALSE. Following restore plans not running: %s",
@@ -206,7 +209,7 @@ public class HealthResource {
     Set<Plan> backupPlans = planCoordinator.getPlanManagers()
         .stream()
         .filter(planManager -> planManager.getPlan().getName().matches(BACKUP_PLAN_REGEXP))
-        .map(planManager -> planManager.getPlan())
+        .map(PlanManager::getPlan)
         .collect(Collectors.toSet());
 
     if (backupPlans.isEmpty()) {
@@ -217,13 +220,13 @@ public class HealthResource {
     } else {
       // Found plan name with "backup" in it, check if any are running, if so get their names.
       Set<String> runningBackupPlans = backupPlans.stream()
-          .filter(plan -> plan.isRunning())
-          .map(plan -> plan.getName())
+          .filter(Element::isRunning)
+          .map(Element::getName)
           .collect(Collectors.toSet());
 
       if (runningBackupPlans.isEmpty()) {
         Set<String> notRunningBackupPlans = backupPlans.stream()
-            .map(plan -> plan.getName())
+            .map(Element::getName)
             .collect(Collectors.toSet());
 
         reason = String.format("Priority %d. Status Code %s is FALSE. Following backup plans not running: %s",
@@ -271,6 +274,7 @@ public class HealthResource {
         return evaluatePendingOrStartingStatusCode(recoveryPlan,
             ServiceStatusCode.RECOVERING_PENDING,
             ServiceStatusCode.RECOVERING_STARTING,
+            ServiceStatusCode.DELAYED,
             ServiceStatusCode.RECOVERING_PENDING.priority);
       }
     } else {
@@ -304,55 +308,45 @@ public class HealthResource {
     return evaluatePendingOrStartingStatusCode(deploymentPlan,
         ServiceStatusCode.DEPLOYING_PENDING,
         ServiceStatusCode.DEPLOYING_STARTING,
+        ServiceStatusCode.DELAYED,
         ServiceStatusCode.DEPLOYING_PENDING.priority);
   }
 
-  private ServiceStatusEvaluationStage evaluatePendingOrStartingStatusCode(Plan evaluatePlan,
-                                                                          ServiceStatusCode pending,
-                                                                          ServiceStatusCode starting,
-                                                                          final int priority)
+  private ServiceStatusEvaluationStage evaluatePendingOrStartingStatusCode(
+      Plan evaluatePlan,
+      ServiceStatusCode pending,
+      ServiceStatusCode starting,
+      ServiceStatusCode delayed,
+      final int priority)
   {
     String reason;
     Optional<ServiceStatusCode> statusCode;
 
-    int totalSteps = evaluatePlan.getChildren().stream()
+    Set<Step> stepSet = evaluatePlan
+        .getChildren()
+        .stream()
         .flatMap(phase -> phase.getChildren().stream())
-        .collect(Collectors.toSet())
-        .size();
+        .collect(Collectors.toSet());
 
-    int pendingSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isPending())
-        .collect(Collectors.toSet())
-        .size();
+    int totalSteps = stepSet.size();
 
-    int preparedSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isPrepared())
-        .collect(Collectors.toSet())
-        .size();
+    long pendingSteps = stepSet.stream().filter(Element::isPending).count();
 
-    int startingSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isStarting())
-        .collect(Collectors.toSet())
-        .size();
+    long delayedSteps = stepSet.stream().filter(Element::isDelayed).count();
 
-    int startedSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isStarted())
-        .collect(Collectors.toSet())
-        .size();
+    long preparedSteps = stepSet.stream().filter(Element::isPrepared).count();
 
-    int completedSteps = evaluatePlan.getChildren().stream()
-        .flatMap(phase -> phase.getChildren().stream())
-        .filter(step -> step.isComplete())
-        .collect(Collectors.toSet())
-        .size();
+    long startingSteps = stepSet.stream().filter(Element::isStarting).count();
+
+    long startedSteps = stepSet.stream().filter(Element::isStarted).count();
+
+    long completedSteps = stepSet.stream().filter(Element::isComplete).count();
 
     // We're biasing pessimistically here, pick cases that are halting the
     // deployment from becoming complete.
-    if (pendingSteps > 0 || preparedSteps > 0) {
+    if (delayedSteps > 0) {
+      statusCode = Optional.of(delayed);
+    } else if (pendingSteps > 0 || preparedSteps > 0) {
       statusCode = Optional.of(pending);
     } else if (startingSteps > 0 || startedSteps > 0) {
       statusCode = Optional.of(starting);
@@ -370,7 +364,7 @@ public class HealthResource {
           starting.statusCode);
     }
 
-    reason = String.format("Priority %d. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d)",
+    reason = String.format("Priority %d. %s Steps: Total(%d) Pending(%d) Prepared(%d) Starting(%d) Started(%d) Completed(%d) Delayed(%d)",
         priority,
         statusCodeString,
         totalSteps,
@@ -378,7 +372,8 @@ public class HealthResource {
         preparedSteps,
         startingSteps,
         startedSteps,
-        completedSteps);
+        completedSteps,
+        delayedSteps);
 
     return new ServiceStatusEvaluationStage(statusCode, reason);
   }
@@ -439,7 +434,7 @@ public class HealthResource {
             .get()
             .getPlan().getChildren().stream()
             .flatMap(phase -> phase.getChildren().stream())
-            .anyMatch(step -> step.isInterrupted());
+            .anyMatch(Step::isInterrupted);
 
     if (isPlanInterrupted || isAnyStepInterrupted) {
       reason = String.format("Priority %d. Status Code %s is TRUE. Service deploy plan is awaiting user input to proceed.",
@@ -521,18 +516,18 @@ public class HealthResource {
 
     private final String statusReason;
 
-    public ServiceStatusEvaluationStage(Optional<ServiceStatusCode> serviceStatusCode,
-                                        String statusReason)
+    ServiceStatusEvaluationStage(Optional<ServiceStatusCode> serviceStatusCode,
+                                 String statusReason)
     {
       this.serviceStatusCode = serviceStatusCode;
       this.statusReason = statusReason;
     }
 
-    public Optional<ServiceStatusCode> getServiceStatusCode() {
+    Optional<ServiceStatusCode> getServiceStatusCode() {
       return serviceStatusCode;
     }
 
-    public String getStatusReason() {
+    String getStatusReason() {
       return statusReason;
     }
   }

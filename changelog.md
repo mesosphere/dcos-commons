@@ -1,5 +1,15 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.56.2
+
+- [#3144](https://github.com/mesosphere/dcos-commons/pull/3144) : Added user level configuration support for specifying the host volume mode to one of `RW` or `RO`.
+- [DCOS-54275](https://jira.mesosphere.com/browse/DCOS-54275) #3120 : Added support for auto task back off on task failures/errors.
+- [#3070](https://github.com/mesosphere/dcos-commons/pull/3070) and [#3105](https://github.com/mesosphere/dcos-commons/pull/3105) : Add a config validator for seccomp.
+- [DCOS-42593](https://jira.mesosphere.com/browse/DCOS-42593) The zookeeper max payload batching bug has finally been fixed via [#3147](https://github.com/mesosphere/dcos-commons/pull/3147)
+
+##### Notes
+- Currently, task backoff is disabled by default but this behaviour will be changed so that task back off is enabled by default in future major releases of SDK.
+
 ## Changes to v0.56.1
 
 - [DCOS-53415](https://jira.mesosphere.com/browse/DCOS-53415) Update to mesos 1.8.0 `org.apache.mesos:mesos:1.8.0`
@@ -10,13 +20,15 @@
 - [DCOS-49197](https://jira.mesosphere.com/browse/DCOS-49197) Introduce new service status codes.
 - [DCOS-48777](https://jira.mesosphere.com/browse/DCOS-48777) The `init` developer helper script in docker image was renamed to `copy-files`
   
-  _Note : The newly added status codes may not work if frameworks are using marathon health checks ([Deprecated since marathon 1.4.x](https://github.com/mesosphere/marathon/releases/tag/v1.4.0)). Please use MESOS Health checks [in your marathon.json.mustache](https://github.com/mesosphere/dcos-commons/blob/0.56.0/frameworks/helloworld/universe/marathon.json.mustache#L136-L146)_
+##### Notes
+- The newly added status codes may not work if frameworks are using marathon health checks ([Deprecated since marathon 1.4.x](https://github.com/mesosphere/marathon/releases/tag/v1.4.0)). Please use MESOS Health checks [in your marathon.json.mustache](https://github.com/mesosphere/dcos-commons/blob/0.56.0/frameworks/helloworld/universe/marathon.json.mustache#L136-L146)
 
 ## Changes to v0.55.5
 
 - [DCOS-51019](https://jira.mesosphere.com/browse/DCOS-51019) Support passing seccomp-undefined and seccomp-profile-name in svc yml.
 
-    _Note : This version of SDK uses the mesos 1.8.0 `org.apache.mesos:mesos:1.8.0-SNAPSHOT` artifact located in `https://repository.apache.org/content/repositories/snapshots/` maven repo. Please update your build file to add this repository._
+##### Notes
+- This version of SDK uses the mesos 1.8.0 `org.apache.mesos:mesos:1.8.0-SNAPSHOT` artifact located in `https://repository.apache.org/content/repositories/snapshots/` maven repo. Please update your build file to add this repository.
 
 ## Changes to v0.55.4
 

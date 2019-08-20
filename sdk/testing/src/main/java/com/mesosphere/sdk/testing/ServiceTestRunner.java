@@ -320,6 +320,7 @@ public class ServiceTestRunner {
         Mockito.when(mockCapabilities.supportsProfileMountVolumes()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsSeccomp()).thenReturn(true);
         Mockito.when(mockCapabilities.supportsShm()).thenReturn(true);
+
         Capabilities.overrideCapabilities(mockCapabilities);
 
         // Disable background TaskKiller thread, to avoid erroneous kill invocations

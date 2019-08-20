@@ -10,9 +10,11 @@ pods:
     tasks:
       server:
         goal: RUNNING
-        cmd: echo crash-loop && sleep 60 && exit 1
+        cmd: "echo crash-loop && sleep $SLEEP_DURATION && exit 1"
         cpus: {{HELLO_CPUS}}
         memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
         readiness-check:
           cmd: exit 1
           interval: 5

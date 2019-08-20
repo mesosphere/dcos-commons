@@ -5,6 +5,7 @@ import com.mesosphere.sdk.offer.LaunchOfferRecommendation;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
+import com.mesosphere.sdk.scheduler.plan.backoff.Backoff;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
@@ -65,7 +66,8 @@ public class DeploymentStep extends AbstractStep {
     this.podInstanceRequirement = podInstanceRequirement;
     this.goalStateByTaskName = new HashMap<>();
     for (TaskSpec taskSpec : podInstanceRequirement.getPodInstance().getPod().getTasks()) {
-      String taskName = TaskSpec.getInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
+      String taskName =
+              CommonIdUtils.getTaskInstanceName(podInstanceRequirement.getPodInstance(), taskSpec);
       this.goalStateByTaskName.put(taskName, taskSpec.getGoal());
     }
     logger.info("Goal states: {}", goalStateByTaskName);
@@ -119,18 +121,16 @@ public class DeploymentStep extends AbstractStep {
   @Override
   public synchronized void updateOfferStatus(Collection<OfferRecommendation> recommendations) {
     tasks.clear();
-    recommendations.stream()
-        .filter(recommendation -> recommendation instanceof LaunchOfferRecommendation)
+    recommendations
+        .stream()
+        .filter(LaunchOfferRecommendation.class::isInstance)
         .map(recommendation -> ((LaunchOfferRecommendation) recommendation).getTaskInfo())
         .forEach(taskInfo -> tasks.put(taskInfo.getTaskId(),
             new TaskStatusPair(taskInfo, Status.PREPARED)));
 
-    if (recommendations.isEmpty()) {
-      tasks.keySet().forEach(id -> setTaskStatus(id, Status.PREPARED));
-    } else {
+    if (!recommendations.isEmpty()) {
       tasks.keySet().forEach(id -> setTaskStatus(id, Status.STARTING));
     }
-
     prepared.set(true);
     updateStatus();
   }
@@ -149,7 +149,7 @@ public class DeploymentStep extends AbstractStep {
     // Extract full names of the defined tasks, e.g. "pod-0-task":
     Collection<String> taskFullNames =
         podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
-        .map(taskSpec -> TaskSpec.getInstanceName(
+        .map(taskSpec -> CommonIdUtils.getTaskInstanceName(
             podInstanceRequirement.getPodInstance(),
             taskSpec))
         .collect(Collectors.toList());
@@ -178,6 +178,9 @@ public class DeploymentStep extends AbstractStep {
     switch (status.getState()) {
       case TASK_ERROR:
       case TASK_FAILED:
+        Backoff.getInstance().addDelay(status.getTaskId());
+        setTaskStatus(status.getTaskId(), Status.DELAYED);
+        break;
       case TASK_KILLED:
       case TASK_KILLING:
       case TASK_LOST:
@@ -187,7 +190,10 @@ public class DeploymentStep extends AbstractStep {
       case TASK_GONE:
       case TASK_DROPPED:
       case TASK_UNREACHABLE:
+        setTaskStatus(status.getTaskId(), Status.PENDING);
+        break;
       case TASK_GONE_BY_OPERATOR:
+        Backoff.getInstance().clearDelay(status.getTaskId());
         setTaskStatus(status.getTaskId(), Status.PENDING);
         break;
       case TASK_STAGING:
@@ -200,6 +206,7 @@ public class DeploymentStep extends AbstractStep {
         if (goalState.equals(GoalState.RUNNING)
             && new TaskLabelReader(taskInfo).isReadinessCheckSucceeded(status))
         {
+          Backoff.getInstance().clearDelay(status.getTaskId());
           setTaskStatus(status.getTaskId(), Status.COMPLETE);
         } else {
           setTaskStatus(status.getTaskId(), Status.STARTED);
@@ -283,14 +290,21 @@ public class DeploymentStep extends AbstractStep {
 
     setOverrideStatus(taskID, status);
 
-    if (isPending()) {
-      prepared.set(false);
+    switch (status) {
+      case PENDING:
+        prepared.set(true);
+        break;
+      case DELAYED:
+        prepared.set(false);
+        break;
+      default:
+        break;
     }
   }
 
   private void updateStatus() {
     Set<Status> taskStatuses = tasks.values().stream()
-        .map(task -> task.getStatus())
+        .map(TaskStatusPair::getStatus)
         .collect(Collectors.toSet());
     Optional<Status> status = getStatus(taskStatuses, !getErrors().isEmpty(), prepared.get());
     if (status.isPresent()) {
@@ -313,7 +327,7 @@ public class DeploymentStep extends AbstractStep {
     // It is valid for some tasks to be paused and not others, i.e. user specified specific task(s) to paused.
     // Only display a PAUSING/PAUSED state in the plan if ALL the tasks are marked as paused.
     boolean allTasksPaused = !tasksToLaunch.isEmpty() && tasksToLaunch.stream()
-        .map(taskName -> stateStore.fetchGoalOverrideStatus(taskName))
+        .map(stateStore::fetchGoalOverrideStatus)
         .allMatch(goalOverrideStatus -> goalOverrideStatus.target == GoalStateOverride.PAUSED);
     if (allTasksPaused) {
       // Show a custom display status when the task is in or entering a paused state:
@@ -328,7 +342,7 @@ public class DeploymentStep extends AbstractStep {
 
   @VisibleForTesting
   static Optional<Status> getStatus(Set<Status> statuses, boolean hasErrors, boolean isPrepared) {
-    // A DeploymentStep should have the "least" status of its consituent tasks.
+    // A DeploymentStep should have the "least" status of its constituent tasks.
     // 1 PENDING task and 2 STARTING tasks => PENDING step state
     // 2 STARTING tasks and 1 COMPLETE task=> STARTING step state
     // 3 COMPLETE tasks => COMPLETE step state
@@ -342,6 +356,8 @@ public class DeploymentStep extends AbstractStep {
       }
     } else if (statuses.contains(Status.ERROR)) {
       return Optional.of(Status.ERROR);
+    } else if (statuses.contains(Status.DELAYED)) {
+      return Optional.of(Status.DELAYED);
     } else if (statuses.contains(Status.PENDING)) {
       return Optional.of(Status.PENDING);
     } else if (statuses.contains(Status.PREPARED)) {

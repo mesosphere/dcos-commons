@@ -11,6 +11,15 @@
     </Appenders>
 
     <Loggers>
+        <!-- Uncomment the following to see "less noisy" debug logs. -->
+        <!--
+        <Logger name="org.eclipse.jetty" level="INFO" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
+        <Logger name="org.apache" level="INFO" additivity="false">
+            <AppenderRef ref="STDOUT"/>
+        </Logger>
+        -->
         <Root level="${env:FRAMEWORK_LOG_LEVEL:-INFO}">
             <AppenderRef ref="STDOUT"/>
         </Root>
