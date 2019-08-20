@@ -27,7 +27,11 @@ def install_jmx_configured_cassandra(
 ):
     foldered_name = config.get_foldered_service_name()
     test_jobs: List[Dict[str, Any]] = []
-    test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
+
+    if authentication:
+        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address(), auth=True)
+    else:    
+        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
     # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
     for job in test_jobs:
         sdk_jobs.install_job(job)
@@ -271,13 +275,9 @@ def install_jmxterm(task_id: string):
 
 
 def create_secret(secret_value: str, secret_path: str) -> None:
-    delete_secret(secret=secret_path)
+    sdk_security.delete_secret(secret_path)
     sdk_cmd.run_cli(
         'security secrets create --value="{account}" "{secret}"'.format(
             account=secret_value, secret=secret_path
         )
     )
-
-
-def delete_secret(secret: str) -> None:
-    sdk_cmd.run_cli("security secrets delete {}".format(secret))
