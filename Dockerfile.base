@@ -51,7 +51,8 @@ RUN apt-get update && \
 RUN apt-get install -y python3-software-properties software-properties-common && \
     add-apt-repository -y ppa:openjdk-r/ppa && \
     apt-get update && \
-    apt-get install -y \
+    apt-get install -y -V -oDebug::pkgDepCache::AutoInstall=yes \
+    grub-pc- \
     curl \
     docker-ce="${DOCKER_VERSION}~3-0~ubuntu-bionic" \
     git \
