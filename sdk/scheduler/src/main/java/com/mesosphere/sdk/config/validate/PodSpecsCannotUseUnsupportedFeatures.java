@@ -91,8 +91,6 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
     return false;
   }
 
-
-  //SUPPRESS CHECKSTYLE CyclomaticComplexity
   @Override
   public Collection<ConfigValidationError> validate(
       Optional<ServiceSpec> oldConfig,
@@ -108,7 +106,6 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
     boolean supportsEnvBasedSecrets = capabilities.supportsEnvBasedSecretsProtobuf();
     boolean supportsFileBasedSecrets = capabilities.supportsFileBasedSecrets();
     boolean supportsProfileMountVolumes = capabilities.supportsProfileMountVolumes();
-    boolean supportsSeccomp = capabilities.supportsSeccomp();
 
     for (PodSpec podSpec : newConfig.getPods()) {
       if (!supportsGpus && podRequestsGpuResources(podSpec)) {
@@ -163,17 +160,6 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
             "pod:" + podSpec.getType(),
             "volumes",
             "This DC/OS cluster does not support profile mount volumes"
-        ));
-      }
-
-      if (!supportsSeccomp && ((podSpec.getSeccompUnconfined() != null
-              && podSpec.getSeccompUnconfined()) ||
-              podSpec.getSeccompProfileName().isPresent()))
-      {
-        errors.add(ConfigValidationError.valueError(
-                "pod:" + podSpec.getType(),
-                "seccomp",
-                "This DC/OS cluster does not support seccomp"
         ));
       }
     }
