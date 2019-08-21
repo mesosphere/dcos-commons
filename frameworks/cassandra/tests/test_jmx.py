@@ -1,3 +1,5 @@
+import os
+import uuid
 import pytest
 import random
 import string
@@ -12,7 +14,6 @@ import subprocess
 from tests import config
 from tests import test_sanity
 from tests import test_backup_and_restore
-from tests import test_auth
 
 PASSWORD_FILE = "/test/integration/cassandra/passwordfile"
 ACCESS_FILE = "/test/integration/cassandra/access"
@@ -29,7 +30,7 @@ def install_jmx_configured_cassandra(
     test_jobs: List[Dict[str, Any]] = []
 
     if authentication:
-        test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address(), auth=True)
+        test_jobs = config.get_all_jobs(auth=True)
     else:
         test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address())
     # destroy/reinstall any prior leftover jobs, so that they don't touch the newly installed service:
@@ -239,7 +240,27 @@ def test_secure_jmx_cmd_with_auth(self_signed_trust_store):
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 def test_backup_and_restore_to_s3_with_jmx_with_auth():
-    test_auth.test_backup_and_restore_to_s3_with_auth()
+    key_id = os.getenv("AWS_ACCESS_KEY_ID")
+    if not key_id:
+        assert (
+            False
+        ), 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
+    plan_parameters = {
+        "AWS_ACCESS_KEY_ID": key_id,
+        "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
+        "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
+        "S3_BUCKET_NAME": os.getenv("AWS_BUCKET_NAME", "infinity-framework-test"),
+        "SNAPSHOT_NAME": str(uuid.uuid1()),
+        "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
+    }
+
+    config.run_backup_and_restore_with_auth(
+        config.get_foldered_service_name(),
+        "backup-s3",
+        "restore-s3",
+        plan_parameters,
+        config.get_foldered_node_address(),
+    )
 
 
 def random_string(length=10):
