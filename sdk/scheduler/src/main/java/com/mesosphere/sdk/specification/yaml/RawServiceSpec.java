@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.specification.yaml;
 
+import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -29,6 +30,7 @@ public final class RawServiceSpec {
   static {
     // If the user provides duplicate fields (e.g. 'count' twice), throw an error instead of silently dropping data:
     YAML_MAPPER.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+    YAML_MAPPER.enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);
   }
 
   private final String name;

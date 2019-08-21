@@ -575,13 +575,10 @@ public final class DefaultPodSpec implements PodSpec {
     }
 
     /**
-     * Returns a {@code DefaultPodSpec} built from the parameters previously set.
-     *
      * @return a {@code DefaultPodSpec} built with parameters of this {@code DefaultPodSpec.Builder}
      */
     public DefaultPodSpec build() {
-      DefaultPodSpec defaultPodSpec = new DefaultPodSpec(this);
-      return defaultPodSpec;
+      return new DefaultPodSpec(this);
     }
   }
 }
