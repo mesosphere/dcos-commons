@@ -2,7 +2,7 @@ name: "invalid-image-null-test"
 pods:
   server:
     count: 1
-    image:
+    image: ""
     tasks:
       server:
         goal: RUNNING

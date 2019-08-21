@@ -2,7 +2,6 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 
 import org.junit.Test;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 
@@ -16,7 +15,7 @@ public class MarathonConstraintParserTest {
     static final String POD_NAME = "hello";
 
     @Test
-    public void testSplitConstraints() throws IOException {
+    public void testSplitConstraints() {
         assertEquals(Arrays.asList(Arrays.asList("")),
                 MarathonConstraintParser.splitConstraints(""));
         assertEquals(Arrays.asList(Arrays.asList("a")),
@@ -41,7 +40,7 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testUniqueOperator() throws IOException {
+    public void testUniqueOperator() {
         // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['hostname', 'UNIQUE']]")).toString();
         assertEquals("MaxPerHostnameRule{max=1, task-filter=RegexMatcher{pattern='hello-.*'}}", constraintStr);
@@ -56,7 +55,7 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testClusterOperator() throws IOException {
+    public void testClusterOperator() {
         // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'CLUSTER', 'rack-1']]")).toString();
         assertEquals("AttributeRule{matcher=ExactMatcher{str='rack-id:rack-1'}}", constraintStr);
@@ -71,7 +70,7 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testGroupByOperator() throws IOException {
+    public void testGroupByOperator() {
         // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'GROUP_BY']]")).toString();
         assertEquals("RoundRobinByAttributeRule{attribute=rack-id, attribute-count=Optional.empty, task-filter=RegexMatcher{pattern='hello-.*'}}", constraintStr);
@@ -101,7 +100,7 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testLikeOperator() throws IOException {
+    public void testLikeOperator() {
         // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'LIKE', 'rack-[1-3]']]")).toString();
         assertEquals("AttributeRule{matcher=RegexMatcher{pattern='rack-id:rack-[1-3]'}}", constraintStr);
@@ -115,7 +114,7 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testIsOperator() throws IOException {
+    public void testIsOperator() {
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['foo', 'IS', 'bar']]")).toString();
         assertEquals("AttributeRule{matcher=ExactMatcher{str='foo:bar'}}", constraintStr);
         assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['foo', 'IS', 'bar']")).toString());
@@ -138,7 +137,7 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testUnlikeOperator() throws IOException {
+    public void testUnlikeOperator() {
         // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'UNLIKE', 'rack-[7-9]']]")).toString();
         assertEquals("NotRule{rule=AttributeRule{matcher=RegexMatcher{pattern='rack-id:rack-[7-9]'}}}", constraintStr);
@@ -152,7 +151,7 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testMaxPerOperator() throws IOException {
+    public void testMaxPerOperator() {
         // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'MAX_PER', '2']]")).toString();
         assertEquals("AndRule{rules=[AttributeRule{matcher=RegexMatcher{pattern='rack-id:.*'}}, " +
@@ -167,7 +166,7 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testManyOperators() throws IOException {
+    public void testManyOperators() {
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape(
                 "[['hostname', 'UNIQUE'], "
                         + "['rack-id', 'CLUSTER', 'rack-1'], "
@@ -194,79 +193,90 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
-    public void testEscapedCommaRegex() throws IOException {
+    public void testEscapedCommaRegex() {
         assertEquals("AttributeRule{matcher=RegexMatcher{pattern='rack-id:rack-{1,3}'}}",
                 MarathonConstraintParser.parse(POD_NAME, "rack-id:LIKE:rack-{1\\,3}").toString());
     }
 
     @Test
-    public void testEscapedColonRegex() throws IOException {
+    public void testEscapedColonRegex() {
         assertEquals("AttributeRule{matcher=RegexMatcher{pattern='rack-id:foo:bar:baz'}}",
                 MarathonConstraintParser.parse(POD_NAME, "rack-id:LIKE:foo\\:bar\\:baz").toString());
     }
 
     @Test
-    public void testEmptyConstraint() throws IOException {
+    public void testEmptyConstraint() {
         assertEquals("PassthroughRule{}", MarathonConstraintParser.parse(POD_NAME, "").toString());
     }
 
     @Test
-    public void testEmptyArrayConstraint() throws IOException {
+    public void testEmptyArrayConstraint() {
         assertEquals("PassthroughRule{}", MarathonConstraintParser.parse(POD_NAME, "[]").toString());
     }
 
     @Test
-    public void testOverEscapedConstraintIsInvalid() throws IOException {
+    public void testOverEscapedConstraintIsInvalid() {
         assertTrue("too many \\'s", isInvalidConstraints("[[\\\"hostname\\\",\\\"MAX_PER\\\",\\\"1\\\"]]"));
     }
 
     @Test
-    public void testBadListConstraint() throws IOException {
+    public void testBadListConstraint() {
         assertTrue("missing ']]'", isInvalidConstraints(unescape("[['rack-id', 'MAX_PER', '2'")));
     }
 
     @Test
-    public void testBadFlatConstraint() throws IOException {
+    public void testBadFlatConstraint() {
         assertTrue("Missing last element", isInvalidConstraints("rack-id:MAX_PER:,"));
     }
 
     @Test
-    public void testBadParamGroupBy() throws IOException {
+    public void testBadParamGroupBy() {
         assertTrue("Expected integer", isInvalidConstraints("rack-id:GROUP_BY:foo"));
     }
 
     @Test
-    public void testBadParamMaxPer() throws IOException {
+    public void testBadParamMaxPer() {
         assertTrue("Expected integer", isInvalidConstraints("rack-id:MAX_PER:foo"));
     }
 
     @Test
-    public void testMissingParamCluster() throws IOException {
+    public void testExtraTokens() {
+        for (String constraint: Arrays.asList(
+                unescape("['hostname','UNIQUE'],[['hostname','LIKE','10.0.3.6']"),
+                unescape("['hostname','UNIQUE'],["),
+                unescape("[['hostname','UNIQUE'],['hostname','LIKE','10.0.3.6']"),
+                unescape("[['hostname','UNIQUE']],"))) {
+            assertTrue("Trailing tokens", isInvalidConstraints(constraint));
+        }
+    }
+
+    @Test
+    public void testMissingParamCluster() {
         assertTrue("Expected parameter", isInvalidConstraints("rack-id:CLUSTER"));
     }
 
     @Test
-    public void testMissingParamLike() throws IOException {
+    public void testMissingParamLike() {
         assertTrue("Expected parameter", isInvalidConstraints("rack-id:LIKE"));
     }
 
     @Test
-    public void testMissingParamUnlike() throws IOException {
+    public void testMissingParamUnlike() {
         assertTrue("Expected parameter", isInvalidConstraints("rack-id:UNLIKE"));
     }
 
     @Test
-    public void testMissingParamMaxPer() throws IOException {
+    public void testMissingParamMaxPer() {
         assertTrue("Expected parameter", isInvalidConstraints("rack-id:MAX_PER"));
     }
 
     @Test
-    public void testUnknownCommand() throws IOException {
+    public void testUnknownCommand() {
         assertTrue(isInvalidConstraints("rack-id:FOO:foo"));
     }
 
     @Test
-    public void testTooManyElemenents() throws IOException {
+    public void testTooManyElemenents() {
         assertTrue(isInvalidConstraints("rack-id:LIKE:foo:bar"));
     }
 
@@ -310,7 +320,7 @@ public class MarathonConstraintParserTest {
         return s.replace('\'', '"');
     }
 
-    private boolean isInvalidConstraints(String constraints) throws IOException {
+    private boolean isInvalidConstraints(String constraints) {
         return MarathonConstraintParser.parse(POD_NAME, constraints) instanceof InvalidPlacementRule;
     }
 }
