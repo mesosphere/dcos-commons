@@ -10,8 +10,8 @@ from tests import config
 
 log = logging.getLogger(__name__)
 MARATHON_APP_ENFORCE_GROUP_ROLE = "true"
-LEGACY_ROLE = "bar__hello-world-role"
 ENFORCED_ROLE = "bar"
+LEGACY_ROLE = "{}__hello-world-role".format(ENFORCED_ROLE)
 
 RECOVERY_TIMEOUT_SECONDS = 20 * 60
 SERVICE_NAME = "/{}/hello-world".format(ENFORCED_ROLE)
