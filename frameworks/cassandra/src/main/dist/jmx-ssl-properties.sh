@@ -27,7 +27,7 @@ sed -i '/JVM_OPTS="$JVM_OPTS -Dcom.sun.management.jmxremote.password.file=*/s/\/
 
 NODETOOL_SSL_PROPERTIES_FILE=$MESOS_SANDBOX/apache-cassandra-$CASSANDRA_VERSION/conf/cassandra-env.sh
 
-tee -a $NODETOOL_SSL_PROPERTIES_FILE <<EOF
+tee -a $NODETOOL_SSL_PROPERTIES_FILE <<EOF >/dev/null
 
 JVM_OPTS="\$JVM_OPTS -Dcom.sun.management.jmxremote.ssl=true"
 JVM_OPTS="\$JVM_OPTS -Dcom.sun.management.jmxremote.local.only=false"
