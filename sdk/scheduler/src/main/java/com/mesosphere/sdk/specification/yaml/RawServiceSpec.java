@@ -1,6 +1,5 @@
 package com.mesosphere.sdk.specification.yaml;
 
-import com.fasterxml.jackson.dataformat.yaml.YAMLMapper;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
