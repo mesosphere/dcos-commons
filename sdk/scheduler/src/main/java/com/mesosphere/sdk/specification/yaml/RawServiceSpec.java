@@ -29,6 +29,7 @@ public final class RawServiceSpec {
   static {
     // If the user provides duplicate fields (e.g. 'count' twice), throw an error instead of silently dropping data:
     YAML_MAPPER.enable(JsonParser.Feature.STRICT_DUPLICATE_DETECTION);
+    YAML_MAPPER.enable(JsonParser.Feature.ALLOW_YAML_COMMENTS);
   }
 
   private final String name;

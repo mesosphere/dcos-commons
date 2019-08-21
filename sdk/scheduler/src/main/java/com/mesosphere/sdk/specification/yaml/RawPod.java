@@ -4,6 +4,8 @@ import com.mesosphere.sdk.offer.Constants;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.Collection;
@@ -22,7 +24,8 @@ public final class RawPod {
 
   private final String image;
 
-  private final WriteOnceLinkedHashMap<String, RawNetwork> networks;
+  @JsonSetter(contentNulls = Nulls.AS_EMPTY)
+  private WriteOnceLinkedHashMap<String, RawNetwork> networks;
 
   private final WriteOnceLinkedHashMap<String, RawRLimit> rlimits;
 
@@ -56,7 +59,6 @@ public final class RawPod {
       @JsonProperty("placement") String placement,
       @JsonProperty("count") Integer count,
       @JsonProperty("image") String image,
-      @JsonProperty("networks") WriteOnceLinkedHashMap<String, RawNetwork> networks,
       @JsonProperty("rlimits") WriteOnceLinkedHashMap<String, RawRLimit> rlimits,
       @JsonProperty("uris") Collection<String> uris,
       @JsonProperty("tasks") WriteOnceLinkedHashMap<String, RawTask> tasks,
@@ -73,7 +75,6 @@ public final class RawPod {
     this.placement = placement;
     this.count = count;
     this.image = image;
-    this.networks = networks == null ? new WriteOnceLinkedHashMap<>() : networks;
     this.rlimits = rlimits == null ? new WriteOnceLinkedHashMap<>() : rlimits;
     this.uris = uris;
     this.tasks = tasks;

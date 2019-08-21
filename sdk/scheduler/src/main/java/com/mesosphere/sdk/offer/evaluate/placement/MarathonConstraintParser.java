@@ -3,6 +3,7 @@ package com.mesosphere.sdk.offer.evaluate.placement;
 import com.mesosphere.sdk.offer.LoggingUtils;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.annotations.VisibleForTesting;
 import jersey.repackaged.com.google.common.collect.Lists;
@@ -80,7 +81,7 @@ public final class MarathonConstraintParser {
       return new AndRule(rowRules);
 
     } catch (IOException e) {
-      LOGGER.error("Failed to parse marathon constraints", podName, marathonConstraints);
+      LOGGER.error("Failed to parse marathon constraints [{}] for {}", marathonConstraints, podName);
       return new InvalidPlacementRule(marathonConstraints, e.getMessage());
     }
   }
@@ -126,6 +127,8 @@ public final class MarathonConstraintParser {
   @VisibleForTesting
   static List<List<String>> splitConstraints(String marathonConstraints) {
     ObjectMapper mapper = new ObjectMapper();
+    // Always parse the string in full. Leftover trailing tokens result in incomplete (and may be invalid) rules.
+    mapper.enable(DeserializationFeature.FAIL_ON_TRAILING_TOKENS);
     // The marathon doc uses a format like: '[["a", "b", "c"], ["d", "e"]]'
     // Meanwhile the marathon web interface uses a format like: 'a:b:c,d:e'
     try {
