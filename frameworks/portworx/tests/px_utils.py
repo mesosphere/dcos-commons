@@ -178,6 +178,14 @@ def px_is_vol_encrypted(vol_name):
     else:
         return False
 
+def px_is_vol_repl2(vol_name):
+    cmd = "portworx volume list | jq '.[] | select(.locator.name == \"" + vol_name +"\") | .spec.ha_level'"
+    _, vol_ha_level, std_err = sdk_cmd.run_raw_cli(cmd)
+    if vol_ha_level == 2:
+        return True
+    else:
+        return False
+
 def px_create_volume(pod_name, vol_name = "dcos_test_vol", size = 10):
     agent_id = px_get_agent_id(pod_name)
     
@@ -236,4 +244,24 @@ def px_create_encrypted_volume(pod_name, vol_name, secret_key):
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed encrypted  volume creation, node id: {}, volume name: {}, with error:{}".format(agent_id, vol_name, std_err))
+        raise
+
+# command: /opt/pwx/bin/pxctl storage-policy create stp-repl2 --replication 2
+def px_storage_policy_create(pod_name):
+    agent_id = px_get_agent_id(pod_name)
+
+    cmd = "node ssh  \"pxctl storage-policy create stp-repl2 --replication 2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
+    if ret_val:
+        log.info("PORTWORX: Failed to create storage policy for repl 2, node id: {}, with error:{}".format(agent_id, std_err))
+        raise
+
+# command: /opt/pwx/bin/pxctl storage-policy set-default stp-repl2
+def px_storage_policy_set_default(pod_name):
+    agent_id = px_get_agent_id(pod_name)
+
+    cmd = "node ssh  \"pxctl storage-policy set-default stp-repl2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
+    if ret_val:
+        log.info("PORTWORX: Failed to set default storage policy for repl 2, node id: {}, with error:{}".format(agent_id, std_err))
         raise
