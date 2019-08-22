@@ -92,9 +92,13 @@ def test_nonenforced_group_role_service_role_set():
     assert LEGACY_ROLE not in current_task_roles.values()
     assert ENFORCED_ROLE in current_task_roles.values()
 
-    # Ensure we're not MULTI_ROLE, and using the enforced.
-    assert service_roles["framework-roles"] is None
-    assert service_roles["framework-role"] == ENFORCED_ROLE
+    # Ensure we're MULTI_ROLE.
+    assert service_roles["framework-roles"] is not None
+    assert service_roles["framework-role"] is None
+
+    assert len(service_roles["framework-roles"]) == 2
+    assert LEGACY_ROLE in service_roles["framework-roles"]
+    assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
 @pytest.mark.quota
@@ -204,9 +208,13 @@ def test_enforced_group_role_defaults():
     assert LEGACY_ROLE not in current_task_roles.values()
     assert ENFORCED_ROLE in current_task_roles.values()
 
-    # Ensure we're not MULTI_ROLE, and using the enforced role.
-    assert service_roles["framework-roles"] is None
-    assert service_roles["framework-role"] == ENFORCED_ROLE
+    # Ensure we're MULTI_ROLE
+    assert service_roles["framework-roles"] is not None
+    assert service_roles["framework-role"] is None
+
+    assert len(service_roles["framework-roles"]) == 2
+    assert LEGACY_ROLE in service_roles["framework-roles"]
+    assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
 @pytest.mark.quota
