@@ -67,11 +67,6 @@ def cassandra_service_tls(service_account):
     # Wait for service health check to pass
     shakedown.service_healthy(config.SERVICE_NAME)
 
-    yield
-
-    sdk_install.uninstall(package_name=config.PACKAGE_NAME, service_name=config.SERVICE_NAME)
-
-
 @pytest.mark.aws
 @pytest.mark.sanity
 @pytest.mark.tls
@@ -117,3 +112,9 @@ def test_tls_connection(cassandra_service_tls, dcos_ca_bundle):
 
         sdk_jobs.run_job(config.get_verify_data_job(dcos_ca_bundle=dcos_ca_bundle))
         sdk_jobs.run_job(config.get_delete_data_job(dcos_ca_bundle=dcos_ca_bundle))
+
+@pytest.mark.aws
+@pytest.mark.sanity
+@pytest.mark.tls
+def test_cassandra_uninstall():
+    sdk_install.uninstall(package_name=config.PACKAGE_NAME, service_name=config.SERVICE_NAME)

@@ -95,6 +95,8 @@ def portworx_service(service_account):
             log.info("PORTWORX: Px service status is: {}".format(px_status))
 
         yield {**options, **{"package_name": config.PACKAGE_NAME}}
+    finally:
+        return
 
 @pytest.mark.pxinstall
 @pytest.mark.authinstall
