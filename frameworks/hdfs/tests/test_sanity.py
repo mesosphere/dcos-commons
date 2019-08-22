@@ -41,7 +41,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        return
 
 
 @pytest.fixture(autouse=True)
@@ -82,9 +82,9 @@ def test_endpoints():
     for i in range(2):
         name_node = 'name-{}-node'.format(i)
         expect['dfs.namenode.rpc-address.hdfs.{}'.format(name_node)] = sdk_hosts.autoip_host(
-            foldered_name, name_node, 9001)
+            foldered_name, name_node, 10001)
         expect['dfs.namenode.http-address.hdfs.{}'.format(name_node)] = sdk_hosts.autoip_host(
-            foldered_name, name_node, 9002)
+            foldered_name, name_node, 10002)
     check_properties(hdfs_site, expect)
 
 
@@ -396,3 +396,8 @@ def replace_name_node(index):
     sdk_tasks.check_tasks_updated(foldered_name, name_node_name, name_id)
     sdk_tasks.check_tasks_not_updated(foldered_name, 'journal', journal_ids)
     sdk_tasks.check_tasks_not_updated(foldered_name, 'data', data_ids)
+
+@pytest.mark.sanity
+def test_uninstall_hdfs():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)

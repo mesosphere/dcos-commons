@@ -26,7 +26,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        return
 
 
 @pytest.fixture(autouse=True)
@@ -126,3 +126,8 @@ def wait_for_failover_to_complete(namenode):
 
 def get_unique_filename(prefix: str) -> str:
     return "{}.{}".format(prefix, str(uuid.uuid4()))
+
+@pytest.mark.overlay
+@pytest.mark.sanity
+def test_uninstall_hdfs():
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
