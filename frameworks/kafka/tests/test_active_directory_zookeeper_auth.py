@@ -165,6 +165,7 @@ def kafka_client(kerberos, kafka_server):
 @pytest.mark.dcos_min_version('1.10')
 @sdk_utils.dcos_ee_only
 @pytest.mark.sanity
+@pytest.mark.auth
 def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 

@@ -28,8 +28,7 @@ def service_account(configure_security):
             "security org groups add_user superusers {name}".format(name=name))
         yield name
     finally:
-        sdk_security.delete_service_account(
-            service_account_name=name, service_account_secret=name)
+        return
 
 
 @pytest.fixture(scope='module')
@@ -57,7 +56,7 @@ def kafka_service_tls(service_account):
 
         yield service_account
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        return
 
 
 @pytest.mark.tls
@@ -92,3 +91,13 @@ def test_producer_over_tls(kafka_service_tls):
     write_info = sdk_cmd.svc_cli(config.PACKAGE_NAME, config.SERVICE_NAME, 'topic producer_test_tls {} {}'.format(config.DEFAULT_TOPIC_NAME, num_messages), json=True)
     assert len(write_info) == 1
     assert write_info['message'].startswith('Output: {} records sent'.format(num_messages))
+
+@pytest.mark.tls
+@pytest.mark.smoke
+@pytest.mark.sanity
+@sdk_utils.dcos_ee_only
+@pytest.mark.dcos_min_version('1.10')
+def test_tls_uninstall_kafka():
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    sdk_security.delete_service_account(
+            service_account_name=config.SERVICE_NAME, service_account_secret=config.SERVICE_NAME)

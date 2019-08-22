@@ -202,6 +202,7 @@ def kafka_client(kerberos, kafka_server):
 @sdk_utils.dcos_ee_only
 @pytest.mark.zookeeper
 @pytest.mark.sanity
+@pytest.mark.auth
 def test_client_can_read_and_write(kafka_client, kafka_server, kerberos):
     client_id = kafka_client["id"]
 

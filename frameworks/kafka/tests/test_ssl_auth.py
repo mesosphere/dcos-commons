@@ -102,6 +102,7 @@ def setup_principals(kafka_client):
 @pytest.mark.dcos_min_version('1.10')
 @pytest.mark.ee_only
 @pytest.mark.sanity
+@pytest.mark.auth
 def test_authn_client_can_read_and_write(kafka_client, service_account, setup_principals):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
@@ -152,6 +153,7 @@ def test_authn_client_can_read_and_write(kafka_client, service_account, setup_pr
 @pytest.mark.dcos_min_version('1.10')
 @pytest.mark.ee_only
 @pytest.mark.sanity
+@pytest.mark.auth
 def test_authz_acls_required(kafka_client, service_account, setup_principals):
     client_id = kafka_client["id"]
 
@@ -225,6 +227,7 @@ def test_authz_acls_required(kafka_client, service_account, setup_principals):
 @pytest.mark.dcos_min_version('1.10')
 @pytest.mark.ee_only
 @pytest.mark.sanity
+@pytest.mark.auth
 def test_authz_acls_not_required(kafka_client, service_account, setup_principals):
     client_id = kafka_client["id"]
 

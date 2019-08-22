@@ -31,7 +31,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)
+        return
 
 
 @pytest.mark.sanity
@@ -240,3 +240,9 @@ def test_metrics():
         config.DEFAULT_KAFKA_TIMEOUT,
         expected_metrics_exist
     )
+@pytest.mark.smoke
+@pytest.mark.sanity
+@pytest.mark.metrics
+def test_uninstall_kafka():
+    foldered_name = sdk_utils.get_foldered_name(config.SERVICE_NAME)
+    sdk_install.uninstall(config.PACKAGE_NAME, foldered_name)

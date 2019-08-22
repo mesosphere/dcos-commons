@@ -10,6 +10,7 @@ from tests import config, test_utils
 
 
 @pytest.mark.sanity
+@pytest.mark.rack
 @pytest.mark.dcos_min_version('1.11')
 @sdk_utils.dcos_ee_only
 def test_zones_not_referenced_in_placement_constraints():
@@ -45,6 +46,7 @@ def test_zones_not_referenced_in_placement_constraints():
 
 
 @pytest.mark.sanity
+@pytest.mark.rack
 @pytest.mark.dcos_min_version('1.11')
 @sdk_utils.dcos_ee_only
 def test_zones_referenced_in_placement_constraints():

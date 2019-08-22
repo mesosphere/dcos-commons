@@ -65,10 +65,7 @@ def configure_zookeeper(configure_security, install_zookeeper_stub):
 
         yield
     finally:
-        sdk_install.uninstall(ZK_PACKAGE, ZK_SERVICE_NAME)
-        if sdk_utils.is_strict_mode():
-            sdk_security.delete_service_account(
-                service_account_name=zk_account, service_account_secret=zk_secret)
+        return
 
 
 @pytest.fixture(scope='module', autouse=True)
@@ -93,7 +90,7 @@ def configure_package(configure_zookeeper):
 
         yield  # let the test session execute
     finally:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        return
 
 
 @pytest.mark.sanity
@@ -122,3 +119,9 @@ def test_zookeeper_reresolution():
 
     for id in range(0, 3):
         check_broker(id)
+
+@pytest.mark.sanity
+@pytest.mark.zookeeper
+def uninstall_kafka():
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    sdk_install.uninstall(ZK_PACKAGE, ZK_SERVICE_NAME)

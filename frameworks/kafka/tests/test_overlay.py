@@ -20,7 +20,7 @@ def configure_package(configure_security):
 
         yield  # let the test session execute
     finally:
-        install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        return
 
 
 @pytest.mark.overlay
@@ -86,3 +86,8 @@ def test_topic_create_overlay():
 @pytest.mark.dcos_min_version('1.9')
 def test_topic_delete_overlay():
     test_utils.delete_topic(config.EPHEMERAL_TOPIC_NAME)
+
+@pytest.mark.sanity
+@pytest.mark.overlay
+def test_uninstall_kafka():
+    install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
