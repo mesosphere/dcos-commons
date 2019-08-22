@@ -14,7 +14,7 @@ import random
 import string
 import json
 import retrying
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Any
 
 import sdk_cmd
 
@@ -276,3 +276,27 @@ def get_service_roles(service_name) -> dict:
 
     return current_service_roles
 
+
+def filter_role_from_config(unfiltered_config: Optional[Dict[str, Any]]) -> None:
+    if unfiltered_config is None:
+        return
+
+    # Remove any role related fields as role changes
+    # are allowed to happen across config targets
+    # to accomodate for quota migration.
+
+    # Inspired by:
+    # https://stackoverflow.com/a/50444005/10840685
+    def _gen_dict_delete(var, key):
+        if isinstance(var, dict):
+            for k, v in var.items():
+                if k == key:
+                    # Update key with dummy value.
+                    var[k] = "dummy-role"
+                if isinstance(v, (dict, list)):
+                    _gen_dict_delete(v, key)
+        elif isinstance(var, list):
+            for d in var:
+                _gen_dict_delete(d, key)
+
+    _gen_dict_delete(unfiltered_config, "role")
