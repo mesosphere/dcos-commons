@@ -94,8 +94,6 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
     return false;
   }
 
-
-  //SUPPRESS CHECKSTYLE CyclomaticComplexity
   @Override
   public Collection<ConfigValidationError> validate(
       Optional<ServiceSpec> oldConfig,

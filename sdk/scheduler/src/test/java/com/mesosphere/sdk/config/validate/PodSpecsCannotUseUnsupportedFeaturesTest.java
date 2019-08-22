@@ -33,7 +33,7 @@ public class PodSpecsCannotUseUnsupportedFeaturesTest {
     public void beforeEach() {
         MockitoAnnotations.initMocks(this);
     }
-    
+
     @Test
     public void testSpecSucceedsWithoutRLimits() throws Exception {
         when(mockCapabilities.supportsRLimits()).thenReturn(false);
