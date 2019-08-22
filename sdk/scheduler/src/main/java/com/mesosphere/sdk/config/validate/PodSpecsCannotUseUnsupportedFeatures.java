@@ -3,6 +3,7 @@ package com.mesosphere.sdk.config.validate;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.specification.NetworkSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ResourceSpec;
@@ -12,6 +13,7 @@ import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 
 import org.apache.commons.collections.MapUtils;
+import org.slf4j.Logger;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -22,6 +24,7 @@ import java.util.Optional;
  * supported by the DC/OS cluster being run on.
  */
 public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<ServiceSpec> {
+  private final Logger logger =  LoggingUtils.getLogger(getClass(), Optional.empty());
 
   public static boolean serviceRequestsGpuResources(ServiceSpec serviceSpec) {
     return serviceSpec.getPods().stream().anyMatch(
@@ -170,11 +173,7 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
               && podSpec.getSeccompUnconfined()) ||
               podSpec.getSeccompProfileName().isPresent()))
       {
-        errors.add(ConfigValidationError.valueError(
-                "pod:" + podSpec.getType(),
-                "seccomp",
-                "This DC/OS cluster does not support seccomp"
-        ));
+          logger.warn("Seccomp is not supported in this cluster and may cause undetermined behavior.");
       }
     }
     return errors;
