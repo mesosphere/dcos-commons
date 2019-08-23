@@ -11,7 +11,7 @@ from tests import config
 
 log = logging.getLogger(__name__)
 MARATHON_APP_ENFORCE_GROUP_ROLE = "true"
-ENFORCED_ROLE = "foo"
+ENFORCED_ROLE = "quota"
 LEGACY_ROLE = "{}__hello-world-role".format(ENFORCED_ROLE)
 
 RECOVERY_TIMEOUT_SECONDS = 20 * 60
@@ -28,7 +28,6 @@ def configure_package(configure_security):
         sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
         yield  # let the test session execute
     finally:
-        log.info("DELETEME@kjoshi")
         sdk_install.uninstall(config.PACKAGE_NAME, SERVICE_NAME)
         sdk_marathon.delete_group(group_id=ENFORCED_ROLE)
 
@@ -88,159 +87,148 @@ def test_update_scheduler_role():
     assert service_roles["framework-role"] is None
 
 
-# @pytest.mark.quota_upgrade
-# @pytest.mark.dcos_min_version("1.14")
-# @pytest.mark.sanity
-# def test_replace_pods_to_new_role():
+@pytest.mark.quota_upgrade
+@pytest.mark.dcos_min_version("1.14")
+@pytest.mark.sanity
+def test_replace_pods_to_new_role():
 
-#     # Issue pod replace operations till we move the pods to the new role.
-#     replace_pods = ["hello-0", "world-0", "world-1"]
+    # Issue pod replace operations till we move the pods to the new role.
+    replace_pods = ["hello-0", "world-0", "world-1"]
 
-#     for pod in replace_pods:
-#         # start replace and wait for it to finish
-#         sdk_cmd.svc_cli(config.PACKAGE_NAME, SERVICE_NAME, "pod replace {}".format(pod))
-#         sdk_plan.wait_for_kicked_off_recovery(SERVICE_NAME)
-#         sdk_plan.wait_for_completed_recovery(SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
+    for pod in replace_pods:
+        # start replace and wait for it to finish
+        sdk_cmd.svc_cli(config.PACKAGE_NAME, SERVICE_NAME, "pod replace {}".format(pod))
+        sdk_plan.wait_for_kicked_off_recovery(SERVICE_NAME)
+        sdk_plan.wait_for_completed_recovery(SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
-#         # Get the current service state to verify roles have applied.
-#         service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-#         current_task_roles = service_roles["task-roles"]
-#         task_name = "{}-server".format(pod)
+        # Get the current service state to verify roles have applied.
+        service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
+        current_task_roles = service_roles["task-roles"]
+        task_name = "{}-server".format(pod)
 
-#         # Ensure we have transitioned over to the new role.
-#         assert current_task_roles[task_name] == ENFORCED_ROLE
+        # Ensure we have transitioned over to the new role.
+        assert current_task_roles[task_name] == ENFORCED_ROLE
 
-#     # Get refreshed roles after pod replace's
-#     service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-#     current_task_roles = service_roles["task-roles"]
+    # Get refreshed roles after pod replace's
+    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
+    current_task_roles = service_roles["task-roles"]
 
-#     # We must have some role!
-#     assert len(current_task_roles) > 0
+    # We must have some role!
+    assert len(current_task_roles) > 0
 
-#     assert LEGACY_ROLE not in current_task_roles.values()
-#     assert ENFORCED_ROLE in current_task_roles.values()
+    assert LEGACY_ROLE not in current_task_roles.values()
+    assert ENFORCED_ROLE in current_task_roles.values()
 
-#     # Ensure we're MULTI_ROLE
-#     assert service_roles["framework-roles"] is not None
-#     assert service_roles["framework-role"] is None
+    # Ensure we're MULTI_ROLE
+    assert service_roles["framework-roles"] is not None
+    assert service_roles["framework-role"] is None
 
-#     assert len(service_roles["framework-roles"]) == 2
-#     assert LEGACY_ROLE in service_roles["framework-roles"]
-#     assert ENFORCED_ROLE in service_roles["framework-roles"]
-
-
-# @pytest.mark.quota_upgrade
-# @pytest.mark.dcos_min_version("1.14")
-# @pytest.mark.sanity
-# def test_add_pods_post_update():
-
-#     # Ensure we can scale out by adding one pod to
-#     # both hello and world, this pod must be in the
-#     # enforced role.
-#     options = {
-#         "service": {"name": SERVICE_NAME, "service_role": ENFORCED_ROLE},
-#         "hello": {"count": 2},
-#         "world": {"count": 3},
-#     }
-#     sdk_upgrade.update_or_upgrade_or_downgrade(
-#         config.PACKAGE_NAME,
-#         SERVICE_NAME,
-#         expected_running_tasks=5,
-#         to_options=options,
-#         to_version=None,
-#     )
-
-#     # Get the current service state to verify roles have applied.
-#     service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-#     current_task_roles = service_roles["task-roles"]
-
-#     # We must have some role!
-#     assert len(current_task_roles) > 0
-#     assert len(current_task_roles) == 5
-
-#     assert LEGACY_ROLE not in current_task_roles.values()
-#     assert ENFORCED_ROLE in current_task_roles.values()
-
-#     # Ensure we're MULTI_ROLE
-#     assert service_roles["framework-roles"] is not None
-#     assert service_roles["framework-role"] is None
-
-#     assert len(service_roles["framework-roles"]) == 2
-#     assert LEGACY_ROLE in service_roles["framework-roles"]
-#     assert ENFORCED_ROLE in service_roles["framework-roles"]
+    assert len(service_roles["framework-roles"]) == 2
+    assert LEGACY_ROLE in service_roles["framework-roles"]
+    assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
-# @pytest.mark.quota_upgrade
-# @pytest.mark.dcos_min_version("1.14")
-# @pytest.mark.sanity
-# def test_disable_legacy_role_post_update():
-#     options = {
-#         "service": {
-#             "name": SERVICE_NAME,
-#             "service_role": ENFORCED_ROLE,
-#             "subscribe_legacy_role": False,
-#         },
-#         "hello": {"count": 2},
-#         "world": {"count": 3},
-#     }
-#     sdk_upgrade.update_or_upgrade_or_downgrade(
-#         config.PACKAGE_NAME,
-#         SERVICE_NAME,
-#         expected_running_tasks=5,
-#         to_options=options,
-#         to_version=None,
-#     )
+@pytest.mark.quota_upgrade
+@pytest.mark.dcos_min_version("1.14")
+@pytest.mark.sanity
+def test_add_pods_post_update():
 
-#     # Get the current service state to verify roles have applied.
-#     service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-#     current_task_roles = service_roles["task-roles"]
+    # Add new pods to service which should be launched with the new role.
+    marathon_config = sdk_marathon.get_config(SERVICE_NAME)
 
-#     # We must have some role!
-#     assert len(current_task_roles) > 0
-#     assert len(current_task_roles) == 5
+    # Add an extra pod to each.
+    marathon_config["env"]["HELLO_COUNT"] = "2"
+    marathon_config["env"]["WORLD_COUNT"] = "3"
 
-#     assert LEGACY_ROLE not in current_task_roles.values()
-#     assert ENFORCED_ROLE in current_task_roles.values()
+    # Update the app
+    sdk_marathon.update_app(marathon_config)
 
-#     # Ensure we're not MULTI_ROLE, and only using the enforced-role.
-#     assert service_roles["framework-roles"] is None
-#     assert service_roles["framework-role"] == ENFORCED_ROLE
+    # Wait for scheduler to restart.
+    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
+
+    # Get the current service state to verify roles have applied.
+    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
+    current_task_roles = service_roles["task-roles"]
+
+    # We must have some role!
+    assert len(current_task_roles) > 0
+    assert len(current_task_roles) == 5
+
+    assert LEGACY_ROLE not in current_task_roles.values()
+    assert ENFORCED_ROLE in current_task_roles.values()
+
+    # Ensure we're MULTI_ROLE
+    assert service_roles["framework-roles"] is not None
+    assert service_roles["framework-role"] is None
+
+    assert len(service_roles["framework-roles"]) == 2
+    assert LEGACY_ROLE in service_roles["framework-roles"]
+    assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
-# @pytest.mark.quota_upgrade
-# @pytest.mark.dcos_min_version("1.14")
-# @pytest.mark.sanity
-# def test_more_pods_disable_legacy_role_post_update():
-#     # Ensure we can scale out more still with legacy role disabled.
-#     options = {
-#         "service": {
-#             "name": SERVICE_NAME,
-#             "service_role": ENFORCED_ROLE,
-#             "subscribe_legacy_role": False,
-#         },
-#         "hello": {"count": 3},
-#         "world": {"count": 4},
-#     }
+@pytest.mark.quota_upgrade
+@pytest.mark.dcos_min_version("1.14")
+@pytest.mark.sanity
+def test_disable_legacy_role_post_update():
 
-#     sdk_upgrade.update_or_upgrade_or_downgrade(
-#         config.PACKAGE_NAME,
-#         SERVICE_NAME,
-#         expected_running_tasks=7,
-#         to_options=options,
-#         to_version=None,
-#     )
+    # Add new pods to service which should be launched with the new role.
+    marathon_config = sdk_marathon.get_config(SERVICE_NAME)
 
-#     # Get the current service state to verify roles have applied.
-#     service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-#     current_task_roles = service_roles["task-roles"]
+    # Turn off legacy role.
+    marathon_config["env"]["SUBSCRIBE_LEGACY_ROLE"] = "false"
 
-#     # We must have some role!
-#     assert len(current_task_roles) > 0
-#     assert len(current_task_roles) == 7
+    # Update the app
+    sdk_marathon.update_app(marathon_config)
 
-#     assert LEGACY_ROLE not in current_task_roles.values()
-#     assert ENFORCED_ROLE in current_task_roles.values()
+    # Wait for scheduler to restart.
+    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
 
-#     # Ensure we're MULTI_ROLE
-#     assert service_roles["framework-roles"] is None
-#     assert service_roles["framework-role"] == ENFORCED_ROLE
+    # Get the current service state to verify roles have applied.
+    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
+    current_task_roles = service_roles["task-roles"]
+
+    # We must have some role!
+    assert len(current_task_roles) > 0
+    assert len(current_task_roles) == 5
+
+    assert LEGACY_ROLE not in current_task_roles.values()
+    assert ENFORCED_ROLE in current_task_roles.values()
+
+    # Ensure we're not MULTI_ROLE, and only using the enforced-role.
+    assert service_roles["framework-roles"] is None
+    assert service_roles["framework-role"] == ENFORCED_ROLE
+
+
+@pytest.mark.quota_upgrade
+@pytest.mark.dcos_min_version("1.14")
+@pytest.mark.sanity
+def test_more_pods_disable_legacy_role_post_update():
+    # Ensure we can scale out more still with legacy role disabled.
+
+    # Add new pods to service which should be launched with the new role.
+    marathon_config = sdk_marathon.get_config(SERVICE_NAME)
+
+    # Add an extra pod to each.
+    marathon_config["env"]["HELLO_COUNT"] = "3"
+    marathon_config["env"]["WORLD_COUNT"] = "4"
+
+    # Update the app
+    sdk_marathon.update_app(marathon_config)
+
+    # Wait for scheduler to restart.
+    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
+
+    # Get the current service state to verify roles have applied.
+    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
+    current_task_roles = service_roles["task-roles"]
+
+    # We must have some role!
+    assert len(current_task_roles) > 0
+    assert len(current_task_roles) == 7
+
+    assert LEGACY_ROLE not in current_task_roles.values()
+    assert ENFORCED_ROLE in current_task_roles.values()
+
+    # Ensure we're MULTI_ROLE
+    assert service_roles["framework-roles"] is None
+    assert service_roles["framework-role"] == ENFORCED_ROLE
