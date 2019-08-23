@@ -49,6 +49,10 @@ allprojects {
         maven {
             url 'https://repository.apache.org/content/repositories/snapshots/'
         }
+        // TODO(@takirala): Delete this before merging
+        maven {
+            url 'https://takirala-dev.s3-us-west-2.amazonaws.com/maven-snapshot'
+        }
     }
 
     [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'

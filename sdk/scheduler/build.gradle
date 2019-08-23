@@ -118,6 +118,9 @@ ext {
     elVer = "2.2.4"
     bouncyCastleVer = "1.57"
     dropWizardMetricsVer = "3.2.5"
+
+    // TODO(@takirala) : Remove before merging to master
+    usiVer = '0.1.0-SNAPSHOT'
 }
 
 dependencies {
@@ -176,6 +179,11 @@ dependencies {
     testCompile 'junit:junit:4.12'
     testCompile 'org.mockito:mockito-core:2.10.0'
     testCompile "org.apache.curator:curator-test:${curatorVer}"
+
+    compile "com.mesosphere.usi:core:${usiVer}"
+    compile "com.mesosphere.usi:core-models:${usiVer}"
+    compile "com.mesosphere.usi:mesos-client:${usiVer}"
+    compile "com.mesosphere.usi:persistence:${usiVer}"
 }
 
 check.finalizedBy jacocoTestReport
