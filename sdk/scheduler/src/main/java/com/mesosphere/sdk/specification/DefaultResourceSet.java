@@ -86,10 +86,6 @@ public final class DefaultResourceSet implements ResourceSet {
     return role;
   }
 
-  public String getPreReservedRole() {
-    return preReservedRole;
-  }
-
   public String getPrincipal() {
     return principal;
   }
