@@ -267,39 +267,6 @@ def _wait_for_deployment(
     sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
     updated_config = get_config(package_name, service_name)
 
-    import pprint
-
-    log.info(
-        "\n\n\n\n\nDELETEME@kjoshi Are intial configs the same {}\n".format(
-            initial_config == updated_config
-        )
-    )
-    log.info(
-        "\n\n\n\n\nDELETEME@kjoshi Initial Config:\n{}\n".format(pprint.pformat(initial_config))
-    )
-    log.info(
-        "\n\n\n\n\nDELETEME@kjoshi Updated Config:\n{}\n".format(pprint.pformat(updated_config))
-    )
-
-    if updated_config != initial_config:
-        sdk_utils.filter_role_from_config(updated_config)
-        sdk_utils.filter_role_from_config(initial_config)
-        log.info(
-            "\n\n\n\n\nDELETEME@kjoshi Are filtered configs the same {}\n".format(
-                initial_config == updated_config
-            )
-        )
-        log.info(
-            "\n\n\n\n\nDELETEME@kjoshi Filtered Initial Config:\n{}\n".format(
-                pprint.pformat(initial_config)
-            )
-        )
-        log.info(
-            "\n\n\n\n\nDELETEME@kjoshi Filtered Updated Config:\n{}\n".format(
-                pprint.pformat(updated_config)
-            )
-        )
-
     if updated_config == initial_config:
         log.info("No config change detected. Tasks should not be restarted")
         sdk_tasks.check_tasks_not_updated(service_name, "", task_ids)
