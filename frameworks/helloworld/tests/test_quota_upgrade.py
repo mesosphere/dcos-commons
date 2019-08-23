@@ -82,7 +82,7 @@ def test_update_scheduler_role():
     # Pods haven't been replaced yet.
     assert ENFORCED_ROLE not in current_task_roles.values()
 
-    # Ensure we're not MULTI_ROLE, and using the legacy role.
+    # Ensure we are MULTI_ROLE.
     assert service_roles["framework-roles"] is not None
     assert service_roles["framework-role"] is None
 
