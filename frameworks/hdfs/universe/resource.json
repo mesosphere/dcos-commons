@@ -17,27 +17,42 @@
     "icon-medium": "https://downloads.mesosphere.com/assets/universe/000/hdfs-icon-medium.png",
     "icon-large": "https://downloads.mesosphere.com/assets/universe/000/hdfs-icon-large.png"
   },
-  "cli":{
-    "binaries":{
-      "darwin":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-darwin}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-service-cli-darwin"
+  "cli": {
+    "binaries": {
+      "darwin": {
+        "x86-64": {
+          "contentHash": [
+            {
+              "algo": "sha256",
+              "value": "{{sha256:dcos-service-cli-darwin}}"
+            }
+          ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-service-cli-darwin"
         }
       },
-      "linux":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-linux}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-service-cli-linux"
+      "linux": {
+        "x86-64": {
+          "contentHash": [
+            {
+              "algo": "sha256",
+              "value": "{{sha256:dcos-service-cli-linux}}"
+            }
+          ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-service-cli-linux"
         }
       },
-      "windows":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli.exe}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-service-cli.exe"
+      "windows": {
+        "x86-64": {
+          "contentHash": [
+            {
+              "algo": "sha256",
+              "value": "{{sha256:dcos-service-cli.exe}}"
+            }
+          ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-service-cli.exe"
         }
       }
     }
