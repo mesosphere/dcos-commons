@@ -24,7 +24,8 @@ import java.util.Optional;
  * supported by the DC/OS cluster being run on.
  */
 public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<ServiceSpec> {
-  private final Logger logger =  LoggingUtils.getLogger(getClass(), Optional.empty());
+
+  private final Logger logger = LoggingUtils.getLogger(getClass(), Optional.empty());
 
   public static boolean serviceRequestsGpuResources(ServiceSpec serviceSpec) {
     return serviceSpec.getPods().stream().anyMatch(
@@ -94,6 +95,7 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
     return false;
   }
 
+  //SUPPRESS CHECKSTYLE CyclomaticComplexity
   @Override
   public Collection<ConfigValidationError> validate(
       Optional<ServiceSpec> oldConfig,
@@ -171,7 +173,7 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
               && podSpec.getSeccompUnconfined()) ||
               podSpec.getSeccompProfileName().isPresent()))
       {
-          logger.warn("Seccomp is not supported in this cluster and may cause undetermined behavior.");
+        logger.warn("Seccomp is not supported in this cluster and may cause undetermined behavior.");
       }
     }
     return errors;
