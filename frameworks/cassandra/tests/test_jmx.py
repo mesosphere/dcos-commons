@@ -94,6 +94,7 @@ def install_jmx_configured_cassandra(
 
 
 def install_jmx_secrets():
+    uninstall_jmx_secrets()
     test_run_id = random_string()
     create_keystore_cmd = [
         "keytool",
@@ -261,6 +262,11 @@ def test_backup_and_restore_to_s3_with_jmx_with_auth():
         plan_parameters,
         config.get_foldered_node_address(),
     )
+    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+    test_jobs: List[Dict[str, Any]] = []
+    test_jobs = config.get_all_jobs(node_address=config.get_foldered_node_address(), auth=True)
+    for job in test_jobs:
+        sdk_jobs.remove_job(job)
 
 
 def random_string(length=10):
