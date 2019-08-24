@@ -294,11 +294,11 @@ public final class SchedulerConfig {
   private static final String DEFAULT_SCHEDULER_ROLE = "slave_public";
 
   /*
-   * Determines if the scheduler should subscribe with the legacy role. Setting this to true is harmless
-   * and might incur a slight startup penalty as Mesos offers with this role get declined if the pod is
-   * looking for offers with the group role instead.
+   * Determines if the scheduler should subscribe with both legacy role and new quota roles.
+   * Setting this to true is harmless and might incur a slight startup penalty as Mesos offers
+   * with this role get declined if the pod is looking for role set by FrameworkConfig.getRole()
    */
-  private static final String SUBSCRIBE_LEGACY_ROLE_ENV = "SUBSCRIBE_LEGACY_ROLE";
+  private static final String QUOTA_MIGRATION_MODE_ENV = "QUOTA_MIGRATION_MODE";
 
   /**
    * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -433,8 +433,8 @@ public final class SchedulerConfig {
     }
   }
 
-  public boolean subscribeLegacyRole() {
-    return envStore.getOptionalBoolean(SUBSCRIBE_LEGACY_ROLE_ENV, false);
+  public boolean isQuotaMigrationMode() {
+    return envStore.getOptionalBoolean(QUOTA_MIGRATION_MODE_ENV, false);
   }
 
   public String getSecretsNamespace(String serviceName) {

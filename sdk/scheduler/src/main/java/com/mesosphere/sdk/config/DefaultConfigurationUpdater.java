@@ -121,7 +121,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
       DefaultResourceSet taskResourceSet = (DefaultResourceSet) task.getResourceSet();
       DefaultResourceSet.Builder taskResourceSetBuilder = DefaultResourceSet.newBuilder(
           dummyRole,
-          taskResourceSet.getPreReservedRole(),
+          null,
           taskResourceSet.getPrincipal());
       taskResourceSetBuilder.id(taskResourceSet.getId());
 

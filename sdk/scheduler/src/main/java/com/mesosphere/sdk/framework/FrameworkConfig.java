@@ -289,4 +289,17 @@ public final class FrameworkConfig {
   public String getNonNamespacedRole() {
     return SchedulerUtils.withEscapedSlashes(frameworkName) + DEFAULT_ROLE_SUFFIX;
   }
+
+  /**
+   * Returns the namespaced role derived from the framework name.
+   */
+  public Optional<String> getNamespacedRole() {
+    String[] marathonGroups = getNonNamespacedRole().split("__");
+    if (marathonGroups.length > 1) {
+      return Optional.of(marathonGroups[0]);
+    } else {
+      // Not in a top-level marathon group.
+      return Optional.empty();
+    }
+  }
 }

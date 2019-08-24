@@ -246,11 +246,10 @@ public class FrameworkRunner {
     if (!frameworkConfig.getPreReservedRoles().isEmpty()) {
       resourceRoles.addAll(frameworkConfig.getPreReservedRoles());
     }
-    // Add legacy role if we're currently not using it and we're requested to.
-    if (!frameworkConfig.getRole().contentEquals(frameworkConfig.getNonNamespacedRole()) &&
-        schedulerConfig.subscribeLegacyRole())
-    {
+    // Add both preferred and legacy roles, if we're in migration mode.
+    if (schedulerConfig.isQuotaMigrationMode()) {
       resourceRoles.add(frameworkConfig.getNonNamespacedRole());
+      frameworkConfig.getNamespacedRole().ifPresent(namespacedRole -> resourceRoles.add(namespacedRole));
     }
     return resourceRoles;
   }
