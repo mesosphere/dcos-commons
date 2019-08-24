@@ -157,7 +157,7 @@ def uninstall_jmx_secrets():
 
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-def secure_jmx_configuration(self_signed_trust_store, authentication):
+def check_secure_jmx_output(self_signed_trust_store, authentication):
     foldered_name = config.get_foldered_service_name()
 
     node_task_id_0 = sdk_tasks.get_task_ids(foldered_name)[0]
@@ -207,12 +207,12 @@ def secure_jmx_configuration(self_signed_trust_store, authentication):
 
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
-@pytest.mark.parametrize("self_signed_trust_store", [False, True])
+@pytest.mark.parametrize("self_signed_trust_store", [True])
 def test_secure_jmx_cmd_without_auth(self_signed_trust_store):
     install_jmx_configured_cassandra(
         self_signed_trust_store=self_signed_trust_store, authentication=False
     )
-    secure_jmx_configuration(self_signed_trust_store=self_signed_trust_store, authentication=False)
+    check_secure_jmx_output(self_signed_trust_store=self_signed_trust_store, authentication=False)
 
 
 @pytest.mark.sanity
@@ -234,7 +234,7 @@ def test_secure_jmx_cmd_with_auth(self_signed_trust_store):
     install_jmx_configured_cassandra(
         self_signed_trust_store=self_signed_trust_store, authentication=True
     )
-    secure_jmx_configuration(self_signed_trust_store=self_signed_trust_store, authentication=True)
+    check_secure_jmx_output(self_signed_trust_store=self_signed_trust_store, authentication=True)
 
 
 @pytest.mark.sanity

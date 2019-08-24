@@ -2,7 +2,23 @@
 
 set -e
 
-JMX_SECURE_PROPERTIES_FILE=$MESOS_SANDBOX/jmx_properties/jmxremote.ssl.properties
+cd $MESOS_SANDBOX
+export HOME=$MESOS_SANDBOX
+export SECURE_JMX_KEY_STORE_KEY=`cat jmx/key_store_pass`
+export KEY_STORE_PATH=jmx/key_store
+if [ -f "jmx/trust_store" ]; then
+    # load user provided trust store
+    export TRUST_STORE_PATH=jmx/trust_store
+    export SECURE_JMX_TRUST_STORE_KEY=`cat jmx/trust_store_pass`
+else
+    # load user provided keystore certs to default truststore
+    export TRUST_STORE_PATH=$JAVA_HOME/lib/security/cacerts
+    export SECURE_JMX_TRUST_STORE_KEY="changeit"
+    ${JAVA_HOME}/bin/keytool -noprompt -importkeystore -srckeystore $KEY_STORE_PATH -srcstorepass $SECURE_JMX_KEY_STORE_KEY -destkeystore $TRUST_STORE_PATH -deststorepass $SECURE_JMX_TRUST_STORE_KEY
+fi
+mkdir jmx_properties
+mkdir .cassandra
+(umask u=rw,g=,o= && cp jmx/key_file jmx_properties/key_file)
 
 umask u=rw,g=,o=
 

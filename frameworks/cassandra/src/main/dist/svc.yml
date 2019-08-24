@@ -111,21 +111,6 @@ pods:
                 fi
 
             {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
-                cd $MESOS_SANDBOX
-                export HOME=$MESOS_SANDBOX
-                export SECURE_JMX_KEY_STORE_KEY=`cat jmx/key_store_pass`
-                export KEY_STORE_PATH=jmx/key_store
-                if [ -f "jmx/trust_store" ]; then
-                    # load user provided trust store
-                    export TRUST_STORE_PATH=jmx/trust_store
-                    export SECURE_JMX_TRUST_STORE_KEY=`cat jmx/trust_store_pass`
-                else
-                    # load user provided keystore certs to default truststore
-                    export TRUST_STORE_PATH=$JAVA_HOME/lib/security/cacerts
-                    export SECURE_JMX_TRUST_STORE_KEY="changeit"
-                    ${JAVA_HOME}/bin/keytool -noprompt -importkeystore -srckeystore $KEY_STORE_PATH -srcstorepass $SECURE_JMX_KEY_STORE_KEY -destkeystore $TRUST_STORE_PATH -deststorepass $SECURE_JMX_TRUST_STORE_KEY
-                fi
-
                 export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
                 export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
                 export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
@@ -139,11 +124,9 @@ pods:
                     echo "Secure JMX is enabled but no JMX access file was provided. Exiting." >&2
                     exit 1
                 fi
-                mkdir jmx_properties
-                mkdir .cassandra
-                (umask u=rw,g=,o= && cp jmx/key_file jmx_properties/key_file)
-                chmod +x .ssl/jmx-ssl-properties.sh
-                .ssl/jmx-ssl-properties.sh   
+
+                chmod +x .ssl/jmx-ssl-setup.sh
+                .ssl/jmx-ssl-setup.sh
 
             {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
 
@@ -165,8 +148,8 @@ pods:
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
         {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
           jmx-config:
-            template: jmx-ssl-properties.sh
-            dest: .ssl/jmx-ssl-properties.sh
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
         readiness-check:
           cmd: |
@@ -194,26 +177,12 @@ pods:
               export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
               {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
               ./bootstrap --resolve=false
-              cd $MESOS_SANDBOX
               export HOME=$MESOS_SANDBOX
-              export SECURE_JMX_KEY_STORE_KEY=`cat jmx/key_store_pass`
-              export KEY_STORE_PATH=jmx/key_store
-              if [ -f "jmx/trust_store" ]; then
-                  # load user provided trust store
-                  export TRUST_STORE_PATH=jmx/trust_store
-                  export SECURE_JMX_TRUST_STORE_KEY=`cat jmx/trust_store_pass`
-              else
-                  # load user provided keystore certs to default truststore
-                  export TRUST_STORE_PATH=$JAVA_HOME/lib/security/cacerts
-                  export SECURE_JMX_TRUST_STORE_KEY="changeit"
-                  ${JAVA_HOME}/bin/keytool -noprompt -importkeystore -srckeystore $KEY_STORE_PATH -srcstorepass $SECURE_JMX_KEY_STORE_KEY -destkeystore $TRUST_STORE_PATH -deststorepass $SECURE_JMX_TRUST_STORE_KEY
-              fi
-
-              mkdir jmx_properties
-              mkdir .cassandra
-              (umask u=rw,g=,o= && cp jmx/key_file jmx_properties/key_file)
-              chmod +x .ssl/jmx-ssl-properties.sh
-              .ssl/jmx-ssl-properties.sh
+              export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
+              export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+              export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
+              chmod +x .ssl/jmx-ssl-setup.sh
+              .ssl/jmx-ssl-setup.sh
               user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
               ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
               {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -224,8 +193,8 @@ pods:
         {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
         configs:
           jmx-config:
-            template: jmx-ssl-properties.sh
-            dest: .ssl/jmx-ssl-properties.sh
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       cleanup:
         goal: ONCE
@@ -233,26 +202,12 @@ pods:
               export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
               {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
               ./bootstrap --resolve=false
-              cd $MESOS_SANDBOX
               export HOME=$MESOS_SANDBOX
-              export SECURE_JMX_KEY_STORE_KEY=`cat jmx/key_store_pass`
-              export KEY_STORE_PATH=jmx/key_store
-              if [ -f "jmx/trust_store" ]; then
-                  # load user provided trust store
-                  export TRUST_STORE_PATH=jmx/trust_store
-                  export SECURE_JMX_TRUST_STORE_KEY=`cat jmx/trust_store_pass`
-              else
-                  # load user provided keystore certs to default truststore
-                  export TRUST_STORE_PATH=$JAVA_HOME/lib/security/cacerts
-                  export SECURE_JMX_TRUST_STORE_KEY="changeit"
-                  ${JAVA_HOME}/bin/keytool -noprompt -importkeystore -srckeystore $KEY_STORE_PATH -srcstorepass $SECURE_JMX_KEY_STORE_KEY -destkeystore $TRUST_STORE_PATH -deststorepass $SECURE_JMX_TRUST_STORE_KEY
-              fi
-
-              mkdir jmx_properties
-              mkdir .cassandra
-              (umask u=rw,g=,o= && cp jmx/key_file jmx_properties/key_file)
-              chmod +x .ssl/jmx-ssl-properties.sh
-              .ssl/jmx-ssl-properties.sh
+              export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
+              export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+              export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
+              chmod +x .ssl/jmx-ssl-setup.sh
+              .ssl/jmx-ssl-setup.sh
               user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
               ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
               {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -263,8 +218,8 @@ pods:
         {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
         configs:
           jmx-config:
-            template: jmx-ssl-properties.sh
-            dest: .ssl/jmx-ssl-properties.sh
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       backup-schema:
         goal: ONCE
@@ -302,26 +257,12 @@ pods:
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) 
                 {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
                 ./bootstrap --resolve=false
-                cd $MESOS_SANDBOX
                 export HOME=$MESOS_SANDBOX
-                export SECURE_JMX_KEY_STORE_KEY=`cat jmx/key_store_pass`
-                export KEY_STORE_PATH=jmx/key_store
-                if [ -f "jmx/trust_store" ]; then
-                    # load user provided trust store
-                    export TRUST_STORE_PATH=jmx/trust_store
-                    export SECURE_JMX_TRUST_STORE_KEY=`cat jmx/trust_store_pass`
-                else
-                    # load user provided keystore certs to default truststore
-                    export TRUST_STORE_PATH=$JAVA_HOME/lib/security/cacerts
-                    export SECURE_JMX_TRUST_STORE_KEY="changeit"
-                    ${JAVA_HOME}/bin/keytool -noprompt -importkeystore -srckeystore $KEY_STORE_PATH -srcstorepass $SECURE_JMX_KEY_STORE_KEY -destkeystore $TRUST_STORE_PATH -deststorepass $SECURE_JMX_TRUST_STORE_KEY
-                fi
-
-                mkdir jmx_properties
-                mkdir .cassandra
-                (umask u=rw,g=,o= && cp jmx/key_file jmx_properties/key_file)
-                chmod +x .ssl/jmx-ssl-properties.sh
-                .ssl/jmx-ssl-properties.sh
+                export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
+                export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+                export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
+                chmod +x .ssl/jmx-ssl-setup.sh
+                .ssl/jmx-ssl-setup.sh
                 user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
                 {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -340,8 +281,8 @@ pods:
         {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
         configs:
           jmx-config:
-            template: jmx-ssl-properties.sh
-            dest: .ssl/jmx-ssl-properties.sh
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       upload-s3:
         goal: ONCE
@@ -367,26 +308,12 @@ pods:
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
                 {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
                 ./bootstrap --resolve=false
-                cd $MESOS_SANDBOX
                 export HOME=$MESOS_SANDBOX
-                export SECURE_JMX_KEY_STORE_KEY=`cat jmx/key_store_pass`
-                export KEY_STORE_PATH=jmx/key_store
-                if [ -f "jmx/trust_store" ]; then
-                    # load user provided trust store
-                    export TRUST_STORE_PATH=jmx/trust_store
-                    export SECURE_JMX_TRUST_STORE_KEY=`cat jmx/trust_store_pass`
-                else
-                    # load user provided keystore certs to default truststore
-                    export TRUST_STORE_PATH=$JAVA_HOME/lib/security/cacerts
-                    export SECURE_JMX_TRUST_STORE_KEY="changeit"
-                    ${JAVA_HOME}/bin/keytool -noprompt -importkeystore -srckeystore $KEY_STORE_PATH -srcstorepass $SECURE_JMX_KEY_STORE_KEY -destkeystore $TRUST_STORE_PATH -deststorepass $SECURE_JMX_TRUST_STORE_KEY
-                fi
-
-                mkdir jmx_properties
-                mkdir .cassandra
-                (umask u=rw,g=,o= && cp jmx/key_file jmx_properties/key_file)
-                chmod +x .ssl/jmx-ssl-properties.sh
-                .ssl/jmx-ssl-properties.sh
+                export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
+                export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+                export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
+                chmod +x .ssl/jmx-ssl-setup.sh
+                .ssl/jmx-ssl-setup.sh
                 user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
                 {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -398,8 +325,8 @@ pods:
         {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
         configs:
           jmx-config:
-            template: jmx-ssl-properties.sh
-            dest: .ssl/jmx-ssl-properties.sh
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       fetch-s3:
         goal: ONCE
@@ -531,26 +458,12 @@ pods:
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                     {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
-                    cd $MESOS_SANDBOX 
-                    export HOME=$MESOS_SANDBOX
-                    export SECURE_JMX_KEY_STORE_KEY=`cat jmx/key_store_pass`
-                    export KEY_STORE_PATH=jmx/key_store
-                    if [ -f "jmx/trust_store" ]; then
-                        # load user provided trust store
-                        export TRUST_STORE_PATH=jmx/trust_store
-                        export SECURE_JMX_TRUST_STORE_KEY=`cat jmx/trust_store_pass`
-                    else
-                        # load user provided keystore certs to default truststore
-                        export TRUST_STORE_PATH=$JAVA_HOME/lib/security/cacerts
-                        export SECURE_JMX_TRUST_STORE_KEY="changeit"
-                        ${JAVA_HOME}/bin/keytool -noprompt -importkeystore -srckeystore $KEY_STORE_PATH -srcstorepass $SECURE_JMX_KEY_STORE_KEY -destkeystore $TRUST_STORE_PATH -deststorepass $SECURE_JMX_TRUST_STORE_KEY
-                    fi
-
-                    mkdir jmx_properties
-                    mkdir .cassandra
-                    (umask u=rw,g=,o= && cp jmx/key_file jmx_properties/key_file)
-                    chmod +x .ssl/jmx-ssl-properties.sh
-                    .ssl/jmx-ssl-properties.sh
+                    export HOME=$MESOS_SANDBOX &&
+                    export JMX_PORT={{TASKCFG_ALL_JMX_PORT}} &&
+                    export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}} &&
+                    export CASSANDRA_VERSION={{CASSANDRA_VERSION}} &&
+                    chmod +x .ssl/jmx-ssl-setup.sh &&
+                    .ssl/jmx-ssl-setup.sh &&
                     user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file) &&
                     nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file repair system_auth &&                
                     {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -576,8 +489,8 @@ pods:
             dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
         {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
           jmx-config:
-            template: jmx-ssl-properties.sh
-            dest: .ssl/jmx-ssl-properties.sh
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
