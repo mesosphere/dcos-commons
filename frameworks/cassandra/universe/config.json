@@ -217,6 +217,133 @@
             }
           }
         },
+        "jmx": {
+          "title": "Secure JMX configuration",
+          "description": "Configure the secure JMX settings.",
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "description": "Enable secure JMX",
+              "type": "boolean",
+              "enum": [
+                true,
+                false
+              ],
+              "default": false
+            }
+          },
+          "dependencies": {
+            "enabled": {
+              "oneOf": [
+                {
+                  "properties": {
+                    "enabled": {
+                      "enum": [
+                        false
+                      ]
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "enabled": {
+                      "enum": [
+                        true
+                      ]
+                    },                    
+                    "rmi_port": {
+                      "description": "RMI port to expose.",
+                      "type": "integer",
+                      "default": 31420
+                    },
+                    "access_file": {
+                      "description": "Secret name that contains access file",
+                      "type": "string",
+                      "default": "",
+                      "media": {
+                        "type": "application/x-secret+string"
+                      }
+                    },
+                    "password_file": {
+                      "description": "Secret name that contains password file.",
+                      "type": "string",
+                      "default": "",
+                      "media": {
+                        "type": "application/x-secret+string"
+                      }
+                    },
+                    "key_store": {
+                      "description": "Secret name that contains key store file.",
+                      "type": "string",
+                      "title": "key store",
+                      "default": "",
+                      "media": {
+                        "type": "application/x-secret+string"
+                      }
+                    },
+                    "key_store_password_file": {
+                      "description": "Secret name that contains key store password file.",
+                      "type": "string",
+                      "default": "",
+                      "media": {
+                        "type": "application/x-secret+string"
+                      }
+                    },
+                    "add_trust_store": {
+                      "description": "By default user specified trust store is disabled and user provided certs are added to the default trust store.",
+                      "type": "boolean",
+                      "enum": [
+                        true,
+                        false
+                      ],
+                      "default": false
+                    }
+                  },
+                  "dependencies": {
+                    "add_trust_store": {
+                      "oneOf": [
+                        {
+                          "properties": {
+                            "add_trust_store": {
+                              "enum": [
+                                false
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "properties": {
+                            "add_trust_store": {
+                              "enum": [
+                                true
+                              ]
+                            },
+                            "trust_store": {
+                              "description": "Secret name that contains trust store file.",
+                              "type": "string",
+                              "default": "",
+                              "media": {
+                                "type": "application/x-secret+string"
+                              }
+                            },
+                            "trust_store_password_file": {
+                              "description": "Secret name that contains trust store password file.",
+                              "type": "string",
+                              "default": "",
+                              "media": {
+                                "type": "application/x-secret+string"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        },
         "readiness_check": {
           "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",

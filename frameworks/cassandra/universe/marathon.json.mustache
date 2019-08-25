@@ -90,6 +90,18 @@
     "TASKCFG_ALL_CASSANDRA_ROLE_MANAGER": "{{service.security.authentication.role_manager}}",
     "TASKCFG_ALL_CASSANDRA_CLUSTER_NAME": "{{cassandra.cluster_name}}",
 
+    "TASKCFG_ALL_SECURE_JMX_ENABLED": "{{service.jmx.enabled}}",
+    {{#service.jmx.enabled}}
+    "SECURE_JMX_RMI_PORT" : "{{service.jmx.rmi_port}}",
+    "SECURE_JMX_PWD_FILE" : "{{service.jmx.password_file}}",
+    "SECURE_JMX_ACCESS_FILE" : "{{service.jmx.access_file}}",
+    "SECURE_JMX_TRUST_STORE_ENABLED" : "{{service.jmx.add_trust_store}}",
+    "SECURE_JMX_TRUST_STORE" : "{{service.jmx.trust_store}}",
+    "SECURE_JMX_TRUST_STORE_PASSWORD" : "{{service.jmx.trust_store_password_file}}",
+    "SECURE_JMX_KEY_STORE" : "{{service.jmx.key_store}}",
+    "SECURE_JMX_KEY_STORE_PASSWORD" : "{{service.jmx.key_store_password_file}}",
+    {{/service.jmx.enabled}}
+
     "NODES": "{{nodes.count}}",
     "CASSANDRA_CPUS": "{{nodes.cpus}}",
     "CASSANDRA_MEMORY_MB": "{{nodes.mem}}",
