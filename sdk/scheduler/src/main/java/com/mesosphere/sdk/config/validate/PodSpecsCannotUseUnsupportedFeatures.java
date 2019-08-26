@@ -173,7 +173,7 @@ public class PodSpecsCannotUseUnsupportedFeatures implements ConfigValidator<Ser
               && podSpec.getSeccompUnconfined()) ||
               podSpec.getSeccompProfileName().isPresent()))
       {
-        logger.warn("Seccomp is not supported in this cluster and may cause undetermined behavior.");
+        logger.warn("Seccomp is not supported in this cluster.");
       }
     }
     return errors;
