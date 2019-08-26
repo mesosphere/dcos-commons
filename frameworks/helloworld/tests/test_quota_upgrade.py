@@ -53,8 +53,12 @@ def test_initial_upgrade():
     assert ENFORCED_ROLE not in current_task_roles.values()
 
     # Ensure we're not MULTI_ROLE, and using the legacy role.
-    assert service_roles["framework-roles"] is None
-    assert service_roles["framework-role"] == LEGACY_ROLE
+    assert service_roles["framework-roles"] is not None
+    assert service_roles["framework-role"] is None
+
+    assert len(service_roles["framework-roles"]) == 2
+    assert LEGACY_ROLE in service_roles["framework-roles"]
+    assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
 @pytest.mark.quota_upgrade
@@ -85,6 +89,10 @@ def test_update_scheduler_role():
     # Ensure we are MULTI_ROLE.
     assert service_roles["framework-roles"] is not None
     assert service_roles["framework-role"] is None
+
+    assert len(service_roles["framework-roles"]) == 2
+    assert LEGACY_ROLE in service_roles["framework-roles"]
+    assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
 @pytest.mark.quota_upgrade
@@ -175,7 +183,7 @@ def test_disable_legacy_role_post_update():
     marathon_config = sdk_marathon.get_config(SERVICE_NAME)
 
     # Turn off legacy role.
-    marathon_config["env"]["SUBSCRIBE_LEGACY_ROLE"] = "false"
+    marathon_config["env"]["QUOTA_MIGRATION_MODE"] = "false"
 
     # Update the app
     sdk_marathon.update_app(marathon_config)
