@@ -12,7 +12,7 @@ import java.util.Optional;
  * Configuration validator which halts the schdeduler due to a role change on an incoming
  * {@link com.mesosphere.sdk.specification.ServiceSpec} where the previous deployment wasn't complete.
  * <p>
- * This is to prevent the scheduler from continuing from previous incomplete deployments on role changes.
+ * This is to prevent the scheduler from continuing previous incomplete deployments on role changes.
  */
 public class ServiceRoleCannotChangeOnIncompleteDeployment implements ConfigValidator<ServiceSpec> {
 

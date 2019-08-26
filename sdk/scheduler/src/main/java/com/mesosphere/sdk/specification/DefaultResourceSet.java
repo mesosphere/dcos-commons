@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -19,6 +20,7 @@ import java.util.Objects;
  */
 public final class DefaultResourceSet implements ResourceSet {
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private final String preReservedRole;
 
   private final String id;
@@ -82,10 +84,6 @@ public final class DefaultResourceSet implements ResourceSet {
 
   public String getRole() {
     return role;
-  }
-
-  public String getPreReservedRole() {
-    return preReservedRole;
   }
 
   public String getPrincipal() {
@@ -285,7 +283,7 @@ public final class DefaultResourceSet implements ResourceSet {
     }
 
     /**
-     * Sets the role {@code role} and returns a reference to this Builder so that the methods can be chained together.
+     * Sets the {@code role} and returns a reference to this Builder so that the methods can be chained together.
      *
      * @param role the {@code role} to use
      * @return a reference to this Builder

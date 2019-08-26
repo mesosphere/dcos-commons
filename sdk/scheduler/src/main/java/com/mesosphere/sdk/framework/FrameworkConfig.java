@@ -2,6 +2,7 @@ package com.mesosphere.sdk.framework;
 
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.offer.Constants;
+import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -105,7 +106,7 @@ public final class FrameworkConfig {
         serviceSpec.getPrincipal(),
         serviceSpec.getUser(),
         serviceSpec.getZookeeperConnection(),
-        getFrameworkPreReservedRoles(serviceSpec.getRole(), serviceSpec.getPods().stream()
+        getFrameworkPreReservedRoles(serviceRole, serviceSpec.getPods().stream()
             .map(PodSpec::getPreReservedRole)
             .distinct()
             .collect(Collectors.toList())),
@@ -120,15 +121,7 @@ public final class FrameworkConfig {
     // The only required value is FRAMEWORK_NAME.
     String frameworkName = envStore.getRequired("FRAMEWORK_NAME");
 
-    // We can only use MESOS_ALLOCATION_ROLE if MARATHON_APP_ENFORCE_GROUP_ROLE is true..
-    Optional<String> serviceNamespace;
-    boolean enforceRole = envStore.getOptionalBoolean("MARATHON_APP_ENFORCE_GROUP_ROLE", false);
-    if (enforceRole) {
-      serviceNamespace = Optional.ofNullable(envStore.getOptional("MESOS_ALLOCATION_ROLE", null));
-    } else {
-      serviceNamespace = Optional.empty();
-    }
-
+    Optional<String> serviceNamespace = SchedulerConfig.fromEnvStore(envStore).getServiceNamespace();
     return new FrameworkConfig(
         frameworkName,
         getServiceRole(frameworkName, serviceNamespace),
@@ -146,43 +139,23 @@ public final class FrameworkConfig {
 
   /**
    * Returns the configured Mesos role to use for running the service.
-   * Priority is given to the role specified by MESOS_ALLOCATION_ROLE environment variable set by Mesos.
-   * If no such environment-variable is found, or MARATHON_APP_ENFORCE_GROUP_ROLE is false we revert to the legacy
-   * version which uses the service name. Leading slashes are removed and intermediate slashes are escaped.
+   * The role is set to {@code serviceNamespace} when present, as it represents the preferred role
+   * requested by the user or mandated by Marathon.
+   * If {@code serviceNamespace} is absent, we revert to the legacy semantics which uses the service name.
+   * If the service name has a leading slash (due to folders), omit that leading slash from the role
+   * This is done with the reasoning that "/path/to/service" and "path/to/service" should be
+   * equivalent.
+   * <p>
+   * Slashes are currently banned from Mesos roles.
+   * <p>
+   * For example: /path/to/service => path__to__service-role
    */
   private static String getServiceRole(String frameworkName, Optional<String> serviceNamespace) {
     if (serviceNamespace.isPresent()) {
       return SchedulerUtils.withEscapedSlashes(serviceNamespace.get());
     } else {
-      return getServiceRole(frameworkName);
+      return SchedulerUtils.withEscapedSlashes(frameworkName) + DEFAULT_ROLE_SUFFIX;
     }
-  }
-
-  /**
-   * Returns the configured Mesos role to use for running the service, based on the service name.
-   * Unlike the Mesos principal and pre-reserved roles, this value cannot be configured directly
-   * via the YAML schema.
-   * <p>
-   * Use {@code <svcname>-role} (or throw if svcname is missing)
-   * <p>
-   * If the service name has a leading slash (due to folders), omit that leading slash from the role
-   * This is done with the reasoning that "/path/to/service" and "path/to/service" should be
-   * equivalent.
-   * <p>
-   * Slashes are currently banned from roles by as of mesos commit e0d8cc7c. Sounds like they will
-   * be allowed again in 1.4 when hierarchical roles are supported.
-   * <p>
-   * For example: /path/to/service => path__to__service-role
-   */
-  private static String getServiceRole(String frameworkName) {
-    //
-
-    //
-    //
-
-    //
-    //
-    return SchedulerUtils.withEscapedSlashes(frameworkName) + DEFAULT_ROLE_SUFFIX;
   }
 
   /**
@@ -293,7 +266,6 @@ public final class FrameworkConfig {
   public Set<String> getAllResourceRoles() {
     Set<String> roles = new HashSet<>(preReservedRoles);
     roles.add(role);
-    roles.add(getNonNamespacedRole());
     return roles;
   }
 
@@ -311,10 +283,23 @@ public final class FrameworkConfig {
 
   /**
    * Returns the non-namespaced role used in earlier versions.
-   * Can be compared with {@code getRole} to determine which role
+   * Can be compared with {@link #getRole()} to determine which role
    * the current footprint has been deployed with.
    */
   public String getNonNamespacedRole() {
     return SchedulerUtils.withEscapedSlashes(frameworkName) + DEFAULT_ROLE_SUFFIX;
+  }
+
+  /**
+   * Returns the namespaced role derived from the framework name.
+   */
+  public Optional<String> getNamespacedRole() {
+    String[] marathonGroups = getNonNamespacedRole().split("__");
+    if (marathonGroups.length > 1) {
+      return Optional.of(marathonGroups[0]);
+    } else {
+      // Not in a top-level marathon group.
+      return Optional.empty();
+    }
   }
 }

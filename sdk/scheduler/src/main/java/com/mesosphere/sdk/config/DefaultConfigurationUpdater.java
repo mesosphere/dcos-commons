@@ -12,10 +12,7 @@ import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.specification.DefaultResourceSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.DefaultTaskSpec;
-import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.PortSpec;
-import com.mesosphere.sdk.specification.ResourceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
@@ -100,6 +97,11 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
    * <li>
    * Allow decommission: Does not affect the pods themselves, only how we treat them
    * </li>
+   * <li>
+   * Role changes: To migrate old services to new roles for quota changes, we're relaxing the constraint
+   * that roles on pods cannot change. Here we replace the role to a dummy one to make the roles irrelevant
+   * across the PodSpec.
+   * </li>
    * </ol>
    * As such, ignore these fields when checking for differences.
    *
@@ -119,44 +121,22 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
       DefaultResourceSet taskResourceSet = (DefaultResourceSet) task.getResourceSet();
       DefaultResourceSet.Builder taskResourceSetBuilder = DefaultResourceSet.newBuilder(
           dummyRole,
-          taskResourceSet.getPreReservedRole(),
+          null,
           taskResourceSet.getPrincipal());
       taskResourceSetBuilder.id(taskResourceSet.getId());
 
       //Add Resources to taskResourceSetBuilder.
-      // SUPPRESS CHECKSTYLE NestedForDepth
-      for (ResourceSpec resourceSpec: taskResourceSet.getResources()) {
-        if (resourceSpec instanceof DefaultResourceSpec) {
-          DefaultResourceSpec.Builder resourceSpecBuilder = DefaultResourceSpec.newBuilder(resourceSpec);
-          resourceSpecBuilder.role(dummyRole);
-          taskResourceSetBuilder.addResource(resourceSpecBuilder.build());
-        } else if (resourceSpec instanceof PortSpec) {
-          PortSpec portSpec = (PortSpec) resourceSpec;
-          PortSpec.Builder portSpecBuilder = PortSpec.newBuilder(portSpec);
-          portSpecBuilder.role(dummyRole);
-          taskResourceSetBuilder.addResource(portSpecBuilder.build());
-        } else if (resourceSpec instanceof NamedVIPSpec) {
-          NamedVIPSpec vipSpec = (NamedVIPSpec) resourceSpec;
-          NamedVIPSpec.Builder vipSpecBuilder = NamedVIPSpec.newBuilder(vipSpec);
-          vipSpecBuilder.role(dummyRole);
-          taskResourceSetBuilder.addResource(vipSpecBuilder.build());
-        }
-      }
+      taskResourceSet.getResources()
+          .stream()
+          .filter(DefaultResourceSpec.class::isInstance).forEach(resourceSpec -> taskResourceSetBuilder
+              .addResource(DefaultResourceSpec.newBuilder(resourceSpec).role(dummyRole).build()));
 
       //Add Volumes to taskResourceSetBuilder.
-      // SUPPRESS CHECKSTYLE NestedForDepth
       for (VolumeSpec volumeSpec: taskResourceSet.getVolumes()) {
         switch(volumeSpec.getType()) {
           case ROOT:
-            // SUPPRESS CHECKSTYLE MultipleStringLiterals
-            taskResourceSetBuilder.addVolume("ROOT",
-                volumeSpec.getValue().getScalar().getValue(),
-                volumeSpec.getContainerPath(),
-                volumeSpec.getProfiles());
-            break;
           case MOUNT:
-            // SUPPRESS CHECKSTYLE MultipleStringLiterals
-            taskResourceSetBuilder.addVolume("MOUNT",
+            taskResourceSetBuilder.addVolume(volumeSpec.getType().name(),
                 volumeSpec.getValue().getScalar().getValue(),
                 volumeSpec.getContainerPath(),
                 volumeSpec.getProfiles());
@@ -341,7 +321,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         try {
           final ServiceSpec taskConfig = configStore.fetch(taskConfigId);
           if (!needsConfigUpdate(taskInfo, targetConfig, taskConfig)) {
-            // DELETEME@kjoshi, this sets TaskLabelWriter, but this codepath currently doesn't get executed.
             // Task is effectively already on the target config. Update task's config ID to match
             // target, and allow the duplicate config to be dropped from configStore.
             TaskInfo.Builder taskBuilder = taskInfo.toBuilder();

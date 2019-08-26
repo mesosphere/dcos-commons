@@ -29,7 +29,9 @@ import org.slf4j.Logger;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * Class which sets up and executes the correct {@link AbstractScheduler} instance.
@@ -115,7 +117,7 @@ public class FrameworkRunner {
     FrameworkStore frameworkStore = new FrameworkStore(persister);
 
     FrameworkScheduler frameworkScheduler = new FrameworkScheduler(
-        frameworkConfig.getAllResourceRoles(),
+        getResourceRoles(),
         schedulerConfig,
         persister,
         frameworkStore,
@@ -165,13 +167,11 @@ public class FrameworkRunner {
     // The framework ID is not available when we're being started for the first time.
     frameworkId.ifPresent(fwkInfoBuilder::setId);
 
-    if (!frameworkConfig.getPreReservedRoles().isEmpty() ||
-        !frameworkConfig.getRole().contentEquals(frameworkConfig.getNonNamespacedRole()))
-    {
-      // We set to MULTI_ROLE by default and add all the necessary roles.
+    if (getResourceRoles().size() > 1) {
+      // We have more than one role, set to MULTI_ROLE by default and add all the necessary roles.
       fwkInfoBuilder.addCapabilitiesBuilder()
         .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE);
-      fwkInfoBuilder.addAllRoles(frameworkConfig.getAllResourceRoles());
+      fwkInfoBuilder.addAllRoles(getResourceRoles());
     } else {
       fwkInfoBuilder.setRole(frameworkConfig.getRole());
     }
@@ -235,5 +235,22 @@ public class FrameworkRunner {
         () -> LOGGER.info("Started trivially healthy API server.")
     );
     httpServer.join();
+  }
+
+  private Set<String> getResourceRoles() {
+    // Collection of all the roles we might subscribe with.
+    HashSet<String> resourceRoles = new HashSet<String>();
+    // Always Add the main role we're going to subscribe with.
+    resourceRoles.add(frameworkConfig.getRole());
+    // Add all pre-reserved roles if they exist.
+    if (!frameworkConfig.getPreReservedRoles().isEmpty()) {
+      resourceRoles.addAll(frameworkConfig.getPreReservedRoles());
+    }
+    // Add both preferred and legacy roles, if we're in migration mode.
+    if (schedulerConfig.isQuotaMigrationMode()) {
+      resourceRoles.add(frameworkConfig.getNonNamespacedRole());
+      frameworkConfig.getNamespacedRole().ifPresent(namespacedRole -> resourceRoles.add(namespacedRole));
+    }
+    return resourceRoles;
   }
 }
