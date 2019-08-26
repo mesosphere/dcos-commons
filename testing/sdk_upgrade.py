@@ -22,6 +22,7 @@ log = logging.getLogger(__name__)
 
 TIMEOUT_SECONDS = 25 * 60
 
+
 # Tests the downgrade path by "upgrading" to a release version from a stub-universe one..
 def test_downgrade(
     package_name: str,

@@ -1,7 +1,6 @@
 import logging
 
 import pytest
-import sdk_cmd
 import sdk_install
 import sdk_plan
 import sdk_marathon

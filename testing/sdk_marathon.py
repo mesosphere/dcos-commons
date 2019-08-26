@@ -354,4 +354,3 @@ def update_group(group_id: str, options: dict) -> None:
     sdk_cmd.cluster_request(
         "PUT", _api_url("groups"), json=group_definition, log_args=False, raise_on_error=False
     )
-
