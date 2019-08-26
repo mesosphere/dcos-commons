@@ -11,12 +11,42 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
+    {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+    secrets:
+    {{#TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+      publicapikey:
+        secret: {{TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+        file: new_user_password
+    {{/TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+      jmxPasswordFile:
+        secret: {{SECURE_JMX_PWD_FILE}}
+        file: jmx/key_file
+      jmxAccessFile:
+        secret: {{SECURE_JMX_ACCESS_FILE}}
+        file: jmx/access_file
+      {{#SECURE_JMX_TRUST_STORE_ENABLED}}
+      jmxTrustStore:
+        secret: {{SECURE_JMX_TRUST_STORE}}
+        file: jmx/trust_store
+      jmxTrustStorePass:
+        secret: {{SECURE_JMX_TRUST_STORE_PASSWORD}}
+        file: jmx/trust_store_pass
+      {{/SECURE_JMX_TRUST_STORE_ENABLED}}
+      jmxKeyStore:
+        secret: {{SECURE_JMX_KEY_STORE}}
+        file: jmx/key_store
+      jmxKeyStorePass:
+        secret: {{SECURE_JMX_KEY_STORE_PASSWORD}}
+        file: jmx/key_store_pass
+    {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+    {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
     {{#TASKCFG_ALL_PASSWORD_SECRET_PATH}}
     secrets:
       publicapikey:
         secret: {{TASKCFG_ALL_PASSWORD_SECRET_PATH}}
         file: new_user_password
     {{/TASKCFG_ALL_PASSWORD_SECRET_PATH}}
+    {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
     volume:
       path: container-path
       type: {{CASSANDRA_DISK_TYPE}}
@@ -54,6 +84,10 @@ pods:
             port: {{TASKCFG_ALL_CASSANDRA_RPC_PORT}}
             advertise: true
           {{/TASKCFG_ALL_CASSANDRA_START_RPC}}
+          {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+          rmi-port:
+            port: {{SECURE_JMX_RMI_PORT}}
+          {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       sidecar-resources:
         cpus: 1
         memory: 1024
@@ -76,9 +110,28 @@ pods:
                     ARGS="$ARGS -R"
                 fi
 
+            {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
+                export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+                export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
+                export LOCAL_JMX="no"
+
+                if [ ! -f "jmx/key_file" ] ; then
+                    echo "Secure JMX is enabled but no JMX password file was provided. Exiting." >&2
+                    exit 1
+                fi
+                if [ ! -f "jmx/access_file" ] ; then
+                    echo "Secure JMX is enabled but no JMX access file was provided. Exiting." >&2
+                    exit 1
+                fi
+
+                chmod +x .ssl/jmx-ssl-setup.sh
+                .ssl/jmx-ssl-setup.sh
+
+            {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+
                 # Honor jmx_port config otherwise Cassandra will hardcode to 7199
                 sed -i 's/JMX_PORT=.*/JMX_PORT="{{TASKCFG_ALL_JMX_PORT}}"/' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
-
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
         configs:
           cassandra:
@@ -93,11 +146,23 @@ pods:
           rack:
             template: cassandra-rackdc.properties
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
+        {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+          jmx-config:
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
+        {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
         readiness-check:
-          cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
-                export TASK_IP=$(./bootstrap --get-task-ip) &&
+          cmd: |
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
+                export TASK_IP=$(./bootstrap --get-task-ip)
+                {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                export HOME=$MESOS_SANDBOX
+                user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
+                {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool status -p {{TASKCFG_ALL_JMX_PORT}} | grep -q "UN  $TASK_IP"
+                {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
           interval: {{READINESS_CHECK_INTERVAL}}
           delay: {{READINESS_CHECK_DELAY}}
           timeout: {{READINESS_CHECK_TIMEOUT}}
@@ -108,12 +173,54 @@ pods:
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       repair:
         goal: ONCE
-        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: |
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
+              {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+              ./bootstrap --resolve=false
+              export HOME=$MESOS_SANDBOX
+              export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
+              export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+              export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
+              chmod +x .ssl/jmx-ssl-setup.sh
+              .ssl/jmx-ssl-setup.sh
+              user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
+              ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+              {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+              {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
+              ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+              {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
         resource-set: sidecar-resources
+        {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+        configs:
+          jmx-config:
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
+        {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       cleanup:
         goal: ONCE
-        cmd: export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) && ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+        cmd: |
+              export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
+              {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+              ./bootstrap --resolve=false
+              export HOME=$MESOS_SANDBOX
+              export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
+              export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+              export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
+              chmod +x .ssl/jmx-ssl-setup.sh
+              .ssl/jmx-ssl-setup.sh
+              user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
+              ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+              {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+              {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
+              ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
+              {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
         resource-set: sidecar-resources
+        {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+        configs:
+          jmx-config:
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
+        {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       backup-schema:
         goal: ONCE
         cmd: >
@@ -146,19 +253,37 @@ pods:
         {{/TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
       snapshot:
         goal: ONCE
-        cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
+        cmd:  |
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) 
+                {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                ./bootstrap --resolve=false
+                export HOME=$MESOS_SANDBOX
+                export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
+                export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+                export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
+                chmod +x .ssl/jmx-ssl-setup.sh
+                .ssl/jmx-ssl-setup.sh
+                user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
+                {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}                
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
-
+                {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
                 for f in $(find container-path/data/ -type d -name "$SNAPSHOT_NAME") ; do
-                    qualified_table="$(echo "$f" | sed -E 's/[^\/]+\/[^\/]+\/([^\/]+)\/([^-]+)-.*/\1 \2/g')" ;
-                    keyspace=$(echo "$qualified_table" | cut -d ' ' -f 1) ;
-                    table=$(echo "$qualified_table" | cut -d ' ' -f 2) ;
+                    qualified_table="$(echo "$f" | sed -E 's/[^\/]+\/[^\/]+\/([^\/]+)\/([^-]+)-.*/\1 \2/g')" 
+                    keyspace=$(echo "$qualified_table" | cut -d ' ' -f 1) 
+                    table=$(echo "$qualified_table" | cut -d ' ' -f 2) 
 
-                    mkdir -p container-path/snapshot/"$keyspace" ;
-                    (cd container-path/snapshot/"$keyspace" && ln -s ../../../"$f" "$table") ;
+                    mkdir -p container-path/snapshot/"$keyspace" 
+                    (cd container-path/snapshot/"$keyspace" && ln -s ../../../"$f" "$table") 
                 done
         resource-set: sidecar-resources
+        {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+        configs:
+          jmx-config:
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
+        {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       upload-s3:
         goal: ONCE
         cmd: >
@@ -179,11 +304,30 @@ pods:
         resource-set: sidecar-resources
       cleanup-snapshot:
         goal: ONCE
-        cmd: >
-                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/) ;
-                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES") ;
+        cmd:  |
+                export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
+                {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                ./bootstrap --resolve=false
+                export HOME=$MESOS_SANDBOX
+                export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
+                export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
+                export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
+                chmod +x .ssl/jmx-ssl-setup.sh
+                .ssl/jmx-ssl-setup.sh
+                user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
+                {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
+                {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
                 rm -r container-path/snapshot
         resource-set: sidecar-resources
+        {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+        configs:
+          jmx-config:
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
+        {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       fetch-s3:
         goal: ONCE
         cmd: >
@@ -313,7 +457,19 @@ pods:
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_traces      WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_auth        WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "alter keyspace system_distributed WITH replication = {'class': 'SimpleStrategy', 'replication_factor': 3};" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
-                    nodetool repair system_auth &&
+                    {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                    export HOME=$MESOS_SANDBOX &&
+                    export JMX_PORT={{TASKCFG_ALL_JMX_PORT}} &&
+                    export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}} &&
+                    export CASSANDRA_VERSION={{CASSANDRA_VERSION}} &&
+                    chmod +x .ssl/jmx-ssl-setup.sh &&
+                    .ssl/jmx-ssl-setup.sh &&
+                    user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file) &&
+                    nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file repair system_auth &&                
+                    {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                    {{^TASKCFG_ALL_SECURE_JMX_ENABLED}}
+                    nodetool repair system_auth &&                
+                    {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
                     cqlsh -u cassandra -p cassandra {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "CREATE ROLE {{TASKCFG_ALL_NEW_SUPERUSER}} WITH PASSWORD = '${NEW_USER_PASSWORD}' AND SUPERUSER = true AND LOGIN = true;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}} &&
                     cqlsh -u {{TASKCFG_ALL_NEW_SUPERUSER}} -p ${NEW_USER_PASSWORD} {{{CASSANDRA_CQLSH_SSL_FLAGS}}} -e "ALTER ROLE cassandra WITH PASSWORD='${NEW_RANDOM_PASSWORD}' AND SUPERUSER=false;" "node-0-server.${FRAMEWORK_HOST}" {{TASKCFG_ALL_CASSANDRA_NATIVE_TRANSPORT_PORT}}
                 fi
@@ -331,6 +487,11 @@ pods:
           cqlshrc:
             template: cqlshrc
             dest: ./apache-cassandra-{{CASSANDRA_VERSION}}/conf/cqlshrc
+        {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
+          jmx-config:
+            template: jmx-ssl-setup.sh
+            dest: .ssl/jmx-ssl-setup.sh
+        {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
           - name: cqlsh

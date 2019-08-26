@@ -24,6 +24,10 @@ DEFAULT_CASSANDRA_TIMEOUT = 600
 SECRET_VALUE = "password"
 # Soak artifact scripts may override the service name to test
 
+MINIO_AWS_ACCESS_KEY_ID = "minio"
+MINIO_AWS_SECRET_ACCESS_KEY = "minio123"
+MINIO_BUCKET_NAME = "miniobackup"
+
 DEFAULT_NODE_ADDRESS = os.getenv(
     "CASSANDRA_NODE_ADDRESS", sdk_hosts.autoip_host(SERVICE_NAME, "node-0-server")
 )

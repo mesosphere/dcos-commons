@@ -111,7 +111,7 @@ configurations {
 
 ext {
     // Only include version numbers here if it'd be redundant to repeat them below:
-    jacksonVer = "2.6.7"
+    jacksonVer = "2.9.9"
     curatorVer = "4.0.1"
     httpClientVer = "4.5.2"
     jerseyVer = "2.23"
@@ -125,7 +125,7 @@ dependencies {
     compile "com.fasterxml.jackson.datatype:jackson-datatype-json-org:${jacksonVer}"
     compile "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:${jacksonVer}"
     compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVer}"
-    compile 'com.hubspot.jackson:jackson-datatype-protobuf:0.9.9-preJackson2.7-proto3'
+    compile 'com.hubspot.jackson:jackson-datatype-protobuf:0.9.11-jackson2.9'
     compile 'com.googlecode.protobuf-java-format:protobuf-java-format:1.4'
     compile 'com.github.spullara.mustache.java:compiler:0.9.2'
     compile 'commons-codec:commons-codec:1.11'

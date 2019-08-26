@@ -302,9 +302,8 @@ public final class YAMLToInternalMappers {
     WriteOnceLinkedHashMap<String, RawNetwork> rawNetworks = rawPod.getNetworks();
     final Collection<NetworkSpec> networks = new ArrayList<>();
     if (MapUtils.isNotEmpty(rawNetworks)) {
-      networks.addAll(rawNetworks.entrySet().stream()
-          .map(rawNetworkEntry -> {
-            String networkName = rawNetworkEntry.getKey();
+      networks.addAll(rawNetworks.keySet().stream()
+          .map(networkName -> {
             DcosConstants.warnIfUnsupportedNetwork(networkName);
             networkNames.add(networkName);
             RawNetwork rawNetwork = rawNetworks.get(networkName);
@@ -594,6 +593,7 @@ public final class YAMLToInternalMappers {
     return DefaultHostVolumeSpec.newBuilder()
         .hostPath(rawHostVolume.getHostPath())
         .containerPath(rawHostVolume.getContainerPath())
+        .mode(rawHostVolume.getMode())
         .build();
   }
 
