@@ -1,22 +1,28 @@
-{
-  "packagingVersion": "4.0",
-  "upgradesFrom": ["{{upgrades-from}}"],
-  "downgradesTo": ["{{downgrades-to}}"],
-  "minDcosReleaseVersion": "1.11",
-  "name": "cassandra",
-  "version": "{{package-version}}",
-  "maintainer": "support@mesosphere.io",
-  "description": "Apache Cassandra",
-  "selected": true,
-  "framework": true,
-  "tags": ["cassandra"],
-  "preInstallNotes": "Default configuration requires 3 agent nodes each with: 0.5 CPU | 4096 MB MEM | 1 10240 MB Disk",
-  "postInstallNotes": "The DC/OS Apache Cassandra service is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
-  "postUninstallNotes": "The DC/OS Apache Cassandra service is being uninstalled.\n\nFor DC/OS versions from 1.11 no further action is required. For older DC/OS versions follow the instructions at {{documentation-path}}uninstall to remove any persistent state if required.",
-  "licenses": [
-     {
-       "name": "Apache License Version 2.0",
-       "url": "https://raw.githubusercontent.com/apache/cassandra/trunk/LICENSE.txt"
-     }
+{  
+  "packagingVersion":"4.0",
+  "upgradesFrom":[  
+    "{{upgrades-from}}"
+  ],
+  "downgradesTo":[  
+    "{{downgrades-to}}"
+  ],
+  "minDcosReleaseVersion":"1.11",
+  "name":"cassandra",
+  "version":"{{package-version}}",
+  "maintainer":"support@mesosphere.io",
+  "description":"Apache Cassandra",
+  "selected":true,
+  "framework":true,
+  "tags":[  
+    "cassandra"
+  ],
+  "preInstallNotes":"Default configuration requires 3 agent nodes each with: 0.5 CPU | 4096 MB MEM | 1 10240 MB Disk",
+  "postInstallNotes":"The DC/OS Apache Cassandra service is being installed!\n\n\tDocumentation: {{documentation-path}}\n\tIssues: {{issues-path}}",
+  "postUninstallNotes":"The DC/OS Apache Cassandra service is being uninstalled.\n\nFor DC/OS versions from 1.11 no further action is required. For older DC/OS versions follow the instructions at {{documentation-path}}uninstall to remove any persistent state if required.",
+  "licenses":[  
+    {  
+      "name":"Apache License Version 2.0",
+      "url":"https://raw.githubusercontent.com/apache/cassandra/trunk/LICENSE.txt"
+    }
   ]
 }
