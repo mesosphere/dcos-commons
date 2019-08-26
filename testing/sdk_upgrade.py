@@ -22,6 +22,62 @@ log = logging.getLogger(__name__)
 
 TIMEOUT_SECONDS = 25 * 60
 
+# Tests the downgrade path by "upgrading" to a release version from a stub-universe one..
+def test_downgrade(
+    package_name: str,
+    service_name: str,
+    expected_running_tasks: int,
+    from_version: str = None,
+    from_options: Dict[str, Any] = {},
+    to_version: str = None,
+    to_options: Optional[Dict[str, Any]] = None,
+    timeout_seconds: int = TIMEOUT_SECONDS,
+    wait_for_deployment: bool = True,
+) -> None:
+
+    log.info(
+        "Called with 'from' version '{}' and 'to' version '{}'".format(from_version, to_version)
+    )
+
+    if not from_version:
+        from_version = "stub-universe"
+
+    universe_version = None
+    try:
+        # Move the Universe repo to the top of the repo list so that we can first install the latest
+        # released version.
+        test_version, universe_version = sdk_repository.move_universe_repo(
+            package_name, universe_repo_index=0
+        )
+        log.info("Found 'from' version: {}".format(from_version))
+        log.info("Found 'universe' version: {}".format(universe_version))
+
+        from_version = from_version or test_version
+        to_version = to_version or universe_version
+        log.info(
+            "Will downgrade {} from version '{}' to '{}'".format(
+                package_name, from_version, to_version
+            )
+        )
+    finally:
+        if universe_version:
+            # Return the Universe repo back to the bottom of the repo list so that we can upgrade to
+            # the build version.
+            sdk_repository.move_universe_repo(package_name)
+
+    log.info(
+        "Downgrading {} from version '{}' to '{}'".format(package_name, from_version, to_version)
+    )
+    update_or_upgrade_or_downgrade(
+        package_name,
+        service_name,
+        to_version,
+        to_options or from_options,
+        expected_running_tasks,
+        wait_for_deployment,
+        timeout_seconds,
+    )
+
 
 # Installs a universe version of a package, then upgrades it to a test version
 #
@@ -211,18 +267,16 @@ def _wait_for_deployment(
     sdk_marathon.wait_for_deployment(service_name, timeout_seconds, None)
     updated_config = get_config(package_name, service_name)
 
+    if updated_config != initial_config:
+        sdk_utils.filter_role_from_config(updated_config)
+        sdk_utils.filter_role_from_config(initial_config)
+
     if updated_config == initial_config:
         log.info("No config change detected. Tasks should not be restarted")
         sdk_tasks.check_tasks_not_updated(service_name, "", task_ids)
     else:
-        deployment_is_complete = sdk_plan.get_deployment_plan(service_name)["status"] == "COMPLETE"
-        recovery_is_complete = sdk_plan.get_recovery_plan(service_name)["status"] == "COMPLETE"
-
-        # A difference between configs might be trivial that the scheduler doesn't consider the deployment
-        # to have become incomplete. Check the plan status before waiting for updates.
-        if not (deployment_is_complete and recovery_is_complete):
-            log.info("Checking that all tasks have restarted")
-            sdk_tasks.check_tasks_updated(service_name, "", task_ids)
+        log.info("Checking that all tasks have restarted")
+        sdk_tasks.check_tasks_updated(service_name, "", task_ids)
 
     # this can take a while, default is 15 minutes. for example with HDFS, we can hit the expected
     # total task count via ONCE tasks, without actually completing deployment

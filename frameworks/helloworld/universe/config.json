@@ -25,6 +25,11 @@
           "type": "string",
           "default": ""
         },
+        "quota_migration_mode": {
+          "description": "When this flag is enabled, the scheduler subscribes with both the service-role and the legacy role. This flag is intended for migration to the new quota-enabled schedulers. ",
+          "type": "boolean",
+          "default": true
+        },
         "service_account_secret": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",
           "type": "string",
@@ -146,13 +151,16 @@
         "verbose_mesos_logging": {
           "description": "Sets the value of GLOG_v env-var used by Mesos. Enabled by default, set to 0 to disable.",
           "type": "integer",
-          "enum": [0, 1],
+          "enum": [
+            0,
+            1
+          ],
           "default": 1
         },
         "task_failure_backoff": {
           "description": "Configuration for back off of failed/error tasks",
           "type": "object",
-          "properties" : {
+          "properties": {
             "enabled": {
               "description": "Enable backoff delay",
               "type": "boolean",
@@ -178,10 +186,10 @@
             "enabled"
           ]
         },
-        "check" : {
+        "check": {
           "description": "Checks are a way to understand the health of a service. These HTTP checks are intended to be consumed by services external to Mesos/Marathon which will take appropriate action on them.",
           "type": "object",
-          "properties" : {
+          "properties": {
             "intervalSeconds": {
               "description": "Number of seconds to wait between checks",
               "type": "integer",
@@ -201,14 +209,14 @@
         }
       }
     },
-    "debug" : {
+    "debug": {
       "description": "Config to start the scheduler with remote debug options enabled. THIS SHOULD NOT HAVE ANY DEFAULTS",
       "type": "object",
-      "properties" : {
+      "properties": {
         "suspend": {
           "description": "Suspend the JVM until a debugger is attached",
           "type": "string",
-          "enum":[
+          "enum": [
             "y",
             "n"
           ],
@@ -298,20 +306,20 @@
           "default": ""
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,
@@ -382,8 +390,8 @@
           "type": "integer",
           "default": 0
         },
-        "readiness_check" : {
-          "description" : "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+        "readiness_check": {
+          "description": "Readiness check settings. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "interval": {
@@ -407,20 +415,20 @@
           }
         },
         "rlimits": {
-          "description" : "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
+          "description": "POSIX resource limits applied to the pod. Excercise caution when modifying these default values as it can lead to spurious task failures.",
           "type": "object",
           "properties": {
             "rlimit_nofile": {
               "description": "Specifies RLIMIT_NOFILE, a value one greater than the maximum file descriptor number that can be opened by this process.",
               "type": "object",
               "properties": {
-                "soft" : {
+                "soft": {
                   "type": "integer",
                   "description": "The  soft  limit  is  the  value that the kernel enforces for the corresponding resource.",
                   "default": 128000,
                   "minimum": 128000
                 },
-                "hard" : {
+                "hard": {
                   "type": "integer",
                   "description": "The  hard  limit  acts as a ceiling for the soft limit.",
                   "default": 128000,

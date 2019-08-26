@@ -121,7 +121,7 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
       DefaultResourceSet taskResourceSet = (DefaultResourceSet) task.getResourceSet();
       DefaultResourceSet.Builder taskResourceSetBuilder = DefaultResourceSet.newBuilder(
           dummyRole,
-          taskResourceSet.getPreReservedRole(),
+          null,
           taskResourceSet.getPrincipal());
       taskResourceSetBuilder.id(taskResourceSet.getId());
 
@@ -321,7 +321,6 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
         try {
           final ServiceSpec taskConfig = configStore.fetch(taskConfigId);
           if (!needsConfigUpdate(taskInfo, targetConfig, taskConfig)) {
-            // DELETEME@kjoshi, this sets TaskLabelWriter, but this codepath currently doesn't get executed.
             // Task is effectively already on the target config. Update task's config ID to match
             // target, and allow the duplicate config to be dropped from configStore.
             TaskInfo.Builder taskBuilder = taskInfo.toBuilder();
