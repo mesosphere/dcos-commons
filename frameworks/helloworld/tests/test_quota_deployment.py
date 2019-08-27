@@ -20,7 +20,7 @@ RECOVERY_TIMEOUT_SECONDS = 20 * 60
 @pytest.fixture(autouse=True)
 def configure_package(configure_security):
     try:
-        sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
+        sdk_install.uninstall(config.PACKAGE_NAME, SERVICE_NAME)
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, SERVICE_NAME)
