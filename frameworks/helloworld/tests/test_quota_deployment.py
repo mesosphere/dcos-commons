@@ -29,7 +29,7 @@ def configure_package(configure_security):
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
+# @pytest.mark.sanity
 def test_nonenforced_group_role_defaults():
 
     # Create group without enforced roles.
@@ -62,7 +62,7 @@ def test_nonenforced_group_role_defaults():
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
+# @pytest.mark.sanity
 def test_nonenforced_group_role_service_role_set():
 
     # Create group without enforced roles.
@@ -95,7 +95,7 @@ def test_nonenforced_group_role_service_role_set():
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
+# @pytest.mark.sanity
 def test_nonenforced_group_legacy_service_role():
 
     # Create group without enforced roles.
@@ -128,7 +128,7 @@ def test_nonenforced_group_legacy_service_role():
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
+# @pytest.mark.sanity
 def test_nonenforced_group_role_service_role_legacy_role_set():
 
     # Create group without enforced roles.
@@ -171,7 +171,7 @@ def test_nonenforced_group_role_service_role_legacy_role_set():
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
+# @pytest.mark.sanity
 def test_enforced_group_role_defaults():
 
     # Create group without enforced roles.
@@ -204,7 +204,7 @@ def test_enforced_group_role_defaults():
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
+# @pytest.mark.sanity
 def test_enforced_group_role_legacy_role_set():
 
     # Create group without enforced roles.
@@ -241,7 +241,7 @@ def test_enforced_group_role_legacy_role_set():
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
+# @pytest.mark.sanity
 def test_nonenforced_group_legacy_service_role_non_migration():
 
     # Create group without enforced roles.
@@ -280,7 +280,7 @@ def test_nonenforced_group_legacy_service_role_non_migration():
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
+# @pytest.mark.sanity
 def test_enforced_role_non_migration():
 
     # Create group without enforced roles.
@@ -319,7 +319,7 @@ def test_enforced_role_non_migration():
 
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
+# @pytest.mark.sanity
 def test_group_enforced_role_non_migration():
 
     # Create group without enforced roles.
