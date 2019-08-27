@@ -28,7 +28,7 @@
         "quota_migration_mode": {
           "description": "When this flag is enabled, the scheduler subscribes with both the service-role and the legacy role. This flag is intended for migration to the new quota-enabled schedulers. ",
           "type": "boolean",
-          "default": true
+          "default": false
         },
         "service_account_secret": {
           "description": "Name of the Secret Store credentials to use for DC/OS service authentication. This should be left empty unless service authentication is needed.",

@@ -8,13 +8,12 @@ import sdk_utils
 from tests import config
 
 log = logging.getLogger(__name__)
-MARATHON_APP_ENFORCE_GROUP_ROLE = "true"
-ENFORCED_ROLE = "bar"
-LEGACY_ROLE = "{}__hello-world-role".format(ENFORCED_ROLE)
+
+ENFORCED_ROLE = "test"
+SERVICE_NAME = "/{}/integration/hello-world".format(ENFORCED_ROLE)
+LEGACY_ROLE = "{}-role".format(SERVICE_NAME.strip("/").replace("/", "__"))
 
 RECOVERY_TIMEOUT_SECONDS = 20 * 60
-SERVICE_NAME = "/{}/hello-world".format(ENFORCED_ROLE)
-
 
 # This test does a fresh install of a new service and verifies that role
 # creation was correctly done.
@@ -57,12 +56,8 @@ def test_nonenforced_group_role_defaults():
     assert LEGACY_ROLE in current_task_roles.values()
     assert ENFORCED_ROLE not in current_task_roles.values()
 
-    assert service_roles["framework-roles"] is not None
-    assert service_roles["framework-role"] is None
-
-    assert len(service_roles["framework-roles"]) == 2
-    assert LEGACY_ROLE in service_roles["framework-roles"]
-    assert ENFORCED_ROLE in service_roles["framework-roles"]
+    assert service_roles["framework-roles"] is None
+    assert service_roles["framework-role"] == LEGACY_ROLE
 
 
 @pytest.mark.quota
@@ -94,12 +89,8 @@ def test_nonenforced_group_role_service_role_set():
     assert LEGACY_ROLE not in current_task_roles.values()
     assert ENFORCED_ROLE in current_task_roles.values()
 
-    assert service_roles["framework-roles"] is not None
-    assert service_roles["framework-role"] is None
-
-    assert len(service_roles["framework-roles"]) == 2
-    assert LEGACY_ROLE in service_roles["framework-roles"]
-    assert ENFORCED_ROLE in service_roles["framework-roles"]
+    assert service_roles["framework-roles"] is None
+    assert service_roles["framework-role"] == ENFORCED_ROLE
 
 
 @pytest.mark.quota
@@ -131,12 +122,8 @@ def test_nonenforced_group_legacy_service_role():
     assert LEGACY_ROLE in current_task_roles.values()
     assert ENFORCED_ROLE not in current_task_roles.values()
 
-    assert service_roles["framework-roles"] is not None
-    assert service_roles["framework-role"] is None
-
-    assert len(service_roles["framework-roles"]) == 2
-    assert LEGACY_ROLE in service_roles["framework-roles"]
-    assert ENFORCED_ROLE in service_roles["framework-roles"]
+    assert service_roles["framework-roles"] is None
+    assert service_roles["framework-role"] == LEGACY_ROLE
 
 
 @pytest.mark.quota
@@ -211,12 +198,8 @@ def test_enforced_group_role_defaults():
     assert LEGACY_ROLE not in current_task_roles.values()
     assert ENFORCED_ROLE in current_task_roles.values()
 
-    assert service_roles["framework-roles"] is not None
-    assert service_roles["framework-role"] is None
-
-    assert len(service_roles["framework-roles"]) == 2
-    assert LEGACY_ROLE in service_roles["framework-roles"]
-    assert ENFORCED_ROLE in service_roles["framework-roles"]
+    assert service_roles["framework-roles"] is None
+    assert service_roles["framework-role"] == ENFORCED_ROLE
 
 
 @pytest.mark.quota

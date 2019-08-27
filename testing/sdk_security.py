@@ -267,10 +267,8 @@ def _get_service_role(service_name: str):
     if role_basename.partition("__")[1]:
         # Add top level group role.
         roles_list.append(role_basename.partition("__")[0])
-    else:
-        # No top level groups exist, add default slave_public role.
-        roles_list.append("slave_public")
-
+    # Add default slave_public role.
+    roles_list.append("slave_public")
     return roles_list
 
 
@@ -280,7 +278,7 @@ def _get_integration_test_foldered_role(service_name: str) -> List[str]:
     """
 
     role_basename = service_name.strip("/").replace("/", "__")
-    return ["test__integration__{}-role".format(role_basename)]
+    return ["test__integration__{}-role".format(role_basename), "test"]
 
 
 def setup_security(
