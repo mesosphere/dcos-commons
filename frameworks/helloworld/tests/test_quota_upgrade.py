@@ -10,12 +10,12 @@ import sdk_upgrade
 from tests import config
 
 log = logging.getLogger(__name__)
-MARATHON_APP_ENFORCE_GROUP_ROLE = "true"
-ENFORCED_ROLE = "quota"
-LEGACY_ROLE = "{}__hello-world-role".format(ENFORCED_ROLE)
+
+ENFORCED_ROLE = "test"
+SERVICE_NAME = "/{}/integration/hello-world".format(ENFORCED_ROLE)
+LEGACY_ROLE = "{}-role".format(SERVICE_NAME.strip("/").replace("/", "__"))
 
 RECOVERY_TIMEOUT_SECONDS = 20 * 60
-SERVICE_NAME = "/{}/hello-world".format(ENFORCED_ROLE)
 UPGRADE_FROM = "3.1.0-0.56.0"
 
 
@@ -52,13 +52,8 @@ def test_initial_upgrade():
     assert LEGACY_ROLE in current_task_roles.values()
     assert ENFORCED_ROLE not in current_task_roles.values()
 
-    # Ensure we're not MULTI_ROLE, and using the legacy role.
-    assert service_roles["framework-roles"] is not None
-    assert service_roles["framework-role"] is None
-
-    assert len(service_roles["framework-roles"]) == 2
-    assert LEGACY_ROLE in service_roles["framework-roles"]
-    assert ENFORCED_ROLE in service_roles["framework-roles"]
+    assert service_roles["framework-roles"] is None
+    assert service_roles["framework-role"] == LEGACY_ROLE
 
 
 @pytest.mark.quota_upgrade
@@ -66,7 +61,7 @@ def test_initial_upgrade():
 @pytest.mark.sanity
 def test_update_scheduler_role():
 
-    options = {"service": {"name": SERVICE_NAME, "service_role": ENFORCED_ROLE}}
+    options = {"service": {"name": SERVICE_NAME, "service_role": ENFORCED_ROLE, "quota_migration_mode": True}}
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         SERVICE_NAME,
@@ -106,7 +101,7 @@ def test_replace_pods_to_new_role():
     for pod in replace_pods:
         # start replace and wait for it to finish
         sdk_cmd.svc_cli(config.PACKAGE_NAME, SERVICE_NAME, "pod replace {}".format(pod))
-        sdk_plan.wait_for_kicked_off_recovery(SERVICE_NAME)
+        sdk_plan.wait_for_kicked_off_recovery(SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
         sdk_plan.wait_for_completed_recovery(SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
         # Get the current service state to verify roles have applied.
