@@ -125,8 +125,8 @@ pods:
                     exit 1
                 fi
 
-                chmod +x .ssl/jmx-ssl-setup.sh
-                .ssl/jmx-ssl-setup.sh
+                chmod +x ./jmx-ssl-setup.sh
+                ./jmx-ssl-setup.sh
 
             {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
 
@@ -149,7 +149,7 @@ pods:
         {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
           jmx-config:
             template: jmx-ssl-setup.sh
-            dest: .ssl/jmx-ssl-setup.sh
+            dest: jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
         readiness-check:
           cmd: |
@@ -181,8 +181,8 @@ pods:
               export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
               export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
               export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
-              chmod +x .ssl/jmx-ssl-setup.sh
-              .ssl/jmx-ssl-setup.sh
+              chmod +x ./jmx-ssl-setup.sh
+              ./jmx-ssl-setup.sh
               user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
               ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file repair -pr -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
               {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -194,7 +194,7 @@ pods:
         configs:
           jmx-config:
             template: jmx-ssl-setup.sh
-            dest: .ssl/jmx-ssl-setup.sh
+            dest: jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       cleanup:
         goal: ONCE
@@ -206,8 +206,8 @@ pods:
               export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
               export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
               export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
-              chmod +x .ssl/jmx-ssl-setup.sh
-              .ssl/jmx-ssl-setup.sh
+              chmod +x ./jmx-ssl-setup.sh
+              ./jmx-ssl-setup.sh
               user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
               ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file cleanup -p ${JMX_PORT} -- $CASSANDRA_KEYSPACE
               {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -219,7 +219,7 @@ pods:
         configs:
           jmx-config:
             template: jmx-ssl-setup.sh
-            dest: .ssl/jmx-ssl-setup.sh
+            dest: jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       backup-schema:
         goal: ONCE
@@ -261,8 +261,8 @@ pods:
                 export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
                 export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
                 export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
-                chmod +x .ssl/jmx-ssl-setup.sh
-                .ssl/jmx-ssl-setup.sh
+                chmod +x ./jmx-ssl-setup.sh
+                ./jmx-ssl-setup.sh
                 user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file snapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
                 {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -282,7 +282,7 @@ pods:
         configs:
           jmx-config:
             template: jmx-ssl-setup.sh
-            dest: .ssl/jmx-ssl-setup.sh
+            dest: jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       upload-s3:
         goal: ONCE
@@ -312,8 +312,8 @@ pods:
                 export JMX_PORT={{TASKCFG_ALL_JMX_PORT}}
                 export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}}
                 export CASSANDRA_VERSION={{CASSANDRA_VERSION}}
-                chmod +x .ssl/jmx-ssl-setup.sh
-                .ssl/jmx-ssl-setup.sh
+                chmod +x ./jmx-ssl-setup.sh
+                ./jmx-ssl-setup.sh
                 user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file)
                 ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file clearsnapshot -p ${JMX_PORT} -t "$SNAPSHOT_NAME" -- $(eval "echo $CASSANDRA_KEYSPACES")
                 {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -326,7 +326,7 @@ pods:
         configs:
           jmx-config:
             template: jmx-ssl-setup.sh
-            dest: .ssl/jmx-ssl-setup.sh
+            dest: jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       fetch-s3:
         goal: ONCE
@@ -462,8 +462,8 @@ pods:
                     export JMX_PORT={{TASKCFG_ALL_JMX_PORT}} &&
                     export SECURE_JMX_RMI_PORT={{SECURE_JMX_RMI_PORT}} &&
                     export CASSANDRA_VERSION={{CASSANDRA_VERSION}} &&
-                    chmod +x .ssl/jmx-ssl-setup.sh &&
-                    .ssl/jmx-ssl-setup.sh &&
+                    chmod +x ./jmx-ssl-setup.sh &&
+                    ./jmx-ssl-setup.sh &&
                     user=$(sed -nr '0,/readwrite/s/.*(^)(.+) readwrite.*/\2/p' $MESOS_SANDBOX/jmx/access_file) &&
                     nodetool --ssl -u $user -pwf $MESOS_SANDBOX/jmx/key_file repair system_auth &&                
                     {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
@@ -490,7 +490,7 @@ pods:
         {{#TASKCFG_ALL_SECURE_JMX_ENABLED}}
           jmx-config:
             template: jmx-ssl-setup.sh
-            dest: .ssl/jmx-ssl-setup.sh
+            dest: jmx-ssl-setup.sh
         {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
         {{#TASKCFG_ALL_SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
         transport-encryption:
