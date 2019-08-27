@@ -31,7 +31,7 @@ public final class RawNetwork {
    * Included so that we support empty network specifications (e.g. a network of {@code networks: dcos:}).
    */
   @JsonCreator
-  private RawNetwork(String ignored) {
+  private RawNetwork() {
     this(Collections.emptyList(), Collections.emptyList(), "");
   }
 
