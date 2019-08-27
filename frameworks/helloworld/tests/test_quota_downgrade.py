@@ -84,7 +84,13 @@ def test_disable_enforce_role():
 @pytest.mark.sanity
 def test_switch_to_legacy_role():
 
-    options = {"service": {"name": SERVICE_NAME, "service_role": "slave_public", "quota_migration_mode": True}}
+    options = {
+        "service": {
+            "name": SERVICE_NAME,
+            "service_role": "slave_public",
+            "quota_migration_mode": True,
+        }
+    }
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
         SERVICE_NAME,
@@ -122,7 +128,9 @@ def test_replace_pods_to_legacy_role():
     for pod in replace_pods:
         # start replace and wait for it to finish
         sdk_cmd.svc_cli(config.PACKAGE_NAME, SERVICE_NAME, "pod replace {}".format(pod))
-        sdk_plan.wait_for_kicked_off_recovery(SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
+        sdk_plan.wait_for_kicked_off_recovery(
+            SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS
+        )
         sdk_plan.wait_for_completed_recovery(SERVICE_NAME, timeout_seconds=RECOVERY_TIMEOUT_SECONDS)
 
         # Get the current service state to verify roles have applied.
