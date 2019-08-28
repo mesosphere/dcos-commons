@@ -1,4 +1,4 @@
-{  
+{
   "assets": {
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
@@ -21,7 +21,7 @@
       "darwin": {
         "x86-64": {
           "contentHash": [
-            {  
+            {
               "algo": "sha256",
               "value": "{{sha256:dcos-service-cli-darwin}}"
             }
@@ -33,7 +33,7 @@
       "linux": {
         "x86-64": {
           "contentHash": [
-            {  
+            {
               "algo": "sha256",
               "value": "{{sha256:dcos-service-cli-linux}}"
             }
@@ -45,7 +45,7 @@
       "windows": {
         "x86-64": {
           "contentHash": [
-            {  
+            {
               "algo": "sha256",
               "value": "{{sha256:dcos-service-cli.exe}}"
             }
