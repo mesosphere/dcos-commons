@@ -1,4 +1,4 @@
-{  
+{
   "type": "object",
   "properties": {
     "service": {
@@ -50,7 +50,7 @@
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
-          "enum":[
+          "enum": [
             "OFF",
             "FATAL",
             "ERROR",
@@ -60,7 +60,7 @@
             "TRACE",
             "ALL"
           ],
-          "default":"INFO"
+          "default": "INFO"
         },
         "data_center": {
           "description": "The name of the data center this cluster is running in",
@@ -80,7 +80,7 @@
         "backup_restore_strategy": {
           "description": "Strategy to use for uploading/downloading backups {serial, parallel}",
           "type": "string",
-          "enum":[
+          "enum": [
             "serial",
             "parallel"
           ],
@@ -116,7 +116,7 @@
             },
             "authentication": {
               "type": "object",
-              "description":"DC/OS Apache Cassandra authentication settings",
+              "description": "DC/OS Apache Cassandra authentication settings",
               "properties": {
                 "enabled": {
                   "description": "Enable authentication",
@@ -233,7 +233,7 @@
               "default": 0,
               "minimum": 0
             },
-            "timeout":{
+            "timeout": {
               "type": "integer",
               "description": "An amount of time in seconds to wait for a readiness check to succeed.",
               "default": 60,
@@ -350,7 +350,7 @@
               "description": "The amount of JVM heap, in MB, allocated to the Cassandra process.",
               "default": 2048
             },
-            "new":{
+            "new": {
               "type": "integer",
               "description": "The amount of JVM new generation heap, in MB, allocated to the Cassandra process.",
               "default": 100
@@ -471,7 +471,7 @@
           "description": "For workloads with more data than can fit in memory, the bottleneck is reads fetching data from disk. Setting to (16 times the number of drives) allows operations to queue low enough in the stack so that the OS and drives can reorder them.",
           "default": 16
         },
-        "concurrent_writes": {  
+        "concurrent_writes": {
           "type": "integer",
           "description": "Writes in Cassandra are rarely I/O bound, so the ideal number of concurrent writes depends on the number of CPU cores in your system. The recommended value is 8 times the number of cpu cores.",
           "default": 32
@@ -761,7 +761,7 @@
           "description": "The sensitivity of the failure detector on an exponential scale",
           "default": 8
         },
-        "buffer_pool_use_heap_if_exhausted": {  
+        "buffer_pool_use_heap_if_exhausted": {
           "type": "boolean",
           "description": "Allocate on-heap memory when the SSTable buffer pool is exhausted",
           "default": true
@@ -805,7 +805,7 @@
           "description": "Enable this property for inter-datacenter communication.",
           "default": false
         },
-        "tracetype_query_ttl" :{
+        "tracetype_query_ttl": {
           "type": "integer",
           "description": "TTL for different trace types used during logging of the query process.",
           "default": 86400
@@ -858,7 +858,7 @@
         "commit_failure_policy": {
           "type": "string",
           "description": "Policy for commit disk failures.",
-          "enum":[
+          "enum": [
             "die",
             "stop",
             "stop_commit",
@@ -876,7 +876,7 @@
           "description": "When no value is set, Cassandra uses the smaller of minimum of 2.5% of Heap or 50MB.",
           "default": ""
         },
-        "commitlog_sync": {  
+        "commitlog_sync": {
           "type": "string",
           "description": "The method that Cassandra uses to acknowledge writes in milliseconds",
           "enum": [
@@ -970,7 +970,7 @@
         "back_pressure_high_ratio": {
           "type": "number",
           "description": "When outgoing mutations are below this value, they are rate limited according to the incoming rate decreased by the factor. When above this value, the rate limiting is increased by the factor.",
-          "default": 0.90
+          "default": 0.9
         },
         "back_pressure_factor": {
           "type": "integer",
@@ -978,7 +978,7 @@
           "default": 5
         },
         "back_pressure_flow": {
-          "type":"string",
+          "type": "string",
           "description": "The flow speed to apply rate limiting: FAST - rate limited to the speed of the fastest replica. SLOW - rate limit to the speed of the slowest replica.",
           "default": "FAST"
         }
