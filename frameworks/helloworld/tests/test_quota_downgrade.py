@@ -11,7 +11,7 @@ from tests import config
 
 log = logging.getLogger(__name__)
 
-ENFORCED_ROLE = "test"
+ENFORCED_ROLE = "quota"
 SERVICE_NAME = "/{}/hello-world".format(ENFORCED_ROLE)
 LEGACY_ROLE = "{}-role".format(SERVICE_NAME.strip("/").replace("/", "__"))
 
