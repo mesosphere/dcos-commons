@@ -28,4 +28,4 @@ def test_universe_file_formatting(file_base):
         )
         if diff:
             print("\n" + ("\n".join(diff)))
-            pytest.fail("%s is not formatted correctly, see diff above" % path)
+            pytest.fail("%s is not formatted correctly,see diff above" % path)
