@@ -1,6 +1,8 @@
 plugins {
     id 'de.fuerstenau.buildconfig' version '1.1.8'
     id 'com.github.johnrengelman.shadow' version '5.0.0'
+    // Use `$ gradle htmlDependencyReport` to generate project library dependency report
+    id 'project-report'
 }
 
 // Configure the SDKBuildInfo class generator
@@ -137,13 +139,13 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.4'
     compile 'org.antlr:antlr4-runtime:4.5.1-1'
     compile 'javax.ws.rs:javax.ws.rs-api:2.0.1'
-    compile ("org.apache.curator:curator-framework:${curatorVer}") {
-        exclude group: 'org.apache.zookeeper', module: 'zookeeper'
-    }
-    compile ("org.apache.curator:curator-recipes:${curatorVer}") {
-        exclude group: 'org.apache.zookeeper', module: 'zookeeper'
-    }
+
+    // Apache Curator. See this [compatibility documentation](http://curator.apache.org/zk-compatibility.html)
+    def withoutZk = { exclude group: 'org.apache.zookeeper', module: 'zookeeper' }
+    compile "org.apache.curator:curator-framework:${curatorVer}", withoutZk
+    compile "org.apache.curator:curator-recipes:${curatorVer}", withoutZk
     compile 'org.apache.zookeeper:zookeeper:3.4.11'
+
     compile "org.apache.httpcomponents:httpclient:${httpClientVer}"
     compile "org.apache.httpcomponents:fluent-hc:${httpClientVer}"
     compile 'org.json:json:20160212'
@@ -180,10 +182,10 @@ dependencies {
     testCompile 'org.mockito:mockito-core:2.10.0'
     testCompile "org.apache.curator:curator-test:${curatorVer}"
 
-    compile "com.mesosphere.usi:core:${usiVer}"
-    compile "com.mesosphere.usi:core-models:${usiVer}"
-    compile "com.mesosphere.usi:mesos-client:${usiVer}"
-    compile "com.mesosphere.usi:persistence:${usiVer}"
+    implementation "com.mesosphere.usi:core:${usiVer}"
+    implementation "com.mesosphere.usi:core-models:${usiVer}"
+    implementation "com.mesosphere.usi:mesos-client:${usiVer}"
+    implementation "com.mesosphere.usi:persistence:${usiVer}"
 }
 
 check.finalizedBy jacocoTestReport
