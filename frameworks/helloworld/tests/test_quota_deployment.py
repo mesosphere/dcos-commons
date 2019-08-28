@@ -10,7 +10,7 @@ from tests import config
 log = logging.getLogger(__name__)
 
 ENFORCED_ROLE = "test"
-SERVICE_NAME = "/{}/integration/hello-world".format(ENFORCED_ROLE)
+SERVICE_NAME = "/{}/hello-world".format(ENFORCED_ROLE)
 LEGACY_ROLE = "{}-role".format(SERVICE_NAME.strip("/").replace("/", "__"))
 
 RECOVERY_TIMEOUT_SECONDS = 20 * 60
