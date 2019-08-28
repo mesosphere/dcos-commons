@@ -37,9 +37,6 @@ import com.mesosphere.sdk.scheduler.plan.PlanUtils;
 import com.mesosphere.sdk.scheduler.recovery.DefaultRecoveryPlanManager;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
-import com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.constrain.TimedLaunchConstrainer;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.NeverFailureMonitor;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TimedFailureMonitor;
@@ -607,25 +604,20 @@ public class SchedulerBuilder {
       logger.info("Adding overriding recovery plan manager.");
       overrideRecoveryPlanManagers.add(recoveryOverriderFactory.get().create(stateStore, plans));
     }
-    final LaunchConstrainer launchConstrainer;
     final FailureMonitor failureMonitor;
     if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
       ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
-      launchConstrainer = new TimedLaunchConstrainer(
-          Duration.ofMinutes(failurePolicy.getMinReplaceDelayMins()));
       failureMonitor = new TimedFailureMonitor(
           Duration.ofMinutes(failurePolicy.getPermanentFailureTimeoutMins()),
           stateStore,
           configStore);
     } else {
-      launchConstrainer = new UnconstrainedLaunchConstrainer();
       failureMonitor = new NeverFailureMonitor();
     }
     return new DefaultRecoveryPlanManager(
         stateStore,
         configStore,
         PlanUtils.getLaunchableTasks(plans),
-        launchConstrainer,
         failureMonitor,
         namespace,
         overrideRecoveryPlanManagers);

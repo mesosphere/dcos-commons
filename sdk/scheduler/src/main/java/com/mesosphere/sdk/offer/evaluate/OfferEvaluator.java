@@ -57,7 +57,6 @@ import java.util.stream.Collectors;
  * in reference to {@link PodInstanceRequirement}s.
  */
 @SuppressWarnings({
-    "checkstyle:LineLength",
     "checkstyle:MultipleStringLiterals",
     "checkstyle:HiddenField",
     "checkstyle:ThrowsCount",
