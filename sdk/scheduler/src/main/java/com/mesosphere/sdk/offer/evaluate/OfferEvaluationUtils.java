@@ -27,7 +27,6 @@ import java.util.Optional;
  * This class encapsulates shared offer evaluation logic for evaluation stages.
  */
 @SuppressWarnings({
-    "checkstyle:LineLength",
     "checkstyle:InnerTypeLast",
     "checkstyle:HiddenField",
     "checkstyle:ThrowsCount",
