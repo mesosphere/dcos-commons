@@ -3,7 +3,6 @@ package com.mesosphere.sdk.scheduler.plan;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Optional;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -45,8 +44,7 @@ public class PlanUtilsTest {
         step = new DeploymentStep(
                 TEST_STEP_NAME,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore,
-                Optional.empty());
+                mockStateStore);
     }
 
     @Test

@@ -251,9 +251,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.empty(),
-                Optional.empty(),
-                Optional.of(mockSecretsClient),
-                new TestTimeFetcher());
+                Optional.of(mockSecretsClient));
         uninstallScheduler.registered(false);
         // Starts with a near-empty plan with only the deregistered call incomplete
         Plan plan = getUninstallPlan(uninstallScheduler);
@@ -292,7 +290,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         when(mockPod.getTasks()).thenReturn(Collections.singletonList(mockTask));
         when(serviceSpecWithTLSTasks.getPods()).thenReturn(Collections.singletonList(mockPod));
 
-        UninstallScheduler uninstallScheduler = getUninstallScheduler(serviceSpecWithTLSTasks, new TestTimeFetcher());
+        UninstallScheduler uninstallScheduler = getUninstallScheduler(serviceSpecWithTLSTasks);
         Plan plan = getUninstallPlan(uninstallScheduler);
 
         when(mockSecretsClient.list(TestConstants.SERVICE_NAME)).thenReturn(Collections.emptyList());
@@ -343,9 +341,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(getReversingPlanCustomizer()),
-                Optional.empty(),
-                Optional.of(mockSecretsClient),
-                new TestTimeFetcher());
+                Optional.of(mockSecretsClient));
 
         Plan plan = getUninstallPlan(uninstallScheduler);
 
@@ -354,24 +350,6 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         Assert.assertEquals("deregister-service", plan.getChildren().get(0).getName());
         Assert.assertEquals("unreserve-resources-host-1", plan.getChildren().get(1).getName());
         Assert.assertEquals("kill-tasks", plan.getChildren().get(2).getName());
-    }
-
-    @Test
-    public void testUninstallTimeout() {
-        // Rebuild client because timeout is checked in constructor:
-        TestTimeFetcher testTimeFetcher = new TestTimeFetcher();
-        UninstallScheduler uninstallScheduler = getUninstallScheduler(getServiceSpec(), testTimeFetcher);
-
-        // 0s: starts uninstalling
-        Assert.assertEquals(ClientStatusResponse.launching(true), uninstallScheduler.getClientStatus());
-
-        // 60s: not quite timeout yet
-        testTimeFetcher.addSeconds(60);
-        Assert.assertEquals(ClientStatusResponse.launching(false), uninstallScheduler.getClientStatus());
-
-        // 61s: 'done' due to timeout
-        testTimeFetcher.addSeconds(1);
-        Assert.assertEquals(ClientStatusResponse.readyToRemove(), uninstallScheduler.getClientStatus());
     }
 
     private static Protos.Offer getOffer() {
@@ -388,19 +366,17 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     }
 
     private UninstallScheduler getUninstallScheduler() {
-        return getUninstallScheduler(getServiceSpec(), new TestTimeFetcher());
+        return getUninstallScheduler(getServiceSpec());
     }
 
-    private UninstallScheduler getUninstallScheduler(ServiceSpec serviceSpec, UninstallScheduler.TimeFetcher timeFetcher) {
+    private UninstallScheduler getUninstallScheduler(ServiceSpec serviceSpec) {
         UninstallScheduler uninstallScheduler = new UninstallScheduler(
                 serviceSpec,
                 stateStore,
                 mockConfigStore,
                 SchedulerConfigTestUtils.getTestSchedulerConfig(),
                 Optional.of(mockPlanCustomizer),
-                Optional.empty(),
-                Optional.of(mockSecretsClient),
-                timeFetcher);
+                Optional.of(mockSecretsClient));
         uninstallScheduler.registered(false);
         return uninstallScheduler;
     }
@@ -439,18 +415,5 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 return uninstallPlan;
             }
         });
-    }
-
-    private static class TestTimeFetcher extends UninstallScheduler.TimeFetcher {
-        private long currentTimeSeconds = 1234567890; // Feb 13 2009
-
-        private void addSeconds(long secs) {
-            currentTimeSeconds += secs;
-        }
-
-        @Override
-        protected long getCurrentTimeMillis() {
-            return currentTimeSeconds * 1000;
-        }
     }
 }

@@ -80,8 +80,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
   private final Logger logger;
 
-  private final Optional<String> namespace;
-
   private final FrameworkStore frameworkStore;
 
   private final ConfigStore<ServiceSpec> configStore;
@@ -143,7 +141,6 @@ public class DefaultScheduler extends AbstractScheduler {
   protected DefaultScheduler(
       ServiceSpec serviceSpec,
       SchedulerConfig schedulerConfig,
-      Optional<String> namespace,
       Collection<Object> customResources,
       PlanCoordinator planCoordinator,
       Optional<PlanCustomizer> planCustomizer,
@@ -153,24 +150,19 @@ public class DefaultScheduler extends AbstractScheduler {
       ArtifactQueries.TemplateUrlFactory templateUrlFactory,
       Map<String, EndpointProducer> customEndpointProducers) throws ConfigStoreException
   {
-    super(serviceSpec, schedulerConfig, stateStore, planCoordinator, planCustomizer, namespace);
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
-    this.namespace = namespace;
+    super(serviceSpec, schedulerConfig, stateStore, planCoordinator, planCustomizer);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.frameworkStore = frameworkStore;
     this.configStore = configStore;
     this.goalState = serviceSpec.getGoal();
     this.customResources = customResources;
     this.customEndpointProducers = customEndpointProducers;
 
-    this.launchRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec, namespace);
+    this.launchRecorder = new PersistentLaunchRecorder(stateStore, serviceSpec);
     Optional<DecommissionPlanManager> decommissionManager = getDecommissionManager(planCoordinator);
-    if (decommissionManager.isPresent()) {
-      this.decommissionRecorder =
-
-          Optional.of(new UninstallRecorder(stateStore, decommissionManager.get().getResourceSteps()));
-    } else {
-      this.decommissionRecorder = Optional.empty();
-    }
+    this.decommissionRecorder = decommissionManager.map(decommissionPlanManager ->
+      new UninstallRecorder(stateStore, decommissionPlanManager.getResourceSteps())
+    );
 
     // Get the recovery and deploy plan managers. We store the PlanManagers, not the underlying Plans, because
     // PlanManagers can change their plans at any time.
@@ -184,10 +176,8 @@ public class DefaultScheduler extends AbstractScheduler {
         .findAny()
         .get();
 
-    // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
-    // reduce memory consumption.
-    this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
-    this.offerOutcomeTrackerV2 = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTrackerV2());
+    this.offerOutcomeTracker = Optional.of(new OfferOutcomeTracker());
+    this.offerOutcomeTrackerV2 = Optional.of(new OfferOutcomeTrackerV2());
     this.statusesTracker = Optional.of(new TaskStatusesTracker(getPlanCoordinator(), stateStore));
 
     this.planScheduler = new PlanScheduler(
@@ -199,10 +189,8 @@ public class DefaultScheduler extends AbstractScheduler {
             serviceSpec.getName(),
             configStore.getTargetConfig(),
             templateUrlFactory,
-            schedulerConfig,
-            namespace),
-        stateStore,
-        namespace);
+            schedulerConfig),
+        stateStore);
 
     customizePlans();
     this.plansTracker = Optional.of(new PlansTracker(getPlanCoordinator(), stateStore));
@@ -567,7 +555,6 @@ public class DefaultScheduler extends AbstractScheduler {
         this.stateStore,
         this.configStore,
         this.schedulerConfig,
-        this.planCustomizer,
-        this.namespace);
+        this.planCustomizer);
   }
 }

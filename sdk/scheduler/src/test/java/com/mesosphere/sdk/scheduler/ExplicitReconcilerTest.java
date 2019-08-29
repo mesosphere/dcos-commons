@@ -21,7 +21,6 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Tests for {@link ExplicitReconciler}.
@@ -221,7 +220,7 @@ public class ExplicitReconcilerTest {
         private long nowMs;
 
         private TestReconciler(StateStore store, SchedulerConfig schedulerConfig, long nowMs) {
-            super(store, Optional.empty(), schedulerConfig);
+            super(store, schedulerConfig);
             setNowMs(nowMs);
         }
 

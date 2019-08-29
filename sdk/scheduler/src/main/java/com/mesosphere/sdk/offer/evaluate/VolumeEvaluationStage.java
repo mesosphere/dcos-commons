@@ -41,8 +41,6 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
 
   private final Optional<String> resourceId;
 
-  private final Optional<String> resourceNamespace;
-
   private final Optional<String> persistenceId;
 
   private final Optional<Protos.ResourceProviderID> providerId;
@@ -51,14 +49,12 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
 
   public static VolumeEvaluationStage getNew(
       VolumeSpec volumeSpec,
-      Collection<String> taskNames,
-      Optional<String> resourceNamespace)
+      Collection<String> taskNames)
   {
     return new VolumeEvaluationStage(
         volumeSpec,
         taskNames,
         Optional.empty(),
-        resourceNamespace,
         Optional.empty(),
         Optional.empty(),
         Optional.empty());
@@ -68,7 +64,6 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
       VolumeSpec volumeSpec,
       Collection<String> taskNames,
       Optional<String> resourceId,
-      Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
       Optional<Protos.Resource.DiskInfo.Source> diskSource)
@@ -77,7 +72,6 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
         volumeSpec,
         taskNames,
         resourceId,
-        resourceNamespace,
         persistenceId,
         providerId,
         diskSource);
@@ -87,16 +81,14 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
       VolumeSpec volumeSpec,
       Collection<String> taskNames,
       Optional<String> resourceId,
-      Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
       Optional<Protos.Resource.DiskInfo.Source> diskSource)
   {
-    this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.volumeSpec = volumeSpec;
     this.taskNames = taskNames;
     this.resourceId = resourceId;
-    this.resourceNamespace = resourceNamespace;
     this.persistenceId = persistenceId;
     this.providerId = providerId;
     this.diskSource = diskSource;
@@ -126,7 +118,6 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
       Protos.Resource volume = PodInfoBuilder.getExistingExecutorVolume(
           volumeSpec,
           resourceId,
-          resourceNamespace,
           persistenceId,
           providerId,
           diskSource);
@@ -149,7 +140,6 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
               this,
               volumeSpec,
               resourceId,
-              resourceNamespace,
               mesosResourcePool);
       EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
       if (!evaluationOutcome.isPassing()) {
@@ -161,7 +151,6 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
       resource = ResourceBuilder.fromSpec(
           volumeSpec,
           reserveEvaluationOutcome.getResourceId(),
-          resourceNamespace,
           persistenceId,
           Optional.empty(),
           Optional.empty())
@@ -189,7 +178,6 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
       resource = ResourceBuilder.fromSpec(
           volumeSpec,
           resourceId,
-          resourceNamespace,
           persistenceId,
           ResourceUtils.getProviderId(mesosResource.getResource()),
           ResourceUtils.getDiskSource(mesosResource.getResource()))

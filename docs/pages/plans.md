@@ -23,7 +23,7 @@ Plan foo
    └─ Step grault
 ```
 
-Plans are advertised by the Scheduler via `/v1/plans` endpoints. In practice, most (but not all) work performed by the Scheduler is conveyed via Plans. A given service can have multiple Plans, all doing work in parallel. This work can include deploying the service, rolling out configuration changes or upgrades, relaunching failed or replaced tasks, decommissioning pods, and uninstalling the service. The developer can even define their own custom plans to be manually invoked by the operator. If the Scheduler is running [multiple services](../multi-service/), then each of those services will have its own independent set of Plans, accessible at `/v1/multi/<svcname>/plans`.
+Plans are advertised by the Scheduler via `/v1/plans` endpoints. In practice, most (but not all) work performed by the Scheduler is conveyed via Plans. A given service can have multiple Plans, all doing work in parallel. This work can include deploying the service, rolling out configuration changes or upgrades, relaunching failed or replaced tasks, decommissioning pods, and uninstalling the service. The developer can even define their own custom plans to be manually invoked by the operator.
 
 Plans as a concept have several benefits:
 - They allow operators to see what the service is currently doing, and to visualize the broader operation such as for a config rollout. The fixed structure of that information meanwhile makes it straightforward to build UIs and tooling on top.

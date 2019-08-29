@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.decommission;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Optional;
 import java.util.SortedMap;
 import java.util.stream.Collectors;
 
@@ -124,8 +123,7 @@ public class DecommissionPlanFactoryTest {
         when(mockPodSpecE.getCount()).thenReturn(2);
         when(mockServiceSpec.getPods()).thenReturn(
                 Arrays.asList(mockPodSpecA, mockPodSpecB, mockPodSpecC, mockPodSpecD, mockPodSpecE));
-        DecommissionPlanFactory factory =
-                new DecommissionPlanFactory(mockServiceSpec, mockStateStore, Optional.empty());
+        DecommissionPlanFactory factory = new DecommissionPlanFactory(mockServiceSpec, mockStateStore);
         Assert.assertFalse(factory.getPlan().isPresent());
         Assert.assertTrue(factory.getResourceSteps().isEmpty());
 
@@ -145,8 +143,7 @@ public class DecommissionPlanFactoryTest {
     @Test
     public void testBigPlanConstruction() {
         when(mockStateStore.fetchTasks()).thenReturn(tasks);
-        DecommissionPlanFactory factory =
-                new DecommissionPlanFactory(mockServiceSpec, mockStateStore, Optional.empty());
+        DecommissionPlanFactory factory = new DecommissionPlanFactory(mockServiceSpec, mockStateStore);
 
         // any tasks with existing decommission bits but which are not to be decommissioned have had their decommission bits cleared (see list above):
         for (String taskToClear : Arrays.asList("podA-0-taskA", "podB-0-taskB")) {

@@ -46,21 +46,17 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
   private final Optional<String> resourceId;
 
-  private final Optional<String> resourceNamespace;
-
   private final boolean useHostPorts;
 
   public PortEvaluationStage(
       PortSpec portSpec,
       Collection<String> taskNames,
-      Optional<String> resourceId,
-      Optional<String> resourceNamespace)
+      Optional<String> resourceId)
   {
-    this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.portSpec = portSpec;
     this.taskNames = taskNames;
     this.resourceId = resourceId;
-    this.resourceNamespace = resourceNamespace;
     this.useHostPorts = requireHostPorts(portSpec.getNetworkNames());
   }
 
@@ -74,8 +70,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
       // If this is from an existing pod with the dynamic port already assigned and reserved, just keep it.
       Optional<Long> priorTaskPort = getTaskNames().stream()
           .map(taskName -> podInfoBuilder.getPriorPortForTask(taskName, portSpec))
-          .filter(priorPortForTask -> priorPortForTask.isPresent())
-          .map(priorPortForTask -> priorPortForTask.get())
+          .filter(Optional::isPresent)
+          .map(Optional::get)
           .findAny();
       if (priorTaskPort.isPresent()) {
         // Reuse the prior port value.
@@ -118,7 +114,6 @@ public class PortEvaluationStage implements OfferEvaluationStage {
               this,
               updatedPortSpec,
               resourceId,
-              resourceNamespace,
               mesosResourcePool);
       EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
       if (!evaluationOutcome.isPassing()) {
@@ -127,7 +122,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
       Optional<String> resourceIdResult = reserveEvaluationOutcome.getResourceId();
       setProtos(podInfoBuilder,
-          ResourceBuilder.fromSpec(updatedPortSpec, resourceIdResult, resourceNamespace).build());
+          ResourceBuilder.fromSpec(updatedPortSpec, resourceIdResult).build());
       return EvaluationOutcome.pass(
           this,
           evaluationOutcome.getOfferRecommendations(),
@@ -139,7 +134,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
           .build();
     } else {
       setProtos(podInfoBuilder,
-          ResourceBuilder.fromSpec(updatedPortSpec, resourceId, resourceNamespace).build());
+          ResourceBuilder.fromSpec(updatedPortSpec, resourceId).build());
       return EvaluationOutcome.pass(
           this,
           "Port %s doesn't require resource reservation, " +

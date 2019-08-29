@@ -83,7 +83,7 @@ class Task(object):
     """Entry value returned by get_summary() and get_service_tasks()"""
 
     @staticmethod
-    def parse(task_entry: Dict[str, Any], agentid_to_hostname: Dict[str, str]) -> 'Task':
+    def parse(task_entry: Dict[str, Any], agentid_to_hostname: Dict[str, str]) -> "Task":
         agent_id = task_entry["slave_id"]
         matching_hostname = agentid_to_hostname.get(agent_id)
         if matching_hostname:
@@ -195,7 +195,9 @@ def get_task_ids(service_name: str, task_prefix: str = "") -> List[str]:
     return [t.id for t in get_service_tasks(service_name, task_prefix=task_prefix)]
 
 
-def get_service_tasks(service_name: str, task_prefix: str = "", with_completed_tasks: bool = False) -> list:
+def get_service_tasks(
+    service_name: str, task_prefix: str = "", with_completed_tasks: bool = False
+) -> list:
     """Returns a list of task objects for tasks in the specified Mesos framework.
 
     : param service_name: The name of the Mesos framework whose task information should be retrieved.
@@ -351,7 +353,7 @@ def check_task_relaunched(
 
 
 def check_scheduler_relaunched(
-    service_name: str, old_scheduler_task_id: str, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS,
+    service_name: str, old_scheduler_task_id: str, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS
 ) -> None:
     """
     This function checks for the relaunch of a task using the same matching as is
@@ -370,19 +372,15 @@ def check_scheduler_relaunched(
 
 
 def check_task_not_relaunched(
-    service_name: str,
-    task_name: str,
-    old_task_id: str,
-    multiservice_name: Optional[str] = None,
-    with_completed: bool = False,
+    service_name: str, task_name: str, old_task_id: str, with_completed: bool = False
 ) -> None:
     log.info(
         'Checking that task "{}" with current task id {} is not relaunched'.format(
             task_name, old_task_id
         )
     )
-    sdk_plan.wait_for_completed_deployment(service_name, multiservice_name=multiservice_name)
-    sdk_plan.wait_for_completed_recovery(service_name, multiservice_name=multiservice_name)
+    sdk_plan.wait_for_completed_deployment(service_name)
+    sdk_plan.wait_for_completed_recovery(service_name)
 
     task_ids = set([t.id for t in get_summary(with_completed) if t.name == task_name])
     assert old_task_id in task_ids, "Old task id {} was not found in task_ids {}".format(
@@ -464,7 +462,9 @@ def check_tasks_not_updated(service_name: str, prefix: str, old_task_ids: Iterab
     ), 'Tasks starting with "{}" were updated:{}'.format(prefix, task_sets)
 
 
-def wait_for_active_framework(service_name: str, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS) -> None:
+def wait_for_active_framework(
+    service_name: str, timeout_seconds: int = DEFAULT_TIMEOUT_SECONDS
+) -> None:
     """
     Waits until a framework with name `framework_name` is found and is active
     """
@@ -474,8 +474,16 @@ def wait_for_active_framework(service_name: str, timeout_seconds: int = DEFAULT_
         wait_fixed=1000, stop_max_delay=timeout_seconds * 1000, retry_on_result=lambda res: not res
     )
     def _wait_for_active_framework() -> bool:
-        return len(list(filter(
-            lambda fwk: fwk["name"] == service_name and fwk["active"],
-            sdk_cmd.cluster_request("GET", "/mesos/frameworks").json()["frameworks"]
-        ))) > 0
+        return (
+            len(
+                list(
+                    filter(
+                        lambda fwk: fwk["name"] == service_name and fwk["active"],
+                        sdk_cmd.cluster_request("GET", "/mesos/frameworks").json()["frameworks"],
+                    )
+                )
+            )
+            > 0
+        )
+
     _wait_for_active_framework()

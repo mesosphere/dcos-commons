@@ -62,7 +62,6 @@ public class UninstallPlanFactory {
       ServiceSpec serviceSpec,
       StateStore stateStore,
       SchedulerConfig schedulerConfig,
-      Optional<String> namespace,
       Optional<SecretsClient> customSecretsClientForTests)
   {
     List<Phase> phases = new ArrayList<>();
@@ -70,7 +69,7 @@ public class UninstallPlanFactory {
     // First, we kill all the tasks, so that we may release their reserved resources.
     List<Step> taskKillSteps = stateStore.fetchTasks().stream()
         .map(Protos.TaskInfo::getTaskId)
-        .map(taskID -> new TaskKillStep(taskID, namespace))
+        .map(TaskKillStep::new)
         .collect(Collectors.toList());
     phases.add(new DefaultPhase(
         TASK_KILL_PHASE,
@@ -94,7 +93,7 @@ public class UninstallPlanFactory {
     for (Map.Entry<String, Set<String>> entry : getResourceIdsByAgentHost(stateStore).entrySet()) {
       // Resource IDs should be sorted alhpabetically:
       List<ResourceCleanupStep> agentSteps = entry.getValue().stream()
-          .map(resourceId -> new ResourceCleanupStep(resourceId, namespace))
+          .map(ResourceCleanupStep::new)
           .collect(Collectors.toList());
 
       this.allResourceCleanupSteps.addAll(agentSteps);
@@ -129,8 +128,7 @@ public class UninstallPlanFactory {
             TLS_CLEANUP_PHASE,
             Collections.singletonList(new TLSCleanupStep(
                 secretsClient,
-                schedulerConfig.getSecretsNamespace(serviceSpec.getName()),
-                namespace)),
+                schedulerConfig.getSecretsNamespace(serviceSpec.getName()))),
             new SerialStrategy<>(),
             Collections.emptyList()));
       } catch (Exception e) { // SUPPRESS CHECKSTYLE IllegalCatch
@@ -141,7 +139,7 @@ public class UninstallPlanFactory {
 
     // Finally, we wipe remaining ZK data and unregister the framework from Mesos.
     // This is done upstream in FrameworkRunner, then the step is notified when it completes.
-    this.deregisterStep = new DeregisterStep(namespace);
+    this.deregisterStep = new DeregisterStep();
     Phase deregisterPhase = new DefaultPhase(
         DEREGISTER_PHASE,
         Collections.singletonList(deregisterStep),

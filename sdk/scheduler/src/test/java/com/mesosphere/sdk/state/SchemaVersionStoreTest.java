@@ -56,9 +56,6 @@ public class SchemaVersionStoreTest {
         assertEquals(val.toInt(), getDirectVersion());
         store.check(val);
 
-        store.store(SchemaVersion.MULTI_SERVICE);
-        assertEquals(SchemaVersion.MULTI_SERVICE.toInt(), getDirectVersion());
-        store.check(SchemaVersion.MULTI_SERVICE);
     }
 
     @Test
@@ -70,9 +67,6 @@ public class SchemaVersionStoreTest {
         assertEquals(val.toInt(), getDirectVersion());
         store2.check(val);
 
-        store2.store(SchemaVersion.MULTI_SERVICE);
-        assertEquals(SchemaVersion.MULTI_SERVICE.toInt(), getDirectVersion());
-        store.check(SchemaVersion.MULTI_SERVICE);
     }
 
     @Test(expected=StateStoreException.class)

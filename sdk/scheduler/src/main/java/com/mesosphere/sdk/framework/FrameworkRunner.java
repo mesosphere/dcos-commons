@@ -213,8 +213,7 @@ public class FrameworkRunner {
   private void runSkeletonScheduler() {
     PlanManager uninstallPlanManager = DefaultPlanManager.createProceeding(EMPTY_DEPLOY_PLAN);
 
-    PlanCoordinator coordinator = new DefaultPlanCoordinator(Optional.empty(),
-        Collections.singletonList(uninstallPlanManager));
+    PlanCoordinator coordinator = new DefaultPlanCoordinator(Collections.singletonList(uninstallPlanManager));
 
     // Bare minimum resources to appear healthy/complete to DC/OS:
     Collection<Object> resources = Arrays.asList(

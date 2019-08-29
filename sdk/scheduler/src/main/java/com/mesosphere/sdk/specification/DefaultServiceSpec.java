@@ -530,8 +530,6 @@ public final class DefaultServiceSpec implements ServiceSpec {
 
     private final TaskEnvRouter taskEnvRouter;
 
-    private Optional<FrameworkConfig> multiServiceFrameworkConfig;
-
     private YAMLToInternalMappers.ConfigTemplateReader configTemplateReader;
 
     private Generator(
@@ -543,7 +541,6 @@ public final class DefaultServiceSpec implements ServiceSpec {
       this.rawServiceSpec = rawServiceSpec;
       this.schedulerConfig = schedulerConfig;
       this.taskEnvRouter = taskEnvRouter;
-      this.multiServiceFrameworkConfig = Optional.empty();
       this.configTemplateReader = new YAMLToInternalMappers.ConfigTemplateReader(configTemplateDir);
     }
 
@@ -568,15 +565,6 @@ public final class DefaultServiceSpec implements ServiceSpec {
     }
 
     /**
-     * Assigns a custom framework config. In the default single-service case, this is derived from the
-     * {@link RawServiceSpec} provided in the constructor.
-     */
-    public Generator setMultiServiceFrameworkConfig(FrameworkConfig multiServiceFrameworkConfig) {
-      this.multiServiceFrameworkConfig = Optional.of(multiServiceFrameworkConfig);
-      return this;
-    }
-
-    /**
      * Assigns a custom {@link YAMLToInternalMappers.ConfigTemplateReader} implementation for reading config file
      * templates.  This is exposed to support mocking in tests.
      */
@@ -591,8 +579,8 @@ public final class DefaultServiceSpec implements ServiceSpec {
     public DefaultServiceSpec build() throws Exception {
       return YAMLToInternalMappers.convertServiceSpec(
           rawServiceSpec,
-          // Use provided multi-service config, or derive single-service config from the RawServiceSpec:
-          multiServiceFrameworkConfig.orElse(FrameworkConfig.fromRawServiceSpec(rawServiceSpec)),
+          // Derive service config from the RawServiceSpec
+          FrameworkConfig.fromRawServiceSpec(rawServiceSpec),
           schedulerConfig,
           taskEnvRouter,
           configTemplateReader);

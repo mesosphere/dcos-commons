@@ -204,8 +204,7 @@ public class DeploymentStepTest {
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore,
-                Optional.empty());
+                mockStateStore);
 
         Assert.assertTrue(step.isPending());
 
@@ -248,8 +247,7 @@ public class DeploymentStepTest {
         DeploymentStep step = new DeploymentStep(
                 TEST_STEP_NAME,
                 PodInstanceRequirement.newBuilder(podInstance, TaskUtils.getTaskNames(podInstance)).build(),
-                mockStateStore,
-                Optional.empty());
+                mockStateStore);
 
         LaunchOfferRecommendation launchRec0 = new LaunchOfferRecommendation(
                 OfferTestUtils.getEmptyOfferBuilder().build(),
@@ -312,8 +310,7 @@ public class DeploymentStepTest {
                     .map(TaskSpec::getName)
                     .collect(Collectors.toList())
                 ).build(),
-                mockStateStore,
-                Optional.empty());
+                mockStateStore);
     }
 
     private DeploymentStep getStartingStep() {

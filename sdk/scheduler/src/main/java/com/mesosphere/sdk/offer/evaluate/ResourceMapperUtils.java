@@ -25,8 +25,7 @@ class ResourceMapperUtils {
 
   static Optional<ResourceLabels> findMatchingDiskSpec(
       Protos.Resource taskResource,
-      Collection<ResourceSpec> resourceSpecs,
-      Optional<String> resourceNamespace)
+      Collection<ResourceSpec> resourceSpecs)
   {
     if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
       LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
@@ -44,7 +43,6 @@ class ResourceMapperUtils {
             resourceSpec,
             ((VolumeSpec) resourceSpec).withDiskSize(taskResource.getScalar().getValue()),
             ResourceUtils.getResourceId(taskResource).get(),
-            getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace),
             ResourceUtils.getPersistenceId(taskResource),
             ResourceUtils.getProviderId(taskResource),
             ResourceUtils.getDiskSource(taskResource)));
@@ -52,8 +50,7 @@ class ResourceMapperUtils {
 
   static Optional<ResourceLabels> findMatchingResourceSpec(
       Protos.Resource taskResource,
-      Collection<ResourceSpec> resourceSpecs,
-      Optional<String> resourceNamespace)
+      Collection<ResourceSpec> resourceSpecs)
   {
     if (!ResourceUtils.getResourceId(taskResource).isPresent()) {
       LOGGER.error("Failed to find resource ID for resource: {}", taskResource);
@@ -65,7 +62,7 @@ class ResourceMapperUtils {
         .map(resourceSpec -> new ResourceLabels(
             resourceSpec,
             ResourceUtils.getResourceId(taskResource).get(),
-            getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace)));
+            getNamespaceLabel(ResourceUtils.getNamespace(taskResource), Optional.empty())));
   }
 
   /**

@@ -31,7 +31,7 @@ public class TLSCleanupStepTest {
     }
 
     private TLSCleanupStep createTLSCleanupStep() {
-        return new TLSCleanupStep(mockSecretsClient, TestConstants.SERVICE_NAME, Optional.empty());
+        return new TLSCleanupStep(mockSecretsClient, TestConstants.SERVICE_NAME);
     }
 
     @Test

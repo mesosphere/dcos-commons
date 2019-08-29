@@ -42,15 +42,8 @@ def get_decommission_plan(
     return get_plan(service_name=service_name, plan="decommission", timeout_seconds=timeout_seconds)
 
 
-def list_plans(
-    service_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
-    multiservice_name: Optional[str] = None,
-) -> List:
-    if multiservice_name is None:
-        path = "/v1/plans"
-    else:
-        path = "/v1/service/{}/plans".format(multiservice_name)
+def list_plans(service_name: str, timeout_seconds: int = TIMEOUT_SECONDS) -> List:
+    path = "/v1/plans"
     result = sdk_cmd.service_request(
         "GET", service_name, path, timeout_seconds=timeout_seconds
     ).json()
@@ -58,14 +51,8 @@ def list_plans(
     return result
 
 
-def get_plan_once(
-    service_name: str, plan: str, multiservice_name: Optional[str] = None
-) -> Dict[str, Any]:
-    if multiservice_name is None:
-        path = "/v1/plans/{}".format(plan)
-    else:
-        path = "/v1/service/{}/plans/{}".format(multiservice_name, plan)
-
+def get_plan_once(service_name: str, plan: str) -> Dict[str, Any]:
+    path = "/v1/plans/{}".format(plan)
     response = sdk_cmd.service_request("GET", service_name, path, retry=False, raise_on_error=False)
     if (
         response.status_code != 417
@@ -78,14 +65,11 @@ def get_plan_once(
 
 
 def get_plan(
-    service_name: str,
-    plan: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
-    multiservice_name: Optional[str] = None,
+    service_name: str, plan: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
     @retrying.retry(wait_fixed=1000, stop_max_delay=timeout_seconds * 1000)
     def wait_for_plan() -> Dict[str, Any]:
-        return get_plan_once(service_name, plan, multiservice_name)
+        return get_plan_once(service_name, plan)
 
     result = wait_for_plan()
     assert isinstance(result, dict)
@@ -110,11 +94,9 @@ def force_complete_step(service_name: str, plan: str, phase: str, step: str) -> 
 
 
 def wait_for_completed_recovery(
-    service_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
-    multiservice_name: Optional[str] = None,
+    service_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
-    return wait_for_completed_plan(service_name, "recovery", timeout_seconds, multiservice_name)
+    return wait_for_completed_plan(service_name, "recovery", timeout_seconds)
 
 
 def wait_for_in_progress_recovery(
@@ -136,22 +118,15 @@ def wait_for_kicked_off_recovery(
 
 
 def wait_for_completed_deployment(
-    service_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
-    multiservice_name: Optional[str] = None,
+    service_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
-    return wait_for_completed_plan(service_name, "deploy", timeout_seconds, multiservice_name)
+    return wait_for_completed_plan(service_name, "deploy", timeout_seconds)
 
 
 def wait_for_completed_plan(
-    service_name: str,
-    plan_name: str,
-    timeout_seconds: int = TIMEOUT_SECONDS,
-    multiservice_name: Optional[str] = None,
+    service_name: str, plan_name: str, timeout_seconds: int = TIMEOUT_SECONDS
 ) -> Dict[str, Any]:
-    return wait_for_plan_status(
-        service_name, plan_name, "COMPLETE", timeout_seconds, multiservice_name
-    )
+    return wait_for_plan_status(service_name, plan_name, "COMPLETE", timeout_seconds)
 
 
 def wait_for_completed_phase(
@@ -197,7 +172,6 @@ def wait_for_plan_status(
     plan_name: str,
     status: Union[List[str], str],
     timeout_seconds: int = TIMEOUT_SECONDS,
-    multiservice_name: Optional[str] = None,
 ) -> Dict[str, Any]:
     """Wait for a plan to have one of the specified statuses"""
     if isinstance(status, str):
@@ -227,12 +201,7 @@ def wait_for_plan_status(
             )
             raise TaskFailuresExceededException("Service not recoverable: {}".format(service_name))
 
-        plan = get_plan(
-            service_name,
-            plan_name,
-            timeout_seconds=SHORT_TIMEOUT_SECONDS,
-            multiservice_name=multiservice_name,
-        )
+        plan = get_plan(service_name, plan_name, timeout_seconds=SHORT_TIMEOUT_SECONDS)
         log.info("Waiting for %s %s plan:\n%s", status, plan_name, plan_string(plan_name, plan))
         if plan and plan["status"] in statuses:
             return plan

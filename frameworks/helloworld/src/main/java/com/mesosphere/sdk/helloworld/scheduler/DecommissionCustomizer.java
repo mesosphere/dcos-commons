@@ -57,7 +57,7 @@ public class DecommissionCustomizer implements PlanCustomizer {
    */
   private static class CustomStep extends AbstractStep {
     protected CustomStep(Optional<String> namespace) {
-      super(CUSTOM_DECOMMISSION_STEP_NAME, namespace);
+      super(CUSTOM_DECOMMISSION_STEP_NAME);
     }
 
     @Override

@@ -7,8 +7,6 @@ import com.mesosphere.sdk.state.StateStore;
 
 import org.apache.mesos.Protos;
 
-import java.util.Optional;
-
 /**
  * Step which marks a task as being decommissioned and kills it.
  */
@@ -20,10 +18,9 @@ public class TriggerDecommissionStep extends UninstallStep {
 
   public TriggerDecommissionStep(
       StateStore stateStore,
-      Protos.TaskInfo taskInfo,
-      Optional<String> namespace)
+      Protos.TaskInfo taskInfo)
   {
-    super("kill-" + taskInfo.getName(), namespace);
+    super("kill-" + taskInfo.getName());
     this.stateStore = stateStore;
     this.taskInfo = taskInfo;
   }

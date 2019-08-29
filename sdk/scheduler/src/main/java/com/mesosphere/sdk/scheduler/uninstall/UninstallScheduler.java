@@ -59,17 +59,6 @@ public class UninstallScheduler extends AbstractScheduler {
 
   private final PlanManager uninstallPlanManager;
 
-  // If an uninstall timeout is enabled, keep track of when the service should have finished uninstalling. This is
-  // only enabled in multi-service cases where the service is being removed from an otherwise active scheduler. It is
-  // not enabled if the scheduler itself is being uninstalled, to avoid leaking resources without user intervention.
-  private final TimeFetcher timeFetcher;
-
-  private final Optional<Long> uninstallDeadlineMillis;
-
-  private final long uninstallTimeoutSecs;
-
-  private final SchedulerConfig schedulerConfig;
-
   /**
    * Creates a new {@link UninstallScheduler} using the provided components. The {@link UninstallScheduler} builds an
    * uninstall {@link Plan} which will clean up the service's reservations, TLS artifacts, zookeeper data, and any
@@ -80,8 +69,7 @@ public class UninstallScheduler extends AbstractScheduler {
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
       SchedulerConfig schedulerConfig,
-      Optional<PlanCustomizer> planCustomizer,
-      Optional<String> namespace)
+      Optional<PlanCustomizer> planCustomizer)
   {
     this(
         serviceSpec,
@@ -89,9 +77,7 @@ public class UninstallScheduler extends AbstractScheduler {
         configStore,
         schedulerConfig,
         planCustomizer,
-        namespace,
-        Optional.empty(),
-        new TimeFetcher());
+        Optional.empty());
   }
 
   @VisibleForTesting
@@ -101,14 +87,11 @@ public class UninstallScheduler extends AbstractScheduler {
       ConfigStore<ServiceSpec> configStore,
       SchedulerConfig schedulerConfig,
       Optional<PlanCustomizer> planCustomizer,
-      Optional<String> namespace,
-      Optional<SecretsClient> customSecretsClientForTests,
-      TimeFetcher timeFetcher)
+      Optional<SecretsClient> customSecretsClientForTests)
   {
-    super(serviceSpec, schedulerConfig, stateStore, null, planCustomizer, namespace);
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+    super(serviceSpec, schedulerConfig, stateStore, null, planCustomizer);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.configStore = configStore;
-    this.schedulerConfig = schedulerConfig;
 
     if (!StateStoreUtils.isUninstalling(stateStore)) {
       logger.info("Service has been told to uninstall. Marking this in the " +
@@ -119,7 +102,7 @@ public class UninstallScheduler extends AbstractScheduler {
 
     // Construct a plan for uninstalling any remaining resources
     UninstallPlanFactory planFactory = new UninstallPlanFactory(
-        serviceSpec, stateStore, schedulerConfig, namespace, customSecretsClientForTests);
+        serviceSpec, stateStore, schedulerConfig, customSecretsClientForTests);
     this.recorder = new UninstallRecorder(stateStore, planFactory.getResourceCleanupSteps());
     this.deregisterStubStep = planFactory.getDeregisterStep();
 
@@ -130,20 +113,6 @@ public class UninstallScheduler extends AbstractScheduler {
     } catch (IOException e) {
       logger.error("Failed to deserialize uninstall plan.");
     }
-
-    this.timeFetcher = timeFetcher;
-    if (schedulerConfig.isUninstallEnabled()) {
-      // No timeout when whole scheduler is uninstalling, make user see what's up:
-      this.uninstallTimeoutSecs = -1;
-      this.uninstallDeadlineMillis = Optional.empty();
-    } else {
-      // Use uninstall timeout, unless disabled in SchedulerConfig with negative or zero value
-      this.uninstallTimeoutSecs = schedulerConfig.getMultiServiceRemovalTimeout().getSeconds();
-      this.uninstallDeadlineMillis = uninstallTimeoutSecs <= 0
-          ? Optional.empty()
-          : Optional.of(timeFetcher.getCurrentTimeMillis() + (uninstallTimeoutSecs * 1000));
-    }
-
     customizePlans();
   }
 
@@ -199,20 +168,8 @@ public class UninstallScheduler extends AbstractScheduler {
   protected ClientStatusResponse getStatus() {
     if (deregisterStubStep.isRunning() || deregisterStubStep.isComplete()) {
       // The service resources have been deleted and all that's left is the final deregister operation. After we
-      // return uninstalled(), upstream will finish the uninstall by doing one of the following:
+      // return uninstalled(), upstream will finish the uninstall by doing:
       // - Single-service: Upstream will stop/remove the framework, then unregistered() will be called.
-      // - Multi-service: Upstream will remove us from the list of services without calling unregistered().
-      return ClientStatusResponse.readyToRemove();
-    } else if (uninstallDeadlineMillis.isPresent()
-        && timeFetcher.getCurrentTimeMillis() > uninstallDeadlineMillis.get())
-    {
-      // Configured uninstall timeout has passed, and we're still uninstalling. Tell upstream that we're "done".
-      Optional<Plan> deployPlan = getPlans().stream()
-          .filter(plan -> plan.isDeployPlan())
-          .findAny();
-      logger.error("Failed to complete uninstall within {}s timeout, " +
-              "forcing cleanup. Deploy plan was: {}",
-          uninstallTimeoutSecs, deployPlan.isPresent() ? deployPlan.get().toString() : "UNKNOWN");
       return ClientStatusResponse.readyToRemove();
     } else {
       // Still uninstalling, and no timeout has passed.
@@ -248,7 +205,7 @@ public class UninstallScheduler extends AbstractScheduler {
             // In addition, checking for a valid resource_id label is a good sanity check to avoid
             // potentially unreserving any resources that weren't originally created by the SDK.
             // This is in addition to separate filtering in FrameworkScheduler of reserved Marathon volumes.
-            .filter(resource -> ResourceUtils.hasResourceId(resource))
+            .filter(ResourceUtils::hasResourceId)
             .collect(Collectors.toList())))
         .collect(Collectors.toList());
     try {
@@ -263,21 +220,11 @@ public class UninstallScheduler extends AbstractScheduler {
   }
 
   @Override
-  protected void processStatusUpdate(Protos.TaskStatus status) throws Exception {
+  protected void processStatusUpdate(Protos.TaskStatus status) {
     stateStore.storeStatus(StateStoreUtils.fetchTaskInfo(stateStore, status).getName(), status);
   }
 
   public DeregisterStep getDeregisterStep() {
     return deregisterStubStep;
-  }
-
-  /**
-   * Time retrieval broken out into a separate object to allow overriding its behavior in tests.
-   */
-  @VisibleForTesting
-  protected static class TimeFetcher {
-    protected long getCurrentTimeMillis() {
-      return System.currentTimeMillis();
-    }
   }
 }

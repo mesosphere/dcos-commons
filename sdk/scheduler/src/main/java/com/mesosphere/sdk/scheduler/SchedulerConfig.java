@@ -37,7 +37,6 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.TreeMap;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * This class encapsulates global Scheduler settings retrieved from the environment. Presented as a non-static object
@@ -66,33 +65,9 @@ public final class SchedulerConfig {
   private static final int DEFAULT_API_SERVER_TIMEOUT_S = 600; // 10 minutes
 
   /**
-   * (Multi-service only) Envvar to specify the amount of time in seconds for a removed service to complete uninstall
-   * before removing it. If this envvar is negative or zero, then the timeout is disabled and the Scheduler will wait
-   * indefinitely for removed services to complete. If the Scheduler itself is being uninstalled, it will always wait
-   * indefinitely, regardless of this setting.
-   */
-  private static final String SERVICE_REMOVAL_TIMEOUT_S_ENV = "SERVICE_REMOVAL_TIMEOUT_S";
-
-  /**
    * The default number of seconds to wait for a service to finish uninstall before being forcibly removed.
    */
   private static final int DEFAULT_SERVICE_REMOVE_TIMEOUT_S = 600; // 10 minutes
-
-  /**
-   * (Multi-service only) Envvar to specify the number of services that may be reserving footprint at the same time.
-   * <ul><li>High value (or <=0 for no limit): Faster deployment across multiple services, but risks deadlocks if two
-   * simultaneous deployments  both want the same resources. However, this can be ameliorated by enforcing per-service
-   * quotas.</li>
-   * <li>Lower value: Slower deployment, but reduces the risk of two deploying services being stuck on the same
-   * resource. Setting the value to {@code 1} should remove the risk entirely.</li></ul>
-   */
-  public static final String RESERVE_DISCIPLINE_ENV = "RESERVE_DISCIPLINE";
-
-  /**
-   * The default reserve discipline, which is to have no limit on deployments. Operators may configure a limit on the
-   * number of parallel deployments via the above envvar.
-   */
-  private static final int DEFAULT_RESERVE_DISCIPLINE = 0; // No limit
 
   /**
    * Envvar name to specify a custom amount of time before auth token expiration that will trigger auth
@@ -271,13 +246,6 @@ public final class SchedulerConfig {
   private static final String USE_LEGACY_UNNEEDED_TASK_KILLS = "USE_LEGACY_KILL_UNNEEDED_TASKS";
 
   /**
-   * We print the build info here because this is likely to be a very early point in the service's execution. In a
-   * multi-service situation, however, this code may be getting invoked multiple times, so only print if we haven't
-   * printed before.
-   */
-  private static final AtomicBoolean PRINTED_BUILD_INFO = new AtomicBoolean(false);
-
-  /**
    * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
    */
   public static SchedulerConfig fromEnv() {
@@ -295,10 +263,7 @@ public final class SchedulerConfig {
 
   private SchedulerConfig(EnvStore envStore) {
     this.envStore = envStore;
-
-    if (!PRINTED_BUILD_INFO.getAndSet(true)) {
-      LOGGER.info("Build information:\n{} ", getBuildInfo().toString(2));
-    }
+    LOGGER.info("Build information:\n{} ", getBuildInfo().toString(2));
   }
 
   /**
@@ -307,22 +272,6 @@ public final class SchedulerConfig {
   public Duration getApiServerInitTimeout() {
     return Duration.ofSeconds(
         envStore.getOptionalInt(API_SERVER_TIMEOUT_S_ENV, DEFAULT_API_SERVER_TIMEOUT_S));
-  }
-
-  /**
-   * Returns the configured time to wait for a service to be removed in a multi-service scheduler.
-   */
-  public Duration getMultiServiceRemovalTimeout() {
-    return Duration.ofSeconds(
-        envStore.getOptionalInt(SERVICE_REMOVAL_TIMEOUT_S_ENV, DEFAULT_SERVICE_REMOVE_TIMEOUT_S));
-  }
-
-  /**
-   * Returns the number of services that can be simultaneously reserving in a multi-service scheduler, or {@code <=0}
-   * for no limit.
-   */
-  public int getMultiServiceReserveDiscipline() {
-    return envStore.getOptionalInt(RESERVE_DISCIPLINE_ENV, DEFAULT_RESERVE_DISCIPLINE);
   }
 
   /**

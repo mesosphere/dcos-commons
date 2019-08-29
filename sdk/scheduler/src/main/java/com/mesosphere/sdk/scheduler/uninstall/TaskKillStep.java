@@ -5,8 +5,6 @@ import com.mesosphere.sdk.scheduler.plan.Status;
 
 import org.apache.mesos.Protos;
 
-import java.util.Optional;
-
 /**
  * Step which issues a kill command for a given task.
  */
@@ -14,8 +12,8 @@ public class TaskKillStep extends UninstallStep {
 
   private final Protos.TaskID taskID;
 
-  public TaskKillStep(Protos.TaskID taskID, Optional<String> namespace) {
-    super("kill-task-" + taskID.getValue(), namespace);
+  public TaskKillStep(Protos.TaskID taskID) {
+    super("kill-task-" + taskID.getValue());
     this.taskID = taskID;
   }
 

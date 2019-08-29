@@ -73,14 +73,13 @@ public class DecommissionPlanFactory {
 
   public DecommissionPlanFactory(
       ServiceSpec serviceSpec,
-      StateStore stateStore,
-      Optional<String> namespace)
+      StateStore stateStore)
   {
-    Logger logger = LoggingUtils.getLogger(getClass(), namespace);
+    Logger logger = LoggingUtils.getLogger(getClass());
     Collection<Protos.TaskInfo> allTasks = stateStore.fetchTasks();
     this.podsToDecommission = getPodsToDecommission(logger, serviceSpec, allTasks);
     this.planInfo =
-        buildPlanInfo(logger, serviceSpec, stateStore, allTasks, podsToDecommission, namespace);
+        buildPlanInfo(logger, serviceSpec, stateStore, allTasks, podsToDecommission);
   }
 
   /**
@@ -91,8 +90,7 @@ public class DecommissionPlanFactory {
       ServiceSpec serviceSpec,
       StateStore stateStore,
       Collection<Protos.TaskInfo> allTasks,
-      SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission,
-      Optional<String> namespace)
+      SortedMap<PodKey, Collection<Protos.TaskInfo>> podsToDecommission)
   {
     // Determine which tasks should be decommissioned (and which shouldn't)
     Set<String> tasksToDecommission = new HashSet<>();
@@ -138,7 +136,7 @@ public class DecommissionPlanFactory {
 
       // 1. Kill pod's tasks
       steps.addAll(entry.getValue().stream()
-          .map(task -> new TriggerDecommissionStep(stateStore, task, namespace))
+          .map(task -> new TriggerDecommissionStep(stateStore, task))
           .collect(Collectors.toList()));
 
       // 2. Unreserve pod's resources
@@ -146,7 +144,7 @@ public class DecommissionPlanFactory {
       // parallel, as all the tasks had been flagged for decommissioning via TriggerDecommissionStep.
       Collection<ResourceCleanupStep> resourceStepsForPod =
           ResourceUtils.getResourceIds(ResourceUtils.getAllResources(entry.getValue())).stream()
-              .map(resourceId -> new ResourceCleanupStep(resourceId, namespace))
+              .map(ResourceCleanupStep::new)
               .collect(Collectors.toList());
       resourceSteps.addAll(resourceStepsForPod);
       steps.addAll(resourceStepsForPod);
@@ -157,7 +155,7 @@ public class DecommissionPlanFactory {
           entry
               .getValue()
               .stream()
-              .map(task -> new EraseTaskStateStep(stateStore, task.getName(), namespace))
+              .map(task -> new EraseTaskStateStep(stateStore, task.getName()))
               .collect(Collectors.toList())
       );
 

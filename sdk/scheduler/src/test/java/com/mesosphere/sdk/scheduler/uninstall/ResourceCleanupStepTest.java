@@ -11,7 +11,6 @@ import org.junit.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Optional;
 
 public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
     private static final String DIFFERENT_RESOURCE_ID = "nope";
@@ -19,7 +18,7 @@ public class ResourceCleanupStepTest extends DefaultCapabilitiesTestSuite {
 
     @Before
     public void beforeEach() throws Exception {
-        resourceCleanupStep = new ResourceCleanupStep(TestConstants.RESOURCE_ID, Optional.empty());
+        resourceCleanupStep = new ResourceCleanupStep(TestConstants.RESOURCE_ID);
     }
 
     @Test

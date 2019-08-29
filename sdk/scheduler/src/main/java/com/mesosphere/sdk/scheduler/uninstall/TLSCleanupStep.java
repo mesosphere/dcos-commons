@@ -29,8 +29,8 @@ public class TLSCleanupStep extends AbstractStep {
   /**
    * Creates a new instance with initial {@code status}.
    */
-  TLSCleanupStep(SecretsClient secretsClient, String secretsNamespace, Optional<String> namespace) {
-    super("tls-cleanup", namespace);
+  TLSCleanupStep(SecretsClient secretsClient, String secretsNamespace) {
+    super("tls-cleanup");
     this.secretsClient = secretsClient;
     this.secretsNamespace = secretsNamespace;
   }

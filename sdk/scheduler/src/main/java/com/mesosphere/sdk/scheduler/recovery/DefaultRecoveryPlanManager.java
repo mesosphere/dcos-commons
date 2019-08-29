@@ -57,8 +57,6 @@ public class DefaultRecoveryPlanManager implements PlanManager {
 
   protected final ConfigStore<ServiceSpec> configStore;
 
-  private final Optional<String> namespace;
-
   private final List<RecoveryPlanOverrider> recoveryPlanOverriders;
 
   private final Set<String> recoverableTaskNames;
@@ -75,15 +73,13 @@ public class DefaultRecoveryPlanManager implements PlanManager {
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
       Set<String> recoverableTaskNames,
-      FailureMonitor failureMonitor,
-      Optional<String> namespace)
+      FailureMonitor failureMonitor)
   {
     this(
         stateStore,
         configStore,
         recoverableTaskNames,
         failureMonitor,
-        namespace,
         Collections.emptyList());
   }
 
@@ -92,15 +88,13 @@ public class DefaultRecoveryPlanManager implements PlanManager {
       ConfigStore<ServiceSpec> configStore,
       Set<String> recoverableTaskNames,
       FailureMonitor failureMonitor,
-      Optional<String> namespace,
       List<RecoveryPlanOverrider> recoveryPlanOverriders)
   {
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.stateStore = stateStore;
     this.configStore = configStore;
     this.recoverableTaskNames = recoverableTaskNames;
     this.failureMonitor = failureMonitor;
-    this.namespace = namespace;
     this.recoveryPlanOverriders = recoveryPlanOverriders;
     plan = new DefaultPlan(Constants.RECOVERY_PLAN_NAME, Collections.emptyList());
   }
@@ -429,8 +423,7 @@ public class DefaultRecoveryPlanManager implements PlanManager {
     return new RecoveryStep(
         podInstanceRequirement.getName(),
         podInstanceRequirement,
-        stateStore,
-        namespace);
+        stateStore);
   }
 
   @Override

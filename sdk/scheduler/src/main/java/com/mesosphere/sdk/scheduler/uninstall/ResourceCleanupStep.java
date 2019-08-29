@@ -2,7 +2,6 @@ package com.mesosphere.sdk.scheduler.uninstall;
 
 import com.mesosphere.sdk.scheduler.plan.Status;
 
-import java.util.Optional;
 import java.util.Set;
 
 /**
@@ -15,9 +14,9 @@ public class ResourceCleanupStep extends UninstallStep {
   /**
    * Creates a new instance with the provided {@code resourceId} and initial {@code status}.
    */
-  public ResourceCleanupStep(String resourceId, Optional<String> namespace) {
+  public ResourceCleanupStep(String resourceId) {
     // Avoid having the step name be a pure UUID. Otherwise PlansResource will confuse this UUID with the step UUID:
-    super("unreserve-" + resourceId, namespace);
+    super("unreserve-" + resourceId);
     this.resourceId = resourceId;
   }
 

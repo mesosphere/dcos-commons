@@ -45,8 +45,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
                 TestConstants.SERVICE_NAME,
                 targetConfig,
                 PodTestUtils.getTemplateUrlFactory(),
-                SchedulerConfigTestUtils.getTestSchedulerConfig(),
-                Optional.empty());
+                SchedulerConfigTestUtils.getTestSchedulerConfig());
     }
 
     protected List<Resource> recordLaunchWithCompleteOfferedResources(

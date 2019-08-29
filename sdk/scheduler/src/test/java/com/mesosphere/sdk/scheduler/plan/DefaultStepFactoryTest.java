@@ -16,7 +16,6 @@ import org.junit.Test;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -278,7 +277,7 @@ public class DefaultStepFactoryTest {
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
 
-        stepFactory = new DefaultStepFactory(configStore, stateStore, Optional.empty());
+        stepFactory = new DefaultStepFactory(configStore, stateStore);
 
         return new DefaultPodInstance(podSpec, 0);
     }
@@ -312,7 +311,7 @@ public class DefaultStepFactoryTest {
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
 
-        stepFactory = new DefaultStepFactory(configStore, stateStore, Optional.empty());
+        stepFactory = new DefaultStepFactory(configStore, stateStore);
 
         return new DefaultPodInstance(podSpec, 0);
     }
@@ -343,7 +342,7 @@ public class DefaultStepFactoryTest {
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
 
-        stepFactory = new DefaultStepFactory(configStore, stateStore, Optional.empty());
+        stepFactory = new DefaultStepFactory(configStore, stateStore);
 
         return new DefaultPodInstance(podSpec, 0);
     }
@@ -378,7 +377,7 @@ public class DefaultStepFactoryTest {
         UUID configId = configStore.store(serviceSpec);
         configStore.setTargetConfig(configId);
 
-        stepFactory = new DefaultStepFactory(configStore, stateStore, Optional.empty());
+        stepFactory = new DefaultStepFactory(configStore, stateStore);
 
         return new DefaultPodInstance(podSpec, 0);
     }

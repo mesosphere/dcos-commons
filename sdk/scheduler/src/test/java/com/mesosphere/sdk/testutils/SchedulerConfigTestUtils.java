@@ -34,7 +34,6 @@ public class SchedulerConfigTestUtils {
         when(schedulerConfig.getVipTLD()).thenReturn("vip.tld");
         when(schedulerConfig.getMarathonName()).thenReturn("test-marathon");
         when(schedulerConfig.getSchedulerRegion()).thenReturn(Optional.of("test-region"));
-        when(schedulerConfig.getMultiServiceRemovalTimeout()).thenReturn(Duration.ofSeconds(60));
         when(schedulerConfig.getSchedulerIP()).thenReturn("127.0.0.1");
         when(schedulerConfig.getBuildInfo()).thenReturn(new JSONObject());
         Map<String, Protos.Value> map = new TreeMap<>();

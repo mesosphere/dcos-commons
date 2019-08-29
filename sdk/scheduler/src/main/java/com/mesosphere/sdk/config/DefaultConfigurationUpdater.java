@@ -54,10 +54,9 @@ public class DefaultConfigurationUpdater implements ConfigurationUpdater<Service
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore,
       ConfigurationComparator<ServiceSpec> configComparator,
-      Collection<ConfigValidator<ServiceSpec>> validators,
-      Optional<String> namespace)
+      Collection<ConfigValidator<ServiceSpec>> validators)
   {
-    this.logger = LoggingUtils.getLogger(getClass(), namespace);
+    this.logger = LoggingUtils.getLogger(getClass());
     this.stateStore = stateStore;
     this.configStore = configStore;
     this.configComparator = configComparator;
