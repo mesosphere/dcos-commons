@@ -419,10 +419,6 @@ public class SchedulerBuilder {
       StateStore stateStore,
       ConfigStore<ServiceSpec> configStore) throws ConfigStoreException
   {
-    // Determine whether deployment had previously completed BEFORE we update the config.
-    // Plans may be generated from the config content.
-    boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
-
     // Update/validate config as needed to reflect the new service spec:
     Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
     configValidators.addAll(DefaultConfigValidators.getValidators(schedulerConfig));
@@ -446,6 +442,10 @@ public class SchedulerBuilder {
 
     // Now that a ServiceSpec has been chosen, generate the plans.
     Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, yamlPlans);
+    // Determine whether deployment had previously completed BEFORE we update the config.
+    // Plans may be generated from the config content.
+    boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
+
     plans = selectDeployPlan(plans, hasCompletedDeployment);
     Optional<Plan> deployPlan = getDeployPlan(plans);
     if (!deployPlan.isPresent()) {

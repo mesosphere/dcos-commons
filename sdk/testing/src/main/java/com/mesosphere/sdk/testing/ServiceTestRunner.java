@@ -70,7 +70,6 @@ public class ServiceTestRunner {
     private final Map<String, String> customSchedulerEnv = new HashMap<>();
     private final Map<String, Map<String, String>> customPodEnvs = new HashMap<>();
     private RecoveryPlanOverriderFactory recoveryManagerFactory;
-    private Optional<String> multiServiceFrameworkName = Optional.empty();
     private List<ConfigValidator<ServiceSpec>> validators = new ArrayList<>();
 
     /**

@@ -111,20 +111,16 @@ public class SchemaVersionStore {
   }
 
   /**
-   * Schema versions to be used by single-service scheduler {@link com.mesosphere.sdk.scheduler.SchedulerRunner}
-   * and multi-service scheduler {@link com.mesosphere.sdk.scheduler.multi.MultiServiceRunner}.
+   * Schema versions to be used by single-service scheduler {@link com.mesosphere.sdk.scheduler.SchedulerRunner}.
    */
   public enum SchemaVersion {
     SINGLE_SERVICE,
-    MULTI_SERVICE,
     UNKNOWN;
 
     public static SchemaVersion parseInt(int rawVersion) {
       switch (rawVersion) {
         case 1:
           return SINGLE_SERVICE;
-        case 2:
-          return MULTI_SERVICE;
         default:
           return UNKNOWN;
       }
@@ -134,8 +130,6 @@ public class SchemaVersionStore {
       switch (this) {
         case SINGLE_SERVICE:
           return 1;
-        case MULTI_SERVICE:
-          return 2;
         default:
           throw new IllegalArgumentException(String.format("Unable to convert %s to int", this));
       }

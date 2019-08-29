@@ -176,8 +176,6 @@ public class DefaultScheduler extends AbstractScheduler {
         .findAny()
         .get();
 
-    // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
-    // reduce memory consumption.
     this.offerOutcomeTracker = Optional.of(new OfferOutcomeTracker());
     this.offerOutcomeTrackerV2 = Optional.of(new OfferOutcomeTrackerV2());
     this.statusesTracker = Optional.of(new TaskStatusesTracker(getPlanCoordinator(), stateStore));

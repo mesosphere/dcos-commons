@@ -376,12 +376,12 @@ class OfferProcessor {
           // we're suppressed.
           reviveManager.requestRevive();
         } else {
-          // Service is not idle (multi-service: any not idle). Revive offers if suppressed.
+          // Service is not idle. Revive offers if suppressed.
           reviveManager.requestReviveIfSuppressed();
         }
         return true;
       case IDLE:
-        // Service is idle (multi-service: all idle). Suppress offers.
+        // Service is idle. Suppress offers.
         switch (response.idleRequest) {
           case NONE:
             reviveManager.suppressIfActive();
@@ -393,14 +393,9 @@ class OfferProcessor {
             destroyFramework();
             break;
           case START_UNINSTALL:
-            // We do not directly support this result at this level. It should only occur in
-            // multi-service deployments, where it would have been handled upstream in the
-            // MultiServiceEventClient.
+            // We do not directly support this result at this level
             LOGGER.error("Got unsupported {} from service", response.result);
-            throw new IllegalStateException(String.format(
-                "Got unsupported %s response. This should have been handled by a" +
-                    " MultiServiceEventClient",
-                response.result));
+            throw new IllegalStateException(String.format("Got unsupported %s response", response.result));
         }
         return false;
     }
