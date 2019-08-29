@@ -186,7 +186,7 @@
                 },
                 "credentials_validity_in_ms": {
                   "type": "integer",
-                  "description": "This cache is tightly coupled to the provided PasswordAuthenticator implementation of IAuthenticator. If another IAuthenticator implementation is configured, Cassandra does not use this cache, and these settings have no effect. Set to 0 to disable.",
+                  "description": " This cache is tightly coupled to the provided PasswordAuthenticator implementation of IAuthenticator. If another IAuthenticator implementation is configured, Cassandra does not use this cache, and these settings have no effect. Set to 0 to disable.",
                   "default": 2000
                 },
                 "credentials_update_interval_in_ms": {
@@ -214,6 +214,133 @@
             "custom_domain": {
               "type": "string",
               "description": "A custom domain to be used in place of autoip.dcos.thisdcos.directory. This can be used to expose the service securely outside of the cluster, but requires setting up external DNS. See the service documentation for details."
+            }
+          }
+        },
+        "jmx": {
+          "title": "Secure JMX configuration",
+          "description": "Configure the secure JMX settings.",
+          "type": "object",
+          "properties": {
+            "enabled": {
+              "description": "Enable secure JMX",
+              "type": "boolean",
+              "enum": [
+                true,
+                false
+              ],
+              "default": false
+            }
+          },
+          "dependencies": {
+            "enabled": {
+              "oneOf": [
+                {
+                  "properties": {
+                    "enabled": {
+                      "enum": [
+                        false
+                      ]
+                    }
+                  }
+                },
+                {
+                  "properties": {
+                    "enabled": {
+                      "enum": [
+                        true
+                      ]
+                    },                    
+                    "rmi_port": {
+                      "description": "RMI port to expose.",
+                      "type": "integer",
+                      "default": 31420
+                    },
+                    "access_file": {
+                      "description": "Secret name that contains access file",
+                      "type": "string",
+                      "default": "",
+                      "media": {
+                        "type": "application/x-secret+string"
+                      }
+                    },
+                    "password_file": {
+                      "description": "Secret name that contains password file.",
+                      "type": "string",
+                      "default": "",
+                      "media": {
+                        "type": "application/x-secret+string"
+                      }
+                    },
+                    "key_store": {
+                      "description": "Secret name that contains key store file.",
+                      "type": "string",
+                      "title": "key store",
+                      "default": "",
+                      "media": {
+                        "type": "application/x-secret+string"
+                      }
+                    },
+                    "key_store_password_file": {
+                      "description": "Secret name that contains key store password file.",
+                      "type": "string",
+                      "default": "",
+                      "media": {
+                        "type": "application/x-secret+string"
+                      }
+                    },
+                    "add_trust_store": {
+                      "description": "By default user specified trust store is disabled and user provided certs are added to the default trust store.",
+                      "type": "boolean",
+                      "enum": [
+                        true,
+                        false
+                      ],
+                      "default": false
+                    }
+                  },
+                  "dependencies": {
+                    "add_trust_store": {
+                      "oneOf": [
+                        {
+                          "properties": {
+                            "add_trust_store": {
+                              "enum": [
+                                false
+                              ]
+                            }
+                          }
+                        },
+                        {
+                          "properties": {
+                            "add_trust_store": {
+                              "enum": [
+                                true
+                              ]
+                            },
+                            "trust_store": {
+                              "description": "Secret name that contains trust store file.",
+                              "type": "string",
+                              "default": "",
+                              "media": {
+                                "type": "application/x-secret+string"
+                              }
+                            },
+                            "trust_store_password_file": {
+                              "description": "Secret name that contains trust store password file.",
+                              "type": "string",
+                              "default": "",
+                              "media": {
+                                "type": "application/x-secret+string"
+                              }
+                            }
+                          }
+                        }
+                      ]
+                    }
+                  }
+                }
+              ]
             }
           }
         },
@@ -1097,7 +1224,7 @@
         "back_pressure_high_ratio": {
           "type": "number",
           "description": "When outgoing mutations are below this value, they are rate limited according to the incoming rate decreased by the factor. When above this value, the rate limiting is increased by the factor.",
-          "default": 0.9
+          "default": 0.90
         },
         "back_pressure_factor": {
           "type": "integer",
