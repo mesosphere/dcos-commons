@@ -186,7 +186,7 @@
                 },
                 "credentials_validity_in_ms": {
                   "type": "integer",
-                  "description": " This cache is tightly coupled to the provided PasswordAuthenticator implementation of IAuthenticator. If another IAuthenticator implementation is configured, Cassandra does not use this cache, and these settings have no effect. Set to 0 to disable.",
+                  "description": "This cache is tightly coupled to the provided PasswordAuthenticator implementation of IAuthenticator. If another IAuthenticator implementation is configured, Cassandra does not use this cache, and these settings have no effect. Set to 0 to disable.",
                   "default": 2000
                 },
                 "credentials_update_interval_in_ms": {
@@ -1224,7 +1224,7 @@
         "back_pressure_high_ratio": {
           "type": "number",
           "description": "When outgoing mutations are below this value, they are rate limited according to the incoming rate decreased by the factor. When above this value, the rate limiting is increased by the factor.",
-          "default": 0.90
+          "default": 0.9
         },
         "back_pressure_factor": {
           "type": "integer",
