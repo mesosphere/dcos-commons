@@ -87,7 +87,7 @@ def test_switch_to_legacy_role():
     options = {
         "service": {
             "name": SERVICE_NAME,
-            "service_role": "slave_public",
+            "role": "slave_public",
             "quota_migration_mode": True,
         }
     }

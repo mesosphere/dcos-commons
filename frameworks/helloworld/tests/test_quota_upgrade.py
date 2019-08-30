@@ -64,7 +64,7 @@ def test_update_scheduler_role():
     options = {
         "service": {
             "name": SERVICE_NAME,
-            "service_role": ENFORCED_ROLE,
+            "role": ENFORCED_ROLE,
             "quota_migration_mode": True,
         }
     }

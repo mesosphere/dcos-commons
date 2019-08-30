@@ -67,7 +67,7 @@ def test_nonenforced_group_role_service_role_set():
 
     # Create group without enforced roles.
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
-    options = {"service": {"name": SERVICE_NAME, "service_role": ENFORCED_ROLE}}
+    options = {"service": {"name": SERVICE_NAME, "role": ENFORCED_ROLE}}
 
     # this config produces 1 hello's + 2 world's:
     sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
@@ -100,7 +100,7 @@ def test_nonenforced_group_legacy_service_role():
 
     # Create group without enforced roles.
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
-    options = {"service": {"name": SERVICE_NAME, "service_role": "slave_public"}}
+    options = {"service": {"name": SERVICE_NAME, "role": "slave_public"}}
 
     # this config produces 1 hello's + 2 world's:
     sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
@@ -136,7 +136,7 @@ def test_nonenforced_group_role_service_role_legacy_role_set():
     options = {
         "service": {
             "name": SERVICE_NAME,
-            "service_role": ENFORCED_ROLE,
+            "role": ENFORCED_ROLE,
             "quota_migration_mode": True,
         }
     }
@@ -249,7 +249,7 @@ def test_nonenforced_group_legacy_service_role_non_migration():
     options = {
         "service": {
             "name": SERVICE_NAME,
-            "service_role": "slave_public",
+            "role": "slave_public",
             "quota_migration_mode": False,
         }
     }
@@ -288,7 +288,7 @@ def test_enforced_role_non_migration():
     options = {
         "service": {
             "name": SERVICE_NAME,
-            "service_role": ENFORCED_ROLE,
+            "role": ENFORCED_ROLE,
             "quota_migration_mode": False,
         }
     }
@@ -327,7 +327,7 @@ def test_group_enforced_role_non_migration():
     options = {
         "service": {
             "name": SERVICE_NAME,
-            "service_role": ENFORCED_ROLE,
+            "role": ENFORCED_ROLE,
             "quota_migration_mode": False,
         }
     }

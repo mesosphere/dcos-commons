@@ -418,7 +418,7 @@ public final class SchedulerConfig {
       // We're not in a Marathon group with enforced roles, see if the user has specified a preferred role.
       String preferredServiceRole = envStore.getOptional(MESOS_ALLOCATION_ROLE_ENV, null);
 
-      // If the user specifies an invalid role, ie `service.service_role=prod` when the
+      // If the user specifies an invalid role, ie `service.role=prod` when the
       // service name is `dev/foo-service` and is under the group `dev`.
       // Marathon validation resets the role to the default of `slave_public`.
       // We cannot launch all pods under `slave_public` as it is bad form.
