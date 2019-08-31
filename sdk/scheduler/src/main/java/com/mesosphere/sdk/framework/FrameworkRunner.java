@@ -247,7 +247,7 @@ public class FrameworkRunner {
       resourceRoles.addAll(frameworkConfig.getPreReservedRoles());
     }
     // Add both preferred and legacy roles, if we're in migration mode.
-    if (schedulerConfig.isQuotaMigrationMode()) {
+    if (schedulerConfig.enableRoleMigration()) {
       resourceRoles.add(frameworkConfig.getNonNamespacedRole());
       frameworkConfig.getNamespacedRole().ifPresent(namespacedRole -> resourceRoles.add(namespacedRole));
     }

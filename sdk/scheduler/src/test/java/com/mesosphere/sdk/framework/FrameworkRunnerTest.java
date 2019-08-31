@@ -168,7 +168,7 @@ public class FrameworkRunnerTest {
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
       env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "true");
       env.put("FRAMEWORK_PRERESERVED_ROLES", "role1,role2,role3");
-      env.put("QUOTA_MIGRATION_MODE", "true");
+      env.put("ENABLE_ROLE_MIGRATION", "true");
       EnvStore envStore = EnvStore.fromMap(env);
 
       SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
@@ -199,7 +199,7 @@ public class FrameworkRunnerTest {
       Map<String, String> env = getMinimalMap();
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
       env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "false");
-      env.put("QUOTA_MIGRATION_MODE", "true");
+      env.put("ENABLE_ROLE_MIGRATION", "true");
       EnvStore envStore = EnvStore.fromMap(env);
 
       SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
@@ -230,7 +230,7 @@ public class FrameworkRunnerTest {
       Map<String, String> env = getMinimalMap();
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
       env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "false");
-      env.put("QUOTA_MIGRATION_MODE", "true");
+      env.put("ENABLE_ROLE_MIGRATION", "true");
       EnvStore envStore = EnvStore.fromMap(env);
 
       SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
@@ -262,7 +262,7 @@ public class FrameworkRunnerTest {
       env.put("FRAMEWORK_PRERESERVED_ROLES", "role1,role2,role3");
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
       env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "true");
-      env.put("QUOTA_MIGRATION_MODE", "false");
+      env.put("ENABLE_ROLE_MIGRATION", "false");
       EnvStore envStore = EnvStore.fromMap(env);
 
       SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
@@ -294,7 +294,7 @@ public class FrameworkRunnerTest {
       Map<String, String> env = getMinimalMap();
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
       env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "false");
-      env.put("QUOTA_MIGRATION_MODE", "false");
+      env.put("ENABLE_ROLE_MIGRATION", "false");
       EnvStore envStore = EnvStore.fromMap(env);
 
       SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
@@ -325,7 +325,7 @@ public class FrameworkRunnerTest {
       env.put("FRAMEWORK_PRERESERVED_ROLES", "role1,role2,role3");
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
       env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "false");
-      env.put("QUOTA_MIGRATION_MODE", "false");
+      env.put("ENABLE_ROLE_MIGRATION", "false");
       EnvStore envStore = EnvStore.fromMap(env);
 
       SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);
@@ -356,7 +356,7 @@ public class FrameworkRunnerTest {
       Map<String, String> env = getMinimalMap();
       env.put("MESOS_ALLOCATION_ROLE", MESOS_ALLOCATION_ROLE);
       env.put("MARATHON_APP_ENFORCE_GROUP_ROLE", "false");
-      env.put("QUOTA_MIGRATION_MODE", "false");
+      env.put("ENABLE_ROLE_MIGRATION", "false");
       EnvStore envStore = EnvStore.fromMap(env);
 
       SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(envStore);

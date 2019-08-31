@@ -25,7 +25,7 @@
           "type": "string",
           "default": ""
         },
-        "quota_migration_mode": {
+        "enable_role_migration": {
           "description": "When this flag is enabled, the scheduler subscribes with both the service-role and the legacy role. This flag is intended for migration to the new quota-enabled schedulers. ",
           "type": "boolean",
           "default": false

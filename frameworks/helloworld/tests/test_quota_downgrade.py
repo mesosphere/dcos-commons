@@ -88,7 +88,7 @@ def test_switch_to_legacy_role():
         "service": {
             "name": SERVICE_NAME,
             "role": "slave_public",
-            "quota_migration_mode": True,
+            "enable_role_migration": True,
         }
     }
     sdk_upgrade.update_or_upgrade_or_downgrade(
@@ -169,7 +169,7 @@ def test_disable_quota_role():
     marathon_config = sdk_marathon.get_config(SERVICE_NAME)
 
     # Turn off legacy role.
-    marathon_config["env"]["QUOTA_MIGRATION_MODE"] = "false"
+    marathon_config["env"]["ENABLE_ROLE_MIGRATION"] = "false"
 
     # Update the app
     sdk_marathon.update_app(marathon_config)

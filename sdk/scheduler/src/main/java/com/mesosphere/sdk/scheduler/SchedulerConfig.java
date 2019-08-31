@@ -298,7 +298,7 @@ public final class SchedulerConfig {
    * Setting this to true is harmless and might incur a slight startup penalty as Mesos offers
    * with this role get declined if the pod is looking for role set by FrameworkConfig.getRole()
    */
-  private static final String QUOTA_MIGRATION_MODE_ENV = "QUOTA_MIGRATION_MODE";
+  private static final String ENABLE_ROLE_MIGRATION_ENV = "ENABLE_ROLE_MIGRATION";
 
   /**
    * Returns a new {@link SchedulerConfig} instance which is based off the process environment.
@@ -433,8 +433,8 @@ public final class SchedulerConfig {
     }
   }
 
-  public boolean isQuotaMigrationMode() {
-    return envStore.getOptionalBoolean(QUOTA_MIGRATION_MODE_ENV, false);
+  public boolean enableRoleMigration() {
+    return envStore.getOptionalBoolean(ENABLE_ROLE_MIGRATION_ENV, false);
   }
 
   public String getSecretsNamespace(String serviceName) {

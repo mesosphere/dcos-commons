@@ -137,7 +137,7 @@ def test_nonenforced_group_role_service_role_legacy_role_set():
         "service": {
             "name": SERVICE_NAME,
             "role": ENFORCED_ROLE,
-            "quota_migration_mode": True,
+            "enable_role_migration": True,
         }
     }
 
@@ -209,7 +209,7 @@ def test_enforced_group_role_legacy_role_set():
 
     # Create group without enforced roles.
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": True})
-    options = {"service": {"name": SERVICE_NAME, "quota_migration_mode": True}}
+    options = {"service": {"name": SERVICE_NAME, "enable_role_migration": True}}
 
     # this config produces 1 hello's + 2 world's:
     sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
@@ -250,7 +250,7 @@ def test_nonenforced_group_legacy_service_role_non_migration():
         "service": {
             "name": SERVICE_NAME,
             "role": "slave_public",
-            "quota_migration_mode": False,
+            "enable_role_migration": False,
         }
     }
 
@@ -289,7 +289,7 @@ def test_enforced_role_non_migration():
         "service": {
             "name": SERVICE_NAME,
             "role": ENFORCED_ROLE,
-            "quota_migration_mode": False,
+            "enable_role_migration": False,
         }
     }
 
@@ -328,7 +328,7 @@ def test_group_enforced_role_non_migration():
         "service": {
             "name": SERVICE_NAME,
             "role": ENFORCED_ROLE,
-            "quota_migration_mode": False,
+            "enable_role_migration": False,
         }
     }
 
