@@ -62,11 +62,7 @@ def test_initial_upgrade():
 def test_update_scheduler_role():
 
     options = {
-        "service": {
-            "name": SERVICE_NAME,
-            "role": ENFORCED_ROLE,
-            "enable_role_migration": True,
-        }
+        "service": {"name": SERVICE_NAME, "role": ENFORCED_ROLE, "enable_role_migration": True}
     }
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,

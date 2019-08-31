@@ -134,11 +134,7 @@ def test_nonenforced_group_role_service_role_legacy_role_set():
     # Create group without enforced roles.
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
     options = {
-        "service": {
-            "name": SERVICE_NAME,
-            "role": ENFORCED_ROLE,
-            "enable_role_migration": True,
-        }
+        "service": {"name": SERVICE_NAME, "role": ENFORCED_ROLE, "enable_role_migration": True}
     }
 
     # this config produces 1 hello's + 2 world's:
@@ -247,11 +243,7 @@ def test_nonenforced_group_legacy_service_role_non_migration():
     # Create group without enforced roles.
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
     options = {
-        "service": {
-            "name": SERVICE_NAME,
-            "role": "slave_public",
-            "enable_role_migration": False,
-        }
+        "service": {"name": SERVICE_NAME, "role": "slave_public", "enable_role_migration": False}
     }
 
     # this config produces 1 hello's + 2 world's:
@@ -286,11 +278,7 @@ def test_enforced_role_non_migration():
     # Create group without enforced roles.
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
     options = {
-        "service": {
-            "name": SERVICE_NAME,
-            "role": ENFORCED_ROLE,
-            "enable_role_migration": False,
-        }
+        "service": {"name": SERVICE_NAME, "role": ENFORCED_ROLE, "enable_role_migration": False}
     }
 
     # this config produces 1 hello's + 2 world's:
@@ -325,11 +313,7 @@ def test_group_enforced_role_non_migration():
     # Create group without enforced roles.
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": True})
     options = {
-        "service": {
-            "name": SERVICE_NAME,
-            "role": ENFORCED_ROLE,
-            "enable_role_migration": False,
-        }
+        "service": {"name": SERVICE_NAME, "role": ENFORCED_ROLE, "enable_role_migration": False}
     }
 
     # this config produces 1 hello's + 2 world's:

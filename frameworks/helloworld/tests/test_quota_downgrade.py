@@ -85,11 +85,7 @@ def test_disable_enforce_role():
 def test_switch_to_legacy_role():
 
     options = {
-        "service": {
-            "name": SERVICE_NAME,
-            "role": "slave_public",
-            "enable_role_migration": True,
-        }
+        "service": {"name": SERVICE_NAME, "role": "slave_public", "enable_role_migration": True}
     }
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,

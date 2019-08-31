@@ -278,7 +278,11 @@ def _get_integration_test_foldered_role(service_name: str) -> List[str]:
     """
 
     role_basename = service_name.strip("/").replace("/", "__")
-    return ["test__integration__{}-role".format(role_basename), "quota", "quota__{}-role".format(role_basename)]
+    return [
+        "test__integration__{}-role".format(role_basename),
+        "quota",
+        "quota__{}-role".format(role_basename),
+    ]
 
 
 def setup_security(
