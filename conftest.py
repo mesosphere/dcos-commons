@@ -13,6 +13,7 @@ import time
 
 import sdk_diag
 import sdk_repository
+import sdk_package_registry
 import sdk_utils
 import teamcity
 
