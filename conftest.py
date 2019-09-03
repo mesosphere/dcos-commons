@@ -67,7 +67,10 @@ INTEGRATION_TEST_LOG_COLLECTION = is_env_var_set(
 
 @pytest.fixture(scope="session", autouse=True)
 def configure_universe(tmpdir_factory):
-    yield from sdk_repository.universe_session()
+    if is_env_var_set("PACKAGE_REGISTRY_ENABLED", default=""):
+        yield from sdk_package_registry.package_registry_session(tmpdir_factory)
+    else:
+        yield from sdk_repository.universe_session()
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
