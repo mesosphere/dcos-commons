@@ -251,7 +251,7 @@
                         true
                       ]
                     },
-		    "rmi_port": {
+                    "rmi_port": {
                       "description": "RMI port to expose.",
                       "type": "integer",
                       "default": 31420
