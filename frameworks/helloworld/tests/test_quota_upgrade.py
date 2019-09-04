@@ -35,6 +35,7 @@ def configure_package(configure_security):
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency()
 def test_initial_upgrade():
 
     options = {"service": {"name": SERVICE_NAME}}
@@ -59,6 +60,7 @@ def test_initial_upgrade():
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_initial_upgrade"])
 def test_update_scheduler_role():
 
     options = {
@@ -95,6 +97,7 @@ def test_update_scheduler_role():
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_update_scheduler_role"])
 def test_replace_pods_to_new_role():
 
     # Issue pod replace operations till we move the pods to the new role.
@@ -138,6 +141,7 @@ def test_replace_pods_to_new_role():
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_replace_pods_to_new_role"])
 def test_add_pods_post_update():
 
     # Add new pods to service which should be launched with the new role.
@@ -176,6 +180,7 @@ def test_add_pods_post_update():
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_add_pods_post_update"])
 def test_disable_legacy_role_post_update():
 
     # Add new pods to service which should be launched with the new role.
@@ -209,6 +214,7 @@ def test_disable_legacy_role_post_update():
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_disable_legacy_role_post_update"])
 def test_more_pods_disable_legacy_role_post_update():
     # Ensure we can scale out more still with legacy role disabled.
 

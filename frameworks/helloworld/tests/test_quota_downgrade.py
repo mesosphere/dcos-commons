@@ -35,6 +35,7 @@ def configure_package(configure_security):
 @pytest.mark.quota_downgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency()
 def test_initial_install():
 
     # Create group without enforced roles.
@@ -60,6 +61,7 @@ def test_initial_install():
 @pytest.mark.quota_downgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_initial_install"])
 def test_disable_enforce_role():
 
     # Turn off enforce role
@@ -82,6 +84,7 @@ def test_disable_enforce_role():
 @pytest.mark.quota_downgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_disable_enforce_role"])
 def test_switch_to_legacy_role():
 
     options = {
@@ -116,6 +119,7 @@ def test_switch_to_legacy_role():
 @pytest.mark.quota_downgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_switch_to_legacy_role"])
 def test_replace_pods_to_legacy_role():
 
     # Issue pod replace operations till we move the pods to the legacy role.
@@ -159,6 +163,7 @@ def test_replace_pods_to_legacy_role():
 @pytest.mark.quota_downgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_replace_pods_to_legacy_role"])
 def test_disable_quota_role():
 
     # Add new pods to service which should be launched with the new role.
@@ -192,6 +197,7 @@ def test_disable_quota_role():
 @pytest.mark.quota_downgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_disable_quota_role"])
 def test_add_pods_post_update():
 
     # Add new pods to service which should be launched with the new role.
@@ -225,6 +231,7 @@ def test_add_pods_post_update():
 @pytest.mark.quota_downgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
+@pytest.mark.dependency(depends=["test_add_pods_post_update"])
 def test_downgrade_scheduler():
 
     options = {"service": {"name": SERVICE_NAME}, "hello": {"count": 2}, "world": {"count": 3}}
