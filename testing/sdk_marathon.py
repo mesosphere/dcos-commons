@@ -340,11 +340,11 @@ def create_group(group_id: str, options: dict) -> None:
 
 
 def delete_group(group_id: str) -> None:
-    group_definition = {}
-    group_definition["id"] = "/{}".format(group_id.strip("/"))
-    sdk_cmd.cluster_request(
-        "DELETE", _api_url("groups"), json=group_definition, log_args=False, raise_on_error=False
-    )
+    # Note an empty group_id implies "/" below, which means Marathon will delete
+    # everything on the cluster!!!
+    if group_id:
+        group_id = "groups/{}".format(group_id.strip("/"))
+        sdk_cmd.cluster_request("DELETE", _api_url(group_id), log_args=False, raise_on_error=False)
 
 
 def update_group(group_id: str, options: dict) -> None:
