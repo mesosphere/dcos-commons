@@ -64,13 +64,14 @@ func (p KPrincipalList) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-/**
- * Sortable list of encryption keys
- */
 type KTKey struct {
 	Type         int32
 	HashContents string
 }
+
+/**
+ * Sortable list of encryption keys
+ */
 type KTKeyList []KTKey
 
 func (p KTKeyList) Len() int {
@@ -83,9 +84,6 @@ func (p KTKeyList) Swap(i, j int) {
 	p[i], p[j] = p[j], p[i]
 }
 
-/**
- * createKDCAPIServer creates a configured instance of a server interface
- */
 func createKDCAPIServer(kadmin *KAdminClient, port string, host string) *KDCAPIServer {
 	inst := &KDCAPIServer{
 		kadmin:   kadmin,
@@ -460,7 +458,6 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 		}
 		list = newList
 
-		// Calculate checksum of found principals
 		csum, err := getPrincipalsChecksum(ktBytes, list)
 		if err != nil {
 			s.replyReject(rw, req, err.Error())
@@ -469,7 +466,6 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 		resp.Checksum = csum
 	}
 
-	// Prepare list response
 	resp.List = list
 	s.replySuccess(rw, req, &resp)
 }
@@ -696,7 +692,6 @@ func (s *KDCAPIServer) handleCheckPrincipals(rw http.ResponseWriter, req *http.R
 		}
 	}
 
-	// Calculate the principals checksum from the keytab contents
 	csum, err := getPrincipalsChecksum(ktBytes, apiReq.Principals)
 	if err != nil {
 		s.replyReject(rw, req, err.Error())
