@@ -290,7 +290,6 @@ class KerberosEnvironment:
         principals = parsed.get("principals", {})
         return principals.get("list", [])
 
-
     def add_principals(self, principals: List[str]) -> None:
         """
         Adds a list of principals to the KDC. A principal is defined as a concatenation of 3 parts
