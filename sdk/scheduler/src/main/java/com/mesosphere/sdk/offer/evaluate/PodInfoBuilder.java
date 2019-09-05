@@ -322,6 +322,15 @@ public class PodInfoBuilder {
 
     taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), true, true));
 
+    if (taskSpec.getSharedMemory().isPresent()) {
+      taskInfoBuilder.getContainerBuilder().getLinuxInfoBuilder().setIpcMode(taskSpec.getSharedMemory().get()).build();
+    }
+    if (taskSpec.getSharedMemorySize().isPresent()) {
+      taskInfoBuilder.getContainerBuilder()
+          .getLinuxInfoBuilder()
+          .setShmSize(taskSpec.getSharedMemorySize().get())
+          .build();
+    }
     setHealthCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
     setReadinessCheck(taskInfoBuilder, serviceName, podInstance, taskSpec, override, schedulerConfig);
     setTaskKillGracePeriod(taskInfoBuilder, taskSpec);
@@ -576,13 +585,13 @@ public class PodInfoBuilder {
       // switch to SANDBOX SELF after dc/os 1.13
 
       containerInfo.addVolumes(Protos.Volume.newBuilder()
-          .setContainerPath("/tmp")
-          .setHostPath("tmp")
-          .setMode(Protos.Volume.Mode.RW));
+              .setContainerPath("/tmp")
+              .setHostPath("tmp")
+              .setMode(Protos.Volume.Mode.RW));
 
       LOGGER.info("Setting seccomp info unconfined: {} profile: {}",
-            podSpec.getSeccompUnconfined(),
-            podSpec.getSeccompProfileName());
+              podSpec.getSeccompUnconfined(),
+              podSpec.getSeccompProfileName());
 
       if (podSpec.getSeccompUnconfined() != null && podSpec.getSeccompUnconfined()) {
         containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
@@ -592,8 +601,17 @@ public class PodInfoBuilder {
 
       if (podSpec.getSeccompProfileName().isPresent()) {
         containerInfo.getLinuxInfoBuilder().setSeccomp(Protos.SeccompInfo.newBuilder()
-            .setProfileName(podSpec.getSeccompProfileName().get())
-            .build());
+                .setProfileName(podSpec.getSeccompProfileName().get())
+                .build());
+      }
+    } else {
+
+      if (podSpec.getSharedMemory().isPresent()) {
+        containerInfo.getLinuxInfoBuilder().setIpcMode(podSpec.getSharedMemory().get());
+      }
+
+      if (podSpec.getSharedMemorySize().isPresent()) {
+        containerInfo.getLinuxInfoBuilder().setShmSize(podSpec.getSharedMemorySize().get());
       }
     }
 
