@@ -73,7 +73,6 @@ import java.util.stream.Collectors;
 @SuppressWarnings({
     "checkstyle:MultipleStringLiterals",
     "checkstyle:IllegalCatch",
-    "checkstyle:LineLength",
     "checkstyle:ParameterNumber",
     "checkstyle:DeclarationOrder"
 })

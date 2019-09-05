@@ -65,7 +65,6 @@ import java.util.stream.Collectors;
  * into {@link OfferRecommendation}s. The ones which are not launched do not get used.
  */
 @SuppressWarnings({
-    "checkstyle:LineLength",
     "checkstyle:LocalVariableName",
     "checkstyle:VariableDeclarationUsageDistance",
     "checkstyle:CyclomaticComplexity"
