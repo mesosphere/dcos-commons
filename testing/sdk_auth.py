@@ -287,7 +287,8 @@ class KerberosEnvironment:
         parsed = res.json()
         print(parsed)
 
-        return parsed.get("data", [])
+        principals = parsed.get("principals", {})
+        return principals.get("list", [])
 
     def add_principals(self, principals: List[str]) -> None:
         """
