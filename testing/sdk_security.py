@@ -75,7 +75,7 @@ def _revoke(user: str, acl: str, description: str, action: str) -> None:
 
 
 def get_default_permissions(
-    service_account_name: str, role: str, linux_user: str,
+    service_account_name: str, role: str, linux_user: str
 ) -> List[Dict[str, str]]:
     return [
         # registration permissions
@@ -145,10 +145,7 @@ def get_default_permissions(
 
 
 def grant_permissions(
-    linux_user: str,
-    role_name: str,
-    service_account_name: str,
-    permissions: List[Dict[str, str]],
+    linux_user: str, role_name: str, service_account_name: str, permissions: List[Dict[str, str]]
 ) -> List[Dict[str, str]]:
     log.info("Granting permissions to {account}".format(account=service_account_name))
 
@@ -176,9 +173,7 @@ def revoke_permissions(
     log.info("Permission cleanup completed for %s (role: %s)", service_account_name, role_name)
 
 
-def create_service_account(
-    service_account_name: str, service_account_secret: str
-) -> None:
+def create_service_account(service_account_name: str, service_account_secret: str) -> None:
     """
     Creates a service account. If it already exists, it is deleted.
     """
@@ -247,15 +242,34 @@ def delete_secret(secret: str) -> None:
     sdk_cmd.run_cli("security secrets delete {}".format(secret))
 
 
-def _get_service_role(service_name: str) -> List[str]:
+def _get_service_role(service_name: str):
     # TODO: spark_utils uses:
     # app_id_encoded = urllib.parse.quote(
     #     urllib.parse.quote(app_id, safe=''),
     #     safe=''
     # )
-    role_basename = service_name.strip("/").replace("/", "__")
+    # We'll include the following roles
+    # 1. Service name based role. (always included)
+    # 2. slave_public (if no top level group exists)
+    # 3. Quota based role (if top level group exists)
 
-    return ["{}-role".format(role_basename), "slave_public%252F{}-role".format(role_basename)]
+    # Final list of roles.
+    roles_list = []
+
+    # Role based on service name (legacy compatibility)
+    role_basename = service_name.strip("/").replace("/", "__")
+    service_name_role = "{}-role".format(role_basename)
+    roles_list.append(service_name_role)
+    # Refined role for slave_public
+    roles_list.append("slave_public%252F{}-role".format(role_basename))
+
+    # Find if we have a top-level group role.
+    if role_basename.partition("__")[1]:
+        # Add top level group role.
+        roles_list.append(role_basename.partition("__")[0])
+    # Add default slave_public role.
+    roles_list.append("slave_public")
+    return roles_list
 
 
 def _get_integration_test_foldered_role(service_name: str) -> List[str]:
@@ -264,7 +278,11 @@ def _get_integration_test_foldered_role(service_name: str) -> List[str]:
     """
 
     role_basename = service_name.strip("/").replace("/", "__")
-    return ["test__integration__{}-role".format(role_basename)]
+    return [
+        "test__integration__{}-role".format(role_basename),
+        "quota",
+        "quota__{}-role".format(role_basename),
+    ]
 
 
 def setup_security(
