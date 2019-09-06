@@ -491,8 +491,6 @@ public class SchedulerBuilder {
 
     // Now that a ServiceSpec has been chosen, generate the plans.
     Collection<Plan> plans = getPlans(stateStore, configStore, serviceSpec, namespace, yamlPlans);
-    // Determine whether deployment had previously completed BEFORE we update the config.
-    boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
     plans = selectDeployPlan(plans, hasCompletedDeployment);
     Optional<Plan> deployPlan = getDeployPlan(plans);
     if (!deployPlan.isPresent()) {
