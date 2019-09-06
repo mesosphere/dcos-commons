@@ -2,7 +2,6 @@ import logging
 
 import pytest
 import sdk_install
-import sdk_plan
 import sdk_marathon
 import sdk_utils
 from tests import config
@@ -30,28 +29,21 @@ def configure_package(configure_security):
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
-def test_nonenforced_group_role_defaults():
+@pytest.mark.parametrize(
+    "options", [
+        {"service": {"name": SERVICE_NAME, "role": "slave_public"}},
+        {"service": {"name": SERVICE_NAME}}
+    ], ids=[
+        "test_nonenforced_group_role_defaults_explicit_slave_public",
+        "test_nonenforced_group_role_defaults"
+    ])
+def test_nonenforced_group_role_defaults(options):
 
     # Create group without enforced roles.
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
-    options = {"service": {"name": SERVICE_NAME}}
 
-    # this config produces 1 hello's + 2 world's:
-    sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
-
-    # Ensure that our default service installs to a complete deployment.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # Assert the deployment plans are complete.
-    deployment_plan = sdk_plan.get_deployment_plan(SERVICE_NAME)
-    assert deployment_plan["status"] == "COMPLETE"
-
-    # Get the current service state to verify roles have applied.
-    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-    current_task_roles = service_roles["task-roles"]
-
-    # We must have some role!
-    assert len(current_task_roles) > 0
+    # Install and get the current service state to verify roles have applied.
+    service_roles, current_task_roles = _install_and_fetch_service_roles(options)
 
     assert LEGACY_ROLE in current_task_roles.values()
     assert ENFORCED_ROLE not in current_task_roles.values()
@@ -69,61 +61,14 @@ def test_nonenforced_group_role_service_role_set():
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
     options = {"service": {"name": SERVICE_NAME, "role": ENFORCED_ROLE}}
 
-    # this config produces 1 hello's + 2 world's:
-    sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
-
-    # Ensure that our default service installs to a complete deployment.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # Assert the deployment plans are complete.
-    deployment_plan = sdk_plan.get_deployment_plan(SERVICE_NAME)
-    assert deployment_plan["status"] == "COMPLETE"
-
-    # Get the current service state to verify roles have applied.
-    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-    current_task_roles = service_roles["task-roles"]
-
-    # We must have some role!
-    assert len(current_task_roles) > 0
+    # Install and get the current service state to verify roles have applied.
+    service_roles, current_task_roles = _install_and_fetch_service_roles(options)
 
     assert LEGACY_ROLE not in current_task_roles.values()
     assert ENFORCED_ROLE in current_task_roles.values()
 
     assert service_roles["framework-roles"] is None
     assert service_roles["framework-role"] == ENFORCED_ROLE
-
-
-@pytest.mark.quota
-@pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
-def test_nonenforced_group_legacy_service_role():
-
-    # Create group without enforced roles.
-    sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
-    options = {"service": {"name": SERVICE_NAME, "role": "slave_public"}}
-
-    # this config produces 1 hello's + 2 world's:
-    sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
-
-    # Ensure that our default service installs to a complete deployment.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # Assert the deployment plans are complete.
-    deployment_plan = sdk_plan.get_deployment_plan(SERVICE_NAME)
-    assert deployment_plan["status"] == "COMPLETE"
-
-    # Get the current service state to verify roles have applied.
-    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-    current_task_roles = service_roles["task-roles"]
-
-    # We must have some role!
-    assert len(current_task_roles) > 0
-
-    assert LEGACY_ROLE in current_task_roles.values()
-    assert ENFORCED_ROLE not in current_task_roles.values()
-
-    assert service_roles["framework-roles"] is None
-    assert service_roles["framework-role"] == LEGACY_ROLE
 
 
 @pytest.mark.quota
@@ -137,22 +82,8 @@ def test_nonenforced_group_role_service_role_legacy_role_set():
         "service": {"name": SERVICE_NAME, "role": ENFORCED_ROLE, "enable_role_migration": True}
     }
 
-    # this config produces 1 hello's + 2 world's:
-    sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
-
-    # Ensure that our default service installs to a complete deployment.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # Assert the deployment plans are complete.
-    deployment_plan = sdk_plan.get_deployment_plan(SERVICE_NAME)
-    assert deployment_plan["status"] == "COMPLETE"
-
-    # Get the current service state to verify roles have applied.
-    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-    current_task_roles = service_roles["task-roles"]
-
-    # We must have some role!
-    assert len(current_task_roles) > 0
+    # Install and get the current service state to verify roles have applied.
+    service_roles, current_task_roles = _install_and_fetch_service_roles(options)
 
     assert LEGACY_ROLE not in current_task_roles.values()
     assert ENFORCED_ROLE in current_task_roles.values()
@@ -174,22 +105,8 @@ def test_enforced_group_role_defaults():
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": True})
     options = {"service": {"name": SERVICE_NAME}}
 
-    # this config produces 1 hello's + 2 world's:
-    sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
-
-    # Ensure that our default service installs to a complete deployment.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # Assert the deployment plans are complete.
-    deployment_plan = sdk_plan.get_deployment_plan(SERVICE_NAME)
-    assert deployment_plan["status"] == "COMPLETE"
-
-    # Get the current service state to verify roles have applied.
-    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-    current_task_roles = service_roles["task-roles"]
-
-    # We must have some role!
-    assert len(current_task_roles) > 0
+    # Install and get the current service state to verify roles have applied.
+    service_roles, current_task_roles = _install_and_fetch_service_roles(options)
 
     assert LEGACY_ROLE not in current_task_roles.values()
     assert ENFORCED_ROLE in current_task_roles.values()
@@ -207,22 +124,8 @@ def test_enforced_group_role_legacy_role_set():
     sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": True})
     options = {"service": {"name": SERVICE_NAME, "enable_role_migration": True}}
 
-    # this config produces 1 hello's + 2 world's:
-    sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
-
-    # Ensure that our default service installs to a complete deployment.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # Assert the deployment plans are complete.
-    deployment_plan = sdk_plan.get_deployment_plan(SERVICE_NAME)
-    assert deployment_plan["status"] == "COMPLETE"
-
-    # Get the current service state to verify roles have applied.
-    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-    current_task_roles = service_roles["task-roles"]
-
-    # We must have some role!
-    assert len(current_task_roles) > 0
+    # Install and get the current service state to verify roles have applied.
+    service_roles, current_task_roles = _install_and_fetch_service_roles(options)
 
     assert LEGACY_ROLE not in current_task_roles.values()
     assert ENFORCED_ROLE in current_task_roles.values()
@@ -246,22 +149,8 @@ def test_nonenforced_group_legacy_service_role_non_migration():
         "service": {"name": SERVICE_NAME, "role": "slave_public", "enable_role_migration": False}
     }
 
-    # this config produces 1 hello's + 2 world's:
-    sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
-
-    # Ensure that our default service installs to a complete deployment.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # Assert the deployment plans are complete.
-    deployment_plan = sdk_plan.get_deployment_plan(SERVICE_NAME)
-    assert deployment_plan["status"] == "COMPLETE"
-
-    # Get the current service state to verify roles have applied.
-    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-    current_task_roles = service_roles["task-roles"]
-
-    # We must have some role!
-    assert len(current_task_roles) > 0
+    # Install and get the current service state to verify roles have applied.
+    service_roles, current_task_roles = _install_and_fetch_service_roles(options)
 
     assert LEGACY_ROLE in current_task_roles.values()
     assert ENFORCED_ROLE not in current_task_roles.values()
@@ -273,30 +162,17 @@ def test_nonenforced_group_legacy_service_role_non_migration():
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
-def test_enforced_role_non_migration():
+@pytest.mark.parametrize("enforce_role", [True, False])
+def test_non_migration(enforce_role: bool):
 
-    # Create group without enforced roles.
-    sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
+    # Create group with/without enforced roles.
+    sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": enforce_role})
     options = {
         "service": {"name": SERVICE_NAME, "role": ENFORCED_ROLE, "enable_role_migration": False}
     }
 
-    # this config produces 1 hello's + 2 world's:
-    sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
-
-    # Ensure that our default service installs to a complete deployment.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # Assert the deployment plans are complete.
-    deployment_plan = sdk_plan.get_deployment_plan(SERVICE_NAME)
-    assert deployment_plan["status"] == "COMPLETE"
-
-    # Get the current service state to verify roles have applied.
-    service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
-    current_task_roles = service_roles["task-roles"]
-
-    # We must have some role!
-    assert len(current_task_roles) > 0
+    # Install and get the current service state to verify roles have applied.
+    service_roles, current_task_roles = _install_and_fetch_service_roles(options)
 
     assert LEGACY_ROLE not in current_task_roles.values()
     assert ENFORCED_ROLE in current_task_roles.values()
@@ -305,36 +181,14 @@ def test_enforced_role_non_migration():
     assert service_roles["framework-role"] == ENFORCED_ROLE
 
 
-@pytest.mark.quota
-@pytest.mark.dcos_min_version("1.14")
-@pytest.mark.sanity
-def test_group_enforced_role_non_migration():
-
-    # Create group without enforced roles.
-    sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": True})
-    options = {
-        "service": {"name": SERVICE_NAME, "role": ENFORCED_ROLE, "enable_role_migration": False}
-    }
-
+def _install_and_fetch_service_roles(options: dict) -> (dict, dict):
     # this config produces 1 hello's + 2 world's:
-    sdk_install.install(config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options)
-
-    # Ensure that our default service installs to a complete deployment.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
-
-    # Assert the deployment plans are complete.
-    deployment_plan = sdk_plan.get_deployment_plan(SERVICE_NAME)
-    assert deployment_plan["status"] == "COMPLETE"
-
-    # Get the current service state to verify roles have applied.
+    sdk_install.install(
+        config.PACKAGE_NAME, SERVICE_NAME, 3, additional_options=options, wait_for_deployment=True
+    )
     service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
     current_task_roles = service_roles["task-roles"]
 
     # We must have some role!
     assert len(current_task_roles) > 0
-
-    assert LEGACY_ROLE not in current_task_roles.values()
-    assert ENFORCED_ROLE in current_task_roles.values()
-
-    assert service_roles["framework-roles"] is None
-    assert service_roles["framework-role"] == ENFORCED_ROLE
+    return service_roles, current_task_roles

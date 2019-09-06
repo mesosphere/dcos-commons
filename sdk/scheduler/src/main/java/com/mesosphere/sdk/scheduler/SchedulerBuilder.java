@@ -719,30 +719,24 @@ public class SchedulerBuilder {
       ServiceSpec currentConfig) throws ConfigStoreException
   {
     // Get the currently stored target configuration
-    UUID targetConfigId;
+    Optional<UUID> targetConfigId = Optional.empty();
     try {
-      targetConfigId = configStore.getTargetConfig();
+      targetConfigId = Optional.of(configStore.getTargetConfig());
     } catch (ConfigStoreException e) {
       logger.debug("No target configuration ID was set. First launch?");
-      targetConfigId = null;
     }
 
-    Optional<ServiceSpec> targetConfig;
-    if (targetConfigId != null) {
+    Optional<ServiceSpec> targetConfig = Optional.empty();
+    if (targetConfigId.isPresent()) {
       logger.info("Loading current target configuration: {}", targetConfigId);
       //Note: This throws ConfigStoreException if targetConfigId is not found.
       //let the exception ripple upwards as this is a fatal error.
-      targetConfig = Optional.of(configStore.fetch(targetConfigId));
-    } else {
-      targetConfig = Optional.empty();
+      targetConfig = Optional.of(configStore.fetch(targetConfigId.get()));
     }
 
-    //If there is no target config, this was a first launch scenario.
-    if (!targetConfig.isPresent()) {
-      return false;
-    }
-
-    //Target is found, compare to see if the roles have changed.
-    return !currentConfig.getRole().equals(targetConfig.get().getRole());
+    //If there is no target config, this was a first launch scenario or else compare to see if the roles have changed.
+    return targetConfig
+            .filter(serviceSpec -> !currentConfig.getRole().equals(serviceSpec.getRole()))
+            .isPresent();
   }
 }

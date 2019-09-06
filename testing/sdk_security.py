@@ -242,7 +242,7 @@ def delete_secret(secret: str) -> None:
     sdk_cmd.run_cli("security secrets delete {}".format(secret))
 
 
-def _get_service_role(service_name: str):
+def _get_service_role(service_name: str) -> List[str]:
     # TODO: spark_utils uses:
     # app_id_encoded = urllib.parse.quote(
     #     urllib.parse.quote(app_id, safe=''),
