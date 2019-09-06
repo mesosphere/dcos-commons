@@ -5,6 +5,7 @@ import (
 	"github.com/mesosphere/dcos-commons/cli"
 	"github.com/mesosphere/dcos-commons/cli/client"
 	"gopkg.in/alecthomas/kingpin.v3-unstable"
+	"os"
 	"strings"
 )
 
@@ -67,7 +68,11 @@ func (args *HdfsCliArgs) runHdfs(a *kingpin.Application, e *kingpin.ParseElement
 	hdfsCommand := fmt.Sprintf("export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/); $HDFS_VERSION/bin/hdfs %s", args.String())
 	fullCommand := append(dcosExecCommand, hdfsCommand)
 
-	value, _ := client.RunCLICommand(fullCommand...)
+	value, error := client.RunCLICommand(fullCommand...)
+	if error != nil {
+		client.PrintMessage(error.Error())
+		os.Exit(1)
+	}
 
 	client.PrintMessage(value)
 	return nil
