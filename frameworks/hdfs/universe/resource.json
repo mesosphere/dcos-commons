@@ -3,7 +3,7 @@
     "uris": {
       "jre-tar-gz": "{{jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
-      "keytab-zip": "https://downloads.mesosphere.com/hdfs/assets/keytab-fix.tar.gz",
+      "keytab-zip": "https://downloads.mesosphere.com/hdfs/assets/keytab-fix-1.0.tar.gz",
       "hdfs-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hadoop-3.2.0.tar.gz",
       "hdfs-bin-tar-gz": "https://downloads.mesosphere.com/hdfs/assets/hdfs-bin.tar.gz",
       "hdfs-jre-tar-gz": "{{jre-url}}",
@@ -17,27 +17,42 @@
     "icon-medium": "https://downloads.mesosphere.com/assets/universe/000/hdfs-icon-medium.png",
     "icon-large": "https://downloads.mesosphere.com/assets/universe/000/hdfs-icon-large.png"
   },
-  "cli":{
-    "binaries":{
-      "darwin":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-darwin}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-service-cli-darwin"
+  "cli": {
+    "binaries": {
+      "darwin": {
+        "x86-64": {
+          "contentHash": [
+            {
+              "algo": "sha256",
+              "value": "{{sha256:dcos-service-cli-darwin}}"
+            }
+          ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-service-cli-darwin"
         }
       },
-      "linux":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli-linux}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-service-cli-linux"
+      "linux": {
+        "x86-64": {
+          "contentHash": [
+            {
+              "algo": "sha256",
+              "value": "{{sha256:dcos-service-cli-linux}}"
+            }
+          ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-service-cli-linux"
         }
       },
-      "windows":{
-        "x86-64":{
-          "contentHash":[ { "algo":"sha256", "value":"{{sha256:dcos-service-cli.exe}}" } ],
-          "kind":"executable",
-          "url":"{{artifact-dir}}/dcos-service-cli.exe"
+      "windows": {
+        "x86-64": {
+          "contentHash": [
+            {
+              "algo": "sha256",
+              "value": "{{sha256:dcos-service-cli.exe}}"
+            }
+          ],
+          "kind": "executable",
+          "url": "{{artifact-dir}}/dcos-service-cli.exe"
         }
       }
     }

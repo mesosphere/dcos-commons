@@ -61,6 +61,7 @@ import sdk_auth
 import sdk_cmd
 import sdk_security
 
+KERBEROS_APP_ID = os.getenv("KERBEROS_APP_ID", "kdc")
 
 logging.basicConfig(format="[%(asctime)s|%(name)s|%(levelname)s]: %(message)s", level=logging.INFO)
 
@@ -117,7 +118,7 @@ def create_keytab_secret(args: dict, kerberos=None):
 def teardown(args: dict):
     log.info("Tearing down KDC")
 
-    sdk_cmd.run_cli(" ".join(["marathon", "app", "remove", "kdc"]))
+    sdk_cmd.run_cli(" ".join(["marathon", "app", "remove", KERBEROS_APP_ID]))
 
     sdk_security.install_enterprise_cli()
     if args.binary_secret:

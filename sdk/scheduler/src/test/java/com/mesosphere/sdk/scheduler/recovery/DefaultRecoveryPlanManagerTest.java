@@ -6,7 +6,6 @@ import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.*;
-import com.mesosphere.sdk.scheduler.recovery.constrain.TestingLaunchConstrainer;
 import com.mesosphere.sdk.scheduler.recovery.monitor.TestingFailureMonitor;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -61,7 +60,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     private StateStore stateStore;
     private ConfigStore<ServiceSpec> configStore;
     private TestingFailureMonitor failureMonitor;
-    private TestingLaunchConstrainer launchConstrainer;
     private PlanCoordinator planCoordinator;
     private PlanScheduler planScheduler;
     private PlanManager mockDeployManager;
@@ -83,7 +81,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         MockitoAnnotations.initMocks(this);
 
         failureMonitor = spy(new TestingFailureMonitor());
-        launchConstrainer = spy(new TestingLaunchConstrainer());
         Persister persister = MemPersister.newBuilder().build();
         frameworkStore = new FrameworkStore(persister);
         stateStore = new StateStore(persister);
@@ -108,7 +105,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 stateStore,
                 configStore,
                 new HashSet<>(Arrays.asList(taskInfo.getName())),
-                launchConstrainer,
                 failureMonitor,
                 Optional.empty()));
         mockDeployManager = mock(PlanManager.class);
@@ -133,39 +129,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
 
     @Test
     @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
-    public void ifStoppedTryConstrainedlaunch() throws Exception {
-        final Protos.TaskStatus status = TaskTestUtils.generateStatus(
-                taskInfo.getTaskId(),
-                Protos.TaskState.TASK_FAILED);
-
-        launchConstrainer.setCanLaunch(false);
-        stateStore.storeTasks(taskInfos);
-        stateStore.storeStatus(taskInfo.getName(), status);
-        recoveryManager.update(status);
-        Collection<OfferRecommendation> recommendations =
-                planScheduler.resourceOffers(getOffers(), planCoordinator.getCandidates());
-
-        assertEquals(0, recommendations.size());
-        // Verify launchConstrainer was used
-        verify(launchConstrainer, times(1)).canLaunch(any());
-
-        // Verify that the UI remains stable
-        for (int i = 0; i < 10; i++) {
-            planScheduler.resourceOffers(getOffers(), planCoordinator.getCandidates());
-            //verify the UI
-            assertNotNull(recoveryManager.getPlan());
-            assertNotNull(recoveryManager.getPlan().getChildren());
-            assertNotNull(recoveryManager.getPlan().getChildren().get(0).getChildren());
-            assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
-            assertEquals("test-task-type-0:[test-task-name]",
-                    recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).getName());
-        }
-
-        reset(mockDeployManager);
-    }
-
-    @Test
-    @SuppressFBWarnings("RV_RETURN_VALUE_IGNORED_NO_SIDE_EFFECT")
     public void ifStoppedDoRelaunch() throws Exception {
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(
                 taskInfo.getTaskId(),
@@ -174,17 +137,12 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
         frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
-        launchConstrainer.setCanLaunch(true);
-
         recoveryManager.update(status);
 
         // no dirty
         Collection<OfferRecommendation> recommendations =
                 planScheduler.resourceOffers(getOffers(), planCoordinator.getCandidates());
         assertEquals(1, distinctOffers(recommendations).size());
-
-        // Verify launchConstrainer was checked before launch
-        verify(launchConstrainer, times(1)).canLaunch(any());
 
         reset(mockDeployManager);
     }
@@ -195,7 +153,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
         final Step step = mock(Step.class);
 
-        launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
         frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
@@ -211,46 +168,12 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
     }
 
     @Test
-    public void stoppedTaskTransitionsToFailed() throws Exception {
-        final List<TaskInfo> infos = Collections.singletonList(TaskTestUtils.withFailedFlag(taskInfo));
-        final Protos.TaskStatus status = TaskTestUtils.generateStatus(taskInfo.getTaskId(), Protos.TaskState.TASK_FAILED);
-
-        failureMonitor.setFailedList(infos.get(0));
-        launchConstrainer.setCanLaunch(false);
-        stateStore.storeTasks(infos);
-        stateStore.storeStatus(taskInfo.getName(), status);
-        when(mockDeployManager.getCandidates(Collections.emptyList())).thenReturn(Collections.emptyList());
-
-        recoveryManager.update(status);
-        planScheduler.resourceOffers(
-                getOffers(),
-                planCoordinator.getCandidates());
-
-        // Verify that the UI remains stable
-        for (int i = 0; i < 10; i++) {
-            planScheduler.resourceOffers(
-                    getOffers(),
-                    planCoordinator.getCandidates());
-
-            // verify the transition to stopped
-            assertNotNull(recoveryManager.getPlan());
-            assertNotNull(recoveryManager.getPlan().getChildren());
-            assertNotNull(recoveryManager.getPlan().getChildren().get(0).getChildren());
-            assertTrue(recoveryManager.getPlan().getChildren().get(0).getChildren().size() == 1);
-            assertEquals("test-task-type-0:[test-task-name]",
-                    recoveryManager.getPlan().getChildren().get(0).getChildren().get(0).getName());
-        }
-        reset(mockDeployManager);
-    }
-
-    @Test
     public void failedTaskCanBeRestarted() throws Exception {
         final Protos.TaskStatus status = TaskTestUtils.generateStatus(
                 taskInfo.getTaskId(),
                 Protos.TaskState.TASK_FAILED);
 
         failureMonitor.setFailedList(taskInfo);
-        launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
         frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
@@ -286,7 +209,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 Protos.TaskState.TASK_FAILED);
 
         failureMonitor.setFailedList(taskInfo);
-        launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), status);
         frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
@@ -319,7 +241,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 Protos.TaskState.TASK_FAILED);
 
         failureMonitor.setFailedList(failedTaskInfo);
-        launchConstrainer.setCanLaunch(true);
         stateStore.storeTasks(infos);
         stateStore.storeStatus(taskInfo.getName(), status);
         frameworkStore.storeFrameworkId(TestConstants.FRAMEWORK_ID);
@@ -349,8 +270,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                 taskInfo.getTaskId(),
                 Protos.TaskState.TASK_FAILED);
 
-        launchConstrainer.setCanLaunch(true);
-
         // TASK_RUNNING
         stateStore.storeTasks(taskInfos);
         stateStore.storeStatus(taskInfo.getName(), runningStatus);
@@ -377,8 +296,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
         final Protos.TaskStatus failedStatus = TaskTestUtils.generateStatus(
                 taskInfo.getTaskId(),
                 Protos.TaskState.TASK_FAILED);
-
-        launchConstrainer.setCanLaunch(true);
 
         // TASK_RUNNING
         stateStore.storeTasks(taskInfos);

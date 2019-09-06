@@ -11,7 +11,6 @@ import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.DefaultCommandSpec;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
@@ -127,7 +126,6 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
     Step replaceStep = new RecoveryStep(
         inputLaunchStep.getName(),
         replacePodInstanceRequirement,
-        new UnconstrainedLaunchConstrainer(),
         stateStore);
 
     List<Step> steps = new ArrayList<>();
@@ -155,7 +153,6 @@ public class CassandraRecoveryPlanOverrider implements RecoveryPlanOverrider {
             return new RecoveryStep(
                 step.getName(),
                 restartPodInstanceRequirement,
-                new UnconstrainedLaunchConstrainer(),
                 stateStore);
           })
           .collect(Collectors.toList());

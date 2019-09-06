@@ -5,6 +5,12 @@ from typing import Any, Dict, Iterator, List
 import pytest
 import sdk_install
 import sdk_jobs
+import sdk_cmd
+import sdk_marathon
+import subprocess
+import sdk_security
+import sdk_utils
+
 from tests import config
 
 
@@ -106,3 +112,88 @@ def test_backup_and_restore_to_s3() -> None:
         plan_parameters,
         config.get_foldered_node_address(),
     )
+
+
+@pytest.mark.aws
+@pytest.mark.sanity
+def test_backup_and_restore_to_s3_compatible_storage() -> None:
+    try:
+        sdk_install.install(
+            "minio",
+            "minio",
+            expected_running_tasks=0,
+            package_version="0.0.13-RELEASE.2018-10-06T00-15-16Z",
+            wait_for_deployment=False,
+        )
+        temp_key_id = os.getenv("AWS_ACCESS_KEY_ID")
+
+        if not temp_key_id:
+            assert (
+                False
+            ), 'AWS credentials are required for this test. Disable test with e.g. TEST_TYPES="sanity and not aws"'
+        temp_secret_access_key = os.getenv("AWS_SECRET_ACCESS_KEY")
+        options = ""
+        if sdk_utils.is_strict_mode():
+            sdk_security.create_service_account(
+                service_account_name="marathon-lb-sa",
+                service_account_secret="marathon-lb/service-account-secret",
+            )
+            sdk_cmd.run_cli(
+                "security org users grant marathon-lb-sa dcos:service:marathon:marathon:services:/ read"
+            )
+            sdk_cmd.run_cli(
+                'security org users grant marathon-lb-sa dcos:service:marathon:marathon:admin:events read --description "Allows access to Marathon events"'
+            )
+            options = {
+                "marathon-lb": {
+                    "secret_name": "marathon-lb/service-account-secret",
+                    "marathon-uri": "https://marathon.mesos:8443",
+                }
+            }
+
+        sdk_install.install(
+            "marathon-lb",
+            "marathon-lb",
+            expected_running_tasks=0,
+            additional_options=options,
+            package_version="1.14.0",
+            wait_for_deployment=False,
+        )
+        host = sdk_marathon.get_scheduler_host("marathon-lb")
+        _, public_node_ip, _ = sdk_cmd.agent_ssh(host, "curl -s ifconfig.co")
+        minio_endpoint_url = "http://" + public_node_ip + ":9000"
+        os.environ["AWS_ACCESS_KEY_ID"] = config.MINIO_AWS_ACCESS_KEY_ID
+        os.environ["AWS_SECRET_ACCESS_KEY"] = config.MINIO_AWS_SECRET_ACCESS_KEY
+        subprocess.run(
+            [
+                "aws",
+                "s3",
+                "mb",
+                "s3://" + config.MINIO_BUCKET_NAME,
+                "--endpoint",
+                minio_endpoint_url,
+            ]
+        )
+
+        plan_parameters = {
+            "AWS_ACCESS_KEY_ID": os.getenv("AWS_ACCESS_KEY_ID"),
+            "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
+            "AWS_REGION": os.getenv("AWS_REGION", "us-west-2"),
+            "S3_BUCKET_NAME": config.MINIO_BUCKET_NAME,
+            "SNAPSHOT_NAME": str(uuid.uuid1()),
+            "CASSANDRA_KEYSPACES": '"testspace1 testspace2"',
+            "S3_ENDPOINT_URL": minio_endpoint_url,
+        }
+
+        config.run_backup_and_restore(
+            config.get_foldered_service_name(),
+            "backup-s3",
+            "restore-s3",
+            plan_parameters,
+            config.get_foldered_node_address(),
+        )
+    finally:
+        sdk_install.uninstall("minio", "minio")
+        sdk_install.uninstall("marathon-lb", "marathon-lb")
+        os.environ["AWS_ACCESS_KEY_ID"] = temp_key_id
+        os.environ["AWS_SECRET_ACCESS_KEY"] = temp_secret_access_key

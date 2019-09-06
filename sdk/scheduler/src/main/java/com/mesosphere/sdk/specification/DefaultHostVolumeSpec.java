@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+import org.apache.mesos.Protos;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 /**
@@ -30,17 +32,21 @@ public final class DefaultHostVolumeSpec implements HostVolumeSpec {
 
   private final String containerPath;
 
+  private final Optional<Protos.Volume.Mode> mode;
+
   @JsonCreator
   private DefaultHostVolumeSpec(
       @JsonProperty("host-path") String hostPath,
-      @JsonProperty("container-path") String containerPath)
+      @JsonProperty("container-path") String containerPath,
+      @JsonProperty("mode") Optional<Protos.Volume.Mode> mode)
   {
     this.hostPath = hostPath;
     this.containerPath = containerPath;
+    this.mode = mode;
   }
 
   private DefaultHostVolumeSpec(Builder builder) {
-    this(builder.hostPath, builder.containerPath);
+    this(builder.hostPath, builder.containerPath, builder.mode);
 
     ValidationUtils.matchesRegex(this, "host-path", hostPath, VALID_HOST_PATH_PATTERN);
     ValidationUtils
@@ -61,6 +67,12 @@ public final class DefaultHostVolumeSpec implements HostVolumeSpec {
   @Override
   public String getContainerPath() {
     return containerPath;
+  }
+
+  @JsonProperty("mode")
+  @Override
+  public Optional<Protos.Volume.Mode> getMode() {
+    return mode;
   }
 
   @Override
@@ -87,7 +99,27 @@ public final class DefaultHostVolumeSpec implements HostVolumeSpec {
 
     private String containerPath;
 
+    private Optional<Protos.Volume.Mode> mode = Optional.empty();
+
     private Builder() {
+    }
+
+    public Builder mode(String mode) {
+      if (mode == null || mode.isEmpty()) {
+        this.mode = Optional.empty();
+        return this;
+      }
+
+      switch (mode) {
+        case "RW":
+          this.mode = Optional.of(Protos.Volume.Mode.RW);
+          return this;
+        case "RO":
+          this.mode = Optional.of(Protos.Volume.Mode.RO);
+          return this;
+        default:
+          throw new IllegalArgumentException("Unsupported host volume mode.");
+      }
     }
 
     public Builder hostPath(String hostPath) {
