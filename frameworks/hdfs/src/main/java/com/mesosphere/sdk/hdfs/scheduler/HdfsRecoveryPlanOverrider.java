@@ -9,7 +9,6 @@ import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
-import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.state.StateStore;
 
 import org.slf4j.Logger;
@@ -107,7 +106,6 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
         new RecoveryStep(
             inputBootstrapStep.getName(),
             bootstrapPodInstanceRequirement,
-            new UnconstrainedLaunchConstrainer(),
             stateStore);
 
     // JournalNode or NameNode
@@ -122,7 +120,6 @@ public class HdfsRecoveryPlanOverrider implements RecoveryPlanOverrider {
         new RecoveryStep(
             inputNodeStep.getName(),
             nameNodePodInstanceRequirement,
-            new UnconstrainedLaunchConstrainer(),
             stateStore);
 
     return new DefaultPhase(

@@ -100,7 +100,6 @@ public final class PlanUtils {
    */
   @SuppressWarnings({
       "checkstyle:CyclomaticComplexity",
-      "checkstyle:LineLength",
       "checkstyle:MultipleStringLiterals"
   })
   public static Status getAggregateStatus(
