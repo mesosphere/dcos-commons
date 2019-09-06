@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -164,15 +164,13 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <th class="colOne" scope="col">Constructor and Description</th>
 </tr>
 <tr class="altColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.state.StateStore-">RecoveryStep</a></span>(java.lang.String&nbsp;name,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.state.StateStore-">RecoveryStep</a></span>(java.lang.String&nbsp;name,
             <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-            <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>&nbsp;launchConstrainer,
             <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</code>&nbsp;</td>
 </tr>
 <tr class="rowColor">
-<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.state.StateStore-java.util.Optional-">RecoveryStep</a></span>(java.lang.String&nbsp;name,
+<td class="colOne"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.state.StateStore-java.util.Optional-">RecoveryStep</a></span>(java.lang.String&nbsp;name,
             <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-            <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>&nbsp;launchConstrainer,
             <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
             java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</code>&nbsp;</td>
 </tr>
@@ -219,19 +217,13 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i6" class="altColor">
-<td class="colFirst"><code>void</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></span>(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</code>
-<div class="block">Synchronized to ensure consistency between this and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-"><code>DeploymentStep.update(Protos.TaskStatus)</code></a>.</div>
-</td>
-</tr>
 </table>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.DeploymentStep">
 <!--   -->
 </a>
 <h3>Methods inherited from class&nbsp;com.mesosphere.sdk.scheduler.plan.<a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></h3>
-<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#addError-java.lang.String-">addError</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getDisplayStatus--">getDisplayStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-">update</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateInitialStatus-com.mesosphere.sdk.scheduler.plan.Status-">updateInitialStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
+<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#addError-java.lang.String-">addError</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getDisplayStatus--">getDisplayStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getErrors--">getErrors</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#getPodInstanceRequirement--">getPodInstanceRequirement</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-">update</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateInitialStatus-com.mesosphere.sdk.scheduler.plan.Status-">updateInitialStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a>, <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateParameters-java.util.Map-">updateParameters</a></code></li>
 </ul>
 <ul class="blockList">
 <li class="blockList"><a name="methods.inherited.from.class.com.mesosphere.sdk.scheduler.plan.AbstractStep">
@@ -268,7 +260,7 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <!--   -->
 </a>
 <h3>Constructor Detail</h3>
-<a name="RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.state.StateStore-">
+<a name="RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.state.StateStore-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -276,11 +268,10 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <h4>RecoveryStep</h4>
 <pre>public&nbsp;RecoveryStep(java.lang.String&nbsp;name,
                     <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-                    <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>&nbsp;launchConstrainer,
                     <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore)</pre>
 </li>
 </ul>
-<a name="RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.state.StateStore-java.util.Optional-">
+<a name="RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.state.StateStore-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
@@ -288,7 +279,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <h4>RecoveryStep</h4>
 <pre>public&nbsp;RecoveryStep(java.lang.String&nbsp;name,
                     <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan">PodInstanceRequirement</a>&nbsp;podInstanceRequirement,
-                    <a href="../../../../../com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a>&nbsp;launchConstrainer,
                     <a href="../../../../../com/mesosphere/sdk/state/StateStore.html" title="class in com.mesosphere.sdk.state">StateStore</a>&nbsp;stateStore,
                     java.util.Optional&lt;java.lang.String&gt;&nbsp;namespace)</pre>
 </li>
@@ -320,23 +310,6 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#start--">start</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></code></dd>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#start--">start</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></code></dd>
-</dl>
-</li>
-</ul>
-<a name="updateOfferStatus-java.util.Collection-">
-<!--   -->
-</a>
-<ul class="blockList">
-<li class="blockList">
-<h4>updateOfferStatus</h4>
-<pre>public&nbsp;void&nbsp;updateOfferStatus(java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/offer/OfferRecommendation.html" title="interface in com.mesosphere.sdk.offer">OfferRecommendation</a>&gt;&nbsp;recommendations)</pre>
-<div class="block"><span class="descfrmTypeLabel">Description copied from class:&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-">DeploymentStep</a></code></span></div>
-<div class="block">Synchronized to ensure consistency between this and <a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#update-Protos.TaskStatus-"><code>DeploymentStep.update(Protos.TaskStatus)</code></a>.</div>
-<dl>
-<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/Step.html" title="interface in com.mesosphere.sdk.scheduler.plan">Step</a></code></dd>
-<dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
-<dd><code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus</a></code>&nbsp;in class&nbsp;<code><a href="../../../../../com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan">DeploymentStep</a></code></dd>
 </dl>
 </li>
 </ul>

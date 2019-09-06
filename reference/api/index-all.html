@@ -214,13 +214,6 @@
 <dd>
 <div class="block">Use <code>OfferDiscipline#create(SchedulerConfig, Persister)</code> to create a new instance.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">AllLaunchConstrainer</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/constrain/package-summary.html">com.mesosphere.sdk.scheduler.recovery.constrain</a></dt>
-<dd>
-<div class="block">A <a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain"><code>LaunchConstrainer</code></a> combinator that ensures that all the given constrainers are satisfied before launching a
- task.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html#AllLaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer...-">AllLaunchConstrainer(LaunchConstrainer...)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">AllLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#allowDecommission-java.lang.Boolean-">allowDecommission(Boolean)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
 <div class="block">Sets whether the <a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#count-java.lang.Integer-"><code>DefaultPodSpec.Builder.count(Integer)</code></a> for this pod can ever be decreased in a config update.</div>
@@ -539,19 +532,6 @@
 <dd>
 <div class="block">This class generates Strategy objects of the appropriate type.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html#canLaunch-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">canLaunch(RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">AllLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html#canLaunch-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">canLaunch(RecoveryType)</a></span> - Method in interface com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a></dt>
-<dd>
-<div class="block">Determines whether the given <a href="com/mesosphere/sdk/scheduler/recovery/RecoveryType.html" title="enum in com.mesosphere.sdk.scheduler.recovery"><code>RecoveryType</code></a>
- can be launchHappened right now.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html#canLaunch-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">canLaunch(RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TestingLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html#canLaunch-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">canLaunch(RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TimedLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html#canLaunch-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">canLaunch(RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">UnconstrainedLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/dcos/Capabilities.html" title="class in com.mesosphere.sdk.dcos"><span class="typeNameLink">Capabilities</span></a> - Class in <a href="com/mesosphere/sdk/dcos/package-summary.html">com.mesosphere.sdk.dcos</a></dt>
 <dd>
 <div class="block">This class represents a set of capabilities that may or may not be supported in a given version
@@ -698,8 +678,6 @@
 <dt><a href="com/mesosphere/sdk/scheduler/plan/strategy/package-summary.html">com.mesosphere.sdk.scheduler.plan.strategy</a> - package com.mesosphere.sdk.scheduler.plan.strategy</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/package-summary.html">com.mesosphere.sdk.scheduler.recovery</a> - package com.mesosphere.sdk.scheduler.recovery</dt>
-<dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/scheduler/recovery/constrain/package-summary.html">com.mesosphere.sdk.scheduler.recovery.constrain</a> - package com.mesosphere.sdk.scheduler.recovery.constrain</dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/monitor/package-summary.html">com.mesosphere.sdk.scheduler.recovery.monitor</a> - package com.mesosphere.sdk.scheduler.recovery.monitor</dt>
 <dd>&nbsp;</dd>
@@ -1255,9 +1233,9 @@
 <dd>
 <div class="block"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a> enables monitoring and management of recovery plan.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Set-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.Optional-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, Set&lt;String&gt;, LaunchConstrainer, FailureMonitor, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Set-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.Optional-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, Set&lt;String&gt;, FailureMonitor, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Set-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.Optional-java.util.List-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, Set&lt;String&gt;, LaunchConstrainer, FailureMonitor, Optional&lt;String&gt;, List&lt;RecoveryPlanOverrider&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#DefaultRecoveryPlanManager-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-java.util.Set-com.mesosphere.sdk.scheduler.recovery.monitor.FailureMonitor-java.util.Optional-java.util.List-">DefaultRecoveryPlanManager(StateStore, ConfigStore&lt;ServiceSpec&gt;, Set&lt;String&gt;, FailureMonitor, Optional&lt;String&gt;, List&lt;RecoveryPlanOverrider&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">DefaultResourceSet</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -2522,8 +2500,6 @@
 <div class="block">Time retrieval broken out into a separate function to allow overriding its behavior in tests.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html#getCurrentTimeMillis--">getCurrentTimeMillis()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler.TimeFetcher</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html#getCurrentTimeMs--">getCurrentTimeMs()</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TimedLaunchConstrainer</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html#getCustomEndpoints--">getCustomEndpoints()</a></span> - Method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/AbstractScheduler.html" title="class in com.mesosphere.sdk.scheduler">AbstractScheduler</a></dt>
 <dd>
@@ -5261,12 +5237,6 @@
 <dd>
 <div class="block">Creates a new instance which is initialized with the provided <code>labels</code>.</div>
 </dd>
-<dt><a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">LaunchConstrainer</span></a> - Interface in <a href="com/mesosphere/sdk/scheduler/recovery/constrain/package-summary.html">com.mesosphere.sdk.scheduler.recovery.constrain</a></dt>
-<dd>
-<div class="block">This interface provides methods which govern and react to Launch Operations.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html#launchConstrainer">launchConstrainer</a></span> - Variable in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery">DefaultRecoveryPlanManager</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/testing/LaunchedTask.html" title="class in com.mesosphere.sdk.testing"><span class="typeNameLink">LaunchedTask</span></a> - Class in <a href="com/mesosphere/sdk/testing/package-summary.html">com.mesosphere.sdk.testing</a></dt>
 <dd>
 <div class="block">Grouping of a launched task along with its associated executor.</div>
@@ -5298,18 +5268,6 @@
 <dd>
 <div class="block">Creates a new evaluation stage for launching a task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html#launchHappened-com.mesosphere.sdk.offer.LaunchOfferRecommendation-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">launchHappened(LaunchOfferRecommendation, RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/AllLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">AllLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html#launchHappened-com.mesosphere.sdk.offer.LaunchOfferRecommendation-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">launchHappened(LaunchOfferRecommendation, RecoveryType)</a></span> - Method in interface com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain">LaunchConstrainer</a></dt>
-<dd>
-<div class="block">Invoked every time a task is launchHappened.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html#launchHappened-com.mesosphere.sdk.offer.LaunchOfferRecommendation-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">launchHappened(LaunchOfferRecommendation, RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TestingLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html#launchHappened-com.mesosphere.sdk.offer.LaunchOfferRecommendation-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">launchHappened(LaunchOfferRecommendation, RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TimedLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html#launchHappened-com.mesosphere.sdk.offer.LaunchOfferRecommendation-com.mesosphere.sdk.scheduler.recovery.RecoveryType-">launchHappened(LaunchOfferRecommendation, RecoveryType)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">UnconstrainedLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#launching-boolean-">launching(boolean)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></dt>
 <dd>
 <div class="block">Tells the caller that this client is launching tasks into existing footprint.</div>
@@ -6898,9 +6856,9 @@
 <dd>
 <div class="block">An extension of <a href="com/mesosphere/sdk/scheduler/plan/DeploymentStep.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>DeploymentStep</code></a> meant for use with <a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery"><code>DefaultRecoveryPlanManager</code></a>.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.state.StateStore-">RecoveryStep(String, PodInstanceRequirement, LaunchConstrainer, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">RecoveryStep</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.state.StateStore-">RecoveryStep(String, PodInstanceRequirement, StateStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">RecoveryStep</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.scheduler.recovery.constrain.LaunchConstrainer-com.mesosphere.sdk.state.StateStore-java.util.Optional-">RecoveryStep(String, PodInstanceRequirement, LaunchConstrainer, StateStore, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">RecoveryStep</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#RecoveryStep-java.lang.String-com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement-com.mesosphere.sdk.state.StateStore-java.util.Optional-">RecoveryStep(String, PodInstanceRequirement, StateStore, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">RecoveryStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/Expect.html#recoveryStepCount-int-">recoveryStepCount(int)</a></span> - Static method in interface com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing">Expect</a></dt>
 <dd>
@@ -7667,8 +7625,6 @@
 <div class="block">Configures the test with custom template parameters to be applied against the Universe packaging, as would be
  provided via <code>TEMPLATE_X</code> envvars when building the service.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html#setCanLaunch-boolean-">setCanLaunch(boolean)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TestingLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html#setComplete--">setComplete()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/DeregisterStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">DeregisterStep</a></dt>
 <dd>
 <div class="block">Marks this step complete after the framework has been deregistered.</div>
@@ -8576,12 +8532,6 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/monitor/TestingFailureMonitor.html#TestingFailureMonitor-TaskInfo...-">TestingFailureMonitor(TaskInfo...)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.monitor.<a href="com/mesosphere/sdk/scheduler/recovery/monitor/TestingFailureMonitor.html" title="class in com.mesosphere.sdk.scheduler.recovery.monitor">TestingFailureMonitor</a></dt>
 <dd>&nbsp;</dd>
-<dt><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">TestingLaunchConstrainer</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/constrain/package-summary.html">com.mesosphere.sdk.scheduler.recovery.constrain</a></dt>
-<dd>
-<div class="block"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain"><code>LaunchConstrainer</code></a> that makes it easy to enable/disable launches for testing.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html#TestingLaunchConstrainer--">TestingLaunchConstrainer()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TestingLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TestingLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/recovery/monitor/TimedFailureMonitor.html" title="class in com.mesosphere.sdk.scheduler.recovery.monitor"><span class="typeNameLink">TimedFailureMonitor</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/monitor/package-summary.html">com.mesosphere.sdk.scheduler.recovery.monitor</a></dt>
 <dd>
 <div class="block">Implements a <a href="com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor"><code>FailureMonitor</code></a> with a time-based policy.</div>
@@ -8590,16 +8540,6 @@
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor"><code>FailureMonitor</code></a> that waits for at least a specified duration before deciding that the task
  has failed.</div>
-</dd>
-<dt><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">TimedLaunchConstrainer</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/constrain/package-summary.html">com.mesosphere.sdk.scheduler.recovery.constrain</a></dt>
-<dd>
-<div class="block">Implements a <a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain"><code>LaunchConstrainer</code></a> that requires a minimum number of seconds to elapse between launches, for
- rate-limiting purposes.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html#TimedLaunchConstrainer-java.time.Duration-">TimedLaunchConstrainer(Duration)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/TimedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">TimedLaunchConstrainer</a></dt>
-<dd>
-<div class="block">Create a new constrainer with the given required minimum delay between permanent (destructive) recovery
- operations.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html#TimeFetcher--">TimeFetcher()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler.TimeFetcher</a></dt>
 <dd>&nbsp;</dd>
@@ -9054,12 +8994,6 @@
 </a>
 <h2 class="title">U</h2>
 <dl>
-<dt><a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain"><span class="typeNameLink">UnconstrainedLaunchConstrainer</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/recovery/constrain/package-summary.html">com.mesosphere.sdk.scheduler.recovery.constrain</a></dt>
-<dd>
-<div class="block">Implementation of <a href="com/mesosphere/sdk/scheduler/recovery/constrain/LaunchConstrainer.html" title="interface in com.mesosphere.sdk.scheduler.recovery.constrain"><code>LaunchConstrainer</code></a> that always allows launches.</div>
-</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html#UnconstrainedLaunchConstrainer--">UnconstrainedLaunchConstrainer()</a></span> - Constructor for class com.mesosphere.sdk.scheduler.recovery.constrain.<a href="com/mesosphere/sdk/scheduler/recovery/constrain/UnconstrainedLaunchConstrainer.html" title="class in com.mesosphere.sdk.scheduler.recovery.constrain">UnconstrainedLaunchConstrainer</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html#uninstalled-java.lang.String-">uninstalled(String)</a></span> - Method in interface com.mesosphere.sdk.scheduler.multi.<a href="com/mesosphere/sdk/scheduler/multi/MultiServiceEventClient.UninstallCallback.html" title="interface in com.mesosphere.sdk.scheduler.multi">MultiServiceEventClient.UninstallCallback</a></dt>
 <dd>
 <div class="block">Invoked when a given service has completed its uninstall as triggered by
@@ -9226,8 +9160,6 @@
 <div class="block">Notifies the Step whether the <a href="com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a> previously returned by
  <a href="com/mesosphere/sdk/scheduler/plan/Step.html#start--"><code>Step.start()</code></a> has been successfully accepted/fulfilled.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus(Collection&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.recovery.<a href="com/mesosphere/sdk/scheduler/recovery/RecoveryStep.html" title="class in com.mesosphere.sdk.scheduler.recovery">RecoveryStep</a></dt>
-<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus(Collection&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/TLSCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">TLSCleanupStep</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html#updateOfferStatus-java.util.Collection-">updateOfferStatus(Collection&lt;OfferRecommendation&gt;)</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallStep</a></dt>

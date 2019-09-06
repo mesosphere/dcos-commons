@@ -24,7 +24,6 @@ com.mesosphere.sdk.scheduler.plan
 com.mesosphere.sdk.scheduler.plan.backoff
 com.mesosphere.sdk.scheduler.plan.strategy
 com.mesosphere.sdk.scheduler.recovery
-com.mesosphere.sdk.scheduler.recovery.constrain
 com.mesosphere.sdk.scheduler.recovery.monitor
 com.mesosphere.sdk.scheduler.uninstall
 com.mesosphere.sdk.specification
