@@ -30,13 +30,16 @@ def configure_package(configure_security):
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
 @pytest.mark.parametrize(
-    "options", [
+    "options",
+    [
         {"service": {"name": SERVICE_NAME, "role": "slave_public"}},
-        {"service": {"name": SERVICE_NAME}}
-    ], ids=[
+        {"service": {"name": SERVICE_NAME}},
+    ],
+    ids=[
         "test_nonenforced_group_role_defaults_explicit_slave_public",
-        "test_nonenforced_group_role_defaults"
-    ])
+        "test_nonenforced_group_role_defaults",
+    ],
+)
 def test_nonenforced_group_role_defaults(options):
 
     # Create group without enforced roles.
