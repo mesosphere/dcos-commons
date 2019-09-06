@@ -11,7 +11,7 @@ public final class SchedulerUtils {
    * Escape sequence to use for slashes in service names. Slashes are used in DC/OS for folders, and we don't want to
    * confuse ZK with those.
    */
-  private static final String SLASH_REPLACEMENT = "__";
+  public static final String SLASH_REPLACEMENT = "__";
 
   private SchedulerUtils() {
   }

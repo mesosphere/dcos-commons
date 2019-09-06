@@ -296,7 +296,8 @@ public final class SchedulerConfig {
   /*
    * Determines if the scheduler should subscribe with both legacy role and new quota roles.
    * Setting this to true is harmless and might incur a slight startup penalty as Mesos offers
-   * with this role get declined if the pod is looking for role set by FrameworkConfig.getRole()
+   * with this role get declined if the pod is looking for role set by
+   * {@link com.mesosphere.sdk.framework.FrameworkConfig#getRole()}
    */
   private static final String ENABLE_ROLE_MIGRATION_ENV = "ENABLE_ROLE_MIGRATION";
 

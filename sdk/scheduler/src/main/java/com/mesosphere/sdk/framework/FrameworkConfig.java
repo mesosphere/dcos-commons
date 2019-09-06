@@ -294,7 +294,7 @@ public final class FrameworkConfig {
    * Returns the namespaced role derived from the framework name.
    */
   public Optional<String> getNamespacedRole() {
-    String[] marathonGroups = getNonNamespacedRole().split("__");
+    String[] marathonGroups = getNonNamespacedRole().split(SchedulerUtils.SLASH_REPLACEMENT);
     if (marathonGroups.length > 1) {
       return Optional.of(marathonGroups[0]);
     } else {
