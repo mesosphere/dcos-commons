@@ -283,7 +283,7 @@ public final class SchedulerConfig {
   private static final String MESOS_ALLOCATION_ROLE_ENV = "MESOS_ALLOCATION_ROLE";
 
   /**
-   * When set to true, the {@link #MESOS_ALLOCATION_ROLE} value should be used to subscribe and recover or
+   * When set to true, the {@link #MESOS_ALLOCATION_ROLE_ENV} value should be used to subscribe and recover or
    * add footprint.
    */
   private static final String MARATHON_APP_ENFORCE_GROUP_ROLE_ENV = "MARATHON_APP_ENFORCE_GROUP_ROLE";

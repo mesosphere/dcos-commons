@@ -261,7 +261,7 @@ def get_service_roles(service_name) -> dict:
     if service_state:
 
         if "roles" in service_state:
-            # MUTI_ROLE
+            # MULTI_ROLE
             current_service_roles["framework-roles"] = service_state["roles"]
             current_service_roles["framework-role"] = None
         else:
@@ -283,7 +283,7 @@ def filter_role_from_config(unfiltered_config: Optional[Dict[str, Any]]) -> None
 
     # Remove any role related fields as role changes
     # are allowed to happen across config targets
-    # to accomodate for quota migration.
+    # to accommodate for quota migration.
 
     # Inspired by:
     # https://stackoverflow.com/a/50444005/10840685

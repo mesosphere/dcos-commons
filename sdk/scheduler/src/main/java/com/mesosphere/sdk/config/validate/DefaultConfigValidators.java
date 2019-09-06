@@ -39,9 +39,9 @@ public final class DefaultConfigValidators {
     if (hasRoleChanged && hasCompletedDeployment) {
       return Collections.emptyList();
     } else if (hasRoleChanged) {
-      return Arrays.asList(new ServiceRoleCannotChangeOnIncompleteDeployment());
+      return Collections.singletonList(new ServiceRoleCannotChangeOnIncompleteDeployment());
     } else {
-      return Arrays.asList(new TaskVolumesCannotChange());
+      return Collections.singletonList(new TaskVolumesCannotChange());
     }
   }
 }
