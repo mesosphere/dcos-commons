@@ -1,6 +1,7 @@
 package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.mesos.Protos;
 
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,10 @@ public final class RawTask {
 
   private final List<RawTransportEncryption> transportEncryption;
 
+  private final String sharedMemory;
+
+  private final Integer sharedMemorySize;
+
   private RawTask(
       @JsonProperty("goal") String goal,
       @JsonProperty("essential") Boolean essential,
@@ -65,7 +70,9 @@ public final class RawTask {
       @JsonProperty("resource-set") String resourceSet,
       @JsonProperty("discovery") RawDiscovery discovery,
       @JsonProperty("kill-grace-period") Integer taskKillGracePeriodSeconds,
-      @JsonProperty("transport-encryption") List<RawTransportEncryption> transportEncryption)
+      @JsonProperty("transport-encryption") List<RawTransportEncryption> transportEncryption,
+      @JsonProperty("ipc-mode") String sharedMemory,
+      @JsonProperty("shm-size") Integer sharedMemorySize) throws Exception
   {
     this.goal = goal;
     this.essential = essential;
@@ -85,6 +92,18 @@ public final class RawTask {
     this.discovery = discovery;
     this.taskKillGracePeriodSeconds = taskKillGracePeriodSeconds;
     this.transportEncryption = transportEncryption;
+    this.sharedMemory = sharedMemory;
+    this.sharedMemorySize = sharedMemorySize;
+    validateShm();
+  }
+
+  private void validateShm() throws Exception{
+    if (sharedMemory != null
+        && sharedMemory.equals(Protos.LinuxInfo.IpcMode.SHARE_PARENT.toString())
+        && sharedMemorySize != null)
+    {
+      throw new Exception("shm size does not apply when IPC Mode is SHARE_PARENT");
+    }
   }
 
   public Double getCpus() {
@@ -158,5 +177,13 @@ public final class RawTask {
   public List<RawTransportEncryption> getTransportEncryption() {
     return transportEncryption == null ?
         Collections.emptyList() : transportEncryption;
+  }
+
+  public String getSharedMemory() {
+    return sharedMemory;
+  }
+
+  public Integer getSharedMemorySize() {
+    return sharedMemorySize;
   }
 }

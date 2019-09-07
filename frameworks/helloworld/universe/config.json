@@ -116,6 +116,7 @@
             "non_recoverable_state",
             "crash-loop",
             "seccomp",
+            "shm",
             ""
           ],
           "default": "svc"
