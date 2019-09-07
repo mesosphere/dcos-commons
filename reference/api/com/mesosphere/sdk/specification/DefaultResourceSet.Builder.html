@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -207,10 +207,16 @@ extends java.lang.Object</pre>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#memory-java.lang.Double-">memory</a></span>(java.lang.Double&nbsp;memory)</code>&nbsp;</td>
 </tr>
 <tr id="i10" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#role-java.lang.String-">role</a></span>(java.lang.String&nbsp;role)</code>
+<div class="block">Sets the <code>role</code> and returns a reference to this Builder so that the methods can be chained together.</div>
+</td>
+</tr>
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html#volumes-java.util.Collection-">volumes</a></span>(java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a>&gt;&nbsp;volumes)</code>
 <div class="block">Sets the <code>volumes</code> and returns a reference to this Builder so that the methods can be chained together.</div>
@@ -396,7 +402,7 @@ extends java.lang.Object</pre>
 <a name="build--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>build</h4>
 <pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet</a>&nbsp;build()</pre>
@@ -404,6 +410,22 @@ extends java.lang.Object</pre>
 <dl>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a <code>DefaultResourceSet</code> built with parameters of this <code>DefaultResourceSet.Builder</code></dd>
+</dl>
+</li>
+</ul>
+<a name="role-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>role</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a>&nbsp;role(java.lang.String&nbsp;role)</pre>
+<div class="block">Sets the <code>role</code> and returns a reference to this Builder so that the methods can be chained together.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>role</code> - the <code>role</code> to use</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>a reference to this Builder</dd>
 </dl>
 </li>
 </ul>

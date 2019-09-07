@@ -173,39 +173,46 @@
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/config/validate/ServiceRoleCannotChangeOnIncompleteDeployment.html" title="class in com.mesosphere.sdk.config.validate">ServiceRoleCannotChangeOnIncompleteDeployment</a></td>
+<td class="colLast">
+<div class="block">Configuration validator which halts the scheduler due to a role change on an incoming
+ <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> where the previous deployment wasn't complete.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/config/validate/TaskEnvCannotChange.html" title="class in com.mesosphere.sdk.config.validate">TaskEnvCannotChange</a></td>
 <td class="colLast">
 <div class="block">Customizable configuration validator which requires that a specified task environment variable
  cannot be changed after initial deployment.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/config/validate/TaskSpecsCannotUseUnsupportedFeatures.html" title="class in com.mesosphere.sdk.config.validate">TaskSpecsCannotUseUnsupportedFeatures</a></td>
 <td class="colLast">
 <div class="block">Validates that the taskSpecs only contain features supported by the DC/OS cluster being run on.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/config/validate/TaskVolumesCannotChange.html" title="class in com.mesosphere.sdk.config.validate">TaskVolumesCannotChange</a></td>
 <td class="colLast">
 <div class="block">Validates that each TaskSpecification's volumes have not been modified.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html" title="class in com.mesosphere.sdk.config.validate">TLSRequiresServiceAccount</a></td>
 <td class="colLast">
 <div class="block">A <a href="../../../../../com/mesosphere/sdk/config/validate/TLSRequiresServiceAccount.html" title="class in com.mesosphere.sdk.config.validate"><code>TLSRequiresServiceAccount</code></a> checks whether the configuration contains provisioning of TLS
  artifacts and whether the provided <a href="../../../../../com/mesosphere/sdk/scheduler/SchedulerConfig.html" title="class in com.mesosphere.sdk.scheduler"><code>SchedulerConfig</code></a> contains a service account.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/config/validate/UserCannotChange.html" title="class in com.mesosphere.sdk.config.validate">UserCannotChange</a></td>
 <td class="colLast">
 <div class="block">Configuration validator which validates that a
  <a href="../../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>'s user cannot change between deployments.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/config/validate/ZoneValidator.html" title="class in com.mesosphere.sdk.config.validate">ZoneValidator</a></td>
 <td class="colLast">
 <div class="block">This class validates that referencing Zones in placement constraints can only support the

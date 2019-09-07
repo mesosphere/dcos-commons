@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -139,14 +139,16 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#fromRawServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-">fromRawServiceSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#fromRawServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-java.util.Optional-">fromRawServiceSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+                  java.util.Optional&lt;java.lang.String&gt;&nbsp;serviceNamespace)</code>
 <div class="block">Creates a <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework"><code>FrameworkConfig</code></a> instance based off the contents of the provided
  <a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a>.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#fromServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-">fromServiceSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#fromServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-java.util.Optional-">fromServiceSpec</a></span>(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+               java.util.Optional&lt;java.lang.String&gt;&nbsp;serviceNamespace)</code>
 <div class="block">Creates a <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework"><code>FrameworkConfig</code></a> instance based off the contents of the provided
  <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
 </td>
@@ -164,43 +166,55 @@ extends java.lang.Object</pre>
 </td>
 </tr>
 <tr id="i5" class="rowColor">
+<td class="colFirst"><code>java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#getNamespacedRole--">getNamespacedRole</a></span>()</code>
+<div class="block">Returns the namespaced role derived from the framework name.</div>
+</td>
+</tr>
+<tr id="i6" class="altColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#getNonNamespacedRole--">getNonNamespacedRole</a></span>()</code>
+<div class="block">Returns the non-namespaced role used in earlier versions.</div>
+</td>
+</tr>
+<tr id="i7" class="rowColor">
 <td class="colFirst"><code>&lt;any&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#getPreReservedRoles--">getPreReservedRoles</a></span>()</code>
 <div class="block">Returns the list of pre-reserved roles as they should be provided to Mesos with the main role
  included.</div>
 </td>
 </tr>
-<tr id="i6" class="altColor">
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#getPrincipal--">getPrincipal</a></span>()</code>
 <div class="block">Returns the principal to use in resource reservations.</div>
 </td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#getRole--">getRole</a></span>()</code>
 <div class="block">Returns the 'main' role to register as.</div>
 </td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#getUser--">getUser</a></span>()</code>
 <div class="block">Returns the user to run tasks as.</div>
 </td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#getWebUrl--">getWebUrl</a></span>()</code>
 <div class="block">Returns the web URL to specify when registering with Mesos.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#getZookeeperHostPort--">getZookeeperHostPort</a></span>()</code>
 <div class="block">Returns the zookeeper endpoint to use for state storage, of the form "hostname:port".</div>
 </td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -226,24 +240,26 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="fromRawServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-">
+<a name="fromRawServiceSpec-com.mesosphere.sdk.specification.yaml.RawServiceSpec-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>fromRawServiceSpec</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;fromRawServiceSpec(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec)</pre>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;fromRawServiceSpec(<a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml">RawServiceSpec</a>&nbsp;rawServiceSpec,
+                                                 java.util.Optional&lt;java.lang.String&gt;&nbsp;serviceNamespace)</pre>
 <div class="block">Creates a <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework"><code>FrameworkConfig</code></a> instance based off the contents of the provided
  <a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a>.</div>
 </li>
 </ul>
-<a name="fromServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-">
+<a name="fromServiceSpec-com.mesosphere.sdk.specification.ServiceSpec-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
 <h4>fromServiceSpec</h4>
-<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;fromServiceSpec(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec)</pre>
+<pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a>&nbsp;fromServiceSpec(<a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a>&nbsp;serviceSpec,
+                                              java.util.Optional&lt;java.lang.String&gt;&nbsp;serviceNamespace)</pre>
 <div class="block">Creates a <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework"><code>FrameworkConfig</code></a> instance based off the contents of the provided
  <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
 </li>
@@ -344,7 +360,7 @@ extends java.lang.Object</pre>
 <a name="toString--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>toString</h4>
 <pre>public&nbsp;java.lang.String&nbsp;toString()</pre>
@@ -352,6 +368,28 @@ extends java.lang.Object</pre>
 <dt><span class="overrideSpecifyLabel">Overrides:</span></dt>
 <dd><code>toString</code>&nbsp;in class&nbsp;<code>java.lang.Object</code></dd>
 </dl>
+</li>
+</ul>
+<a name="getNonNamespacedRole--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getNonNamespacedRole</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getNonNamespacedRole()</pre>
+<div class="block">Returns the non-namespaced role used in earlier versions.
+ Can be compared with <a href="../../../../com/mesosphere/sdk/framework/FrameworkConfig.html#getRole--"><code>getRole()</code></a> to determine which role
+ the current footprint has been deployed with.</div>
+</li>
+</ul>
+<a name="getNamespacedRole--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getNamespacedRole</h4>
+<pre>public&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getNamespacedRole()</pre>
+<div class="block">Returns the namespaced role derived from the framework name.</div>
 </li>
 </ul>
 </li>
