@@ -29,6 +29,7 @@ public final class DefaultConfigValidators {
         new DomainCapabilityValidator(),
         new PlacementRuleIsValid(),
         new RegionCannotChange(),
-        new ServiceNameCannotBreakDNS());
+        new ServiceNameCannotBreakDNS(),
+        new TaskSpecsCannotUseUnsupportedFeatures());
   }
 }

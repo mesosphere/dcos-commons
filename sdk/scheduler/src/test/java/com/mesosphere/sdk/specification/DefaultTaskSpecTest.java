@@ -62,6 +62,8 @@ public class DefaultTaskSpecTest {
                         .build())
                 .taskKillGracePeriodSeconds(DefaultTaskSpec.TASK_KILL_GRACE_PERIOD_SECONDS_DEFAULT)
                 .taskLabels(TestConstants.LABELS)
+                .sharedMemory("PRIVATE")
+                .sharedMemorySize(256)
                 .build();
 
         DefaultTaskSpec clone = DefaultTaskSpec.newBuilder(original).build();

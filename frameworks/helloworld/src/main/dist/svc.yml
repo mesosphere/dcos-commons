@@ -6,12 +6,15 @@ pods:
   hello:
     count: {{HELLO_COUNT}}
     placement: '{{{HELLO_PLACEMENT}}}'
+    ipc-mode: PRIVATE
+    shm-size: 128
     rlimits:
       RLIMIT_NOFILE:
         soft: {{HELLO_RLIMIT_NOFILE_SOFT}}
         hard: {{HELLO_RLIMIT_NOFILE_HARD}}
     tasks:
       server:
+        ipc-mode: SHARE_PARENT
         goal: RUNNING
         cmd: env && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
         cpus: {{HELLO_CPUS}}
