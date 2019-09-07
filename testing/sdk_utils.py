@@ -14,7 +14,7 @@ import random
 import string
 import json
 import retrying
-from typing import Dict, Optional, Union
+from typing import Dict, Optional, Union, Any
 
 import sdk_cmd
 
@@ -29,6 +29,7 @@ log = logging.getLogger(__name__)
 ###
 # Service/task names
 ###
+
 
 class DCOS_SECURITY(Enum):
     disabled = 1
@@ -148,23 +149,21 @@ def is_strict_mode() -> bool:
 def get_security_mode() -> DCOS_SECURITY:
     try:
         r = get_metadata().json()
-        mode = r['security']
+        mode = r["security"]
         return DCOS_SECURITY[mode]
     except Exception:
         # Read environment variable only if get_metadata call fails
         # Defaults to disabled.
         mode = os.environ.get("SECURITY", "disabled")
         return {
-            'disabled': DCOS_SECURITY.disabled,
-            'permissive': DCOS_SECURITY.permissive,
-            'strict': DCOS_SECURITY.strict
+            "disabled": DCOS_SECURITY.disabled,
+            "permissive": DCOS_SECURITY.permissive,
+            "strict": DCOS_SECURITY.strict,
         }[mode.lower()]
 
 
 def get_metadata() -> requests.Response:
-    return sdk_cmd.cluster_request('GET',
-                                   'dcos-metadata/bootstrap-config.json',
-                                   retry=False)
+    return sdk_cmd.cluster_request("GET", "dcos-metadata/bootstrap-config.json", retry=False)
 
 
 @retrying.retry(
@@ -180,7 +179,7 @@ def get_cluster_zones():
     ips_to_zone = {}
 
     for agent in nodes:
-        ips_to_zone[agent['hostname']] = agent['domain']['fault_domain']['zone']['name']
+        ips_to_zone[agent["hostname"]] = agent["domain"]["fault_domain"]["zone"]["name"]
 
     return ips_to_zone
 
@@ -243,3 +242,61 @@ def merge_dictionaries(dict1: Dict, dict2: Optional[Dict]) -> Dict:
         else:
             ret[k] = dict2[k]
     return ret
+
+
+def get_service_roles(service_name) -> dict:
+
+    # Get the current service state to verify roles have applied.
+    mesos_state = sdk_cmd.cluster_request("GET", "/mesos/master/state").json()
+
+    service_state = None
+    current_service_roles = {}
+
+    # Find our service.
+    for service in mesos_state["frameworks"]:
+        if service["name"] == service_name:
+            service_state = service
+
+    # Create a map of tasks to roles.
+    if service_state:
+
+        if "roles" in service_state:
+            # MULTI_ROLE
+            current_service_roles["framework-roles"] = service_state["roles"]
+            current_service_roles["framework-role"] = None
+        else:
+            # not MULTI_ROLE
+            current_service_roles["framework-roles"] = None
+            current_service_roles["framework-role"] = service_state["role"]
+
+        current_service_roles["task-roles"] = {}
+        current_tasks = service_state["tasks"]
+        for task in current_tasks:
+            current_service_roles["task-roles"][task["name"]] = task["role"]
+
+    return current_service_roles
+
+
+def filter_role_from_config(unfiltered_config: Optional[Dict[str, Any]]) -> None:
+    if unfiltered_config is None:
+        return
+
+    # Remove any role related fields as role changes
+    # are allowed to happen across config targets
+    # to accommodate for quota migration.
+
+    # Inspired by:
+    # https://stackoverflow.com/a/50444005/10840685
+    def _gen_dict_delete(var, key):
+        if isinstance(var, dict):
+            for k, v in var.items():
+                if k == key:
+                    # Update key with dummy value.
+                    var[k] = "dummy-role"
+                if isinstance(v, (dict, list)):
+                    _gen_dict_delete(v, key)
+        elif isinstance(var, list):
+            for d in var:
+                _gen_dict_delete(d, key)
+
+    _gen_dict_delete(unfiltered_config, "role")

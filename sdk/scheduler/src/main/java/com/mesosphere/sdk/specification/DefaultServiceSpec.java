@@ -590,10 +590,11 @@ public final class DefaultServiceSpec implements ServiceSpec {
     }
 
     public DefaultServiceSpec build() throws Exception {
+      Optional<String> serviceNamespace = schedulerConfig.getServiceNamespace();
       return YAMLToInternalMappers.convertServiceSpec(
           rawServiceSpec,
           // Use provided multi-service config, or derive single-service config from the RawServiceSpec:
-          multiServiceFrameworkConfig.orElse(FrameworkConfig.fromRawServiceSpec(rawServiceSpec)),
+          multiServiceFrameworkConfig.orElse(FrameworkConfig.fromRawServiceSpec(rawServiceSpec, serviceNamespace)),
           schedulerConfig,
           taskEnvRouter,
           configTemplateReader);
