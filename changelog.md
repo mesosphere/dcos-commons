@@ -1,5 +1,19 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.57.0
+
+- [DCOS-55542](https://jira.mesosphere.com/browse/DCOS-55542) SDK Shared Memory Support (#3132)
+- [DCOS-54278](https://jira.mesosphere.com/browse/DCOS-54278) SDK Quota Support (#3102)
+- [#3176](https://github.com/mesosphere/dcos-commons/pull/3176) Remove Launch Constrainer
+- [#3177](https://github.com/mesosphere/dcos-commons/pull/3177) Remove Manual Plan Sync
+
+##### Notes
+- Requires Mesos 1.9.0 and libmesos-bundle 1.14-beta
+
+## Changes to v0.56.3
+- [COPS-5286](https://jira.mesosphere.com/browse/COPS-5286) Allow use of Seccomp in DC/OS 1.12 (#3163)
+- [COPS-5211](https://jira.mesosphere.com/browse/COPS-5211) Fix marathon constraint parser bug (#3160)
+
 ## Changes to v0.56.2
 
 - [#3144](https://github.com/mesosphere/dcos-commons/pull/3144) : Added user level configuration support for specifying the host volume mode to one of `RW` or `RO`.
