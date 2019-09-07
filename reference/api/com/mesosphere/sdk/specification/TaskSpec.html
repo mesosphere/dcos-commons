@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6};
+var methods = {"i0":6,"i1":6,"i2":6,"i3":6,"i4":6,"i5":6,"i6":6,"i7":6,"i8":6,"i9":6,"i10":6,"i11":6,"i12":6,"i13":6};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],4:["t3","Abstract Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -156,18 +156,26 @@ var activeTableTab = "activeTableTab";
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getResourceSet--">getResourceSet</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i8" class="altColor">
+<td class="colFirst"><code>java.util.Optional&lt;Protos.LinuxInfo.IpcMode&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getSharedMemory--">getSharedMemory</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i9" class="rowColor">
+<td class="colFirst"><code>java.util.Optional&lt;java.lang.Integer&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getSharedMemorySize--">getSharedMemorySize</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>java.lang.Integer</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getTaskKillGracePeriodSeconds--">getTaskKillGracePeriodSeconds</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>java.util.Map&lt;java.lang.String,java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getTaskLabels--">getTaskLabels</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getTransportEncryption--">getTransportEncryption</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>java.lang.Boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#isEssential--">isEssential</a></span>()</code>&nbsp;</td>
 </tr>
@@ -288,10 +296,28 @@ var activeTableTab = "activeTableTab";
 <a name="getTransportEncryption--">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getTransportEncryption</h4>
 <pre>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a>&gt;&nbsp;getTransportEncryption()</pre>
+</li>
+</ul>
+<a name="getSharedMemory--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getSharedMemory</h4>
+<pre>java.util.Optional&lt;Protos.LinuxInfo.IpcMode&gt;&nbsp;getSharedMemory()</pre>
+</li>
+</ul>
+<a name="getSharedMemorySize--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getSharedMemorySize</h4>
+<pre>java.util.Optional&lt;java.lang.Integer&gt;&nbsp;getSharedMemorySize()</pre>
 </li>
 </ul>
 </li>

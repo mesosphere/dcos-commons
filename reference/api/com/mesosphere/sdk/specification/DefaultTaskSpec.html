@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":9,"i15":9,"i16":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10,"i15":10,"i16":9,"i17":9,"i18":10};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -215,34 +215,42 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#getResourceSet--">getResourceSet</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i9" class="rowColor">
+<td class="colFirst"><code>java.util.Optional&lt;Protos.LinuxInfo.IpcMode&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#getSharedMemory--">getSharedMemory</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i10" class="altColor">
+<td class="colFirst"><code>java.util.Optional&lt;java.lang.Integer&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#getSharedMemorySize--">getSharedMemorySize</a></span>()</code>&nbsp;</td>
+</tr>
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>java.lang.Integer</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#getTaskKillGracePeriodSeconds--">getTaskKillGracePeriodSeconds</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>java.util.Map&lt;java.lang.String,java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#getTaskLabels--">getTaskLabels</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i13" class="rowColor">
 <td class="colFirst"><code>java.util.Collection&lt;<a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a>&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#getTransportEncryption--">getTransportEncryption</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>int</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#hashCode--">hashCode</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i13" class="rowColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>java.lang.Boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#isEssential--">isEssential</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i14" class="altColor">
+<tr id="i16" class="altColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#newBuilder--">newBuilder</a></span>()</code>&nbsp;</td>
 </tr>
-<tr id="i15" class="rowColor">
+<tr id="i17" class="rowColor">
 <td class="colFirst"><code>static <a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#newBuilder-com.mesosphere.sdk.specification.TaskSpec-">newBuilder</a></span>(<a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a>&nbsp;copy)</code>&nbsp;</td>
 </tr>
-<tr id="i16" class="altColor">
+<tr id="i18" class="altColor">
 <td class="colFirst"><code>java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html#toString--">toString</a></span>()</code>&nbsp;</td>
 </tr>
@@ -462,6 +470,32 @@ implements <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" 
 <dl>
 <dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
 <dd><code><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getTransportEncryption--">getTransportEncryption</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getSharedMemory--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getSharedMemory</h4>
+<pre>public&nbsp;java.util.Optional&lt;Protos.LinuxInfo.IpcMode&gt;&nbsp;getSharedMemory()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getSharedMemory--">getSharedMemory</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></code></dd>
+</dl>
+</li>
+</ul>
+<a name="getSharedMemorySize--">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getSharedMemorySize</h4>
+<pre>public&nbsp;java.util.Optional&lt;java.lang.Integer&gt;&nbsp;getSharedMemorySize()</pre>
+<dl>
+<dt><span class="overrideSpecifyLabel">Specified by:</span></dt>
+<dd><code><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html#getSharedMemorySize--">getSharedMemorySize</a></code>&nbsp;in interface&nbsp;<code><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></code></dd>
 </dl>
 </li>
 </ul>

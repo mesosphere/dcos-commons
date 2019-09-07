@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10};
+var methods = {"i0":10,"i1":10,"i2":10,"i3":10,"i4":10,"i5":10,"i6":10,"i7":10,"i8":10,"i9":10,"i10":10,"i11":10,"i12":10,"i13":10,"i14":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -209,12 +209,26 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i11" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#sharedMemory-java.lang.String-">sharedMemory</a></span>(java.lang.String&nbsp;sharedMemory)</code>
+<div class="block">Sets the <code>sharedMemory</code> and returns a reference to this Builder so that methods
+ can be chained together.</div>
+</td>
+</tr>
+<tr id="i12" class="altColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#sharedMemorySize-java.lang.Integer-">sharedMemorySize</a></span>(java.lang.Integer&nbsp;sharedMemorySize)</code>
+<div class="block">Sets the <code>sharedMemorySize</code> and returns a reference to this Builder so that methods
+ can be chained together.</div>
+</td>
+</tr>
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#taskKillGracePeriodSeconds-java.lang.Integer-">taskKillGracePeriodSeconds</a></span>(java.lang.Integer&nbsp;taskKillGracePeriodSeconds)</code>
 <div class="block">Sets the <code>taskKillGracePeriodSeconds</code> and returns a reference to this Builder so that methods
  can be chained together.</div>
 </td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i14" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html#taskLabels-java.util.Map-">taskLabels</a></span>(java.util.Map&lt;java.lang.String,java.lang.String&gt;&nbsp;taskLabels)</code>
 <div class="block">Sets the <code>taskLabels</code> and returns a reference to this Builder so that the methods can be
@@ -426,6 +440,36 @@ extends java.lang.Object</pre>
 <dd><code>taskKillGracePeriodSeconds</code> - The number of seconds to await the service to cleanly (gracefully)
                                    shutdown following a SIGTERM signal. If the value is null or zero (0), the
                                    underlying service will be sent a SIGKILL immediately.</dd>
+</dl>
+</li>
+</ul>
+<a name="sharedMemory-java.lang.String-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>sharedMemory</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a>&nbsp;sharedMemory(java.lang.String&nbsp;sharedMemory)</pre>
+<div class="block">Sets the <code>sharedMemory</code> and returns a reference to this Builder so that methods
+ can be chained together.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>sharedMemory</code> - The IPC mode. SHARE_PARENT and PRIVATE are supported values</dd>
+</dl>
+</li>
+</ul>
+<a name="sharedMemorySize-java.lang.Integer-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>sharedMemorySize</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a>&nbsp;sharedMemorySize(java.lang.Integer&nbsp;sharedMemorySize)</pre>
+<div class="block">Sets the <code>sharedMemorySize</code> and returns a reference to this Builder so that methods
+ can be chained together.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>sharedMemorySize</code> - the size of the shared memory.</dd>
 </dl>
 </li>
 </ul>
