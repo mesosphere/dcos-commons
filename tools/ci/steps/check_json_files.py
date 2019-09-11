@@ -16,12 +16,12 @@ log = logging.getLogger(__name__)
 @pytest.mark.parametrize("file_base", ["config", "package", "resource"])
 def test_universe_file_formatting(file_base):
     framework_dir = os.path.dirname(os.path.dirname(__file__))
-    path_list=list()
+    path_list = list()
     for path, subdirs, files in os.walk(framework_dir):
         for name in files:
-                filtered_path=fnmatch.filter([os.path.join(path,name)], '*universe*.json')
-                if len(filtered_path)>0:
-                    path_list.extend(filtered_path)
+            filtered_path = fnmatch.filter([os.path.join(path, name)], '*universe*.json')
+        if len(filtered_path) > 0:
+            path_list.extend(filtered_path)
     for path in path_list:
         with open(path, "r") as source:
             raw_data = [l.rstrip("\n") for l in source.readlines()]
