@@ -402,6 +402,7 @@ public class PodInfoBuilder {
         EnvConstants.PLACEMENT_REFERENCED_ZONE_ENV,
         String.valueOf(PlacementUtils.placementRuleReferencesZone(podInstance.getPod())));
 
+	environmentMap.forEach((k, v) -> {LOGGER.error("Key : {} Value {}", k, v);});
     return environmentMap;
   }
 
