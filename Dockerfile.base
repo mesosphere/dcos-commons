@@ -60,7 +60,7 @@ RUN apt-get install -y python3-software-properties software-properties-common &&
     libcairo2-dev \
     libgirepository1.0-dev \
     libssl-dev \
-    openjdk-8-jdk \
+    openjdk-11-jdk \
     pkg-config \
     python-pip \
     python3 \
