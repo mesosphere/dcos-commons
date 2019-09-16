@@ -6,12 +6,14 @@ import com.mesosphere.sdk.specification.PodInstance;
 import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.testutils.TestConstants;
-import org.bouncycastle.asn1.x500.X500NameBuilder;
-import org.bouncycastle.asn1.x500.style.BCStyle;
-import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
+
+import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.X509v3CertificateBuilder;
+import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
+import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,7 +27,7 @@ import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateFactory;
+import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
 import java.util.Arrays;
@@ -74,17 +76,19 @@ public class TLSArtifactsGeneratorTest {
         tlsArtifactsGenerator = new TLSArtifactsGenerator(mockCAClient, mockKeyPairGenerator);
     }
 
-    private X509Certificate createCertificate() throws Exception {
-        X509CertificateHolder certHolder = new X509v3CertificateBuilder(
-                new X500NameBuilder().addRDN(BCStyle.CN, "issuer").build(),
-                new BigInteger("1000"),
+    private X509Certificate createCertificate() throws  Exception {
+        BigInteger serial = new BigInteger(100, SecureRandom.getInstanceStrong());
+        X500Name self = new X500Name("cn=localhost");
+        X509v3CertificateBuilder certificateBuilder = new JcaX509v3CertificateBuilder(
+                self,
+                serial,
                 Date.from(Instant.now()),
                 Date.from(Instant.now().plusSeconds(100000)),
-                new X500NameBuilder().addRDN(BCStyle.CN, "subject").build(),
-                SubjectPublicKeyInfo.getInstance(KEYPAIR.getPublic().getEncoded()))
-                .build(new JcaContentSignerBuilder("SHA256withRSA").build(KEYPAIR.getPrivate()));
-        return (X509Certificate) CertificateFactory.getInstance("X.509")
-                .generateCertificate(new ByteArrayInputStream(certHolder.getEncoded()));
+                self,
+                KEYPAIR.getPublic());
+        X509CertificateHolder certHolder = certificateBuilder
+                .build(new JcaContentSignerBuilder("SHA256WithRSA").build(KEYPAIR.getPrivate()));
+        return new JcaX509CertificateConverter().getCertificate(certHolder);
     }
 
     @Test
