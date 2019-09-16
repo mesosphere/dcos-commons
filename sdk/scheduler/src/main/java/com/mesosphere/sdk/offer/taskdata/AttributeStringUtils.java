@@ -3,11 +3,7 @@ package com.mesosphere.sdk.offer.taskdata;
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.StringJoiner;
-import java.util.StringTokenizer;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -123,7 +119,7 @@ public final class AttributeStringUtils {
       case SCALAR:
         // according to mesos.proto: "Mesos keeps three decimal digits of precision ..."
         // let's just ensure that we're producing consistent strings.
-        buf.append(String.format("%.3f", value.getScalar().getValue()));
+        buf.append(String.format(Locale.ROOT, "%.3f", value.getScalar().getValue()));
         break;
       case SET:
         // "bugs(debug_role):{a,b,c}"
