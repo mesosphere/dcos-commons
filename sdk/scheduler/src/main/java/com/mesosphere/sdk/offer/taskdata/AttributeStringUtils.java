@@ -3,11 +3,16 @@ package com.mesosphere.sdk.offer.taskdata;
 import com.google.protobuf.TextFormat;
 import org.apache.mesos.Protos;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Locale;
+import java.util.StringJoiner;
+import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
 /**
- * Tools for converting {@link Attribute}s into strings. Spec is defined by Mesos documentation at:
+ * Tools for converting {@link Protos.Attribute}s into strings. Spec is defined by Mesos documentation at:
  * http://mesos.apache.org/documentation/latest/attributes-resources/
  */
 public final class AttributeStringUtils {
@@ -102,7 +107,7 @@ public final class AttributeStringUtils {
    *                                  serialized
    */
   public static String toString(Protos.Value value) throws IllegalArgumentException {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     switch (value.getType()) {
       case RANGES:
         // "ports:[21000-24000,30000-34000]"
