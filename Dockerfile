@@ -1,5 +1,5 @@
 # See Dockerfile.base for instructions on how to update this base image.
-FROM takirala/dcos-commons-base:latest
+FROM mesosphere/dcos-commons-base:latest@sha256:da062e485be6d1b3df081ffcda4d800ede6650bcaed86eb67adc9db169cb2082
 
 ENV GO_VERSION=1.10.2
 ENV PATH=$PATH:/usr/local/go/bin
@@ -31,7 +31,7 @@ RUN mkdir /tmp/repo/
 COPY / /tmp/repo/
 # gradlew: Heat up jar cache. pre-commit: Heat up lint tooling cache.
 RUN cd /tmp/repo/ && \
-    ./gradlew testClasses check && \
+    ./gradlew testClasses && \
     git init && \
     pre-commit install-hooks && \
     cd / && \
