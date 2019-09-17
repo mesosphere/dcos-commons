@@ -1,6 +1,8 @@
 package com.mesosphere.sdk.specification.yaml;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.annotation.Nulls;
 import org.apache.mesos.Protos;
 
 import java.util.Collections;
@@ -20,7 +22,8 @@ public final class RawTask {
 
   private final String labelsCsv;
 
-  private final Map<String, String> env;
+  @JsonSetter(contentNulls = Nulls.AS_EMPTY)
+  private Map<String, String> env;
 
   private final WriteOnceLinkedHashMap<String, RawConfig> configs;
 
@@ -57,7 +60,6 @@ public final class RawTask {
       @JsonProperty("essential") Boolean essential,
       @JsonProperty("cmd") String cmd,
       @JsonProperty("labels") String labels,
-      @JsonProperty("env") Map<String, String> env,
       @JsonProperty("configs") WriteOnceLinkedHashMap<String, RawConfig> configs,
       @JsonProperty("cpus") Double cpus,
       @JsonProperty("gpus") Double gpus,
@@ -78,7 +80,6 @@ public final class RawTask {
     this.essential = essential;
     this.cmd = cmd;
     this.labelsCsv = labels;
-    this.env = env;
     this.configs = configs;
     this.cpus = cpus;
     this.gpus = gpus;
