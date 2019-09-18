@@ -46,7 +46,11 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
   * `ipc-mode`
     IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack
 
-    Specifies the ipc mode to run pod in. Only PRIVATE is valid at the pod level. SHARE_PARENT is invalid at the pod level.
+    Specifies the ipc mode to run pod in. Only PRIVATE is valid at the pod level.
+
+    PRIVATE: Private shared memory directory
+
+    SHARE_PARENT: Share parent is invalid at the pod level.
   
   * `shm-size`
   
@@ -367,6 +371,10 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
     IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack
 
     Specifies the ipc mode to run pod in. PRIVATE and SHARE_PARENT are valid values.
+
+    PRIVATE: Private shared memory directory
+
+    SHARE_PARENT: Shared memory directory is shared with parent executor 
   
   * `shm-size`
   
