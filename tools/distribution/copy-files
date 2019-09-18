@@ -69,7 +69,6 @@ def distribute_test_utils(output_path: str):
     output_path = output_path.rstrip("/") + "/"
 
     files = ["conftest.py",
-             "run_container.sh",
              "test.sh",
              "TESTING.md",
              "UPDATING.md", ]
