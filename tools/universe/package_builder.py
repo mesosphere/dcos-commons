@@ -17,6 +17,9 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 _jre_url = "https://downloads.mesosphere.com/java/openjdk-jre-8u212b03-hotspot-linux-x64.tar.gz"
+_scheduler_jre_url = (
+    "https://downloads.mesosphere.com/java/openjdk-jre-11.0.3.7-hotspot-linux-x64.tar.gz"
+)
 _libmesos_bundle_url = (
     "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.14-beta.tar.gz"
 )
@@ -177,6 +180,7 @@ class UniversePackageBuilder(object):
             "documentation-path": self._get_documentation_path(),
             "issues-path": self._get_issues_path(),
             "jre-url": _jre_url,
+            "scheduler-jre-url": _scheduler_jre_url,
             "libmesos-bundle-url": _libmesos_bundle_url,
         }
 

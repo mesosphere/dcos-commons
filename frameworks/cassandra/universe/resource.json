@@ -1,7 +1,7 @@
 {
   "assets": {
     "uris": {
-      "jre-tar-gz": "{{jre-url}}",
+      "jre-tar-gz": "{{scheduler-jre-url}}",
       "cassandra-jre-tar-gz": "{{jre-url}}",
       "cassandra-python-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/python-2.7.14.tar.gz",
       "cassandra-openssl-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/openssl-1.0.2n-libs.tar.gz",

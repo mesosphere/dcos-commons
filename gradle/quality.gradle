@@ -1,15 +1,5 @@
-apply plugin: 'findbugs'
 apply plugin: 'checkstyle'
 apply plugin: 'pmd'
-
-tasks.withType(FindBugs) {
-  excludeFilter = file("$rootProject.projectDir/gradle/findbugs/excludeFilter.xml")
-  maxHeapSize = '1024m'
-  reports {
-    xml.enabled = false
-    html.enabled = true
-  }
-}
 
 checkstyle {
     configDir = file("$rootProject.projectDir/gradle/checkstyle")

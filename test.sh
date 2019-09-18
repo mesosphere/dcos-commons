@@ -540,7 +540,7 @@ fi
 ######################### Prepare and run command ##############################
 ################################################################################
 
-docker pull "${docker_image}"
+[ ! -z $(docker images -q "${docker_image}") ] || docker pull "${docker_image}"
 
 set +x
 

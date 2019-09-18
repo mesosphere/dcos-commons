@@ -10,6 +10,8 @@ allprojects {
     apply plugin: 'jacoco'
     apply plugin: 'idea'
     apply plugin: 'maven-publish'
+    // Run `./gradlew htmlDependencyReport` to view the dependency report
+    apply plugin: 'project-report'
 
     // Double quotes are required for $rootDir to be resolved:
     apply from: "$rootDir/gradle/quality.gradle"
