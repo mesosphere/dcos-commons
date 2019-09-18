@@ -44,11 +44,11 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
   This section contains a listing of all pod types managed by the service.
   
   * `ipc-mode`
-    IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack
+    IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack.
 
-    Specifies the ipc mode to run pod in. Only PRIVATE is valid at the pod level.
+    Specifies the IPC mode to run pod in. Only PRIVATE is valid at the pod level.
 
-    PRIVATE: Private shared memory directory
+    PRIVATE: Private shared memory directory.
 
     SHARE_PARENT: Share parent is invalid at the pod level.
   
@@ -368,13 +368,13 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       It's worth noting that port reservations in DC/OS are technically honor-system at the moment. However, you should still reserve all the ports you intend to use. This is to ensure that Mesos doesn't place your task on a machine where a port you need is already occupied. You must give Mesos enough information to find a place where all your required ports are available.
         
   * `ipc-mode`
-    IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack
+    IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack.
 
     Specifies the ipc mode to run pod in. PRIVATE and SHARE_PARENT are valid values.
 
-    PRIVATE: Private shared memory directory
+    PRIVATE: Private shared memory directory.
 
-    SHARE_PARENT: Shared memory directory is shared with parent executor 
+    SHARE_PARENT: Shared memory directory is shared with parent executor.
   
   * `shm-size`
   
