@@ -540,14 +540,7 @@ fi
 ######################### Prepare and run command ##############################
 ################################################################################
 
-if [[ "$(docker images -q ${docker_image} 2> /dev/null)" == "" ]]; then
-  echo "Docker image ${docker_image} does not exist locally"
-  # TODO delete this line:
-  docker images 
-  docker pull "${docker_image}"
-else
-  echo "Using local/cached image ${docker_image}"
-fi
+[ ! -z $(docker images -q "${docker_image}") ] || docker pull "${docker_image}"
 
 set +x
 
