@@ -54,7 +54,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
   
   * `shm-size`
   
-    defines the size of the shm directory
+    Defines the size of the shared memory.
 
   * `resource-sets`
 
@@ -378,7 +378,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
   
   * `shm-size`
   
-    defines the size of the shm directory
+    Defines the size of the shared memory.
     
       * `port`
 
