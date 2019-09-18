@@ -42,6 +42,15 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 * `pods`
 
   This section contains a listing of all pod types managed by the service.
+  
+  * `ipc-mode`
+    IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack
+
+    Specifies the ipc mode to run pod in. Only PRIVATE is valid at the pod level. SHARE_PARENT is invalid at the pod level.
+  
+  * `shm-size`
+  
+    defines the size of the shm directory
 
   * `resource-sets`
 
@@ -353,7 +362,16 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
       All ports are reserved against the same interface that Mesos uses to connect to the rest of the cluster. In practice you should only use this interface as well. Surprising behavior may result if you use a different interface than Mesos does. For example, imagine dealing with a situation where Mesos loses connectivity on `eth0`, but your service is still connected fine over `eth1`. Or vice versa.
 
       It's worth noting that port reservations in DC/OS are technically honor-system at the moment. However, you should still reserve all the ports you intend to use. This is to ensure that Mesos doesn't place your task on a machine where a port you need is already occupied. You must give Mesos enough information to find a place where all your required ports are available.
+        
+  * `ipc-mode`
+    IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack
 
+    Specifies the ipc mode to run pod in. PRIVATE and SHARE_PARENT are valid values.
+  
+  * `shm-size`
+  
+    defines the size of the shm directory
+    
       * `port`
 
         The port to be reserved and used by the service. This may be set to `0` to use a random port, which will be advertised via the task environment.
