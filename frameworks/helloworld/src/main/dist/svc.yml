@@ -21,6 +21,7 @@ pods:
           type: ROOT
           size: {{HELLO_DISK}}
         env:
+          PARSE_EMPTY_KEY_AS_BLANK_TEST:
           SLEEP_DURATION: {{SLEEP_DURATION}}
         health-check:
           cmd: stat hello-container-path/output
