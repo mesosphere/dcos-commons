@@ -19,7 +19,7 @@ def test_universe_file_formatting(file_base):
     path_list = list()
     for path, subdirs, files in os.walk(framework_dir):
         for name in files:
-            filtered_path = fnmatch.filter([os.path.join(path, name)], '*universe*.json')
+            filtered_path = fnmatch.filter([os.path.join(path, name)], "*universe*.json")
         if len(filtered_path) > 0:
             path_list.extend(filtered_path)
     for path in path_list:
@@ -28,7 +28,8 @@ def test_universe_file_formatting(file_base):
             formatted_data = [
                 l
                 for l in json.dumps(
-                    json.loads("".join(raw_data), object_pairs_hook=collections.OrderedDict), indent=2
+                    json.loads("".join(raw_data), object_pairs_hook=collections.OrderedDict),
+                    indent=2
                 ).split("\n")
             ]
             diff = list(
