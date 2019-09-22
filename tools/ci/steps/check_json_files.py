@@ -29,7 +29,7 @@ def test_universe_file_formatting(file_base):
                 l
                 for l in json.dumps(
                     json.loads("".join(raw_data), object_pairs_hook=collections.OrderedDict),
-                    indent=2
+                    indent=2,
                 ).split("\n")
             ]
             diff = list(
