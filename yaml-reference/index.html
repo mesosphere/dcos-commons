@@ -125,6 +125,21 @@
 
     <ul>
       <li>
+        <p><code class="highlighter-rouge">ipc-mode</code>
+IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack.</p>
+
+        <p>Specifies the IPC mode to run pod in. Only PRIVATE is valid at the pod level.</p>
+
+        <p>PRIVATE: Private shared memory directory.</p>
+
+        <p>SHARE_PARENT: Share parent is invalid at the pod level.</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">shm-size</code></p>
+
+        <p>Defines the size of the shared memory.</p>
+      </li>
+      <li>
         <p><code class="highlighter-rouge">resource-sets</code></p>
 
         <p>Resource sets allow defining a single set of resources to be reused across multiple tasks, where only one task may use the resource set at a time. This can be useful when defining maintenance operations. A single resource set can be created, and then assigned to multiple operations such as backup, restore, rebuild, etc… In this scenario, only one operation may be active at a time, as that task has ownership of the resource set.</p>
@@ -460,24 +475,41 @@ root: {{ROOT_DIR}}
             <p>All ports are reserved against the same interface that Mesos uses to connect to the rest of the cluster. In practice you should only use this interface as well. Surprising behavior may result if you use a different interface than Mesos does. For example, imagine dealing with a situation where Mesos loses connectivity on <code class="highlighter-rouge">eth0</code>, but your service is still connected fine over <code class="highlighter-rouge">eth1</code>. Or vice versa.</p>
 
             <p>It’s worth noting that port reservations in DC/OS are technically honor-system at the moment. However, you should still reserve all the ports you intend to use. This is to ensure that Mesos doesn’t place your task on a machine where a port you need is already occupied. You must give Mesos enough information to find a place where all your required ports are available.</p>
+          </li>
+        </ul>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">ipc-mode</code>
+IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segments, semaphores and message queues. Shared memory segments are used to accelerate inter-process communication at memory speed, rather than through pipes or through the network stack.</p>
 
-            <ul>
-              <li>
-                <p><code class="highlighter-rouge">port</code></p>
+        <p>Specifies the ipc mode to run pod in. PRIVATE and SHARE_PARENT are valid values.</p>
 
-                <p>The port to be reserved and used by the service. This may be set to <code class="highlighter-rouge">0</code> to use a random port, which will be advertised via the task environment.</p>
-              </li>
-              <li>
-                <p><code class="highlighter-rouge">env-key</code></p>
+        <p>PRIVATE: Private shared memory directory.</p>
 
-                <p>This may be used to define an environment variable used to advertise this port within the task. This is most useful when a random dynamic port is being used, as it allows the task to know what port was allocated for it.</p>
-              </li>
-              <li>
-                <p><code class="highlighter-rouge">ranges</code></p>
+        <p>SHARE_PARENT: Shared memory directory is shared with parent executor.</p>
+      </li>
+      <li>
+        <p><code class="highlighter-rouge">shm-size</code></p>
 
-                <p>When requesting a dynamic port, a list of ranges may be passed to to constrain the value of the dynamic port. The range is inclusive of <code class="highlighter-rouge">begin</code> and <code class="highlighter-rouge">end</code> when they are set. If <code class="highlighter-rouge">begin</code> or <code class="highlighter-rouge">end</code> is not set the range constraint is implicit and unbounded on that side. Ranges may be defined as follows:</p>
+        <p>Defines the size of the shared memory.</p>
 
-                <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  ports:
+        <ul>
+          <li>
+            <p><code class="highlighter-rouge">port</code></p>
+
+            <p>The port to be reserved and used by the service. This may be set to <code class="highlighter-rouge">0</code> to use a random port, which will be advertised via the task environment.</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">env-key</code></p>
+
+            <p>This may be used to define an environment variable used to advertise this port within the task. This is most useful when a random dynamic port is being used, as it allows the task to know what port was allocated for it.</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">ranges</code></p>
+
+            <p>When requesting a dynamic port, a list of ranges may be passed to to constrain the value of the dynamic port. The range is inclusive of <code class="highlighter-rouge">begin</code> and <code class="highlighter-rouge">end</code> when they are set. If <code class="highlighter-rouge">begin</code> or <code class="highlighter-rouge">end</code> is not set the range constraint is implicit and unbounded on that side. Ranges may be defined as follows:</p>
+
+            <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>  ports:
   name1:
     port: 0
     env-key: key1
@@ -493,30 +525,28 @@ root: {{ROOT_DIR}}
         end: 21
       - begin: 5000
         end:
-</code></pre></div>                </div>
+</code></pre></div>            </div>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">advertise</code></p>
+
+            <p>This may be manually set to <code class="highlighter-rouge">true</code> to enable advertising this port in the service’s <code class="highlighter-rouge">endpoints</code> listing. Default is <code class="highlighter-rouge">false</code>.</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">vip</code></p>
+
+            <p>This section enables a Virtual IP (or VIP) address for this port. The VIP is effectively a highly-available hostname at which the task may be reached at an arbitrary advertised endpoint. Using VIPs is similar to using Mesos-DNS, except you have more control over the port used by others to connect to your service, without requiring users check SRV records like Mesos-DNS does. For example, you could run several web servers behind random ports (see above), but expose them all a single VIP endpoint at port <code class="highlighter-rouge">80</code>.</p>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">port</code></p>
+
+                <p>The ‘external’ port to use in the VIP.</p>
               </li>
               <li>
-                <p><code class="highlighter-rouge">advertise</code></p>
+                <p><code class="highlighter-rouge">prefix</code></p>
 
-                <p>This may be manually set to <code class="highlighter-rouge">true</code> to enable advertising this port in the service’s <code class="highlighter-rouge">endpoints</code> listing. Default is <code class="highlighter-rouge">false</code>.</p>
-              </li>
-              <li>
-                <p><code class="highlighter-rouge">vip</code></p>
-
-                <p>This section enables a Virtual IP (or VIP) address for this port. The VIP is effectively a highly-available hostname at which the task may be reached at an arbitrary advertised endpoint. Using VIPs is similar to using Mesos-DNS, except you have more control over the port used by others to connect to your service, without requiring users check SRV records like Mesos-DNS does. For example, you could run several web servers behind random ports (see above), but expose them all a single VIP endpoint at port <code class="highlighter-rouge">80</code>.</p>
-
-                <ul>
-                  <li>
-                    <p><code class="highlighter-rouge">port</code></p>
-
-                    <p>The ‘external’ port to use in the VIP.</p>
-                  </li>
-                  <li>
-                    <p><code class="highlighter-rouge">prefix</code></p>
-
-                    <p>The name to put at the start of the VIP. For example, <code class="highlighter-rouge">http</code> will result in a VIP hostname of <code class="highlighter-rouge">http.&lt;servicename&gt;.l4lb.thisdcos.directory</code>. By default, the parent port’s name is used.</p>
-                  </li>
-                </ul>
+                <p>The name to put at the start of the VIP. For example, <code class="highlighter-rouge">http</code> will result in a VIP hostname of <code class="highlighter-rouge">http.&lt;servicename&gt;.l4lb.thisdcos.directory</code>. By default, the parent port’s name is used.</p>
               </li>
             </ul>
           </li>
