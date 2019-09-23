@@ -13,6 +13,7 @@ import sys
 import tempfile
 import universe
 import urllib.request
+import urllib.error
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -44,7 +45,21 @@ class UniverseReleaseBuilder(object):
                 )
 
             package_name = name_match.group(1)
-            log.info("Got package name %s from stub universe URL")
+
+            try:
+                log.info("Parse stub universe")
+                with urllib.request.urlopen(stub_universe_url) as response:
+                    data = json.loads(response.read())
+                    for package in data["packages"]:
+                        if "name" in package:
+                            package_name = package["name"]
+                            break
+            except urllib.error.HTTPError:
+                raise Exception("Could not open URL: {}".format(stub_universe_url))
+            except json.decoder.JSONDecodeError:
+                raise Exception("Wrong file content format: {}".format(stub_universe_url))
+
+            log.info("Got package name '{}' from stub universe URL".format(package_name))
 
         return package_name
 
