@@ -188,6 +188,8 @@ def create_service_account(service_account_name: str, service_account_secret: st
             account=service_account_name, secret=service_account_secret
         )
     )
+    if service_account_secret == service_account_name:
+        log.warning("Values for service_account_name and service_account_secret are the same.")
 
     log.info("Remove any existing service account and/or secret")
     delete_service_account(service_account_name, service_account_secret)

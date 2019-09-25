@@ -14,8 +14,7 @@ log = logging.getLogger(__name__)
 
 
 def setup_service_account(
-    service_name: str,
-    service_account_secret: Optional[str] = None,
+    service_name: str, service_account_secret: Optional[str] = None
 ) -> Dict[str, Any]:
     """
     Setup the service account for TLS. If the account or secret of the specified
@@ -26,7 +25,7 @@ def setup_service_account(
         log.error("The setup of a service account requires DC/OS EE. service_name=%s", service_name)
         raise Exception("The setup of a service account requires DC/OS EE")
 
-    secret = service_name if service_account_secret is None else service_account_secret
+    secret = service_name + "-secret" if service_account_secret is None else service_account_secret
 
     service_account = "{}-service-account".format(service_name.replace("/", ""))
 
@@ -69,10 +68,7 @@ def setup_service_account(
     return service_account_info
 
 
-def cleanup_service_account(
-    service_name: str,
-    service_account_info: Dict[str, Any],
-) -> None:
+def cleanup_service_account(service_name: str, service_account_info: Dict[str, Any]) -> None:
     """
     Clean up the specified service account.
 
