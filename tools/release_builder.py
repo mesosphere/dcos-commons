@@ -47,17 +47,26 @@ class UniverseReleaseBuilder(object):
             package_name = name_match.group(1)
 
             try:
-                log.info("Parse stub universe")
+                universe_name = None
+                log.info("Parsing stub universe...")
                 with urllib.request.urlopen(stub_universe_url) as response:
                     data = json.loads(response.read())
                     for package in data["packages"]:
                         if "name" in package:
-                            package_name = package["name"]
-                            break
+                            if universe_name is not None and universe_name != package["name"]:
+                                log.warning(
+                                    "Two different package names have been found '{}' and '{}'".format(
+                                        universe_name, package["name"]
+                                    )
+                                )
+                            else:
+                                universe_name = package["name"]
+                if universe_name is not None:
+                    package_name = universe_name
             except urllib.error.HTTPError:
-                raise Exception("Could not open URL: {}".format(stub_universe_url))
+                log.warning("Could not open URL: {}".format(stub_universe_url))
             except json.decoder.JSONDecodeError:
-                raise Exception("Wrong file content format: {}".format(stub_universe_url))
+                log.warning("Wrong file content format: {}".format(stub_universe_url))
 
             log.info("Got package name '{}' from stub universe URL".format(package_name))
 
