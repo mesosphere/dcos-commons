@@ -4,7 +4,7 @@
       "jre-tar-gz": "{{scheduler-jre-url}}",
       "libmesos-bundle-tar-gz": "{{libmesos-bundle-url}}",
       "keytab-zip": "https://downloads.mesosphere.com/hdfs/assets/keytab-fix-1.0.tar.gz",
-      "hdfs-tar-gz": "http://apache.cs.utah.edu/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz",
+      "hdfs-tar-gz": "https://www-us.apache.org/dist/hadoop/common/hadoop-3.2.1/hadoop-3.2.1.tar.gz",
       "hdfs-jre-tar-gz": "{{jre-url}}",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
       "scheduler-zip": "{{artifact-dir}}/hdfs-scheduler.zip",
