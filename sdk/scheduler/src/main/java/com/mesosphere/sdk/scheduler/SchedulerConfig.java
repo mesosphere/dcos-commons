@@ -641,7 +641,7 @@ public final class SchedulerConfig {
    * Returns whether region awareness should be enabled. In 1.11, this is an explicit opt-in by users.
    */
   public boolean isRegionAwarenessEnabled() {
-    return envStore.getOptionalBoolean(ALLOW_REGION_AWARENESS_ENV, false);
+    return envStore.getOptionalBoolean(ALLOW_REGION_AWARENESS_ENV, true);
   }
 
   /**
