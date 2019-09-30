@@ -66,5 +66,6 @@ COPY .pre-commit-config.yaml ${DCOS_COMMONS_DIST_ROOT}/
 
 COPY build.gradle ${DCOS_COMMONS_DIST_ROOT}/build.gradle
 RUN grep -oE "version = '.*?'" ${DCOS_COMMONS_DIST_ROOT}/build.gradle | sed 's/version = //' > ${DCOS_COMMONS_DIST_ROOT}/.version
+RUN if grep --quiet SNAPSHOT ${DCOS_COMMONS_DIST_ROOT}/.version; then echo "'latest'" > ${DCOS_COMMONS_DIST_ROOT}/.version; fi
 
 COPY tools/container/venvs /venvs
