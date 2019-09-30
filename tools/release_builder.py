@@ -55,7 +55,7 @@ class UniverseReleaseBuilder(object):
                         if "name" in package:
                             if universe_name is not None and universe_name != package["name"]:
                                 log.warning(
-                                    "Two different package names have been found '{}' and '{}'".format(
+                                    "More than one different package names have been found '{}' and '{}'".format(
                                         universe_name, package["name"]
                                     )
                                 )
@@ -63,10 +63,8 @@ class UniverseReleaseBuilder(object):
                                 universe_name = package["name"]
                 if universe_name is not None:
                     package_name = universe_name
-            except urllib.error.HTTPError:
-                log.warning("Could not open URL: {}".format(stub_universe_url))
-            except json.decoder.JSONDecodeError:
-                log.warning("Wrong file content format: {}".format(stub_universe_url))
+            except Exception as e:
+                log.warning("Something went wrong during content loading: {}".format(str(e)))
 
             log.info("Got package name '{}' from stub universe URL".format(package_name))
 
