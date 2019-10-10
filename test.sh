@@ -515,6 +515,7 @@ cat >> "${env_file}" <<-EOF
 	S3_BUCKET=${S3_BUCKET}
 	SECURITY=${security}
 	STUB_UNIVERSE_URL=${STUB_UNIVERSE_URL}
+    DISABLE_DIAG=true
 EOF
 
 while read -r line; do
