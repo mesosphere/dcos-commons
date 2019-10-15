@@ -205,7 +205,7 @@ def wait_for_plan_status(
     else:
         statuses = status
 
-    initial_failures = sdk_tasks.get_failed_task_count(service_name, retry=True)
+    initial_failures = sdk_tasks.get_failed_task_count(service_name)
     wait_start = datetime.datetime.utcnow()
 
     @retrying.retry(

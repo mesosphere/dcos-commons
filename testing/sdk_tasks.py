@@ -155,19 +155,11 @@ def get_all_status_history(task_name: str, with_completed_tasks: bool = True) ->
     return history
 
 
-def get_failed_task_count(service_name: str, retry: bool = False) -> int:
-    history_response = sdk_cmd.cluster_request(
-        "GET", "/dcos-history-service/history/last", retry=retry
-    )
-    history_response.raise_for_status()
-    history = history_response.json()
-    service_history = [h for h in history["frameworks"] if h.get("name") == service_name]
-    if not service_history:
+def get_failed_task_count(service_name: str) -> int:
+    service_tasks = get_service_tasks(service_name, with_completed_tasks=True)
+    if not service_tasks:
         return 0
-
-    assert len(service_history) == 1
-
-    return sum(service_history[0].get(status, 0) for status in FATAL_TERMINAL_TASK_STATES)
+    return sum(service_tasks[0].get(status, 0) for status in FATAL_TERMINAL_TASK_STATES)
 
 
 def check_task_count(service_name: str, expected_task_count: int) -> list:
