@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import collections
 import difflib
 import os.path
