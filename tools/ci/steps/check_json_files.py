@@ -9,7 +9,7 @@ import fnmatch
 
 
 cwd = os.getcwd()
-framework_dir = os.path.dirname(os.path.dirname(cwd+'/'))
+framework_dir = os.path.dirname(os.path.dirname(cwd + "/"))
 print(framework_dir)
 path_list = list()
 for path, subdirs, files in os.walk(framework_dir):
@@ -25,8 +25,7 @@ for path in path_list:
         formatted_data = [
             l
             for l in json.dumps(
-                json.loads("".join(raw_data), object_pairs_hook=collections.OrderedDict),
-                indent=2,
+                json.loads("".join(raw_data), object_pairs_hook=collections.OrderedDict), indent=2
             ).split("\n")
         ]
         diff = list(
