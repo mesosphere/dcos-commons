@@ -156,10 +156,13 @@ def get_all_status_history(task_name: str, with_completed_tasks: bool = True) ->
 
 
 def get_failed_task_count(service_name: str) -> int:
-    service_tasks = get_service_tasks(service_name, with_completed_tasks=True)
-    if not service_tasks:
-        return 0
-    return sum(service_tasks[0].get(status, 0) for status in FATAL_TERMINAL_TASK_STATES)
+    return len(
+        [
+            t
+            for t in get_service_tasks(service_name, with_completed_tasks=True)
+            if t.state in FATAL_TERMINAL_TASK_STATES
+        ]
+    )
 
 
 def check_task_count(service_name: str, expected_task_count: int) -> list:
