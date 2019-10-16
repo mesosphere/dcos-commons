@@ -10,8 +10,6 @@ import sys
 
 
 framework_dir = os.getcwd() + "/"
-# framework_dir = os.path.dirname(os.path.dirname(cwd + "/"))
-print("framewor dir " + framework_dir)
 path_list = list()
 for path, subdirs, files in os.walk(framework_dir):
     for name in files:
@@ -20,7 +18,6 @@ for path, subdirs, files in os.walk(framework_dir):
         )
         if len(filtered_path) > 0:
             path_list.extend(filtered_path)
-print(path_list)
 
 for path in path_list:
     with open(path, "r") as source:
