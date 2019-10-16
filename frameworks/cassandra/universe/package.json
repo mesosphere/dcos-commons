@@ -3,7 +3,7 @@
   "upgradesFrom": [
     "{{upgrades-from}}"
   ],
-  "downgradesTo": [ 
+  "downgradesTo": [
     "{{downgrades-to}}"
   ],
   "minDcosReleaseVersion": "1.11",
