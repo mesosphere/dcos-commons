@@ -9,13 +9,15 @@ import fnmatch
 import sys
 
 
-framework_dir = os.getcwd()+"/"
-#framework_dir = os.path.dirname(os.path.dirname(cwd + "/"))
-print("framewor dir "+framework_dir)
+framework_dir = os.getcwd() + "/"
+# framework_dir = os.path.dirname(os.path.dirname(cwd + "/"))
+print("framewor dir " + framework_dir)
 path_list = list()
 for path, subdirs, files in os.walk(framework_dir):
     for name in files:
-        filtered_path = fnmatch.filter([os.path.join(path, name)], "*"+sys.argv[1]+"*universe*.json")
+        filtered_path = fnmatch.filter(
+            [os.path.join(path, name)], "*" + sys.argv[1] + "*universe*.json"
+        )
         if len(filtered_path) > 0:
             path_list.extend(filtered_path)
 print(path_list)
