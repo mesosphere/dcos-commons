@@ -6,15 +6,16 @@ import os.path
 import json
 import os
 import fnmatch
+import sys
 
 
-cwd = os.getcwd()
-framework_dir = os.path.dirname(os.path.dirname(cwd + "/"))
-print(framework_dir)
+framework_dir = os.getcwd()+"/"
+#framework_dir = os.path.dirname(os.path.dirname(cwd + "/"))
+print("framewor dir "+framework_dir)
 path_list = list()
 for path, subdirs, files in os.walk(framework_dir):
     for name in files:
-        filtered_path = fnmatch.filter([os.path.join(path, name)], "*sys.argv[1]*universe*.json")
+        filtered_path = fnmatch.filter([os.path.join(path, name)], "*"+sys.argv[1]+"*universe*.json")
         if len(filtered_path) > 0:
             path_list.extend(filtered_path)
 print(path_list)
@@ -34,3 +35,4 @@ for path in path_list:
         if diff:
             print("\n" + ("\n".join(diff)))
             print("{} is not formatted correctly, see diff above".format(path))
+            exit(1)
