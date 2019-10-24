@@ -275,6 +275,8 @@ class UniversePackageBuilder(object):
             package_files[_package_json_filename], object_pairs_hook=collections.OrderedDict
         )
         package_json["releaseVersion"] = 0
+        # `lastUpdated` is supported for all packages v3 and above
+        package_json["lastUpdated"] = round(time.time())
 
         config_json = package_files.get(_config_json_filename)
         if config_json is not None:
