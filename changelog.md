@@ -1,5 +1,8 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.57.2
+- [#3198](https://github.com/mesosphere/dcos-commons/pull/3198) `ALLOW_REGION_AWARENESS` is set to true by default
+
 ## Changes to v0.57.1
 
 - [#3184](https://github.com/mesosphere/dcos-commons/pull/3184) : Fix a bug where SDK was parsing empty fields in `env` field of Task definition in service yaml as `null` instead of blank strings.
