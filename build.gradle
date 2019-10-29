@@ -1,3 +1,4 @@
+//trigger
 plugins {
     id 'com.github.ben-manes.versions' version '0.20.0'
     id 'com.github.ksoichiro.console.reporter' version '0.6.2'
