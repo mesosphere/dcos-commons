@@ -85,7 +85,7 @@
             "title": "Internal KVDB",
             "description": "Portworx will internally create and manage a key-value store cluster. KVDB servers or package etcd will not be used if internal KVDB is enabled. Note: Do not change this once the cluster is up.",
             "type": "boolean",
-            "default": false
+            "default": true
           },
           "kvdb_servers": {
             "title": "KVDB servers",

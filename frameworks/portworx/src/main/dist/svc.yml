@@ -56,7 +56,7 @@ pods:
 
                     set -e
                     docker run --entrypoint /runc-entry-point.sh \
-                        --rm -i --privileged=true --name portworx_runc \
+                        --rm -i --name portworx_runc \
                         -v /opt/pwx:/opt/pwx -v /etc/pwx:/etc/pwx \
                         {{{PORTWORX_IMAGE_NAME}}} --debug --upgrade
                     set +e
