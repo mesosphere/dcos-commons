@@ -18,6 +18,7 @@ class S3Uploader(object):
 
         self._s3_directory = s3_directory
         self._aws_region = os.environ.get("AWS_UPLOAD_REGION", "")
+        self._endpoint_url = os.environ.get("S3_ENDPOINT_URL", "")
         self._reauth_attempted = False
         self._dry_run = dry_run
         self._acl = os.environ.get("AWS_UPLOAD_ACL", "public-read")
@@ -33,6 +34,8 @@ class S3Uploader(object):
         cmdlist.append("cp --acl {}".format(self._acl))
         if self._dry_run:
             cmdlist.append("--dryrun")
+        if self._endpoint_url:
+            cmdlist.append('--endpoint-url "{}"'.format(self._endpoint_url))
         if content_type is not None:
             cmdlist.append('--content-type "{}"'.format(content_type))
         dest_url = "{}/{}".format(self._s3_directory, filename)
