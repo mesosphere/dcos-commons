@@ -497,6 +497,8 @@ pods:
           $JAVA_HOME/bin/java -jar keytab-fix-1.0.jar secrets-hdfs.keytab
           {{/SECURITY_KERBEROS_ENABLED}}
           ./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs datanode
+          cp -rf dn_socket /var/lib/.
+          chmod 666 /var/lib/dn_socket
         cpus: {{DATA_CPUS}}
         memory: {{DATA_MEM}}
         ports:

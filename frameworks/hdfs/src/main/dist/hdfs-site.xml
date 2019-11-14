@@ -534,7 +534,7 @@
     </property>
     <property>
         <name>dfs.domain.socket.path</name>
-        <value>{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value>
+	<value>/var/lib/{{CLIENT_READ_SHORTCIRCUIT_PATH}}</value>
     </property>
     <property>
         <name>dfs.client.read.shortcircuit.skip.checksum</name>
@@ -952,7 +952,7 @@
         </property>
         <property>
             <name>dfs.datanode.data.dir.perm</name>
-            <value>700</value>
+            <value>750</value>
         </property>
         {{/DATANODE}}
     {{/SECURITY_KERBEROS_ENABLED}}
