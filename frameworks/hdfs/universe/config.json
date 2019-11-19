@@ -1490,7 +1490,7 @@
         "client_read_shortcircuit": {
           "type": "boolean",
           "description": "This configuration parameter turns on short-circuit local reads.",
-          "default": false 
+          "default": false
         },
         "ha_fencing_methods": {
           "type": "string",
