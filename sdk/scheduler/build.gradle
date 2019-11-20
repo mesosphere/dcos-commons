@@ -118,6 +118,7 @@ ext {
     elVer = "2.2.4"
     bouncyCastleVer = "1.62"
     dropWizardMetricsVer = "3.2.5"
+    jaxbDepsVer = "2.3.2"
 }
 
 dependencies {
@@ -149,6 +150,15 @@ dependencies {
     compile "org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVer}"
     compile "org.glassfish.jersey.media:jersey-media-multipart:${jerseyVer}"
+
+    // JAXB was removed from the default JDK libraries after Java-9 and
+    // and at runtime on JDK-11 we get a ClassNotFoundException
+    // as org.glassfish.jersey still requires it. Here we explicitly
+    // add JAXB as as dependency.
+    // Reference: https://openjdk.java.net/jeps/320
+    compile "jakarta.xml.bind:jakarta.xml.bind-api:${jaxbDepsVer}"
+    compile "org.glassfish.jaxb:jaxb-runtime:${jaxbDepsVer}"
+
     compile 'org.eclipse.jetty:jetty-servlet:9.4.9.v20180320'
     compile "javax.el:javax.el-api:${elVer}"
     compile "org.glassfish.web:javax.el:${elVer}"
