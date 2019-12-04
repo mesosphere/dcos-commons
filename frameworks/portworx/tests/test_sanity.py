@@ -48,7 +48,7 @@ def test_log_px_and_dcos_version():
     if pod_count <= 0:
         log.info("PORTWORX: Pod count is: {}".format(pod_count))
         raise
-    pod_name = pod_list[1]
+    pod_name = pod_list[0]
     px_version = px_utils.px_get_portworx_version(pod_name)
     log.info("PORTWORX: Portworx version is: {}".format(px_version))
 
@@ -89,7 +89,7 @@ def test_replace_and_move_pod():
         log.info("PORTWORX: Pod count is: {}".format(pod_count))
         raise
 
-    pod_name = pod_list[1]
+    pod_name = pod_list[0]
     log.info("PORTWORX: Pod name to be replaced and move: {}".format(pod_name))
 
     pod_agent_id_old, pod_agent_id_new = px_utils.replace_pod(pod_name)
@@ -107,7 +107,7 @@ def test_restart_px_pod():
         log.info("PORTWORX: Pod list count is: {} ".format(num_of_pods))
         raise
     
-    px_utils.restart_pod(px_pod_list[1])
+    px_utils.restart_pod(px_pod_list[0])
     sleep(5) # Is that enough time ?
 
     num_pods_after, px_pod_list = px_utils.get_px_pod_list()
@@ -166,7 +166,7 @@ def test_vol_create():
     if pod_count <= 0:
         log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
         raise
-    pod_name = pod_list[1]
+    pod_name = pod_list[0]
 
     px_utils.px_create_volume(pod_name, "px_dcos_vol_1", 5)
     sleep(30) # Wait before immediatly calling vol size, it is observed that dcos needs few seconds to refresh
@@ -184,7 +184,7 @@ def test_vol_update_size():
     if pod_count <= 0:
         log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
         raise
-    pod_name = pod_list[1]
+    pod_name = pod_list[0]
 
     px_utils.px_create_volume(pod_name, "px_dcos_vol_2", 5)
     sleep(60) # Wait before immediatly calling vol update, it is observed that dcos needs few seconds to refresh
@@ -204,7 +204,7 @@ def test_vol_delete():
     if pod_count <= 0:
         log.info("PORTWORX: Can't proceed with volume delete, Pod count is: {}".format(pod_count))
         raise
-    pod_name = pod_list[1]
+    pod_name = pod_list[0]
     
     px_utils.px_delete_volume(pod_name, "px_dcos_vol_1")
     px_utils.px_delete_volume(pod_name, "px_dcos_vol_2")
@@ -217,7 +217,7 @@ def test_suspend_resume_px_service():
         log.info("PORTWORX: Pod count is: {}".format(pod_count))
         raise
 
-    pod_name = pod_list[1]
+    pod_name = pod_list[0]
     px_utils.px_service_suspend_resume(pod_name)
 
     px_status = px_utils.check_px_status()
@@ -230,7 +230,7 @@ def test_px_restart_service():
     if pod_count <= 0:
         log.info("PORTWORX: Can't proceed with volume creation, Pod count is: {}".format(pod_count))
         raise
-    pod_name = pod_list[1]
+    pod_name = pod_list[0]
     px_utils.px_restart_portworx_service(pod_name)
 
 # Upgrade portworx framework from released version

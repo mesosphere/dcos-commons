@@ -30,12 +30,12 @@ def get_px_options_kvdb_image():
     return px_options.strip(), px_kvdb.strip(), px_image.strip()
 
 def get_px_pod_list():
-    cmd = "portworx pod list"
+    cmd = "portworx pod list | grep portworx | sed 's/,//' | sed 's/ //g'"
     _, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     log.info("Portworx pod list is: {}".format(std_out))
     
     pod_list = std_out.split('\n') 
-    pod_count = len(pod_list) - 2   # Reduce count by 2 for '[' and ']'
+    pod_count = len(pod_list)
     if pod_count <= 0:
         pod_list = []
 
@@ -181,7 +181,8 @@ def px_is_vol_encrypted(vol_name):
 def px_is_vol_repl2(vol_name):
     cmd = "portworx volume list | jq '.[] | select(.locator.name == \"" + vol_name +"\") | .spec.ha_level'"
     _, vol_ha_level, std_err = sdk_cmd.run_raw_cli(cmd)
-    if vol_ha_level == 2:
+    log.info("Volume {} has HA level : {}".format(vol_name, vol_ha_level))
+    if int(vol_ha_level) == 2:
         return True
     else:
         return False
