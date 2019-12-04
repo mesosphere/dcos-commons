@@ -22,7 +22,10 @@ def pytest_addoption(parser):
                      help='max hello-world index to end at (default: -1).')
     parser.addoption('--batch-size', action='store', default=1,
                      help='batch size to deploy hello-world masters in (default: 1).')
-
+    parser.addoption("--package-version", action='store', default='',
+                     help="version of hello-world service to install. "
+                     "specify exact version i.e '3.2.0-0.57.1', 'stub-universe', "
+                     "or empty string ('') for the latest catalog version. (default: '')")
 
 @pytest.fixture
 def service_count(request) -> int:
@@ -52,3 +55,8 @@ def max_index(request) -> int:
 @pytest.fixture
 def batch_size(request) -> int:
     return int(request.config.getoption('--batch-size'))
+
+
+@pytest.fixture
+def package_version(request) -> str:
+    return str(request.config.getoption('--package-version'))

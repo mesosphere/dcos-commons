@@ -32,7 +32,8 @@ def test_scaling_load(service_name,
                       service_count,
                       min_index,
                       max_index,
-                      batch_size) -> None:
+                      batch_size,
+                      package_version) -> None:
     """Launch a load test scenario in parallel if needed.
     This does not verify the results of the test, but does
     ensure the instances were created.
@@ -44,6 +45,7 @@ def test_scaling_load(service_name,
         min_index: minimum index to begin suffixes at
         max_index: maximum index to end suffixes at
         batch_size: batch size to deploy instances in
+        package_version: version of hello-world to deploy, defaults to catalog if unspecified.
     """
     scale_service_name = "{}-{}".format(service_name, scenario)
     deployment_list = []
@@ -64,7 +66,8 @@ def test_scaling_load(service_name,
         # Create threads with correct arguments.
         deployment_threads = spawn_threads(batched_deployment_list,
                                            _launch_load,
-                                           scenario=scenario)
+                                           scenario=scenario,
+                                           package_version=package_version)
         # Launch jobs.
         wait_and_get_failures(deployment_threads, timeout=JOB_RUN_TIMEOUT)
 
@@ -94,7 +97,7 @@ def test_scaling_cleanup(service_name, scenario, service_count, min_index, max_i
     wait_and_get_failures(cleanup_threads, timeout=JOB_RUN_TIMEOUT)
 
 
-def _launch_load(service_name, scenario) -> None:
+def _launch_load(service_name, scenario, package_version) -> None:
     """Launch a load test scenario. This does not verify the results
     of the test, but does ensure the instances were created.
 
@@ -109,10 +112,11 @@ def _launch_load(service_name, scenario) -> None:
     security_info = _create_service_account(launch_account_name)
     _install_service(launch_service_name,
                      scenario,
-                     security_info)
+                     security_info,
+                     package_version)
 
 
-def _install_service(service_name, scenario, security_info) -> None:
+def _install_service(service_name, scenario, security_info, package_version) -> None:
     # do not wait for deploy plan to complete, all tasks to launch or marathon app deployment
     # supports rapid deployments in scale test scenario
     options = {"service": {"name": service_name, "yaml": scenario}}
@@ -125,6 +129,7 @@ def _install_service(service_name, scenario, security_info) -> None:
         service_name,
         config.DEFAULT_TASK_COUNT,
         additional_options=options,
+        package_version=package_version,
         wait_for_deployment=False,
         wait_for_all_conditions=False
     )
