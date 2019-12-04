@@ -31,7 +31,7 @@ FROM ubuntu:18.10@sha256:7d657275047118bb77b052c4c0ae43e8a289ca2879ebfa78a703c93
 # - click on the matching alpine version tag (eg, 17.12.0-dind)
 # - pull the DIND_COMMIT hash from the Dockerfile that opens
 ARG DOCKER_VERSION=5:18.09.8
-ARG DIND_COMMIT=37498f009d8bf25fbb6199e8ccd34bed84f2874b
+ARG DIND_COMMIT=3b5fac462d21ca164b3778647420016315289034
 
 COPY dind-wrapper.sh /usr/local/bin/dind-wrapper.sh
 RUN apt-get update && \
