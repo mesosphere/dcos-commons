@@ -105,7 +105,7 @@ def _launch_load(service_name, scenario) -> None:
     # Note service-names *cannot* have underscores in them.
     launch_service_name = service_name.replace("_", "-")
     # service-names can have '/'s in them but service account names cannot, sanitize here.
-    launch_account_name = launch_service_name.replace("/", "__")
+    launch_account_name = launch_service_name.strip("/").replace("/", "__")
     security_info = _create_service_account(launch_account_name)
     _install_service(launch_service_name,
                      scenario,
