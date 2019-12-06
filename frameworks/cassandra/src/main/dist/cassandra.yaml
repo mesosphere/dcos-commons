@@ -170,6 +170,9 @@ back_pressure_strategy:
 {{#CASSANDRA_REPAIR_SESSION_MAX_TREE_DEPTH}}
 repair_session_max_tree_depth: {{CASSANDRA_REPAIR_SESSION_MAX_TREE_DEPTH}}
 {{/CASSANDRA_REPAIR_SESSION_MAX_TREE_DEPTH}}
-{{#CASSANDRA_ENABLE_SASI_INDEXES}}
+
+#########################
+# EXPERIMENTAL FEATURES #
+#########################
 enable_sasi_indexes: {{CASSANDRA_ENABLE_SASI_INDEXES}}
-{{/CASSANDRA_ENABLE_SASI_INDEXES}}
+enable_materialized_views: {{CASSANDRA_ENABLE_MATERIALIZED_VIEWS}}

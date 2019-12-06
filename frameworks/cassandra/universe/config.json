@@ -1118,6 +1118,11 @@
           "type": "boolean",
           "description": "Enables SASI index creation on this node. SASI indexes are considered experimental and are not recommended for production use.",
           "default": false
+        },
+        "enable_materialized_views": {
+          "type": "boolean",
+          "description": "Enables materialized view creation on this node. Materialized views are considered experimental and are not recommended for production use.",
+          "default": false
         }
       },
       "additionalProperties": false,
