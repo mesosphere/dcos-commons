@@ -15,7 +15,7 @@ void setBuildStatus(String context, String message, String state) {
 
 pipeline {
     agent {
-        label 'mesos'
+        label 'dcos-commons'
     }
  
     environment {
