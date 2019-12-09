@@ -13,6 +13,7 @@ import com.mesosphere.sdk.storage.Persister;
 import com.mesosphere.sdk.storage.PersisterException;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * Sets up and executes the {@link AbstractScheduler} instance.
@@ -88,9 +89,11 @@ public final class SchedulerRunner implements Runnable {
 
     Metrics.configureStatsd(schedulerConfig);
 
+    Optional<String> serviceNamespace = schedulerConfig.getServiceNamespace();
+
     FrameworkRunner frameworkRunner = new FrameworkRunner(
         schedulerConfig,
-        FrameworkConfig.fromServiceSpec(serviceSpec),
+        FrameworkConfig.fromServiceSpec(serviceSpec, serviceNamespace),
         PodSpecsCannotUseUnsupportedFeatures.serviceRequestsGpuResources(serviceSpec),
         schedulerBuilder.isRegionAwarenessEnabled());
 

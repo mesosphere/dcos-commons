@@ -105,11 +105,7 @@ class MarathonDeploymentsResponse(MarathonDeploymentResponse):
         self._apps = list(_parse(response_json))
 
 
-def wait_for_deployment(
-    app_name: str,
-    timeout: int,
-    expected_version: Optional[str],
-) -> None:
+def wait_for_deployment(app_name: str, timeout: int, expected_version: Optional[str]) -> None:
     @retrying.retry(
         stop_max_delay=timeout * 1000, wait_fixed=2000, retry_on_result=lambda result: not result
     )
@@ -332,3 +328,29 @@ def bump_task_count_config(service_name: str, key_name: str, delta: int = 1) -> 
     config["env"][key_name] = str(updated_node_count)
     update_app(config)
     return updated_node_count
+
+
+def create_group(group_id: str, options: dict) -> None:
+    group_definition = {}
+    group_definition.update(options)
+    group_definition["id"] = "/{}".format(group_id.strip("/"))
+    sdk_cmd.cluster_request(
+        "POST", _api_url("groups"), json=group_definition, log_args=False, raise_on_error=False
+    )
+
+
+def delete_group(group_id: str) -> None:
+    # Note an empty group_id implies "/" below, which means Marathon will delete
+    # everything on the cluster!!!
+    if group_id:
+        group_id = "groups/{}".format(group_id.strip("/"))
+        sdk_cmd.cluster_request("DELETE", _api_url(group_id), log_args=False, raise_on_error=False)
+
+
+def update_group(group_id: str, options: dict) -> None:
+    group_definition = {}
+    group_definition.update(options)
+    group_definition["id"] = "/{}".format(group_id.strip("/"))
+    sdk_cmd.cluster_request(
+        "PUT", _api_url("groups"), json=group_definition, log_args=False, raise_on_error=False
+    )

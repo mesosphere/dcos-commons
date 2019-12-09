@@ -250,7 +250,7 @@
                       "enum": [
                         true
                       ]
-                    },                    
+                    },
                     "rmi_port": {
                       "description": "RMI port to expose.",
                       "type": "integer",
@@ -1097,7 +1097,7 @@
         "back_pressure_high_ratio": {
           "type": "number",
           "description": "When outgoing mutations are below this value, they are rate limited according to the incoming rate decreased by the factor. When above this value, the rate limiting is increased by the factor.",
-          "default": 0.90
+          "default": 0.9
         },
         "back_pressure_factor": {
           "type": "integer",

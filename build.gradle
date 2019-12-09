@@ -10,6 +10,8 @@ allprojects {
     apply plugin: 'jacoco'
     apply plugin: 'idea'
     apply plugin: 'maven-publish'
+    // Run `./gradlew htmlDependencyReport` to view the dependency report
+    apply plugin: 'project-report'
 
     // Double quotes are required for $rootDir to be resolved:
     apply from: "$rootDir/gradle/quality.gradle"
@@ -31,7 +33,7 @@ allprojects {
     // 2. In the GitHub UI, add a Release entry against the tag created in step 1. List any changes in release notes.
     // 3. Create a PR which bumps this from '0.10.0-SNAPSHOT' to '0.11.0-SNAPSHOT' in master to start the 0.11.0 track.
     // --
-    version = '0.60.0-SNAPSHOT'
+    version = '0.58.0-SNAPSHOT'
 
     sourceCompatibility = '1.8'
     targetCompatibility = '1.8'
@@ -41,9 +43,11 @@ allprojects {
         mavenLocal()
         mavenCentral()
         maven {
+            name "Mesosphere Public Repo"
             url 'https://downloads.mesosphere.com/maven/'
         }
         maven {
+            name "Mesosphere Snapshot Repo"
             url 'https://downloads.mesosphere.com/maven-snapshot/'
         }
         maven {

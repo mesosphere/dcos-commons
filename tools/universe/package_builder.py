@@ -17,8 +17,11 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
 
 _jre_url = "https://downloads.mesosphere.com/java/openjdk-jre-8u212b03-hotspot-linux-x64.tar.gz"
+_scheduler_jre_url = (
+    "https://downloads.mesosphere.com/java/openjdk-jre-11.0.3.7-hotspot-linux-x64.tar.gz"
+)
 _libmesos_bundle_url = (
-    "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.12.0.tar.gz"
+    "https://downloads.mesosphere.com/libmesos-bundle/libmesos-bundle-1.14-beta.tar.gz"
 )
 _docs_root = "https://docs.mesosphere.com"
 
@@ -177,7 +180,8 @@ class UniversePackageBuilder(object):
             "documentation-path": self._get_documentation_path(),
             "issues-path": self._get_issues_path(),
             "jre-url": _jre_url,
-            "libmesos-bundle-url": _libmesos_bundle_url
+            "scheduler-jre-url": _scheduler_jre_url,
+            "libmesos-bundle-url": _libmesos_bundle_url,
         }
 
         # import any custom "TEMPLATE_SOME_PARAM" environment variables as "some-param":
@@ -271,6 +275,8 @@ class UniversePackageBuilder(object):
             package_files[_package_json_filename], object_pairs_hook=collections.OrderedDict
         )
         package_json["releaseVersion"] = 0
+        # `lastUpdated` is supported for all packages v3 and above
+        package_json["lastUpdated"] = round(time.time())
 
         config_json = package_files.get(_config_json_filename)
         if config_json is not None:

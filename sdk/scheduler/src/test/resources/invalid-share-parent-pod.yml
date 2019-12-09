@@ -1,0 +1,11 @@
+name: "invalid-share-parent-pod"
+pods:
+  meta-data:
+    ipc-mode: SHARE_PARENT
+    shm-size: 1024
+    count: 2
+    tasks:
+      some-task:
+        goal: RUNNING
+        cmd: "some command"
+        cpus: 1

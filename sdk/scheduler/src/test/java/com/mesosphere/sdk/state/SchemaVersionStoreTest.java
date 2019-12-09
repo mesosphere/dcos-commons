@@ -96,7 +96,7 @@ public class SchemaVersionStoreTest {
     @Test(expected=IllegalArgumentException.class)
     public void testStoreOtherFailure() throws Exception {
         final int val = 3;
-        doThrow(Exception.class).when(mockPersister).set(NODE_PATH, String.valueOf(val).getBytes(CHARSET));
+        doThrow(PersisterException.class).when(mockPersister).set(NODE_PATH, String.valueOf(val).getBytes(CHARSET));
         storeWithMock.store(SchemaVersion.UNKNOWN);
     }
 

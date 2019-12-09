@@ -176,7 +176,7 @@ public abstract class AbstractScheduler implements MesosEventClient {
           candidateSteps.size(), candidateSteps.size() == 1 ? "" : "s");
       int i = 0;
       for (Protos.Offer offer : offers) {
-        logger.info("  {}: {}", ++i, TextFormat.shortDebugString(offer));
+        logger.info("  {}: role:{} {}", ++i, offer.getAllocationInfo().getRole(), TextFormat.shortDebugString(offer));
       }
     }
 

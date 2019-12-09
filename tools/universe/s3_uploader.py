@@ -20,6 +20,7 @@ class S3Uploader(object):
         self._aws_region = os.environ.get("AWS_UPLOAD_REGION", "")
         self._reauth_attempted = False
         self._dry_run = dry_run
+        self._acl = os.environ.get("AWS_UPLOAD_ACL", "public-read")
 
     def get_s3_directory(self):
         return self._s3_directory
@@ -29,7 +30,7 @@ class S3Uploader(object):
         cmdlist = ["aws s3"]
         if self._aws_region:
             cmdlist.append("--region={}".format(self._aws_region))
-        cmdlist.append("cp --acl public-read")
+        cmdlist.append("cp --acl {}".format(self._acl))
         if self._dry_run:
             cmdlist.append("--dryrun")
         if content_type is not None:

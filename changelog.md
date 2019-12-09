@@ -1,14 +1,41 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.57.2
+- [#3198](https://github.com/mesosphere/dcos-commons/pull/3198) `ALLOW_REGION_AWARENESS` is set to true by default
+
+## Changes to v0.57.1
+
+- [#3184](https://github.com/mesosphere/dcos-commons/pull/3184) : Fix a bug where SDK was parsing empty fields in `env` field of Task definition in service yaml as `null` instead of blank strings.
+- [#3185](https://github.com/mesosphere/dcos-commons/pull/3185) : Bump scheduler java runtime to JDK11 :rocket:
+
+##### Notes
+- In this version, the framework java runtime is unchanged but the scheduler runtime is bumped to Java 11. Scheduler may behave unexpectedly if Java 8 runtime is provided.
+
+## Changes to v0.57.0
+
+- [DCOS-55542](https://jira.mesosphere.com/browse/DCOS-55542) SDK Shared Memory Support (#3132)
+- [DCOS-54278](https://jira.mesosphere.com/browse/DCOS-54278) SDK Quota Support (#3102)
+- [#3176](https://github.com/mesosphere/dcos-commons/pull/3176) Remove Launch Constrainer
+- [#3177](https://github.com/mesosphere/dcos-commons/pull/3177) Remove Manual Plan Sync
+
+##### Notes
+- Requires Mesos 1.9.0 and libmesos-bundle 1.14-beta
+
+## Changes to v0.56.3
+- [COPS-5286](https://jira.mesosphere.com/browse/COPS-5286) Allow use of Seccomp in DC/OS 1.12 (#3163)
+- [COPS-5211](https://jira.mesosphere.com/browse/COPS-5211) Fix marathon constraint parser bug (#3160)
+
 ## Changes to v0.56.2
 
 - [#3144](https://github.com/mesosphere/dcos-commons/pull/3144) : Added user level configuration support for specifying the host volume mode to one of `RW` or `RO`.
 - [DCOS-54275](https://jira.mesosphere.com/browse/DCOS-54275) #3120 : Added support for auto task back off on task failures/errors.
 - [#3070](https://github.com/mesosphere/dcos-commons/pull/3070) and [#3105](https://github.com/mesosphere/dcos-commons/pull/3105) : Add a config validator for seccomp.
 - [DCOS-42593](https://jira.mesosphere.com/browse/DCOS-42593) The zookeeper max payload batching bug has finally been fixed via [#3147](https://github.com/mesosphere/dcos-commons/pull/3147)
+- [#3060](https://github.com/mesosphere/dcos-commons/pull/3060) : Use Open JDK 8
 
 ##### Notes
 - Currently, task backoff is disabled by default but this behaviour will be changed so that task back off is enabled by default in future major releases of SDK.
+- The OpenJDK binaries used in this release (and future releases) have JRE at a different location. Refer to [#3060](https://github.com/mesosphere/dcos-commons/pull/3060) to see what changes are needed for a framework to adopt to this new file structure.
 
 ## Changes to v0.56.1
 
