@@ -68,6 +68,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 /**
@@ -462,39 +463,14 @@ public class SchedulerBuilder {
       ConfigStore<ServiceSpec> configStore,
       Optional<String> namespace) throws ConfigStoreException
   {
-
     // Determine whether deployment had previously completed BEFORE we update the config.
-    // Plans may be generated from the config content.
     boolean hasCompletedDeployment = StateStoreUtils.getDeploymentWasCompleted(stateStore);
-    if (!hasCompletedDeployment) {
-      try {
-        // Check for completion against the PRIOR service spec. For example, if the new service spec has n+1
-        // nodes, then we want to check that the prior n nodes had successfully deployed.
-        ServiceSpec lastServiceSpec = configStore.fetch(configStore.getTargetConfig());
-        Optional<Plan> deployPlan = getDeployPlan(
-                getPlans(stateStore, configStore, lastServiceSpec, namespace, yamlPlans));
-        if (deployPlan.isPresent()) {
-          logger.info("Previous deploy plan state: {}", deployPlan.get().toString());
-          if (deployPlan.get().isComplete()) {
-            logger.info("Marking deployment as having been previously completed");
-            StateStoreUtils.setDeploymentWasCompleted(stateStore);
-            hasCompletedDeployment = true;
-          } else {
-            logger.info("Deployment has not previously completed");
-          }
-        } else {
-          logger.warn("No previous deploy plan was found");
-        }
-      } catch (ConfigStoreException e) {
-        // This is expected during initial deployment, when there is no prior configuration.
-        logger.info("Unable to retrieve last configuration. " +
-            "Assuming that no prior deployment has completed");
-      }
-    }
-
+    // Determine if we had a role change.
+    boolean hasRoleChanged = hasRoleChanged(configStore, serviceSpec);
     // Update/validate config as needed to reflect the new service spec:
     Collection<ConfigValidator<ServiceSpec>> configValidators = new ArrayList<>();
     configValidators.addAll(DefaultConfigValidators.getValidators(schedulerConfig));
+    configValidators.addAll(DefaultConfigValidators.getRoleValidators(hasRoleChanged, hasCompletedDeployment));
     configValidators.addAll(customConfigValidators);
     final ConfigurationUpdater.UpdateResult configUpdateResult =
         updateConfig(serviceSpec, stateStore, configStore, configValidators, namespace);
@@ -732,5 +708,35 @@ public class SchedulerBuilder {
       logger.error("Fatal error when performing configuration update. Service exiting.", e);
       throw new IllegalStateException(e);
     }
+  }
+
+  /**
+   * Determine if the role for the Service has changed across scheduler restarts.
+   * The role is neccesarily unchanged on the first launch of the service.
+   * @return true iff the role has changed.
+   */
+  private boolean hasRoleChanged(ConfigStore<ServiceSpec> configStore,
+      ServiceSpec currentConfig) throws ConfigStoreException
+  {
+    // Get the currently stored target configuration
+    Optional<UUID> targetConfigId = Optional.empty();
+    try {
+      targetConfigId = Optional.of(configStore.getTargetConfig());
+    } catch (ConfigStoreException e) {
+      logger.debug("No target configuration ID was set. First launch?");
+    }
+
+    Optional<ServiceSpec> targetConfig = Optional.empty();
+    if (targetConfigId.isPresent()) {
+      logger.info("Loading current target configuration: {}", targetConfigId);
+      //Note: This throws ConfigStoreException if targetConfigId is not found.
+      //let the exception ripple upwards as this is a fatal error.
+      targetConfig = Optional.of(configStore.fetch(targetConfigId.get()));
+    }
+
+    //If there is no target config, this was a first launch scenario or else compare to see if the roles have changed.
+    return targetConfig
+            .filter(serviceSpec -> !currentConfig.getRole().equals(serviceSpec.getRole()))
+            .isPresent();
   }
 }

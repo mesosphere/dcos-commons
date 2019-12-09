@@ -260,6 +260,22 @@ public final class TaskUtils {
       return true;
     }
 
+    Optional<Protos.LinuxInfo.IpcMode> oldShmMode = oldTaskSpec.getSharedMemory();
+    Optional<Protos.LinuxInfo.IpcMode> newShmMode = newTaskSpec.getSharedMemory();
+
+    if (!Objects.equals(oldShmMode, newShmMode)) {
+      LOGGER.debug("SHM '{}' and '{}' are different.", oldShmMode, newShmMode);
+      return true;
+    }
+
+    Optional<Integer> oldShmSize = oldTaskSpec.getSharedMemorySize();
+    Optional<Integer> newShmSize = newTaskSpec.getSharedMemorySize();
+
+    if (!Objects.equals(oldShmSize, newShmSize)) {
+      LOGGER.debug("SHM '{}' and '{}' are different.", oldShmSize, newShmSize);
+      return true;
+    }
+
     int oldTaskKillGracePeriodSeconds = oldTaskSpec.getTaskKillGracePeriodSeconds();
     int newTaskKillGracePeriodSeconds = newTaskSpec.getTaskKillGracePeriodSeconds();
     if (oldTaskKillGracePeriodSeconds != newTaskKillGracePeriodSeconds) {

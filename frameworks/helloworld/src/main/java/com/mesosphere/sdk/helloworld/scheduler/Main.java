@@ -99,11 +99,12 @@ public final class Main {
       throws Exception
   {
     RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
+    Optional<String> serviceNamespace = schedulerConfig.getServiceNamespace();
     ServiceSpec serviceSpec = DefaultServiceSpec
         .newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile())
         .build();
     Persister persister =
-        getPersister(schedulerConfig, FrameworkConfig.fromServiceSpec(serviceSpec));
+        getPersister(schedulerConfig, FrameworkConfig.fromServiceSpec(serviceSpec, serviceNamespace));
     SchedulerBuilder builder = DefaultScheduler
         .newBuilder(serviceSpec, schedulerConfig, persister)
         .setPlansFrom(rawServiceSpec);

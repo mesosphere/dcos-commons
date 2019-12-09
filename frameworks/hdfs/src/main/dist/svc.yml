@@ -7,7 +7,6 @@ pods:
     count: 3
     uris:
       - {{HDFS_URI}}
-      - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{KEYTAB_URI}}
@@ -154,7 +153,6 @@ pods:
     count: 2
     uris:
       - {{HDFS_URI}}
-      - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{ZONE_RESOLVER}}
@@ -462,7 +460,6 @@ pods:
     count: {{DATA_COUNT}}
     uris:
       - {{HDFS_URI}}
-      - {{HDFS_BIN_URI}}
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{KEYTAB_URI}}

@@ -11,6 +11,7 @@ $REPO_ROOT_DIR/build.sh -b
 
 # Build/test our scheduler.zip
 ${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
+$FRAMEWORK_DIR/cli/build.sh
 
 # Build package with our scheduler.zip and the local SDK artifacts we built:
 $REPO_ROOT_DIR/tools/build_package.sh \
@@ -19,7 +20,7 @@ $REPO_ROOT_DIR/tools/build_package.sh \
     -a "$FRAMEWORK_DIR/build/distributions/$(basename $FRAMEWORK_DIR)-scheduler.zip" \
     -a "$FRAMEWORK_DIR/tools/zone-resolver.sh" \
     -a "$REPO_ROOT_DIR/sdk/bootstrap/bootstrap.zip" \
-    -a "$REPO_ROOT_DIR/sdk/cli/dcos-service-cli-linux" \
-    -a "$REPO_ROOT_DIR/sdk/cli/dcos-service-cli-darwin" \
-    -a "$REPO_ROOT_DIR/sdk/cli/dcos-service-cli.exe" \
+    -a "$FRAMEWORK_DIR/cli/dcos-service-cli-linux" \
+    -a "$FRAMEWORK_DIR/cli/dcos-service-cli-darwin" \
+    -a "$FRAMEWORK_DIR/cli/dcos-service-cli.exe" \
     $@

@@ -43,7 +43,8 @@ def configure_package(configure_security):
 
         # Create service account
         sdk_security.create_service_account(
-            service_account_name=config.SERVICE_NAME, service_account_secret=config.SERVICE_NAME
+            service_account_name=config.SERVICE_NAME,
+            service_account_secret=config.SERVICE_NAME + "-secret",
         )
         sdk_cmd.run_cli(
             "security org groups add_user superusers {name}".format(name=config.SERVICE_NAME)
@@ -57,7 +58,7 @@ def configure_package(configure_security):
                 "service": {
                     "yaml": "tls",
                     "service_account": config.SERVICE_NAME,
-                    "service_account_secret": config.SERVICE_NAME,
+                    "service_account_secret": config.SERVICE_NAME + "-secret",
                     # Legacy values
                     "principal": config.SERVICE_NAME,
                     "secret_name": config.SERVICE_NAME,
@@ -73,11 +74,14 @@ def configure_package(configure_security):
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
         sdk_security.delete_service_account(
-            service_account_name=config.SERVICE_NAME, service_account_secret=config.SERVICE_NAME
+            service_account_name=config.SERVICE_NAME,
+            service_account_secret=config.SERVICE_NAME + "-secret",
         )
 
         # Make sure that all the TLS artifacts were removed from the secrets store.
-        _, output, _ = sdk_cmd.run_cli("security secrets list {name}".format(name=config.SERVICE_NAME))
+        _, output, _ = sdk_cmd.run_cli(
+            "security secrets list {name}".format(name=config.SERVICE_NAME)
+        )
         artifact_suffixes = [
             "certificate",
             "private-key",

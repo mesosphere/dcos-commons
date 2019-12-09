@@ -118,7 +118,7 @@
                 "keytab_secret": {
                   "type": "string",
                   "description": "A DC/OS Secret Store path.  The contents of this secret should be a keytab containing the credentials for all HDFS servers.",
-		  "media": {
+                  "media": {
                     "type": "application/x-secret+string"
                   }
                 },

@@ -13,6 +13,7 @@ import sys
 import tempfile
 import universe
 import urllib.request
+import urllib.error
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -44,7 +45,28 @@ class UniverseReleaseBuilder(object):
                 )
 
             package_name = name_match.group(1)
-            log.info("Got package name %s from stub universe URL")
+
+            try:
+                universe_name = None
+                log.info("Parsing stub universe...")
+                with urllib.request.urlopen(stub_universe_url) as response:
+                    data = json.loads(response.read())
+                    for package in data["packages"]:
+                        if "name" in package:
+                            if universe_name is not None and universe_name != package["name"]:
+                                log.warning(
+                                    "More than one different package names have been found '{}' and '{}'".format(
+                                        universe_name, package["name"]
+                                    )
+                                )
+                            else:
+                                universe_name = package["name"]
+                if universe_name is not None:
+                    package_name = universe_name
+            except Exception as e:
+                log.warning("Something went wrong during content loading: {}".format(str(e)))
+
+            log.info("Got package name '{}' from stub universe URL".format(package_name))
 
         return package_name
 

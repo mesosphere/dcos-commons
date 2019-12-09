@@ -6,12 +6,13 @@ import org.apache.mesos.Protos;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 import java.util.StringJoiner;
 import java.util.StringTokenizer;
 import java.util.stream.Collectors;
 
 /**
- * Tools for converting {@link Attribute}s into strings. Spec is defined by Mesos documentation at:
+ * Tools for converting {@link Protos.Attribute}s into strings. Spec is defined by Mesos documentation at:
  * http://mesos.apache.org/documentation/latest/attributes-resources/
  */
 public final class AttributeStringUtils {
@@ -106,7 +107,7 @@ public final class AttributeStringUtils {
    *                                  serialized
    */
   public static String toString(Protos.Value value) throws IllegalArgumentException {
-    StringBuffer buf = new StringBuffer();
+    StringBuilder buf = new StringBuilder();
     switch (value.getType()) {
       case RANGES:
         // "ports:[21000-24000,30000-34000]"
@@ -123,7 +124,7 @@ public final class AttributeStringUtils {
       case SCALAR:
         // according to mesos.proto: "Mesos keeps three decimal digits of precision ..."
         // let's just ensure that we're producing consistent strings.
-        buf.append(String.format("%.3f", value.getScalar().getValue()));
+        buf.append(String.format(Locale.ROOT, "%.3f", value.getScalar().getValue()));
         break;
       case SET:
         // "bugs(debug_role):{a,b,c}"

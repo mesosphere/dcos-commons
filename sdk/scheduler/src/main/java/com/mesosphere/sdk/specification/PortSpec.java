@@ -68,6 +68,20 @@ public class PortSpec extends DefaultResourceSpec {
     return new Builder();
   }
 
+  public static Builder newBuilder(PortSpec copy) {
+    Builder builder = new Builder();
+    builder.envKey(copy.getEnvKey())
+      .portName(copy.getPortName())
+      .visibility(copy.getVisibility())
+      .networkNames(copy.getNetworkNames())
+      .ranges(copy.getRanges())
+      .value(copy.getValue())
+      .role(copy.getRole())
+      .preReservedRole(copy.getPreReservedRole())
+      .principal(copy.getPrincipal());
+    return builder;
+  }
+
   /**
    * Returns a copy of the provided {@link PortSpec} which has been updated to have the provided {@code value}.
    */

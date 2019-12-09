@@ -9,6 +9,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.apache.mesos.Protos;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -57,6 +58,10 @@ public final class DefaultPodSpec implements PodSpec {
 
   private final Optional<String> seccompProfileName;
 
+  private final Optional<Protos.LinuxInfo.IpcMode> sharedMemory;
+
+  private final Optional<Integer> sharedMemorySize;
+
   @JsonCreator
   private DefaultPodSpec(
       @JsonProperty("type") String type,
@@ -75,7 +80,9 @@ public final class DefaultPodSpec implements PodSpec {
       @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
       @JsonProperty("host-volumes") Collection<HostVolumeSpec> hostVolumes,
       @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
-      @JsonProperty("seccomp-profile-name") Optional<String> seccompProfileName)
+      @JsonProperty("seccomp-profile-name") Optional<String> seccompProfileName,
+      @JsonProperty("ipc-mode") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
+      @JsonProperty("shm-size") Optional<Integer> sharedMemorySize)
   {
     this.type = type;
     this.user = user;
@@ -94,6 +101,8 @@ public final class DefaultPodSpec implements PodSpec {
     this.hostVolumes = hostVolumes;
     this.seccompUnconfined = seccompUnconfined;
     this.seccompProfileName = seccompProfileName;
+    this.sharedMemory = sharedMemory;
+    this.sharedMemorySize = sharedMemorySize;
   }
 
   private DefaultPodSpec(Builder builder) {
@@ -114,7 +123,9 @@ public final class DefaultPodSpec implements PodSpec {
         builder.sharePidNamespace,
         builder.hostVolumes,
         builder.seccompUnconfined,
-        builder.seccompProfileName);
+        builder.seccompProfileName,
+        builder.sharedMemory,
+        builder.sharedMemorySize);
 
     ValidationUtils.nonBlank(this, "type", type);
     ValidationUtils.nonNegative(this, "count", count);
@@ -163,6 +174,8 @@ public final class DefaultPodSpec implements PodSpec {
     builder.hostVolumes = copy.getHostVolumes();
     builder.seccompUnconfined = copy.getSeccompUnconfined();
     builder.seccompProfileName = copy.getSeccompProfileName();
+    builder.sharedMemory = copy.getSharedMemory();
+    builder.sharedMemorySize = copy.getSharedMemorySize();
     return builder;
   }
 
@@ -252,6 +265,16 @@ public final class DefaultPodSpec implements PodSpec {
   }
 
   @Override
+  public Optional<Protos.LinuxInfo.IpcMode> getSharedMemory() {
+    return sharedMemory;
+  }
+
+  @Override
+  public Optional<Integer> getSharedMemorySize() {
+    return sharedMemorySize;
+  }
+
+  @Override
   public boolean equals(Object o) {
     return EqualsBuilder.reflectionEquals(this, o);
   }
@@ -303,6 +326,10 @@ public final class DefaultPodSpec implements PodSpec {
     private Boolean seccompUnconfined = false;
 
     private Optional<String> seccompProfileName = Optional.empty();
+
+    private Optional<Protos.LinuxInfo.IpcMode> sharedMemory = Optional.empty();
+
+    private Optional<Integer> sharedMemorySize = Optional.empty();
 
     private Builder(String type, int count, List<TaskSpec> tasks) {
       this.type = type;
@@ -575,6 +602,44 @@ public final class DefaultPodSpec implements PodSpec {
     }
 
     /**
+     * Sets the {@code sharedMemory} and returns a reference to this Builder so that the methods can be
+     * chained together.
+     *
+     * @param sharedMemory the IPC Mode, PRIVATE is the only allowed value at pod level
+     * @return a reference to this Builder
+     */
+    public Builder sharedMemory(String sharedMemory) {
+      if (sharedMemory == null) {
+        this.sharedMemory = Optional.empty();
+        return this;
+      }
+
+      switch (sharedMemory) {
+        case "PRIVATE":
+          this.sharedMemory = Optional.ofNullable(Protos.LinuxInfo.IpcMode.PRIVATE);
+          return this;
+        case "SHARE_PARENT":
+          throw new IllegalArgumentException("Cannot specify SHARE_PARENT at pod level");
+        default:
+          throw new IllegalArgumentException("Invalid IPC Mode");
+      }
+    }
+
+    /**
+     * Sets the {@code sharedMemorySize} and returns a reference to this Builder so that the methods can be
+     * chained together.
+     *
+     * @param sharedMemory the enum to set
+     * @return a reference to this Builder
+     */
+    public Builder sharedMemorySize(Integer sharedMemory) {
+      this.sharedMemorySize = Optional.ofNullable(sharedMemory);
+      return this;
+    }
+
+
+    /**
+     * Returns a {@code DefaultPodSpec} built from the parameters previously set.
      * @return a {@code DefaultPodSpec} built with parameters of this {@code DefaultPodSpec.Builder}
      */
     public DefaultPodSpec build() {

@@ -35,7 +35,7 @@ public class SchedulerConfigTest {
     public void testRegionAwareness() {
         Map<String, String> confMap = getMinimalMap();
         SchedulerConfig schedulerConfig = SchedulerConfig.fromEnvStore(EnvStore.fromMap(confMap));
-        Assert.assertFalse(schedulerConfig.isRegionAwarenessEnabled());
+        Assert.assertTrue(schedulerConfig.isRegionAwarenessEnabled());
 
         confMap.put("ALLOW_REGION_AWARENESS", "false");
         schedulerConfig = SchedulerConfig.fromEnvStore(EnvStore.fromMap(confMap));
@@ -47,7 +47,7 @@ public class SchedulerConfigTest {
 
         confMap.remove("ALLOW_REGION_AWARENESS");
         schedulerConfig = SchedulerConfig.fromEnvStore(EnvStore.fromMap(confMap));
-        Assert.assertFalse(schedulerConfig.isRegionAwarenessEnabled());
+        Assert.assertTrue(schedulerConfig.isRegionAwarenessEnabled());
     }
 
     @Test
