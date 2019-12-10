@@ -24,7 +24,8 @@ def configure_package(configure_security):
             config.PACKAGE_NAME,
             config.get_foldered_service_name(),
             config.DEFAULT_TASK_COUNT,
-            additional_options={"service": {"name": config.get_foldered_service_name(), "virtual_network_enabled": True} })
+            # For all sanity tests provide additional portworx volume options.
+            additional_options={"service": {"name": config.get_foldered_service_name(), "virtual_network_enabled": True}, "nodes": {"portworx_volume_options": "repl=2"} })
 
         yield  # let the test session execute
     finally:
