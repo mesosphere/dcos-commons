@@ -1110,9 +1110,10 @@
           "default": "FAST"
         },
         "repair_session_max_tree_depth": {
-          "type": "string",
+          "type": "integer",
           "description": "Limits the maximum Merkle tree depth to avoid consuming too much memory during repairs.",
-          "default": ""
+          "default": 18,
+          "minimum": 10
         },
         "enable_sasi_indexes": {
           "type": "boolean",
