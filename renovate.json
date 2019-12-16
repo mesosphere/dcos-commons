@@ -21,8 +21,7 @@
   "rebaseStalePrs": false,
   "renovateFork": true,
   "reviewers": [
-    "kvish",
-    "takirala"
+    "kaiwalyajoshi"
   ],
   "schedule": [
     "on saturday"
