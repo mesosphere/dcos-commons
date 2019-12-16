@@ -70,6 +70,8 @@ public class UninstallScheduler extends AbstractScheduler {
 
   private final SchedulerConfig schedulerConfig;
 
+  private final Collection<ResourceCleanupStep> allResouceCleanupSteps;
+
   /**
    * Creates a new {@link UninstallScheduler} using the provided components. The {@link UninstallScheduler} builds an
    * uninstall {@link Plan} which will clean up the service's reservations, TLS artifacts, zookeeper data, and any
@@ -120,6 +122,7 @@ public class UninstallScheduler extends AbstractScheduler {
     // Construct a plan for uninstalling any remaining resources
     UninstallPlanFactory planFactory = new UninstallPlanFactory(
         serviceSpec, stateStore, schedulerConfig, namespace, customSecretsClientForTests);
+    this.allResouceCleanupSteps = planFactory.getResourceCleanupSteps();
     this.recorder = new UninstallRecorder(stateStore, planFactory.getResourceCleanupSteps());
     this.deregisterStubStep = planFactory.getDeregisterStep();
 
@@ -242,6 +245,23 @@ public class UninstallScheduler extends AbstractScheduler {
    */
   @Override
   public UnexpectedResourcesResponse getUnexpectedResources(Collection<Protos.Offer> unusedOffers) {
+
+    /*
+     * Pre  DC/OS 2.0 the SDK framework generated its own roles based on the name of the service.
+     * Post DC/OS 2.0 the SDK framework can share its role with many other services.
+     *
+     * Pre DC/OS 2.0 it was sufficient to remove all resources offered with a ResourceId since the service name
+     * and correspondingly the service-role used ot subscribe to MESOS with was unique.
+     *
+     * Post DC/OS 2.0 this can lead to a severe bug where a SDK framework can DESTORY & UNRESERVE resources
+     * that belong in the same same role which *do not belong* to framework under uninstall.
+     *
+     * To prevent this scenario, we filter out any ResourceIds that do not belong to this frameowork.
+     */
+
+    Collection<String> allResourceCleanupIds = allResouceCleanupSteps.stream()
+        .map(step -> step.getResourceId()).collect(Collectors.toSet());
+
     Collection<OfferResources> unexpected = unusedOffers.stream()
         .map(offer -> new OfferResources(offer).addAll(offer.getResourcesList().stream()
             // Omit any unreserved resources, and any unrefined pre-reserved resources.
@@ -249,6 +269,8 @@ public class UninstallScheduler extends AbstractScheduler {
             // potentially unreserving any resources that weren't originally created by the SDK.
             // This is in addition to separate filtering in FrameworkScheduler of reserved Marathon volumes.
             .filter(resource -> ResourceUtils.hasResourceId(resource))
+            // Ensure we're only selecting ResourceId's that we own here.
+            .filter(resource -> allResourceCleanupIds.contains(ResourceUtils.getResourceId(resource).get()))
             .collect(Collectors.toList())))
         .collect(Collectors.toList());
     try {
