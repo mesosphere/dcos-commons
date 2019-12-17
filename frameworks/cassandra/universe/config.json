@@ -1108,6 +1108,22 @@
           "type": "string",
           "description": "The flow speed to apply rate limiting: FAST - rate limited to the speed of the fastest replica. SLOW - rate limit to the speed of the slowest replica.",
           "default": "FAST"
+        },
+        "repair_session_max_tree_depth": {
+          "type": "integer",
+          "description": "Limits the maximum Merkle tree depth to avoid consuming too much memory during repairs.",
+          "default": 18,
+          "minimum": 10
+        },
+        "enable_sasi_indexes": {
+          "type": "boolean",
+          "description": "Enables SASI index creation on this node. SASI indexes are considered experimental and are not recommended for production use.",
+          "default": false
+        },
+        "enable_materialized_views": {
+          "type": "boolean",
+          "description": "Enables materialized view creation on this node. Materialized views are considered experimental and are not recommended for production use.",
+          "default": false
         }
       },
       "additionalProperties": false,

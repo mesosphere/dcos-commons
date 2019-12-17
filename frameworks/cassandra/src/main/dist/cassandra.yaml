@@ -167,3 +167,10 @@ back_pressure_strategy:
 {{#AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
 {{{AUTHENTICATION_CUSTOM_YAML_BLOCK}}}
 {{/AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64}}
+repair_session_max_tree_depth: {{CASSANDRA_REPAIR_SESSION_MAX_TREE_DEPTH}}
+
+#########################
+# EXPERIMENTAL FEATURES #
+#########################
+enable_sasi_indexes: {{CASSANDRA_ENABLE_SASI_INDEXES}}
+enable_materialized_views: {{CASSANDRA_ENABLE_MATERIALIZED_VIEWS}}
