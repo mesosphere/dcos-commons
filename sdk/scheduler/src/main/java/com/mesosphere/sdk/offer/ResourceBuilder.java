@@ -42,6 +42,8 @@ public final class ResourceBuilder {
 
   private Optional<MesosResource> mesosResource;
 
+  private Optional<String> frameworkId;
+
   private ResourceBuilder(String resourceName, Protos.Value value, String preReservedRole) {
     this.resourceName = resourceName;
     this.value = value;
@@ -55,8 +57,18 @@ public final class ResourceBuilder {
     this.providerId = Optional.empty();
     this.diskSource = Optional.empty();
     this.mesosResource = Optional.empty();
+    this.frameworkId = Optional.empty();
   }
 
+  public static ResourceBuilder fromSpec(
+      ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace, Optional<String> frameworkId)
+  {
+    ResourceBuilder builder = fromSpec(spec, resourceId, resourceNamespace);
+    frameworkId.ifPresent(builder::setFrameworkId);
+    return builder;
+  }
+
+  //TODO@kjoshi Remove *all* callers of this function once we've moved over.
   public static ResourceBuilder fromSpec(
       ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace)
   {
@@ -98,6 +110,7 @@ public final class ResourceBuilder {
     }
   }
 
+  // TODO@kjoshi investigate if this needs to be changed as well.
   public static ResourceBuilder fromExistingResource(Protos.Resource resource) {
     if (!resource.hasDisk()) {
       return fromSpec(
@@ -335,6 +348,8 @@ public final class ResourceBuilder {
         reservationBuilder,
         resourceId.orElseGet(() -> UUID.randomUUID().toString())
     );
+    // Add the frameworkId to the resource.
+    frameworkId.ifPresent(s -> AuxLabelAccess.setFrameworkId(reservationBuilder, s));
     resourceNamespace.ifPresent(s -> AuxLabelAccess.setResourceNamespace(reservationBuilder, s));
     return reservationBuilder.build();
   }
@@ -351,6 +366,11 @@ public final class ResourceBuilder {
 
   public ResourceBuilder setPrincipal(Optional<String> principal) {
     this.principal = principal;
+    return this;
+  }
+
+  public ResourceBuilder setFrameworkId(String frameworkId) {
+    this.frameworkId = Optional.of(frameworkId);
     return this;
   }
 }
