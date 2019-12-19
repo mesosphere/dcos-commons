@@ -62,6 +62,21 @@ public final class ResourceUtils {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Returns a list of unique framework IDs associated with {@link Resource}s.
+   *
+   * @param resources Collection of resources from which to extract the unique resource IDs
+   * @return List of unique framework IDs
+   */
+  public static List<String> getFrameworkIds(Collection<Protos.Resource> resources) {
+    return resources.stream()
+        .map(ResourceUtils::getFrameworkId)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .distinct()
+        .collect(Collectors.toList());
+  }
+
   public static String getRole(Protos.Resource resource) {
     return new MesosResource(resource).getRole();
   }
@@ -93,6 +108,10 @@ public final class ResourceUtils {
 
   public static Optional<String> getResourceId(Protos.Resource resource) {
     return getReservation(resource).flatMap(AuxLabelAccess::getResourceId);
+  }
+
+  public static Optional<String> getFrameworkId(Protos.Resource resource) {
+    return getReservation(resource).flatMap(AuxLabelAccess::getFrameworkId);
   }
 
   public static boolean hasResourceId(Protos.Resource resource) {
