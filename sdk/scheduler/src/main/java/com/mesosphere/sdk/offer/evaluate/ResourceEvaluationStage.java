@@ -31,6 +31,35 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
   private final Optional<String> resourceNamespace;
 
+  //TODO@kjoshi make this final once all the code has been patched up.
+  private Optional<String> frameworkId = Optional.empty();
+
+  /**
+   * Creates a new instance for basic resource evaluation.
+   *
+   * @param resourceSpec       the resource spec to be evaluated
+   * @param taskNames          the name of the tasks which will use this resource: multiple when they share a
+   *                           ResourceSet
+   * @param requiredResourceId any previously reserved resource ID to be required, or empty for a new reservation
+   * @param resourceNamespace  the namespace label, if any, to store in the resource
+   * @param frameworkId        the frameworkId label to store in the resource
+   */
+  public ResourceEvaluationStage(
+      ResourceSpec resourceSpec,
+      Collection<String> taskNames,
+      Optional<String> requiredResourceId,
+      Optional<String> resourceNamespace,
+      Optional<String> frameworkId)
+  {
+    this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
+    this.resourceSpec = resourceSpec;
+    this.taskNames = taskNames;
+    this.requiredResourceId = requiredResourceId;
+    this.resourceNamespace = resourceNamespace;
+    this.frameworkId = frameworkId;
+  }
+
+  //TODO@kjoshi remove this constructor once all invocations have been switched to the new one.
   /**
    * Creates a new instance for basic resource evaluation.
    *
@@ -66,7 +95,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
 
       OfferEvaluationUtils.setProtos(
           podInfoBuilder,
-          ResourceBuilder.fromSpec(resourceSpec, requiredResourceId, resourceNamespace).build(),
+          ResourceBuilder.fromSpec(resourceSpec, requiredResourceId, resourceNamespace, frameworkId).build(),
           Optional.empty());
       return EvaluationOutcome.pass(
           this,
@@ -100,7 +129,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
       OfferEvaluationUtils.setProtos(
           podInfoBuilder,
           ResourceBuilder.fromSpec(
-              resourceSpec, reserveEvaluationOutcome.getResourceId(), resourceNamespace).build(),
+              resourceSpec, reserveEvaluationOutcome.getResourceId(), resourceNamespace, frameworkId).build(),
           Optional.of(taskName));
     }
     // If it's instead an executor-level resource, we need to update the (shared) executor info:
@@ -108,7 +137,7 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
       OfferEvaluationUtils.setProtos(
           podInfoBuilder,
           ResourceBuilder.fromSpec(
-              resourceSpec, reserveEvaluationOutcome.getResourceId(), resourceNamespace).build(),
+              resourceSpec, reserveEvaluationOutcome.getResourceId(), resourceNamespace, frameworkId).build(),
           Optional.empty());
     }
 
