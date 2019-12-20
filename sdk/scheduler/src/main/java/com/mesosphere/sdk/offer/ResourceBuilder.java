@@ -60,6 +60,7 @@ public final class ResourceBuilder {
     this.frameworkId = Optional.empty();
   }
 
+  //TODO@kjoshi These are temporary wrapper functions till everything is moved over.
   public static ResourceBuilder fromSpec(
       ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace, Optional<String> frameworkId)
   {
@@ -68,6 +69,22 @@ public final class ResourceBuilder {
     return builder;
   }
 
+  //TODO@kjoshi Remove *all* callers of this function once we've moved over.
+  public static ResourceBuilder fromSpec(
+      VolumeSpec spec,
+      Optional<String> resourceId,
+      Optional<String> resourceNamespace,
+      Optional<String> persistenceId,
+      Optional<Protos.ResourceProviderID> providerId,
+      Optional<Protos.Resource.DiskInfo.Source> diskSource,
+      Optional<String> frameworkId)
+  {
+    ResourceBuilder builder = fromSpec(spec, resourceId, resourceNamespace, persistenceId, providerId, diskSource);
+    frameworkId.ifPresent(builder::setFrameworkId);
+    return builder;
+  }
+
+  //--------------------------------------------------------------------------------------------------------------
   //TODO@kjoshi Remove *all* callers of this function once we've moved over.
   public static ResourceBuilder fromSpec(
       ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace)
@@ -81,6 +98,7 @@ public final class ResourceBuilder {
     return builder;
   }
 
+  //TODO@kjoshi Remove *all* callers of this function once we've moved over.
   public static ResourceBuilder fromSpec(
       VolumeSpec spec,
       Optional<String> resourceId,
@@ -116,7 +134,8 @@ public final class ResourceBuilder {
       return fromSpec(
           getResourceSpec(resource),
           ResourceUtils.getResourceId(resource),
-          ResourceUtils.getNamespace(resource));
+          ResourceUtils.getNamespace(resource),
+          ResourceUtils.getFrameworkId(resource));
     } else {
       return fromSpec(
           getVolumeSpec(resource),
@@ -124,7 +143,8 @@ public final class ResourceBuilder {
           ResourceUtils.getNamespace(resource),
           ResourceUtils.getPersistenceId(resource),
           ResourceUtils.getProviderId(resource),
-          ResourceUtils.getDiskSource(resource));
+          ResourceUtils.getDiskSource(resource),
+          ResourceUtils.getFrameworkId(resource));
     }
   }
 
