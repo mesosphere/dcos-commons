@@ -427,7 +427,7 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 .principal(TestConstants.PRINCIPAL)
                 .build();
         Optional<String> resourceId = Optional.of(UUID.randomUUID().toString());
-        Protos.Resource originalResource = ResourceBuilder.fromSpec(resourceSpec, resourceId, namespace).build();
+        Protos.Resource originalResource = ResourceBuilder.fromSpec(resourceSpec, resourceId, namespace, frameworkId).build();
         Protos.Resource reconstructedResource = ResourceBuilder.fromExistingResource(originalResource).build();
 
         Assert.assertEquals(originalResource, reconstructedResource);
