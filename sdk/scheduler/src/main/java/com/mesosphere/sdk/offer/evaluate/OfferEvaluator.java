@@ -84,6 +84,8 @@ public class OfferEvaluator {
 
   private final Optional<String> resourceNamespace;
 
+  private final Optional<String> frameworkId;
+
   public OfferEvaluator(
       FrameworkStore frameworkStore,
       StateStore stateStore,
@@ -105,6 +107,9 @@ public class OfferEvaluator {
     this.schedulerConfig = schedulerConfig;
     this.resourceNamespace = resourceNamespace;
     this.offerOutcomeTrackerV2 = offerOutcomeTrackerV2;
+
+    //TODO@kjoshi propagate this above OfferEvaluator.
+    this.frameworkId = Optional.empty();
   }
 
   public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
@@ -577,7 +582,7 @@ public class OfferEvaluator {
 
     // Evaluate any changes to the task(s):
     evaluationStages.addAll(getExistingTaskEvaluationPipeline(
-        podInstanceRequirement, serviceName, resourceNamespace, podTasks));
+        podInstanceRequirement, serviceName, resourceNamespace, podTasks, frameworkId));
 
     return evaluationStages;
   }
@@ -590,7 +595,8 @@ public class OfferEvaluator {
       PodInstanceRequirement podInstanceRequirement,
       String serviceName,
       Optional<String> resourceNamespace,
-      Map<String, Protos.TaskInfo> allTasksInPod)
+      Map<String, Protos.TaskInfo> allTasksInPod,
+      Optional<String> frameworkId)
   {
     Map<String, ResourceSet> allTaskSpecNamesToResourceSets =
         podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
@@ -658,7 +664,8 @@ public class OfferEvaluator {
           resourceNamespace,
           allTasksInPod,
           resourceSet,
-          taskSpecNamesInResourceSet));
+          taskSpecNamesInResourceSet,
+          frameworkId));
       // Add TaskInfo updates and/or launch operations for the task(s) paired with the resource set:
       for (String taskSpecName : taskSpecNamesInResourceSet) {
         evaluationStages.add(new LaunchEvaluationStage(
@@ -681,7 +688,8 @@ public class OfferEvaluator {
       Optional<String> resourceNamespace,
       Map<String, Protos.TaskInfo> allTasksInPod,
       ResourceSet resourceSet,
-      Collection<String> taskSpecNamesInResourceSet)
+      Collection<String> taskSpecNamesInResourceSet,
+      Optional<String> frameworkId)
   {
     // Search for any existing TaskInfo for one of the tasks in this resource set. The TaskInfo should have a copy
     // of the resources assigned to the resource set.
@@ -702,7 +710,7 @@ public class OfferEvaluator {
     }
 
     TaskResourceMapper taskResourceMapper =
-        new TaskResourceMapper(taskSpecNamesInResourceSet, resourceSet, taskInfo.get(), resourceNamespace);
+        new TaskResourceMapper(taskSpecNamesInResourceSet, resourceSet, taskInfo.get(), resourceNamespace, frameworkId);
 
     Collection<OfferEvaluationStage> evaluationStages = new ArrayList<>();
     taskResourceMapper.getOrphanedResources()

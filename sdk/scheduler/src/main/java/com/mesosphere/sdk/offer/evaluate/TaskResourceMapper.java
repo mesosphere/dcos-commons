@@ -45,14 +45,18 @@ class TaskResourceMapper {
 
   private final List<OfferEvaluationStage> evaluationStages;
 
+  private final Optional<String> frameworkId;
+
   TaskResourceMapper(
       Collection<String> taskSpecNames,
       ResourceSet resourceSet,
       Protos.TaskInfo taskInfo,
-      Optional<String> resourceNamespace)
+      Optional<String> resourceNamespace,
+      Optional<String> frameworkId)
   {
     logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
     this.resourceNamespace = resourceNamespace;
+    this.frameworkId = frameworkId;
     // Multiple tasks may share a resource set. When a resource set is updated, we want to ensure that all tasks
     // attached to the resource set receive the update.
     this.taskSpecNames = taskSpecNames;
@@ -61,7 +65,6 @@ class TaskResourceMapper {
     this.resourceSpecs.addAll(resourceSet.getVolumes());
     this.taskPortFinder = new TaskPortLookup(taskInfo);
     this.resources = taskInfo.getResourcesList();
-
     // ONLY call this AFTER initializing all members above:
     this.evaluationStages = getEvaluationStagesInternal();
   }
@@ -193,7 +196,8 @@ class TaskResourceMapper {
         resourceLabels.getResourceNamespace(),
         resourceLabels.getPersistenceId(),
         resourceLabels.getProviderId(),
-        resourceLabels.getDiskSource());
+        resourceLabels.getDiskSource(),
+        frameworkId);
   }
 
   private OfferEvaluationStage newCreateEvaluationStage(
@@ -206,7 +210,8 @@ class TaskResourceMapper {
         resourceNamespace,
         Optional.empty(),
         Optional.empty(),
-        Optional.empty());
+        Optional.empty(),
+        frameworkId);
   }
 
   private static OfferEvaluationStage toEvaluationStage(
@@ -216,7 +221,8 @@ class TaskResourceMapper {
       Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
-      Optional<Protos.Resource.DiskInfo.Source> diskSource)
+      Optional<Protos.Resource.DiskInfo.Source> diskSource,
+      Optional<String> frameworkId)
   {
     if (resourceSpec instanceof NamedVIPSpec) {
       return new NamedVIPEvaluationStage(
@@ -241,7 +247,8 @@ class TaskResourceMapper {
           resourceSpec,
           taskSpecNames,
           resourceId,
-          resourceNamespace);
+          resourceNamespace,
+          frameworkId);
     }
   }
 }
