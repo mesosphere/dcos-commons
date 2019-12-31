@@ -574,7 +574,8 @@ public class OfferEvaluator {
             resourceSpecForRoleAndPrincipal.getPrincipal(),
             resourceSpecForRoleAndPrincipal.getPreReservedRole()),
         executorInfo.getResourcesList(),
-        resourceNamespace);
+        resourceNamespace,
+        frameworkId);
     executorResourceMapper.getOrphanedResources()
         .forEach(resource -> evaluationStages.add(new DestroyEvaluationStage(resource)));
     executorResourceMapper.getOrphanedResources()

@@ -37,17 +37,21 @@ public class ExecutorResourceMapper {
 
   private final List<OfferEvaluationStage> evaluationStages;
 
+  private final Optional<String> frameworkId;
+
   ExecutorResourceMapper(
       PodSpec podSpec,
       Collection<ResourceSpec> resourceSpecs,
       Collection<Protos.Resource> executorResources,
-      Optional<String> resourceNamespace)
+      Optional<String> resourceNamespace,
+      Optional<String> frameworkId)
   {
     logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
     this.volumeSpecs = podSpec.getVolumes();
     this.resourceSpecs = resourceSpecs;
     this.executorResources = executorResources;
     this.resourceNamespace = resourceNamespace;
+    this.frameworkId = frameworkId;
     this.evaluationStages = getEvaluationStagesInternal();
   }
 
@@ -152,7 +156,7 @@ public class ExecutorResourceMapper {
           (VolumeSpec) resourceSpec, Collections.emptyList(), resourceNamespace);
     } else {
       return new ResourceEvaluationStage(
-          resourceSpec, Collections.emptyList(), Optional.empty(), resourceNamespace);
+          resourceSpec, Collections.emptyList(), Optional.empty(), resourceNamespace, frameworkId);
     }
   }
 }
