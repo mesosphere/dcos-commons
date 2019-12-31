@@ -467,7 +467,8 @@ public class OfferEvaluator {
                 spec,
                 Collections.emptyList(),
                 Optional.empty(),
-                resourceNamespace))
+                resourceNamespace,
+                frameworkId))
             .forEach(evaluationStages::add);
       }
 
@@ -495,7 +496,7 @@ public class OfferEvaluator {
                 (PortSpec) resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace));
           } else {
             evaluationStages.add(new ResourceEvaluationStage(
-                resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace));
+                resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace, frameworkId));
           }
         }
 
