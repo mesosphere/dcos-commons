@@ -81,7 +81,8 @@ public class ExecutorResourceMapper {
         matchingResource = ResourceMapperUtils.findMatchingResourceSpec(
             resource,
             remainingResourceSpecs,
-            resourceNamespace);
+            resourceNamespace,
+            frameworkId);
       }
 
       if (matchingResource.isPresent()) {
@@ -145,7 +146,8 @@ public class ExecutorResourceMapper {
           resourceSpec,
           Collections.emptyList(),
           resourceId,
-          resourceLabels.getResourceNamespace()
+          resourceLabels.getResourceNamespace(),
+          resourceLabels.getFrameworkId()
       );
     }
   }

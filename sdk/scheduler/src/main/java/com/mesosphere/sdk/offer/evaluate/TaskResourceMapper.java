@@ -99,7 +99,8 @@ class TaskResourceMapper {
           matchingResource = ResourceMapperUtils.findMatchingResourceSpec(
               taskResource,
               remainingResourceSpecs,
-              resourceNamespace);
+              resourceNamespace,
+              frameworkId);
           break;
       }
       if (matchingResource.isPresent()) {
@@ -171,7 +172,10 @@ class TaskResourceMapper {
               resourceId.get(),
               ResourceMapperUtils.getNamespaceLabel(
                   ResourceUtils.getNamespace(taskResource),
-                  resourceNamespace)));
+                  resourceNamespace),
+              ResourceMapperUtils.getFrameworkIdLabel(
+                  ResourceUtils.getFrameworkId(taskResource),
+                  frameworkId)));
         }
       } else if (RangeUtils.isInAny(ranges.getRangeList(), portSpec.getPort())) {
         // For fixed ports, we can just check for a resource whose ranges include that port.
@@ -180,7 +184,10 @@ class TaskResourceMapper {
             resourceId.get(),
             ResourceMapperUtils.getNamespaceLabel(
                 ResourceUtils.getNamespace(taskResource),
-                resourceNamespace)));
+                resourceNamespace),
+            ResourceMapperUtils.getFrameworkIdLabel(
+                ResourceUtils.getFrameworkId(taskResource),
+                frameworkId)));
       }
     }
     return Optional.empty();
@@ -197,7 +204,7 @@ class TaskResourceMapper {
         resourceLabels.getPersistenceId(),
         resourceLabels.getProviderId(),
         resourceLabels.getDiskSource(),
-        frameworkId);
+        resourceLabels.getFrameworkId());
   }
 
   private OfferEvaluationStage newCreateEvaluationStage(
