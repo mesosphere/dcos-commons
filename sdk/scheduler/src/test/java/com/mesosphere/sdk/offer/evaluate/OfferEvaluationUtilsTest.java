@@ -64,7 +64,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         }
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, getResourceSpec(desired), resourceId, namespace, mockPool);
+                LOGGER, mockStage, getResourceSpec(desired), resourceId, namespace, mockPool, frameworkId);
         Assert.assertFalse(outcome.getEvaluationOutcome().isPassing());
 
         Assert.assertTrue(outcome.getEvaluationOutcome().getOfferRecommendations().isEmpty());
@@ -93,7 +93,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         }
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, resourceSpec, resourceId, namespace, mockPool);
+                LOGGER, mockStage, resourceSpec, resourceId, namespace, mockPool, frameworkId);
         Assert.assertTrue(outcome.getEvaluationOutcome().isPassing());
 
         if (resourceId.isPresent()) {
@@ -132,7 +132,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
                 .thenReturn(Optional.of(getMesosResource(toAdd)));
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
+                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool, frameworkId);
         Assert.assertTrue(outcome.getEvaluationOutcome().isPassing());
 
         OfferRecommendation recommendation = outcome.getEvaluationOutcome().getOfferRecommendations().get(0);
@@ -166,7 +166,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
                 .thenReturn(Optional.empty());
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
+                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool, frameworkId);
         Assert.assertFalse(outcome.getEvaluationOutcome().isPassing());
 
         Assert.assertTrue(outcome.getEvaluationOutcome().getOfferRecommendations().isEmpty());
@@ -192,7 +192,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
                 .thenReturn(Optional.of(getMesosResource(toSubtract)));
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
+                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool, frameworkId);
         Assert.assertTrue(outcome.getEvaluationOutcome().isPassing());
 
         OfferRecommendation recommendation = outcome.getEvaluationOutcome().getOfferRecommendations().get(0);

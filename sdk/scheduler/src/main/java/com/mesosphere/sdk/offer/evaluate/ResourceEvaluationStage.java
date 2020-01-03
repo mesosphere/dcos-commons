@@ -90,7 +90,8 @@ public class ResourceEvaluationStage implements OfferEvaluationStage {
             resourceSpec,
             requiredResourceId,
             resourceNamespace,
-            mesosResourcePool);
+            mesosResourcePool,
+            frameworkId);
 
     EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
     if (!evaluationOutcome.isPassing()) {
