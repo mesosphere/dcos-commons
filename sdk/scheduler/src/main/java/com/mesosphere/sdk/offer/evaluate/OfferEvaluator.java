@@ -84,7 +84,7 @@ public class OfferEvaluator {
 
   private final Optional<String> resourceNamespace;
 
-  private final Optional<String> frameworkId;
+  private Optional<String> frameworkId;
 
   public OfferEvaluator(
       FrameworkStore frameworkStore,
@@ -107,14 +107,20 @@ public class OfferEvaluator {
     this.schedulerConfig = schedulerConfig;
     this.resourceNamespace = resourceNamespace;
     this.offerOutcomeTrackerV2 = offerOutcomeTrackerV2;
-
-    //TODO@kjoshi propagate this above OfferEvaluator.
     this.frameworkId = Optional.empty();
   }
 
   public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
       throws InvalidRequirementException, IOException
   {
+    // if (!this.frameworkId.isPresent()) {
+    //   //TODO@kjoshi enable this once all offer-evaluation paths have framework-id propagated.
+    //   //On construction of OfferEvaluator above, we haven't subscribed to Mesos.
+    //   //At this point, we're evaluating offers which means we must have subscribed to Mesos.
+    //   //Retrieve the FrameworkID at this point.
+    //   this.frameworkId = Optional.of(frameworkStore.fetchFrameworkId().get().getValue());
+    // }
+
     // All tasks in the service (used by some PlacementRules):
     Map<String, Protos.TaskInfo> allTasks = stateStore.fetchTasks().stream()
         .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
