@@ -496,10 +496,11 @@ public class OfferEvaluator {
                 (NamedVIPSpec) resourceSpec,
                 taskNamesToUpdateProtos,
                 Optional.empty(),
-                resourceNamespace));
+                resourceNamespace,
+                frameworkId));
           } else if (resourceSpec instanceof PortSpec) {
             evaluationStages.add(new PortEvaluationStage(
-                (PortSpec) resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace));
+                (PortSpec) resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace, frameworkId));
           } else {
             evaluationStages.add(new ResourceEvaluationStage(
                 resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace, frameworkId));

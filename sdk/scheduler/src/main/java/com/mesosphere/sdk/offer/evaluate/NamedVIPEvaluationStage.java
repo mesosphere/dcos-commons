@@ -22,9 +22,10 @@ public class NamedVIPEvaluationStage extends PortEvaluationStage {
       NamedVIPSpec namedVIPSpec,
       Collection<String> taskNames,
       Optional<String> resourceId,
-      Optional<String> resourceNamespace)
+      Optional<String> resourceNamespace,
+      Optional<String> frameworkId)
   {
-    super(namedVIPSpec, taskNames, resourceId, resourceNamespace);
+    super(namedVIPSpec, taskNames, resourceId, resourceNamespace, frameworkId);
     this.namedVIPSpec = namedVIPSpec;
   }
 
