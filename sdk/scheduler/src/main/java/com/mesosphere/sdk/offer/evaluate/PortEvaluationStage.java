@@ -68,16 +68,6 @@ public class PortEvaluationStage implements OfferEvaluationStage {
     this.frameworkId = frameworkId;
   }
 
-  //TODO@kjoshi fix all callers of this function.
-  public PortEvaluationStage(
-      PortSpec portSpec,
-      Collection<String> taskNames,
-      Optional<String> resourceId,
-      Optional<String> resourceNamespace)
-  {
-    this(portSpec, taskNames, resourceId, resourceNamespace, Optional.empty());
-  }
-
   @Override
   public EvaluationOutcome evaluate(MesosResourcePool mesosResourcePool,
                                     PodInfoBuilder podInfoBuilder)
