@@ -60,16 +60,19 @@ public final class ResourceBuilder {
     this.frameworkId = Optional.empty();
   }
 
-  //TODO@kjoshi These are temporary wrapper functions till everything is moved over.
   public static ResourceBuilder fromSpec(
       ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace, Optional<String> frameworkId)
   {
-    ResourceBuilder builder = fromSpec(spec, resourceId, resourceNamespace);
+    ResourceBuilder builder =
+        new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
+            .setRole(Optional.of(spec.getRole()))
+            .setPrincipal(Optional.of(spec.getPrincipal()));
+    resourceId.ifPresent(builder::setResourceId);
+    resourceNamespace.ifPresent(builder::setResourceNamespace);
     frameworkId.ifPresent(builder::setFrameworkId);
     return builder;
   }
 
-  //TODO@kjoshi Remove *all* callers of this function once we've moved over.
   public static ResourceBuilder fromSpec(
       VolumeSpec spec,
       Optional<String> resourceId,
@@ -79,35 +82,7 @@ public final class ResourceBuilder {
       Optional<Protos.Resource.DiskInfo.Source> diskSource,
       Optional<String> frameworkId)
   {
-    ResourceBuilder builder = fromSpec(spec, resourceId, resourceNamespace, persistenceId, providerId, diskSource);
-    frameworkId.ifPresent(builder::setFrameworkId);
-    return builder;
-  }
-
-  //--------------------------------------------------------------------------------------------------------------
-  //TODO@kjoshi Remove *all* callers of this function once we've moved over.
-  public static ResourceBuilder fromSpec(
-      ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace)
-  {
-    ResourceBuilder builder =
-        new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
-            .setRole(Optional.of(spec.getRole()))
-            .setPrincipal(Optional.of(spec.getPrincipal()));
-    resourceId.ifPresent(builder::setResourceId);
-    resourceNamespace.ifPresent(builder::setResourceNamespace);
-    return builder;
-  }
-
-  //TODO@kjoshi Remove *all* callers of this function once we've moved over.
-  public static ResourceBuilder fromSpec(
-      VolumeSpec spec,
-      Optional<String> resourceId,
-      Optional<String> resourceNamespace,
-      Optional<String> persistenceId,
-      Optional<Protos.ResourceProviderID> providerId,
-      Optional<Protos.Resource.DiskInfo.Source> diskSource)
-  {
-    ResourceBuilder resourceBuilder = fromSpec(spec, resourceId, resourceNamespace);
+    ResourceBuilder resourceBuilder = fromSpec(spec, resourceId, resourceNamespace, frameworkId);
 
     providerId.ifPresent(resourceBuilder::setProviderId);
 

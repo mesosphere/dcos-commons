@@ -57,26 +57,6 @@ class OfferEvaluationUtils {
     }
   }
 
-  //TODO@kjoshi: Remove all callers of this function.
-  static ReserveEvaluationOutcome evaluateSimpleResource(
-      Logger logger,
-      OfferEvaluationStage offerEvaluationStage,
-      ResourceSpec resourceSpec,
-      Optional<String> resourceId,
-      Optional<String> resourceNamespace,
-      MesosResourcePool mesosResourcePool)
-  {
-    return evaluateSimpleResource(
-      logger,
-      offerEvaluationStage,
-      resourceSpec,
-      resourceId,
-      resourceNamespace,
-      mesosResourcePool,
-      Optional.empty()
-    );
-  }
-
   static ReserveEvaluationOutcome evaluateSimpleResource(
       Logger logger,
       OfferEvaluationStage offerEvaluationStage,
