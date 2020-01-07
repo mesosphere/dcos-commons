@@ -424,7 +424,7 @@ public class OfferEvaluator {
 
     for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
       evaluationStages.add(VolumeEvaluationStage.getNew(
-          volumeSpec, Collections.emptyList(), resourceNamespace));
+          volumeSpec, Collections.emptyList(), resourceNamespace, frameworkId));
     }
 
     // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
@@ -509,7 +509,7 @@ public class OfferEvaluator {
 
         for (VolumeSpec volumeSpec : resourceSet.getVolumes()) {
           evaluationStages.add(VolumeEvaluationStage.getNew(
-              volumeSpec, taskNamesToUpdateProtos, resourceNamespace));
+              volumeSpec, taskNamesToUpdateProtos, resourceNamespace, frameworkId));
         }
       }
 

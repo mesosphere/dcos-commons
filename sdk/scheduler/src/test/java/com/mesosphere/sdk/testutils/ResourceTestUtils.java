@@ -67,6 +67,7 @@ public class ResourceTestUtils {
                 Optional.empty(),
                 Optional.of(persistenceId),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty())
                 .build();
     }
@@ -160,6 +161,7 @@ public class ResourceTestUtils {
         }
         AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         AuxLabelAccess.setResourceNamespace(reservationBuilder, TestConstants.SERVICE_NAME);
+        AuxLabelAccess.setFrameworkId(reservationBuilder, TestConstants.FRAMEWORK_ID.getValue());
         return builder;
     }
 

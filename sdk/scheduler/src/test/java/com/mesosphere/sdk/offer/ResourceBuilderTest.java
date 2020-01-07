@@ -462,7 +462,8 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 namespace,
                 persistenceId,
                 Optional.empty(),
-                Optional.empty())
+                Optional.empty(),
+                frameworkId)
                 .build();
         Protos.Resource reconstructedResource = ResourceBuilder.fromExistingResource(originalResource).build();
 
@@ -499,7 +500,8 @@ public class ResourceBuilderTest extends DefaultCapabilitiesTestSuite {
                 namespace,
                 persistenceId,
                 Optional.empty(),
-                Optional.of(TestConstants.MOUNT_DISK_SOURCE))
+                Optional.of(TestConstants.MOUNT_DISK_SOURCE),
+                frameworkId)
                 .build();
         Protos.Resource reconstructedResource = ResourceBuilder.fromExistingResource(originalResource).build();
 

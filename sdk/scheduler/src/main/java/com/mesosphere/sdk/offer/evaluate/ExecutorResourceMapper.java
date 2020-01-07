@@ -140,7 +140,8 @@ public class ExecutorResourceMapper {
           resourceLabels.getResourceNamespace(),
           resourceLabels.getPersistenceId(),
           resourceLabels.getProviderId(),
-          resourceLabels.getDiskSource());
+          resourceLabels.getDiskSource(),
+          resourceLabels.getFrameworkId());
     } else {
       return new ResourceEvaluationStage(
           resourceSpec,
@@ -155,7 +156,7 @@ public class ExecutorResourceMapper {
   private OfferEvaluationStage newCreateEvaluationStage(ResourceSpec resourceSpec) {
     if (resourceSpec instanceof VolumeSpec) {
       return VolumeEvaluationStage.getNew(
-          (VolumeSpec) resourceSpec, Collections.emptyList(), resourceNamespace);
+          (VolumeSpec) resourceSpec, Collections.emptyList(), resourceNamespace, frameworkId);
     } else {
       return new ResourceEvaluationStage(
           resourceSpec, Collections.emptyList(), Optional.empty(), resourceNamespace, frameworkId);

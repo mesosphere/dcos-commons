@@ -249,7 +249,8 @@ class TaskResourceMapper {
           resourceNamespace,
           persistenceId,
           providerId,
-          diskSource);
+          diskSource,
+          frameworkId);
     } else {
       return new ResourceEvaluationStage(
           resourceSpec,
