@@ -123,7 +123,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
               updatedPortSpec,
               resourceId,
               resourceNamespace,
-              mesosResourcePool);
+              mesosResourcePool,
+              frameworkId);
       EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
       if (!evaluationOutcome.isPassing()) {
         return evaluationOutcome;

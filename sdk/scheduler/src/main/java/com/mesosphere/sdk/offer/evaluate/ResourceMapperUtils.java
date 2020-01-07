@@ -68,7 +68,7 @@ class ResourceMapperUtils {
             resourceSpec,
             ResourceUtils.getResourceId(taskResource).get(),
             getNamespaceLabel(ResourceUtils.getNamespace(taskResource), resourceNamespace),
-            getFrameworkIdLabel(ResourceUtils.getNamespace(taskResource), frameworkId)));
+            getFrameworkIdLabel(ResourceUtils.getFrameworkId(taskResource), frameworkId)));
   }
 
   /**
