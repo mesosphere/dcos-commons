@@ -110,6 +110,11 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
             } else {
                 Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
             }
+            if (frameworkId.isPresent()) {
+                Assert.assertEquals(frameworkId.get(), ResourceUtils.getFrameworkId(resource).get());
+            } else {
+                Assert.assertFalse(ResourceUtils.getFrameworkId(resource).isPresent());
+            }
         }
     }
 
@@ -144,6 +149,11 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
             Assert.assertEquals(namespace.get(), ResourceUtils.getNamespace(resource).get());
         } else {
             Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
+        }
+        if (frameworkId.isPresent()) {
+            Assert.assertEquals(frameworkId.get(), ResourceUtils.getFrameworkId(resource).get());
+        } else {
+            Assert.assertFalse(ResourceUtils.getFrameworkId(resource).isPresent());
         }
     }
 
@@ -204,6 +214,11 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
             Assert.assertEquals(namespace.get(), ResourceUtils.getNamespace(resource).get());
         } else {
             Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
+        }
+        if (frameworkId.isPresent()) {
+            Assert.assertEquals(frameworkId.get(), ResourceUtils.getFrameworkId(resource).get());
+        } else {
+            Assert.assertFalse(ResourceUtils.getFrameworkId(resource).isPresent());
         }
     }
 
