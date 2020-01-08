@@ -118,6 +118,10 @@ public final class ResourceUtils {
     return getResourceId(resource).isPresent();
   }
 
+  public static boolean hasFrameworkId(Protos.Resource resource) {
+    return getFrameworkId(resource).isPresent();
+  }
+
   public static Optional<String> getPersistenceId(Protos.Resource resource) {
     if (resource.hasDisk() && resource.getDisk().hasPersistence()) {
       return Optional.of(resource.getDisk().getPersistence().getId());
@@ -157,14 +161,27 @@ public final class ResourceUtils {
    *                 {@link #getReservationRoles(org.apache.mesos.Protos.FrameworkInfo)}
    * @return whether this resource should be processed by our framework. if false then this resource should be ignored
    */
-  public static boolean isProcessable(Protos.Resource resource, Collection<String> ourRoles) {
+  public static boolean isProcessable(
+      Protos.Resource resource,
+      Collection<String> ourRoles,
+      Optional<Protos.FrameworkID> frameworkId)
+  {
     // If there are no dynamic reservations, then it's fine.
     if (getDynamicReservations(resource).isEmpty()) {
       return true;
     }
 
     // The resource is dynamically reserved, but does the reservation appear to be one of ours?
-    return hasResourceId(resource) && ourRoles.containsAll(getReservationRoles(resource));
+    boolean resourceIdPresent = hasResourceId(resource);
+    boolean reservationIsOurs = ourRoles.containsAll(getReservationRoles(resource));
+    // If a frameworkId is present on the resource, it must be ours to process otherwise its claimed.
+    boolean frameworkIdPresent = hasFrameworkId(resource) && frameworkId.isPresent();
+    boolean frameworkIdIsOurs = frameworkIdPresent &&
+                                getFrameworkId(resource).get().equals(frameworkId.get().getValue());
+    // Processable when resource frameworkId isn't present (not claimed) or when it belongs to this framework.
+    boolean frameworkIdProcessable = !frameworkIdPresent || frameworkIdIsOurs;
+
+    return resourceIdPresent && reservationIsOurs && frameworkIdProcessable;
   }
 
   /**

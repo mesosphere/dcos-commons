@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -241,8 +242,9 @@ public class FrameworkScheduler implements Scheduler {
   private Protos.Offer filterBadResources(Protos.Offer offer) {
     Collection<Protos.Resource> goodResources = new ArrayList<>();
     Collection<Protos.Resource> badResources = new ArrayList<>();
+    Optional<Protos.FrameworkID> frameworkId = frameworkStore.fetchFrameworkId();
     for (Protos.Resource resource : offer.getResourcesList()) {
-      if (ResourceUtils.isProcessable(resource, frameworkRolesWhitelist)) {
+      if (ResourceUtils.isProcessable(resource, frameworkRolesWhitelist, frameworkId)) {
         goodResources.add(resource);
       } else {
         badResources.add(resource);

@@ -72,6 +72,24 @@ public class ResourceTestUtils {
                 .build();
     }
 
+    public static Protos.Resource getReservedRootVolume(double diskSize, String resourceId, String persistenceId, String frameworkId) {
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createRootVolume(
+                diskSize,
+                TestConstants.CONTAINER_PATH,
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL);
+        return ResourceBuilder.fromSpec(
+                volumeSpec,
+                Optional.of(resourceId),
+                Optional.empty(),
+                Optional.of(persistenceId),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(frameworkId))
+                .build();
+    }
+
     public static Protos.Resource getReservedCpus(double value, String resourceId) {
         return addReservation(getUnreservedCpus(value).toBuilder(), resourceId).build();
     }
