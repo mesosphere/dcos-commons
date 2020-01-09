@@ -21,6 +21,7 @@ import com.mesosphere.sdk.scheduler.plan.PlanManager;
 import com.mesosphere.sdk.scheduler.plan.Step;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 
@@ -70,6 +71,8 @@ public class UninstallScheduler extends AbstractScheduler {
 
   private final SchedulerConfig schedulerConfig;
 
+  private final FrameworkStore frameworkStore;
+
   /**
    * Creates a new {@link UninstallScheduler} using the provided components. The {@link UninstallScheduler} builds an
    * uninstall {@link Plan} which will clean up the service's reservations, TLS artifacts, zookeeper data, and any
@@ -81,7 +84,8 @@ public class UninstallScheduler extends AbstractScheduler {
       ConfigStore<ServiceSpec> configStore,
       SchedulerConfig schedulerConfig,
       Optional<PlanCustomizer> planCustomizer,
-      Optional<String> namespace)
+      Optional<String> namespace,
+      FrameworkStore frameworkStore)
   {
     this(
         serviceSpec,
@@ -91,7 +95,8 @@ public class UninstallScheduler extends AbstractScheduler {
         planCustomizer,
         namespace,
         Optional.empty(),
-        new TimeFetcher());
+        new TimeFetcher(),
+        frameworkStore);
   }
 
   @VisibleForTesting
@@ -103,12 +108,14 @@ public class UninstallScheduler extends AbstractScheduler {
       Optional<PlanCustomizer> planCustomizer,
       Optional<String> namespace,
       Optional<SecretsClient> customSecretsClientForTests,
-      TimeFetcher timeFetcher)
+      TimeFetcher timeFetcher,
+      FrameworkStore frameworkStore)
   {
     super(serviceSpec, schedulerConfig, stateStore, null, planCustomizer, namespace);
     this.logger = LoggingUtils.getLogger(getClass(), namespace);
     this.configStore = configStore;
     this.schedulerConfig = schedulerConfig;
+    this.frameworkStore = frameworkStore;
 
     if (!StateStoreUtils.isUninstalling(stateStore)) {
       logger.info("Service has been told to uninstall. Marking this in the " +

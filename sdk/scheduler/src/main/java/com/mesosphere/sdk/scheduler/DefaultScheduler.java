@@ -475,6 +475,7 @@ public class DefaultScheduler extends AbstractScheduler {
    */
   @Override
   public UnexpectedResourcesResponse getUnexpectedResources(Collection<Protos.Offer> unusedOffers) {
+    //TODO@kjoshi fix this.
     // First, determine which resource IDs we want to keep. Anything not listed here will be destroyed.
     final Set<String> resourceIdsToKeep;
     try {
@@ -568,6 +569,7 @@ public class DefaultScheduler extends AbstractScheduler {
         this.configStore,
         this.schedulerConfig,
         this.planCustomizer,
-        this.namespace);
+        this.namespace,
+        this.frameworkStore);
   }
 }
