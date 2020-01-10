@@ -5,11 +5,9 @@ import com.mesosphere.sdk.dcos.DcosHttpExecutor;
 import com.mesosphere.sdk.dcos.clients.SecretsClient;
 import com.mesosphere.sdk.offer.Constants;
 import com.mesosphere.sdk.offer.LoggingUtils;
-import com.mesosphere.sdk.offer.ResourceUtils;
-import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import com.mesosphere.sdk.scheduler.plan.DefaultPhase;
 import com.mesosphere.sdk.scheduler.plan.DefaultPlan;
 import com.mesosphere.sdk.scheduler.plan.Phase;
@@ -19,7 +17,6 @@ import com.mesosphere.sdk.scheduler.plan.strategy.DependencyStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.DependencyStrategyHelper;
 import com.mesosphere.sdk.scheduler.plan.strategy.ParallelStrategy;
 import com.mesosphere.sdk.scheduler.plan.strategy.SerialStrategy;
-import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.state.StateStore;
 
@@ -34,8 +31,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 /**
@@ -91,7 +86,8 @@ public class UninstallPlanFactory {
 
     // Map entries should be sorted alphabetically by agent hostname.
     // This sorting does not affect uninstall functionality and is just a nice-to-have for users.
-    for (Map.Entry<String, Set<String>> entry : getResourceIdsByAgentHost(stateStore).entrySet()) {
+    Map<String, Set<String>> resourceIdsByAgentHost = SchedulerUtils.getResourceIdsByAgentHost(stateStore);
+    for (Map.Entry<String, Set<String>> entry : resourceIdsByAgentHost.entrySet()) {
       // Resource IDs should be sorted alhpabetically:
       List<ResourceCleanupStep> agentSteps = entry.getValue().stream()
           .map(resourceId -> new ResourceCleanupStep(resourceId, namespace))
@@ -169,54 +165,6 @@ public class UninstallPlanFactory {
         Constants.DEPLOY_PLAN_NAME,
         phases,
         new DependencyStrategy<>(uninstallPhaseDependencies));
-  }
-
-  /**
-   * Returns a grouped mapping of agent hostname to resource ids present on that agent.
-   * <p>
-   * The resulting map will be sorted alphabetically by agent hostname, and the resource ids within each agent entry
-   * will also be sorted alphabetically.
-   */
-  private static Map<String, Set<String>> getResourceIdsByAgentHost(StateStore stateStore) {
-    Collection<Protos.TaskInfo> allTasks = stateStore.fetchTasks();
-    Set<String> taskIdsInErrorState = stateStore.fetchStatuses().stream()
-        .filter(taskStatus -> taskStatus.getState().equals(Protos.TaskState.TASK_ERROR))
-        .map(taskStatus -> taskStatus.getTaskId().getValue())
-        .collect(Collectors.toSet());
-
-    // Filter the tasks to those that have actually created resources. Tasks in an ERROR state which are also
-    // flagged as permanently failed are assumed to not have resources reserved on Mesos' end, despite our State
-    // Store still listing them with resources. This is because we log the planned reservation before it occurs.
-    Collection<Protos.TaskInfo> tasksWithExpectedReservations = allTasks.stream()
-        .filter(taskInfo -> !(FailureUtils.isPermanentlyFailed(taskInfo)
-            && taskIdsInErrorState.contains(taskInfo.getTaskId().getValue())))
-        .collect(Collectors.toList());
-
-    // The agent hostname mapping is sorted alphabetically. This doesn't affect functionality and is just for user
-    // experience when viewing the uninstall plan.
-    Map<String, Set<String>> resourceIdsByAgentHost = new TreeMap<>();
-    for (Protos.TaskInfo taskInfo : tasksWithExpectedReservations) {
-      String hostname;
-      try {
-        hostname = new TaskLabelReader(taskInfo).getHostname();
-      } catch (TaskException e) {
-        LOGGER.warn(
-            String.format("Failed to determine hostname of task %s", taskInfo.getName()),
-            e
-        );
-        hostname = "UNKNOWN_AGENT";
-      }
-
-      // Sort the resource ids alphabetically within each agent. This doesn't affect functionality and is just
-      // for user experience when viewing the uninstall plan.
-      resourceIdsByAgentHost
-          .computeIfAbsent(hostname, k -> new TreeSet<>())
-          .addAll(ResourceUtils.getResourceIds(ResourceUtils.getAllResources(taskInfo)));
-    }
-
-    LOGGER.info("Configuring resource cleanup of {}/{} tasks across {} agents",
-        tasksWithExpectedReservations.size(), allTasks.size(), resourceIdsByAgentHost.size());
-    return resourceIdsByAgentHost;
   }
 
   /**
