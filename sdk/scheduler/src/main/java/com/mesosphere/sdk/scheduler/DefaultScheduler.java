@@ -481,9 +481,9 @@ public class DefaultScheduler extends AbstractScheduler {
    */
   @Override
   public UnexpectedResourcesResponse getUnexpectedResources(Collection<Protos.Offer> unusedOffers) {
-    //TODO@kjoshi fix this.
     // First, determine which resource IDs we want to keep. Anything not listed here will be destroyed.
     final Set<String> resourceIdsToKeep;
+    final String registeredFrameworkId = frameworkStore.fetchFrameworkId().get().getValue();
     try {
       resourceIdsToKeep = stateStore.fetchTasks().stream()
           // A known task's resources should be kept if:
@@ -507,7 +507,17 @@ public class DefaultScheduler extends AbstractScheduler {
       OfferResources unexpectedResourcesForOffer = new OfferResources(offer);
       for (Protos.Resource resource : offer.getResourcesList()) {
         Optional<String> resourceId = ResourceUtils.getResourceId(resource);
-        if (resourceId.isPresent() && !resourceIdsToKeep.contains(resourceId.get())) {
+        Optional<String> resourceFrameworkId = ResourceUtils.getFrameworkId(resource);
+
+        // Resource is a SDK resource.
+        boolean unusedResourceId = resourceId.isPresent() && !resourceIdsToKeep.contains(resourceId.get());
+        // Resource belongs to this framework, irregardless if whether it is used by any currently stored task.
+        boolean isCurrentFrameworkResource = resourceFrameworkId.isPresent() &&
+                                             registeredFrameworkId.equals(resourceFrameworkId.get());
+        // Need to support clearing of old resources when migrating between roles for quota-enablement.
+        boolean isMigrationMode = schedulerConfig.enableRoleMigration();
+
+        if (unusedResourceId && (isCurrentFrameworkResource || isMigrationMode)) {
           // This resource has a resource ID label, indicating that it's a reservation created by the SDK.
           // Mark it for automatic garbage collection.
           unexpectedResourcesForOffer.add(resource);
