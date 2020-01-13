@@ -114,7 +114,6 @@ public class OfferEvaluator {
       throws InvalidRequirementException, IOException
   {
     if (!this.frameworkId.isPresent()) {
-      //TODO@kjoshi enable this once all offer-evaluation paths have framework-id propagated.
       //On construction of OfferEvaluator above, we haven't subscribed to Mesos.
       //At this point, we're evaluating offers which means we must have subscribed to Mesos.
       //Retrieve the FrameworkID at this point.

@@ -103,7 +103,6 @@ public final class ResourceBuilder {
     }
   }
 
-  // TODO@kjoshi investigate if this needs to be changed as well.
   public static ResourceBuilder fromExistingResource(Protos.Resource resource) {
     if (!resource.hasDisk()) {
       return fromSpec(
@@ -123,7 +122,6 @@ public final class ResourceBuilder {
     }
   }
 
-  // TODO@kjoshi investigate if this needs to be changed as well.
   public static ResourceBuilder fromUnreservedValue(String resourceName, Protos.Value value) {
     return new ResourceBuilder(resourceName, value, Constants.ANY_ROLE);
   }
