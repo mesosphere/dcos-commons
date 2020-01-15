@@ -193,7 +193,7 @@ httpd.serve_forever()
                 subprocess.check_call("dcos package repo remove {}".format(repo["name"]).split())
         logger.info("Adding repository: {} {}".format(repo_name, repo_url))
         subprocess.check_call(
-            "dcos package repo add --index=0 {} '{}'".format(repo_name, repo_url).split(" ")
+            "dcos package repo add --index=0 {} {}".format(repo_name, repo_url).split(" ")
         )
         return True
 
