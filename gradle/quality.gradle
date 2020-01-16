@@ -13,11 +13,11 @@ tasks.withType(Checkstyle) {
 }
 
 pmd {
+    ignoreFailures = true
     ruleSets = [
-        'java-basic',
-        'java-braces',
-        'java-clone',
-        'java-finalizers',
-        'java-imports'
+        'category/java/bestpractices.xml',
+        'category/java/codestyle.xml',
+        'category/java/errorprone.xml',
+        'category/java/multithreading.xml'
     ]
 }
