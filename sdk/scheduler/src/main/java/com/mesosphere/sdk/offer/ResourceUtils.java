@@ -154,7 +154,10 @@ public final class ResourceUtils {
    * <li>Static against "pre-reserved-role" (we can reserve against it)</li>
    * <li>Dynamic against "pre-reserved-role" (DOESN'T belong to us at all! Likely created by Marathon)</li></ul>
    *
-   * <p>This function should return {@code false} for all reservations of the last type.
+   * <ul><li>Resources with framework-id labels against "our-role" or "pre-reserved-role/our-role"</li>
+   * <li>If a framework-id label is present on a resource which isn't ours, reject the resource</li></ul>
+   *
+   * <p>This function should return {@code false} for cases which don't belong to us.
    *
    * @param resource the resource to be examined
    * @param ourRoles the expected roles used by this framework, see also
