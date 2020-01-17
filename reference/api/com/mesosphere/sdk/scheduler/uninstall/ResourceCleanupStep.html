@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":10,"i1":10};
+var methods = {"i0":10,"i1":10,"i2":10};
 var tabs = {65535:["t0","All Methods"],2:["t2","Instance Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -178,12 +178,18 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <th class="colLast" scope="col">Method and Description</th>
 </tr>
 <tr id="i0" class="altColor">
+<td class="colFirst"><code>java.lang.String</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html#getResourceId--">getResourceId</a></span>()</code>
+<div class="block">Return the resourceId associated with this step.</div>
+</td>
+</tr>
+<tr id="i1" class="rowColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html#start--">start</a></span>()</code>
 <div class="block">Starts the Step, whose <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html" title="enum in com.mesosphere.sdk.scheduler.plan"><code>Status</code></a> should be <a href="../../../../../com/mesosphere/sdk/scheduler/plan/Status.html#PENDING"><code>Status.PENDING</code></a>.</div>
 </td>
 </tr>
-<tr id="i1" class="rowColor">
+<tr id="i2" class="altColor">
 <td class="colFirst"><code>void</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html#updateResourceStatus-java.util.Set-">updateResourceStatus</a></span>(java.util.Set&lt;java.lang.String&gt;&nbsp;uninstalledResourceIds)</code>
 <div class="block">Notifies this step that some resource ids are about to be unreserved.</div>
@@ -277,12 +283,22 @@ extends <a href="../../../../../com/mesosphere/sdk/scheduler/uninstall/Uninstall
 <a name="updateResourceStatus-java.util.Set-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>updateResourceStatus</h4>
 <pre>public&nbsp;void&nbsp;updateResourceStatus(java.util.Set&lt;java.lang.String&gt;&nbsp;uninstalledResourceIds)</pre>
 <div class="block">Notifies this step that some resource ids are about to be unreserved. If one of the resource ids is relevant to
  this step, the step's status will be set to <code>COMPLETE</code>.</div>
+</li>
+</ul>
+<a name="getResourceId--">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getResourceId</h4>
+<pre>public&nbsp;java.lang.String&nbsp;getResourceId()</pre>
+<div class="block">Return the resourceId associated with this step.</div>
 </li>
 </ul>
 </li>

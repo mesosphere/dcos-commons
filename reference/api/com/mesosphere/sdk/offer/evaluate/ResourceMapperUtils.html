@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -135,11 +135,17 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>(package private) static java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a>&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html#findMatchingResourceSpec-Protos.Resource-java.util.Collection-java.util.Optional-">findMatchingResourceSpec</a></span>(Protos.Resource&nbsp;taskResource,
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html#findMatchingResourceSpec-Protos.Resource-java.util.Collection-java.util.Optional-java.util.Optional-">findMatchingResourceSpec</a></span>(Protos.Resource&nbsp;taskResource,
                         java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&gt;&nbsp;resourceSpecs,
-                        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</code>&nbsp;</td>
+                        java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
+                        java.util.Optional&lt;java.lang.String&gt;&nbsp;frameworkId)</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
+<td class="colFirst"><code>(package private) static java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html#getFrameworkIdLabel-java.util.Optional-java.util.Optional-">getFrameworkIdLabel</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;taskFrameworkId,
+                   java.util.Optional&lt;java.lang.String&gt;&nbsp;frameworkId)</code>&nbsp;</td>
+</tr>
+<tr id="i3" class="rowColor">
 <td class="colFirst"><code>(package private) static java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html#getNamespaceLabel-java.util.Optional-java.util.Optional-">getNamespaceLabel</a></span>(java.util.Optional&lt;java.lang.String&gt;&nbsp;taskResourceNamespace,
                  java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</code>&nbsp;</td>
@@ -177,7 +183,7 @@ extends java.lang.Object</pre>
                                                                java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</pre>
 </li>
 </ul>
-<a name="findMatchingResourceSpec-Protos.Resource-java.util.Collection-java.util.Optional-">
+<a name="findMatchingResourceSpec-Protos.Resource-java.util.Collection-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockList">
@@ -185,13 +191,14 @@ extends java.lang.Object</pre>
 <h4>findMatchingResourceSpec</h4>
 <pre>static&nbsp;java.util.Optional&lt;<a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a>&gt;&nbsp;findMatchingResourceSpec(Protos.Resource&nbsp;taskResource,
                                                                    java.util.Collection&lt;<a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a>&gt;&nbsp;resourceSpecs,
-                                                                   java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace)</pre>
+                                                                   java.util.Optional&lt;java.lang.String&gt;&nbsp;resourceNamespace,
+                                                                   java.util.Optional&lt;java.lang.String&gt;&nbsp;frameworkId)</pre>
 </li>
 </ul>
 <a name="getNamespaceLabel-java.util.Optional-java.util.Optional-">
 <!--   -->
 </a>
-<ul class="blockListLast">
+<ul class="blockList">
 <li class="blockList">
 <h4>getNamespaceLabel</h4>
 <pre>static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getNamespaceLabel(java.util.Optional&lt;java.lang.String&gt;&nbsp;taskResourceNamespace,
@@ -202,6 +209,24 @@ extends java.lang.Object</pre>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>If the taskResourceNamespace is non-empty, it MUST match with the namespace the scheduler is in.
  If the taskResourceNamespace is empty, we should NOT add a label now.
+ This is applicable only in the "UPDATE" flow. During creating of new resources, we use the Scheduler namespace.</dd>
+</dl>
+</li>
+</ul>
+<a name="getFrameworkIdLabel-java.util.Optional-java.util.Optional-">
+<!--   -->
+</a>
+<ul class="blockListLast">
+<li class="blockList">
+<h4>getFrameworkIdLabel</h4>
+<pre>static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getFrameworkIdLabel(java.util.Optional&lt;java.lang.String&gt;&nbsp;taskFrameworkId,
+                                                                java.util.Optional&lt;java.lang.String&gt;&nbsp;frameworkId)</pre>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>taskFrameworkId</code> - This is the framework-id label from the Mesos</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>If the taskFrameworkId is non-empty, it MUST match with the framework-id the scheduler is in.
+ If the taskFrameworkId is empty, we should NOT add a label now.
  This is applicable only in the "UPDATE" flow. During creating of new resources, we use the Scheduler namespace.</dd>
 </dl>
 </li>

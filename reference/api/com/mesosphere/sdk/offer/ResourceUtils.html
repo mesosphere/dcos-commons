@@ -17,7 +17,7 @@
     catch(err) {
     }
 //-->
-var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9};
+var methods = {"i0":9,"i1":9,"i2":9,"i3":9,"i4":9,"i5":9,"i6":9,"i7":9,"i8":9,"i9":9,"i10":9,"i11":9,"i12":9,"i13":9,"i14":9,"i15":9};
 var tabs = {65535:["t0","All Methods"],1:["t1","Static Methods"],8:["t4","Concrete Methods"]};
 var altColor = "altColor";
 var rowColor = "rowColor";
@@ -146,46 +146,61 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getNamespace-Protos.Resource-">getNamespace</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getFrameworkId-Protos.Resource-">getFrameworkId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
 <tr id="i4" class="altColor">
-<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPersistenceId-Protos.Resource-">getPersistenceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getFrameworkIds-java.util.Collection-">getFrameworkIds</a></span>(java.util.Collection&lt;Protos.Resource&gt;&nbsp;resources)</code>
+<div class="block">Returns a list of unique framework IDs associated with <code>Resource</code>s.</div>
+</td>
 </tr>
 <tr id="i5" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPrincipal-Protos.Resource-">getPrincipal</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getNamespace-Protos.Resource-">getNamespace</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
 <tr id="i6" class="altColor">
+<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPersistenceId-Protos.Resource-">getPersistenceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+</tr>
+<tr id="i7" class="rowColor">
+<td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getPrincipal-Protos.Resource-">getPrincipal</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+</tr>
+<tr id="i8" class="altColor">
 <td class="colFirst"><code>static java.util.Optional&lt;Protos.ResourceProviderID&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getProviderId-Protos.Resource-">getProviderId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i7" class="rowColor">
+<tr id="i9" class="rowColor">
 <td class="colFirst"><code>static java.util.Optional&lt;Protos.Resource.ReservationInfo&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getReservation-Protos.Resource-">getReservation</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i8" class="altColor">
+<tr id="i10" class="altColor">
 <td class="colFirst"><code>static java.util.Optional&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceId-Protos.Resource-">getResourceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i9" class="rowColor">
+<tr id="i11" class="rowColor">
 <td class="colFirst"><code>static java.util.List&lt;java.lang.String&gt;</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getResourceIds-java.util.Collection-">getResourceIds</a></span>(java.util.Collection&lt;Protos.Resource&gt;&nbsp;resources)</code>
 <div class="block">Returns a list of unique resource IDs associated with <code>Resource</code>s.</div>
 </td>
 </tr>
-<tr id="i10" class="altColor">
+<tr id="i12" class="altColor">
 <td class="colFirst"><code>static java.lang.String</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#getRole-Protos.Resource-">getRole</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i11" class="rowColor">
+<tr id="i13" class="rowColor">
+<td class="colFirst"><code>static boolean</code></td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#hasFrameworkId-Protos.Resource-">hasFrameworkId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
+</tr>
+<tr id="i14" class="altColor">
 <td class="colFirst"><code>static boolean</code></td>
 <td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#hasResourceId-Protos.Resource-">hasResourceId</a></span>(Protos.Resource&nbsp;resource)</code>&nbsp;</td>
 </tr>
-<tr id="i12" class="altColor">
+<tr id="i15" class="rowColor">
 <td class="colFirst"><code>static boolean</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#isProcessable-Protos.Resource-java.util.Collection-">isProcessable</a></span>(Protos.Resource&nbsp;resource,
-             java.util.Collection&lt;java.lang.String&gt;&nbsp;ourRoles)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/offer/ResourceUtils.html#isProcessable-Protos.Resource-java.util.Collection-java.util.Optional-">isProcessable</a></span>(Protos.Resource&nbsp;resource,
+             java.util.Collection&lt;java.lang.String&gt;&nbsp;ourRoles,
+             java.util.Optional&lt;Protos.FrameworkID&gt;&nbsp;frameworkId)</code>
 <div class="block">Filter resources which are dynamically reserved against a role which isn't ours.</div>
 </td>
 </tr>
@@ -254,6 +269,22 @@ extends java.lang.Object</pre>
 </dl>
 </li>
 </ul>
+<a name="getFrameworkIds-java.util.Collection-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getFrameworkIds</h4>
+<pre>public static&nbsp;java.util.List&lt;java.lang.String&gt;&nbsp;getFrameworkIds(java.util.Collection&lt;Protos.Resource&gt;&nbsp;resources)</pre>
+<div class="block">Returns a list of unique framework IDs associated with <code>Resource</code>s.</div>
+<dl>
+<dt><span class="paramLabel">Parameters:</span></dt>
+<dd><code>resources</code> - Collection of resources from which to extract the unique resource IDs</dd>
+<dt><span class="returnLabel">Returns:</span></dt>
+<dd>List of unique framework IDs</dd>
+</dl>
+</li>
+</ul>
 <a name="getRole-Protos.Resource-">
 <!--   -->
 </a>
@@ -299,6 +330,15 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getResourceId(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
+<a name="getFrameworkId-Protos.Resource-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>getFrameworkId</h4>
+<pre>public static&nbsp;java.util.Optional&lt;java.lang.String&gt;&nbsp;getFrameworkId(Protos.Resource&nbsp;resource)</pre>
+</li>
+</ul>
 <a name="hasResourceId-Protos.Resource-">
 <!--   -->
 </a>
@@ -306,6 +346,15 @@ extends java.lang.Object</pre>
 <li class="blockList">
 <h4>hasResourceId</h4>
 <pre>public static&nbsp;boolean&nbsp;hasResourceId(Protos.Resource&nbsp;resource)</pre>
+</li>
+</ul>
+<a name="hasFrameworkId-Protos.Resource-">
+<!--   -->
+</a>
+<ul class="blockList">
+<li class="blockList">
+<h4>hasFrameworkId</h4>
+<pre>public static&nbsp;boolean&nbsp;hasFrameworkId(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
 <a name="getPersistenceId-Protos.Resource-">
@@ -335,14 +384,15 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;java.util.Optional&lt;Protos.Resource.DiskInfo.Source&gt;&nbsp;getDiskSource(Protos.Resource&nbsp;resource)</pre>
 </li>
 </ul>
-<a name="isProcessable-Protos.Resource-java.util.Collection-">
+<a name="isProcessable-Protos.Resource-java.util.Collection-java.util.Optional-">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
 <h4>isProcessable</h4>
 <pre>public static&nbsp;boolean&nbsp;isProcessable(Protos.Resource&nbsp;resource,
-                                    java.util.Collection&lt;java.lang.String&gt;&nbsp;ourRoles)</pre>
+                                    java.util.Collection&lt;java.lang.String&gt;&nbsp;ourRoles,
+                                    java.util.Optional&lt;Protos.FrameworkID&gt;&nbsp;frameworkId)</pre>
 <div class="block">Filter resources which are dynamically reserved against a role which isn't ours.
 
  <p>We may receive resources with the following reservation semantics:
@@ -350,7 +400,10 @@ extends java.lang.Object</pre>
  <li>Static against "pre-reserved-role" (we can reserve against it)</li>
  <li>Dynamic against "pre-reserved-role" (DOESN'T belong to us at all! Likely created by Marathon)</li></ul>
 
- <p>This function should return <code>false</code> for all reservations of the last type.</div>
+ <ul><li>Resources with framework-id labels against "our-role" or "pre-reserved-role/our-role"</li>
+ <li>If a framework-id label is present on a resource which isn't ours, reject the resource</li></ul>
+
+ <p>This function should return <code>false</code> for cases which don't belong to us.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
 <dd><code>resource</code> - the resource to be examined</dd>

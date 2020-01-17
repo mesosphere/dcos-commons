@@ -1785,7 +1785,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/HealthResource.html#evaluateServiceStatus-boolean-">evaluateServiceStatus(boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/HealthResource.html" title="class in com.mesosphere.sdk.http.endpoints">HealthResource</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#evaluateSimpleResource-Logger-com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.util.Optional-com.mesosphere.sdk.offer.MesosResourcePool-">evaluateSimpleResource(Logger, OfferEvaluationStage, ResourceSpec, Optional&lt;String&gt;, Optional&lt;String&gt;, MesosResourcePool)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluationUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html#evaluateSimpleResource-Logger-com.mesosphere.sdk.offer.evaluate.OfferEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.util.Optional-com.mesosphere.sdk.offer.MesosResourcePool-java.util.Optional-">evaluateSimpleResource(Logger, OfferEvaluationStage, ResourceSpec, Optional&lt;String&gt;, Optional&lt;String&gt;, MesosResourcePool, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/OfferEvaluationUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">OfferEvaluationUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/EvaluationOutcome.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">EvaluationOutcome</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a></dt>
 <dd>
@@ -1821,7 +1821,7 @@
 <div class="block">Handles cross-referencing a preexisting <code>Protos.ExecutorInfo</code>'s current <code>Protos.Resource</code>s against a set
  of expected <a href="com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification"><code>VolumeSpec</code></a>s for that Executor.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html#ExecutorResourceMapper-com.mesosphere.sdk.specification.PodSpec-java.util.Collection-java.util.Collection-java.util.Optional-">ExecutorResourceMapper(PodSpec, Collection&lt;ResourceSpec&gt;, Collection&lt;Protos.Resource&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">ExecutorResourceMapper</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html#ExecutorResourceMapper-com.mesosphere.sdk.specification.PodSpec-java.util.Collection-java.util.Collection-java.util.Optional-java.util.Optional-">ExecutorResourceMapper(PodSpec, Collection&lt;ResourceSpec&gt;, Collection&lt;Protos.Resource&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ExecutorResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">ExecutorResourceMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorLocker.html#exit--">exit()</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorLocker.html" title="class in com.mesosphere.sdk.curator">CuratorLocker</a></dt>
 <dd>
@@ -2009,7 +2009,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html#findMatchingDiskSpec-Protos.Resource-java.util.Collection-java.util.Optional-">findMatchingDiskSpec(Protos.Resource, Collection&lt;ResourceSpec&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceMapperUtils</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html#findMatchingResourceSpec-Protos.Resource-java.util.Collection-java.util.Optional-">findMatchingResourceSpec(Protos.Resource, Collection&lt;ResourceSpec&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceMapperUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html#findMatchingResourceSpec-Protos.Resource-java.util.Collection-java.util.Optional-java.util.Optional-">findMatchingResourceSpec(Protos.Resource, Collection&lt;ResourceSpec&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceMapperUtils</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html#footprint-boolean-">footprint(boolean)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/MesosEventClient.ClientStatusResponse.html" title="class in com.mesosphere.sdk.scheduler">MesosEventClient.ClientStatusResponse</a></dt>
 <dd>
@@ -2044,6 +2044,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#FRAMEWORK_HOST_TASKENV">FRAMEWORK_HOST_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
 <dd>
 <div class="block">Provides the host domain for pods within the service.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html#FRAMEWORK_ID_RESERVATION_LABEL">FRAMEWORK_ID_RESERVATION_LABEL</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/LabelConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">LabelConstants</a></dt>
+<dd>
+<div class="block">Label used to uniquely map resources to framework-ids.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html#FRAMEWORK_NAME_TASKENV">FRAMEWORK_NAME_TASKENV</a></span> - Static variable in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/EnvConstants.html" title="class in com.mesosphere.sdk.offer.taskdata">EnvConstants</a></dt>
 <dd>
@@ -2139,9 +2143,9 @@
 <div class="block">Builds a new instance using a <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> representing the serializable Java representation of a service
  specification.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#fromSpec-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.util.Optional-">fromSpec(ResourceSpec, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#fromSpec-com.mesosphere.sdk.specification.ResourceSpec-java.util.Optional-java.util.Optional-java.util.Optional-">fromSpec(ResourceSpec, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#fromSpec-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">fromSpec(VolumeSpec, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;Protos.ResourceProviderID&gt;, Optional&lt;Protos.Resource.DiskInfo.Source&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#fromSpec-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">fromSpec(VolumeSpec, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;Protos.ResourceProviderID&gt;, Optional&lt;Protos.Resource.DiskInfo.Source&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/SerializationUtils.html#fromString-java.lang.String-java.lang.Class-ObjectMapper-">fromString(String, Class&lt;T&gt;, ObjectMapper)</a></span> - Static method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/SerializationUtils.html" title="class in com.mesosphere.sdk.config">SerializationUtils</a></dt>
 <dd>
@@ -2731,9 +2735,9 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/testing/AcceptEntry.html#getExecutors--">getExecutors()</a></span> - Method in class com.mesosphere.sdk.testing.<a href="com/mesosphere/sdk/testing/AcceptEntry.html" title="class in com.mesosphere.sdk.testing">AcceptEntry</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getExisting-com.mesosphere.sdk.specification.VolumeSpec-java.util.Collection-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">getExisting(VolumeSpec, Collection&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;Protos.ResourceProviderID&gt;, Optional&lt;Protos.Resource.DiskInfo.Source&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getExisting-com.mesosphere.sdk.specification.VolumeSpec-java.util.Collection-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">getExisting(VolumeSpec, Collection&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;Protos.ResourceProviderID&gt;, Optional&lt;Protos.Resource.DiskInfo.Source&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">getExistingExecutorVolume(VolumeSpec, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;Protos.ResourceProviderID&gt;, Optional&lt;Protos.Resource.DiskInfo.Source&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html#getExistingExecutorVolume-com.mesosphere.sdk.specification.VolumeSpec-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">getExistingExecutorVolume(VolumeSpec, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;Protos.ResourceProviderID&gt;, Optional&lt;Protos.Resource.DiskInfo.Source&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PodInfoBuilder.html" title="class in com.mesosphere.sdk.offer.evaluate">PodInfoBuilder</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html#getFailureReasons--">getFailureReasons()</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.OfferOutcomeSummary.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2.OfferOutcomeSummary</a></dt>
 <dd>&nbsp;</dd>
@@ -2768,6 +2772,21 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/queries/StateQueries.html#getFrameworkId-com.mesosphere.sdk.state.FrameworkStore-">getFrameworkId(FrameworkStore)</a></span> - Static method in class com.mesosphere.sdk.http.queries.<a href="com/mesosphere/sdk/http/queries/StateQueries.html" title="class in com.mesosphere.sdk.http.queries">StateQueries</a></dt>
 <dd>
 <div class="block">Produces the configured ID of the framework, or returns an error if reading that data failed.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getFrameworkId--">getFrameworkId()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#getFrameworkId-Protos.Resource-">getFrameworkId(Protos.Resource)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#getFrameworkId-Protos.Resource.ReservationInfo-">getFrameworkId(Protos.Resource.ReservationInfo)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html" title="class in com.mesosphere.sdk.offer.taskdata">AuxLabelAccess</a></dt>
+<dd>
+<div class="block">Returns the unique resource id which can be used for uniquely identifying this reservation, or an empty optional
+ if none is present.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html#getFrameworkIdLabel-java.util.Optional-java.util.Optional-">getFrameworkIdLabel(Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceMapperUtils</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#getFrameworkIds-java.util.Collection-">getFrameworkIds(Collection&lt;Protos.Resource&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
+<dd>
+<div class="block">Returns a list of unique framework IDs associated with <code>Resource</code>s.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/FrameworkRunner.html#getFrameworkInfo-java.util.Optional-">getFrameworkInfo(Optional&lt;Protos.FrameworkID&gt;)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/FrameworkRunner.html" title="class in com.mesosphere.sdk.framework">FrameworkRunner</a></dt>
 <dd>&nbsp;</dd>
@@ -2964,6 +2983,8 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.html#getJson-java.lang.String-java.lang.String-java.lang.String-boolean-">getJson(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/OfferOutcomeTrackerV2.html" title="class in com.mesosphere.sdk.debug">OfferOutcomeTrackerV2</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/PlansTracker.html#getJson-java.lang.String-java.lang.String-java.lang.String-boolean-">getJson(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/PlansTracker.html" title="class in com.mesosphere.sdk.debug">PlansTracker</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/TaskReservationsTracker.html#getJson-java.lang.String-java.lang.String-java.lang.String-boolean-">getJson(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/TaskReservationsTracker.html" title="class in com.mesosphere.sdk.debug">TaskReservationsTracker</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/TaskStatusesTracker.html#getJson-java.lang.String-java.lang.String-java.lang.String-boolean-">getJson(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/TaskStatusesTracker.html" title="class in com.mesosphere.sdk.debug">TaskStatusesTracker</a></dt>
 <dd>&nbsp;</dd>
@@ -3253,7 +3274,7 @@
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/yaml/RawPod.html#getNetworks--">getNetworks()</a></span> - Method in class com.mesosphere.sdk.specification.yaml.<a href="com/mesosphere/sdk/specification/yaml/RawPod.html" title="class in com.mesosphere.sdk.specification.yaml">RawPod</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getNew-com.mesosphere.sdk.specification.VolumeSpec-java.util.Collection-java.util.Optional-">getNew(VolumeSpec, Collection&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html#getNew-com.mesosphere.sdk.specification.VolumeSpec-java.util.Collection-java.util.Optional-java.util.Optional-">getNew(VolumeSpec, Collection&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/FrameworkConfig.html#getNonNamespacedRole--">getNonNamespacedRole()</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework">FrameworkConfig</a></dt>
 <dd>
@@ -3301,6 +3322,10 @@
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/PlansDebugResource.html#getOfferOutcomes-java.lang.String-java.lang.String-java.lang.String-boolean-">getOfferOutcomes(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/PlansDebugResource.html" title="class in com.mesosphere.sdk.http.endpoints">PlansDebugResource</a></dt>
 <dd>
 <div class="block">Renders the current set of Plan tree.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/TaskReservationsResource.html#getOfferOutcomes-java.lang.String-java.lang.String-java.lang.String-boolean-">getOfferOutcomes(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/TaskReservationsResource.html" title="class in com.mesosphere.sdk.http.endpoints">TaskReservationsResource</a></dt>
+<dd>
+<div class="block">Renders the current set of TaskReservations.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/TaskStatusesResource.html#getOfferOutcomes-java.lang.String-java.lang.String-java.lang.String-boolean-">getOfferOutcomes(String, String, String, boolean)</a></span> - Method in class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/TaskStatusesResource.html" title="class in com.mesosphere.sdk.http.endpoints">TaskStatusesResource</a></dt>
 <dd>
@@ -3812,9 +3837,17 @@
 <div class="block">Returns the unique resource id which can be used for uniquely identifying this reservation, or an empty optional
  if none is present.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html#getResourceId--">getResourceId()</a></span> - Method in class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall">ResourceCleanupStep</a></dt>
+<dd>
+<div class="block">Return the resourceId associated with this step.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#getResourceIds-java.util.Collection-">getResourceIds(Collection&lt;Protos.Resource&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
 <dd>
 <div class="block">Returns a list of unique resource IDs associated with <code>Resource</code>s.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html#getResourceIdsByAgentHost-com.mesosphere.sdk.state.StateStore-">getResourceIdsByAgentHost(StateStore)</a></span> - Static method in class com.mesosphere.sdk.scheduler.<a href="com/mesosphere/sdk/scheduler/SchedulerUtils.html" title="class in com.mesosphere.sdk.scheduler">SchedulerUtils</a></dt>
+<dd>
+<div class="block">Returns a grouped mapping of agent hostname to resource ids present on that agent.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#getResourceNamespace--">getResourceNamespace()</a></span> - Method in class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a></dt>
 <dd>&nbsp;</dd>
@@ -4671,6 +4704,8 @@
 <div class="block">Determines whether the given task has failed, by tracking the time delta between the first observed failure and
  the current time.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#hasFrameworkId-Protos.Resource-">hasFrameworkId(Protos.Resource)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
+<dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/StringConfiguration.html#hashCode--">hashCode()</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/StringConfiguration.html" title="class in com.mesosphere.sdk.config">StringConfiguration</a></dt>
@@ -5095,7 +5130,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/framework/EnvStore.html#isPresent-java.lang.String-">isPresent(String)</a></span> - Method in class com.mesosphere.sdk.framework.<a href="com/mesosphere/sdk/framework/EnvStore.html" title="class in com.mesosphere.sdk.framework">EnvStore</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#isProcessable-Protos.Resource-java.util.Collection-">isProcessable(Protos.Resource, Collection&lt;String&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceUtils.html#isProcessable-Protos.Resource-java.util.Collection-java.util.Optional-">isProcessable(Protos.Resource, Collection&lt;String&gt;, Optional&lt;Protos.FrameworkID&gt;)</a></span> - Static method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceUtils.html" title="class in com.mesosphere.sdk.offer">ResourceUtils</a></dt>
 <dd>
 <div class="block">Filter resources which are dynamically reserved against a role which isn't ours.</div>
 </dd>
@@ -5716,7 +5751,7 @@
  for port resources as in <a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>PortEvaluationStage</code></a>, additionally setting
  <code>org.apache.mesos.Protos.DiscoveryInfo</code> properly for DC/OS to pick up the specified named VIP mapping.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html#NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.util.Collection-java.util.Optional-java.util.Optional-">NamedVIPEvaluationStage(NamedVIPSpec, Collection&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">NamedVIPEvaluationStage</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html#NamedVIPEvaluationStage-com.mesosphere.sdk.specification.NamedVIPSpec-java.util.Collection-java.util.Optional-java.util.Optional-java.util.Optional-">NamedVIPEvaluationStage(NamedVIPSpec, Collection&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/NamedVIPEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">NamedVIPEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">NamedVIPSpec</span></a> - Class in <a href="com/mesosphere/sdk/specification/package-summary.html">com.mesosphere.sdk.specification</a></dt>
 <dd>
@@ -6528,7 +6563,7 @@
  <code>org.apache.mesos.Protos.ExecutorInfo</code> where appropriate so that the port is available in their respective
  environments.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#PortEvaluationStage-com.mesosphere.sdk.specification.PortSpec-java.util.Collection-java.util.Optional-java.util.Optional-">PortEvaluationStage(PortSpec, Collection&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html#PortEvaluationStage-com.mesosphere.sdk.specification.PortSpec-java.util.Collection-java.util.Optional-java.util.Optional-java.util.Optional-">PortEvaluationStage(PortSpec, Collection&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">PortEvaluationStage</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html#portMappings-java.util.Map-">portMappings(Map&lt;Integer, Integer&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultNetworkSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultNetworkSpec.Builder</a></dt>
 <dd>
@@ -7188,7 +7223,7 @@
  ensuring that it contains a sufficient amount or value of the supplied <code>Resource</code>, and creating a
  <a href="com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> or <a href="com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>UnreserveOfferRecommendation</code></a> where necessary.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Collection-java.util.Optional-java.util.Optional-">ResourceEvaluationStage(ResourceSpec, Collection&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html#ResourceEvaluationStage-com.mesosphere.sdk.specification.ResourceSpec-java.util.Collection-java.util.Optional-java.util.Optional-java.util.Optional-">ResourceEvaluationStage(ResourceSpec, Collection&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></dt>
 <dd>
 <div class="block">Creates a new instance for basic resource evaluation.</div>
 </dd>
@@ -7196,9 +7231,9 @@
 <dd>
 <div class="block">Pairs a <a href="com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ResourceSpec</code></a> definition with an existing task's labels associated with that resource.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#ResourceLabels-com.mesosphere.sdk.specification.ResourceSpec-java.lang.String-java.util.Optional-">ResourceLabels(ResourceSpec, String, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#ResourceLabels-com.mesosphere.sdk.specification.ResourceSpec-java.lang.String-java.util.Optional-java.util.Optional-">ResourceLabels(ResourceSpec, String, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a></dt>
 <dd>&nbsp;</dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#ResourceLabels-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.specification.ResourceSpec-java.lang.String-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">ResourceLabels(ResourceSpec, ResourceSpec, String, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;Protos.ResourceProviderID&gt;, Optional&lt;Protos.Resource.DiskInfo.Source&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html#ResourceLabels-com.mesosphere.sdk.specification.ResourceSpec-com.mesosphere.sdk.specification.ResourceSpec-java.lang.String-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-java.util.Optional-">ResourceLabels(ResourceSpec, ResourceSpec, String, Optional&lt;String&gt;, Optional&lt;String&gt;, Optional&lt;Protos.ResourceProviderID&gt;, Optional&lt;Protos.Resource.DiskInfo.Source&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a></dt>
 <dd>
 <div class="block">ResourceLabels are used to map <a href="com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> entities to resources which
  have actually been consumed.</div>
@@ -7761,6 +7796,12 @@
 <dd>
 <div class="block">Default behavior: Set permanently failed bit in state store tasks.</div>
 </dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/ResourceBuilder.html#setFrameworkId-java.lang.String-">setFrameworkId(String)</a></span> - Method in class com.mesosphere.sdk.offer.<a href="com/mesosphere/sdk/offer/ResourceBuilder.html" title="class in com.mesosphere.sdk.offer">ResourceBuilder</a></dt>
+<dd>&nbsp;</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setFrameworkId-Protos.Resource.ReservationInfo.Builder-java.lang.String-">setFrameworkId(Protos.Resource.ReservationInfo.Builder, String)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html" title="class in com.mesosphere.sdk.offer.taskdata">AuxLabelAccess</a></dt>
+<dd>
+<div class="block">Assigns a framework ID label to the provided reservation.</div>
+</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/config/RecoveryConfiguration.html#setGracePeriodSecs-int-">setGracePeriodSecs(int)</a></span> - Method in class com.mesosphere.sdk.config.<a href="com/mesosphere/sdk/config/RecoveryConfiguration.html" title="class in com.mesosphere.sdk.config">RecoveryConfiguration</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html#setHostname-Offer-">setHostname(Offer)</a></span> - Method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/TaskLabelWriter.html" title="class in com.mesosphere.sdk.offer.taskdata">TaskLabelWriter</a></dt>
@@ -7921,7 +7962,7 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html#setResourceNamespace-Protos.Resource.ReservationInfo.Builder-java.lang.String-">setResourceNamespace(Protos.Resource.ReservationInfo.Builder, String)</a></span> - Static method in class com.mesosphere.sdk.offer.taskdata.<a href="com/mesosphere/sdk/offer/taskdata/AuxLabelAccess.html" title="class in com.mesosphere.sdk.offer.taskdata">AuxLabelAccess</a></dt>
 <dd>
-<div class="block">Assigns a resource ID label to the provided reservation.</div>
+<div class="block">Assigns a service namespace to the pvrovided reservation.</div>
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html#setRetryPolicy-RetryPolicy-">setRetryPolicy(RetryPolicy)</a></span> - Method in class com.mesosphere.sdk.curator.<a href="com/mesosphere/sdk/curator/CuratorPersister.Builder.html" title="class in com.mesosphere.sdk.curator">CuratorPersister.Builder</a></dt>
 <dd>
@@ -8512,12 +8553,25 @@
 </dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TaskPortLookup.html#TaskPortLookup-Protos.TaskInfo-">TaskPortLookup(Protos.TaskInfo)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TaskPortLookup.html" title="class in com.mesosphere.sdk.offer.evaluate">TaskPortLookup</a></dt>
 <dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/http/endpoints/TaskReservationsResource.html" title="class in com.mesosphere.sdk.http.endpoints"><span class="typeNameLink">TaskReservationsResource</span></a> - Class in <a href="com/mesosphere/sdk/http/endpoints/package-summary.html">com.mesosphere.sdk.http.endpoints</a></dt>
+<dd>
+<div class="block">A read-only API taskReservations.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/http/endpoints/TaskReservationsResource.html#TaskReservationsResource-com.mesosphere.sdk.debug.TaskReservationsTracker-">TaskReservationsResource(TaskReservationsTracker)</a></span> - Constructor for class com.mesosphere.sdk.http.endpoints.<a href="com/mesosphere/sdk/http/endpoints/TaskReservationsResource.html" title="class in com.mesosphere.sdk.http.endpoints">TaskReservationsResource</a></dt>
+<dd>&nbsp;</dd>
+<dt><a href="com/mesosphere/sdk/debug/TaskReservationsTracker.html" title="class in com.mesosphere.sdk.debug"><span class="typeNameLink">TaskReservationsTracker</span></a> - Class in <a href="com/mesosphere/sdk/debug/package-summary.html">com.mesosphere.sdk.debug</a></dt>
+<dd>
+<div class="block">TaskReservationsTracker is the backend of TaskReservationsResource
+ It aggregates and reports reservations owned by this service.</div>
+</dd>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/debug/TaskReservationsTracker.html#TaskReservationsTracker-com.mesosphere.sdk.state.StateStore-">TaskReservationsTracker(StateStore)</a></span> - Constructor for class com.mesosphere.sdk.debug.<a href="com/mesosphere/sdk/debug/TaskReservationsTracker.html" title="class in com.mesosphere.sdk.debug">TaskReservationsTracker</a></dt>
+<dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate"><span class="typeNameLink">TaskResourceMapper</span></a> - Class in <a href="com/mesosphere/sdk/offer/evaluate/package-summary.html">com.mesosphere.sdk.offer.evaluate</a></dt>
 <dd>
 <div class="block">Handles cross-referencing a preexisting <code>Protos.TaskInfo</code>'s current <code>Protos.Resource</code>s against a set
  of expected <a href="com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ResourceSpec</code></a>s for that task.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html#TaskResourceMapper-java.util.Collection-com.mesosphere.sdk.specification.ResourceSet-Protos.TaskInfo-java.util.Optional-">TaskResourceMapper(Collection&lt;String&gt;, ResourceSet, Protos.TaskInfo, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">TaskResourceMapper</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html#TaskResourceMapper-java.util.Collection-com.mesosphere.sdk.specification.ResourceSet-Protos.TaskInfo-java.util.Optional-java.util.Optional-">TaskResourceMapper(Collection&lt;String&gt;, ResourceSet, Protos.TaskInfo, Optional&lt;String&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.offer.evaluate.<a href="com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">TaskResourceMapper</a></dt>
 <dd>&nbsp;</dd>
 <dt><span class="memberNameLink"><a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html#tasks-java.util.List-">tasks(List&lt;TaskSpec&gt;)</a></span> - Method in class com.mesosphere.sdk.specification.<a href="com/mesosphere/sdk/specification/DefaultPodSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultPodSpec.Builder</a></dt>
 <dd>
@@ -9107,11 +9161,11 @@
 <dd>
 <div class="block">This scheduler uninstalls a service and releases all of its resources.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig, Optional&lt;PlanCustomizer&gt;, Optional&lt;String&gt;)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-com.mesosphere.sdk.state.FrameworkStore-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig, Optional&lt;PlanCustomizer&gt;, Optional&lt;String&gt;, FrameworkStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>
 <div class="block">Creates a new <a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><code>UninstallScheduler</code></a> using the provided components.</div>
 </dd>
-<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-java.util.Optional-com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler.TimeFetcher-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig, Optional&lt;PlanCustomizer&gt;, Optional&lt;String&gt;, Optional&lt;SecretsClient&gt;, UninstallScheduler.TimeFetcher)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
+<dt><span class="memberNameLink"><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html#UninstallScheduler-com.mesosphere.sdk.specification.ServiceSpec-com.mesosphere.sdk.state.StateStore-com.mesosphere.sdk.state.ConfigStore-com.mesosphere.sdk.scheduler.SchedulerConfig-java.util.Optional-java.util.Optional-java.util.Optional-com.mesosphere.sdk.scheduler.uninstall.UninstallScheduler.TimeFetcher-com.mesosphere.sdk.state.FrameworkStore-">UninstallScheduler(ServiceSpec, StateStore, ConfigStore&lt;ServiceSpec&gt;, SchedulerConfig, Optional&lt;PlanCustomizer&gt;, Optional&lt;String&gt;, Optional&lt;SecretsClient&gt;, UninstallScheduler.TimeFetcher, FrameworkStore)</a></span> - Constructor for class com.mesosphere.sdk.scheduler.uninstall.<a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.html" title="class in com.mesosphere.sdk.scheduler.uninstall">UninstallScheduler</a></dt>
 <dd>&nbsp;</dd>
 <dt><a href="com/mesosphere/sdk/scheduler/uninstall/UninstallScheduler.TimeFetcher.html" title="class in com.mesosphere.sdk.scheduler.uninstall"><span class="typeNameLink">UninstallScheduler.TimeFetcher</span></a> - Class in <a href="com/mesosphere/sdk/scheduler/uninstall/package-summary.html">com.mesosphere.sdk.scheduler.uninstall</a></dt>
 <dd>
