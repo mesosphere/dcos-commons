@@ -26,6 +26,7 @@ def configure_package(configure_security):
         sdk_marathon.delete_group(group_id=ENFORCED_ROLE)
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -55,6 +56,7 @@ def test_nonenforced_group_role_defaults(options):
     assert service_roles["framework-role"] == LEGACY_ROLE
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -74,6 +76,7 @@ def test_nonenforced_group_role_service_role_set():
     assert service_roles["framework-role"] == ENFORCED_ROLE
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -99,6 +102,7 @@ def test_nonenforced_group_role_service_role_legacy_role_set():
     assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -118,6 +122,7 @@ def test_enforced_group_role_defaults():
     assert service_roles["framework-role"] == ENFORCED_ROLE
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -141,6 +146,7 @@ def test_enforced_group_role_legacy_role_set():
     assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -162,6 +168,7 @@ def test_nonenforced_group_legacy_service_role_non_migration():
     assert service_roles["framework-role"] == LEGACY_ROLE
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
