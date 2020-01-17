@@ -11,6 +11,7 @@ import com.mesosphere.sdk.scheduler.MesosEventClient.UnexpectedResourcesResponse
 import com.mesosphere.sdk.scheduler.plan.*;
 import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.ConfigStore;
+import com.mesosphere.sdk.state.FrameworkStore;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.storage.MemPersister;
 import com.mesosphere.sdk.testutils.*;
@@ -82,6 +83,7 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
     }
 
     private StateStore stateStore;
+    private FrameworkStore frameworkStore;
 
     @Mock private ConfigStore<ServiceSpec> mockConfigStore;
     @Mock private SchedulerDriver mockSchedulerDriver;
@@ -93,7 +95,10 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
         MockitoAnnotations.initMocks(this);
         Driver.setDriver(mockSchedulerDriver);
 
-        stateStore = new StateStore(MemPersister.newBuilder().build());
+        MemPersister persister = MemPersister.newBuilder().build();
+        stateStore = new StateStore(persister);
+        frameworkStore = new FrameworkStore(persister);
+
         stateStore.storeTasks(Collections.singletonList(TASK_A));
 
         // Have the mock plan customizer default to returning the plan unchanged.
@@ -253,7 +258,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Optional.empty(),
                 Optional.empty(),
                 Optional.of(mockSecretsClient),
-                new TestTimeFetcher());
+                new TestTimeFetcher(),
+                frameworkStore);
         uninstallScheduler.registered(false);
         // Starts with a near-empty plan with only the deregistered call incomplete
         Plan plan = getUninstallPlan(uninstallScheduler);
@@ -345,7 +351,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Optional.of(getReversingPlanCustomizer()),
                 Optional.empty(),
                 Optional.of(mockSecretsClient),
-                new TestTimeFetcher());
+                new TestTimeFetcher(),
+                frameworkStore);
 
         Plan plan = getUninstallPlan(uninstallScheduler);
 
@@ -400,7 +407,8 @@ public class UninstallSchedulerTest extends DefaultCapabilitiesTestSuite {
                 Optional.of(mockPlanCustomizer),
                 Optional.empty(),
                 Optional.of(mockSecretsClient),
-                timeFetcher);
+                timeFetcher,
+                frameworkStore);
         uninstallScheduler.registered(false);
         return uninstallScheduler;
     }

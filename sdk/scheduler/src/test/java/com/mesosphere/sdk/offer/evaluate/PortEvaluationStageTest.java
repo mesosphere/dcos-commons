@@ -158,7 +158,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                portSpec, Collections.singleton(TestConstants.TASK_NAME), Optional.empty(), Optional.empty());
+                portSpec, Collections.singleton(TestConstants.TASK_NAME), Optional.empty(), Optional.empty(), Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -202,7 +202,7 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         PodInstanceRequirement podInstanceRequirement = getPodInstanceRequirement(portSpec);
         PodInfoBuilder podInfoBuilder = getPodInfoBuilder(podInstanceRequirement);
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                portSpec, Collections.singleton(TestConstants.TASK_NAME), Optional.empty(), Optional.empty());
+                portSpec, Collections.singleton(TestConstants.TASK_NAME), Optional.empty(), Optional.empty(), Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome.isPassing());
@@ -258,14 +258,14 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 podInfoBuilder.getAssignedOverlayPorts().size() == 1);
 
         PortEvaluationStage portEvaluationStage_ = new PortEvaluationStage(
-                portSpec, Collections.singleton(TestConstants.TASK_NAME), Optional.empty(), Optional.empty());
+                portSpec, Collections.singleton(TestConstants.TASK_NAME), Optional.empty(), Optional.empty(), Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
         EvaluationOutcome outcome0 = portEvaluationStage_.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome0.isPassing());
         Assert.assertEquals(0, outcome0.getOfferRecommendations().size());
 
         PortEvaluationStage portEvaluationStage = new PortEvaluationStage(
-                dynamPortSpec, Collections.singleton(TestConstants.TASK_NAME), Optional.empty(), Optional.empty());
+                dynamPortSpec, Collections.singleton(TestConstants.TASK_NAME), Optional.empty(), Optional.empty(), Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
         EvaluationOutcome outcome1 = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
         Assert.assertTrue(outcome1.isPassing());
@@ -306,7 +306,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getPortSpec(podInstance),
                 Collections.singleton(TestConstants.TASK_NAME),
                 Optional.empty(),
-                Optional.empty());
+                Optional.empty(),
+                Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
@@ -351,7 +352,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getPortSpec(podInstance),
                 Collections.singleton(TestConstants.TASK_NAME),
                 Optional.empty(),
-                Optional.empty());
+                Optional.empty(),
+                Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
@@ -379,7 +381,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getPortSpec(podInstance),
                 Collections.singleton(TestConstants.TASK_NAME),
                 Optional.empty(),
-                Optional.empty());
+                Optional.empty(),
+                Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)),
                 podInfoBuilder);
@@ -410,7 +413,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 getPortSpec(podInstance),
                 Collections.singleton(TestConstants.TASK_NAME),
                 Optional.empty(),
-                Optional.empty());
+                Optional.empty(),
+                Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         EvaluationOutcome outcome = portEvaluationStage.evaluate(
                 new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE)), podInfoBuilder);
@@ -477,7 +481,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
                 portSpec,
                 Collections.singleton(TestConstants.TASK_NAME),
                 Optional.empty(),
-                Optional.empty());
+                Optional.empty(),
+                Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
@@ -557,7 +562,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             portSpec,
             Collections.singleton(TestConstants.TASK_NAME),
             Optional.empty(),
-            Optional.empty());
+            Optional.empty(),
+            Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         //this should fail since no slave_public port is present in the offer
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of(Constants.ANY_ROLE));
@@ -597,7 +603,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             portSpec,
             Collections.singleton(TestConstants.TASK_NAME),
             Optional.empty(),
-            Optional.empty());
+            Optional.empty(),
+            Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
@@ -642,7 +649,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             portSpec,
             Collections.singleton(TestConstants.TASK_NAME),
             Optional.empty(),
-            Optional.empty());
+            Optional.empty(),
+            Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
@@ -687,7 +695,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             portSpec,
             Collections.singleton(TestConstants.TASK_NAME),
             Optional.empty(),
-            Optional.empty());
+            Optional.empty(),
+            Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
@@ -732,7 +741,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             portSpec,
             Collections.singleton(TestConstants.TASK_NAME),
             Optional.empty(),
-            Optional.empty());
+            Optional.empty(),
+            Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
@@ -776,7 +786,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             portSpec,
             Collections.singleton(TestConstants.TASK_NAME),
             Optional.empty(),
-            Optional.empty());
+            Optional.empty(),
+            Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
@@ -820,7 +831,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             portSpec,
             Collections.singleton(TestConstants.TASK_NAME),
             Optional.empty(),
-            Optional.empty());
+            Optional.empty(),
+            Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);
@@ -864,7 +876,8 @@ public class PortEvaluationStageTest extends DefaultCapabilitiesTestSuite {
             portSpec,
             Collections.singleton(TestConstants.TASK_NAME),
             Optional.empty(),
-            Optional.empty());
+            Optional.empty(),
+            Optional.of(TestConstants.FRAMEWORK_ID.getValue()));
 
         MesosResourcePool mesosResourcePool = new MesosResourcePool(offer, Optional.of("slave_public"));
         EvaluationOutcome outcome = portEvaluationStage.evaluate(mesosResourcePool, podInfoBuilder);

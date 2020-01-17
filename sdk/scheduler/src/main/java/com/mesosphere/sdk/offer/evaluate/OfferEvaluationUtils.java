@@ -63,7 +63,8 @@ class OfferEvaluationUtils {
       ResourceSpec resourceSpec,
       Optional<String> resourceId,
       Optional<String> resourceNamespace,
-      MesosResourcePool mesosResourcePool)
+      MesosResourcePool mesosResourcePool,
+      Optional<String> frameworkId)
   {
 
     Optional<MesosResource> mesosResourceOptional;
@@ -110,7 +111,11 @@ class OfferEvaluationUtils {
 
       if (!resourceId.isPresent()) {
         // Initial reservation of resources
-        Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, Optional.empty(), resourceNamespace)
+        Protos.Resource resource = ResourceBuilder.fromSpec(
+                                                            resourceSpec,
+                                                            Optional.empty(),
+                                                            resourceNamespace,
+                                                            frameworkId)
             .setMesosResource(mesosResource)
             .build();
         offerRecommendation = new ReserveOfferRecommendation(mesosResourcePool.getOffer(), resource);
@@ -173,7 +178,7 @@ class OfferEvaluationUtils {
         }
 
         mesosResource = mesosResourceOptional.get();
-        Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId, resourceNamespace)
+        Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId, resourceNamespace, frameworkId)
             .setValue(mesosResource.getValue())
             .build();
         // Reservation of additional resources
@@ -200,7 +205,7 @@ class OfferEvaluationUtils {
             AttributeStringUtils.toString(resourceSpec.getValue()),
             AttributeStringUtils.toString(unreserve));
 
-        Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId, resourceNamespace)
+        Protos.Resource resource = ResourceBuilder.fromSpec(resourceSpec, resourceId, resourceNamespace, frameworkId)
             .setValue(unreserve)
             .build();
         // Unreservation of no longer needed resources

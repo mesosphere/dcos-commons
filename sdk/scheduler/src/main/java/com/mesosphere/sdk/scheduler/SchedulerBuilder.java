@@ -407,7 +407,8 @@ public class SchedulerBuilder {
           configStore,
           schedulerConfig,
           Optional.ofNullable(planCustomizer),
-          namespace);
+          namespace,
+          new FrameworkStore(persister));
     }
 
     if (StateStoreUtils.isUninstalling(stateStore)) {
@@ -421,7 +422,8 @@ public class SchedulerBuilder {
             configStore,
             schedulerConfig,
             Optional.ofNullable(planCustomizer),
-            namespace);
+            namespace,
+            new FrameworkStore(persister));
       } else {
         // This is an illegal state for a single-service scheduler. SchedulerConfig's uninstall bit should have
         // also been enabled. If we got here, it means that the user likely tampered with the scheduler env

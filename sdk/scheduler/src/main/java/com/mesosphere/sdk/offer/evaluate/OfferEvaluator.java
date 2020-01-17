@@ -84,6 +84,8 @@ public class OfferEvaluator {
 
   private final Optional<String> resourceNamespace;
 
+  private Optional<String> frameworkId;
+
   public OfferEvaluator(
       FrameworkStore frameworkStore,
       StateStore stateStore,
@@ -105,11 +107,19 @@ public class OfferEvaluator {
     this.schedulerConfig = schedulerConfig;
     this.resourceNamespace = resourceNamespace;
     this.offerOutcomeTrackerV2 = offerOutcomeTrackerV2;
+    this.frameworkId = Optional.empty();
   }
 
   public List<OfferRecommendation> evaluate(PodInstanceRequirement podInstanceRequirement, List<Protos.Offer> offers)
       throws InvalidRequirementException, IOException
   {
+    if (!this.frameworkId.isPresent()) {
+      //On construction of OfferEvaluator above, we haven't subscribed to Mesos.
+      //At this point, we're evaluating offers which means we must have subscribed to Mesos.
+      //Retrieve the FrameworkID at this point.
+      this.frameworkId = Optional.of(frameworkStore.fetchFrameworkId().get().getValue());
+    }
+
     // All tasks in the service (used by some PlacementRules):
     Map<String, Protos.TaskInfo> allTasks = stateStore.fetchTasks().stream()
         .collect(Collectors.toMap(Protos.TaskInfo::getName, Function.identity()));
@@ -413,7 +423,7 @@ public class OfferEvaluator {
 
     for (VolumeSpec volumeSpec : podInstanceRequirement.getPodInstance().getPod().getVolumes()) {
       evaluationStages.add(VolumeEvaluationStage.getNew(
-          volumeSpec, Collections.emptyList(), resourceNamespace));
+          volumeSpec, Collections.emptyList(), resourceNamespace, frameworkId));
     }
 
     // TLS evaluation stages should be added for all tasks regardless of the tasks to launch list to ensure
@@ -462,7 +472,8 @@ public class OfferEvaluator {
                 spec,
                 Collections.emptyList(),
                 Optional.empty(),
-                resourceNamespace))
+                resourceNamespace,
+                frameworkId))
             .forEach(evaluationStages::add);
       }
 
@@ -484,19 +495,20 @@ public class OfferEvaluator {
                 (NamedVIPSpec) resourceSpec,
                 taskNamesToUpdateProtos,
                 Optional.empty(),
-                resourceNamespace));
+                resourceNamespace,
+                frameworkId));
           } else if (resourceSpec instanceof PortSpec) {
             evaluationStages.add(new PortEvaluationStage(
-                (PortSpec) resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace));
+                (PortSpec) resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace, frameworkId));
           } else {
             evaluationStages.add(new ResourceEvaluationStage(
-                resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace));
+                resourceSpec, taskNamesToUpdateProtos, Optional.empty(), resourceNamespace, frameworkId));
           }
         }
 
         for (VolumeSpec volumeSpec : resourceSet.getVolumes()) {
           evaluationStages.add(VolumeEvaluationStage.getNew(
-              volumeSpec, taskNamesToUpdateProtos, resourceNamespace));
+              volumeSpec, taskNamesToUpdateProtos, resourceNamespace, frameworkId));
         }
       }
 
@@ -568,7 +580,8 @@ public class OfferEvaluator {
             resourceSpecForRoleAndPrincipal.getPrincipal(),
             resourceSpecForRoleAndPrincipal.getPreReservedRole()),
         executorInfo.getResourcesList(),
-        resourceNamespace);
+        resourceNamespace,
+        frameworkId);
     executorResourceMapper.getOrphanedResources()
         .forEach(resource -> evaluationStages.add(new DestroyEvaluationStage(resource)));
     executorResourceMapper.getOrphanedResources()
@@ -577,7 +590,7 @@ public class OfferEvaluator {
 
     // Evaluate any changes to the task(s):
     evaluationStages.addAll(getExistingTaskEvaluationPipeline(
-        podInstanceRequirement, serviceName, resourceNamespace, podTasks));
+        podInstanceRequirement, serviceName, resourceNamespace, podTasks, frameworkId));
 
     return evaluationStages;
   }
@@ -590,7 +603,8 @@ public class OfferEvaluator {
       PodInstanceRequirement podInstanceRequirement,
       String serviceName,
       Optional<String> resourceNamespace,
-      Map<String, Protos.TaskInfo> allTasksInPod)
+      Map<String, Protos.TaskInfo> allTasksInPod,
+      Optional<String> frameworkId)
   {
     Map<String, ResourceSet> allTaskSpecNamesToResourceSets =
         podInstanceRequirement.getPodInstance().getPod().getTasks().stream()
@@ -658,7 +672,8 @@ public class OfferEvaluator {
           resourceNamespace,
           allTasksInPod,
           resourceSet,
-          taskSpecNamesInResourceSet));
+          taskSpecNamesInResourceSet,
+          frameworkId));
       // Add TaskInfo updates and/or launch operations for the task(s) paired with the resource set:
       for (String taskSpecName : taskSpecNamesInResourceSet) {
         evaluationStages.add(new LaunchEvaluationStage(
@@ -681,7 +696,8 @@ public class OfferEvaluator {
       Optional<String> resourceNamespace,
       Map<String, Protos.TaskInfo> allTasksInPod,
       ResourceSet resourceSet,
-      Collection<String> taskSpecNamesInResourceSet)
+      Collection<String> taskSpecNamesInResourceSet,
+      Optional<String> frameworkId)
   {
     // Search for any existing TaskInfo for one of the tasks in this resource set. The TaskInfo should have a copy
     // of the resources assigned to the resource set.
@@ -702,7 +718,7 @@ public class OfferEvaluator {
     }
 
     TaskResourceMapper taskResourceMapper =
-        new TaskResourceMapper(taskSpecNamesInResourceSet, resourceSet, taskInfo.get(), resourceNamespace);
+        new TaskResourceMapper(taskSpecNamesInResourceSet, resourceSet, taskInfo.get(), resourceNamespace, frameworkId);
 
     Collection<OfferEvaluationStage> evaluationStages = new ArrayList<>();
     taskResourceMapper.getOrphanedResources()

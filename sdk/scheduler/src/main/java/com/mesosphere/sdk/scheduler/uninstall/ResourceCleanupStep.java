@@ -38,4 +38,11 @@ public class ResourceCleanupStep extends UninstallStep {
       setStatus(Status.COMPLETE);
     }
   }
+
+  /**
+   * Return the resourceId associated with this step.
+   */
+  public String getResourceId() {
+    return resourceId;
+  }
 }

@@ -72,6 +72,11 @@ final class LabelConstants {
    */
   static final String RESOURCE_ID_RESERVATION_LABEL = "resource_id";
 
+  /**
+   * Label used to uniquely map resources to framework-ids.
+   */
+  static final String FRAMEWORK_ID_RESERVATION_LABEL = "framework_id";
+
   // ReservationInfo
 
   /**

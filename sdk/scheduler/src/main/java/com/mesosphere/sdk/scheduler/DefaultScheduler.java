@@ -2,6 +2,7 @@ package com.mesosphere.sdk.scheduler;
 
 import com.mesosphere.sdk.debug.OfferOutcomeTrackerV2;
 import com.mesosphere.sdk.debug.PlansTracker;
+import com.mesosphere.sdk.debug.TaskReservationsTracker;
 import com.mesosphere.sdk.debug.TaskStatusesTracker;
 import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
@@ -15,6 +16,7 @@ import com.mesosphere.sdk.http.endpoints.PlansDebugResource;
 import com.mesosphere.sdk.http.endpoints.PlansResource;
 import com.mesosphere.sdk.http.endpoints.PodResource;
 import com.mesosphere.sdk.http.endpoints.StateResource;
+import com.mesosphere.sdk.http.endpoints.TaskReservationsResource;
 import com.mesosphere.sdk.http.endpoints.TaskStatusesResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
@@ -110,6 +112,8 @@ public class DefaultScheduler extends AbstractScheduler {
 
   private final Optional<TaskStatusesTracker> statusesTracker;
 
+  private final Optional<TaskReservationsTracker> reservationsTracker;
+
   private final PlanScheduler planScheduler;
 
   /**
@@ -189,6 +193,7 @@ public class DefaultScheduler extends AbstractScheduler {
     this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
     this.offerOutcomeTrackerV2 = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTrackerV2());
     this.statusesTracker = Optional.of(new TaskStatusesTracker(getPlanCoordinator(), stateStore));
+    this.reservationsTracker = Optional.of(new TaskReservationsTracker(stateStore));
 
     this.planScheduler = new PlanScheduler(
         new OfferEvaluator(
@@ -229,6 +234,7 @@ public class DefaultScheduler extends AbstractScheduler {
     offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
     plansTracker.ifPresent(x -> resources.add(new PlansDebugResource(x)));
     statusesTracker.ifPresent(x -> resources.add(new TaskStatusesResource(x)));
+    reservationsTracker.ifPresent(x -> resources.add(new TaskReservationsResource(x)));
     return resources;
   }
 
@@ -500,7 +506,12 @@ public class DefaultScheduler extends AbstractScheduler {
       OfferResources unexpectedResourcesForOffer = new OfferResources(offer);
       for (Protos.Resource resource : offer.getResourcesList()) {
         Optional<String> resourceId = ResourceUtils.getResourceId(resource);
-        if (resourceId.isPresent() && !resourceIdsToKeep.contains(resourceId.get())) {
+        Optional<String> resourceFrameworkId = ResourceUtils.getFrameworkId(resource);
+
+        // Resource is a SDK resource.
+        boolean unusedResourceId = resourceId.isPresent() && !resourceIdsToKeep.contains(resourceId.get());
+
+        if (unusedResourceId) {
           // This resource has a resource ID label, indicating that it's a reservation created by the SDK.
           // Mark it for automatic garbage collection.
           unexpectedResourcesForOffer.add(resource);
@@ -568,6 +579,7 @@ public class DefaultScheduler extends AbstractScheduler {
         this.configStore,
         this.schedulerConfig,
         this.planCustomizer,
-        this.namespace);
+        this.namespace,
+        this.frameworkStore);
   }
 }

@@ -211,11 +211,12 @@ public class PodInfoBuilder {
       Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
-      Optional<Protos.Resource.DiskInfo.Source> diskSource)
+      Optional<Protos.Resource.DiskInfo.Source> diskSource,
+      Optional<String> frameworkId)
   {
 
     Protos.Resource.Builder builder = ResourceBuilder
-        .fromSpec(volumeSpec, resourceId, resourceNamespace, persistenceId, providerId, diskSource)
+        .fromSpec(volumeSpec, resourceId, resourceNamespace, persistenceId, providerId, diskSource, frameworkId)
         .build()
         .toBuilder();
 

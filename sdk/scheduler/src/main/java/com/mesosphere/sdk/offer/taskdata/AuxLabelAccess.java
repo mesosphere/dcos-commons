@@ -58,7 +58,30 @@ public final class AuxLabelAccess {
   }
 
   /**
-   * Assigns a resource ID label to the provided reservation.
+   * Assigns a framework ID label to the provided reservation.
+   *
+   * @param reservationBuilder the reservation where labels should be added
+   * @param frameworkId         a unique id representing the framework
+   */
+  public static void setFrameworkId(
+      Protos.Resource.ReservationInfo.Builder reservationBuilder,
+      String frameworkId)
+  {
+    Map<String, String> map = LabelUtils.toMap(reservationBuilder.getLabels());
+    map.put(LabelConstants.FRAMEWORK_ID_RESERVATION_LABEL, frameworkId);
+    reservationBuilder.setLabels(LabelUtils.toProto(map));
+  }
+
+  /**
+   * Returns the unique resource id which can be used for uniquely identifying this reservation, or an empty optional
+   * if none is present. This label should always be present in reservations which were created by the SDK.
+   */
+  public static Optional<String> getFrameworkId(Protos.Resource.ReservationInfo reservation) {
+    return getLabel(reservation.getLabels(), LabelConstants.FRAMEWORK_ID_RESERVATION_LABEL);
+  }
+
+  /**
+   * Assigns a service namespace to the pvrovided reservation.
    *
    * @param reservationBuilder the reservation where labels should be added
    * @param namespace          a namespace to be assigned

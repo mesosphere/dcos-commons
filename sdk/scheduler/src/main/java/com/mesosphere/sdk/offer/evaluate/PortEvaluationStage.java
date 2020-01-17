@@ -50,11 +50,14 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
   private final boolean useHostPorts;
 
+  private final Optional<String> frameworkId;
+
   public PortEvaluationStage(
       PortSpec portSpec,
       Collection<String> taskNames,
       Optional<String> resourceId,
-      Optional<String> resourceNamespace)
+      Optional<String> resourceNamespace,
+      Optional<String> frameworkId)
   {
     this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
     this.portSpec = portSpec;
@@ -62,6 +65,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
     this.resourceId = resourceId;
     this.resourceNamespace = resourceNamespace;
     this.useHostPorts = requireHostPorts(portSpec.getNetworkNames());
+    this.frameworkId = frameworkId;
   }
 
   @Override
@@ -119,7 +123,8 @@ public class PortEvaluationStage implements OfferEvaluationStage {
               updatedPortSpec,
               resourceId,
               resourceNamespace,
-              mesosResourcePool);
+              mesosResourcePool,
+              frameworkId);
       EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
       if (!evaluationOutcome.isPassing()) {
         return evaluationOutcome;
@@ -127,7 +132,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
 
       Optional<String> resourceIdResult = reserveEvaluationOutcome.getResourceId();
       setProtos(podInfoBuilder,
-          ResourceBuilder.fromSpec(updatedPortSpec, resourceIdResult, resourceNamespace).build());
+          ResourceBuilder.fromSpec(updatedPortSpec, resourceIdResult, resourceNamespace, frameworkId).build());
       return EvaluationOutcome.pass(
           this,
           evaluationOutcome.getOfferRecommendations(),
@@ -139,7 +144,7 @@ public class PortEvaluationStage implements OfferEvaluationStage {
           .build();
     } else {
       setProtos(podInfoBuilder,
-          ResourceBuilder.fromSpec(updatedPortSpec, resourceId, resourceNamespace).build());
+          ResourceBuilder.fromSpec(updatedPortSpec, resourceId, resourceNamespace, frameworkId).build());
       return EvaluationOutcome.pass(
           this,
           "Port %s doesn't require resource reservation, " +

@@ -49,10 +49,13 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
 
   private final Optional<Protos.Resource.DiskInfo.Source> diskSource;
 
+  private final Optional<String> frameworkId;
+
   public static VolumeEvaluationStage getNew(
       VolumeSpec volumeSpec,
       Collection<String> taskNames,
-      Optional<String> resourceNamespace)
+      Optional<String> resourceNamespace,
+      Optional<String> frameworkId)
   {
     return new VolumeEvaluationStage(
         volumeSpec,
@@ -61,8 +64,10 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
         resourceNamespace,
         Optional.empty(),
         Optional.empty(),
-        Optional.empty());
+        Optional.empty(),
+        frameworkId);
   }
+
 
   public static VolumeEvaluationStage getExisting(
       VolumeSpec volumeSpec,
@@ -71,7 +76,8 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
       Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
-      Optional<Protos.Resource.DiskInfo.Source> diskSource)
+      Optional<Protos.Resource.DiskInfo.Source> diskSource,
+      Optional<String> frameworkId)
   {
     return new VolumeEvaluationStage(
         volumeSpec,
@@ -80,7 +86,8 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
         resourceNamespace,
         persistenceId,
         providerId,
-        diskSource);
+        diskSource,
+        frameworkId);
   }
 
   private VolumeEvaluationStage(
@@ -90,7 +97,8 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
       Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
-      Optional<Protos.Resource.DiskInfo.Source> diskSource)
+      Optional<Protos.Resource.DiskInfo.Source> diskSource,
+      Optional<String> frameworkId)
   {
     this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
     this.volumeSpec = volumeSpec;
@@ -100,6 +108,7 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
     this.persistenceId = persistenceId;
     this.providerId = providerId;
     this.diskSource = diskSource;
+    this.frameworkId = frameworkId;
   }
 
   private boolean createsVolume() {
@@ -129,7 +138,8 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
           resourceNamespace,
           persistenceId,
           providerId,
-          diskSource);
+          diskSource,
+          frameworkId);
       podInfoBuilder.getExecutorBuilder().get().addResources(volume);
 
       return EvaluationOutcome.pass(
@@ -150,7 +160,8 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
               volumeSpec,
               resourceId,
               resourceNamespace,
-              mesosResourcePool);
+              mesosResourcePool,
+              frameworkId);
       EvaluationOutcome evaluationOutcome = reserveEvaluationOutcome.getEvaluationOutcome();
       if (!evaluationOutcome.isPassing()) {
         return evaluationOutcome;
@@ -164,7 +175,8 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
           resourceNamespace,
           persistenceId,
           Optional.empty(),
-          Optional.empty())
+          Optional.empty(),
+          frameworkId)
           .setMesosResource(mesosResource)
           .build();
     } else {
@@ -192,7 +204,8 @@ public final class VolumeEvaluationStage implements OfferEvaluationStage {
           resourceNamespace,
           persistenceId,
           ResourceUtils.getProviderId(mesosResource.getResource()),
-          ResourceUtils.getDiskSource(mesosResource.getResource()))
+          ResourceUtils.getDiskSource(mesosResource.getResource()),
+          frameworkId)
           .setValue(mesosResource.getValue())
           .setMesosResource(mesosResource)
           .build();

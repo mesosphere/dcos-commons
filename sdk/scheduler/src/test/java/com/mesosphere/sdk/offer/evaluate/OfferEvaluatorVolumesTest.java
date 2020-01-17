@@ -54,6 +54,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
         Assert.assertFalse(reserveResource.hasDisk());
+        Assert.assertEquals(TestConstants.FRAMEWORK_ID.getValue(), ResourceUtils.getFrameworkId(reserveResource).get());
 
         // Validate DISK RESERVE Operation
         reserveOperation = recommendations.get(4).getOperation().get();
@@ -67,6 +68,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
         Assert.assertFalse(reserveResource.hasDisk());
+        Assert.assertEquals(TestConstants.FRAMEWORK_ID.getValue(), ResourceUtils.getFrameworkId(reserveResource).get());
 
         // Validate CREATE Operation
         String resourceId = getResourceId(reserveResource);
@@ -223,6 +225,7 @@ public class OfferEvaluatorVolumesTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.MOUNT_DISK_SOURCE, createResource.getDisk().getSource());
         Assert.assertEquals(TestConstants.PRINCIPAL, createResource.getDisk().getPersistence().getPrincipal());
         Assert.assertTrue(createResource.getDisk().hasVolume());
+        Assert.assertEquals(TestConstants.FRAMEWORK_ID.getValue(), ResourceUtils.getFrameworkId(reserveResource).get());
 
         // Validate LAUNCH Operation
         String persistenceId = createResource.getDisk().getPersistence().getId();

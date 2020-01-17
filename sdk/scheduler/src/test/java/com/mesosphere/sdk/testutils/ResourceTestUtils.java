@@ -67,7 +67,26 @@ public class ResourceTestUtils {
                 Optional.empty(),
                 Optional.of(persistenceId),
                 Optional.empty(),
+                Optional.empty(),
                 Optional.empty())
+                .build();
+    }
+
+    public static Protos.Resource getReservedRootVolume(double diskSize, String resourceId, String persistenceId, String frameworkId) {
+        VolumeSpec volumeSpec = DefaultVolumeSpec.createRootVolume(
+                diskSize,
+                TestConstants.CONTAINER_PATH,
+                TestConstants.ROLE,
+                Constants.ANY_ROLE,
+                TestConstants.PRINCIPAL);
+        return ResourceBuilder.fromSpec(
+                volumeSpec,
+                Optional.of(resourceId),
+                Optional.empty(),
+                Optional.of(persistenceId),
+                Optional.empty(),
+                Optional.empty(),
+                Optional.of(frameworkId))
                 .build();
     }
 
@@ -160,6 +179,7 @@ public class ResourceTestUtils {
         }
         AuxLabelAccess.setResourceId(reservationBuilder, resourceId);
         AuxLabelAccess.setResourceNamespace(reservationBuilder, TestConstants.SERVICE_NAME);
+        AuxLabelAccess.setFrameworkId(reservationBuilder, TestConstants.FRAMEWORK_ID.getValue());
         return builder;
     }
 
