@@ -194,7 +194,7 @@ def test_disable_legacy_role_post_update():
     options = {
         "service": {"name": SERVICE_NAME, "role": "quota", "enable_role_migration": False},
         "hello": {"count": 2},
-        "world": {"count": 3}
+        "world": {"count": 3},
     }
     sdk_upgrade.update_or_upgrade_or_downgrade(
         config.PACKAGE_NAME,
