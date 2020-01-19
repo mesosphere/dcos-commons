@@ -296,7 +296,9 @@ public final class PodQueries {
       // Whenever a pod is restarted/replaced, clear all the delays associated with its tasks
       podTasks.get().forEach(x -> {
         try {
-          Backoff.getInstance().clearDelay(CommonIdUtils.toTaskName(x.getInfo().getTaskId()));
+          if (x.getInfo().hasTaskId() && (x.getInfo().getTaskId().getValue().length() > 0)) {
+            Backoff.getInstance().clearDelay(CommonIdUtils.toTaskName(x.getInfo().getTaskId()));
+          }
         } catch (TaskException te) {
           LOGGER.error("Failed to clear delay for task [{}] before pod {}",
                   x.getInfo().getName(), recoveryType == RecoveryType.PERMANENT ? "replace" : "restart", te);
