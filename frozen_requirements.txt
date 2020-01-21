@@ -80,7 +80,7 @@ pager==3.3
 paramiko==2.4.2
 pathlib2==2.3.3
 pefile==2018.8.8
-pkginfo==1.2.1
+pkginfo==1.5.0.1
 pluggy==0.8.1
 pre-commit==1.16.1
 prettytable==0.7.2
