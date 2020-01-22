@@ -403,7 +403,7 @@ func (s *KDCAPIServer) handleListPrincipals(rw http.ResponseWriter, req *http.Re
 			filterExpr.Secret = secretName[0]
 		}
 		useBinary, ok := req.URL.Query()["binary"]
-		if ok && len(secretName[0]) > 0 {
+		if ok && len(useBinary[0]) > 0 {
 			useBinaryFlag := useBinary[0] == "1"
 			filterExpr.Binary = &useBinaryFlag
 		}
