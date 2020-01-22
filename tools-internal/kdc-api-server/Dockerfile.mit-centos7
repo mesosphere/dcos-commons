@@ -18,9 +18,8 @@ ENV KRB5_CONFIG=/kdc/krb5.conf \
 
 RUN yum -y install epel-release && \
     yum install -y krb5-server supervisor && \
-    yum clean all && \
-    echo -e "\n\n" | kdb5_util create -r LOCAL -s
+    yum clean all
 
 COPY --from=0 /go/src/github.com/mesosphere/kdc-api-server/api-server /kdc
 
-CMD /usr/bin/supervisord -c /kdc/supervisord.conf
+CMD echo -e "\n\n" | kdb5_util create -r LOCAL -s ; /usr/bin/supervisord -c /kdc/supervisord.conf
