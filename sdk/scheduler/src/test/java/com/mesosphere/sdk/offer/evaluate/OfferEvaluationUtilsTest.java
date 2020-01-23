@@ -34,6 +34,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
     private static final String RESOURCE_NAME = "blocks";
     private static final String ROLE = "svc-role";
     private static final String PRINCIPAL = "svc-principal";
+    private static final String FRAMEWORK_ID = "01234567-890a-bcde-f012-34567890abcd";
 
     @Mock OfferEvaluationStage mockStage;
     @Mock MesosResourcePool mockPool;
@@ -46,14 +47,14 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testResourceInsufficient() {
-        testResourceInsufficient(Optional.empty(), Optional.empty());
-        testResourceInsufficient(Optional.empty(), Optional.of("foo"));
+        testResourceInsufficient(Optional.empty(), Optional.empty(), Optional.empty());
+        testResourceInsufficient(Optional.empty(), Optional.of("foo"), Optional.of(FRAMEWORK_ID));
 
-        testResourceInsufficient(Optional.of(UUID.randomUUID().toString()), Optional.empty());
-        testResourceInsufficient(Optional.of(UUID.randomUUID().toString()), Optional.of("foo"));
+        testResourceInsufficient(Optional.of(UUID.randomUUID().toString()), Optional.empty(), Optional.empty());
+        testResourceInsufficient(Optional.of(UUID.randomUUID().toString()), Optional.of("foo"), Optional.of(FRAMEWORK_ID));
     }
 
-    private void testResourceInsufficient(Optional<String> resourceId, Optional<String> namespace) {
+    private void testResourceInsufficient(Optional<String> resourceId, Optional<String> namespace, Optional<String> frameworkId) {
         Protos.Value desired = getValue(5);
 
         if (resourceId.isPresent()) {
@@ -63,7 +64,7 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         }
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, getResourceSpec(desired), resourceId, namespace, mockPool);
+                LOGGER, mockStage, getResourceSpec(desired), resourceId, namespace, mockPool, frameworkId);
         Assert.assertFalse(outcome.getEvaluationOutcome().isPassing());
 
         Assert.assertTrue(outcome.getEvaluationOutcome().getOfferRecommendations().isEmpty());
@@ -72,27 +73,27 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testResourceSufficient() {
-        testResourceSufficient(Optional.empty(), Optional.empty());
-        testResourceSufficient(Optional.empty(), Optional.of("foo"));
+        testResourceSufficient(Optional.empty(), Optional.empty(), Optional.empty());
+        testResourceSufficient(Optional.empty(), Optional.of("foo"), Optional.of(FRAMEWORK_ID));
 
-        testResourceSufficient(Optional.of(UUID.randomUUID().toString()), Optional.empty());
-        testResourceSufficient(Optional.of(UUID.randomUUID().toString()), Optional.of("foo"));
+        testResourceSufficient(Optional.of(UUID.randomUUID().toString()), Optional.empty(), Optional.empty());
+        testResourceSufficient(Optional.of(UUID.randomUUID().toString()), Optional.of("foo"), Optional.of(FRAMEWORK_ID));
     }
 
-    private void testResourceSufficient(Optional<String> resourceId, Optional<String> namespace) {
+    private void testResourceSufficient(Optional<String> resourceId, Optional<String> namespace, Optional<String> frameworkId) {
         Protos.Value desired = getValue(5);
 
         ResourceSpec resourceSpec = getResourceSpec(desired);
         if (resourceId.isPresent()) {
             when(mockPool.consumeReserved(RESOURCE_NAME, desired, resourceId.get()))
-                    .thenReturn(Optional.of(getMesosResource(resourceSpec, resourceId.get(), namespace)));
+                    .thenReturn(Optional.of(getMesosResource(resourceSpec, resourceId.get(), namespace, frameworkId)));
         } else {
             when(mockPool.consumeReservableMerged(RESOURCE_NAME, desired, Constants.ANY_ROLE))
                     .thenReturn(Optional.of(getMesosResource(desired)));
         }
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, resourceSpec, resourceId, namespace, mockPool);
+                LOGGER, mockStage, resourceSpec, resourceId, namespace, mockPool, frameworkId);
         Assert.assertTrue(outcome.getEvaluationOutcome().isPassing());
 
         if (resourceId.isPresent()) {
@@ -109,16 +110,21 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
             } else {
                 Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
             }
+            if (frameworkId.isPresent()) {
+                Assert.assertEquals(frameworkId.get(), ResourceUtils.getFrameworkId(resource).get());
+            } else {
+                Assert.assertFalse(ResourceUtils.getFrameworkId(resource).isPresent());
+            }
         }
     }
 
     @Test
     public void testResourceIncreaseSufficient() {
-        testResourceIncreaseSufficient(Optional.empty());
-        testResourceIncreaseSufficient(Optional.of("foo"));
+        testResourceIncreaseSufficient(Optional.empty(), Optional.empty());
+        testResourceIncreaseSufficient(Optional.of("foo"), Optional.of(FRAMEWORK_ID));
     }
 
-    private void testResourceIncreaseSufficient(Optional<String> namespace) {
+    private void testResourceIncreaseSufficient(Optional<String> namespace, Optional<String> frameworkId) {
         String resourceId = UUID.randomUUID().toString();
         Protos.Value current = getValue(4);
         Protos.Value desired = getValue(5);
@@ -126,12 +132,12 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
 
         ResourceSpec resourceSpec = getResourceSpec(desired);
         when(mockPool.consumeReserved(RESOURCE_NAME, desired, resourceId))
-                .thenReturn(Optional.of(getMesosResource(getResourceSpec(current), resourceId, namespace)));
+                .thenReturn(Optional.of(getMesosResource(getResourceSpec(current), resourceId, namespace, frameworkId)));
         when(mockPool.consumeReservableMerged(RESOURCE_NAME, toAdd, Constants.ANY_ROLE))
                 .thenReturn(Optional.of(getMesosResource(toAdd)));
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
+                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool, frameworkId);
         Assert.assertTrue(outcome.getEvaluationOutcome().isPassing());
 
         OfferRecommendation recommendation = outcome.getEvaluationOutcome().getOfferRecommendations().get(0);
@@ -144,15 +150,20 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
         } else {
             Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
         }
+        if (frameworkId.isPresent()) {
+            Assert.assertEquals(frameworkId.get(), ResourceUtils.getFrameworkId(resource).get());
+        } else {
+            Assert.assertFalse(ResourceUtils.getFrameworkId(resource).isPresent());
+        }
     }
 
     @Test
     public void testResourceIncreaseInsufficient() {
-        testResourceIncreaseInsufficient(Optional.empty());
-        testResourceIncreaseInsufficient(Optional.of("foo"));
+        testResourceIncreaseInsufficient(Optional.empty(), Optional.empty());
+        testResourceIncreaseInsufficient(Optional.of("foo"), Optional.of(FRAMEWORK_ID));
     }
 
-    private void testResourceIncreaseInsufficient(Optional<String> namespace) {
+    private void testResourceIncreaseInsufficient(Optional<String> namespace, Optional<String> frameworkId) {
         String resourceId = UUID.randomUUID().toString();
         Protos.Value current = getValue(4);
         Protos.Value desired = getValue(5);
@@ -160,12 +171,12 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
 
         ResourceSpec resourceSpec = getResourceSpec(desired);
         when(mockPool.consumeReserved(RESOURCE_NAME, desired, resourceId))
-                .thenReturn(Optional.of(getMesosResource(getResourceSpec(current), resourceId, namespace)));
+                .thenReturn(Optional.of(getMesosResource(getResourceSpec(current), resourceId, namespace, frameworkId)));
         when(mockPool.consumeReservableMerged(RESOURCE_NAME, toAdd, Constants.ANY_ROLE))
                 .thenReturn(Optional.empty());
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
+                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool, frameworkId);
         Assert.assertFalse(outcome.getEvaluationOutcome().isPassing());
 
         Assert.assertTrue(outcome.getEvaluationOutcome().getOfferRecommendations().isEmpty());
@@ -174,11 +185,11 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
 
     @Test
     public void testResourceDecrease() {
-        testResourceDecrease(Optional.empty());
-        testResourceDecrease(Optional.of("foo"));
+        testResourceDecrease(Optional.empty(), Optional.empty());
+        testResourceDecrease(Optional.of("foo"), Optional.of(FRAMEWORK_ID));
     }
 
-    private void testResourceDecrease(Optional<String> namespace) {
+    private void testResourceDecrease(Optional<String> namespace, Optional<String> frameworkId) {
         String resourceId = UUID.randomUUID().toString();
         Protos.Value current = getValue(5);
         Protos.Value desired = getValue(4);
@@ -186,12 +197,12 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
 
         ResourceSpec resourceSpec = getResourceSpec(desired);
         when(mockPool.consumeReserved(RESOURCE_NAME, desired, resourceId))
-                .thenReturn(Optional.of(getMesosResource(getResourceSpec(current), resourceId, namespace)));
+                .thenReturn(Optional.of(getMesosResource(getResourceSpec(current), resourceId, namespace, frameworkId)));
         when(mockPool.consumeReservableMerged(RESOURCE_NAME, desired, Constants.ANY_ROLE))
                 .thenReturn(Optional.of(getMesosResource(toSubtract)));
 
         ReserveEvaluationOutcome outcome = OfferEvaluationUtils.evaluateSimpleResource(
-                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool);
+                LOGGER, mockStage, resourceSpec, Optional.of(resourceId), namespace, mockPool, frameworkId);
         Assert.assertTrue(outcome.getEvaluationOutcome().isPassing());
 
         OfferRecommendation recommendation = outcome.getEvaluationOutcome().getOfferRecommendations().get(0);
@@ -203,6 +214,11 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
             Assert.assertEquals(namespace.get(), ResourceUtils.getNamespace(resource).get());
         } else {
             Assert.assertFalse(ResourceUtils.getNamespace(resource).isPresent());
+        }
+        if (frameworkId.isPresent()) {
+            Assert.assertEquals(frameworkId.get(), ResourceUtils.getFrameworkId(resource).get());
+        } else {
+            Assert.assertFalse(ResourceUtils.getFrameworkId(resource).isPresent());
         }
     }
 
@@ -221,8 +237,8 @@ public class OfferEvaluationUtilsTest extends DefaultCapabilitiesTestSuite {
                 .build();
     }
 
-    private static MesosResource getMesosResource(ResourceSpec resourceSpec, String resourceId, Optional<String> namespace) {
-        return new MesosResource(ResourceBuilder.fromSpec(resourceSpec, Optional.of(resourceId), namespace).build());
+    private static MesosResource getMesosResource(ResourceSpec resourceSpec, String resourceId, Optional<String> namespace, Optional<String> frameworkId) {
+        return new MesosResource(ResourceBuilder.fromSpec(resourceSpec, Optional.of(resourceId), namespace, frameworkId).build());
     }
 
     private static MesosResource getMesosResource(Protos.Value value) {

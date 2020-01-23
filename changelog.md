@@ -1,5 +1,19 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.57.3
+
+- [#3215](https://github.com/mesosphere/dcos-commons/pull/3215) Quota - Framework Uninstall Fixes.
+- [#3209](https://github.com/mesosphere/dcos-commons/pull/3209) Fix for Jersey exceptions filling scheduler stderr logs.
+- [#3219](https://github.com/mesosphere/dcos-commons/pull/3219) Check TaskId exists for auxiliary pod tasks before reset of Backoff.
+- [#3206](https://github.com/mesosphere/dcos-commons/pull/3206) Add `test` as one of the roles to configure for strict mode clusters. [TOOLING]
+- [#3210](https://github.com/mesosphere/dcos-commons/pull/3210) Misc fixes for MWT runs. [TOOLING]
+- [#3217](https://github.com/mesosphere/dcos-commons/pull/3217) Fix deprecated warnings of PMD gradle plugin. [TOOLING]
+- [#3216](https://github.com/mesosphere/dcos-commons/pull/3216) Fixed publish http server launch. [TOOLING]
+
+##### Notes
+
+- [#3215](https://github.com/mesosphere/dcos-commons/pull/3215) Is a major bug-fix since v0.57.0. Frameworks are recommended to upgrade to v0.57.3 and issue `pod replace` commands to exisiting deployments to mitigate the risks. Existing procedures for [migrating a existing service to the quotated role](https://github.com/mesosphere/dcos-commons/releases/tag/0.57.0#migrate-an-existing-deployed-service-to-use-quota-support) should be followed.
+
 ## Changes to v0.57.2
 - [#3198](https://github.com/mesosphere/dcos-commons/pull/3198) `ALLOW_REGION_AWARENESS` is set to true by default
 

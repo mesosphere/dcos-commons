@@ -48,6 +48,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(36, getResourceId(reserveResource).length());
         Assert.assertFalse(reserveResource.hasDisk());
+        Assert.assertEquals(TestConstants.FRAMEWORK_ID.getValue(), getFrameworkId(reserveResource));
 
         // Validate LAUNCH Operation
         Protos.Offer.Operation launchOperation = recommendations.get(4).getOperation().get();
@@ -161,6 +162,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(reserveResource));
+        Assert.assertEquals(TestConstants.FRAMEWORK_ID.getValue(), getFrameworkId(reserveResource));
 
         // Validate LAUNCH Operation
         Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation().get();
@@ -221,6 +223,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(reserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(reserveResource));
+        Assert.assertEquals(TestConstants.FRAMEWORK_ID.getValue(), getFrameworkId(reserveResource));
 
         // Validate LAUNCH Operation
         Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation().get();
@@ -264,6 +267,7 @@ public class OfferEvaluatorTest extends OfferEvaluatorTestBase {
         Assert.assertEquals(TestConstants.ROLE, ResourceUtils.getRole(unreserveResource));
         Assert.assertEquals(TestConstants.PRINCIPAL, reservation.getPrincipal());
         Assert.assertEquals(resourceId, getResourceId(unreserveResource));
+        Assert.assertEquals(TestConstants.FRAMEWORK_ID.getValue(), getFrameworkId(unreserveResource));
 
         // Validate LAUNCH Operation
         Protos.Offer.Operation launchOperation = recommendations.get(1).getOperation().get();

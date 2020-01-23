@@ -42,6 +42,8 @@ public final class ResourceBuilder {
 
   private Optional<MesosResource> mesosResource;
 
+  private Optional<String> frameworkId;
+
   private ResourceBuilder(String resourceName, Protos.Value value, String preReservedRole) {
     this.resourceName = resourceName;
     this.value = value;
@@ -55,10 +57,11 @@ public final class ResourceBuilder {
     this.providerId = Optional.empty();
     this.diskSource = Optional.empty();
     this.mesosResource = Optional.empty();
+    this.frameworkId = Optional.empty();
   }
 
   public static ResourceBuilder fromSpec(
-      ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace)
+      ResourceSpec spec, Optional<String> resourceId, Optional<String> resourceNamespace, Optional<String> frameworkId)
   {
     ResourceBuilder builder =
         new ResourceBuilder(spec.getName(), spec.getValue(), spec.getPreReservedRole())
@@ -66,6 +69,7 @@ public final class ResourceBuilder {
             .setPrincipal(Optional.of(spec.getPrincipal()));
     resourceId.ifPresent(builder::setResourceId);
     resourceNamespace.ifPresent(builder::setResourceNamespace);
+    frameworkId.ifPresent(builder::setFrameworkId);
     return builder;
   }
 
@@ -75,9 +79,10 @@ public final class ResourceBuilder {
       Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
-      Optional<Protos.Resource.DiskInfo.Source> diskSource)
+      Optional<Protos.Resource.DiskInfo.Source> diskSource,
+      Optional<String> frameworkId)
   {
-    ResourceBuilder resourceBuilder = fromSpec(spec, resourceId, resourceNamespace);
+    ResourceBuilder resourceBuilder = fromSpec(spec, resourceId, resourceNamespace, frameworkId);
 
     providerId.ifPresent(resourceBuilder::setProviderId);
 
@@ -103,7 +108,8 @@ public final class ResourceBuilder {
       return fromSpec(
           getResourceSpec(resource),
           ResourceUtils.getResourceId(resource),
-          ResourceUtils.getNamespace(resource));
+          ResourceUtils.getNamespace(resource),
+          ResourceUtils.getFrameworkId(resource));
     } else {
       return fromSpec(
           getVolumeSpec(resource),
@@ -111,7 +117,8 @@ public final class ResourceBuilder {
           ResourceUtils.getNamespace(resource),
           ResourceUtils.getPersistenceId(resource),
           ResourceUtils.getProviderId(resource),
-          ResourceUtils.getDiskSource(resource));
+          ResourceUtils.getDiskSource(resource),
+          ResourceUtils.getFrameworkId(resource));
     }
   }
 
@@ -335,6 +342,8 @@ public final class ResourceBuilder {
         reservationBuilder,
         resourceId.orElseGet(() -> UUID.randomUUID().toString())
     );
+    // Add the frameworkId to the resource.
+    frameworkId.ifPresent(s -> AuxLabelAccess.setFrameworkId(reservationBuilder, s));
     resourceNamespace.ifPresent(s -> AuxLabelAccess.setResourceNamespace(reservationBuilder, s));
     return reservationBuilder.build();
   }
@@ -351,6 +360,11 @@ public final class ResourceBuilder {
 
   public ResourceBuilder setPrincipal(Optional<String> principal) {
     this.principal = principal;
+    return this;
+  }
+
+  public ResourceBuilder setFrameworkId(String frameworkId) {
+    this.frameworkId = Optional.of(frameworkId);
     return this;
   }
 }

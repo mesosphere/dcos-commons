@@ -62,6 +62,21 @@ public final class ResourceUtils {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Returns a list of unique framework IDs associated with {@link Resource}s.
+   *
+   * @param resources Collection of resources from which to extract the unique resource IDs
+   * @return List of unique framework IDs
+   */
+  public static List<String> getFrameworkIds(Collection<Protos.Resource> resources) {
+    return resources.stream()
+        .map(ResourceUtils::getFrameworkId)
+        .filter(Optional::isPresent)
+        .map(Optional::get)
+        .distinct()
+        .collect(Collectors.toList());
+  }
+
   public static String getRole(Protos.Resource resource) {
     return new MesosResource(resource).getRole();
   }
@@ -95,8 +110,16 @@ public final class ResourceUtils {
     return getReservation(resource).flatMap(AuxLabelAccess::getResourceId);
   }
 
+  public static Optional<String> getFrameworkId(Protos.Resource resource) {
+    return getReservation(resource).flatMap(AuxLabelAccess::getFrameworkId);
+  }
+
   public static boolean hasResourceId(Protos.Resource resource) {
     return getResourceId(resource).isPresent();
+  }
+
+  public static boolean hasFrameworkId(Protos.Resource resource) {
+    return getFrameworkId(resource).isPresent();
   }
 
   public static Optional<String> getPersistenceId(Protos.Resource resource) {
@@ -131,21 +154,37 @@ public final class ResourceUtils {
    * <li>Static against "pre-reserved-role" (we can reserve against it)</li>
    * <li>Dynamic against "pre-reserved-role" (DOESN'T belong to us at all! Likely created by Marathon)</li></ul>
    *
-   * <p>This function should return {@code false} for all reservations of the last type.
+   * <ul><li>Resources with framework-id labels against "our-role" or "pre-reserved-role/our-role"</li>
+   * <li>If a framework-id label is present on a resource which isn't ours, reject the resource</li></ul>
+   *
+   * <p>This function should return {@code false} for cases which don't belong to us.
    *
    * @param resource the resource to be examined
    * @param ourRoles the expected roles used by this framework, see also
    *                 {@link #getReservationRoles(org.apache.mesos.Protos.FrameworkInfo)}
    * @return whether this resource should be processed by our framework. if false then this resource should be ignored
    */
-  public static boolean isProcessable(Protos.Resource resource, Collection<String> ourRoles) {
+  public static boolean isProcessable(
+      Protos.Resource resource,
+      Collection<String> ourRoles,
+      Optional<Protos.FrameworkID> frameworkId)
+  {
     // If there are no dynamic reservations, then it's fine.
     if (getDynamicReservations(resource).isEmpty()) {
       return true;
     }
 
     // The resource is dynamically reserved, but does the reservation appear to be one of ours?
-    return hasResourceId(resource) && ourRoles.containsAll(getReservationRoles(resource));
+    boolean resourceIdPresent = hasResourceId(resource);
+    boolean reservationIsOurs = ourRoles.containsAll(getReservationRoles(resource));
+    // If a frameworkId is present on the resource, it must be ours to process otherwise its claimed.
+    boolean frameworkIdPresent = hasFrameworkId(resource) && frameworkId.isPresent();
+    boolean frameworkIdIsOurs = frameworkIdPresent &&
+                                getFrameworkId(resource).get().equals(frameworkId.get().getValue());
+    // Processable when resource frameworkId isn't present (not claimed) or when it belongs to this framework.
+    boolean frameworkIdProcessable = !frameworkIdPresent || frameworkIdIsOurs;
+
+    return resourceIdPresent && reservationIsOurs && frameworkIdProcessable;
   }
 
   /**

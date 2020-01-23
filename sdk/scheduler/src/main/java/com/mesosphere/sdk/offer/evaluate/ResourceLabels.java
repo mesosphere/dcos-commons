@@ -25,7 +25,14 @@ class ResourceLabels {
 
   private final Optional<Protos.Resource.DiskInfo.Source> diskSource;
 
-  ResourceLabels(ResourceSpec resourceSpec, String resourceId, Optional<String> resourceNamespace) {
+  private final Optional<String> frameworkId;
+
+  ResourceLabels(
+      ResourceSpec resourceSpec,
+      String resourceId,
+      Optional<String> resourceNamespace,
+      Optional<String> frameworkId)
+  {
     this(
         resourceSpec,
         resourceSpec,
@@ -33,7 +40,8 @@ class ResourceLabels {
         resourceNamespace,
         Optional.empty(),
         Optional.empty(),
-        Optional.empty());
+        Optional.empty(),
+        frameworkId);
   }
 
   /**
@@ -55,7 +63,8 @@ class ResourceLabels {
       Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
-      Optional<Protos.Resource.DiskInfo.Source> diskSource)
+      Optional<Protos.Resource.DiskInfo.Source> diskSource,
+      Optional<String> frameworkId)
   {
     this.original = original;
     this.updated = updated;
@@ -64,6 +73,7 @@ class ResourceLabels {
     this.persistenceId = persistenceId;
     this.providerId = providerId;
     this.diskSource = diskSource;
+    this.frameworkId = frameworkId;
   }
 
   public ResourceSpec getOriginal() {
@@ -92,6 +102,10 @@ class ResourceLabels {
 
   public Optional<Protos.Resource.DiskInfo.Source> getDiskSource() {
     return diskSource;
+  }
+
+  public Optional<String> getFrameworkId() {
+    return frameworkId;
   }
 
   @Override

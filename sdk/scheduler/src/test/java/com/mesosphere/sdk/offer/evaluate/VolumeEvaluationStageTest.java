@@ -29,6 +29,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
                 Collections.singleton(getTaskName(podInstanceRequirement.getPodInstance())),
+                Optional.empty(),
                 Optional.empty());
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(
@@ -82,6 +83,7 @@ public class VolumeEvaluationStageTest extends DefaultCapabilitiesTestSuite {
         VolumeEvaluationStage volumeEvaluationStage = VolumeEvaluationStage.getNew(
                 getVolumeSpec(podInstanceRequirement.getPodInstance()),
                 Collections.singleton(getTaskName(podInstanceRequirement.getPodInstance())),
+                Optional.empty(),
                 Optional.empty());
         EvaluationOutcome outcome =
                 volumeEvaluationStage.evaluate(

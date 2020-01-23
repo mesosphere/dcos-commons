@@ -32,6 +32,7 @@ def configure_package(configure_security):
         sdk_marathon.delete_group(group_id=ENFORCED_ROLE)
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -57,6 +58,7 @@ def test_initial_upgrade():
     assert service_roles["framework-role"] == LEGACY_ROLE
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -94,6 +96,7 @@ def test_update_scheduler_role():
     assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -138,6 +141,7 @@ def test_replace_pods_to_new_role():
     assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -177,6 +181,7 @@ def test_add_pods_post_update():
     assert ENFORCED_ROLE in service_roles["framework-roles"]
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity
@@ -184,16 +189,20 @@ def test_add_pods_post_update():
 def test_disable_legacy_role_post_update():
 
     # Add new pods to service which should be launched with the new role.
-    marathon_config = sdk_marathon.get_config(SERVICE_NAME)
-
     # Turn off legacy role.
-    marathon_config["env"]["ENABLE_ROLE_MIGRATION"] = "false"
 
-    # Update the app
-    sdk_marathon.update_app(marathon_config)
-
-    # Wait for scheduler to restart.
-    sdk_plan.wait_for_completed_deployment(SERVICE_NAME)
+    options = {
+        "service": {"name": SERVICE_NAME, "role": "quota", "enable_role_migration": False},
+        "hello": {"count": 2},
+        "world": {"count": 3},
+    }
+    sdk_upgrade.update_or_upgrade_or_downgrade(
+        config.PACKAGE_NAME,
+        SERVICE_NAME,
+        expected_running_tasks=5,
+        to_options=options,
+        to_version=None,
+    )
 
     # Get the current service state to verify roles have applied.
     service_roles = sdk_utils.get_service_roles(SERVICE_NAME)
@@ -211,6 +220,7 @@ def test_disable_legacy_role_post_update():
     assert service_roles["framework-role"] == ENFORCED_ROLE
 
 
+@pytest.mark.quota_test
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
 @pytest.mark.sanity

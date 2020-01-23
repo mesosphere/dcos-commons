@@ -34,7 +34,7 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
         MockitoAnnotations.initMocks(this);
         Persister persister = MemPersister.newBuilder().build();
         frameworkStore = new FrameworkStore(persister);
-        frameworkStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue("framework-id").build());
+        frameworkStore.storeFrameworkId(Protos.FrameworkID.newBuilder().setValue(TestConstants.FRAMEWORK_ID.getValue()).build());
         stateStore = new StateStore(persister);
         targetConfig = UUID.randomUUID();
         evaluator = new OfferEvaluator(
@@ -95,6 +95,10 @@ public class OfferEvaluatorTestBase extends DefaultCapabilitiesTestSuite {
 
     protected static String getResourceId(Resource resource) {
         return ResourceUtils.getResourceId(resource).get();
+    }
+
+    protected static String getFrameworkId(Resource resource)  {
+        return ResourceUtils.getFrameworkId(resource).get();
     }
 
     protected static String getPrincipal(Resource resource) {

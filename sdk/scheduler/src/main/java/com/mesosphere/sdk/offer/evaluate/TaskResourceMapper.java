@@ -45,14 +45,18 @@ class TaskResourceMapper {
 
   private final List<OfferEvaluationStage> evaluationStages;
 
+  private final Optional<String> frameworkId;
+
   TaskResourceMapper(
       Collection<String> taskSpecNames,
       ResourceSet resourceSet,
       Protos.TaskInfo taskInfo,
-      Optional<String> resourceNamespace)
+      Optional<String> resourceNamespace,
+      Optional<String> frameworkId)
   {
     logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
     this.resourceNamespace = resourceNamespace;
+    this.frameworkId = frameworkId;
     // Multiple tasks may share a resource set. When a resource set is updated, we want to ensure that all tasks
     // attached to the resource set receive the update.
     this.taskSpecNames = taskSpecNames;
@@ -61,7 +65,6 @@ class TaskResourceMapper {
     this.resourceSpecs.addAll(resourceSet.getVolumes());
     this.taskPortFinder = new TaskPortLookup(taskInfo);
     this.resources = taskInfo.getResourcesList();
-
     // ONLY call this AFTER initializing all members above:
     this.evaluationStages = getEvaluationStagesInternal();
   }
@@ -96,7 +99,8 @@ class TaskResourceMapper {
           matchingResource = ResourceMapperUtils.findMatchingResourceSpec(
               taskResource,
               remainingResourceSpecs,
-              resourceNamespace);
+              resourceNamespace,
+              frameworkId);
           break;
       }
       if (matchingResource.isPresent()) {
@@ -168,7 +172,10 @@ class TaskResourceMapper {
               resourceId.get(),
               ResourceMapperUtils.getNamespaceLabel(
                   ResourceUtils.getNamespace(taskResource),
-                  resourceNamespace)));
+                  resourceNamespace),
+              ResourceMapperUtils.getFrameworkIdLabel(
+                  ResourceUtils.getFrameworkId(taskResource),
+                  frameworkId)));
         }
       } else if (RangeUtils.isInAny(ranges.getRangeList(), portSpec.getPort())) {
         // For fixed ports, we can just check for a resource whose ranges include that port.
@@ -177,7 +184,10 @@ class TaskResourceMapper {
             resourceId.get(),
             ResourceMapperUtils.getNamespaceLabel(
                 ResourceUtils.getNamespace(taskResource),
-                resourceNamespace)));
+                resourceNamespace),
+            ResourceMapperUtils.getFrameworkIdLabel(
+                ResourceUtils.getFrameworkId(taskResource),
+                frameworkId)));
       }
     }
     return Optional.empty();
@@ -193,7 +203,8 @@ class TaskResourceMapper {
         resourceLabels.getResourceNamespace(),
         resourceLabels.getPersistenceId(),
         resourceLabels.getProviderId(),
-        resourceLabels.getDiskSource());
+        resourceLabels.getDiskSource(),
+        resourceLabels.getFrameworkId());
   }
 
   private OfferEvaluationStage newCreateEvaluationStage(
@@ -206,7 +217,8 @@ class TaskResourceMapper {
         resourceNamespace,
         Optional.empty(),
         Optional.empty(),
-        Optional.empty());
+        Optional.empty(),
+        frameworkId);
   }
 
   private static OfferEvaluationStage toEvaluationStage(
@@ -216,17 +228,19 @@ class TaskResourceMapper {
       Optional<String> resourceNamespace,
       Optional<String> persistenceId,
       Optional<Protos.ResourceProviderID> providerId,
-      Optional<Protos.Resource.DiskInfo.Source> diskSource)
+      Optional<Protos.Resource.DiskInfo.Source> diskSource,
+      Optional<String> frameworkId)
   {
     if (resourceSpec instanceof NamedVIPSpec) {
       return new NamedVIPEvaluationStage(
-          (NamedVIPSpec) resourceSpec, taskSpecNames, resourceId, resourceNamespace);
+          (NamedVIPSpec) resourceSpec, taskSpecNames, resourceId, resourceNamespace, frameworkId);
     } else if (resourceSpec instanceof PortSpec) {
       return new PortEvaluationStage(
           (PortSpec) resourceSpec,
           taskSpecNames,
           resourceId,
-          resourceNamespace);
+          resourceNamespace,
+          frameworkId);
     } else if (resourceSpec instanceof VolumeSpec) {
       return VolumeEvaluationStage.getExisting(
           (VolumeSpec) resourceSpec,
@@ -235,13 +249,15 @@ class TaskResourceMapper {
           resourceNamespace,
           persistenceId,
           providerId,
-          diskSource);
+          diskSource,
+          frameworkId);
     } else {
       return new ResourceEvaluationStage(
           resourceSpec,
           taskSpecNames,
           resourceId,
-          resourceNamespace);
+          resourceNamespace,
+          frameworkId);
     }
   }
 }
