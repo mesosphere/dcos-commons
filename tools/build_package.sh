@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 
-set -e -x
+# Script exits if some command returns non-zero value
+set -e
+
 
 user_usage() {
     # This script is generally called by an upstream 'build.sh' which would be invoked directly by users.
@@ -10,7 +12,7 @@ user_usage() {
 
 dev_usage() {
     # Called when a syntax error appears to be an error on the part of the developer.
-    echo "Developer syntax: build_package.sh <framework-name> </abs/path/to/framework> [-a 'path1' -a 'path2' ...] [aws|local|.dcos]"
+    echo "Developer syntax: build_package.sh <framework-name> </abs/path/to/framework> [-v] [-a 'path1' -a 'path2' ...] [aws|local|.dcos]"
 }
 
 # Optional envvars:
@@ -33,13 +35,14 @@ echo "Building $FRAMEWORK_NAME in $FRAMEWORK_DIR:"
 
 # optional args, currently just used for providing paths to service artifacts:
 custom_artifacts=
-while getopts 'a:' opt; do
+while getopts 'va:' opt; do
     case $opt in
-        a)
-            custom_artifacts="$custom_artifacts $OPTARG"
-            ;;
-        \?)
-            dev_usage
+        v) echo "Verbose mode enabled"
+           set -x
+           ;;
+        a) custom_artifacts="$custom_artifacts $OPTARG"
+           ;;
+        \?) dev_usage
             exit 1
             ;;
     esac
