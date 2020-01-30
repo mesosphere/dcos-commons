@@ -102,7 +102,9 @@ pods:
                 ./bootstrap
                 ARGS='-f'
 
-                if [ -n "$STATSD_UDP_HOST" ]; then
+                if [ "$METRICS" = "Prometheus" ]; then
+                    ARGS="$ARGS -javaagent:cassandra-exporter-agent-0.9.10.jar
+                elif [ -n "$STATSD_UDP_HOST" ]; then
                     ARGS="$ARGS -Dcassandra.metricsReporterConfigFile=metrics-reporter-config.yaml"
                 fi
 

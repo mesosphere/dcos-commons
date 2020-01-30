@@ -94,6 +94,15 @@
             "type": "application/x-region+string"
           }
         },
+        "metrics": {
+          "type": "string",
+          "description": "The format and mechanism used for metrics. They're either made available in Prometheus format or pushed to the StatsD host.",
+          "enum": [
+            "StatsD",
+            "Prometheus"
+          ],
+          "default": "Prometheus"
+        },
         "security": {
           "description": "Cassandra security settings",
           "type": "object",
