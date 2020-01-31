@@ -18,6 +18,7 @@ import com.mesosphere.sdk.specification.DefaultHostVolumeSpec;
 import com.mesosphere.sdk.specification.DefaultNetworkSpec;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.DefaultReadinessCheckSpec;
+import com.mesosphere.sdk.specification.DefaultResourceLimits;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.specification.DefaultSecretSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -35,6 +36,7 @@ import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.RLimitSpec;
 import com.mesosphere.sdk.specification.RangeSpec;
 import com.mesosphere.sdk.specification.ReadinessCheckSpec;
+import com.mesosphere.sdk.specification.ResourceLimits;
 import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.specification.SecretSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -335,7 +337,8 @@ public final class YAMLToInternalMappers {
                 role,
                 rawPod.getPreReservedRole(),
                 principal,
-                networkNames);
+                networkNames,
+                rawResourceSet.getResourceLimits());
           })
           .collect(Collectors.toList()));
     }
@@ -507,10 +510,23 @@ public final class YAMLToInternalMappers {
           role,
           preReservedRole,
           principal,
-          networkNames));
+          networkNames,
+          rawTask.getResourceLimits()));
     }
 
     return builder.build();
+  }
+
+  private static final ResourceLimits convertResourceLimits(
+          RawResourceLimits rawResourceLimits
+  ) {
+    if (rawResourceLimits == null) {
+      return DefaultResourceLimits.empty();
+    } else {
+      return new DefaultResourceLimits(
+              rawResourceLimits.getCpus(),
+              rawResourceLimits.getMem());
+    }
   }
 
   private static DefaultResourceSet convertResourceSet(
@@ -524,7 +540,8 @@ public final class YAMLToInternalMappers {
       String role,
       String preReservedRole,
       String principal,
-      Collection<String> networkNames)
+      Collection<String> networkNames,
+      RawResourceLimits rawResourceLimits)
   {
 
     DefaultResourceSet.Builder resourceSetBuilder =
@@ -567,6 +584,9 @@ public final class YAMLToInternalMappers {
     if (rawPorts != null) {
       convertPorts(role, preReservedRole, principal, rawPorts, networkNames)
           .forEach(resourceSetBuilder::addResource);
+    }
+    if (rawResourceLimits != null) {
+      resourceSetBuilder.resourceLimits(convertResourceLimits(rawResourceLimits));
     }
 
     return resourceSetBuilder
