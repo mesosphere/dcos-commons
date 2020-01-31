@@ -30,7 +30,8 @@ public final class DefaultConfigValidators {
         new PlacementRuleIsValid(),
         new RegionCannotChange(),
         new ServiceNameCannotBreakDNS(),
-        new TaskSpecsCannotUseUnsupportedFeatures());
+        new TaskSpecsCannotUseUnsupportedFeatures(),
+        new ResourceLimitsMustExceedRequestedResources());
   }
 
   public static Collection<ConfigValidator<ServiceSpec>> getRoleValidators(boolean hasRoleChanged,
