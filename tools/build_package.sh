@@ -42,6 +42,7 @@ custom_artifacts=
 while getopts 'va:' opt; do
     case $opt in
         v) echo "Verbose mode enabled"
+           VERBOSE=true
            set -x
            ;;
         a) custom_artifacts="$custom_artifacts $OPTARG"
@@ -128,6 +129,10 @@ if [ -n "$PUBLISH_SCRIPT" ]; then
     # All the scripts use the same argument format:
     publisher_log_file="/tmp/$(basename ${PUBLISH_SCRIPT}).log"
     echo "Logs of publisher script in $publisher_log_file"
-    $PUBLISH_SCRIPT "${FRAMEWORK_NAME}" "${PACKAGE_VERSION}" "${UNIVERSE_DIR}" ${custom_artifacts} &> $publisher_log_file
+    if [ $VERBOSE ]; then
+        $PUBLISH_SCRIPT "${FRAMEWORK_NAME}" "${PACKAGE_VERSION}" "${UNIVERSE_DIR}" ${custom_artifacts} | tee $publisher_log_file
+    else 
+        $PUBLISH_SCRIPT "${FRAMEWORK_NAME}" "${PACKAGE_VERSION}" "${UNIVERSE_DIR}" ${custom_artifacts} &> $publisher_log_file
+    fi
 fi
 echo "Package Building Successfull"
