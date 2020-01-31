@@ -135,4 +135,4 @@ if [ -n "$PUBLISH_SCRIPT" ]; then
         $PUBLISH_SCRIPT "${FRAMEWORK_NAME}" "${PACKAGE_VERSION}" "${UNIVERSE_DIR}" ${custom_artifacts} &> $publisher_log_file
     fi
 fi
-echo "Package Building Successfull"
+echo "Package Building Successful"
