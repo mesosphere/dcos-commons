@@ -130,6 +130,17 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void invalidResourceLimitsCpus() throws Exception {
+        try {
+            DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("invalid-resource-limits-in-resource-set.yml");
+            validateServiceSpec(resourceLimitsSpec, false);
+            Assert.fail("Expected exception");
+        } catch (IllegalStateException e) {
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains("The cpus resource-limits for task 'meta-data-task', 0.5, is less than the requested amount, 1"));
+        }
+    }
+
+    @Test
     public void validProfileMountVolume() throws Exception {
         validateServiceSpec("valid-profile-mount-volume.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }

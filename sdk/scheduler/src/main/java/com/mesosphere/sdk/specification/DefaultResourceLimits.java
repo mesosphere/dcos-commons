@@ -49,4 +49,9 @@ public final class DefaultResourceLimits implements ResourceLimits {
     public Optional<Double> getMemDouble() {
         return mem.map((m) -> interpretUnlimited(m));
     }
+
+    @Override
+    public String toString() {
+        return "DefaultResourceLimits{cpus=" + cpus + ", mem=" + mem + '}';
+    }
 }
