@@ -1,6 +1,13 @@
 #!/usr/bin/env bash
+# Optional envvars:
+#   REPO_ROOT_DIR: path to root of source repository (default: parent directory of this file)
+#   REPO_NAME: name of the source repository (default: directory name of REPO_ROOT_DIR)
+#   UNIVERSE_DIR: path to universe packaging (default: </absolute/framework/path>/universe/)
 
-set -e -x
+
+# Script exits if some command returns non-zero value
+set -e
+
 
 user_usage() {
     # This script is generally called by an upstream 'build.sh' which would be invoked directly by users.
@@ -8,20 +15,18 @@ user_usage() {
     echo "Syntax: build.sh [-h|--help] [aws|local|.dcos]"
 }
 
+
 dev_usage() {
     # Called when a syntax error appears to be an error on the part of the developer.
-    echo "Developer syntax: build_package.sh <framework-name> </abs/path/to/framework> [-a 'path1' -a 'path2' ...] [aws|local|.dcos]"
+    echo "Developer syntax: build_package.sh <framework-name> </abs/path/to/framework> [-v] [-a 'path1' -a 'path2' ...] [aws|local|.dcos]"
 }
 
-# Optional envvars:
-#   REPO_ROOT_DIR: path to root of source repository (default: parent directory of this file)
-#   REPO_NAME: name of the source repository (default: directory name of REPO_ROOT_DIR)
-#   UNIVERSE_DIR: path to universe packaging (default: </absolute/framework/path>/universe/)
 
 if [ $# -lt 3 ]; then
     dev_usage
     exit 1
 fi
+
 
 # required args:
 FRAMEWORK_NAME=$1
@@ -29,17 +34,20 @@ shift
 FRAMEWORK_DIR=$1
 shift
 
-echo "Building $FRAMEWORK_NAME in $FRAMEWORK_DIR:"
+
+echo "Building $FRAMEWORK_NAME package in $FRAMEWORK_DIR:"
 
 # optional args, currently just used for providing paths to service artifacts:
 custom_artifacts=
-while getopts 'a:' opt; do
+while getopts 'va:' opt; do
     case $opt in
-        a)
-            custom_artifacts="$custom_artifacts $OPTARG"
-            ;;
-        \?)
-            dev_usage
+        v) echo "Verbose mode enabled"
+           VERBOSE=true
+           set -x
+           ;;
+        a) custom_artifacts="$custom_artifacts $OPTARG"
+           ;;
+        \?) dev_usage
             exit 1
             ;;
     esac
@@ -77,7 +85,10 @@ export REPO_NAME=${REPO_NAME:=$(basename $REPO_ROOT_DIR)} # default to name of R
 
 UNIVERSE_DIR=${UNIVERSE_DIR:=${FRAMEWORK_DIR}/universe} # default to 'universe' directory in framework dir
 echo "- Universe:  $UNIVERSE_DIR"
-echo "- Artifacts:$custom_artifacts"
+echo "- Artifacts:"
+for cus_art in $custom_artifacts; do
+  echo "  - $cus_art"
+done
 echo "- Publish:   $publish_method"
 echo "---"
 
@@ -112,7 +123,16 @@ esac
 
 PACKAGE_VERSION=${1:-"stub-universe"}
 
+
+# Launch Publisher script if is defined
 if [ -n "$PUBLISH_SCRIPT" ]; then
     # All the scripts use the same argument format:
-    $PUBLISH_SCRIPT "${FRAMEWORK_NAME}" "${PACKAGE_VERSION}" "${UNIVERSE_DIR}" ${custom_artifacts}
+    publisher_log_file="/tmp/$(basename ${PUBLISH_SCRIPT}).log"
+    echo "Logs of publisher script in $publisher_log_file"
+    if [ $VERBOSE ]; then
+        $PUBLISH_SCRIPT "${FRAMEWORK_NAME}" "${PACKAGE_VERSION}" "${UNIVERSE_DIR}" ${custom_artifacts} | tee $publisher_log_file
+    else 
+        $PUBLISH_SCRIPT "${FRAMEWORK_NAME}" "${PACKAGE_VERSION}" "${UNIVERSE_DIR}" ${custom_artifacts} &> $publisher_log_file
+    fi
 fi
+echo "Package Building Successful"
