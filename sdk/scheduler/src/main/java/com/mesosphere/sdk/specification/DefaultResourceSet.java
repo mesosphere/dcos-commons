@@ -33,6 +33,8 @@ public final class DefaultResourceSet implements ResourceSet {
 
   private final String principal;
 
+  private final ResourceLimits resourceLimits;
+
   @JsonCreator
   private DefaultResourceSet(
       @JsonProperty("id") String id,
@@ -40,7 +42,8 @@ public final class DefaultResourceSet implements ResourceSet {
       @JsonProperty("volume-specifications") Collection<VolumeSpec> volumes,
       @JsonProperty("role") String role,
       @JsonProperty("pre-reserved-role") String preReservedRole,
-      @JsonProperty("principal") String principal)
+      @JsonProperty("principal") String principal,
+      @JsonProperty("resource-limits") ResourceLimits resourceLimits)
   {
     this.id = id;
     this.resources = resources;
@@ -48,6 +51,7 @@ public final class DefaultResourceSet implements ResourceSet {
     this.role = role;
     this.preReservedRole = preReservedRole;
     this.principal = principal;
+    this.resourceLimits = resourceLimits;
   }
 
   private DefaultResourceSet(Builder builder) {
@@ -57,12 +61,14 @@ public final class DefaultResourceSet implements ResourceSet {
         builder.volumes,
         builder.role,
         builder.preReservedRole,
-        builder.principal);
+        builder.principal,
+        builder.resourceLimits);
 
     ValidationUtils.nonEmpty(this, "id", id);
     ValidationUtils.nonEmpty(this, "resources", resources);
     ValidationUtils.nonEmpty(this, "role", role);
     ValidationUtils.nonEmpty(this, "principal", principal);
+    ResourceLimits.isProperlyFormatted(resourceLimits);
   }
 
   public static Builder newBuilder(String role, String preReservedRole, String principal) {
@@ -101,6 +107,11 @@ public final class DefaultResourceSet implements ResourceSet {
   }
 
   @Override
+  public ResourceLimits getResourceLimits() {
+    return resourceLimits;
+  }
+
+  @Override
   public boolean equals(Object o) {
     return EqualsBuilder.reflectionEquals(this, o);
   }
@@ -127,10 +138,13 @@ public final class DefaultResourceSet implements ResourceSet {
 
     private String principal;
 
+    private ResourceLimits resourceLimits;
+
     private Builder(String role, String preReservedRole, String principal) {
       this.role = role;
       this.preReservedRole = preReservedRole;
       this.principal = principal;
+      this.resourceLimits = DefaultResourceLimits.empty();
       resources = new LinkedList<>();
       volumes = new LinkedList<>();
     }
@@ -181,6 +195,11 @@ public final class DefaultResourceSet implements ResourceSet {
 
     public Builder memory(Double memory) {
       return addScalarResource(memory, "mem");
+    }
+
+    public Builder resourceLimits(ResourceLimits resourceLimits) {
+      this.resourceLimits = resourceLimits;
+      return this;
     }
 
     public Builder addVolume(
