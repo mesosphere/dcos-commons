@@ -20,7 +20,7 @@
 # - put the tag into the FROM line in Dockerfile (of the main image)
 #   temporarily, rebuild that one, test, etc.
 #
-FROM ubuntu:18.10@sha256:7d657275047118bb77b052c4c0ae43e8a289ca2879ebfa78a703c93aa8fd686c
+FROM ubuntu:18.10@sha256:c95b7b93ccd48c3bfd97f8cac6d5ca8053ced584c9e8e6431861ca30b0d73114
 
 # Docker and DIND
 # links to commit hashes are listed inside posted Dockerfiles at
