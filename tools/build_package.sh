@@ -61,6 +61,10 @@ case $1 in
         publish_method="aws"
         shift
         ;;
+    azure)
+        publish_method="azure"
+        shift
+        ;;
     local)
         publish_method="local"
         shift
@@ -107,6 +111,10 @@ case "$publish_method" in
         echo "Uploading to S3"
         PUBLISH_SCRIPT=${TOOLS_DIR}/publish_aws.py
         ;;
+    azure)
+        echo "Uploading to Azure blob storage"
+        PUBLISH_SCRIPT=${TOOLS_DIR}/publish_azure.py
+        ;;
     .dcos)
         echo "Uploading .dcos files to S3"
         PUBLISH_SCRIPT=${TOOLS_DIR}/publish_dcos_file.py
@@ -117,6 +125,7 @@ case "$publish_method" in
         echo "Use one of the following additional arguments to get something that runs on a cluster:"
         echo "- 'local': Host the build in a local HTTP server."
         echo "- 'aws':   Upload the build to S3."
+        echo "- 'azure':   Upload the build to blob storage."
         echo "- '.dcos': Upload the build as a .dcos file to S3."
         ;;
 esac
