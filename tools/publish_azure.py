@@ -82,7 +82,7 @@ class AzurePublisher(object):
             package_info,
             package_manager,
             self._input_dir_path,
-            "",
+            "https://{}.blob.core.windows.net/{}".format(self._az_storage_account, self._az_container_name),
             self._artifact_paths,
             self._dry_run,
         )
