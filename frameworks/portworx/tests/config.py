@@ -29,7 +29,7 @@ DEFAULT_TASK_COUNT = 1
 
 PX_IMAGE = os.environ['PX_IMAGE']
 PX_KVDB_SERVER = os.environ['KVDB']
-PX_OPTIONS = "-a -x mesos -d enp0s8 -m enp0s8 "
+PX_OPTIONS = "-a -x mesos -d enp0s8 -m enp0s8 -tracefile-diskusage 10 "
 PX_AUTH_OPTIONS = os.environ['PX_AUTH_OPTIONS']
 PX_NUM_NODES = int(os.environ['PX_NUM_NODES'])
 
