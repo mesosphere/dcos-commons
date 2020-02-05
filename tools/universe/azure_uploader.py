@@ -3,7 +3,6 @@
 import logging
 import subprocess
 import os
-import msrest
 
 log = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG, format="%(message)s")
@@ -34,10 +33,9 @@ class AzureUploader(object):
         if self._dry_run != "True":
             try:
               output = subprocess.call(cmdlist)
-            except msrest.exceptions.TokenExpiredError:
-              # Azure CLI doesn't stores any session details. Only a token which expires after 90 days of inactivity.
-              log.error("Session Token has expired. Try to relogin with 'az login' and repeat the building")
             except:
+              # Azure CLI doesn't stores any session details. Only a token which expires after 90 days of inactivity.
+              log.error("Common Error: Check if token has expired. Try to relogin with 'az login' and repeat the building")
               log.error(output)
 
         else:
