@@ -120,6 +120,16 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validResourceLimitsMissing() throws Exception {
+        DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("valid-resource-limits-empty.yml");
+        validateServiceSpec(resourceLimitsSpec, false);
+        TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
+        ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
+        Assert.assertFalse("CPU limit should be empty", resourceSet.getResourceLimits().getCpusDouble().isPresent());
+        Assert.assertFalse("Memory limit should be empty", resourceSet.getResourceLimits().getMemDouble().isPresent());
+    }
+
+    @Test
     public void validResourceLimitsInTask() throws Exception {
         DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("valid-resource-limits-in-task.yml");
         validateServiceSpec(resourceLimitsSpec, false);

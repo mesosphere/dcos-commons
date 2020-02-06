@@ -16,12 +16,18 @@ public final class DefaultResourceLimits implements ResourceLimits {
         return new DefaultResourceLimits(null, null);
     }
 
+    private static final Optional<String> sanitize(String input) {
+        return Optional.ofNullable(input)
+                .map((c) -> c.trim())
+                .filter((c) -> !c.isEmpty());
+    }
+
     @JsonCreator
     public DefaultResourceLimits(
             @JsonProperty("cpus") String cpus,
             @JsonProperty("mem") String mem) {
-        this.cpus = Optional.ofNullable(cpus);
-        this.mem = Optional.ofNullable(mem);
+        this.cpus = sanitize(cpus);
+        this.mem = sanitize(mem);
     }
 
     @Override

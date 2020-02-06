@@ -4,19 +4,19 @@
 
 ### Resource limits (AKA vertical bursting)
 
-The resource limits change brings several important changes to the DC/OS SDK. It is critical that every data service built on the SDK take this in to account.
+The resource limits change brings several important changes to the SDK in how it launches tasks. In order to enable smooth upgrades, it is critical that every data service built on the SDK be adapted with the changes and potential problems in to account.
 
-#### No longer share resources with other tasks
+#### Tasks no longer share resources with other tasks
 
-Previously, sidecar tasks (such as `nodetool repair`) would be allowed to consume memory and cpus from the primary service task. This is because Mesos would launch all tasks in to a single cgroups. With SDK v0.58.0, this is no longer the case. If a sidecar task actually needs more memory than that which it specifically requests, it will get OOM killed.
+Previously, sidecar tasks (such as running Cassandra `nodetool repair`) were able to consume memory and cpu resources from the primary task. This is because Mesos previously launched all tasks in to a single cgroups. SDK v0.58.0 will instruct Mesos to launch all tasks in separate cgroups. This means that if a sidecar task actually needs more memory than that which it specifically requests, and no configuration is changed, the sidecar task **will get OOM killed**.
 
-To remedy this, all service templates created in the Universe should expose appropriate configuration parameters so that bursting can be configured for sidecar tasks.
+To remedy this, all frameworks should update their service specs so that ultimately the resource-limits for both the primary data service task, and side-car tasks, can be defined. Further, the templates in the Universe should expose appropriate configuration parameters so that bursting for both can be defined.
 
 #### Tasks can be configured to optional consume more than they request.
 
 With resource-limits, a task can be configured to consume more CPU or Memory than that which is requested and reserved. This is fantastic news for data-services that would permanently set aside an entire CPU so that occassional backup or repair side-car tasks can be run. To repeat a point made before, SDK service templates should expose appropriate configuration parameters so that resource-limits can be set, at the very least, for sidecar tasks.
 
-Instead of Cassandra requiring 1 CPU for a sidecar tasks, it could instead set aside 0.1 CPU, and then set a resource limit of up to 2 CPUs. This will allow the task to run fast when their are leftover resources to run them, and leave CPUs available to service time-sensitive API requests.
+Instead of Cassandra requiring 1 CPU for a sidecar tasks, it could instead set aside `0.1` CPU, and then set a resource limit of up to 2 CPUs. This will allow the task to run fast when their are leftover resources to run them, and leave CPUs available to service time-sensitive API requests.
 
 ## Changes to v0.57.3
 
