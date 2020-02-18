@@ -40,7 +40,7 @@ storage_port: {{CASSANDRA_STORAGE_PORT}}
 ssl_storage_port: {{CASSANDRA_SSL_STORAGE_PORT}}
 start_native_transport: {{CASSANDRA_START_NATIVE_TRANSPORT}}
 native_transport_port: {{CASSANDRA_NATIVE_TRANSPORT_PORT}}
-max_queued_native_transport_requests: {{TASKCFG_ALL_CASSANDRA_MAX_QUEUED_NATIVE_TRANSPORT_REQUESTS}}
+max_queued_native_transport_requests: {{CASSANDRA_MAX_QUEUED_NATIVE_TRANSPORT_REQUESTS}}
 start_rpc: {{CASSANDRA_START_RPC}}
 rpc_port: {{CASSANDRA_RPC_PORT}}
 rpc_keepalive: {{CASSANDRA_RPC_KEEPALIVE}}
