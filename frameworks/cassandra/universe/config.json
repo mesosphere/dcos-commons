@@ -638,6 +638,11 @@
           "description": "The port for CQL communication.",
           "default": 9042
         },
+        "max_queued_native_transport_requests": {
+          "type": "integer",
+          "description": "The maximum allowed size of requests queue.",
+          "default": 2048
+        },
         "start_rpc": {
           "type": "boolean",
           "description": "If true Thrift RPC is enabled. This is deprecated but may be necessary for legacy applications.",
