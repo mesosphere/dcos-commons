@@ -15,7 +15,7 @@ log = logging.getLogger(__name__)
 
 PACKAGE_NAME = "cassandra"
 
-CASSANDRA_DOCKER_IMAGE = "cassandra:3.11.5"
+CASSANDRA_DOCKER_IMAGE = "cassandra:3.11.6"
 
 SERVICE_NAME = os.environ.get("SOAK_SERVICE_NAME") or "cassandra"
 
