@@ -74,7 +74,8 @@ public final class AuxLabelAccess {
 
   public static void setPortLabels(
           Protos.Port.Builder portBuilder,
-          Map<String, String> portLabels) {
+          Map<String, String> portLabels)
+  {
     portBuilder.setLabels(LabelUtils.toProto(portLabels));
   }
 
