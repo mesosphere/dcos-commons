@@ -771,6 +771,10 @@ public final class YAMLToInternalMappers {
             .vipName(StringUtils.isEmpty(rawVip.getPrefix()) ? name : rawVip.getPrefix())
             .vipPort(rawVip.getPort());
       }
+      Map<String, String> labels = Collections.emptyMap();
+      if (!Strings.isNullOrEmpty(rawPort.getLabelsCsv())) {
+        labels = convertLabels(rawPort.getLabelsCsv());
+      }
       portSpecBuilder
           // PortSpec settings:
           .envKey(rawPort.getEnvKey())
@@ -778,6 +782,7 @@ public final class YAMLToInternalMappers {
           .visibility(visibility)
           .networkNames(networkNames)
           .ranges(getRangeSpecs(rawPort))
+          .labels(labels)
           // ResourceSpec settings:
           .value(portValueBuilder.build())
           .role(role)

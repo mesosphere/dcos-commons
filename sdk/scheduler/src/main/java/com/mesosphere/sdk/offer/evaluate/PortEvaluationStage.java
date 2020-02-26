@@ -6,6 +6,7 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.ResourceBuilder;
 import com.mesosphere.sdk.offer.TaskException;
+import com.mesosphere.sdk.offer.taskdata.AuxLabelAccess;
 import com.mesosphere.sdk.offer.taskdata.EnvUtils;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
@@ -173,11 +174,15 @@ public class PortEvaluationStage implements OfferEvaluationStage {
             .setVisibility(Constants.DEFAULT_TASK_DISCOVERY_VISIBILITY)
             .setName(taskBuilder.getName());
       }
-      taskBuilder.getDiscoveryBuilder().getPortsBuilder().addPortsBuilder()
-          .setNumber((int) port)
+
+      Protos.Port.Builder portsBuilder = taskBuilder.getDiscoveryBuilder().getPortsBuilder().addPortsBuilder();
+
+      portsBuilder.setNumber((int) port)
           .setVisibility(portSpec.getVisibility())
           .setProtocol(DcosConstants.DEFAULT_IP_PROTOCOL)
           .setName(portSpec.getPortName());
+
+      AuxLabelAccess.setPortLabels(portsBuilder, portSpec.getLabels());
 
       if (portEnvKey != null) {
 

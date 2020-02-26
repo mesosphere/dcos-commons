@@ -19,18 +19,22 @@ public final class RawPort {
 
   private final List<RawRange> ranges;
 
+  private final String labelsCsv;
+
   private RawPort(
       @JsonProperty("port") Integer port,
       @JsonProperty("env-key") String envKey,
       @JsonProperty("advertise") Boolean advertise,
       @JsonProperty("vip") RawVip vip,
-      @JsonProperty("ranges") List<RawRange> ranges)
+      @JsonProperty("ranges") List<RawRange> ranges,
+      @JsonProperty("labels") String labelsCsv)
   {
     this.port = port;
     this.envKey = envKey;
     this.advertise = advertise;
     this.vip = vip;
     this.ranges = ranges;
+    this.labelsCsv = labelsCsv;
   }
 
   public Integer getPort() {
@@ -51,5 +55,9 @@ public final class RawPort {
 
   public List<RawRange> getRanges() {
     return ranges;
+  }
+
+  public String getLabelsCsv() {
+    return labelsCsv;
   }
 }

@@ -13,6 +13,7 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This class represents a single port, with associated environment name.
@@ -29,6 +30,8 @@ public class PortSpec extends DefaultResourceSpec {
 
   private final List<RangeSpec> ranges;
 
+  private final Map<String, String> labels;
+
   @JsonCreator
   protected PortSpec(
       @JsonProperty("value") Protos.Value value,
@@ -39,7 +42,8 @@ public class PortSpec extends DefaultResourceSpec {
       @JsonProperty("port-name") String portName,
       @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
       @JsonProperty("network-names") Collection<String> networkNames,
-      @JsonProperty("ranges") List<RangeSpec> ranges)
+      @JsonProperty("ranges") List<RangeSpec> ranges,
+      @JsonProperty("labels") Map<String, String> labels)
   {
     super(Constants.PORTS_RESOURCE_TYPE, value, role, preReservedRole, principal);
     this.envKey = envKey;
@@ -47,6 +51,7 @@ public class PortSpec extends DefaultResourceSpec {
     this.visibility = visibility;
     this.networkNames = networkNames;
     this.ranges = ranges;
+    this.labels = labels;
   }
 
   public PortSpec(Builder builder) {
@@ -59,7 +64,8 @@ public class PortSpec extends DefaultResourceSpec {
         builder.portName,
         builder.visibility,
         builder.networkNames,
-        builder.ranges);
+        builder.ranges,
+        builder.labels);
 
     validatePort();
   }
@@ -75,6 +81,7 @@ public class PortSpec extends DefaultResourceSpec {
       .visibility(copy.getVisibility())
       .networkNames(copy.getNetworkNames())
       .ranges(copy.getRanges())
+      .labels(copy.getLabels())
       .value(copy.getValue())
       .role(copy.getRole())
       .preReservedRole(copy.getPreReservedRole())
@@ -96,7 +103,8 @@ public class PortSpec extends DefaultResourceSpec {
         portSpec.getPortName(),
         portSpec.getVisibility(),
         portSpec.getNetworkNames(),
-        portSpec.getRanges());
+        portSpec.getRanges(),
+        portSpec.getLabels());
   }
 
   protected void validatePort() {
@@ -135,6 +143,11 @@ public class PortSpec extends DefaultResourceSpec {
     return getValue().getRanges().getRange(0).getBegin();
   }
 
+  @JsonProperty("labels")
+  public Map<String, String> getLabels() {
+    return labels;
+  }
+
   @Override
   public String toString() {
     return String.format("%s, port-name: %s, network-names: %s, env-key: %s, visibility: %s, " +
@@ -144,7 +157,8 @@ public class PortSpec extends DefaultResourceSpec {
         getNetworkNames(),
         getEnvKey(),
         getVisibility(),
-        getRanges());
+        getRanges(),
+        getLabels());
   }
 
   @Override
@@ -172,6 +186,8 @@ public class PortSpec extends DefaultResourceSpec {
 
     protected List<RangeSpec> ranges = Collections.emptyList();
 
+    protected Map<String, String> labels = Collections.emptyMap();
+
     protected Builder() {
     }
 
@@ -197,6 +213,11 @@ public class PortSpec extends DefaultResourceSpec {
 
     public Builder ranges(List<RangeSpec> ranges) {
       this.ranges = ranges;
+      return this;
+    }
+
+    public Builder labels(Map<String, String> labels) {
+      this.labels = labels;
       return this;
     }
 

@@ -132,16 +132,61 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals("name1", portSpec.getPortName());
         Assert.assertEquals(8080, portSpec.getPort());
         Assert.assertEquals("key1", portSpec.getEnvKey());
+        Map<String, String> labelsName = new HashMap<>();
+        labelsName.put("label-key1", "value1");
+        labelsName.put("label-key2", "value2");
+        Assert.assertEquals(labelsName, portSpec.getLabels());
 
         portSpec = (PortSpec) portsResources.get(1);
         Assert.assertEquals("name2", portSpec.getPortName());
         Assert.assertEquals(8088, portSpec.getPort());
         Assert.assertEquals(null, portSpec.getEnvKey());
+        labelsName = Collections.singletonMap("label-key", "value");
+        Assert.assertEquals(labelsName, portSpec.getLabels());
+
 
         portSpec = (PortSpec) portsResources.get(2);
         Assert.assertEquals("name3", portSpec.getPortName());
         Assert.assertEquals(8089, portSpec.getPort());
         Assert.assertEquals(null, portSpec.getEnvKey());
+        labelsName = Collections.emptyMap();
+        Assert.assertEquals(labelsName, portSpec.getLabels());
+    }
+
+    @Test
+    public void validPortLabels() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-labels-ports.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+
+        List<ResourceSpec> portsResources = serviceSpec.getPods().get(0).getTasks().get(0).getResourceSet()
+                .getResources()
+                .stream()
+                .filter(r -> r.getName().equals("ports"))
+                .collect(Collectors.toList());
+
+        Assert.assertEquals(3, portsResources.size());
+
+        PortSpec portSpec = (PortSpec) portsResources.get(0);
+        Assert.assertEquals("name1", portSpec.getPortName());
+        Assert.assertEquals(8080, portSpec.getPort());
+        Map<String, String> labelsName = new HashMap<>();
+        labelsName.put("label-key1", "value1");
+        labelsName.put("label-key2", "value2");
+        Assert.assertEquals(labelsName, portSpec.getLabels());
+
+        portSpec = (PortSpec) portsResources.get(1);
+        Assert.assertEquals("name2", portSpec.getPortName());
+        Assert.assertEquals(8088, portSpec.getPort());
+        labelsName = Collections.singletonMap("label-key", "value");
+        Assert.assertEquals(labelsName, portSpec.getLabels());
+
+
+        portSpec = (PortSpec) portsResources.get(2);
+        Assert.assertEquals("name3", portSpec.getPortName());
+        Assert.assertEquals(8089, portSpec.getPort());
+        labelsName = Collections.emptyMap();
+        Assert.assertEquals(labelsName, portSpec.getLabels());
     }
 
     @Test

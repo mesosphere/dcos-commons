@@ -72,6 +72,12 @@ public final class AuxLabelAccess {
     reservationBuilder.setLabels(LabelUtils.toProto(map));
   }
 
+  public static void setPortLabels(
+          Protos.Port.Builder portBuilder,
+          Map<String, String> portLabels) {
+    portBuilder.setLabels(LabelUtils.toProto(portLabels));
+  }
+
   /**
    * Returns the unique resource id which can be used for uniquely identifying this reservation, or an empty optional
    * if none is present. This label should always be present in reservations which were created by the SDK.

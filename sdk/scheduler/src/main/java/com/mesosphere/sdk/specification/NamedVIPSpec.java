@@ -9,6 +9,7 @@ import org.apache.mesos.Protos.DiscoveryInfo;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Map;
 
 
 /**
@@ -32,6 +33,7 @@ public final class NamedVIPSpec extends PortSpec {
       @JsonProperty("port-name") String portName,
       @JsonProperty("visibility") DiscoveryInfo.Visibility visibility,
       @JsonProperty("network-names") Collection<String> networkNames,
+      @JsonProperty("labels") Map<String, String> labels,
       @JsonProperty("protocol") String protocol,
       @JsonProperty("vip-name") String vipName,
       @JsonProperty("vip-port") Integer vipPort)
@@ -45,7 +47,8 @@ public final class NamedVIPSpec extends PortSpec {
         portName,
         visibility,
         networkNames,
-        Collections.emptyList());
+        Collections.emptyList(),
+        labels);
     this.protocol = protocol;
     this.vipName = vipName;
     this.vipPort = vipPort;
@@ -61,6 +64,7 @@ public final class NamedVIPSpec extends PortSpec {
         builder.portName,
         builder.visibility,
         builder.networkNames,
+        builder.labels,
         builder.protocol,
         builder.vipName,
         builder.vipPort);
@@ -85,6 +89,7 @@ public final class NamedVIPSpec extends PortSpec {
       .visibility(copy.getVisibility())
       .networkNames(copy.getNetworkNames())
       .ranges(copy.getRanges())
+      .labels(copy.getLabels())
       .value(copy.getValue())
       .role(copy.getRole())
       .preReservedRole(copy.getPreReservedRole())
@@ -166,6 +171,7 @@ public final class NamedVIPSpec extends PortSpec {
           portSpec.getPortName(),
           portSpec.getVisibility(),
           portSpec.getNetworkNames(),
+          portSpec.getLabels(),
           protocol,
           vipName,
           vipPort);
