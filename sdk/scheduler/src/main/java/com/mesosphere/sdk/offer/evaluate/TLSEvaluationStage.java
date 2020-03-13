@@ -35,6 +35,8 @@ import java.util.stream.Collectors;
 })
 public class TLSEvaluationStage implements OfferEvaluationStage {
 
+  //TODO@kjoshi investigate this!
+
   private final Logger logger;
 
   private final String serviceName;
@@ -136,6 +138,8 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
     logger.info("Processing TLS info for {} elements of {}",
         transportEncryptionSpecs.size(),
         transportEncryptionSpecs);
+
+    //TODO@kjoshi here is where we add the new type of TransportEncryptionSpec
     for (TransportEncryptionSpec transportEncryptionSpec : transportEncryptionSpecs) {
       try {
         tlsArtifactsUpdater.update(
@@ -172,6 +176,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
       }
 
+      //TODO@kjoshi this is where the secrets are exposed to the tasks.
       // Share keys to the task container
       podInfoBuilder
           .getTaskBuilder(taskName)
@@ -184,6 +189,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
         "TLS certificate created and added to the task").build();
   }
 
+  //TODO@kjoshi this is where the artifact paths are added to pod.
   private static Set<Protos.Volume> getExecutorInfoSecretVolumes(
       TransportEncryptionSpec spec, TLSArtifactPaths tlsArtifactPaths)
   {

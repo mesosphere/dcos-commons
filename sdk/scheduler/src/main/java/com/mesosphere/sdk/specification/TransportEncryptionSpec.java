@@ -19,6 +19,7 @@ public interface TransportEncryptionSpec {
    */
   enum Type {
     // TODO(mh): Rename to PEM ?
+	// TODO@kjoshi: Add TLS_CUSTOM_CERT
     TLS,
     KEYSTORE
   }

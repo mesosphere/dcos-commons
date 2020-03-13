@@ -127,6 +127,7 @@ class TLSArtifactsGenerator {
       CertificateNamesGenerator certificateNamesGenerator)
       throws Exception
   {
+    //TODO@kjoshi, this generates the certificate key pairs.
     KeyPair keyPair = keyPairGenerator.generateKeyPair();
 
     // Get new end-entity certificate from CA
