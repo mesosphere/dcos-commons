@@ -808,6 +808,7 @@ public class PodInfoBuilder {
   private static Collection<Protos.Volume> getExecutorInfoSecretVolumes(Collection<SecretSpec> secretSpecs) {
     Collection<Protos.Volume> volumes = new ArrayList<>();
 
+    //DELETEME@kjoshi: How secret paths are currently attached to volumes.
     for (SecretSpec secretSpec : secretSpecs) {
       if (secretSpec.getFilePath().isPresent()) {
         volumes.add(Protos.Volume.newBuilder()

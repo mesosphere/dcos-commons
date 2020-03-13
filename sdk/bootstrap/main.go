@@ -376,6 +376,7 @@ func renderTemplates(templateMaxBytes int64) {
 }
 
 func installDCOSCertIntoJRE() {
+	// TODO@kjoshi investigate this!
 	mesosSandbox := os.Getenv("MESOS_SANDBOX")
 	sslDir := filepath.Join(mesosSandbox, ".ssl")
 
