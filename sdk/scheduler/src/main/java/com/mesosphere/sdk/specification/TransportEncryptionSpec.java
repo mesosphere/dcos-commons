@@ -3,6 +3,8 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+import java.util.Optional;
+
 /**
  * Spec for defining a TLS encryption support.
  */
@@ -14,13 +16,16 @@ public interface TransportEncryptionSpec {
   @JsonProperty("type")
   Type getType();
 
+  @JsonProperty("secret")
+  Optional<String> getSecret();
+
   /**
    * The allowed formats of TLS certificate format.
    */
   enum Type {
     // TODO(mh): Rename to PEM ?
-	// TODO@kjoshi: Add TLS_CUSTOM_CERT
     TLS,
-    KEYSTORE
+    KEYSTORE,
+    CUSTOM
   }
 }
