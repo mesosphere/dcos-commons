@@ -64,6 +64,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.function.Function;
@@ -457,10 +458,7 @@ public final class YAMLToInternalMappers {
     Collection<TransportEncryptionSpec> transportEncryption = rawTask
         .getTransportEncryption()
         .stream()
-        .map(task -> DefaultTransportEncryptionSpec.newBuilder()
-            .name(task.getName())
-            .type(TransportEncryptionSpec.Type.valueOf(task.getType()))
-            .build())
+        .map(task -> convertTransportEncryptionSpec(task))
         .collect(Collectors.toCollection(ArrayList::new));
 
     String goalString = StringUtils.upperCase(rawTask.getGoal());
@@ -586,6 +584,21 @@ public final class YAMLToInternalMappers {
         .envKey(rawSecret.getEnvKey())
         .filePath(filePath)
         .build();
+  }
+
+  private static DefaultTransportEncryptionSpec convertTransportEncryptionSpec(
+        RawTransportEncryption rawTransportEncryption)
+  {
+    String name = rawTransportEncryption.getName();
+    TransportEncryptionSpec.Type type = TransportEncryptionSpec.Type.valueOf(rawTransportEncryption.getType());
+    Optional<String> secret = rawTransportEncryption.getSecret() == null ?
+        Optional.empty() : Optional.of(rawTransportEncryption.getSecret());
+
+    return DefaultTransportEncryptionSpec.newBuilder()
+      .name(name)
+      .type(type)
+      .secret(secret)
+      .build();
   }
 
   private static DefaultHostVolumeSpec convertHostVolume(RawHostVolume rawHostVolume) {
