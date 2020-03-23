@@ -10,6 +10,7 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.evaluate.security.CertificateNamesGenerator;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsUpdater;
+import com.mesosphere.sdk.offer.evaluate.security.TransportEncryptionEntry;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TransportEncryptionSpec;
@@ -123,24 +124,26 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
           "No TLS specs found for task").build();
     }
 
-    CertificateNamesGenerator certificateNamesGenerator =
-        new CertificateNamesGenerator(
-            serviceName, taskSpec,
-            podInfoBuilder.getPodInstance(),
-            schedulerConfig);
-    TLSArtifactPaths tlsArtifactPaths = new TLSArtifactPaths(
-        namespace,
-        CommonIdUtils.getTaskInstanceName(podInfoBuilder.getPodInstance(), taskName),
-        certificateNamesGenerator.getSANsHash());
-
     Collection<TransportEncryptionSpec> transportEncryptionSpecs =
         taskSpec.getTransportEncryption();
     logger.info("Processing TLS info for {} elements of {}",
         transportEncryptionSpecs.size(),
         transportEncryptionSpecs);
 
+    CertificateNamesGenerator certificateNamesGenerator =
+        new CertificateNamesGenerator(
+            serviceName, taskSpec,
+            podInfoBuilder.getPodInstance(),
+            schedulerConfig);
+    //TODO@kjoshi: This is what needs to change between
+    TLSArtifactPaths tlsArtifactPaths = new TLSArtifactPaths(
+        namespace,
+        CommonIdUtils.getTaskInstanceName(podInfoBuilder.getPodInstance(), taskName),
+        certificateNamesGenerator.getSANsHash());
+
     //TODO@kjoshi here is where we add the new type of TransportEncryptionSpec
     for (TransportEncryptionSpec transportEncryptionSpec : transportEncryptionSpecs) {
+      //transportEncryptionSpec.getType()
       try {
         tlsArtifactsUpdater.update(
             tlsArtifactPaths, certificateNamesGenerator, transportEncryptionSpec.getName());
@@ -194,14 +197,14 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
       TransportEncryptionSpec spec, TLSArtifactPaths tlsArtifactPaths)
   {
 
-    Collection<TLSArtifactPaths.Entry> paths =
+    Collection<TransportEncryptionEntry> paths =
         tlsArtifactPaths.getPathsForType(spec.getType(), spec.getName());
     return paths.stream()
         .map(TLSEvaluationStage::getSecretVolume)
         .collect(Collectors.toSet());
   }
 
-  private static Protos.Volume getSecretVolume(TLSArtifactPaths.Entry entry) {
+  private static Protos.Volume getSecretVolume(TransportEncryptionEntry entry) {
     Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder()
         .setContainerPath(entry.mountPath)
         .setMode(Protos.Volume.Mode.RO);

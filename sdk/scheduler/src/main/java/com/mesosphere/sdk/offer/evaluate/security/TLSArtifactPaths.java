@@ -70,11 +70,11 @@ public class TLSArtifactPaths {
    * Returns a mapping of secret store path to mount path for all {@link TLSArtifact}s with the specified
    * {@link TransportEncryptionSpec.Type}.
    */
-  public List<Entry> getPathsForType(TransportEncryptionSpec.Type type, String encryptionSpecName) {
-    List<Entry> paths = new ArrayList<>();
+  public List<TransportEncryptionEntry> getPathsForType(TransportEncryptionSpec.Type type, String encryptionSpecName) {
+    List<TransportEncryptionEntry> paths = new ArrayList<>();
     for (TLSArtifact tlsArtifact : TLSArtifact.values()) {
       if (tlsArtifact.getType().equals(type)) {
-        paths.add(new Entry(
+        paths.add(new TransportEncryptionEntry(
             //TODO@kjoshi, this is where the DCOS_SPACE and hashed version of the paths are generated.
             getSecretStorePath(tlsArtifact, encryptionSpecName),
             tlsArtifact.getMountPath(encryptionSpecName)));
@@ -101,23 +101,5 @@ public class TLSArtifactPaths {
     return tlsArtifact.getSecretStoreName(sansHash, taskInstanceName, encryptionSpecName);
   }
 
-  /**
-   * Utility class for pairing paths related to a secret.
-   */
-  public static final class Entry {
-    /**
-     * Source location for a secret in the secret store.
-     */
-    public final String secretStorePath;
 
-    /**
-     * Destination location for a secret on the task filesystem.
-     */
-    public final String mountPath;
-
-    private Entry(String secretStorePath, String mountPath) {
-      this.secretStorePath = secretStorePath;
-      this.mountPath = mountPath;
-    }
-  }
 }

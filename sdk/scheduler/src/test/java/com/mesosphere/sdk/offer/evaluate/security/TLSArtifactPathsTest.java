@@ -74,7 +74,7 @@ public class TLSArtifactPathsTest {
 
     @Test
     public void testGetPathsTLS() throws Exception {
-        List<TLSArtifactPaths.Entry> paths =
+        List<TransportEncryptionEntry> paths =
                 TLS_ARTIFACT_PATHS.getPathsForType(TransportEncryptionSpec.Type.TLS, ENCRYPTION_SPEC_NAME);
         Assert.assertEquals(paths.toString(), 3, paths.size());
         Assert.assertEquals("exposed.crt", paths.get(0).mountPath);
@@ -87,7 +87,7 @@ public class TLSArtifactPathsTest {
 
     @Test
     public void testGetPathsKeystore() throws Exception {
-        List<TLSArtifactPaths.Entry> paths =
+        List<TransportEncryptionEntry> paths =
                 TLS_ARTIFACT_PATHS.getPathsForType(TransportEncryptionSpec.Type.KEYSTORE, ENCRYPTION_SPEC_NAME);
         Assert.assertEquals(paths.toString(), 2, paths.size());
         Assert.assertEquals("exposed.keystore", paths.get(0).mountPath);
