@@ -11,7 +11,7 @@ import java.util.stream.Stream;
  * The definition of a pregenerated TLS or Keystore secret.
  */
 @SuppressWarnings("checkstyle:MultipleStringLiterals")
-public enum TLSArtifact {
+public enum TLSArtifact implements TransportEncryptionArtifact {
 
   // TLS secrets
   CERTIFICATE(TransportEncryptionSpec.Type.TLS, "certificate", "crt", "PEM encoded certificate"),
