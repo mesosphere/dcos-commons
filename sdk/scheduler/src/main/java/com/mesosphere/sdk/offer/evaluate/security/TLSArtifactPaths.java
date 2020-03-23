@@ -41,7 +41,7 @@ public class TLSArtifactPaths {
    * Filters the provided list of secret paths to just the ones which have a matching {@link TLSArtifact}
    * implementation.
    */
-  public static Collection<String> getKnownTLSArtifacts(Collection<String> secretStorePaths) {
+  public static Collection<String> getKnownArtifacts(Collection<String> secretStorePaths) {
     return secretStorePaths.stream()
         .filter(secretStorePath -> KNOWN_SECRET_NAMES_PATTERN.matcher(secretStorePath).matches())
         .collect(Collectors.toList());
@@ -75,6 +75,7 @@ public class TLSArtifactPaths {
     for (TLSArtifact tlsArtifact : TLSArtifact.values()) {
       if (tlsArtifact.getType().equals(type)) {
         paths.add(new Entry(
+            //TODO@kjoshi, this is where the DCOS_SPACE and hashed version of the paths are generated.
             getSecretStorePath(tlsArtifact, encryptionSpecName),
             tlsArtifact.getMountPath(encryptionSpecName)));
       }

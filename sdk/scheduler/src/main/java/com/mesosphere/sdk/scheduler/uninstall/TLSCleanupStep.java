@@ -40,8 +40,10 @@ public class TLSCleanupStep extends AbstractStep {
     logger.info("Cleaning up TLS resources in namespace {}...", secretsNamespace);
 
     try {
+      //TODO@kjoshi this needs to be patched up to use the interface.
+      //do not delete CustomTLS Artifacts.
       Collection<String> secretPathsToClean =
-          TLSArtifactPaths.getKnownTLSArtifacts(secretsClient.list(secretsNamespace));
+          TLSArtifactPaths.getKnownArtifacts(secretsClient.list(secretsNamespace));
       if (secretPathsToClean.isEmpty()) {
         logger.info("No TLS resources to clean up.");
       } else {
