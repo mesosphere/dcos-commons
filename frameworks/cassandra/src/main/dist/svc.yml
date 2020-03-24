@@ -61,6 +61,7 @@ pods:
       - {{CASSANDRA_OPENSSL_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{CASSANDRA_EXPORTER_JAR}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{RLIMIT_NOFILE_SOFT}}
@@ -88,6 +89,8 @@ pods:
           rmi-port:
             port: {{SECURE_JMX_RMI_PORT}}
           {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+          exporter:
+            port: 9500
       sidecar-resources:
         cpus: 1
         memory: 1024
@@ -95,16 +98,13 @@ pods:
       server:
         goal: RUNNING
         resource-set: server-resources
+        labels: "DCOS_METRICS_FORMAT:prometheus,DCOS_METRICS_PORT_NAME:exporter,DCOS_METRICS_ENDPOINT:/metrics"
         cmd: |
                 set -e
 
                 export JAVA_HOME=$(ls -d $MESOS_SANDBOX/jdk*/)
                 ./bootstrap
                 ARGS='-f'
-
-                if [ -n "$STATSD_UDP_HOST" ]; then
-                    ARGS="$ARGS -Dcassandra.metricsReporterConfigFile=metrics-reporter-config.yaml"
-                fi
 
                 if [ "$CASSANDRA_USER" = "root" ]; then
                     ARGS="$ARGS -R"
@@ -133,6 +133,9 @@ pods:
                 # Honor jmx_port config otherwise Cassandra will hardcode to 7199
                 sed -i 's/JMX_PORT=.*/JMX_PORT="{{TASKCFG_ALL_JMX_PORT}}"/' apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
                 echo 'JVM_OPTS="$JVM_OPTS -Dcassandra.max_queued_native_transport_requests={{CASSANDRA_MAX_QUEUED_NATIVE_TRANSPORT_REQUESTS}}"' >> apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                {{#TASKCFG_ALL_PROMETHEUS_EXPORTER_ENABLED}}
+                echo 'JVM_OPTS="$JVM_OPTS -javaagent:$MESOS_SANDBOX/cassandra-exporter-agent-0.9.10.jar={{TASKCFG_ALL_PROMETHEUS_EXPORTER_CONFIGURATION_OPTIONS}}"' >> apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                {{/TASKCFG_ALL_PROMETHEUS_EXPORTER_ENABLED}}
                 exec ./apache-cassandra-{{CASSANDRA_VERSION}}/bin/cassandra $ARGS
         configs:
           cassandra:
@@ -141,9 +144,6 @@ pods:
           jvm:
             template: jvm_{{CASSANDRA_HEAP_GC}}.options
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/jvm.options
-          metrics:
-            template: metrics-reporter-config.yaml
-            dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/metrics-reporter-config.yaml
           rack:
             template: cassandra-rackdc.properties
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties
