@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
 /**
  * Utility for creating paths for {@link TLSArtifact} objects within a specified per-task context.
  */
-public class TLSArtifactPaths {
+public class TLSArtifactPaths implements TransportEncryptionArtifactPaths {
 
   private static final Pattern KNOWN_SECRET_NAMES_PATTERN;
 

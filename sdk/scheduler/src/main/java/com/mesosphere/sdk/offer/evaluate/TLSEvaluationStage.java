@@ -10,6 +10,7 @@ import com.mesosphere.sdk.offer.MesosResourcePool;
 import com.mesosphere.sdk.offer.evaluate.security.CertificateNamesGenerator;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactPaths;
 import com.mesosphere.sdk.offer.evaluate.security.TLSArtifactsUpdater;
+import com.mesosphere.sdk.offer.evaluate.security.TransportEncryptionArtifactPaths;
 import com.mesosphere.sdk.offer.evaluate.security.TransportEncryptionEntry;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.specification.TaskSpec;
@@ -194,7 +195,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
 
   //TODO@kjoshi this is where the artifact paths are added to pod.
   private static Set<Protos.Volume> getExecutorInfoSecretVolumes(
-      TransportEncryptionSpec spec, TLSArtifactPaths tlsArtifactPaths)
+      TransportEncryptionSpec spec, TransportEncryptionArtifactPaths tlsArtifactPaths)
   {
 
     Collection<TransportEncryptionEntry> paths =
