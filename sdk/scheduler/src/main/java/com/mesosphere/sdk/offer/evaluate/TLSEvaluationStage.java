@@ -37,7 +37,9 @@ import java.util.stream.Collectors;
 })
 public class TLSEvaluationStage implements OfferEvaluationStage {
 
-  //TODO@kjoshi investigate this!
+  private static final String GENERATED_ARTIFACTS_SUCCESS = "TLS certificates created and added to the task.";
+
+  private static final String CUSTOM_ARTIFACTS_SUCCESS = "Custom transport artifacts added to the task.";
 
   private final Logger logger;
 
@@ -119,14 +121,67 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
         .filter(task -> task.getName().equals(taskName))
         .findFirst()
         .get();
+
     if (taskSpec.getTransportEncryption().isEmpty()) {
       return EvaluationOutcome.pass(
           this,
-          "No TLS specs found for task").build();
+          "No Custom/TLS transport-handler specs found for task").build();
     }
 
-    Collection<TransportEncryptionSpec> transportEncryptionSpecs =
-        taskSpec.getTransportEncryption();
+    //We have transport specs, split these between ones we need to generate and ones
+    //that are custom and pre-created.
+
+    Collection<TransportEncryptionSpec> generateArtifacts = taskSpec.getTransportEncryption()
+        .stream()
+        .filter(spec -> spec.getType() != TransportEncryptionSpec.Type.CUSTOM)
+        .collect(Collectors.toList());
+
+    Collection<TransportEncryptionSpec> customArtifacts = taskSpec.getTransportEncryption()
+        .stream()
+        .filter(spec -> spec.getType() == TransportEncryptionSpec.Type.CUSTOM)
+        .collect(Collectors.toList());
+
+    EvaluationOutcome generatedArtifactsOutcome = generateTransportArtifacts(podInfoBuilder,
+                                                                              taskSpec,
+                                                                              generateArtifacts);
+    EvaluationOutcome customArtifactsOutcome = generateCustomTransportArtifacts(podInfoBuilder,
+                                                                                  taskSpec,
+                                                                                  customArtifacts);
+
+    //Return first failing outcome, otherwise return combined pass.
+    if (!generatedArtifactsOutcome.isPassing()) {
+      return generatedArtifactsOutcome;
+    }
+
+    if (!customArtifactsOutcome.isPassing()) {
+      return customArtifactsOutcome;
+    }
+
+    return EvaluationOutcome.pass(
+        this,
+        String.format("TLS Evaluation Stage successful. %s %s",
+            generatedArtifactsOutcome.isPassing() ? GENERATED_ARTIFACTS_SUCCESS : "",
+            customArtifactsOutcome.isPassing() ? CUSTOM_ARTIFACTS_SUCCESS : "")
+        ).build();
+  }
+
+  private EvaluationOutcome generateCustomTransportArtifacts(PodInfoBuilder podInfoBuilder,
+                                                       TaskSpec taskSpec,
+                                                       Collection<TransportEncryptionSpec> transportEncryptionSpecs)
+  {
+    logger.info("Processing Custom info for {} elements of {}",
+        transportEncryptionSpecs.size(),
+        transportEncryptionSpecs);
+
+    return EvaluationOutcome.pass(
+        this,
+        CUSTOM_ARTIFACTS_SUCCESS).build();
+  }
+
+  private EvaluationOutcome generateTransportArtifacts(PodInfoBuilder podInfoBuilder,
+                                                       TaskSpec taskSpec,
+                                                       Collection<TransportEncryptionSpec> transportEncryptionSpecs)
+  {
     logger.info("Processing TLS info for {} elements of {}",
         transportEncryptionSpecs.size(),
         transportEncryptionSpecs);
@@ -136,6 +191,7 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             serviceName, taskSpec,
             podInfoBuilder.getPodInstance(),
             schedulerConfig);
+
     //TODO@kjoshi: This is what needs to change between
     TLSArtifactPaths tlsArtifactPaths = new TLSArtifactPaths(
         namespace,
@@ -190,14 +246,13 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
 
     return EvaluationOutcome.pass(
         this,
-        "TLS certificate created and added to the task").build();
+        GENERATED_ARTIFACTS_SUCCESS).build();
   }
 
   //TODO@kjoshi this is where the artifact paths are added to pod.
   private static Set<Protos.Volume> getExecutorInfoSecretVolumes(
       TransportEncryptionSpec spec, TransportEncryptionArtifactPaths tlsArtifactPaths)
   {
-
     Collection<TransportEncryptionEntry> paths =
         tlsArtifactPaths.getPathsForType(spec.getType(), spec.getName());
     return paths.stream()
