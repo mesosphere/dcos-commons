@@ -23,7 +23,9 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -173,6 +175,21 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
         transportEncryptionSpecs.size(),
         transportEncryptionSpecs);
 
+    List<TransportEncryptionEntry> paths = new ArrayList<>();
+
+    for (TransportEncryptionSpec transportEncryptionSpec : transportEncryptionSpecs) {
+      //TODO@kjoshi, change the name to an actual mount-path entry within the EncryptionSpec
+      paths.add(new TransportEncryptionEntry(
+          transportEncryptionSpec.getSecret().get(),
+          transportEncryptionSpec.getName()));
+
+      Set<Protos.Volume> additionalVolumes = paths.stream()
+          .map(TLSEvaluationStage::getSecretVolume)
+          .collect(Collectors.toSet());
+
+      addVolumesToPod(podInfoBuilder, additionalVolumes);
+    }
+
     return EvaluationOutcome.pass(
         this,
         CUSTOM_ARTIFACTS_SUCCESS).build();
@@ -213,35 +230,13 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
             e).build();
       }
 
-      Set<Protos.Volume> existingVolumes = podInfoBuilder.getTaskBuilder(taskName)
-          .getContainerBuilder()
-          .getVolumesList()
-          .stream()
-          .collect(Collectors.toSet());
-      logger.debug("Existing volumes for {}: {}",
-          taskName,
-          existingVolumes.stream().map(v -> v.getContainerPath()).toArray());
-
       Set<Protos.Volume> additionalVolumes = getExecutorInfoSecretVolumes(
           transportEncryptionSpec,
           tlsArtifactPaths
       );
-      logger.debug("Required volumes for {}: {}",
-          taskName,
-          additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
 
-      if (additionalVolumes.removeAll(existingVolumes)) {
-        logger.debug("Duplicate volumes for {} removed. Remaining: {}",
-            taskName,
-            additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
-      }
-
-      //TODO@kjoshi this is where the secrets are exposed to the tasks.
-      // Share keys to the task container
-      podInfoBuilder
-          .getTaskBuilder(taskName)
-          .getContainerBuilder()
-          .addAllVolumes(additionalVolumes);
+      // Share keys to the task container.
+      addVolumesToPod(podInfoBuilder, additionalVolumes);
     }
 
     return EvaluationOutcome.pass(
@@ -270,6 +265,37 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
         .setType(Protos.Secret.Type.REFERENCE)
         .getReferenceBuilder().setName(entry.secretStorePath);
     return volumeBuilder.build();
+  }
+
+  private void addVolumesToPod(PodInfoBuilder podInfoBuilder,
+                               Set<Protos.Volume> additionalVolumes)
+  {
+    Set<Protos.Volume> existingVolumes = podInfoBuilder.getTaskBuilder(taskName)
+        .getContainerBuilder()
+        .getVolumesList()
+        .stream()
+        .collect(Collectors.toSet());
+
+    logger.debug("Existing volumes for {}: {}",
+        taskName,
+        existingVolumes.stream().map(v -> v.getContainerPath()).toArray());
+
+    logger.debug("Required volumes for {}: {}",
+        taskName,
+        additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
+
+    if (additionalVolumes.removeAll(existingVolumes)) {
+      logger.debug("Duplicate volumes for {} removed. Remaining: {}",
+          taskName,
+          additionalVolumes.stream().map(v -> v.getContainerPath()).toArray());
+    }
+
+    // Share artifact with the task container
+    podInfoBuilder
+        .getTaskBuilder(taskName)
+        .getContainerBuilder()
+        .addAllVolumes(additionalVolumes);
+
   }
 
   @VisibleForTesting
