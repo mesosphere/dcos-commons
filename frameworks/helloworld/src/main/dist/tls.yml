@@ -2,6 +2,29 @@ name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{FRAMEWORK_PRINCIPAL}}
 pods:
+  {{#CUSTOM_ARTIFACT_NAME}}
+  # Exposes custom artifacts in a container
+  custom:
+    count: {{HELLO_COUNT}}
+    uris:
+      - {{JAVA_URI}}
+      - {{BOOTSTRAP_URI}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: >
+                ./bootstrap -verbose -resolve=false
+
+                ls -lah && cat {{CUSTOM_ARTIFACT_NAME}} && sleep $SLEEP_DURATION
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        transport-encryption:
+          - name: {{CUSTOM_ARTIFACT_NAME}}
+            secret: {{CUSTOM_ARTIFACT_SECRET}}
+            type: CUSTOM
+  {{/CUSTOM_ARTIFACT_NAME}}
 
   # Exposes basic TLS artifacts in a container
   artifacts:
@@ -142,6 +165,11 @@ plans:
   deploy:
     strategy: parallel
     phases:
+      {{#CUSTOM_ARTIFACT_NAME}}
+      custom:
+        strategy: parallel
+        pod: custom
+      {{/CUSTOM_ARTIFACT_NAME}}
       artifacts:
         strategy: parallel
         pod: artifacts

@@ -465,6 +465,20 @@
           "description": "Service discovery prefix name for discovery task",
           "type": "string",
           "default": "discovered"
+        },
+        "custom": {
+          "description": "Custom Pod Artifact properties",
+          "type": "object",
+          "properties": {
+            "artifact_name": {
+              "description": "Artifact Name to be loaded into sandbox.",
+              "type": "string"
+            },
+            "artifact_secret": {
+              "description": "Artifact secret location.",
+              "type": "string"
+            }
+          }
         }
       }
     }
