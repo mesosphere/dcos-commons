@@ -7,7 +7,7 @@ group 'com.mesosphere.sdk'
 version '0.1-SNAPSHOT'
 
 ext {
-    dropwizardVer = '1.3.9'
+    dropwizardVer = '1.3.20'
     jaxbDepsVer = "2.3.2"
 }
 
