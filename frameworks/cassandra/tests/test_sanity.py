@@ -83,25 +83,16 @@ def test_repair_cleanup_plans_complete() -> None:
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.9")
 def test_metrics() -> None:
-    expected_metrics = [
-        "org.apache.cassandra.metrics.Table.CoordinatorReadLatency.system.hints.p999",
-        "org.apache.cassandra.metrics.Table.CompressionRatio.system_schema.indexes",
-        "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory",
-    ]
+    metrics = sdk_metrics.wait_for_metrics_from_cli("node-0-server", 60)
 
-    def expected_metrics_exist(emitted_metrics: List[str]) -> bool:
-        return sdk_metrics.check_metrics_presence(
-            emitted_metrics=emitted_metrics, expected_metrics=expected_metrics
-        )
+    cassandra_metrics = list(non_zero_cassandra_metrics(metrics))
+    assert len(cassandra_metrics) > 0
 
-    sdk_metrics.wait_for_service_metrics(
-        config.PACKAGE_NAME,
-        config.get_foldered_service_name(),
-        "node-0",
-        "node-0-server",
-        config.DEFAULT_CASSANDRA_TIMEOUT,
-        expected_metrics_exist,
-    )
+
+def non_zero_cassandra_metrics(metrics: List[Dict[Any, Any]]):
+    for metric in metrics:
+        if metric["name"].startswith("cassandra") and metric["value"] != 0:
+            yield metric
 
 
 @pytest.mark.sanity
