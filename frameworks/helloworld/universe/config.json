@@ -477,6 +477,10 @@
             "artifact_secret": {
               "description": "Artifact secret location.",
               "type": "string"
+            },
+            "artifact_mount_path": {
+              "description": "Artifact mount path within the container",
+              "type": "string"
             }
           }
         }

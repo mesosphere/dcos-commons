@@ -178,11 +178,25 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
     List<TransportEncryptionEntry> paths = new ArrayList<>();
 
     for (TransportEncryptionSpec transportEncryptionSpec : transportEncryptionSpecs) {
-      //TODO@kjoshi, change the name to an actual mount-path entry within the EncryptionSpec
-      paths.add(new TransportEncryptionEntry(
-          transportEncryptionSpec.getSecret().get(),
-          transportEncryptionSpec.getName()));
+      try {
+        // Secret must be specified in this case, invalid to not specify it.
+        String secret = transportEncryptionSpec.getSecret().get();
 
+        // If a mount-path is specified, use it, other wise use the name which
+        // cannot be empty.
+        String mountPath = transportEncryptionSpec.getMountPath().isPresent() ?
+            transportEncryptionSpec.getMountPath().get() :
+            transportEncryptionSpec.getName();
+
+        paths.add(new TransportEncryptionEntry(secret, mountPath));
+      } catch (Exception e) {
+        logger.error(String.format("Failed to process custom artifacts for %s", taskName), e);
+        return EvaluationOutcome.fail(
+            this,
+            "Failed to process custom artifacts for task %s because of exception: %s",
+            taskName,
+            e).build();
+      }
       Set<Protos.Volume> additionalVolumes = paths.stream()
           .map(TLSEvaluationStage::getSecretVolume)
           .collect(Collectors.toSet());

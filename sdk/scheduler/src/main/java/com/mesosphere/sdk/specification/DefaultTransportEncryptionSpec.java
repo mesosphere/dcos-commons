@@ -19,19 +19,23 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
 
   private final Optional<String> secret;
 
+  private final Optional<String> mountPath;
+
   @JsonCreator
   private DefaultTransportEncryptionSpec(
       @JsonProperty("name") String name,
       @JsonProperty("type") Type type,
-      @JsonProperty("secret") Optional<String> secret)
+      @JsonProperty("secret") Optional<String> secret,
+      @JsonProperty("mount-path") Optional<String> mountPath)
   {
     this.name = name;
     this.type = type;
     this.secret = secret;
+    this.mountPath = mountPath;
   }
 
   public DefaultTransportEncryptionSpec(Builder builder) {
-    this(builder.name, builder.type, builder.secret);
+    this(builder.name, builder.type, builder.secret, builder.mountPath);
     ValidationUtils.nonBlank(this, "name", name);
   }
 
@@ -52,6 +56,11 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
   @Override
   public Optional<String> getSecret() {
     return secret;
+  }
+
+  @Override
+  public Optional<String> getMountPath() {
+    return mountPath;
   }
 
   @Override
@@ -79,6 +88,8 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
 
     private Optional<String> secret;
 
+    private Optional<String> mountPath;
+
     private Builder() {
     }
 
@@ -94,6 +105,11 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
 
     public Builder secret(Optional<String> secret) {
       this.secret = secret;
+      return this;
+    }
+
+    public Builder mount_path(Optional<String> mountPath) {
+      this.mountPath = mountPath;
       return this;
     }
 

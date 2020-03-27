@@ -119,6 +119,9 @@
     {{#tls.custom.artifact_secret}}
     "CUSTOM_ARTIFACT_SECRET" : "{{tls.custom.artifact_secret}}",
     {{/tls.custom.artifact_secret}}
+    {{#tls.custom.artifact_mount_path}}
+    "CUSTOM_ARTIFACT_MOUNT_PATH" : "{{tls.custom.artifact_mount_path}}",
+    {{/tls.custom.artifact_mount_path}}
 
     "KEYSTORE_APP_VERSION": "{{tls.keystore_app_version}}",
     "NGINX_CONTAINER_VERSION": "{{tls.nginx_container_version}}",

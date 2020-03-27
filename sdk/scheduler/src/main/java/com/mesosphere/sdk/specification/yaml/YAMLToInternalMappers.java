@@ -593,11 +593,14 @@ public final class YAMLToInternalMappers {
     TransportEncryptionSpec.Type type = TransportEncryptionSpec.Type.valueOf(rawTransportEncryption.getType());
     Optional<String> secret = rawTransportEncryption.getSecret() == null ?
         Optional.empty() : Optional.of(rawTransportEncryption.getSecret());
+    Optional<String> mountPath = rawTransportEncryption.getMountPath() == null ?
+        Optional.empty() : Optional.of(rawTransportEncryption.getMountPath());
 
     return DefaultTransportEncryptionSpec.newBuilder()
       .name(name)
       .type(type)
       .secret(secret)
+      .mount_path(mountPath)
       .build();
   }
 

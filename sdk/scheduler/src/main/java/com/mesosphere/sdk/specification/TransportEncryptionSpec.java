@@ -19,6 +19,9 @@ public interface TransportEncryptionSpec {
   @JsonProperty("secret")
   Optional<String> getSecret();
 
+  @JsonProperty("mount-path")
+  Optional<String> getMountPath();
+
   /**
    * The allowed formats of TLS certificate format.
    */
