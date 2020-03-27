@@ -600,7 +600,7 @@ public final class YAMLToInternalMappers {
       .name(name)
       .type(type)
       .secret(secret)
-      .mount_path(mountPath)
+      .mountPath(mountPath)
       .build();
   }
 

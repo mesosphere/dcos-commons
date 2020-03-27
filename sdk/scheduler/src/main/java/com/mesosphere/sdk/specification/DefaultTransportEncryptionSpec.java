@@ -108,7 +108,7 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
       return this;
     }
 
-    public Builder mount_path(Optional<String> mountPath) {
+    public Builder mountPath(Optional<String> mountPath) {
       this.mountPath = mountPath;
       return this;
     }
