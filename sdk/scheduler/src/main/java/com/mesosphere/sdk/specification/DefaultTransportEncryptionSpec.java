@@ -17,6 +17,8 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
 
   private final Type type;
 
+  private final Provisioning provisioning;
+
   private final Optional<String> secret;
 
   private final Optional<String> mountPath;
@@ -26,16 +28,18 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
       @JsonProperty("name") String name,
       @JsonProperty("type") Type type,
       @JsonProperty("secret") Optional<String> secret,
-      @JsonProperty("mount-path") Optional<String> mountPath)
+      @JsonProperty("mount-path") Optional<String> mountPath,
+      @JsonProperty("provisinoing") Provisioning provisioning)
   {
     this.name = name;
     this.type = type;
     this.secret = secret;
     this.mountPath = mountPath;
+    this.provisioning = provisioning;
   }
 
   public DefaultTransportEncryptionSpec(Builder builder) {
-    this(builder.name, builder.type, builder.secret, builder.mountPath);
+    this(builder.name, builder.type, builder.secret, builder.mountPath, builder.provisioning);
     ValidationUtils.nonBlank(this, "name", name);
   }
 
@@ -51,6 +55,11 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
   @Override
   public Type getType() {
     return type;
+  }
+
+  @Override
+  public Provisioning getProvisioning() {
+    return provisioning;
   }
 
   @Override
@@ -86,6 +95,8 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
 
     private Type type;
 
+    private Provisioning provisioning;
+
     private Optional<String> secret;
 
     private Optional<String> mountPath;
@@ -100,6 +111,11 @@ public class DefaultTransportEncryptionSpec implements TransportEncryptionSpec {
 
     public Builder type(Type type) {
       this.type = type;
+      return this;
+    }
+
+    public Builder provisioning(Provisioning provisioning) {
+      this.provisioning = provisioning;
       return this;
     }
 

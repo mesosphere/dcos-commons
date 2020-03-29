@@ -14,16 +14,20 @@ public final class RawTransportEncryption {
 
   private final String mountPath;
 
+  private final String provisioning;
+
   private RawTransportEncryption(
       @JsonProperty("name") String name,
       @JsonProperty("type") String type,
       @JsonProperty("secret") String secret,
-      @JsonProperty("mount-path") String mountPath)
+      @JsonProperty("mount-path") String mountPath,
+      @JsonProperty("provisioning") String provisioning)
   {
     this.name = name;
     this.type = type;
     this.secret = secret;
     this.mountPath = mountPath;
+    this.provisioning = provisioning;
   }
 
   public String getName() {
@@ -40,5 +44,9 @@ public final class RawTransportEncryption {
 
   public String getMountPath() {
     return mountPath;
+  }
+
+  public String getProvisioning() {
+    return provisioning;
   }
 }

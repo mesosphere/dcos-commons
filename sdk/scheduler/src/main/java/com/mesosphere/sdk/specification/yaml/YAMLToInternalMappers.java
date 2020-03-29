@@ -591,6 +591,12 @@ public final class YAMLToInternalMappers {
   {
     String name = rawTransportEncryption.getName();
     TransportEncryptionSpec.Type type = TransportEncryptionSpec.Type.valueOf(rawTransportEncryption.getType());
+
+    // If not defined, the SDK defaults to generating the artifacts for transport-encryption.
+    TransportEncryptionSpec.Provisioning provisioning = rawTransportEncryption.getProvisioning() == null ?
+        TransportEncryptionSpec.Provisioning.GENERATE :
+        TransportEncryptionSpec.Provisioning.valueOf(rawTransportEncryption.getProvisioning());
+
     Optional<String> secret = rawTransportEncryption.getSecret() == null ?
         Optional.empty() : Optional.of(rawTransportEncryption.getSecret());
     Optional<String> mountPath = rawTransportEncryption.getMountPath() == null ?

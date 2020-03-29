@@ -22,6 +22,9 @@ public interface TransportEncryptionSpec {
   @JsonProperty("mount-path")
   Optional<String> getMountPath();
 
+  @JsonProperty("provisioning")
+  Provisioning getProvisioning();
+
   /**
    * The allowed formats of TLS certificate format.
    */
@@ -29,6 +32,16 @@ public interface TransportEncryptionSpec {
     // TODO(mh): Rename to PEM ?
     TLS,
     KEYSTORE,
+    // TODO@kjoshi remove later.
     CUSTOM
+  }
+
+  /**
+   * Whether SDK should generate artifacts (default)
+   * or use provided ones from the Secret-Store.
+   */
+  enum Provisioning {
+    GENERATE,
+    SECRET_STORE
   }
 }
