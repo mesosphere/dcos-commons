@@ -84,6 +84,7 @@
           "enum": [
             "canary",
             "custom_tld",
+            "custom_tls",
             "discovery",
             "enable-disable",
             "executor_volume",

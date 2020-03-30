@@ -1,0 +1,71 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+pods:
+  {{#CUSTOM_ARTIFACT_NAME}}
+  {{^CUSTOM_ARTIFACT_MOUNT_PATH}}
+  # Exposes custom artifacts in a container, no mount-path specified
+  custom-no-mount-path:
+    count: {{HELLO_COUNT}}
+    uris:
+      - {{JAVA_URI}}
+      - {{BOOTSTRAP_URI}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: >
+                ./bootstrap -verbose -resolve=false
+
+                ls -lah && cat {{CUSTOM_ARTIFACT_NAME}} && sleep $SLEEP_DURATION
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        transport-encryption:
+          - name: {{CUSTOM_ARTIFACT_NAME}}
+            secret: {{CUSTOM_ARTIFACT_SECRET}}
+            type: CUSTOM
+  {{/CUSTOM_ARTIFACT_MOUNT_PATH}}
+
+  {{#CUSTOM_ARTIFACT_MOUNT_PATH}}
+  # Exposes custom artifacts in a container, mount-path specified.
+  custom-mount-path:
+    count: {{HELLO_COUNT}}
+    uris:
+      - {{JAVA_URI}}
+      - {{BOOTSTRAP_URI}}
+    tasks:
+      node:
+        goal: RUNNING
+        cmd: >
+                ./bootstrap -verbose -resolve=false
+
+                ls -lah && cat {{CUSTOM_ARTIFACT_MOUNT_PATH}} && sleep $SLEEP_DURATION
+        cpus: 0.1
+        memory: 256
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        transport-encryption:
+          - name: {{CUSTOM_ARTIFACT_NAME}}
+            secret: {{CUSTOM_ARTIFACT_SECRET}}
+            mount-path: {{CUSTOM_ARTIFACT_MOUNT_PATH}}
+            type: CUSTOM
+  {{/CUSTOM_ARTIFACT_MOUNT_PATH}}
+  {{/CUSTOM_ARTIFACT_NAME}}
+
+plans:
+  deploy:
+    strategy: parallel
+    phases:
+      {{#CUSTOM_ARTIFACT_NAME}}
+      {{^CUSTOM_ARTIFACT_MOUNT_PATH}}
+      custom-no-mount-path:
+        strategy: parallel
+        pod: custom-no-mount-path
+      {{/CUSTOM_ARTIFACT_MOUNT_PATH}}
+      {{#CUSTOM_ARTIFACT_MOUNT_PATH}}
+      custom-mount-path:
+        strategy: parallel
+        pod: custom-mount-path
+      {{/CUSTOM_ARTIFACT_MOUNT_PATH}}
+      {{/CUSTOM_ARTIFACT_NAME}}
