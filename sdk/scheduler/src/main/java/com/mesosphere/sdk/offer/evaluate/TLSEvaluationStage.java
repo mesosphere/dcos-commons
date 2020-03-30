@@ -135,11 +135,12 @@ public class TLSEvaluationStage implements OfferEvaluationStage {
 
     Collection<TransportEncryptionSpec> generateArtifacts = taskSpec.getTransportEncryption()
         .stream()
-        .filter(spec -> spec.getType() != TransportEncryptionSpec.Type.CUSTOM)
+        .filter(spec -> spec.getProvisioning() != TransportEncryptionSpec.Provisioning.SECRET_STORE)
         .collect(Collectors.toList());
 
     Collection<TransportEncryptionSpec> customArtifacts = taskSpec.getTransportEncryption()
         .stream()
+        .filter(spec -> spec.getProvisioning() == TransportEncryptionSpec.Provisioning.SECRET_STORE)
         .filter(spec -> spec.getType() == TransportEncryptionSpec.Type.CUSTOM)
         .collect(Collectors.toList());
 
