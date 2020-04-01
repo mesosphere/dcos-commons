@@ -88,6 +88,36 @@ def test_metrics() -> None:
     cassandra_metrics = list(non_zero_cassandra_metrics(metrics))
     assert len(cassandra_metrics) > 0
 
+    new_config = {"cassandra": {"prometheus_exporter": {"prometheus_exporter_enabled": False}}}
+    sdk_service.update_configuration(
+        config.PACKAGE_NAME,
+        config.get_foldered_service_name(),
+        new_config,
+        config.DEFAULT_TASK_COUNT,
+    )
+
+    sdk_plan.wait_for_completed_deployment(config.get_foldered_service_name())
+
+    expected_metrics = [
+        "org.apache.cassandra.metrics.Table.CoordinatorReadLatency.system.hints.p999",
+        "org.apache.cassandra.metrics.Table.CompressionRatio.system_schema.indexes",
+        "org.apache.cassandra.metrics.ThreadPools.ActiveTasks.internal.MemtableReclaimMemory",
+    ]
+
+    def expected_metrics_exist(emitted_metrics: List[str]) -> bool:
+        return sdk_metrics.check_metrics_presence(
+            emitted_metrics=emitted_metrics, expected_metrics=expected_metrics
+        )
+
+    sdk_metrics.wait_for_service_metrics(
+        config.PACKAGE_NAME,
+        config.get_foldered_service_name(),
+        "node-0",
+        "node-0-server",
+        config.DEFAULT_CASSANDRA_TIMEOUT,
+        expected_metrics_exist,
+    )
+
 
 def non_zero_cassandra_metrics(metrics: List[Dict[Any, Any]]):
     for metric in metrics:
