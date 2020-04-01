@@ -28,13 +28,14 @@ def configure_package(configure_security):
             service_account_name=config.SERVICE_NAME,
             service_account_secret=config.SERVICE_NAME + "-secret",
         )
+        # need to grant access to secret-store
         sdk_cmd.run_cli(
             "security org groups add_user superusers {name}".format(name=config.SERVICE_NAME)
         )
 
         # Create as secret based on the private key
         sdk_cmd.run_cli(
-            "secrets create -f {service_name} {service_name}/{service_name}-private-key.pem"
+            "security secrets create -f {service_name}-private-key.pem {service_name}/custom-secret"
                 .format(service_name=config.SERVICE_NAME))
 
         yield  # let the test session execute
@@ -45,7 +46,7 @@ def configure_package(configure_security):
             service_account_name=config.SERVICE_NAME,
             service_account_secret=config.SERVICE_NAME + "-secret",
         )
-        sdk_security.delete_secret("{service_name}/{service_name}-private-key.pem"
+        sdk_security.delete_secret("{service_name}/custom-secret"
                 .format(service_name=config.SERVICE_NAME))
 
 
@@ -53,7 +54,7 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 @pytest.mark.dcos_min_version("1.10")
-def test_custom_tls_no_mount_path():
+def test_custom_tls():
 
     sdk_install.install(
         config.PACKAGE_NAME,
@@ -66,53 +67,10 @@ def test_custom_tls_no_mount_path():
                 "service_account_secret": config.SERVICE_NAME + "-secret"
             },
             "tls": {
-                "discovery_task_prefix": DISCOVERY_TASK_PREFIX
-                "custom": {
-                    "artifact_name": "{service_name}-custom-key.pem"
-                        .format(service_name=config.SERVICE_NAME),
-                    "artifact_secret": "{service_name}/{service_name}-private-key"
-                        .format(service_name=config.SERVICE_NAME)
-                }
+                "discovery_task_prefix": DISCOVERY_TASK_PREFIX,
             },
         },
     )
 
-    # Task will fail if custom artifact isn't loaded.
+    # Task will fail if custom artifacts aren't loaded.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-    # Uninstall when plan is complete. 
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-
-
-@pytest.mark.test_custom_tls
-@pytest.mark.sanity
-@sdk_utils.dcos_ee_only
-@pytest.mark.dcos_min_version("1.10")
-def test_tls_basic_artifacts():
-    sdk_install.install(
-        config.PACKAGE_NAME,
-        config.SERVICE_NAME,
-        1,
-        additional_options={
-            "service": {
-                "yaml": "custom_tls",
-                "service_account": config.SERVICE_NAME,
-                "service_account_secret": config.SERVICE_NAME + "-secret"
-            },
-            "tls": {
-                "discovery_task_prefix": DISCOVERY_TASK_PREFIX
-                "custom": {
-                    "artifact_name": "{service_name}-custom-key.pem"
-                        .format(service_name=config.SERVICE_NAME),
-                    "artifact_secret": "{service_name}/{service_name}-private-key"
-                        .format(service_name=config.SERVICE_NAME),
-                    "artifact_mount_path": "ssl/{service_name}-custom-key.pem"
-                        .format(service_name=config.SERVICE_NAME),
-                }
-            },
-        },
-    )
-
-    # Task will fail if custom artifact isn't loaded.
-    sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
-    # Uninstall when plan is complete. 
-    sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
