@@ -1,5 +1,35 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.57.4-alpha
+
+This is an *alpha* release to try out the upcoming Custom TLS artifacts feature.
+As this is an alpha feature and release, changes can happen at any point in the future
+and no support is provided.
+
+The SDK now allows a TLS artifact to be referenced from the secret store via the following
+`transport-encryption` Service-Spec changes.
+
+### Mount-Path specified.
+```
+transport-encryption:
+  - name: custom-secret
+    secret: hello-world/custom-secret
+    mount-path: ssl/custom-secret.pem
+    type: CUSTOM
+```
+When `mount-path` is specified, the artifact will be surfaced in the Mesos sandbox with the value 
+specified using `mount-path`.
+
+### No Mount-Path specified.
+```
+transport-encryption:
+  - name: custom-secret.pem
+    secret: hello-world/custom-secret
+    type: CUSTOM
+```
+When `mount-path` isn't specified, the artifact will be surfaced in the Mesos sandbox with the value
+specified using `name`.
+
 ## Changes to v0.57.3
 
 - [#3215](https://github.com/mesosphere/dcos-commons/pull/3215) Quota - Framework Uninstall Fixes.
