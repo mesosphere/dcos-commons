@@ -14,20 +14,20 @@ public interface ResourceLimits {
     @JsonProperty("cpus")
     Optional<String> getCpus();
 
-    @JsonProperty("mem")
-    Optional<String> getMem();
+    @JsonProperty("memory")
+    Optional<String> getMemory();
 
     @JsonIgnore
     public Optional<Double> getCpusDouble();
 
     @JsonIgnore
-    public Optional<Double> getMemDouble();
+    public Optional<Double> getMemoryDouble();
 
     public static void isProperlyFormatted(ResourceLimits resourceLimits) {
         if (resourceLimits.getCpus().isPresent() && !resourceLimits.getCpusDouble().isPresent()) {
             throw new RuntimeException("Resource limit cpus must be a string 'undefined' or a parseable numeric value");
         }
-        if (resourceLimits.getMem().isPresent() && !resourceLimits.getMemDouble().isPresent()) {
+        if (resourceLimits.getMemory().isPresent() && !resourceLimits.getMemoryDouble().isPresent()) {
             throw new RuntimeException("Resource limit mem must be a string 'undefined' or a parseable numeric value");
         }
     }

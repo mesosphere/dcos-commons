@@ -10,5 +10,5 @@ pods:
         memory: 512
         resource-limits:
           cpus:
-          mem:
+          memory:
 

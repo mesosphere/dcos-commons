@@ -58,7 +58,7 @@ public class ResourceLimitsMustExceedRequestedResources implements ConfigValidat
             errors.add(formatError(Constants.CPUS_RESOURCE_TYPE, taskSpec.getName(), cpusRequest, cpusLimit, resourceLimits));
           }
         });
-        resourceLimits.getMemDouble().ifPresent((memLimit) -> {
+        resourceLimits.getMemoryDouble().ifPresent((memLimit) -> {
           double memRequest = getScalarResources(taskSpec.getResourceSet(), Constants.MEMORY_RESOURCE_TYPE);
           if (memLimit < memRequest) {
             errors.add(formatError(Constants.MEMORY_RESOURCE_TYPE, taskSpec.getName(), memRequest, memLimit, resourceLimits));

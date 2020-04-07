@@ -116,7 +116,7 @@ public class DefaultServiceSpecTest {
         TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
         ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
         Assert.assertTrue("CPU limit should be infinity", resourceSet.getResourceLimits().getCpusDouble().get() == Double.POSITIVE_INFINITY);
-        Assert.assertEquals("Memory should be within a few points of eachother", resourceSet.getResourceLimits().getMemDouble().get(), 1024.0d, 0.01d);
+        Assert.assertEquals("Memory should be within a few points of eachother", resourceSet.getResourceLimits().getMemoryDouble().get(), 1024.0d, 0.01d);
     }
 
     @Test
@@ -126,7 +126,7 @@ public class DefaultServiceSpecTest {
         TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
         ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
         Assert.assertFalse("CPU limit should be empty", resourceSet.getResourceLimits().getCpusDouble().isPresent());
-        Assert.assertFalse("Memory limit should be empty", resourceSet.getResourceLimits().getMemDouble().isPresent());
+        Assert.assertFalse("Memory limit should be empty", resourceSet.getResourceLimits().getMemoryDouble().isPresent());
     }
 
     @Test
@@ -136,7 +136,7 @@ public class DefaultServiceSpecTest {
         TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
         ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
         Assert.assertTrue("CPU limit should be infinity", resourceSet.getResourceLimits().getCpusDouble().get() == Double.POSITIVE_INFINITY);
-        Assert.assertEquals("Memory should be within a few points of eachother", resourceSet.getResourceLimits().getMemDouble().get(), 1024.0d, 0.01d);
+        Assert.assertEquals("Memory should be within a few points of eachother", resourceSet.getResourceLimits().getMemoryDouble().get(), 1024.0d, 0.01d);
     }
 
     @Test

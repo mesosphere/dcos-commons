@@ -10,5 +10,5 @@ pods:
         memory: 512
         resource-limits:
           cpus: unlimited
-          mem: 1024
+          memory: 1024
 

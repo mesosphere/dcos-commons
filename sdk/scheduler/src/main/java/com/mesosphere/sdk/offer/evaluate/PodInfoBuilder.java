@@ -324,7 +324,7 @@ public class PodInfoBuilder {
     resourceLimits.getCpusDouble().ifPresent((cpus) ->
             taskInfoBuilder.putLimits(Constants.CPUS_RESOURCE_TYPE, Protos.Value.Scalar.newBuilder().setValue(cpus).build())
     );
-    resourceLimits.getMemDouble().ifPresent((mem) ->
+    resourceLimits.getMemoryDouble().ifPresent((mem) ->
             taskInfoBuilder.putLimits(Constants.MEMORY_RESOURCE_TYPE, Protos.Value.Scalar.newBuilder().setValue(mem).build())
     );
 
