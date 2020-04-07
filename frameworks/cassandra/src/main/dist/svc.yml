@@ -89,12 +89,14 @@ pods:
             port: {{SECURE_JMX_RMI_PORT}}
           {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
       sidecar-resources:
-        cpus: 1
+        cpus: 0.01
         memory: 1024
     tasks:
       server:
         goal: RUNNING
         resource-set: server-resources
+        resource-limits:
+          cpus: unlimited
         cmd: |
                 set -e
 
