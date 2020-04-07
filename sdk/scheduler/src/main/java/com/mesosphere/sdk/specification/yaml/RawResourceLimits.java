@@ -8,20 +8,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class RawResourceLimits {
     private final String cpus;
 
-    private final String mem;
+    private final String memory;
 
     private RawResourceLimits(
             @JsonProperty("cpus") String cpus,
-            @JsonProperty("gpus") String mem) {
+            @JsonProperty("memory") String memory) {
        this.cpus = cpus;
-       this.mem = mem;
+       this.memory = memory;
     }
 
     public String getCpus() {
         return cpus;
     }
 
-    public String getMem() {
-        return mem;
+    public String getMemory() {
+        return memory;
     }
 }

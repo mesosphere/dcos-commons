@@ -525,7 +525,7 @@ public final class YAMLToInternalMappers {
     } else {
       return new DefaultResourceLimits(
               rawResourceLimits.getCpus(),
-              rawResourceLimits.getMem());
+              rawResourceLimits.getMemory());
     }
   }
 

@@ -10,7 +10,7 @@ import java.util.Optional;
  */
 public final class DefaultResourceLimits implements ResourceLimits {
     final Optional<String> cpus;
-    final Optional<String> mem;
+    final Optional<String> memory;
 
     public static final DefaultResourceLimits empty() {
         return new DefaultResourceLimits(null, null);
@@ -25,9 +25,9 @@ public final class DefaultResourceLimits implements ResourceLimits {
     @JsonCreator
     public DefaultResourceLimits(
             @JsonProperty("cpus") String cpus,
-            @JsonProperty("mem") String mem) {
+            @JsonProperty("memory") String memory) {
         this.cpus = sanitize(cpus);
-        this.mem = sanitize(mem);
+        this.memory = sanitize(memory);
     }
 
     @Override
@@ -36,7 +36,7 @@ public final class DefaultResourceLimits implements ResourceLimits {
     }
 
     @Override
-    public Optional<String> getMem() { return mem; }
+    public Optional<String> getMemory() { return memory; }
 
     private final Double interpretUnlimited(String s) throws NumberFormatException {
         if (s == null) {
@@ -52,12 +52,12 @@ public final class DefaultResourceLimits implements ResourceLimits {
         return cpus.map((c) -> interpretUnlimited(c));
     }
 
-    public Optional<Double> getMemDouble() {
-        return mem.map((m) -> interpretUnlimited(m));
+    public Optional<Double> getMemoryDouble() {
+        return memory.map((m) -> interpretUnlimited(m));
     }
 
     @Override
     public String toString() {
-        return "DefaultResourceLimits{cpus=" + cpus + ", mem=" + mem + '}';
+        return "DefaultResourceLimits{cpus=" + cpus + ", memory=" + memory + '}';
     }
 }
