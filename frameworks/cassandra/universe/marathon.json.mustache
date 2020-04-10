@@ -128,6 +128,9 @@
     "SERVICE_TLD": "{{service.security.custom_domain}}",
     {{/service.security.custom_domain}}
 
+    "CONTAINER_LOGGER_LOGROTATE_MAX_STDOUT_SIZE": "{{service.logrotate_options.stdout_max_size}}",
+    "CONTAINER_LOGGER_LOGROTATE_MAX_STDERR_SIZE": "{{service.logrotate_options.stderr_max_size}}",
+
     {{#service.region}}
     "SERVICE_REGION": "{{service.region}}",
     {{/service.region}}
