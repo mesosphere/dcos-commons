@@ -415,6 +415,14 @@
               "minimum": 15
             }
           }
+        },
+        "constraints": {
+          "description": "Placement constraints for Cassandra scheduler.",
+          "type": "string",
+          "default": "",
+          "media": {
+            "type": "application/x-zone-constraints+json"
+          }
         }
       },
       "required": [
