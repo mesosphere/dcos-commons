@@ -10,7 +10,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import java.text.DecimalFormat;
 
 /**
- * Implements the invert of the `ExactMatcher` (aka "Not Matching")
+ * Implements the invert of the `ExactMatcher` (aka "Not Matching").
  */
 public final class InvertedExactMatcher implements StringMatcher {
 
