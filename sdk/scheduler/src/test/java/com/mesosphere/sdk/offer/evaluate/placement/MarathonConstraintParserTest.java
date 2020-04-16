@@ -137,6 +137,29 @@ public class MarathonConstraintParserTest {
     }
 
     @Test
+    public void testIsNotOperator() {
+        String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['foo', 'IS_NOT', 'bar']]")).toString();
+        assertEquals("AttributeRule{matcher=InvertedExactMatcher{str='foo:bar'}}", constraintStr);
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['foo', 'IS_NOT', 'bar']")).toString());
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "foo:IS_NOT:bar").toString());
+
+        constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['@region', 'IS_NOT', 'bar']]")).toString();
+        assertEquals("RegionRule{matcher=InvertedExactMatcher{str='bar'}}", constraintStr);
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['@region', 'IS_NOT', 'bar']")).toString());
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "@region:IS_NOT:bar").toString());
+
+        constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['@zone', 'IS_NOT', 'bar']]")).toString();
+        assertEquals("ZoneRule{matcher=InvertedExactMatcher{str='bar'}}", constraintStr);
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['@zone', 'IS_NOT', 'bar']")).toString());
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "@zone:IS_NOT:bar").toString());
+
+        constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['@hostname', 'IS_NOT', 'bar']]")).toString();
+        assertEquals("HostnameRule{matcher=InvertedExactMatcher{str='bar'}}", constraintStr);
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, unescape("['@hostname', 'IS_NOT', 'bar']")).toString());
+        assertEquals(constraintStr, MarathonConstraintParser.parse(POD_NAME, "@hostname:IS_NOT:bar").toString());
+    }
+
+    @Test
     public void testUnlikeOperator() {
         // example from marathon documentation:
         String constraintStr = MarathonConstraintParser.parse(POD_NAME, unescape("[['rack-id', 'UNLIKE', 'rack-[7-9]']]")).toString();
