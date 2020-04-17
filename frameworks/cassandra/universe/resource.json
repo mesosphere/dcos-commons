@@ -9,7 +9,7 @@
       "scheduler-zip": "{{artifact-dir}}/cassandra-scheduler.zip",
       "cassandra-tar-gz": "https://downloads.mesosphere.com/cassandra/assets/apache-cassandra-3.11.6-bin-dcos.tar.gz",
       "bootstrap-zip": "{{artifact-dir}}/bootstrap.zip",
-      "cassandra-exporter-jar": "https://backupstestcassandra.s3-us-west-2.amazonaws.com/cassandra-exporter-agent-0.9.10.jar"
+      "cassandra-exporter-jar": "https://downloads.mesosphere.com/cassandra/assets/cassandra-exporter-agent-0.9.10.jar"
     }
   },
   "images": {
