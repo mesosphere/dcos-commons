@@ -14,7 +14,7 @@ log = logging.getLogger(__name__)
 def configure_package(configure_security):
     try:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
-        options = {"service": {"yaml": "bursting"}}
+        options = {"service": {"user": "root", "yaml": "resource_limits"}}
 
         sdk_install.install(
             config.PACKAGE_NAME,
@@ -30,5 +30,5 @@ def configure_package(configure_security):
 
 @pytest.mark.dcos_min_version("2.1")
 @pytest.mark.sanity
-def test_bursting():
+def test_resource_limits():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
