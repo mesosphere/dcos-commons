@@ -133,7 +133,7 @@
             "crash-loop",
             "seccomp",
             "shm",
-            "bursting",
+            "resource_limits",
             ""
           ],
           "default": "svc"
