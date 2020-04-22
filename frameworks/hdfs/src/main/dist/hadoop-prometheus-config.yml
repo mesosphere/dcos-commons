@@ -1,0 +1,34 @@
+startDelaySeconds: 0
+ssl: false
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+whitelistObjectNames:
+  - 'Hadoop:service=NameNode,name=*'
+  - 'Hadoop:service=NameNode,name=MetricsSystem,sub=*'
+blacklistObjectNames:
+  - 'Hadoop:service=NameNode,name=RetryCache.NameNodeRetryCache'
+  - 'Hadoop:service=NameNode,name=RpcActivity*'
+  - 'Hadoop:service=NameNode,name=RpcDetailedActivity*'
+  - 'Hadoop:service=NameNode,name=UgiMetrics'
+rules:
+  # MetricsSystem
+  - pattern: 'Hadoop<service=(.*), name=MetricsSystem, sub=(.*)><>(.*): (\d+)'
+    attrNameSnakeCase: true
+    name: hadoop_$1_$3
+    value: $4
+    labels:
+      service: HDFS
+      role: $1
+      kind: 'MetricsSystem'
+      sub: $2
+    type: GAUGE
+  # All NameNode infos
+  - pattern: 'Hadoop<service=(.*), name=(.*)><>(.*): (\d+)'
+    attrNameSnakeCase: true
+    name: hadoop_$1_$3
+    value: $4
+    labels:
+      service: HDFS
+      role: $1
+      kind: $2
+    type: GAUGE

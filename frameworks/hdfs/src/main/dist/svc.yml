@@ -10,6 +10,7 @@ pods:
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{KEYTAB_URI}}
+      - {{JMX_EXPORTER_JAR}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{JOURNAL_NODE_RLIMIT_NOFILE_SOFT}}
@@ -157,6 +158,7 @@ pods:
       - {{BOOTSTRAP_URI}}
       - {{ZONE_RESOLVER}}
       - {{KEYTAB_URI}}
+      - {{JMX_EXPORTER_JAR}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{NAME_NODE_RLIMIT_NOFILE_SOFT}}
@@ -211,7 +213,7 @@ pods:
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
-
+          export HADOOP_OPTS="$HADOOP_OPTS -javaagent:./jmx_prometheus_javaagent-0.12.0.jar=8080:hadoop-prometheus-config.yml"
           if [[ $POD_INSTANCE_INDEX -eq 0 ]]; then
             export OTHER_NN_INDEX=1
           else
@@ -274,6 +276,9 @@ pods:
           hadoop-metrics2:
             template: name-hadoop-metrics2.properties
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          hadoop-prometheus-metrics:
+            template: hadoop-prometheus-config.yml
+            dest: hadoop-prometheus-config.yml
           {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           ssl-server:
             template: ssl-server.xml
@@ -463,6 +468,7 @@ pods:
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{KEYTAB_URI}}
+      - {{JMX_EXPORTER_JAR}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{DATA_NODE_RLIMIT_NOFILE_SOFT}}
