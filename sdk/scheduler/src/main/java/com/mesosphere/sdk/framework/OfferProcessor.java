@@ -389,6 +389,7 @@ class OfferProcessor {
           case REMOVE_CLIENT:
             // The managed service(s) have finished uninstalling and there's nothing left to do.
             // Unregister and delete the framework.
+            reviveManager.suppressIfActive();
             isDeregistered.set(true);
             destroyFramework();
             break;
