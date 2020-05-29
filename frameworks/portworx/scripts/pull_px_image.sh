@@ -1,7 +1,7 @@
 #!/bin/bash
 # Download provided px image on all nodes.
 
-ips=(`dcos node --json | jq -r '.[] | select(.type == "agent") | .id'`)
+ips=(`dcos node list --json | jq -r '.[] | select(.type == "agent") | .id'`)
 
 echo "Downloading px image $1 on all  dcos nodes...";
 for ip in "${ips[@]}"
