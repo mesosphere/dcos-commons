@@ -132,7 +132,7 @@ def check_px_status(do_not_wait = 0):
 
 def px_get_portworx_version(pod_name):
     agent_id = px_get_agent_id(pod_name)
-    cmd = "node ssh  \"pxctl --version\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo pxctl --version\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     _, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     log.info("PortworxCMD:{} cli output: {}, cli error: {}".format(cmd, std_out, std_err))
     return std_out
@@ -190,7 +190,7 @@ def px_is_vol_repl2(vol_name):
 def px_create_volume(pod_name, vol_name = "dcos_test_vol", size = 10):
     agent_id = px_get_agent_id(pod_name)
     
-    cmd = "node ssh  \"pxctl volume create " + vol_name + " --size=" + str(size) + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo pxctl volume create " + vol_name + " --size=" + str(size) + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed volume creation, node id: {}, volume name: {}, size:{}, with error:{}".format(agent_id, vol_name, size, std_err))
@@ -199,7 +199,7 @@ def px_create_volume(pod_name, vol_name = "dcos_test_vol", size = 10):
 def px_delete_volume(pod_name, vol_name):
     agent_id = px_get_agent_id(pod_name)
     
-    cmd = "node ssh  \"pxctl volume delete " + vol_name + " -f \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo pxctl volume delete " + vol_name + " -f \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed volume delete, node id: {}, volume name: {}, with error:{}".format(agent_id, vol_name, std_err))
@@ -209,17 +209,17 @@ def px_delete_volume(pod_name, vol_name):
 def px_update_volume_size(pod_name, vol_name, new_size):
     agent_id = px_get_agent_id(pod_name)
     
-    cmd = "node ssh  \"pxctl volume update --size=" + str(new_size) + " " + vol_name + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo pxctl volume update --size=" + str(new_size) + " " + vol_name + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed volume update operation, node id: {}, volume name: {}, size:{}, with error:{}".format(agent_id, vol_name, size, std_err))
         raise
 
-# command: /opt/pwx/bin/pxctl secrets dcos login --username px_user1 --password px_user1_password --base-path pwx/secrets
+# command: /opt/pwx/bin/sudo pxctl secrets dcos login --username px_user1 --password px_user1_password --base-path pwx/secrets
 def px_dcos_login(pod_name, user_name, user_password, base_path):
     agent_id = px_get_agent_id(pod_name)
 
-    cmd = "node ssh  \"pxctl secrets dcos login --username " + user_name + " --password " + user_password + " --base-path " + base_path + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" +  agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo pxctl secrets dcos login --username " + user_name + " --password " + user_password + " --base-path " + base_path + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" +  agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed dcos secrets login on node id: {}, user name: {}, user password:{}, base path: {}, with error:{}".format(agent_id, user_name, user_password, base_path, std_err))
@@ -237,31 +237,31 @@ def px_restart_portworx_service(pod_name):
         log.info("PORTWORX: Service has not restarted.")
         raise
 
-# command: /opt/pwx/bin/pxctl volume create --secure --secret_key px_skey  enc_vol1
+# command: /opt/pwx/bin/sudo pxctl volume create --secure --secret_key px_skey  enc_vol1
 def px_create_encrypted_volume(pod_name, vol_name, secret_key):
     agent_id = px_get_agent_id(pod_name)
 
-    cmd = "node ssh  \"pxctl volume create --secure --secret_key " + secret_key + " " + vol_name + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo pxctl volume create --secure --secret_key " + secret_key + " " + vol_name + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed encrypted  volume creation, node id: {}, volume name: {}, with error:{}".format(agent_id, vol_name, std_err))
         raise
 
-# command: /opt/pwx/bin/pxctl storage-policy create stp-repl2 --replication 2
+# command: /opt/pwx/bin/sudo pxctl storage-policy create stp-repl2 --replication 2
 def px_storage_policy_create(pod_name):
     agent_id = px_get_agent_id(pod_name)
 
-    cmd = "node ssh  \"pxctl storage-policy create stp-repl2 --replication 2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo pxctl storage-policy create stp-repl2 --replication 2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed to create storage policy for repl 2, node id: {}, with error:{}".format(agent_id, std_err))
         raise
 
-# command: /opt/pwx/bin/pxctl storage-policy set-default stp-repl2
+# command: /opt/pwx/bin/sudo pxctl storage-policy set-default stp-repl2
 def px_storage_policy_set_default(pod_name):
     agent_id = px_get_agent_id(pod_name)
 
-    cmd = "node ssh  \"pxctl storage-policy set-default stp-repl2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo pxctl storage-policy set-default stp-repl2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed to set default storage policy for repl 2, node id: {}, with error:{}".format(agent_id, std_err))

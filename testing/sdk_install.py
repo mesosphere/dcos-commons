@@ -163,10 +163,10 @@ def portworx_vol_cleanup():
     log.info("PORTWORX: cleanup portworx volumes")
     try:
         exit_status, output_agent = shakedown.run_command_on_agent(agents[1]['hostname'],
-            'pxctl -j v l', 'vagrant','/ssh/key')
+            'sudo pxctl -j v l', 'vagrant','/ssh/key')
         if exit_status != True:
             exit_status, output_agent = shakedown.run_command_on_agent(agents[0]['hostname'],
-                'pxctl -j v l', 'vagrant','/ssh/key')
+                'sudo pxctl -j v l', 'vagrant','/ssh/key')
     except:
         log.info("PORTWORX: Skipping portworx specific cleanups")
         return 1
@@ -179,14 +179,14 @@ def portworx_vol_cleanup():
     sleep(5) # Extra time after detach volumes before deleting. 
     for vol in pxvols:
         log.info("Deleting Portworx Volume: {}".format(vol['locator']['name']))
-        cmd = 'pxctl host detach --redirect ' + vol['locator']['name']
+        cmd = 'sudo pxctl host detach --redirect ' + vol['locator']['name']
         exit_status, output_agent = shakedown.run_command_on_agent(agents[1]['hostname'], cmd, 'vagrant','/ssh/key')
-        cmd = 'pxctl v d -f ' + vol['locator']['name'] 
+        cmd = 'sudo pxctl v d -f ' + vol['locator']['name']
         exit_status, output_agent = shakedown.run_command_on_agent(agents[1]['hostname'], cmd, 'vagrant','/ssh/key')
         if exit_status != True:
-            cmd = 'pxctl host detach --redirect ' + vol['locator']['name']
+            cmd = 'sudo pxctl host detach --redirect ' + vol['locator']['name']
             exit_status, output_agent = shakedown.run_command_on_agent(agents[0]['hostname'], cmd, 'vagrant','/ssh/key')
-            cmd = 'pxctl v d -f ' + vol['locator']['name']
+            cmd = 'sudo pxctl v d -f ' + vol['locator']['name']
             exit_status, output_agent = shakedown.run_command_on_agent(agents[0]['hostname'], cmd, 'vagrant','/ssh/key')
             if exit_status != True:
                 log.info("PORTWORX: Failed to delete px-volume {} {}".format(vol['locator']['name'], output_agent))
