@@ -101,7 +101,6 @@ public class DefaultPlanCoordinatorTest extends DefaultCapabilitiesTestSuite {
                         frameworkStore,
                         stateStore,
                         Optional.empty(),
-                        Optional.empty(),
                         TestConstants.SERVICE_NAME,
                         UUID.randomUUID(),
                         PodTestUtils.getTemplateUrlFactory(),
