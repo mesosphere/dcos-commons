@@ -190,7 +190,7 @@ def px_is_vol_repl2(vol_name):
 def px_create_volume(pod_name, vol_name = "dcos_test_vol", size = 10):
     agent_id = px_get_agent_id(pod_name)
     
-    cmd = "node ssh  \"sudo pxctl volume create " + vol_name + " --size=" + str(size) + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo /opt/pwx/bin/pxctl volume create " + vol_name + " --size=" + str(size) + "\" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed volume creation, node id: {}, volume name: {}, size:{}, with error:{}".format(agent_id, vol_name, size, std_err))
@@ -251,7 +251,7 @@ def px_create_encrypted_volume(pod_name, vol_name, secret_key):
 def px_storage_policy_create(pod_name):
     agent_id = px_get_agent_id(pod_name)
 
-    cmd = "node ssh  \"sudo pxctl storage-policy create stp-repl2 --replication 2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo /opt/pwx/bin/pxctl storage-policy create stp-repl2 --replication 2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed to create storage policy for repl 2, node id: {}, with error:{}".format(agent_id, std_err))
@@ -261,7 +261,7 @@ def px_storage_policy_create(pod_name):
 def px_storage_policy_set_default(pod_name):
     agent_id = px_get_agent_id(pod_name)
 
-    cmd = "node ssh  \"sudo pxctl storage-policy set-default stp-repl2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
+    cmd = "node ssh  \"sudo /opt/pwx/bin/pxctl storage-policy set-default stp-repl2 \" --user=" + config.PX_AGENT_USER + " --mesos-id=" + agent_id + " --option StrictHostKeyChecking=no"
     ret_val, std_out, std_err = sdk_cmd.run_raw_cli(cmd)
     if ret_val:
         log.info("PORTWORX: Failed to set default storage policy for repl 2, node id: {}, with error:{}".format(agent_id, std_err))

@@ -69,6 +69,7 @@ do
         dcos node ssh --mesos-id=${ip} --master-proxy --user=vagrant 'sudo umount /opt/pwx/oci'
         dcos node ssh --mesos-id=${ip} --master-proxy --user=vagrant 'sudo rm -rf /opt/pwx'
         dcos node ssh --mesos-id=${ip} --master-proxy --user=vagrant 'sudo rmmod px -f'
+        dcos node ssh --mesos-id=${ip} --master-proxy --user=vagrant 'sudo rm -f /user/bin/pxctl'
 done
 # TODO The return value of cleanup script should be based on whethe
 # cleanup of portworx was successful or not.
