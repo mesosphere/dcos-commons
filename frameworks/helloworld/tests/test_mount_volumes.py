@@ -24,7 +24,6 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.mark.sanity
 def test_kill_node():
     """kill the node task, verify that the node task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
@@ -48,7 +47,6 @@ def test_kill_node():
     verify_shared_executor("hello-0")
 
 
-@pytest.mark.sanity
 def test_kill_agent():
     """kill the agent task, verify that the agent task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
