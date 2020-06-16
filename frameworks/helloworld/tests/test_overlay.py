@@ -32,6 +32,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69473")
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.smoke
@@ -106,6 +107,7 @@ def test_overlay_network():
     )
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69473")
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
@@ -137,6 +139,7 @@ def test_cni_labels():
             assert False, "Couldn't get CNI labels from {}".format(cni_labels)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69473")
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")

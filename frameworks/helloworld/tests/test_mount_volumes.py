@@ -11,6 +11,7 @@ from tests import config
 log = logging.getLogger(__name__)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69472")
 @pytest.fixture(scope="module", autouse=True)
 def configure_package(configure_security):
     try:
@@ -24,6 +25,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69472")
 def test_kill_node():
     """kill the node task, verify that the node task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
@@ -47,6 +49,7 @@ def test_kill_node():
     verify_shared_executor("hello-0")
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69472")
 def test_kill_agent():
     """kill the agent task, verify that the agent task is relaunched against the same executor as before"""
     verify_shared_executor("hello-0")
@@ -70,6 +73,7 @@ def test_kill_agent():
     verify_shared_executor("hello-0")
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69472")
 def verify_shared_executor(pod_name):
     """verify that both tasks share the same executor:
     - matching ExecutorInfo

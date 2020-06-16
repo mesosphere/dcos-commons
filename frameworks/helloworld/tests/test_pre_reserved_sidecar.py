@@ -30,12 +30,14 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69475")
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.10")
 def test_deploy():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69475")
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.10")
 def test_sidecar():
