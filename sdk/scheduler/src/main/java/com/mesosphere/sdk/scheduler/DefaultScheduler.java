@@ -17,6 +17,7 @@ import com.mesosphere.sdk.http.endpoints.PodResource;
 import com.mesosphere.sdk.http.endpoints.StateResource;
 import com.mesosphere.sdk.http.endpoints.TaskReservationsResource;
 import com.mesosphere.sdk.http.endpoints.TaskStatusesResource;
+import com.mesosphere.sdk.http.endpoints.ThreadsResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
@@ -228,6 +229,7 @@ public class DefaultScheduler extends AbstractScheduler {
     plansTracker.ifPresent(x -> resources.add(new PlansDebugResource(x)));
     statusesTracker.ifPresent(x -> resources.add(new TaskStatusesResource(x)));
     reservationsTracker.ifPresent(x -> resources.add(new TaskReservationsResource(x)));
+    resources.add(new ThreadsResource());
     return resources;
   }
 
