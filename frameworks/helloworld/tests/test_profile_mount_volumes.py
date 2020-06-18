@@ -31,6 +31,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69583")
 @pytest.mark.sanity
 @pytest.mark.dcos_min_version("1.12")
 def test_profile_mount_volumes():
