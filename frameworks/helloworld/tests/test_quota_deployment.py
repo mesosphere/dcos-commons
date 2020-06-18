@@ -32,12 +32,8 @@ def configure_package(configure_security):
 @pytest.mark.sanity
 @pytest.mark.parametrize(
     "options",
-    [
-        {"service": {"name": SERVICE_NAME, "role": "slave_public"}},
-    ],
-    ids=[
-        "test_nonenforced_group_role_defaults_explicit_slave_public",
-    ],
+    [{"service": {"name": SERVICE_NAME, "role": "slave_public"}}],
+    ids=["test_nonenforced_group_role_defaults_explicit_slave_public"],
 )
 def test_nonenforced_group_role_defaults(options):
 
