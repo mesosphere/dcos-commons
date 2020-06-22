@@ -17,16 +17,10 @@ pytestmark = pytest.mark.skipif(
 )
 
 pre_reserved_options = {
-    "service": {
-        "yaml": "pre-reserved"
-    },
+    "service": {"yaml": "pre-reserved"},
     # Use count as 1 as both the pods launch their tasks under `slave-public` role with unique hostname constraint
-    "hello": {
-        "count": 1
-    },
-    "world": {
-        "count": 1
-    }
+    "hello": {"count": 1},
+    "world": {"count": 1},
 }
 PRERESERVED_TASK_COUNT = 2
 
@@ -101,8 +95,7 @@ def test_marathon_volume_collision():
         )
 
         if rc != 0:
-            log.error(
-                "Could not get slave_public roles. return-code: '%s'\n", rc)
+            log.error("Could not get slave_public roles. return-code: '%s'\n", rc)
         assert rc == 0
 
         pv_path = pv_path.strip()
