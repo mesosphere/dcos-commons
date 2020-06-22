@@ -45,6 +45,7 @@ def kerberos(configure_security):
         kerberos_env.cleanup()
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69466")
 @pytest.mark.auth
 @pytest.mark.sanity
 def test_install_without_additional_principal_to_user_mapping(kerberos, service_account):
