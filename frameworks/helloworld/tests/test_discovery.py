@@ -18,7 +18,6 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.mark.skip(reason="Infra Issues:D2IQ-69470")
 @pytest.mark.sanity
 def test_task_dns_prefix_points_to_all_tasks():
     pod_info = sdk_cmd.service_request("GET", config.SERVICE_NAME, "/v1/pod/hello-0/info").json()
