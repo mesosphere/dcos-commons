@@ -123,6 +123,7 @@ def get_hdfs_client_app(service_name, kerberos=None) -> dict:
             "type": "MESOS",
             "docker": {"image": DOCKER_IMAGE_NAME, "forcePullImage": True},
         },
+        "user": "root",
         "networks": [{"mode": "host"}],
         "env": {
             "JAVA_HOME": "/usr/lib/jvm/default-java",
