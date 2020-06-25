@@ -107,9 +107,8 @@ def hdfs_client(hdfs_server, kerberos):
         sdk_marathon.destroy_app(client["id"])
 
 
-@pytest.mark.skip(reason="Infra Issues:D2IQ-69466")
 @pytest.mark.auth
-# @pytest.mark.sanity
+@pytest.mark.sanity
 def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     sdk_auth.kinit(
         hdfs_client["id"], keytab=config.KEYTAB, principal=kerberos.get_principal("hdfs")
@@ -120,9 +119,8 @@ def test_user_can_auth_and_write_and_read(hdfs_client, kerberos):
     config.hdfs_client_read_data(test_filename)
 
 
-@pytest.mark.skip(reason="Infra Issues:D2IQ-69466")
 @pytest.mark.auth
-# @pytest.mark.sanity
+@pytest.mark.sanity
 def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     # "hdfs" is a superuser
     sdk_auth.kinit(
@@ -173,10 +171,9 @@ def test_users_have_appropriate_permissions(hdfs_client, kerberos):
     )
 
 
-@pytest.mark.skip(reason="Infra Issues:D2IQ-69466")
 @pytest.mark.auth
-# @pytest.mark.sanity
-# @pytest.mark.recovery
+@pytest.mark.sanity
+@pytest.mark.recovery
 def test_kill_all_journalnodes(hdfs_server):
     service_name = hdfs_server["service"]["name"]
     journal_ids = sdk_tasks.get_task_ids(service_name, "journal")
