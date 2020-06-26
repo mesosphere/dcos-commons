@@ -132,7 +132,7 @@ def test_unique_zone_fails():
         {
             "service": {"yaml": "marathon_constraint"},
             "hello": {"placement": '[["@zone", "UNIQUE"]]'},
-            "world": {"placement": '[["@zone", "UNIQUE"]]'},
+            "world": {"placement": '[["@zone", "UNIQUE"]]', "count": 3},
         }
     )
 
@@ -147,7 +147,7 @@ def test_max_per_zone_fails():
         {
             "service": {"yaml": "marathon_constraint"},
             "hello": {"placement": '[["@zone", "MAX_PER", "1"]]'},
-            "world": {"placement": '[["@zone", "MAX_PER", "1"]]'},
+            "world": {"placement": '[["@zone", "MAX_PER", "1"]]', "count": 3},
         }
     )
 
@@ -177,7 +177,7 @@ def test_group_by_zone_succeeds():
         {
             "service": {"yaml": "marathon_constraint"},
             "hello": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
-            "world": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
+            "world": {"placement": '[["@zone", "GROUP_BY", "1"]]', "count": 3},
         }
     )
     succeed_placement(options)
@@ -191,7 +191,7 @@ def test_group_by_zone_fails():
         {
             "service": {"yaml": "marathon_constraint"},
             "hello": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
-            "world": {"placement": '[["@zone", "GROUP_BY", "2"]]'},
+            "world": {"placement": '[["@zone", "GROUP_BY", "3"]]', "count": 3},
         }
     )
 
@@ -365,13 +365,14 @@ def fail_placement(options):
     phase2 = pl["phases"][1]
     assert phase2["status"] == "IN_PROGRESS"
     steps2 = phase2["steps"]
-    assert len(steps2) == 2
+    assert len(steps2) == 3
     assert steps2[0]["status"] == "COMPLETE"
-    assert steps2[1]["status"] in ("PREPARED", "PENDING")
+    assert steps2[1]["status"] in ("COMPLETE", "PREPARED", "PENDING")
+    assert steps2[2]["status"] in ("PREPARED", "PENDING")
 
     try:
-        sdk_tasks.check_running(config.SERVICE_NAME, 3, timeout_seconds=30)
-        assert False, "Should have failed to deploy world-1"
+        sdk_tasks.check_running(config.SERVICE_NAME, 4, timeout_seconds=30)
+        assert False, "Should have failed to deploy world-2"
     except AssertionError as arg:
         raise arg
     except Exception:
