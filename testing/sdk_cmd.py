@@ -24,7 +24,7 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
-SSH_USERNAME = os.environ.get("DCOS_SSH_USERNAME", "core")
+SSH_USERNAME = os.environ.get("DCOS_SSH_USERNAME", "centos")
 SSH_KEY_FILE = os.environ.get("DCOS_SSH_KEY_FILE", "")
 
 # Silence this warning. We expect certs to be self-signed:
