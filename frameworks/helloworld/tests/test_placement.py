@@ -40,14 +40,18 @@ def test_scheduler_task_placement_by_marathon():
             additional_options={
                 "service": {
                     "constraints": [["hostname", "CLUSTER", "{}".format(some_private_agent)]],
-                    "yaml": "simple"
+                    "yaml": "simple",
                 }
             },
             wait_for_deployment=False,
         )
         summary = sdk_tasks.get_service_tasks("marathon", config.SERVICE_NAME)
-        assert len(summary) == 1, "More than 1 task matched name [{}] : [{}]".format(config.SERVICE_NAME, summary)
-        assert some_private_agent == summary.pop().host, "Scheduler task constraint placement failed by marathon"
+        assert len(summary) == 1, "More than 1 task matched name [{}] : [{}]".format(
+            config.SERVICE_NAME, summary
+        )
+        assert (
+            some_private_agent == summary.pop().host
+        ), "Scheduler task constraint placement failed by marathon"
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -510,7 +514,9 @@ def get_task_host(task_name):
     _, out, _ = sdk_cmd.run_cli("task {} --json".format(task_name))
     tasks_json = json.loads(out)
     matching_tasks = list(filter(lambda t: t["name"] == task_name, tasks_json))
-    assert len(matching_tasks) == 1, "Duplicate tasks found with same name : [{}]".format(tasks_json)
+    assert len(matching_tasks) == 1, "Duplicate tasks found with same name : [{}]".format(
+        tasks_json
+    )
     task_info = matching_tasks.pop()
 
     host = None
