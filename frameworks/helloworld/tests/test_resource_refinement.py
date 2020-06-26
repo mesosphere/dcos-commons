@@ -42,7 +42,6 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-@pytest.mark.skip(reason="Infra Issues:D2IQ-69626")
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.10")
@@ -50,7 +49,6 @@ def test_install():
     config.check_running(config.SERVICE_NAME)
 
 
-@pytest.mark.skip(reason="Infra Issues:D2IQ-69626")
 @pytest.mark.sanity
 @pytest.mark.smoke
 @pytest.mark.dcos_min_version("1.10")
