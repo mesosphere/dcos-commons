@@ -17,6 +17,7 @@ TEMPLATE_DOCUMENTATION_PATH="https://github.com/mesosphere/dcos-commons/blob/mas
 $REPO_ROOT_DIR/tools/build_package.sh \
     hello-world \
     $FRAMEWORK_DIR \
+    -v \
     -a "$FRAMEWORK_DIR/build/distributions/keystore-app.zip" \
     -a "$FRAMEWORK_DIR/build/distributions/hello-world-scheduler.zip" \
     -a "$REPO_ROOT_DIR/sdk/bootstrap/bootstrap.zip" \
