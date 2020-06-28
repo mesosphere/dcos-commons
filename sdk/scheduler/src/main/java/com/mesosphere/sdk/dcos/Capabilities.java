@@ -131,8 +131,8 @@ public class Capabilities {
   }
 
   public boolean supportsResourceLimits() {
-    // Shared Mem fields supported 1.15 and above (Mesos 1.10)
-    return hasOrExceedsVersion(1, 15);
+    // Shared Mem fields supported 2.1 and above (Mesos 1.10)
+    return hasOrExceedsVersion(2, 1);
   }
 
   private boolean hasOrExceedsVersion(int major, int minor) {
