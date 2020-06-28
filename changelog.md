@@ -1,4 +1,4 @@
-## Changes to v0.58.0
+## Changes to v0.58.0-draft
 
 - [D2IQ-62959](https://jira.d2iq.com/browse/D2IQ-62959) Add support for resource-limits in SDK
 
@@ -28,9 +28,6 @@ Instead of Cassandra requiring 1 CPU for a sidecar tasks, it could instead set a
 - [#3217](https://github.com/mesosphere/dcos-commons/pull/3217) Fix deprecated warnings of PMD gradle plugin. [TOOLING]
 - [#3216](https://github.com/mesosphere/dcos-commons/pull/3216) Fixed publish http server launch. [TOOLING]
 
-##### Notes
-
-- [#3215](https://github.com/mesosphere/dcos-commons/pull/3215) Is a major bug-fix since v0.57.0. Frameworks are recommended to upgrade to v0.57.3 and issue `pod replace` commands to exisiting deployments to mitigate the risks. Existing procedures for [migrating a existing service to the quotated role](https://github.com/mesosphere/dcos-commons/releases/tag/0.57.0#migrate-an-existing-deployed-service-to-use-quota-support) should be followed.
 
 ## Changes to v0.57.2
 - [#3198](https://github.com/mesosphere/dcos-commons/pull/3198) `ALLOW_REGION_AWARENESS` is set to true by default
