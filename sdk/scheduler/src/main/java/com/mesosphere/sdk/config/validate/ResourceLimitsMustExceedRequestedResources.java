@@ -20,14 +20,19 @@ public class ResourceLimitsMustExceedRequestedResources implements ConfigValidat
   private double getScalarResources(ResourceSet resourceSet, String resourceName) {
     return resourceSet.getResources()
             .stream()
-            .filter((r) -> r.getName().equals(resourceName) && r.getValue().hasScalar())
+            .filter(r -> r.getName().equals(resourceName) && r.getValue().hasScalar())
             .map(r -> r.getValue().getScalar().getValue())
             .findFirst()
             .orElseGet(() -> 0d);
 
   }
 
-  private static final ConfigValidationError formatError(String resourceType, String taskName, Double request, Double limit, ResourceLimits resourceLimits) {
+  private static final ConfigValidationError formatError(String resourceType,
+      String taskName,
+      Double request,
+      Double limit,
+      ResourceLimits resourceLimits)
+  {
     DecimalFormat df = new DecimalFormat("#.###");
     String errMsg = String.format(
             "The %s resource-limits for task '%s', %s, is less than the requested amount, %s",
@@ -45,23 +50,32 @@ public class ResourceLimitsMustExceedRequestedResources implements ConfigValidat
   @Override
   public Collection<ConfigValidationError> validate(
       Optional<ServiceSpec> oldConfig,
-      ServiceSpec newConfig) {
+      ServiceSpec newConfig)
+  {
     Collection<ConfigValidationError> errors = new ArrayList<>();
 
     for (PodSpec podSpec: newConfig.getPods()) {
       for (TaskSpec taskSpec : podSpec.getTasks()) {
         ResourceLimits resourceLimits = taskSpec.getResourceSet().getResourceLimits();
 
-        resourceLimits.getCpusDouble().ifPresent((cpusLimit) -> {
+        resourceLimits.getCpusDouble().ifPresent(cpusLimit -> {
           double cpusRequest = getScalarResources(taskSpec.getResourceSet(), Constants.CPUS_RESOURCE_TYPE);
           if (cpusLimit < cpusRequest) {
-            errors.add(formatError(Constants.CPUS_RESOURCE_TYPE, taskSpec.getName(), cpusRequest, cpusLimit, resourceLimits));
+            errors.add(formatError(Constants.CPUS_RESOURCE_TYPE,
+                taskSpec.getName(),
+                cpusRequest,
+                cpusLimit,
+                resourceLimits));
           }
         });
-        resourceLimits.getMemoryDouble().ifPresent((memLimit) -> {
+        resourceLimits.getMemoryDouble().ifPresent(memLimit -> {
           double memRequest = getScalarResources(taskSpec.getResourceSet(), Constants.MEMORY_RESOURCE_TYPE);
           if (memLimit < memRequest) {
-            errors.add(formatError(Constants.MEMORY_RESOURCE_TYPE, taskSpec.getName(), memRequest, memLimit, resourceLimits));
+            errors.add(formatError(Constants.MEMORY_RESOURCE_TYPE,
+                taskSpec.getName(),
+                memRequest,
+                memLimit,
+                resourceLimits));
           }
         });
       }

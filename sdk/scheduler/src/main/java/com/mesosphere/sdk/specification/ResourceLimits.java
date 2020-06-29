@@ -11,24 +11,24 @@ import java.util.Optional;
  */
 @JsonDeserialize(as = DefaultResourceLimits.class)
 public interface ResourceLimits {
-    @JsonProperty("cpus")
-    Optional<String> getCpus();
+  @JsonProperty("cpus")
+  Optional<String> getCpus();
 
-    @JsonProperty("memory")
-    Optional<String> getMemory();
+  @JsonProperty("memory")
+  Optional<String> getMemory();
 
-    @JsonIgnore
-    public Optional<Double> getCpusDouble();
+  @JsonIgnore
+  public Optional<Double> getCpusDouble();
 
-    @JsonIgnore
-    public Optional<Double> getMemoryDouble();
+  @JsonIgnore
+  public Optional<Double> getMemoryDouble();
 
-    public static void isProperlyFormatted(ResourceLimits resourceLimits) {
-        if (resourceLimits.getCpus().isPresent() && !resourceLimits.getCpusDouble().isPresent()) {
-            throw new RuntimeException("Resource limit cpus must be a string 'undefined' or a parseable numeric value");
-        }
-        if (resourceLimits.getMemory().isPresent() && !resourceLimits.getMemoryDouble().isPresent()) {
-            throw new RuntimeException("Resource limit mem must be a string 'undefined' or a parseable numeric value");
-        }
+  public static void isProperlyFormatted(ResourceLimits resourceLimits) {
+    if (resourceLimits.getCpus().isPresent() && !resourceLimits.getCpusDouble().isPresent()) {
+      throw new RuntimeException("Resource limit cpus must be a string 'undefined' or a parseable numeric value");
     }
+    if (resourceLimits.getMemory().isPresent() && !resourceLimits.getMemoryDouble().isPresent()) {
+      throw new RuntimeException("Resource limit mem must be a string 'undefined' or a parseable numeric value");
+    }
+  }
 }

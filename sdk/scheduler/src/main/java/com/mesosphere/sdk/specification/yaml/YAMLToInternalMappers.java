@@ -519,7 +519,8 @@ public final class YAMLToInternalMappers {
 
   private static final ResourceLimits convertResourceLimits(
           RawResourceLimits rawResourceLimits
-  ) {
+  )
+  {
     if (rawResourceLimits == null) {
       return DefaultResourceLimits.empty();
     } else {
