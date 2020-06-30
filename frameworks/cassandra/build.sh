@@ -16,6 +16,7 @@ ${REPO_ROOT_DIR}/gradlew -p ${FRAMEWORK_DIR} check distZip
 $REPO_ROOT_DIR/tools/build_package.sh \
     cassandra \
     $FRAMEWORK_DIR \
+    -v \
     -a "$FRAMEWORK_DIR/build/distributions/$(basename $FRAMEWORK_DIR)-scheduler.zip" \
     -a "$REPO_ROOT_DIR/sdk/bootstrap/bootstrap.zip" \
     -a "$REPO_ROOT_DIR/sdk/cli/dcos-service-cli-linux" \
