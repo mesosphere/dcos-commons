@@ -106,7 +106,7 @@ def test_metrics() -> None:
 
 @pytest.mark.sanity
 def test_custom_jmx_port() -> None:
-    expected_open_port = ":7200 (LISTEN)"
+    expected_open_port = ":7200"
 
     new_config = {"cassandra": {"jmx_port": 7200}}
 
@@ -122,7 +122,7 @@ def test_custom_jmx_port() -> None:
     tasks = sdk_tasks.get_service_tasks(config.get_foldered_service_name(), "node")
 
     for task in tasks:
-        _, stdout, _ = sdk_cmd.run_cli("task exec {} lsof -i :7200".format(task.id))
+        _, stdout, _ = sdk_cmd.run_cli("task exec {} netstat -nlp | grep :7200".format(task.id))
         assert expected_open_port in stdout
 
 
