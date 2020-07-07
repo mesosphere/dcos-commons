@@ -55,7 +55,7 @@ def test_initial_upgrade():
     assert ENFORCED_ROLE not in current_task_roles.values()
 
     assert service_roles["framework-roles"] is None
-    assert service_roles["framework-role"] == LEGACY_ROLE
+    assert service_roles["framework-role"] == ENFORCED_ROLE
 
 
 @pytest.mark.quota_test

@@ -85,8 +85,8 @@ else
 fi
 gradle_cache="${DCOS_COMMONS_DIRECTORY}/.gradle_cache"
 maven_cache=
-ssh_path="${HOME}/.ssh/ccm.pem"
-ssh_user="core"
+ssh_path="${HOME}/.ssh/id_rsa"
+ssh_user="centos"
 aws_credentials_path="${HOME}/.aws/credentials"
 enterprise="true"
 headless="false"
