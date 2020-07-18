@@ -51,7 +51,7 @@ entrypoints==0.3
 filelock==3.0.10
 flake8==3.7.7
 future==0.17.1
-google-api-python-client==1.7.7
+google-api-python-client==1.10.0
 google-auth==1.6.2
 google-auth-httplib2==0.0.3
 httplib2==0.12.0
