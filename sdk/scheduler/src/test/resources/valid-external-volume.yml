@@ -1,0 +1,20 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    external-volumes:
+      opt-mesosphere:
+        type: DOCKER
+        provider: PWX
+        size: 1024
+        container-path: external-volume-etc
+        driver-name: driver-name
+        driver-options: driver-options
+        volume-name: external-volume-name
+        volume-mode: RO
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512

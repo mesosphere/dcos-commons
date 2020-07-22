@@ -9,38 +9,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-import com.mesosphere.sdk.specification.ConfigFileSpec;
-import com.mesosphere.sdk.specification.DefaultCommandSpec;
-import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
-import com.mesosphere.sdk.specification.DefaultDiscoverySpec;
-import com.mesosphere.sdk.specification.DefaultHealthCheckSpec;
-import com.mesosphere.sdk.specification.DefaultHostVolumeSpec;
-import com.mesosphere.sdk.specification.DefaultNetworkSpec;
-import com.mesosphere.sdk.specification.DefaultPodSpec;
-import com.mesosphere.sdk.specification.DefaultReadinessCheckSpec;
-import com.mesosphere.sdk.specification.DefaultResourceSet;
-import com.mesosphere.sdk.specification.DefaultSecretSpec;
-import com.mesosphere.sdk.specification.DefaultServiceSpec;
-import com.mesosphere.sdk.specification.DefaultTaskSpec;
-import com.mesosphere.sdk.specification.DefaultTransportEncryptionSpec;
-import com.mesosphere.sdk.specification.DefaultVolumeSpec;
-import com.mesosphere.sdk.specification.DiscoverySpec;
-import com.mesosphere.sdk.specification.GoalState;
-import com.mesosphere.sdk.specification.HealthCheckSpec;
-import com.mesosphere.sdk.specification.HostVolumeSpec;
-import com.mesosphere.sdk.specification.NamedVIPSpec;
-import com.mesosphere.sdk.specification.NetworkSpec;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.PortSpec;
-import com.mesosphere.sdk.specification.RLimitSpec;
-import com.mesosphere.sdk.specification.RangeSpec;
-import com.mesosphere.sdk.specification.ReadinessCheckSpec;
-import com.mesosphere.sdk.specification.ResourceSet;
-import com.mesosphere.sdk.specification.SecretSpec;
-import com.mesosphere.sdk.specification.ServiceSpec;
-import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.specification.TransportEncryptionSpec;
-import com.mesosphere.sdk.specification.VolumeSpec;
+import com.mesosphere.sdk.specification.*;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
@@ -358,6 +327,15 @@ public final class YAMLToInternalMappers {
       builder.hostVolumes(hostVolumeSpecs);
     }
 
+    if (!rawPod.getExternalVolumes().isEmpty()) {
+      Collection<HostVolumeSpec> externalVolumeSpecs = new ArrayList<>();
+      externalVolumeSpecs.addAll(rawPod.getExternalVolumes().values().stream()
+              .map(v -> convertHostVolume(v))
+              .collect(Collectors.toList()));
+
+      builder.hostVolumes(externalVolumeSpecs);
+    }
+
     if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
       Collection<VolumeSpec> volumeSpecs = new ArrayList<>(rawPod.getVolume() == null ?
           Collections.emptyList() :
@@ -594,6 +572,14 @@ public final class YAMLToInternalMappers {
         .hostPath(rawHostVolume.getHostPath())
         .containerPath(rawHostVolume.getContainerPath())
         .mode(rawHostVolume.getMode())
+        .build();
+  }
+
+  private static ExternalVolumeSpec convertHostVolume(RawExternalVolume rawExternalVolume) {
+
+    return ExternalVolumeSpec.newBuilder()
+        .containerPath(rawExternalVolume.getContainerPath())
+        .mode(rawExternalVolume.getMode())
         .build();
   }
 

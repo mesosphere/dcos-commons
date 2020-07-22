@@ -49,6 +49,8 @@ public final class RawPod {
 
   private final WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes;
 
+  private final WriteOnceLinkedHashMap<String, RawExternalVolume> externalVolumes;
+
   private final Boolean seccompUnconfined;
 
   private final String seccompProfileName;
@@ -73,6 +75,7 @@ public final class RawPod {
       @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
       @JsonProperty("allow-decommission") Boolean allowDecommission,
       @JsonProperty("host-volumes") WriteOnceLinkedHashMap<String, RawHostVolume> hostVolumes,
+      @JsonProperty("external-volumes") WriteOnceLinkedHashMap<String, RawExternalVolume> externalVolumes,
       @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
       @JsonProperty("seccomp-profile-name") String seccompProfileName,
       @JsonProperty("ipc-mode") String sharedMemory,
@@ -92,6 +95,7 @@ public final class RawPod {
     this.sharePidNamespace = sharePidNamespace != null && sharePidNamespace;
     this.allowDecommission = allowDecommission != null && allowDecommission;
     this.hostVolumes = hostVolumes == null ? new WriteOnceLinkedHashMap<>() : hostVolumes;
+    this.externalVolumes = externalVolumes == null ? new WriteOnceLinkedHashMap<>() : externalVolumes;
     this.seccompUnconfined = seccompUnconfined;
     this.seccompProfileName = seccompProfileName;
     this.sharedMemory = sharedMemory;
@@ -164,6 +168,10 @@ public final class RawPod {
 
   public WriteOnceLinkedHashMap<String, RawHostVolume> getHostVolumes() {
     return hostVolumes;
+  }
+
+  public WriteOnceLinkedHashMap<String, RawExternalVolume> getExternalVolumes() {
+    return externalVolumes;
   }
 
   public Boolean getSeccompUnconfined() {
