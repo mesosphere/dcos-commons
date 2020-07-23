@@ -7,6 +7,11 @@ import java.util.Optional;
 
 public interface DockerVolumeSpec extends ExternalVolumeSpec {
 
+    @Override
+    default Type getType() {
+        return Type.DOCKER;
+    }
+
     // Name of the driver to use
     @JsonProperty("driver-name")
     String getDriverName();

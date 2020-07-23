@@ -328,12 +328,12 @@ public final class YAMLToInternalMappers {
     }
 
     if (!rawPod.getExternalVolumes().isEmpty()) {
-      Collection<HostVolumeSpec> externalVolumeSpecs = new ArrayList<>();
+      Collection<ExternalVolumeSpec> externalVolumeSpecs = new ArrayList<>();
       externalVolumeSpecs.addAll(rawPod.getExternalVolumes().values().stream()
-              .map(v -> convertHostVolume(v))
+              .map(v -> convertExternalVolume(v))
               .collect(Collectors.toList()));
 
-      builder.hostVolumes(externalVolumeSpecs);
+      builder.externalVolumes(externalVolumeSpecs);
     }
 
     if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
@@ -575,12 +575,27 @@ public final class YAMLToInternalMappers {
         .build();
   }
 
-  private static ExternalVolumeSpec convertHostVolume(RawExternalVolume rawExternalVolume) {
+  private static ExternalVolumeSpec convertExternalVolume(RawExternalVolume rawExternalVolume) {
 
-    return ExternalVolumeSpec.newBuilder()
-        .containerPath(rawExternalVolume.getContainerPath())
-        .mode(rawExternalVolume.getMode())
-        .build();
+    switch (rawExternalVolume.getType()) {
+      case "DOCKER":
+
+        switch (rawExternalVolume.getProvider()) {
+          case "PWX":
+            return PortworxVolumeSpec.newBuilder()
+                    .size(rawExternalVolume.getSize())
+                    .containerPath(rawExternalVolume.getContainerPath())
+                    .driverName(rawExternalVolume.getDriverName())
+                    .driverOptions(rawExternalVolume.getDriverOptions())
+                    .volumeName(rawExternalVolume.getVolumeName())
+                    .mode(rawExternalVolume.getVolumeMode())
+                    .provider(rawExternalVolume.getProvider())
+                    .build();
+        }
+      default:
+        throw new IllegalArgumentException("Unsupported external volume mode.");
+    }
+
   }
 
   private static DefaultVolumeSpec convertVolume(

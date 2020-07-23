@@ -17,39 +17,35 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
      */
     private static final Pattern VALID_CONTAINER_PATH_PATTERN =
             Pattern.compile("([.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*)");
-    
-    private final Type type;
-    private final Provider provider;
+
+    private final Provider provider = Provider.PWX;
+    private final String containerPath;
     private final Integer size;
     private final String driverName;
     private final String driverOptions;
     private final String volumeName;
-    private final String containerPath;
     private final Optional<Protos.Volume.Mode> volumeMode;
 
     @JsonCreator
     private PortworxVolumeSpec(
-            @JsonProperty("type") Type type,
-            @JsonProperty("provider") Provider provider,
             @JsonProperty("size") Integer size,
+            @JsonProperty("container-path") String containerPath,
             @JsonProperty("driver-name") String driverName,
             @JsonProperty("driver-options") String driverOptions,
             @JsonProperty("volume-name") String volumeName,
-
-            @JsonProperty("container-path") String containerPath,
             @JsonProperty("mode") Optional<Protos.Volume.Mode> volumeMode) {
 
-        this.type = type;
-        this.provider = provider;
         this.size = size;
+        this.containerPath = containerPath;
         this.driverName = driverName;
         this.driverOptions = driverOptions;
         this.volumeName = volumeName;
-
-        this.containerPath = containerPath;
         this.volumeMode = volumeMode;
     }
 
+    public static PortworxVolumeSpec.Builder newBuilder() {
+        return new PortworxVolumeSpec.Builder();
+    }
 
     @Override
     public String getDriverName() {
@@ -72,18 +68,13 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     }
 
     @Override
-    public Type getType() {
-        return type;
-    }
-
-    @Override
     public Provider getProvider() {
         return provider;
     }
 
     @Override
     public int getSize() {
-        return 0;
+        return size;
     }
 
     @Override
@@ -105,5 +96,84 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     public int hashCode() {
         return HashCodeBuilder.reflectionHashCode(this);
     }
-    
+
+    public static class Builder {
+        private Provider provider;
+        private Integer size;
+        private String driverName;
+        private String driverOptions;
+        private String volumeName;
+        private String containerPath;
+        private Optional<Protos.Volume.Mode> volumeMode;
+
+        private Builder() {
+        }
+
+        public PortworxVolumeSpec.Builder size(int size) {
+            this.size = size;
+            return this;
+        }
+
+        public PortworxVolumeSpec.Builder driverName(String driverName) {
+            this.driverName = driverName;
+            return this;
+        }
+
+
+        public PortworxVolumeSpec.Builder driverOptions(String driverOptions) {
+            this.driverOptions = driverOptions;
+            return this;
+        }
+
+        public PortworxVolumeSpec.Builder volumeName(String volumeName) {
+            this.volumeName = volumeName;
+            return this;
+        }
+
+        public PortworxVolumeSpec.Builder containerPath(String containerPath) {
+            this.containerPath = containerPath;
+            return this;
+        }
+
+        public PortworxVolumeSpec.Builder provider(String provider) {
+            switch (provider) {
+                case "PWX":
+                    this.provider = Provider.PWX;
+                    return this;
+                default:
+                    throw new IllegalArgumentException("Unsupported external volume mode.");
+            }
+        }
+
+        public PortworxVolumeSpec.Builder mode(String mode) {
+            if (mode == null || mode.isEmpty()) {
+                this.volumeMode = Optional.empty();
+                if (true) throw new IllegalArgumentException("EMPTY " + mode);
+
+                return this;
+            }
+
+            switch (mode) {
+                case "RW":
+                    this.volumeMode = Optional.of(Protos.Volume.Mode.RW);
+                    return this;
+                case "RO":
+                    this.volumeMode = Optional.of(Protos.Volume.Mode.RO);
+                    return this;
+                default:
+                    throw new IllegalArgumentException("Unsupported external volume mode.");
+            }
+        }
+
+        public PortworxVolumeSpec build() {
+            return new PortworxVolumeSpec(
+                    this.size,
+                    this.containerPath,
+                    this.driverName,
+                    this.driverOptions,
+                    this.volumeName,
+                    this.volumeMode);
+        }
+    }
+
 }
