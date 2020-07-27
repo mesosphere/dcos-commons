@@ -1,5 +1,6 @@
 package com.mesosphere.sdk.offer.evaluate;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.mesosphere.sdk.dcos.DcosConstants;
 import com.mesosphere.sdk.http.EndpointUtils;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
@@ -23,6 +24,8 @@ import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultReadinessCheckSpec;
 import com.mesosphere.sdk.specification.DiscoverySpec;
+import com.mesosphere.sdk.specification.DockerVolumeSpec;
+import com.mesosphere.sdk.specification.ExternalVolumeSpec;
 import com.mesosphere.sdk.specification.HealthCheckSpec;
 import com.mesosphere.sdk.specification.HostVolumeSpec;
 import com.mesosphere.sdk.specification.NetworkSpec;
@@ -35,8 +38,6 @@ import com.mesosphere.sdk.specification.SecretSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
 import com.mesosphere.sdk.state.GoalStateOverride;
-
-import com.google.common.annotations.VisibleForTesting;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.mesos.Protos;
@@ -320,7 +321,7 @@ public class PodInfoBuilder {
       taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
     }
 
-    taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), true, true));
+    taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), podInstance.getIndex(), true, true));
 
     if (taskSpec.getSharedMemory().isPresent()) {
       taskInfoBuilder.getContainerBuilder().getLinuxInfoBuilder().setIpcMode(taskSpec.getSharedMemory().get()).build();
@@ -356,7 +357,7 @@ public class PodInfoBuilder {
 
     // Populate ContainerInfo with the appropriate information from PodSpec
     // This includes networks, rlimits, secret volumes...
-    executorInfoBuilder.setContainer(getContainerInfo(podSpec, true, false));
+    executorInfoBuilder.setContainer(getContainerInfo(podSpec, podInstance.getIndex(),true, false));
 
     return executorInfoBuilder;
   }
@@ -572,10 +573,11 @@ public class PodInfoBuilder {
    * @return the ContainerInfo to be attached
    */
   private Protos.ContainerInfo getContainerInfo(
-      PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer)
+      PodSpec podSpec, int podIndex, boolean addExtraParameters, boolean isTaskContainer)
   {
     Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
     Collection<Protos.Volume> hostVolumes = getExecutorInfoHostVolumes(podSpec.getHostVolumes());
+    Collection<Protos.Volume> externalVolumes = getExecutorInfoExternalVolumes(podSpec.getExternalVolumes(), podIndex);
     Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
         .setType(Protos.ContainerInfo.Type.MESOS);
 
@@ -617,6 +619,10 @@ public class PodInfoBuilder {
 
     for (Protos.Volume hostVolume : hostVolumes) {
       containerInfo.addVolumes(hostVolume);
+    }
+
+    for (Protos.Volume externalVolume : externalVolumes) {
+      containerInfo.addVolumes(externalVolume);
     }
 
     if (!podSpec.getImage().isPresent()
@@ -799,6 +805,84 @@ public class PodInfoBuilder {
             .setContainerPath(hostVolumeSpec.getContainerPath())
             .setMode(Protos.Volume.Mode.RW)
             .build());
+      }
+    }
+
+    return volumes;
+  }
+
+  private static Protos.Parameter createParameter(String key, String value) {
+    return Protos.Parameter.newBuilder()
+            .setKey(key)
+            .setValue(value)
+            .build();
+  }
+
+  private static Collection<Protos.Volume> getExecutorInfoExternalVolumes(Collection<ExternalVolumeSpec> externalVolumeSpecs, int podIndex) {
+    Collection<Protos.Volume> volumes = new ArrayList<>();
+
+    for (ExternalVolumeSpec volume: externalVolumeSpecs) {
+      if (volume.getType() == ExternalVolumeSpec.Type.DOCKER) {
+        DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volume;
+
+        Map<String, String> driverOptions = dockerVolume.getDriverOptions();
+
+        String volumeName;
+        if (driverOptions.containsKey("shared") && driverOptions.get("shared").equals("true")) {
+          // If it is a shared volume, reset the volume name to
+          // not have the pod index, so that all tasks get the
+          // same volume
+          volumeName = dockerVolume.getVolumeName();
+        } else {
+          volumeName = dockerVolume.getVolumeName() + podIndex;
+        }
+
+        Protos.Parameters.Builder driverOptionsBuilder = Protos.Parameters.newBuilder();
+
+        for (Map.Entry<String, String> option : driverOptions.entrySet()) {
+          driverOptionsBuilder.addParameter(createParameter(option.getKey(), option.getValue()));
+        }
+
+        int sizeGB = dockerVolume.getSize() / 1024;
+        if ((dockerVolume.getSize() % 1024) != 0) {
+          sizeGB++;
+        }
+        driverOptionsBuilder.addParameter(createParameter("size", Integer.toString(sizeGB)));
+
+        // Favor creating volumes on the local node
+        if (dockerVolume.getDriverName().equals(ExternalVolumeSpec.Provider.PWX.name())) {
+          driverOptionsBuilder.addParameter(createParameter("nodes", "LocalNode"));
+
+          if (dockerVolume.getDriverOptions() != null) {
+            StringBuilder nameBuilder = new StringBuilder();
+            nameBuilder.append("name=" + volumeName + ";size=" + sizeGB);
+            for (Map.Entry<String, String> option : dockerVolume.getDriverOptions().entrySet()) {
+              nameBuilder.append(";" + option.getKey() + "=" + option.getValue());
+            }
+            nameBuilder.append(";nodes=LocalNode");
+            volumeName = nameBuilder.toString();
+          }
+        }
+
+        Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder();
+
+        if (dockerVolume.getVolumeMode().isPresent()) {
+          volumeBuilder.setMode(dockerVolume.getVolumeMode().get());
+        }
+
+        Protos.Volume externalVolume = volumeBuilder
+                .setContainerPath(dockerVolume.getContainerPath())
+                .setSource(
+                        Protos.Volume.Source.newBuilder()
+                                .setType(Protos.Volume.Source.Type.DOCKER_VOLUME)
+                                .setDockerVolume(
+                                        Protos.Volume.Source.DockerVolume.newBuilder()
+                                                .setDriver(dockerVolume.getDriverName())
+                                                .setName(volumeName)
+                                                .setDriverOptions(driverOptionsBuilder.build())
+                                                .build())
+                ).build();
+        volumes.add(externalVolume);
       }
     }
 
