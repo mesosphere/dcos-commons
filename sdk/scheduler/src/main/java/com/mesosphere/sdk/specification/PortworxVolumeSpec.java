@@ -7,6 +7,9 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
 import org.apache.mesos.Protos;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Pattern;
 
@@ -22,7 +25,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     private final String containerPath;
     private final Integer size;
     private final String driverName;
-    private final String driverOptions;
+    private final Map<String, String> driverOptions;
     private final String volumeName;
     private final Optional<Protos.Volume.Mode> volumeMode;
 
@@ -31,7 +34,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
             @JsonProperty("size") Integer size,
             @JsonProperty("container-path") String containerPath,
             @JsonProperty("driver-name") String driverName,
-            @JsonProperty("driver-options") String driverOptions,
+            @JsonProperty("driver-options") Map<String, String> driverOptions,
             @JsonProperty("volume-name") String volumeName,
             @JsonProperty("mode") Optional<Protos.Volume.Mode> volumeMode) {
 
@@ -53,7 +56,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     }
 
     @Override
-    public String getDriverOptions() {
+    public Map<String, String> getDriverOptions() {
         return driverOptions;
     }
 
@@ -101,7 +104,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
         private Provider provider;
         private Integer size;
         private String driverName;
-        private String driverOptions;
+        private Map<String, String> driverOptions;
         private String volumeName;
         private String containerPath;
         private Optional<Protos.Volume.Mode> volumeMode;
@@ -121,7 +124,21 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
 
 
         public PortworxVolumeSpec.Builder driverOptions(String driverOptions) {
-            this.driverOptions = driverOptions;
+            Map<String, String> driverOptionsMap = new HashMap<>();
+
+            if (!driverOptions.isEmpty()) {
+                String[] options = driverOptions.split(",");
+                for (String opt : options) {
+                    String[] kv = opt.split("=");
+
+                    if (kv.length != 2) {
+                        throw new IllegalArgumentException("Invalid driver option: " + Arrays.toString(kv));
+                    }
+                    driverOptionsMap.put(kv[0], kv[1]);
+                }
+            }
+
+            this.driverOptions = driverOptionsMap;
             return this;
         }
 

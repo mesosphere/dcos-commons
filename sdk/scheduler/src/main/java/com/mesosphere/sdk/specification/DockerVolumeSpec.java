@@ -3,6 +3,7 @@ package com.mesosphere.sdk.specification;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.mesos.Protos;
 
+import java.util.Map;
 import java.util.Optional;
 
 public interface DockerVolumeSpec extends ExternalVolumeSpec {
@@ -18,7 +19,7 @@ public interface DockerVolumeSpec extends ExternalVolumeSpec {
 
     // driver-options: String of options to pass to the driver. This is opaque to the SDK.
     @JsonProperty("driver-options")
-    String getDriverOptions();
+    Map<String, String> getDriverOptions();
 
     // volume-name: Name of the volume exposed to the provider.
     @JsonProperty("volume-name")
