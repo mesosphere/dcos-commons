@@ -20,23 +20,7 @@ import com.mesosphere.sdk.offer.taskdata.TaskLabelWriter;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
 import com.mesosphere.sdk.scheduler.recovery.FailureUtils;
-import com.mesosphere.sdk.specification.CommandSpec;
-import com.mesosphere.sdk.specification.ConfigFileSpec;
-import com.mesosphere.sdk.specification.DefaultReadinessCheckSpec;
-import com.mesosphere.sdk.specification.DiscoverySpec;
-import com.mesosphere.sdk.specification.DockerVolumeSpec;
-import com.mesosphere.sdk.specification.ExternalVolumeSpec;
-import com.mesosphere.sdk.specification.HealthCheckSpec;
-import com.mesosphere.sdk.specification.HostVolumeSpec;
-import com.mesosphere.sdk.specification.NetworkSpec;
-import com.mesosphere.sdk.specification.PodInstance;
-import com.mesosphere.sdk.specification.PodSpec;
-import com.mesosphere.sdk.specification.PortSpec;
-import com.mesosphere.sdk.specification.RLimitSpec;
-import com.mesosphere.sdk.specification.ReadinessCheckSpec;
-import com.mesosphere.sdk.specification.SecretSpec;
-import com.mesosphere.sdk.specification.TaskSpec;
-import com.mesosphere.sdk.specification.VolumeSpec;
+import com.mesosphere.sdk.specification.*;
 import com.mesosphere.sdk.state.GoalStateOverride;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -44,15 +28,7 @@ import org.apache.mesos.Protos;
 import org.slf4j.Logger;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 
@@ -578,6 +554,7 @@ public class PodInfoBuilder {
     Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
     Collection<Protos.Volume> hostVolumes = getExecutorInfoHostVolumes(podSpec.getHostVolumes());
     Collection<Protos.Volume> externalVolumes = getExecutorInfoExternalVolumes(podSpec.getExternalVolumes(), podIndex);
+
     Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
         .setType(Protos.ContainerInfo.Type.MESOS);
 
@@ -834,7 +811,7 @@ public class PodInfoBuilder {
           // same volume
           volumeName = dockerVolume.getVolumeName();
         } else {
-          volumeName = dockerVolume.getVolumeName() + podIndex;
+          volumeName = dockerVolume.getVolumeName() + "-" + podIndex;
         }
 
         Protos.Parameters.Builder driverOptionsBuilder = Protos.Parameters.newBuilder();
@@ -850,7 +827,7 @@ public class PodInfoBuilder {
         driverOptionsBuilder.addParameter(createParameter("size", Integer.toString(sizeGB)));
 
         // Favor creating volumes on the local node
-        if (dockerVolume.getDriverName().equals(ExternalVolumeSpec.Provider.PWX.name())) {
+        if (dockerVolume.getDriverName().equals("pxd")) {
           driverOptionsBuilder.addParameter(createParameter("nodes", "LocalNode"));
 
           if (dockerVolume.getDriverOptions() != null) {
@@ -882,6 +859,7 @@ public class PodInfoBuilder {
                                                 .setDriverOptions(driverOptionsBuilder.build())
                                                 .build())
                 ).build();
+        LOGGER.info("Add external volume: " + externalVolume.getSource().getDockerVolume().getName());
         volumes.add(externalVolume);
       }
     }

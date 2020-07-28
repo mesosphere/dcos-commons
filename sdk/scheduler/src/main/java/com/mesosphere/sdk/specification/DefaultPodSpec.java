@@ -177,6 +177,7 @@ public final class DefaultPodSpec implements PodSpec {
     builder.volumes = copy.getVolumes();
     builder.sharePidNamespace = copy.getSharePidNamespace();
     builder.hostVolumes = copy.getHostVolumes();
+    builder.externalVolumes = copy.getExternalVolumes();
     builder.seccompUnconfined = copy.getSeccompUnconfined();
     builder.seccompProfileName = copy.getSeccompProfileName();
     builder.sharedMemory = copy.getSharedMemory();

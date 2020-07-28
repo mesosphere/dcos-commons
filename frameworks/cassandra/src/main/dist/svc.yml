@@ -47,14 +47,16 @@ pods:
         file: new_user_password
     {{/TASKCFG_ALL_PASSWORD_SECRET_PATH}}
     {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
-    volume:
-      path: container-path
-      type: {{CASSANDRA_DISK_TYPE}}
-      size: {{CASSANDRA_DISK_MB}}
-      {{#CASSANDRA_VOLUME_PROFILE}}
-      profiles:
-        - {{CASSANDRA_VOLUME_PROFILE}}
-      {{/CASSANDRA_VOLUME_PROFILE}}
+    external-volumes:
+      portworx-volume:
+        type: DOCKER
+        provider: PWX
+        size: {{CASSANDRA_DISK_MB}}
+        container-path: container-path
+        driver-name: "pxd"
+        driver-options: ""
+        volume-name: "cassandra"
+        volume-mode: RW
     uris:
       - {{CASSANDRA_JAVA_URI}}
       - {{CASSANDRA_PYTHON_URI}}

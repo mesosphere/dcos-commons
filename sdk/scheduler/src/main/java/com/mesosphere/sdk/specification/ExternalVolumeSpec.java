@@ -1,7 +1,9 @@
 package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
+@JsonDeserialize(as = PortworxVolumeSpec.class)
 public interface ExternalVolumeSpec {
 
     // The type of external-volume. Currently only DOCKER is supported.

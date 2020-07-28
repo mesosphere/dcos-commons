@@ -1,11 +1,13 @@
 package com.mesosphere.sdk.specification;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.apache.mesos.Protos;
 
 import java.util.Map;
 import java.util.Optional;
 
+@JsonDeserialize(as = PortworxVolumeSpec.class)
 public interface DockerVolumeSpec extends ExternalVolumeSpec {
 
     @Override
