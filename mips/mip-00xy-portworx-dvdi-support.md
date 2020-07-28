@@ -154,7 +154,7 @@ The current implementation as opted for a different `Service-Spec` type of `exte
 
 ### Migration Path
 
-Aside from the introduction of the `provider` and `volume-mode` fields and nesting under `external-volumes` as opposed to `volumes` under the Service-Spec, the interface differences between the two are largely cosmetic. The transition between the Portworx fork to the upstream SDK isn't intended or expected to be too onerous on the the Framework maintainers.
+Aside from the introduction of the `volume-sharing` and `volume-mode` fields and nesting under `external-volumes` as opposed to `volumes` under the Service-Spec, the interface differences between the two are largely cosmetic. The transition between the Portworx fork to the upstream SDK isn't intended or expected to be too onerous on the the Framework maintainers.
 
 ### Framework Adoption
 
