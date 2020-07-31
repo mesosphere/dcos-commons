@@ -803,21 +803,17 @@ public class PodInfoBuilder {
         DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volume;
 
         Map<String, String> driverOptions = dockerVolume.getDriverOptions();
+        Protos.Parameters.Builder driverOptionsBuilder = Protos.Parameters.newBuilder();
 
         String volumeName;
-        if (driverOptions.containsKey("shared") && driverOptions.get("shared").equals("true")) {
+        if (volume.getSharing() == ExternalVolumeSpec.Sharing.POD_SHARED) {
           // If it is a shared volume, reset the volume name to
           // not have the pod index, so that all tasks get the
           // same volume
+          driverOptionsBuilder.addParameter(createParameter("shared", "true"));
           volumeName = dockerVolume.getVolumeName();
         } else {
           volumeName = dockerVolume.getVolumeName() + "-" + podIndex;
-        }
-
-        Protos.Parameters.Builder driverOptionsBuilder = Protos.Parameters.newBuilder();
-
-        for (Map.Entry<String, String> option : driverOptions.entrySet()) {
-          driverOptionsBuilder.addParameter(createParameter(option.getKey(), option.getValue()));
         }
 
         int sizeGB = dockerVolume.getSize() / 1024;
@@ -828,17 +824,18 @@ public class PodInfoBuilder {
 
         // Favor creating volumes on the local node
         if (dockerVolume.getDriverName().equals("pxd")) {
-          driverOptionsBuilder.addParameter(createParameter("nodes", "LocalNode"));
+          Map<String, String> options = new LinkedHashMap<>(dockerVolume.getDriverOptions());
+          options.put("name", volumeName);
+          options.put("size", Integer.toString(sizeGB));
+          options.put("nodes", "LocalNode");
 
-          if (dockerVolume.getDriverOptions() != null) {
-            StringBuilder nameBuilder = new StringBuilder();
-            nameBuilder.append("name=" + volumeName + ";size=" + sizeGB);
-            for (Map.Entry<String, String> option : dockerVolume.getDriverOptions().entrySet()) {
-              nameBuilder.append(";" + option.getKey() + "=" + option.getValue());
-            }
-            nameBuilder.append(";nodes=LocalNode");
-            volumeName = nameBuilder.toString();
-          }
+          volumeName = options.keySet().stream()
+                  .map(key -> key + "=" + options.get(key))
+                  .collect(Collectors.joining(";"));
+        }
+
+        for (Map.Entry<String, String> option : driverOptions.entrySet()) {
+          driverOptionsBuilder.addParameter(createParameter(option.getKey(), option.getValue()));
         }
 
         Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder();

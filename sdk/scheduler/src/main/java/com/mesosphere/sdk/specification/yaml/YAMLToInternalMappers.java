@@ -613,16 +613,16 @@ public final class YAMLToInternalMappers {
     switch (rawExternalVolume.getType()) {
       case "DOCKER":
 
-        switch (rawExternalVolume.getProvider()) {
-          case "PWX":
+        switch (rawExternalVolume.getDriverName()) {
+          case "pxd":
             return PortworxVolumeSpec.newBuilder()
                     .size(rawExternalVolume.getSize())
                     .containerPath(rawExternalVolume.getContainerPath())
                     .driverName(rawExternalVolume.getDriverName())
                     .driverOptions(rawExternalVolume.getDriverOptions())
                     .volumeName(rawExternalVolume.getVolumeName())
+                    .sharing(rawExternalVolume.getSharing())
                     .mode(rawExternalVolume.getVolumeMode())
-                    .provider(rawExternalVolume.getProvider())
                     .build();
         }
       default:

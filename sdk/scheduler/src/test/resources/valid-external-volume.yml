@@ -3,15 +3,15 @@ pods:
   pod-type:
     count: 1
     external-volumes:
-      opt-mesosphere:
+      first-volume:
         type: DOCKER
-        provider: PWX
         size: 1024
         container-path: external-volume-etc
-        driver-name: driver-name
-        driver-options: driver-options
+        driver-name: pxd
+        driver-options:
         volume-name: external-volume-name
         volume-mode: RO
+        volume-sharing: POD_EXCLUSIVE
     tasks:
       meta-data-task:
         goal: RUNNING

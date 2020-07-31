@@ -21,13 +21,13 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     private static final Pattern VALID_CONTAINER_PATH_PATTERN =
             Pattern.compile("([.a-zA-Z0-9]+([.a-zA-Z0-9_-]*[/\\\\]*)*)");
 
-    private final Provider provider = Provider.PWX;
     private final String containerPath;
     private final Integer size;
     private final String driverName;
     private final Map<String, String> driverOptions;
     private final String volumeName;
     private final Optional<Protos.Volume.Mode> volumeMode;
+    private final Sharing volumeSharing;
 
     @JsonCreator
     private PortworxVolumeSpec(
@@ -36,7 +36,9 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
             @JsonProperty("driver-name") String driverName,
             @JsonProperty("driver-options") Map<String, String> driverOptions,
             @JsonProperty("volume-name") String volumeName,
-            @JsonProperty("mode") Optional<Protos.Volume.Mode> volumeMode) {
+            @JsonProperty("mode") Optional<Protos.Volume.Mode> volumeMode,
+            @JsonProperty("volume-sharing") Sharing volumeSharing
+    ) {
 
         this.size = size;
         this.containerPath = containerPath;
@@ -44,6 +46,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
         this.driverOptions = driverOptions;
         this.volumeName = volumeName;
         this.volumeMode = volumeMode;
+        this.volumeSharing = volumeSharing;
     }
 
     public static PortworxVolumeSpec.Builder newBuilder() {
@@ -71,11 +74,6 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     }
 
     @Override
-    public Provider getProvider() {
-        return provider;
-    }
-
-    @Override
     public int getSize() {
         return size;
     }
@@ -83,6 +81,11 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     @Override
     public String getContainerPath() {
         return containerPath;
+    }
+
+    @Override
+    public Sharing getSharing() {
+        return volumeSharing;
     }
 
     @Override
@@ -101,13 +104,13 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     }
 
     public static class Builder {
-        private Provider provider;
         private Integer size;
         private String driverName;
         private Map<String, String> driverOptions;
         private String volumeName;
         private String containerPath;
         private Optional<Protos.Volume.Mode> volumeMode;
+        private Sharing volumeSharing;
 
         private Builder() {
         }
@@ -126,7 +129,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
         public PortworxVolumeSpec.Builder driverOptions(String driverOptions) {
             Map<String, String> driverOptionsMap = new HashMap<>();
 
-            if (!driverOptions.isEmpty()) {
+            if (driverOptions != null && !driverOptions.isEmpty()) {
                 String[] options = driverOptions.split(",");
                 for (String opt : options) {
                     String[] kv = opt.split("=");
@@ -152,20 +155,9 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
             return this;
         }
 
-        public PortworxVolumeSpec.Builder provider(String provider) {
-            switch (provider) {
-                case "PWX":
-                    this.provider = Provider.PWX;
-                    return this;
-                default:
-                    throw new IllegalArgumentException("Unsupported external volume mode.");
-            }
-        }
-
         public PortworxVolumeSpec.Builder mode(String mode) {
             if (mode == null || mode.isEmpty()) {
                 this.volumeMode = Optional.empty();
-                if (true) throw new IllegalArgumentException("EMPTY " + mode);
 
                 return this;
             }
@@ -178,7 +170,20 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
                     this.volumeMode = Optional.of(Protos.Volume.Mode.RO);
                     return this;
                 default:
-                    throw new IllegalArgumentException("Unsupported external volume mode.");
+                    throw new IllegalArgumentException("Unsupported external volume mode: " + mode);
+            }
+        }
+
+        public PortworxVolumeSpec.Builder sharing(String volumeSharing) {
+            switch (volumeSharing) {
+                case "POD_EXCLUSIVE":
+                    this.volumeSharing = Sharing.POD_EXCLUSIVE;
+                    return this;
+                case "POD_SHARED":
+                    this.volumeSharing = Sharing.POD_SHARED;
+                    return this;
+                default:
+                    throw new IllegalArgumentException("Unsupported volume sharing: " + volumeSharing);
             }
         }
 
@@ -189,7 +194,9 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
                     this.driverName,
                     this.driverOptions,
                     this.volumeName,
-                    this.volumeMode);
+                    this.volumeMode,
+                    this.volumeSharing
+            );
         }
     }
 

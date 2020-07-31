@@ -11,11 +11,11 @@ public final class RawExternalVolume {
 
     private final String containerPath;
 
-    private final String provider;
-
     private final String volumeName;
 
     private final String volumeMode;
+
+    private final String volumeSharing;
 
     private final String driverName;
 
@@ -26,19 +26,18 @@ public final class RawExternalVolume {
     private RawExternalVolume(
             @JsonProperty("type") String type,
             @JsonProperty("size") int size,
-            @JsonProperty("provider") String provider,
             @JsonProperty("volume-name") String volumeName,
             @JsonProperty("volume-mode") String volumeMode,
             @JsonProperty("driver-name") String driverName,
             @JsonProperty("driver-options") String driverOptions,
             @JsonProperty("container-path") String containerPath,
-            @JsonProperty("mode") String mode) {
+            @JsonProperty("volume-sharing") String volumeSharing) {
         this.type = type;
         this.size = size;
         this.containerPath = containerPath;
-        this.provider = provider;
         this.volumeName = volumeName;
         this.volumeMode = volumeMode;
+        this.volumeSharing = volumeSharing;
         this.driverName = driverName;
         this.driverOptions = driverOptions;
     }
@@ -51,10 +50,6 @@ public final class RawExternalVolume {
         return containerPath;
     }
 
-    public String getProvider() {
-        return provider;
-    }
-
     public String getType() {
         return type;
     }
@@ -65,6 +60,10 @@ public final class RawExternalVolume {
 
     public String getVolumeMode() {
         return volumeMode;
+    }
+
+    public String getSharing() {
+        return volumeSharing;
     }
 
     public String getDriverName() {

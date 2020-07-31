@@ -10,10 +10,6 @@ public interface ExternalVolumeSpec {
     @JsonProperty("type")
     Type getType();
 
-    // The provider of the external-volume. Currently only PWX is supported.
-    @JsonProperty("provider")
-    Provider getProvider();
-
     // Size of the external volume. The capability to grow or shrink this volume is delegated to the provider.
     @JsonProperty("size")
     int getSize();
@@ -22,11 +18,15 @@ public interface ExternalVolumeSpec {
     @JsonProperty("container-path")
     String getContainerPath();
 
+    @JsonProperty("volume-sharing")
+    Sharing getSharing();
+
     enum Type {
         DOCKER
     }
 
-    enum Provider {
-        PWX
+    enum Sharing {
+        POD_EXCLUSIVE,
+        POD_SHARED
     }
 }

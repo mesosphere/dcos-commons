@@ -470,19 +470,15 @@ public class DefaultServiceSpecTest {
             Assert.assertEquals(ExternalVolumeSpec.Type.DOCKER, volumeSpec.getType());
             Assert.assertEquals("external-volume-etc", volumeSpec.getContainerPath());
             Assert.assertEquals(1024, volumeSpec.getSize());
+            Assert.assertEquals(volumeSpec.getSharing(), ExternalVolumeSpec.Sharing.POD_EXCLUSIVE);
 
             if (volumeSpec instanceof DockerVolumeSpec) {
                 DockerVolumeSpec dockerVolumeSpec = (DockerVolumeSpec) volumeSpec;
 
                 Assert.assertEquals(Protos.Volume.Mode.RO, dockerVolumeSpec.getVolumeMode().get());
                 Assert.assertEquals("external-volume-name", dockerVolumeSpec.getVolumeName());
-                Assert.assertEquals("driver-name", dockerVolumeSpec.getDriverName());
-                Assert.assertEquals("driver-options", dockerVolumeSpec.getDriverOptions());
-
-                if (volumeSpec instanceof PortworxVolumeSpec) {
-                    PortworxVolumeSpec portworxVolumeSpec = (PortworxVolumeSpec) volumeSpec;
-                    Assert.assertEquals(ExternalVolumeSpec.Provider.PWX, volumeSpec.getProvider());
-                }
+                Assert.assertEquals("pxd", dockerVolumeSpec.getDriverName());
+                Assert.assertEquals(new HashMap<String, String>(), dockerVolumeSpec.getDriverOptions());
             }
         }
     }
