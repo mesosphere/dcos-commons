@@ -1,5 +1,9 @@
 package com.mesosphere.sdk.specification;
 
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import org.apache.commons.lang3.builder.ReflectionToStringBuilder;
+
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -61,9 +65,20 @@ public final class DefaultResourceLimits implements ResourceLimits {
   public Optional<Double> getMemoryDouble() {
     return memory.map(m -> interpretUnlimited(m));
   }
-
+   
   @Override
   public String toString() {
-    return "DefaultResourceLimits{cpus=" + cpus + ", memory=" + memory + '}';
+    return ReflectionToStringBuilder.toString(this);
   }
+
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+  
 }
