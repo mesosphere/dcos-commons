@@ -80,6 +80,7 @@ public final class DefaultResourceSet implements ResourceSet {
     builder.id = copy.id;
     builder.resources = copy.resources;
     builder.volumes = copy.volumes;
+    builder.resourceLimits = copy.resourceLimits;
     return builder;
   }
 
