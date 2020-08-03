@@ -5,13 +5,11 @@ pods:
     external-volumes:
       first-volume:
         type: DOCKER
-        size: 1024
         container-path: external-volume-etc
         driver-name: pxd
-        driver-options:
+        driver-options: shared=true,size=10
         volume-name: external-volume-name
         volume-mode: RO
-        volume-sharing: POD_EXCLUSIVE
     tasks:
       meta-data-task:
         goal: RUNNING

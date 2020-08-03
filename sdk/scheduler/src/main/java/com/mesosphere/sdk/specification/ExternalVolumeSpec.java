@@ -10,23 +10,11 @@ public interface ExternalVolumeSpec {
     @JsonProperty("type")
     Type getType();
 
-    // Size of the external volume. The capability to grow or shrink this volume is delegated to the provider.
-    @JsonProperty("size")
-    int getSize();
-
     // Path where the external volume is surfaced in the launched container.
     @JsonProperty("container-path")
     String getContainerPath();
 
-    @JsonProperty("volume-sharing")
-    Sharing getSharing();
-
     enum Type {
         DOCKER
-    }
-
-    enum Sharing {
-        POD_EXCLUSIVE,
-        POD_SHARED
     }
 }

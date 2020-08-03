@@ -806,36 +806,24 @@ public class PodInfoBuilder {
         Protos.Parameters.Builder driverOptionsBuilder = Protos.Parameters.newBuilder();
 
         String volumeName;
-        if (volume.getSharing() == ExternalVolumeSpec.Sharing.POD_SHARED) {
+        if (driverOptions.containsKey("shared") && driverOptions.get("shared").equals("true")) {
           // If it is a shared volume, reset the volume name to
           // not have the pod index, so that all tasks get the
           // same volume
-          driverOptionsBuilder.addParameter(createParameter("shared", "true"));
           volumeName = dockerVolume.getVolumeName();
         } else {
           volumeName = dockerVolume.getVolumeName() + "-" + podIndex;
         }
 
-        int sizeGB = dockerVolume.getSize() / 1024;
-        if ((dockerVolume.getSize() % 1024) != 0) {
-          sizeGB++;
-        }
-        driverOptionsBuilder.addParameter(createParameter("size", Integer.toString(sizeGB)));
-
         // Favor creating volumes on the local node
         if (dockerVolume.getDriverName().equals("pxd")) {
           Map<String, String> options = new LinkedHashMap<>(dockerVolume.getDriverOptions());
           options.put("name", volumeName);
-          options.put("size", Integer.toString(sizeGB));
           options.put("nodes", "LocalNode");
 
           volumeName = options.keySet().stream()
                   .map(key -> key + "=" + options.get(key))
                   .collect(Collectors.joining(";"));
-        }
-
-        for (Map.Entry<String, String> option : driverOptions.entrySet()) {
-          driverOptionsBuilder.addParameter(createParameter(option.getKey(), option.getValue()));
         }
 
         Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder();

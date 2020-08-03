@@ -50,12 +50,10 @@ pods:
     external-volumes:
       portworx-volume:
         type: DOCKER
-        size: {{CASSANDRA_DISK_MB}}
         container-path: container-path
         driver-name: pxd
-        driver-options: ""
+        driver-options: size=10
         volume-name: "cassandra"
-        volume-sharing: POD_EXCLUSIVE
         volume-mode: RW
     uris:
       - {{CASSANDRA_JAVA_URI}}

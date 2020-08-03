@@ -469,16 +469,18 @@ public class DefaultServiceSpecTest {
         for (ExternalVolumeSpec volumeSpec : spec.getExternalVolumes()) {
             Assert.assertEquals(ExternalVolumeSpec.Type.DOCKER, volumeSpec.getType());
             Assert.assertEquals("external-volume-etc", volumeSpec.getContainerPath());
-            Assert.assertEquals(1024, volumeSpec.getSize());
-            Assert.assertEquals(volumeSpec.getSharing(), ExternalVolumeSpec.Sharing.POD_EXCLUSIVE);
 
             if (volumeSpec instanceof DockerVolumeSpec) {
-                DockerVolumeSpec dockerVolumeSpec = (DockerVolumeSpec) volumeSpec;
+                DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volumeSpec;
 
-                Assert.assertEquals(Protos.Volume.Mode.RO, dockerVolumeSpec.getVolumeMode().get());
-                Assert.assertEquals("external-volume-name", dockerVolumeSpec.getVolumeName());
-                Assert.assertEquals("pxd", dockerVolumeSpec.getDriverName());
-                Assert.assertEquals(new HashMap<String, String>(), dockerVolumeSpec.getDriverOptions());
+                Assert.assertEquals(Protos.Volume.Mode.RO, dockerVolume.getVolumeMode().get());
+                Assert.assertEquals("external-volume-name", dockerVolume.getVolumeName());
+                Assert.assertEquals("pxd", dockerVolume.getDriverName());
+
+                Map<String, String> options = new HashMap<>();
+                options.put("shared", "true");
+                options.put("size", "10");
+                Assert.assertEquals(options, dockerVolume.getDriverOptions());
             }
         }
     }
