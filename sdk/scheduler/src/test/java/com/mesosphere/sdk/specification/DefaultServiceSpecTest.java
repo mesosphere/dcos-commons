@@ -1,12 +1,5 @@
 package com.mesosphere.sdk.specification;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
@@ -23,8 +16,17 @@ import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import com.mesosphere.sdk.testutils.TestPodFactory;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.google.common.collect.Iterables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
@@ -38,11 +40,15 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 public class DefaultServiceSpecTest {

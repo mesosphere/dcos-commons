@@ -9,9 +9,6 @@ import com.mesosphere.sdk.offer.evaluate.placement.MarathonConstraintParser;
 import com.mesosphere.sdk.offer.evaluate.placement.PassthroughRule;
 import com.mesosphere.sdk.offer.evaluate.placement.PlacementRule;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
-
-import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Strings;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultCommandSpec;
 import com.mesosphere.sdk.specification.DefaultConfigFileSpec;
@@ -46,6 +43,9 @@ import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.TransportEncryptionSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
+
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Strings;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
