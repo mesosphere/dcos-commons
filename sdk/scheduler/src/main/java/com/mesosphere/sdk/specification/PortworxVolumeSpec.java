@@ -151,6 +151,11 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
         }
 
         public PortworxVolumeSpec build() {
+            if (this.driverOptions != null && this.volumeName != null) {
+                if (driverOptions.containsKey("name")) {
+                    throw new IllegalArgumentException("External volume name provided both in driver options and volume name field.");
+                }
+            }
             return new PortworxVolumeSpec(
                     this.containerPath,
                     this.driverName,
