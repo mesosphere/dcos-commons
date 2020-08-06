@@ -610,23 +610,20 @@ public final class YAMLToInternalMappers {
 
   private static ExternalVolumeSpec convertExternalVolume(RawExternalVolume rawExternalVolume) {
 
-    switch (rawExternalVolume.getType()) {
-      case "DOCKER":
-
-        switch (rawExternalVolume.getDriverName()) {
-          case "pxd":
-            return PortworxVolumeSpec.newBuilder()
-                    .containerPath(rawExternalVolume.getContainerPath())
-                    .driverName(rawExternalVolume.getDriverName())
-                    .driverOptions(rawExternalVolume.getDriverOptions())
-                    .volumeName(rawExternalVolume.getVolumeName())
-                    .mode(rawExternalVolume.getVolumeMode())
-                    .build();
-        }
-      default:
-        throw new IllegalArgumentException("Unsupported external volume mode.");
+    if ("DOCKER".equals(rawExternalVolume.getType())) {
+      if ("pxd".equals(rawExternalVolume.getDriverName())) {
+        return PortworxVolumeSpec.newBuilder()
+            .containerPath(rawExternalVolume.getContainerPath())
+            .driverName(rawExternalVolume.getDriverName())
+            .driverOptions(rawExternalVolume.getDriverOptions())
+            .volumeName(rawExternalVolume.getVolumeName())
+            .mode(rawExternalVolume.getVolumeMode())
+            .build();
+      } else {
+        throw new IllegalArgumentException("Unsupported external volume driver " + rawExternalVolume.getDriverName() + ".");
+      }
     }
-
+    throw new IllegalArgumentException("Unsupported external volume mode " + rawExternalVolume.getType() + ".");
   }
 
   private static DefaultVolumeSpec convertVolume(
