@@ -468,6 +468,32 @@
             "type": "application/x-zone-constraints+json"
           }
         },
+        "external_volume": {
+          "type": "object",
+          "description": "The Cassandra external volume configuration.\nOnly Portworx external volumes are supported.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "If true, external profile will be used.",
+              "default": false
+            },
+            "portworx_volume_options": {
+              "type": "string",
+              "default": "size=10",
+              "description": "Volume options."
+            },
+            "use_service_path": {
+              "type": "boolean",
+              "description": "If true, use service path for volume name.",
+              "default": true
+            },
+            "volume_name": {
+              "type": "string",
+              "description": "Volume name if not use service path.",
+              "default": "Cassandra"
+            }
+          }
+        },
         "heap": {
           "type": "object",
           "description": "The Cassandra process JVM heap configuration object.",
