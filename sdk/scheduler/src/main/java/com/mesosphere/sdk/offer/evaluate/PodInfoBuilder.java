@@ -841,10 +841,11 @@ public class PodInfoBuilder {
           volumeName = dockerVolume.getVolumeName() + "-" + podIndex;
         }
 
-        // Favor creating volumes on the local node
+
         if (dockerVolume.getDriverName().equals("pxd")) {
           Map<String, String> options = new LinkedHashMap<>(dockerVolume.getDriverOptions());
           options.put("name", volumeName);
+          // Favor creating volumes on the local node
           options.put("nodes", "LocalNode");
 
           volumeName = options.keySet().stream()
