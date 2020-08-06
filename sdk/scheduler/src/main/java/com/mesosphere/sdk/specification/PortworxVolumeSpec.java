@@ -106,7 +106,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
             Map<String, String> driverOptionsMap = new HashMap<>();
 
             if (driverOptions != null && !driverOptions.isEmpty()) {
-                String[] options = driverOptions.split(",");
+                String[] options = driverOptions.split(";");
                 for (String opt : options) {
                     String[] kv = opt.split("=");
 
