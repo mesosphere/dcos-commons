@@ -64,7 +64,9 @@ pods:
         container-path: container-path
         driver-name: pxd
         driver-options: '{{{CASSANDRA_EXTERNAL_VOLUME_PORTWORX_OPTIONS}}}'
+        {{#CASSANDRA_EXTERNAL_VOLUME_NAME}}
         volume-name: {{CASSANDRA_EXTERNAL_VOLUME_NAME}}
+        {{/CASSANDRA_EXTERNAL_VOLUME_NAME}}
         volume-mode: RW
     {{/CASSANDRA_EXTERNAL_VOLUME_ENABLED}}
     uris:

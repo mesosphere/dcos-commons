@@ -49,7 +49,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -127,7 +126,7 @@ public class PodInfoBuilder {
     }
 
     this.executorBuilder = getExecutorInfoBuilder(
-        podInstance, frameworkID, targetConfigId, templateUrlFactory, schedulerConfig);
+        podInstance, frameworkID, serviceName, targetConfigId, templateUrlFactory, schedulerConfig);
 
     this.podInstance = podInstance;
     this.portsByTask = new HashMap<>();
@@ -323,7 +322,7 @@ public class PodInfoBuilder {
       taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
     }
 
-    taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), podInstance.getIndex(), true, true));
+    taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), podInstance.getIndex(), serviceName,true, true));
 
     if (taskSpec.getSharedMemory().isPresent()) {
       taskInfoBuilder.getContainerBuilder().getLinuxInfoBuilder().setIpcMode(taskSpec.getSharedMemory().get()).build();
@@ -344,6 +343,7 @@ public class PodInfoBuilder {
   private Protos.ExecutorInfo.Builder getExecutorInfoBuilder(
       PodInstance podInstance,
       Protos.FrameworkID frameworkID,
+      String serviceName,
       UUID targetConfigurationId,
       ArtifactQueries.TemplateUrlFactory templateUrlFactory,
       SchedulerConfig schedulerConfig) throws IllegalStateException
@@ -359,7 +359,7 @@ public class PodInfoBuilder {
 
     // Populate ContainerInfo with the appropriate information from PodSpec
     // This includes networks, rlimits, secret volumes...
-    executorInfoBuilder.setContainer(getContainerInfo(podSpec, podInstance.getIndex(),true, false));
+    executorInfoBuilder.setContainer(getContainerInfo(podSpec, podInstance.getIndex(), serviceName,true, false));
 
     return executorInfoBuilder;
   }
@@ -575,11 +575,11 @@ public class PodInfoBuilder {
    * @return the ContainerInfo to be attached
    */
   private Protos.ContainerInfo getContainerInfo(
-      PodSpec podSpec, int podIndex, boolean addExtraParameters, boolean isTaskContainer)
+          PodSpec podSpec, int podIndex, String serviceName, boolean addExtraParameters, boolean isTaskContainer)
   {
     Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
     Collection<Protos.Volume> hostVolumes = getExecutorInfoHostVolumes(podSpec.getHostVolumes());
-    Collection<Protos.Volume> externalVolumes = getExecutorInfoExternalVolumes(podSpec.getExternalVolumes(), podIndex);
+    Collection<Protos.Volume> externalVolumes = getExecutorInfoExternalVolumes(podSpec.getExternalVolumes(), podIndex, serviceName);
 
     Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
         .setType(Protos.ContainerInfo.Type.MESOS);
@@ -821,37 +821,20 @@ public class PodInfoBuilder {
             .build();
   }
 
-  private static Collection<Protos.Volume> getExecutorInfoExternalVolumes(Collection<ExternalVolumeSpec> externalVolumeSpecs, int podIndex) {
+  private static Collection<Protos.Volume> getExecutorInfoExternalVolumes(
+          Collection<ExternalVolumeSpec> externalVolumeSpecs, int podIndex, String serviceName) {
     Collection<Protos.Volume> volumes = new ArrayList<>();
 
-    for (ExternalVolumeSpec volume: externalVolumeSpecs) {
+    for (ExternalVolumeSpec volume : externalVolumeSpecs) {
       if (volume.getType() == ExternalVolumeSpec.Type.DOCKER) {
         DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volume;
 
-        Map<String, String> driverOptions = dockerVolume.getDriverOptions();
-        Protos.Parameters.Builder driverOptionsBuilder = Protos.Parameters.newBuilder();
-
-        String volumeName;
-        if (driverOptions.containsKey("shared") && driverOptions.get("shared").equals("true")) {
-          // If it is a shared volume, reset the volume name to
-          // not have the pod index, so that all tasks get the
-          // same volume
-          volumeName = dockerVolume.getVolumeName();
-        } else {
-          volumeName = dockerVolume.getVolumeName() + "-" + podIndex;
-        }
-
-
-        if (dockerVolume.getDriverName().equals("pxd")) {
-          Map<String, String> options = new LinkedHashMap<>(dockerVolume.getDriverOptions());
-          options.put("name", volumeName);
-          // Favor creating volumes on the local node
-          options.put("nodes", "LocalNode");
-
-          volumeName = options.keySet().stream()
-                  .map(key -> key + "=" + options.get(key))
-                  .collect(Collectors.joining(";"));
-        }
+        ExternalVolumeProvider volumeProvider = ExternalVolumeProviderFactory.getExternalVolumeProvider(
+                serviceName,
+                dockerVolume.getVolumeName(),
+                dockerVolume.getDriverName(),
+                podIndex,
+                dockerVolume.getDriverOptions());
 
         Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder();
 
@@ -867,8 +850,7 @@ public class PodInfoBuilder {
                                 .setDockerVolume(
                                         Protos.Volume.Source.DockerVolume.newBuilder()
                                                 .setDriver(dockerVolume.getDriverName())
-                                                .setName(volumeName)
-                                                .setDriverOptions(driverOptionsBuilder.build())
+                                                .setName(volumeProvider.getVolumeName())
                                                 .build())
                 ).build();
         LOGGER.info("Add external volume: " + externalVolume.getSource().getDockerVolume().getName());

@@ -1,0 +1,58 @@
+package com.mesosphere.sdk.offer.evaluate;
+
+import com.mesosphere.sdk.scheduler.SchedulerUtils;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+public class PortworxVolumeProvider implements ExternalVolumeProvider {
+
+    String volumeName;
+    Map<String, String> driverOptions;
+
+    public PortworxVolumeProvider(
+            String serviceName,
+            Optional<String> providedVolumeName,
+            String driverName,
+            int podIndex,
+            Map<String, String> driverOptions) {
+
+      String volumeName = providedVolumeName.filter(name -> !name.isEmpty()).orElse(serviceName);
+      String volumeNameEscaped = SchedulerUtils.withEscapedSlashes(volumeName);
+
+        if (driverOptions.containsKey("shared") && driverOptions.get("shared").equals("true")) {
+            // If it is a shared volume, reset the volume name to
+            // not have the pod index, so that all tasks get the
+            // same volume
+            this.volumeName = volumeNameEscaped;
+        } else {
+            this.volumeName = volumeNameEscaped + "-" + podIndex;
+        }
+
+        if (driverName.equals("pxd")) {
+            Map<String, String> options = new HashMap<>(driverOptions);
+            options.put("name", this.volumeName);
+            // Favor creating volumes on the local node
+            options.put("nodes", "LocalNode");
+
+            this.volumeName = options.keySet().stream()
+                    .map(key -> key + "=" + options.get(key))
+                    .collect(Collectors.joining(";"));
+
+            this.driverOptions = options;
+        }
+    }
+
+    @Override
+    public String getVolumeName() {
+        return volumeName;
+    }
+
+    @Override
+    public Map<String, String> getDriverOptions() {
+        return driverOptions;
+    }
+
+}

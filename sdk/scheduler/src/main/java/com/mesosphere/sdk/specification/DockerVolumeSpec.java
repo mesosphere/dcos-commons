@@ -25,7 +25,7 @@ public interface DockerVolumeSpec extends ExternalVolumeSpec {
 
     // volume-name: Name of the volume exposed to the provider.
     @JsonProperty("volume-name")
-    String getVolumeName();
+    Optional<String> getVolumeName();
 
     // volume-mode: Optional Whether volume is read-write or read-only. Defaults to read-write mode.
     @JsonProperty("volume-mode")

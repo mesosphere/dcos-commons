@@ -482,15 +482,10 @@
               "default": "size=10",
               "description": "Volume options."
             },
-            "use_service_path": {
-              "type": "boolean",
-              "description": "If true, use service path for volume name.",
-              "default": true
-            },
             "volume_name": {
               "type": "string",
               "description": "Volume name if not use service path.",
-              "default": "Cassandra"
+              "default": ""
             }
           }
         },

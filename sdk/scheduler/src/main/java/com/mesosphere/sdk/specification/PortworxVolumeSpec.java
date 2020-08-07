@@ -24,7 +24,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     private final String containerPath;
     private final String driverName;
     private final Map<String, String> driverOptions;
-    private final String volumeName;
+    private final Optional<String> volumeName;
     private final Optional<Protos.Volume.Mode> volumeMode;
 
     @JsonCreator
@@ -32,7 +32,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
             @JsonProperty("container-path") String containerPath,
             @JsonProperty("driver-name") String driverName,
             @JsonProperty("driver-options") Map<String, String> driverOptions,
-            @JsonProperty("volume-name") String volumeName,
+            @JsonProperty("volume-name") Optional<String> volumeName,
             @JsonProperty("mode") Optional<Protos.Volume.Mode> volumeMode
     ) {
         this.containerPath = containerPath;
@@ -57,7 +57,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     }
 
     @Override
-    public String getVolumeName() {
+    public Optional<String> getVolumeName() {
         return volumeName;
     }
 
@@ -89,7 +89,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
     public static class Builder {
         private String driverName;
         private Map<String, String> driverOptions;
-        private String volumeName;
+        private Optional<String> volumeName;
         private String containerPath;
         private Optional<Protos.Volume.Mode> volumeMode;
 
@@ -122,7 +122,7 @@ public class PortworxVolumeSpec implements DockerVolumeSpec {
         }
 
         public PortworxVolumeSpec.Builder volumeName(String volumeName) {
-            this.volumeName = volumeName;
+            this.volumeName = Optional.ofNullable(volumeName);
             return this;
         }
 

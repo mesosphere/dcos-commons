@@ -480,7 +480,7 @@ public class DefaultServiceSpecTest {
                 DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volumeSpec;
 
                 Assert.assertEquals(Protos.Volume.Mode.RO, dockerVolume.getVolumeMode().get());
-                Assert.assertEquals("external-volume-name", dockerVolume.getVolumeName());
+                Assert.assertEquals(Optional.of("external-volume-name"), dockerVolume.getVolumeName());
                 Assert.assertEquals("pxd", dockerVolume.getDriverName());
 
                 Map<String, String> options = new HashMap<>();
