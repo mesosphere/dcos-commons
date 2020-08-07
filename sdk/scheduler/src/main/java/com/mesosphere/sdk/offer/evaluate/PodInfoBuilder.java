@@ -322,7 +322,8 @@ public class PodInfoBuilder {
       taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
     }
 
-    taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), podInstance.getIndex(), serviceName,true, true));
+    taskInfoBuilder
+        .setContainer(getContainerInfo(podInstance.getPod(), podInstance.getIndex(), serviceName, true, true));
 
     if (taskSpec.getSharedMemory().isPresent()) {
       taskInfoBuilder.getContainerBuilder().getLinuxInfoBuilder().setIpcMode(taskSpec.getSharedMemory().get()).build();
@@ -359,7 +360,7 @@ public class PodInfoBuilder {
 
     // Populate ContainerInfo with the appropriate information from PodSpec
     // This includes networks, rlimits, secret volumes...
-    executorInfoBuilder.setContainer(getContainerInfo(podSpec, podInstance.getIndex(), serviceName,true, false));
+    executorInfoBuilder.setContainer(getContainerInfo(podSpec, podInstance.getIndex(), serviceName, true, false));
 
     return executorInfoBuilder;
   }
@@ -579,7 +580,8 @@ public class PodInfoBuilder {
   {
     Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
     Collection<Protos.Volume> hostVolumes = getExecutorInfoHostVolumes(podSpec.getHostVolumes());
-    Collection<Protos.Volume> externalVolumes = getExecutorInfoExternalVolumes(podSpec.getExternalVolumes(), podIndex, serviceName);
+    Collection<Protos.Volume> externalVolumes =
+        getExecutorInfoExternalVolumes(podSpec.getExternalVolumes(), podIndex, serviceName);
 
     Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
         .setType(Protos.ContainerInfo.Type.MESOS);
@@ -822,7 +824,8 @@ public class PodInfoBuilder {
   }
 
   private static Collection<Protos.Volume> getExecutorInfoExternalVolumes(
-          Collection<ExternalVolumeSpec> externalVolumeSpecs, int podIndex, String serviceName) {
+      Collection<ExternalVolumeSpec> externalVolumeSpecs, int podIndex, String serviceName)
+  {
     Collection<Protos.Volume> volumes = new ArrayList<>();
 
     for (ExternalVolumeSpec volume : externalVolumeSpecs) {
@@ -830,11 +833,11 @@ public class PodInfoBuilder {
         DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volume;
 
         ExternalVolumeProvider volumeProvider = ExternalVolumeProviderFactory.getExternalVolumeProvider(
-                serviceName,
-                dockerVolume.getVolumeName(),
-                dockerVolume.getDriverName(),
-                podIndex,
-                dockerVolume.getDriverOptions());
+            serviceName,
+            dockerVolume.getVolumeName(),
+            dockerVolume.getDriverName(),
+            podIndex,
+            dockerVolume.getDriverOptions());
 
         Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder();
 
@@ -843,16 +846,16 @@ public class PodInfoBuilder {
         }
 
         Protos.Volume externalVolume = volumeBuilder
-                .setContainerPath(dockerVolume.getContainerPath())
-                .setSource(
-                        Protos.Volume.Source.newBuilder()
-                                .setType(Protos.Volume.Source.Type.DOCKER_VOLUME)
-                                .setDockerVolume(
-                                        Protos.Volume.Source.DockerVolume.newBuilder()
-                                                .setDriver(dockerVolume.getDriverName())
-                                                .setName(volumeProvider.getVolumeName())
-                                                .build())
-                ).build();
+            .setContainerPath(dockerVolume.getContainerPath())
+            .setSource(
+                Protos.Volume.Source.newBuilder()
+                    .setType(Protos.Volume.Source.Type.DOCKER_VOLUME)
+                    .setDockerVolume(
+                        Protos.Volume.Source.DockerVolume.newBuilder()
+                            .setDriver(dockerVolume.getDriverName())
+                            .setName(volumeProvider.getVolumeName())
+                            .build())
+            ).build();
         LOGGER.info("Add external volume: " + externalVolume.getSource().getDockerVolume().getName());
         volumes.add(externalVolume);
       }

@@ -363,8 +363,8 @@ public final class YAMLToInternalMappers {
     if (!rawPod.getExternalVolumes().isEmpty()) {
       Collection<ExternalVolumeSpec> externalVolumeSpecs = new ArrayList<>();
       externalVolumeSpecs.addAll(rawPod.getExternalVolumes().values().stream()
-              .map(v -> convertExternalVolume(v))
-              .collect(Collectors.toList()));
+          .map(v -> convertExternalVolume(v))
+          .collect(Collectors.toList()));
 
       builder.externalVolumes(externalVolumeSpecs);
     }
@@ -620,10 +620,10 @@ public final class YAMLToInternalMappers {
             .mode(rawExternalVolume.getVolumeMode())
             .build();
       } else {
-        throw new IllegalArgumentException("Unsupported external volume driver " + rawExternalVolume.getDriverName() + ".");
+        throw new IllegalArgumentException("Unsupported external volume driver " + rawExternalVolume.getDriverName());
       }
     }
-    throw new IllegalArgumentException("Unsupported external volume mode " + rawExternalVolume.getType() + ".");
+    throw new IllegalArgumentException("Unsupported external volume mode " + rawExternalVolume.getType());
   }
 
   private static DefaultVolumeSpec convertVolume(

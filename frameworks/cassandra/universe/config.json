@@ -484,7 +484,7 @@
             },
             "volume_name": {
               "type": "string",
-              "description": "Volume name if not use service path.",
+              "description": "Volume name. If empty service path will be used.",
               "default": ""
             }
           }

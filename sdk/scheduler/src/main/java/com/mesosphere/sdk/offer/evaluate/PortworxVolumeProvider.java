@@ -7,52 +7,59 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+/**
+ * This class contains Portworx-specific logic for handling volume name and volume's options.
+ */
 public class PortworxVolumeProvider implements ExternalVolumeProvider {
 
-    String volumeName;
-    Map<String, String> driverOptions;
+  private static final String SHARED_KEY = "shared";
 
-    public PortworxVolumeProvider(
-            String serviceName,
-            Optional<String> providedVolumeName,
-            String driverName,
-            int podIndex,
-            Map<String, String> driverOptions) {
+  String volumeName;
 
-      String volumeName = providedVolumeName.filter(name -> !name.isEmpty()).orElse(serviceName);
-      String volumeNameEscaped = SchedulerUtils.withEscapedSlashes(volumeName);
+  Map<String, String> driverOptions;
 
-        if (driverOptions.containsKey("shared") && driverOptions.get("shared").equals("true")) {
-            // If it is a shared volume, reset the volume name to
-            // not have the pod index, so that all tasks get the
-            // same volume
-            this.volumeName = volumeNameEscaped;
-        } else {
-            this.volumeName = volumeNameEscaped + "-" + podIndex;
-        }
+  public PortworxVolumeProvider(
+      String serviceName,
+      Optional<String> providedVolumeName,
+      String driverName,
+      int podIndex,
+      Map<String, String> driverOptions)
+  {
 
-        if (driverName.equals("pxd")) {
-            Map<String, String> options = new HashMap<>(driverOptions);
-            options.put("name", this.volumeName);
-            // Favor creating volumes on the local node
-            options.put("nodes", "LocalNode");
+    String volumeNameUnescaped = providedVolumeName.filter(name -> !name.isEmpty()).orElse(serviceName);
+    String volumeNameEscaped = SchedulerUtils.withEscapedSlashes(volumeNameUnescaped);
 
-            this.volumeName = options.keySet().stream()
-                    .map(key -> key + "=" + options.get(key))
-                    .collect(Collectors.joining(";"));
-
-            this.driverOptions = options;
-        }
+    if (driverOptions.containsKey(SHARED_KEY) && driverOptions.get(SHARED_KEY).equals("true")) {
+      // If it is a shared volume, reset the volume name to
+      // not have the pod index, so that all tasks get the
+      // same volume
+      this.volumeName = volumeNameEscaped;
+    } else {
+      this.volumeName = volumeNameEscaped + "-" + podIndex;
     }
 
-    @Override
-    public String getVolumeName() {
-        return volumeName;
-    }
+    if ("pxd".equals(driverName)) {
+      Map<String, String> options = new HashMap<>(driverOptions);
+      options.put("name", this.volumeName);
+      // Favor creating volumes on the local node
+      options.put("nodes", "LocalNode");
 
-    @Override
-    public Map<String, String> getDriverOptions() {
-        return driverOptions;
+      this.volumeName = options.keySet().stream()
+          .map(key -> key + "=" + options.get(key))
+          .collect(Collectors.joining(";"));
+
+      this.driverOptions = options;
     }
+  }
+
+  @Override
+  public String getVolumeName() {
+    return volumeName;
+  }
+
+  @Override
+  public Map<String, String> getDriverOptions() {
+    return driverOptions;
+  }
 
 }

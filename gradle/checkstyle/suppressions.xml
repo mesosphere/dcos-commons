@@ -9,6 +9,7 @@
     <suppress checks="HiddenField" files=".*[\\/]com[\\/]mesosphere[\\/]sdk[\\/]specification[\\/]"/>
     <suppress checks="ParameterNumber" files=".*[\\/]com[\\/]mesosphere[\\/]sdk[\\/]specification[\\/]"/>
     <suppress checks="MultipleStringLiterals" files=".*[\\/]com[\\/]mesosphere[\\/]sdk[\\/]specification[\\/]"/>
+    <suppress checks="ExecutableStatementCount" files=".*[\\/]com[\\/]mesosphere[\\/]sdk[\\/]specification[\\/]yaml[\\/]"/>
 
     <!--Disable all checks for *Test files-->
     <suppress checks=".*" files=".*[\\/]test[\\/].*"/>
