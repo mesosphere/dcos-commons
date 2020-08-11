@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
  */
 
 @SuppressWarnings({
+    "checkstyle:LineLength",
     "checkstyle:MethodCount",
     "checkstyle:ExecutableStatementCount",
     "checkstyle:ReturnCount",

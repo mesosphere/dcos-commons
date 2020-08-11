@@ -71,6 +71,7 @@ import java.util.Optional;
  * Default implementation of {@link ServiceSpec}.
  */
 @SuppressWarnings({
+    "checkstyle:LineLength",
     "checkstyle:EqualsAvoidNull",
     "checkstyle:MultipleStringLiterals",
     "checkstyle:InnerTypeLast",
