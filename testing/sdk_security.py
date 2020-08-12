@@ -394,6 +394,25 @@ def openssl_ciphers() -> Set[str]:
     )
 
 
+def grant_marathon_root_user() -> None:
+    # This grants dcos_marathon to launch tasks as the root user.
+    log.info("Granting root permissions to dcos_marathon")
+    permissions = [
+        {
+            "user": "dcos_marathon",
+            "acl": "dcos:mesos:master:task:user:root",
+            "description": "Service dcos_marathon may register with the Mesos master with user root",
+            "action": "create",
+        }
+    ]
+
+    for permission in permissions:
+        _grant(
+            permission["user"], permission["acl"], permission["description"], permission["action"]
+        )
+    log.info("Permission setup completed for dcos_marathon")
+
+
 def is_cipher_enabled(
     service_name: str, task_name: str, cipher: str, endpoint: str, openssl_timeout: str = "1"
 ) -> bool:
