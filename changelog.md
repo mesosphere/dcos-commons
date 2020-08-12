@@ -1,6 +1,11 @@
 ## Changes to v0.58.0-draft
 
 - [D2IQ-62959](https://jira.d2iq.com/browse/D2IQ-62959) Add support for resource-limits in SDK
+- [D2IQ-70241](https://jira.d2iq.com/browse/D2IQ-70241), [D2IQ-70242](https://jira.d2iq.com/browse/D2IQ-70242) Add beta support for DVDI in SDK
+
+### Support external volumes via the [Docker Volume Isolator](http://mesos.apache.org/documentation/latest/isolators/docker-volume/)
+
+DVDI support allow external volumes to be mounted in data services built on the SDK. Only Portworx volume driver is supported.
 
 ### Resource limits (AKA vertical bursting)
 
