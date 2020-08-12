@@ -21,6 +21,8 @@
   "rebaseStalePrs": false,
   "renovateFork": true,
   "reviewers": [
+    "alexeygorobets",
+    "timcharper",
     "kaiwalyajoshi"
   ],
   "schedule": [
