@@ -30,6 +30,7 @@ def before_each_test(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69830")
 @pytest.mark.sanity
 def test_old_tasks_not_relaunched():
     hello_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello")
@@ -54,6 +55,7 @@ def test_old_tasks_not_relaunched():
     assert len(sdk_tasks.get_task_ids(config.SERVICE_NAME, "foo")) == 1
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69830")
 @pytest.mark.sanity
 def test_old_tasks_get_relaunched_with_new_config():
     hello_task_id = sdk_tasks.get_task_ids(config.SERVICE_NAME, "hello")

@@ -17,6 +17,7 @@ $FRAMEWORK_DIR/cli/build.sh
 $REPO_ROOT_DIR/tools/build_package.sh \
     hdfs \
     $FRAMEWORK_DIR \
+    -v \
     -a "$FRAMEWORK_DIR/build/distributions/$(basename $FRAMEWORK_DIR)-scheduler.zip" \
     -a "$FRAMEWORK_DIR/tools/zone-resolver.sh" \
     -a "$REPO_ROOT_DIR/sdk/bootstrap/bootstrap.zip" \

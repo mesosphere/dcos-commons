@@ -40,14 +40,18 @@ def test_scheduler_task_placement_by_marathon():
             additional_options={
                 "service": {
                     "constraints": [["hostname", "CLUSTER", "{}".format(some_private_agent)]],
-                    "yaml": "simple"
+                    "yaml": "simple",
                 }
             },
             wait_for_deployment=False,
         )
         summary = sdk_tasks.get_service_tasks("marathon", config.SERVICE_NAME)
-        assert len(summary) == 1, "More than 1 task matched name [{}] : [{}]".format(config.SERVICE_NAME, summary)
-        assert some_private_agent == summary.pop().host, "Scheduler task constraint placement failed by marathon"
+        assert len(summary) == 1, "More than 1 task matched name [{}] : [{}]".format(
+            config.SERVICE_NAME, summary
+        )
+        assert (
+            some_private_agent == summary.pop().host
+        ), "Scheduler task constraint placement failed by marathon"
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
@@ -132,7 +136,7 @@ def test_unique_zone_fails():
         {
             "service": {"yaml": "marathon_constraint"},
             "hello": {"placement": '[["@zone", "UNIQUE"]]'},
-            "world": {"placement": '[["@zone", "UNIQUE"]]'},
+            "world": {"placement": '[["@zone", "UNIQUE"]]', "count": 3},
         }
     )
 
@@ -147,7 +151,7 @@ def test_max_per_zone_fails():
         {
             "service": {"yaml": "marathon_constraint"},
             "hello": {"placement": '[["@zone", "MAX_PER", "1"]]'},
-            "world": {"placement": '[["@zone", "MAX_PER", "1"]]'},
+            "world": {"placement": '[["@zone", "MAX_PER", "1"]]', "count": 3},
         }
     )
 
@@ -177,7 +181,7 @@ def test_group_by_zone_succeeds():
         {
             "service": {"yaml": "marathon_constraint"},
             "hello": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
-            "world": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
+            "world": {"placement": '[["@zone", "GROUP_BY", "1"]]', "count": 3},
         }
     )
     succeed_placement(options)
@@ -191,7 +195,7 @@ def test_group_by_zone_fails():
         {
             "service": {"yaml": "marathon_constraint"},
             "hello": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
-            "world": {"placement": '[["@zone", "GROUP_BY", "2"]]'},
+            "world": {"placement": '[["@zone", "GROUP_BY", "3"]]', "count": 3},
         }
     )
 
@@ -365,13 +369,14 @@ def fail_placement(options):
     phase2 = pl["phases"][1]
     assert phase2["status"] == "IN_PROGRESS"
     steps2 = phase2["steps"]
-    assert len(steps2) == 2
+    assert len(steps2) == 3
     assert steps2[0]["status"] == "COMPLETE"
-    assert steps2[1]["status"] in ("PREPARED", "PENDING")
+    assert steps2[1]["status"] in ("COMPLETE", "PREPARED", "PENDING")
+    assert steps2[2]["status"] in ("PREPARED", "PENDING")
 
     try:
-        sdk_tasks.check_running(config.SERVICE_NAME, 3, timeout_seconds=30)
-        assert False, "Should have failed to deploy world-1"
+        sdk_tasks.check_running(config.SERVICE_NAME, 4, timeout_seconds=30)
+        assert False, "Should have failed to deploy world-2"
     except AssertionError as arg:
         raise arg
     except Exception:
@@ -509,7 +514,9 @@ def get_task_host(task_name):
     _, out, _ = sdk_cmd.run_cli("task {} --json".format(task_name))
     tasks_json = json.loads(out)
     matching_tasks = list(filter(lambda t: t["name"] == task_name, tasks_json))
-    assert len(matching_tasks) == 1, "Duplicate tasks found with same name : [{}]".format(tasks_json)
+    assert len(matching_tasks) == 1, "Duplicate tasks found with same name : [{}]".format(
+        tasks_json
+    )
     task_info = matching_tasks.pop()
 
     host = None

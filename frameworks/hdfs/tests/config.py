@@ -6,6 +6,7 @@ import uuid
 import sdk_cmd
 import sdk_hosts
 import sdk_plan
+import sdk_security
 import sdk_tasks
 import sdk_utils
 
@@ -115,10 +116,12 @@ def get_hdfs_client_app(service_name, kerberos=None) -> dict:
     18/08/21 20:36:57 FATAL conf.Configuration: error parsing conf core-site.xml
            org.xml.sax.SAXParseException; Premature end of file.
     """
+    # Task below runs as user root, grant Marathon the ability to launch client in strict mode.
+    sdk_security.grant_marathon_root_user()
     app = {
         "id": CLIENT_APP_NAME,
         "mem": 1024,
-        "user": "nobody",
+        "user": "root",
         "container": {
             "type": "MESOS",
             "docker": {"image": DOCKER_IMAGE_NAME, "forcePullImage": True},
