@@ -114,6 +114,7 @@ def test_backup_and_restore_to_s3() -> None:
     )
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69805")
 @pytest.mark.aws
 @pytest.mark.sanity
 def test_backup_and_restore_to_s3_compatible_storage() -> None:

@@ -164,27 +164,25 @@ def test_java_keystore():
     # and make sure that mesos curl can verify certificate served by app
     cmd_list = [
         "curl",
-        "-v",
         "-i",
         "--cacert",
         "secure-tls-pod.ca",
+        "--trace -",
+        "-w ssl_verify_result=%{ssl_verify_result}",
         "https://{}/hello-world".format(
             sdk_hosts.vip_host(config.SERVICE_NAME, KEYSTORE_TASK_HTTPS_PORT_NAME)
         ),
     ]
     curl = " ".join(cmd_list)
 
-    _, _, stderr = sdk_cmd.service_task_exec(config.SERVICE_NAME, "artifacts-0-node", curl)
+    _, stdout, _ = sdk_cmd.service_task_exec(config.SERVICE_NAME, "artifacts-0-node", curl)
     # Check that HTTP request was successful with response 200 and make sure
     # that curl with pre-configured cert was used and that task was matched
     # by SAN in certificate.
-    assert "HTTP/1.1 200 OK" in stderr
-    assert "CAfile: secure-tls-pod.ca" in stderr
-    tls_verification_msg = (
-        'host "keystore-https.hello-world.l4lb.thisdcos.directory" matched '
-        'cert\'s "keystore-https.hello-world.l4lb.thisdcos.directory"'
-    )
-    assert tls_verification_msg in stderr
+    assert "HTTP/1.1 200 OK" in stdout
+    assert "CAfile: secure-tls-pod.ca" in stdout
+    assert "Connected to keystore-https.hello-world.l4lb.thisdcos.directory" in stdout
+    assert "ssl_verify_result=0" in stdout
 
 
 @pytest.mark.sanity

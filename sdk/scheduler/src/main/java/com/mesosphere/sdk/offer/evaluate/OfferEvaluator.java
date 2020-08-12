@@ -10,8 +10,6 @@ import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.TaskException;
 import com.mesosphere.sdk.offer.TaskUtils;
-import com.mesosphere.sdk.offer.history.OfferOutcome;
-import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.offer.taskdata.TaskLabelReader;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.plan.PodInstanceRequirement;
@@ -70,8 +68,6 @@ public class OfferEvaluator {
 
   private final StateStore stateStore;
 
-  private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
-
   private final Optional<OfferOutcomeTrackerV2> offerOutcomeTrackerV2;
 
   private final String serviceName;
@@ -89,7 +85,6 @@ public class OfferEvaluator {
   public OfferEvaluator(
       FrameworkStore frameworkStore,
       StateStore stateStore,
-      Optional<OfferOutcomeTracker> offerOutcomeTracker,
       Optional<OfferOutcomeTrackerV2> offerOutcomeTrackerV2,
       String serviceName,
       UUID targetConfigId,
@@ -100,7 +95,6 @@ public class OfferEvaluator {
     this.logger = LoggingUtils.getLogger(getClass(), resourceNamespace);
     this.frameworkStore = frameworkStore;
     this.stateStore = stateStore;
-    this.offerOutcomeTracker = offerOutcomeTracker;
     this.serviceName = serviceName;
     this.targetConfigId = targetConfigId;
     this.templateUrlFactory = templateUrlFactory;
@@ -190,13 +184,6 @@ public class OfferEvaluator {
             podInstanceRequirement.getName(),
             outcomeDetails.toString());
 
-        if (offerOutcomeTracker.isPresent()) {
-          offerOutcomeTracker.get().track(new OfferOutcome(
-              podInstanceRequirement.getName(),
-              false,
-              offer,
-              outcomeDetails.toString()));
-        }
         if (offerOutcomeTrackerV2.isPresent()) {
           offerOutcomeTrackerV2.get().getSummary().addOffer(new OfferOutcomeTrackerV2.OfferOutcomeV2(
               podInstanceRequirement.getName(),
@@ -223,14 +210,6 @@ public class OfferEvaluator {
             recommendations.size(),
             podInstanceRequirement.getName(),
             outcomeDetails.toString());
-
-        if (offerOutcomeTracker.isPresent()) {
-          offerOutcomeTracker.get().track(new OfferOutcome(
-              podInstanceRequirement.getName(),
-              true,
-              offer,
-              outcomeDetails.toString()));
-        }
 
         if (offerOutcomeTrackerV2.isPresent()) {
           offerOutcomeTrackerV2.get().getSummary().addOffer(new OfferOutcomeTrackerV2.OfferOutcomeV2(
