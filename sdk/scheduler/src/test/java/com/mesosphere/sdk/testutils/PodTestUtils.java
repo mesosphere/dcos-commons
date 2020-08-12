@@ -30,6 +30,7 @@ public class PodTestUtils {
                         .principal(TestConstants.PRINCIPAL)
                         .build())
                 .volumes(Collections.emptyList())
+                .resourceLimits(new DefaultResourceLimits("unlimited", "unlimited"))
                 .build();
     }
 

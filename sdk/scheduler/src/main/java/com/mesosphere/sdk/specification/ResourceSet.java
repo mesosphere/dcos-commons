@@ -18,4 +18,7 @@ public interface ResourceSet {
 
   @JsonProperty("volume-specifications")
   Collection<VolumeSpec> getVolumes();
+
+  @JsonProperty("resource-limits")
+  ResourceLimits getResourceLimits();
 }
