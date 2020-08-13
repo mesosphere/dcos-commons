@@ -21,12 +21,15 @@
   "rebaseStalePrs": false,
   "renovateFork": true,
   "reviewers": [
+    "mediapills",
+    "farhan5900",
+    "rishabh96b",
     "alexeygorobets",
     "timcharper",
     "kaiwalyajoshi"
   ],
   "schedule": [
-    "on saturday"
+    "after 10pm on the first day of the month"
   ],
   "updateNotScheduled" : false
 }
