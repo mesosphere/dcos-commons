@@ -8,7 +8,6 @@ import com.mesosphere.sdk.framework.TaskKiller;
 import com.mesosphere.sdk.http.endpoints.ArtifactResource;
 import com.mesosphere.sdk.http.endpoints.ConfigResource;
 import com.mesosphere.sdk.http.endpoints.DebugOffersResource;
-import com.mesosphere.sdk.http.endpoints.DebugResource;
 import com.mesosphere.sdk.http.endpoints.DeprecatedPlanResource;
 import com.mesosphere.sdk.http.endpoints.EndpointsResource;
 import com.mesosphere.sdk.http.endpoints.HealthResource;
@@ -18,6 +17,7 @@ import com.mesosphere.sdk.http.endpoints.PodResource;
 import com.mesosphere.sdk.http.endpoints.StateResource;
 import com.mesosphere.sdk.http.endpoints.TaskReservationsResource;
 import com.mesosphere.sdk.http.endpoints.TaskStatusesResource;
+import com.mesosphere.sdk.http.endpoints.ThreadsResource;
 import com.mesosphere.sdk.http.queries.ArtifactQueries;
 import com.mesosphere.sdk.http.types.EndpointProducer;
 import com.mesosphere.sdk.http.types.StringPropertyDeserializer;
@@ -25,7 +25,6 @@ import com.mesosphere.sdk.offer.LoggingUtils;
 import com.mesosphere.sdk.offer.OfferRecommendation;
 import com.mesosphere.sdk.offer.ResourceUtils;
 import com.mesosphere.sdk.offer.evaluate.OfferEvaluator;
-import com.mesosphere.sdk.offer.history.OfferOutcomeTracker;
 import com.mesosphere.sdk.scheduler.decommission.DecommissionPlanFactory;
 import com.mesosphere.sdk.scheduler.plan.DecommissionPlanManager;
 import com.mesosphere.sdk.scheduler.plan.Plan;
@@ -103,8 +102,6 @@ public class DefaultScheduler extends AbstractScheduler {
   private final PersistentLaunchRecorder launchRecorder;
 
   private final Optional<UninstallRecorder> decommissionRecorder;
-
-  private final Optional<OfferOutcomeTracker> offerOutcomeTracker;
 
   private final Optional<OfferOutcomeTrackerV2> offerOutcomeTrackerV2;
 
@@ -190,7 +187,6 @@ public class DefaultScheduler extends AbstractScheduler {
 
     // If the service is namespaced (i.e. part of a multi-service scheduler), disable the OfferOutcomeTracker to
     // reduce memory consumption.
-    this.offerOutcomeTracker = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTracker());
     this.offerOutcomeTrackerV2 = namespace.isPresent() ? Optional.empty() : Optional.of(new OfferOutcomeTrackerV2());
     this.statusesTracker = Optional.of(new TaskStatusesTracker(getPlanCoordinator(), stateStore));
     this.reservationsTracker = Optional.of(new TaskReservationsTracker(stateStore));
@@ -199,7 +195,6 @@ public class DefaultScheduler extends AbstractScheduler {
         new OfferEvaluator(
             frameworkStore,
             stateStore,
-            offerOutcomeTracker,
             offerOutcomeTrackerV2,
             serviceSpec.getName(),
             configStore.getTargetConfig(),
@@ -231,10 +226,10 @@ public class DefaultScheduler extends AbstractScheduler {
     resources.add(new PodResource(stateStore, configStore, serviceSpec.getName()));
     resources.add(new StateResource(frameworkStore, stateStore, new StringPropertyDeserializer()));
     offerOutcomeTrackerV2.ifPresent(x -> resources.add(new DebugOffersResource(x)));
-    offerOutcomeTracker.ifPresent(x -> resources.add(new DebugResource(x)));
     plansTracker.ifPresent(x -> resources.add(new PlansDebugResource(x)));
     statusesTracker.ifPresent(x -> resources.add(new TaskStatusesResource(x)));
     reservationsTracker.ifPresent(x -> resources.add(new TaskReservationsResource(x)));
+    resources.add(new ThreadsResource());
     return resources;
   }
 

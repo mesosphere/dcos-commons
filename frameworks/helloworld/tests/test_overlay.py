@@ -32,6 +32,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69473")
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.smoke
@@ -49,7 +50,7 @@ def test_overlay_network():
         "overlay-vip-0-server",
         "overlay-0-server",
         "host-vip-0-server",
-        "host-0-server"
+        "host-0-server",
     ]
     assert set(expected_running_tasks) == set([t.name for t in framework_tasks])
 
@@ -63,9 +64,7 @@ def test_overlay_network():
         elif name.startswith("overlay-"):
             assert (
                 "ports" not in task.resources.keys()
-            ), "Task {} should NOT have port resources".format(
-                name
-            )
+            ), "Task {} should NOT have port resources".format(name)
             sdk_networks.check_task_network(name)
         else:
             assert False, "Unknown task {}".format(name)
@@ -76,9 +75,9 @@ def test_overlay_network():
     overlay_endpoints_result = sdk_networks.get_endpoint(
         config.PACKAGE_NAME, config.SERVICE_NAME, "overlay-vip"
     )
-    assert "address" in overlay_endpoints_result.keys(), (
-        "overlay endpoints missing 'address': {}".format(overlay_endpoints_result)
-    )
+    assert (
+        "address" in overlay_endpoints_result.keys()
+    ), "overlay endpoints missing 'address': {}".format(overlay_endpoints_result)
     assert len(overlay_endpoints_result["address"]) == 1
     assert overlay_endpoints_result["address"][0].startswith("9")
     overlay_port = overlay_endpoints_result["address"][0].split(":")[-1]
@@ -92,9 +91,9 @@ def test_overlay_network():
     host_endpoints_result = sdk_networks.get_endpoint(
         config.PACKAGE_NAME, config.SERVICE_NAME, "host-vip"
     )
-    assert "address" in host_endpoints_result.keys(), (
-        "overlay endpoints missing 'address'" "{}".format(host_endpoints_result)
-    )
+    assert (
+        "address" in host_endpoints_result.keys()
+    ), "overlay endpoints missing 'address'" "{}".format(host_endpoints_result)
     assert len(host_endpoints_result["address"]) == 1
     assert host_endpoints_result["address"][0].startswith("10")
     host_port = host_endpoints_result["address"][0].split(":")[-1]
@@ -106,6 +105,7 @@ def test_overlay_network():
     )
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69473")
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
@@ -121,9 +121,7 @@ def test_cni_labels():
             "{exp}".format(obs=v, exp=expected_network_labels[k])
         )
 
-    r = sdk_cmd.service_request(
-        "GET", config.SERVICE_NAME, "/v1/pod/overlay-vip-0/info"
-    ).json()
+    r = sdk_cmd.service_request("GET", config.SERVICE_NAME, "/v1/pod/overlay-vip-0/info").json()
     assert len(r) == 1, "Got multiple responses from v1/pod/overlay-vip-0/info"
     try:
         cni_labels = r[0]["info"]["executor"]["container"]["networkInfos"][0]["labels"]["labels"]
@@ -137,6 +135,7 @@ def test_cni_labels():
             assert False, "Couldn't get CNI labels from {}".format(cni_labels)
 
 
+@pytest.mark.skip(reason="Infra Issues:D2IQ-69473")
 @pytest.mark.sanity
 @pytest.mark.overlay
 @pytest.mark.dcos_min_version("1.9")
@@ -147,16 +146,20 @@ def test_srv_records():
         "overlay-vip-0-server": ["overlay-vip"],
         "overlay-0-server": ["overlay-dummy", "overlay-dynport"],
         "host-vip-0-server": ["host-vip"],
-        "host-0-server": ["host-port"]
+        "host-0-server": ["host-port"],
     }
 
     def check_expected_srv_records(task_to_srv_names):
-        assert task_to_expected_port_names.keys() == task_to_srv_names.keys(), "Mismatch between expected and actual tasks"
+        assert (
+            task_to_expected_port_names.keys() == task_to_srv_names.keys()
+        ), "Mismatch between expected and actual tasks"
         for task_name, srv_names in task_to_srv_names.items():
             expected_port_names = task_to_expected_port_names[task_name]
             # For each expected_port_name, search for a matching srv_name:
             for expected_port_name in expected_port_names:
-                expected_record_name = "_{}._{}._tcp.{}.mesos.".format(expected_port_name, task_name, config.SERVICE_NAME)
+                expected_record_name = "_{}._{}._tcp.{}.mesos.".format(
+                    expected_port_name, task_name, config.SERVICE_NAME
+                )
                 assert expected_record_name in srv_names
 
     log.info("Getting framework srv records for %s", config.SERVICE_NAME)
@@ -183,7 +186,9 @@ def test_srv_records():
             # we can end up with "duplicate" frameworks left over from previous tests where the framework didn't successfully unregister.
             # in practice these "duplicate"s will appear as a framework entry with an empty list of tasks.
             framework_srvs = [
-                f for f in srvs["frameworks"] if f["name"] == config.SERVICE_NAME and len(f["tasks"]) > 0
+                f
+                for f in srvs["frameworks"]
+                if f["name"] == config.SERVICE_NAME and len(f["tasks"]) > 0
             ]
             assert len(framework_srvs) == 1, "Expected exactly one entry for service {}: {}".format(
                 config.SERVICE_NAME, framework_srvs
@@ -197,7 +202,9 @@ def test_srv_records():
             task_to_srv_names = {}
             for t in framework_srv["tasks"]:
                 if t["name"] in task_to_srv_names:
-                    assert False, "Got multiple entries for task {}: {}".format(t["name"], framework_srv)
+                    assert False, "Got multiple entries for task {}: {}".format(
+                        t["name"], framework_srv
+                    )
                 task_to_srv_names[t["name"]] = [r["name"] for r in t["records"]]
 
             check_expected_srv_records(task_to_srv_names)
@@ -205,4 +212,5 @@ def test_srv_records():
             # Log the assert message before retrying (or giving up)
             log.exception("SRV record validation failed, trying again...")
             raise
+
     wait_for_valid_srv_records()

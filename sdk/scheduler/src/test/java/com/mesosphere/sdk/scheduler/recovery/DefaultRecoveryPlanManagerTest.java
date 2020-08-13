@@ -115,7 +115,6 @@ public class DefaultRecoveryPlanManagerTest extends DefaultCapabilitiesTestSuite
                         frameworkStore,
                         stateStore,
                         Optional.empty(),
-                        Optional.empty(),
                         serviceSpec.getName(),
                         configTarget,
                         PodTestUtils.getTemplateUrlFactory(),

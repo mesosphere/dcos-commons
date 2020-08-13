@@ -50,6 +50,22 @@
           ],
           "default": "INFO"
         },
+        "logrotate_options": {
+          "description": "The logrotate options for the DC/OS service.",
+          "type": "object",
+          "properties": {
+            "stdout_max_size": {
+              "description": "Logrotate stdout max size. Sizes must be an integer of less than 2^64 and must be suffixed with a unit such as B (bytes), KB, MB, GB, or TB. There should be no whitespace between the integer and unit.",
+              "type": "string",
+              "default": "2MB"
+            },
+            "stderr_max_size": {
+              "description": "Logrotate stderr max size. Sizes must be an integer of less than 2^64 and must be suffixed with a unit such as B (bytes), KB, MB, GB, or TB. There should be no whitespace between the integer and unit.",
+              "type": "string",
+              "default": "2MB"
+            }
+          }
+        },
         "region": {
           "description": "The region that the service's tasks should run in.",
           "type": "string",

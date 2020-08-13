@@ -24,7 +24,7 @@ import sdk_utils
 log = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SECONDS = 30 * 60
-SSH_USERNAME = os.environ.get("DCOS_SSH_USERNAME", "core")
+SSH_USERNAME = os.environ.get("DCOS_SSH_USERNAME", "centos")
 SSH_KEY_FILE = os.environ.get("DCOS_SSH_KEY_FILE", "")
 
 # Silence this warning. We expect certs to be self-signed:
@@ -36,15 +36,15 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 def service_request(
-        method: str,
-        service_name: str,
-        service_path: str,
-        retry: bool = True,
-        raise_on_error: bool = True,
-        log_args: bool = True,
-        log_response: bool = False,
-        timeout_seconds: int = 60,
-        **kwargs: Any,
+    method: str,
+    service_name: str,
+    service_path: str,
+    retry: bool = True,
+    raise_on_error: bool = True,
+    log_args: bool = True,
+    log_response: bool = False,
+    timeout_seconds: int = 60,
+    **kwargs: Any,
 ) -> requests.Response:
     """Used to query a service running on the cluster. See `cluster_request()` for arg meanings.
     : param service_name: The name of the service, e.g. 'marathon' or 'hello-world'
@@ -184,11 +184,7 @@ def svc_cli(
     return rc, stdout, stderr
 
 
-def run_cli(
-    cmd: str,
-    print_output: bool = True,
-    check: bool = False,
-) -> Tuple[int, str, str]:
+def run_cli(cmd: str, print_output: bool = True, check: bool = False,) -> Tuple[int, str, str]:
     """Runs the command with `dcos` as the prefix to the shell command
     and returns a tuple containing exit code, stdout, and stderr.
 
@@ -201,10 +197,7 @@ def run_cli(
 
 
 def _run_cmd(
-    cmd: str,
-    print_output: bool,
-    check: bool,
-    timeout_seconds: Optional[int] = None,
+    cmd: str, print_output: bool, check: bool, timeout_seconds: Optional[int] = None,
 ) -> Tuple[int, str, str]:
     result = subprocess.run(
         [cmd],
@@ -311,7 +304,9 @@ def kill_task_with_pattern(pattern: str, user: str, agent_host: Optional[str] = 
     return rc == 0
 
 
-def master_ssh(cmd: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False) -> Tuple[int, str, str]:
+def master_ssh(
+    cmd: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False
+) -> Tuple[int, str, str]:
     """
     Runs the provided command on the cluster leader, using ssh.
     Returns the exit code, stdout, and stderr as three separate values.
@@ -321,7 +316,11 @@ def master_ssh(cmd: str, timeout_seconds: int = 60, print_output: bool = True, c
 
 
 def agent_ssh(
-    agent_host: str, cmd: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False
+    agent_host: str,
+    cmd: str,
+    timeout_seconds: int = 60,
+    print_output: bool = True,
+    check: bool = False,
 ) -> Tuple[int, str, str]:
     """
     Runs the provided command on the specified agent host, using ssh.
@@ -332,7 +331,11 @@ def agent_ssh(
 
 
 def master_scp(
-    file_content: str, remote_path: str, timeout_seconds: int = 60, print_output: bool = True, check: bool = False
+    file_content: str,
+    remote_path: str,
+    timeout_seconds: int = 60,
+    print_output: bool = True,
+    check: bool = False,
 ) -> int:
     """
     Writes the provided input path to the specified path on cluster leader, using scp.
@@ -360,7 +363,9 @@ def agent_scp(
     return _scp(file_content, remote_path, agent_host, timeout_seconds, print_output, check)
 
 
-def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool) -> Tuple[int, str, str]:
+def _ssh(
+    cmd: str, host: str, timeout_seconds: int, print_output: bool, check: bool
+) -> Tuple[int, str, str]:
     common_args = " ".join(
         [
             # -oBatchMode=yes: Don't prompt for password if keyfile doesn't work.
@@ -388,11 +393,7 @@ def _ssh(cmd: str, host: str, timeout_seconds: int, print_output: bool, check: b
         ]
     )
 
-    nested_args = " ".join(
-        [
-            common_args
-        ]
-    )
+    nested_args = " ".join([common_args])
 
     if os.environ.get("DCOS_SSH_DIRECT", ""):
         # Direct SSH access to the node:
@@ -429,7 +430,7 @@ def _scp(
             # -i <identity_file>: The identity file to use for login
             "-i {}".format("/root/.ssh/id_rsa"),
             # verbose
-            "-vvv"
+            "-vvv",
         ]
     )
 

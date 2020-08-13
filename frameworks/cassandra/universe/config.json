@@ -638,6 +638,11 @@
           "description": "The port for CQL communication.",
           "default": 9042
         },
+        "max_queued_native_transport_requests": {
+          "type": "integer",
+          "description": "The maximum allowed size of native transport requests queue.",
+          "default": 1024
+        },
         "start_rpc": {
           "type": "boolean",
           "description": "If true Thrift RPC is enabled. This is deprecated but may be necessary for legacy applications.",
@@ -1124,6 +1129,11 @@
           "type": "boolean",
           "description": "Enables materialized view creation on this node. Materialized views are considered experimental and are not recommended for production use.",
           "default": false
+        },
+        "metrics_period_min": {
+          "type": "integer",
+          "description": "Specifies how frequently the metrics plugin will push the values to the DC/OS StatsD endpoint. Consider increasing this value if you are having a large number of tables in your database.",
+          "default": 1
         }
       },
       "additionalProperties": false,

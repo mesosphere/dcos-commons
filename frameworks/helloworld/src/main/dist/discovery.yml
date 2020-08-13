@@ -12,7 +12,9 @@ pods:
     tasks:
       once:
         goal: ONCE
-        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output"
+        cmd: |
+          export INTERFACE=`ip route list | grep default | awk '{print $5}' | head -n 1`
+          sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show $INTERFACE | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output
         resource-set: hello-resources
         discovery:
           prefix: hello
@@ -20,7 +22,9 @@ pods:
           DNS_WAIT_DURATION: 75
       server:
         goal: RUNNING
-        cmd: "sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show eth0 | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output && sleep $SLEEP_DURATION"
+        cmd: |
+          export INTERFACE=`ip route list | grep default | awk '{print $5}' | head -n 1`
+          sleep $DNS_WAIT_DURATION && dig hello-0.hello-world.mesos | grep -Ev '(^;|^\\s|^$)' | awk '{print $NF}' | grep $(ip addr show $INTERFACE | grep -Eo 'inet [0-9\\.]+' | cut -d ' ' -f 2) >> output && sleep $SLEEP_DURATION
         resource-set: hello-resources
         discovery:
           prefix: hello

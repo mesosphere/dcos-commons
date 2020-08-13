@@ -25,7 +25,7 @@ def configure_package(configure_security):
         sdk_install.uninstall(config.PACKAGE_NAME, SERVICE_NAME)
         sdk_marathon.delete_group(group_id=ENFORCED_ROLE)
         # create group with enforced-roles
-        sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": False})
+        sdk_marathon.create_group(group_id=ENFORCED_ROLE, options={"enforceRole": True})
         yield  # let the test session execute
     finally:
         sdk_install.uninstall(config.PACKAGE_NAME, SERVICE_NAME)
@@ -55,7 +55,7 @@ def test_initial_upgrade():
     assert ENFORCED_ROLE not in current_task_roles.values()
 
     assert service_roles["framework-roles"] is None
-    assert service_roles["framework-role"] == LEGACY_ROLE
+    assert service_roles["framework-role"] == ENFORCED_ROLE
 
 
 @pytest.mark.quota_test
