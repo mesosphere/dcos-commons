@@ -17,7 +17,7 @@ git+https://github.com/dcos/dcos-test-utils.git@3ebfc18ff9c5a1aa382311474a9192a6
 git+https://github.com/dcos/dcos-launch.git@965a877ab641ab39733887188ed8f86d1a8c696c  # validator-hint: version=0.1.0
 adal==1.2.0
 altgraph==0.17
-appdirs==1.4.3
+appdirs==1.4.4
 asn1crypto==0.24.0
 aspy.yaml==1.2.0
 astroid==2.4.2
