@@ -40,6 +40,7 @@ public final class MarathonConstraintParser {
     SUPPORTED_OPERATORS.put("UNLIKE", new UnlikeOperator());
     SUPPORTED_OPERATORS.put("MAX_PER", new MaxPerOperator());
     SUPPORTED_OPERATORS.put("IS", new IsOperator());
+    SUPPORTED_OPERATORS.put("IS_NOT", new IsNotOperator());
   }
 
   private MarathonConstraintParser() {
@@ -261,6 +262,38 @@ public final class MarathonConstraintParser {
         case ATTRIBUTE:
           return AttributeRuleFactory.getInstance().require(
               ExactMatcher.createAttribute(fieldName, parameter));
+        default:
+          throw new UnsupportedOperationException(
+              String.format("Unknown LIKE placement type encountered: %s", fieldName));
+      }
+    }
+  }
+
+  /**
+   * {@code IS_NOT} tells Marathon to not match the value of the key exactly.
+   * For example the following constraint ensures that tasks only run on agents
+   * without the attribute "foo" equal to "bar": {@code [["foo", "IS_NOT", "bar"]]}
+   */
+  @SuppressWarnings("checkstyle:MultipleStringLiterals")
+  private static class IsNotOperator implements Operator {
+    public PlacementRule run(
+        StringMatcher taskFilter,
+        String fieldName,
+        String operatorName,
+        Optional<String> requiredParameter) throws IOException
+    {
+
+      String parameter = validateRequiredParameter(operatorName, requiredParameter);
+      switch (PlacementUtils.getField(fieldName)) {
+        case HOSTNAME:
+          return HostnameRuleFactory.getInstance().require(InvertedExactMatcher.create(parameter));
+        case ZONE:
+          return ZoneRuleFactory.getInstance().require(InvertedExactMatcher.create(parameter));
+        case REGION:
+          return RegionRuleFactory.getInstance().require(InvertedExactMatcher.create(parameter));
+        case ATTRIBUTE:
+          return AttributeRuleFactory.getInstance().require(
+              InvertedExactMatcher.createAttribute(fieldName, parameter));
         default:
           throw new UnsupportedOperationException(
               String.format("Unknown LIKE placement type encountered: %s", fieldName));
