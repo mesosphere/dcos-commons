@@ -10,10 +10,7 @@
 import logging
 import os
 import os.path
-import random
-import string
 import sys
-import time
 import subprocess
 
 import universe
@@ -33,7 +30,9 @@ class AzurePublisher(object):
         self._az_container_name = os.environ.get("AZURE_CONTAINER_NAME", "")
 
         if self._az_storage_account == "" or self._az_container_name == "":
-            raise Exception("It's mandatory to define the environment variables: 'AZURE_STORAGE_ACCOUNT' and 'AZURE_CONTAINER_NAME'")
+            raise Exception(
+                "It's mandatory to define the environment variables: 'AZURE_STORAGE_ACCOUNT' and 'AZURE_CONTAINER_NAME'"
+            )
 
         if not os.path.isdir(input_dir_path):
             raise Exception("Provided package path is not a directory: {}".format(input_dir_path))
@@ -47,8 +46,9 @@ class AzurePublisher(object):
                 raise Exception(err)
             self._artifact_paths.append(artifact_path)
 
-        self._uploader = universe.AzureUploader(self._az_storage_account, self._az_container_name, self._dry_run)
-
+        self._uploader = universe.AzureUploader(
+            self._az_storage_account, self._az_container_name, self._dry_run
+        )
 
     def _spam_universe_url(self, universe_url):
         """Write jenkins properties file to $WORKSPACE/<pkg_version>.properties:"""
@@ -72,7 +72,6 @@ class AzurePublisher(object):
             universe_url_file.flush()
             universe_url_file.close()
 
-
     def upload(self):
         """Generates a container if not exists, then uploads artifacts and a new stub universe to that container"""
         version = Version(release_version=0, package_version=self._pkg_version)
@@ -82,7 +81,9 @@ class AzurePublisher(object):
             package_info,
             package_manager,
             self._input_dir_path,
-            "https://{}.blob.core.windows.net/{}".format(self._az_storage_account, self._az_container_name),
+            "https://{}.blob.core.windows.net/{}".format(
+                self._az_storage_account, self._az_container_name
+            ),
             self._artifact_paths,
             self._dry_run,
         )
@@ -94,16 +95,19 @@ class AzurePublisher(object):
         )
 
         # Get the stub-universe.json file URL from Azure CLI
-        universe_url = subprocess.check_output(
-            "az storage blob url -o tsv --account-name {} --container-name {} --name {}"\
-                .format(self._az_storage_account, 
+        universe_url = (
+            subprocess.check_output(
+                "az storage blob url -o tsv --account-name {} --container-name {} --name {}".format(
+                    self._az_storage_account,
                     self._az_container_name,
-                    os.path.basename(universe_path))\
-                .split()
-        ).decode('ascii').rstrip()
+                    os.path.basename(universe_path),
+                ).split()
+            )
+            .decode("ascii")
+            .rstrip()
+        )
 
         logger.info("Uploading {} artifacts:".format(len(self._artifact_paths)))
-
         logger.info("---")
         logger.info("STUB UNIVERSE: {}".format(universe_url))
         logger.info("---")
@@ -131,7 +135,6 @@ class AzurePublisher(object):
         logger.info("dcos package install --yes {}".format(self._pkg_name))
 
         return universe_url
-
 
 
 def print_help(argv):
