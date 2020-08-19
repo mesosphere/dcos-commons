@@ -8,6 +8,7 @@ import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverrider;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryPlanOverriderFactory;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryStep;
 import com.mesosphere.sdk.scheduler.recovery.RecoveryType;
+import com.mesosphere.sdk.scheduler.recovery.constrain.UnconstrainedLaunchConstrainer;
 import com.mesosphere.sdk.state.StateStore;
 import com.mesosphere.sdk.state.StateStoreUtils;
 import com.mesosphere.sdk.storage.Persister;
@@ -476,6 +477,7 @@ public class ServiceTest {
                                             new RecoveryStep(
                                                     podInstanceRequirement.getPodInstance().getName(),
                                                     podInstanceRequirement,
+                                                    new UnconstrainedLaunchConstrainer(),
                                                     stateStore)),
                                     new SerialStrategy<>(),
                                     Collections.emptyList());
