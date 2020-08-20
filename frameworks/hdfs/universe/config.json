@@ -209,6 +209,27 @@
           "type": "string",
           "description": "Volume profile to be used for storing JournalNode data."
         },
+        "external_volume": {
+          "type": "object",
+          "description": "The external volume configuration.\nOnly Portworx external volumes are supported.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "If true, external profile will be used.",
+              "default": false
+            },
+            "volume_options": {
+              "type": "string",
+              "default": "size=10",
+              "description": "Volume options."
+            },
+            "volume_name": {
+              "type": "string",
+              "description": "Volume name. If empty service path will be used.",
+              "default": ""
+            }
+          }
+        },
         "enable_readiness_check": {
           "description": "Determines whether to enable readiness checks for Journal Nodes.",
           "type": "boolean",
@@ -315,6 +336,27 @@
         "volume_profile": {
           "type": "string",
           "description": "Volume profile to be used for storing NameNode data."
+        },
+        "external_volume": {
+          "type": "object",
+          "description": "The external volume configuration.\nOnly Portworx external volumes are supported.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "If true, external profile will be used.",
+              "default": false
+            },
+            "volume_options": {
+              "type": "string",
+              "default": "size=10",
+              "description": "Volume options."
+            },
+            "volume_name": {
+              "type": "string",
+              "description": "Volume name. If empty service path will be used.",
+              "default": ""
+            }
+          }
         },
         "hadoop_namenode_opts": {
           "type": "string",
@@ -811,6 +853,27 @@
         "volume_profile": {
           "type": "string",
           "description": "Volume profile to be used for storing DataNode data."
+        },
+        "external_volume": {
+          "type": "object",
+          "description": "The external volume configuration.\nOnly Portworx external volumes are supported.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "If true, external profile will be used.",
+              "default": false
+            },
+            "volume_options": {
+              "type": "string",
+              "default": "size=10",
+              "description": "Volume options."
+            },
+            "volume_name": {
+              "type": "string",
+              "description": "Volume name. If empty service path will be used.",
+              "default": ""
+            }
+          }
         },
         "handler_count": {
           "description": "The number of server threads for the datanode.",

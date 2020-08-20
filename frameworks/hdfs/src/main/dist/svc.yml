@@ -25,6 +25,18 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
+    {{#JOURNAL_EXTERNAL_VOLUME_ENABLED}}
+    external-volumes:
+      portworx-volume:
+        type: DOCKER
+        container-path: journal-data
+        driver-name: pxd
+        driver-options: '{{{JOURNAL_EXTERNAL_VOLUME_OPTIONS}}}'
+        {{#JOURNAL_EXTERNAL_VOLUME_NAME}}
+        volume-name: {{JOURNAL_EXTERNAL_VOLUME_NAME}}
+        {{/JOURNAL_EXTERNAL_VOLUME_NAME}}
+        volume-mode: RW
+    {{/JOURNAL_EXTERNAL_VOLUME_ENABLED}}
     resource-sets:
       journal-resources:
         cpus: {{JOURNAL_CPUS}}
@@ -38,6 +50,7 @@ pods:
           journal-https:
             port: {{TASKCFG_ALL_JOURNAL_NODE_HTTPS_PORT}}
           {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
+        {{^JOURNAL_EXTERNAL_VOLUME_ENABLED}}
         volume:
           path: journal-data
           size: {{JOURNAL_DISK}}
@@ -46,6 +59,7 @@ pods:
           profiles:
             - {{JOURNAL_VOLUME_PROFILE}}
           {{/JOURNAL_VOLUME_PROFILE}}
+        {{/JOURNAL_EXTERNAL_VOLUME_ENABLED}}
     placement: '{{{JOURNAL_NODE_PLACEMENT}}}'
     tasks:
       bootstrap:
@@ -172,10 +186,23 @@ pods:
       {{VIRTUAL_NETWORK_NAME}}:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
     {{/ENABLE_VIRTUAL_NETWORK}}
+    {{#NAME_EXTERNAL_VOLUME_ENABLED}}
+    external-volumes:
+      portworx-volume:
+        type: DOCKER
+        container-path: name-data
+        driver-name: pxd
+        driver-options: '{{{NAME_EXTERNAL_VOLUME_OPTIONS}}}'
+        {{#NAME_EXTERNAL_VOLUME_NAME}}
+        volume-name: {{NAME_EXTERNAL_VOLUME_NAME}}
+        {{/NAME_EXTERNAL_VOLUME_NAME}}
+        volume-mode: RW
+    {{/NAME_EXTERNAL_VOLUME_ENABLED}}
     resource-sets:
       name-resources:
         cpus: {{NAME_CPUS}}
         memory: {{NAME_MEM}}
+        {{^NAME_EXTERNAL_VOLUME_ENABLED}}
         volume:
           path: name-data
           size: {{NAME_DISK}}
@@ -184,6 +211,7 @@ pods:
           profiles:
             - {{NAME_VOLUME_PROFILE}}
           {{/NAME_VOLUME_PROFILE}}
+        {{/NAME_EXTERNAL_VOLUME_ENABLED}}
         ports:
           name-rpc:
             port: {{TASKCFG_ALL_NAME_NODE_RPC_PORT}}
@@ -479,6 +507,18 @@ pods:
         labels: {{VIRTUAL_NETWORK_PLUGIN_LABELS}}
       {{/ENABLE_VIRTUAL_NETWORK}}
     placement: '{{{DATA_NODE_PLACEMENT}}}'
+    {{#DATA_EXTERNAL_VOLUME_ENABLED}}
+    external-volumes:
+      portworx-volume:
+        type: DOCKER
+        container-path: data-data
+        driver-name: pxd
+        driver-options: '{{{DATA_EXTERNAL_VOLUME_OPTIONS}}}'
+        {{#DATA_EXTERNAL_VOLUME_NAME}}
+        volume-name: {{DATA_EXTERNAL_VOLUME_NAME}}
+        {{/DATA_EXTERNAL_VOLUME_NAME}}
+        volume-mode: RW
+    {{/DATA_EXTERNAL_VOLUME_ENABLED}}
     tasks:
       node:
         goal: RUNNING
@@ -510,6 +550,7 @@ pods:
           {{/SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           data-ipc:
             port: {{TASKCFG_ALL_DATA_NODE_IPC_PORT}}
+        {{^DATA_EXTERNAL_VOLUME_ENABLED}}
         volume:
           path: data-data
           size: {{DATA_DISK}}
@@ -518,6 +559,7 @@ pods:
           profiles:
             - {{DATA_VOLUME_PROFILE}}
           {{/DATA_VOLUME_PROFILE}}
+        {{/DATA_EXTERNAL_VOLUME_ENABLED}}
         configs:
           {{#SECURITY_KERBEROS_ENABLED}}
           krb5-conf:
