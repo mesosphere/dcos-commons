@@ -14,6 +14,7 @@ public final class ExternalVolumeProviderFactory {
   public static ExternalVolumeProvider getExternalVolumeProvider(String serviceName,
                                                                  Optional<String> volumeName,
                                                                  String driverName,
+                                                                 String podType,
                                                                  int podIndex,
                                                                  Map<String, String> driverOptions)
   {
@@ -23,6 +24,7 @@ public final class ExternalVolumeProviderFactory {
           serviceName,
           volumeName,
           driverName,
+          podType,
           podIndex,
           driverOptions);
     } else {

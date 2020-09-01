@@ -589,8 +589,12 @@ public class PodInfoBuilder {
   {
     Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
     Collection<Protos.Volume> hostVolumes = getExecutorInfoHostVolumes(podSpec.getHostVolumes());
-    Collection<Protos.Volume> externalVolumes =
-        getExecutorInfoExternalVolumes(podSpec.getExternalVolumes(), podIndex, serviceName);
+
+    Collection<Protos.Volume> externalVolumes = getExecutorInfoExternalVolumes(
+            podSpec.getExternalVolumes(),
+            serviceName,
+            podSpec.getType(),
+            podIndex);
 
     Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
         .setType(Protos.ContainerInfo.Type.MESOS);
@@ -836,7 +840,7 @@ public class PodInfoBuilder {
   }
 
   private static Collection<Protos.Volume> getExecutorInfoExternalVolumes(
-      Collection<ExternalVolumeSpec> externalVolumeSpecs, int podIndex, String serviceName)
+      Collection<ExternalVolumeSpec> externalVolumeSpecs, String serviceName, String podType, int podIndex)
   {
     Collection<Protos.Volume> volumes = new ArrayList<>();
 
@@ -848,6 +852,7 @@ public class PodInfoBuilder {
             serviceName,
             dockerVolume.getVolumeName(),
             dockerVolume.getDriverName(),
+            podType,
             podIndex,
             dockerVolume.getDriverOptions());
 
