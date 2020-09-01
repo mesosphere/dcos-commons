@@ -42,19 +42,23 @@ public final class RawServiceSpec {
 
   private final WriteOnceLinkedHashMap<String, RawPlan> plans;
 
+  private final RawReplacementFailurePolicy replacementFailurePolicy;
+
   @JsonCreator
   private RawServiceSpec(
       @JsonProperty("name") String name,
       @JsonProperty("web-url") String webUrl,
       @JsonProperty("scheduler") RawScheduler scheduler,
       @JsonProperty("pods") WriteOnceLinkedHashMap<String, RawPod> pods,
-      @JsonProperty("plans") WriteOnceLinkedHashMap<String, RawPlan> plans)
+      @JsonProperty("plans") WriteOnceLinkedHashMap<String, RawPlan> plans,
+      @JsonProperty("replacement-failure-policy") RawReplacementFailurePolicy replacementFailurePolicy)
   {
     this.name = name;
     this.webUrl = webUrl;
     this.scheduler = scheduler;
     this.pods = pods;
     this.plans = plans;
+    this.replacementFailurePolicy = replacementFailurePolicy;
   }
 
   /**
@@ -89,6 +93,10 @@ public final class RawServiceSpec {
 
   public WriteOnceLinkedHashMap<String, RawPlan> getPlans() {
     return plans;
+  }
+
+  public RawReplacementFailurePolicy getReplacementFailurePolicy() {
+    return replacementFailurePolicy;
   }
 
   /**

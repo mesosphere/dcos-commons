@@ -33,6 +33,7 @@ import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeLabelConverter;
 import com.mesosphere.sdk.offer.evaluate.placement.TaskTypeRule;
 import com.mesosphere.sdk.offer.evaluate.placement.ZoneRule;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
+import com.mesosphere.sdk.specification.yaml.RawReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.specification.yaml.YAMLToInternalMappers;
 import com.mesosphere.sdk.state.ConfigStoreException;
@@ -751,8 +752,12 @@ public final class DefaultServiceSpec implements ServiceSpec {
      * @param replacementFailurePolicy the {@code replacementFailurePolicy} to set
      * @return a reference to this Builder
      */
-    public Builder replacementFailurePolicy(ReplacementFailurePolicy replacementFailurePolicy) {
-      this.replacementFailurePolicy = replacementFailurePolicy;
+    public Builder replacementFailurePolicy(RawReplacementFailurePolicy replacementFailurePolicy) {
+      this.replacementFailurePolicy = ReplacementFailurePolicy
+          .newBuilder()
+          .permanentFailureTimoutSecs(replacementFailurePolicy.getPermanentFailureTimeoutSecs())
+          .minReplaceDelaySecs(replacementFailurePolicy.getMinReplaceDelaySecs())
+          .build();
       return this;
     }
 

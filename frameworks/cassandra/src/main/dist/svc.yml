@@ -2,6 +2,9 @@ name: {{SERVICE_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
   user: {{SERVICE_USER}}
+replacement-failure-policy:
+  permanent-failure-timeout-secs: {{PERMANENT_FAILURE_TIMEOUT_SECS}}
+  min-replace-delay-secs: 240
 pods:
   node:
     count: {{NODES}}

@@ -47,6 +47,11 @@
           "type": "string",
           "default": ""
         },
+        "permanent-failure-timeout-secs" : {
+          "type": "integer",
+          "description": "Default time in minutes to wait before declaring a task as permanently failed.",
+          "default": 120
+        },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",

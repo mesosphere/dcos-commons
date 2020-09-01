@@ -41,6 +41,7 @@
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
     "CASSANDRA_VERSION": "3.11.6",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
+    "PERMANENT_FAILURE_TIMEOUT_SECS": "{{service.permanent-failure-timeout-secs}}",
 
     {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": "secrets/service-account.json",
