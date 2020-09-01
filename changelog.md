@@ -1,4 +1,8 @@
-## Changes to v0.58.0-draft
+## Changes to v0.58.0-rc2
+- Add pod type to default externl volume name in addition to pod index
+- Add configurable Replacement Failure Policy support
+
+## Changes to v0.58.0-rc1
 
 - [D2IQ-62959](https://jira.d2iq.com/browse/D2IQ-62959) Add support for resource-limits in SDK
 - [D2IQ-70241](https://jira.d2iq.com/browse/D2IQ-70241), [D2IQ-70242](https://jira.d2iq.com/browse/D2IQ-70242) Add beta support for DVDI in SDK
