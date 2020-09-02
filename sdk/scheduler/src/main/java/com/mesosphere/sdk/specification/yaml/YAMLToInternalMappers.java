@@ -131,8 +131,7 @@ public final class YAMLToInternalMappers {
         frameworkConfig,
         schedulerConfig,
         taskEnvRouter,
-        configTemplateReader,
-        rawServiceSpec.getReplacementFailurePolicy());
+        configTemplateReader);
   }
 
   /**
@@ -146,8 +145,7 @@ public final class YAMLToInternalMappers {
       FrameworkConfig frameworkConfig,
       SchedulerConfig schedulerConfig,
       TaskEnvRouter taskEnvRouter,
-      ConfigTemplateReader configTemplateReader,
-      RawReplacementFailurePolicy replacementFailurePolicy) throws Exception
+      ConfigTemplateReader configTemplateReader) throws Exception
   {
     LOGGER.info("Using framework config : {}", frameworkConfig.toString());
     verifyDistinctDiscoveryPrefixes(rawPods.values());
@@ -159,8 +157,7 @@ public final class YAMLToInternalMappers {
         .principal(frameworkConfig.getPrincipal())
         .zookeeperConnection(frameworkConfig.getZookeeperHostPort())
         .webUrl(frameworkConfig.getWebUrl())
-        .user(frameworkConfig.getUser())
-        .replacementFailurePolicy(replacementFailurePolicy);
+        .user(frameworkConfig.getUser());
 
     // Add all pods
     List<PodSpec> pods = new ArrayList<>();

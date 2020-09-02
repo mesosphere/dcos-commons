@@ -7,6 +7,7 @@ import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
 import com.mesosphere.sdk.scheduler.SchedulerRunner;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
+import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 
 import com.google.common.base.Joiner;
@@ -62,7 +63,11 @@ public final class Main {
       serviceSpecGenerator.setAllPodsEnv("AUTHENTICATION_CUSTOM_YAML_BLOCK", yamlBlock);
     }
 
-    return DefaultScheduler.newBuilder(serviceSpecGenerator.build(), schedulerConfig)
+    DefaultServiceSpec serviceSpec = DefaultServiceSpec.newBuilder(serviceSpecGenerator.build())
+            .replacementFailurePolicy(getReplacementFailurePolicy())
+            .build();
+
+    return DefaultScheduler.newBuilder(serviceSpec, schedulerConfig)
         // Disallow changing the DC/Rack. Earlier versions of the Cassandra service didn't set these envvars so
         // we need to allow the case where they may have previously been unset:
         .setCustomConfigValidators(Arrays.asList(
@@ -75,6 +80,15 @@ public final class Main {
         .setCustomResources(getResources(localSeeds))
         .setRecoveryManagerFactory(new CassandraRecoveryPlanOverriderFactory())
         .withSingleRegionConstraint();
+  }
+
+  private static ReplacementFailurePolicy getReplacementFailurePolicy() throws Exception {
+    return ReplacementFailurePolicy.newBuilder()
+            .permanentFailureTimoutSecs(
+                    Integer.valueOf(System.getenv("PERMANENT_FAILURE_TIMEOUT_SECS")))
+            .minReplaceDelaySecs(
+                    Integer.valueOf(System.getenv("MIN_REPLACE_DELAY_SECS")))
+            .build();
   }
 
   private static Collection<Object> getResources(List<String> localSeeds) {
