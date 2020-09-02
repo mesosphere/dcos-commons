@@ -27,7 +27,13 @@ public class PortworxVolumeProvider implements ExternalVolumeProvider {
       Map<String, String> driverOptions)
   {
 
-    String volumeNameUnescaped = providedVolumeName.filter(name -> !name.isEmpty()).orElse(serviceName) + '-' + podType;
+    String volumeNameUnescaped;
+    if (providedVolumeName.isPresent()) {
+      volumeNameUnescaped = providedVolumeName.get();
+    } else {
+      volumeNameUnescaped = providedVolumeName.filter(name -> !name.isEmpty()).orElse(serviceName) + '-' + podType;
+    }
+
     String volumeNameEscaped = SchedulerUtils.withEscapedSlashes(volumeNameUnescaped);
 
     if (driverOptions.containsKey(SHARED_KEY) && driverOptions.get(SHARED_KEY).equals("true")) {
