@@ -49,7 +49,7 @@
         },
         "permanent-failure-timeout-secs" : {
           "type": "integer",
-          "description": "Default time in minutes to wait before declaring a task as permanently failed.",
+          "description": "Default time in seconds to wait before declaring a task as permanently failed.",
           "default": 120
         },
         "log_level": {

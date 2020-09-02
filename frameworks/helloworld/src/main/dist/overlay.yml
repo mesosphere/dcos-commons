@@ -1,4 +1,7 @@
 name: {{FRAMEWORK_NAME}}
+replacement-failure-policy:
+  permanent-failure-timeout-secs: 600
+  min-replace-delay-secs: 240
 scheduler:
   user: {{FRAMEWORK_USER}}
   principal: {{FRAMEWORK_PRINCIPAL}}

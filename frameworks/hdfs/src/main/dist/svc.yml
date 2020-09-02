@@ -2,6 +2,9 @@ name: {{FRAMEWORK_NAME}}
 scheduler:
   principal: {{SERVICE_PRINCIPAL}}
   user: {{TASKCFG_ALL_TASK_USER}}
+replacement-failure-policy:
+  permanent-failure-timeout-secs: 600
+  min-replace-delay-secs: 240
 pods:
   journal:
     count: 3

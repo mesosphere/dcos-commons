@@ -14,7 +14,7 @@ public final class ReplacementFailurePolicy {
    * <p>
    * Default: 10 minutes
    */
-  public static final Integer DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SECS = 10;
+  public static final Integer DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SECS = 10 * 60;
 
   /**
    * Default time to wait before declaring a task as permanently failed.
