@@ -496,6 +496,11 @@
               "type": "string",
               "description": "Volume name. If empty service path will be used.",
               "default": ""
+            },
+            "driver_name": {
+              "type": "string",
+              "description": "Docker volume driver name.",
+              "default": "pxd"
             }
           }
         },
