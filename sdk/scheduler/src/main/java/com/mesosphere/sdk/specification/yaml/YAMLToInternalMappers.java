@@ -632,7 +632,6 @@ public final class YAMLToInternalMappers {
   private static ExternalVolumeSpec convertExternalVolume(RawExternalVolume rawExternalVolume) {
 
     if ("DOCKER".equals(rawExternalVolume.getType())) {
-      if ("pxd".equals(rawExternalVolume.getDriverName())) {
         return PortworxVolumeSpec.newBuilder()
             .containerPath(rawExternalVolume.getContainerPath())
             .driverName(rawExternalVolume.getDriverName())
@@ -640,9 +639,6 @@ public final class YAMLToInternalMappers {
             .volumeName(rawExternalVolume.getVolumeName())
             .mode(rawExternalVolume.getVolumeMode())
             .build();
-      } else {
-        throw new IllegalArgumentException("Unsupported external volume driver " + rawExternalVolume.getDriverName());
-      }
     }
     throw new IllegalArgumentException("Unsupported external volume mode " + rawExternalVolume.getType());
   }
