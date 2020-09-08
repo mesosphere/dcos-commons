@@ -151,6 +151,19 @@ pods:
                       ( "$svc_inactive" != "" || "$difference" -ne 0 || $curPxVersion != $newPxVersion) ]]; then
                     ./sysCtl restart portworx.service
                 fi &&
+
+                echo "{
+                    \"type\": \"pxd.portworx.com\",
+                    \"endpoints\": [
+                      {
+                        \"csi_service\": \"NODE_SERVICE\",
+                        \"endpoint\": \"unix:///var/lib/osd/driver/csi.sock\"
+                      }
+                    ],
+                    \"target_path_root\": \"/var/lib/osd/mounts/ucr\",
+                    \"target_path_exists\": true
+                  }" > /opt/mesosphere/etc/dcos/storage/csi/portworx.conf
+
                 rm $MESOS_SANDBOX/install-in-progress
                 journalctl -afu portworx
         readiness-check:
