@@ -8,9 +8,9 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * This class contains Portworx-specific logic for handling volume name and volume's options.
+ * This class contains NetApp-specific logic for handling volume name and volume's options.
  */
-public class PortworxVolumeProvider implements ExternalVolumeProvider {
+public class NetAppVolumeProvider implements ExternalVolumeProvider {
 
   private static final String SHARED_KEY = "shared";
 
@@ -18,14 +18,21 @@ public class PortworxVolumeProvider implements ExternalVolumeProvider {
 
   Map<String, String> driverOptions;
 
-  public PortworxVolumeProvider(
+  public NetAppVolumeProvider(
       String serviceName,
       Optional<String> providedVolumeName,
+      String podType,
       int podIndex,
       Map<String, String> driverOptions)
   {
 
-    String volumeNameUnescaped = providedVolumeName.filter(name -> !name.isEmpty()).orElse(serviceName);
+    String volumeNameUnescaped;
+    if (providedVolumeName.isPresent()) {
+      volumeNameUnescaped = providedVolumeName.get();
+    } else {
+      volumeNameUnescaped = providedVolumeName.filter(name -> !name.isEmpty()).orElse(serviceName) + '_' + podType;
+    }
+
     String volumeNameEscaped = SchedulerUtils.withEscapedSlashes(volumeNameUnescaped);
 
     if (driverOptions.containsKey(SHARED_KEY) && driverOptions.get(SHARED_KEY).equals("true")) {
@@ -34,7 +41,7 @@ public class PortworxVolumeProvider implements ExternalVolumeProvider {
       // same volume
       this.volumeName = volumeNameEscaped;
     } else {
-      this.volumeName = volumeNameEscaped + "-" + podIndex;
+      this.volumeName = volumeNameEscaped + "_" + podIndex;
     }
 
     Map<String, String> options = new HashMap<>(driverOptions);
