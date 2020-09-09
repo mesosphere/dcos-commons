@@ -5,7 +5,6 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * This class contains Portworx-specific logic for handling volume name and volume's options.
@@ -48,10 +47,6 @@ public class PortworxVolumeProvider implements ExternalVolumeProvider {
     options.put("name", this.volumeName);
     // Favor creating volumes on the local node
     options.put("nodes", "LocalNode");
-
-    this.volumeName = options.keySet().stream()
-        .map(key -> key + "=" + options.get(key))
-        .collect(Collectors.joining(";"));
 
     this.driverOptions = options;
   }
