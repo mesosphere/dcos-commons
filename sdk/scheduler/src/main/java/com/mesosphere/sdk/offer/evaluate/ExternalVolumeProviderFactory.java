@@ -32,6 +32,8 @@ public final class ExternalVolumeProviderFactory {
           podType,
           podIndex,
           driverOptions);
+    } else {
+      throw new IllegalArgumentException("Unsupported external volume driver " + driverName);
     }
   }
 }
