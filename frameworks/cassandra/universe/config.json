@@ -47,6 +47,16 @@
           "type": "string",
           "default": ""
         },
+        "permanent-failure-timeout-secs" : {
+          "type": "integer",
+          "description": "Time in seconds to wait before declaring a task as permanently failed.",
+          "default": 120
+        },
+        "min-replace-delay-secs" : {
+          "type": "integer",
+          "description": "Time to wait between destructive task recoveries.",
+          "default": 240
+        },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
@@ -486,6 +496,11 @@
               "type": "string",
               "description": "Volume name. If empty service path will be used.",
               "default": ""
+            },
+            "driver_name": {
+              "type": "string",
+              "description": "Docker volume driver name.",
+              "default": "pxd"
             }
           }
         },

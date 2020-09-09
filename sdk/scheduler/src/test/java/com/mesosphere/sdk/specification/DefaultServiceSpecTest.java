@@ -116,6 +116,47 @@ public class DefaultServiceSpecTest {
     }
 
     @Test
+    public void validResourceLimitsInResourceSet() throws Exception {
+        DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("valid-resource-limits-in-resource-set.yml");
+        validateServiceSpec(resourceLimitsSpec, false);
+        TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
+        ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
+        Assert.assertTrue("CPU limit should be infinity", resourceSet.getResourceLimits().getCpusDouble().get() == Double.POSITIVE_INFINITY);
+        Assert.assertEquals("Memory should be within a few points of eachother", resourceSet.getResourceLimits().getMemoryDouble().get(), 1024.0d, 0.01d);
+    }
+
+    @Test
+    public void validResourceLimitsMissing() throws Exception {
+        DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("valid-resource-limits-empty.yml");
+        validateServiceSpec(resourceLimitsSpec, false);
+        TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
+        ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
+        Assert.assertFalse("CPU limit should be empty", resourceSet.getResourceLimits().getCpusDouble().isPresent());
+        Assert.assertFalse("Memory limit should be empty", resourceSet.getResourceLimits().getMemoryDouble().isPresent());
+    }
+
+    @Test
+    public void validResourceLimitsInTask() throws Exception {
+        DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("valid-resource-limits-in-task.yml");
+        validateServiceSpec(resourceLimitsSpec, false);
+        TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
+        ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
+        Assert.assertTrue("CPU limit should be infinity", resourceSet.getResourceLimits().getCpusDouble().get() == Double.POSITIVE_INFINITY);
+        Assert.assertEquals("Memory should be within a few points of eachother", resourceSet.getResourceLimits().getMemoryDouble().get(), 1024.0d, 0.01d);
+    }
+
+    @Test
+    public void invalidResourceLimitsCpus() throws Exception {
+        try {
+            DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("invalid-resource-limits-in-resource-set.yml");
+            validateServiceSpec(resourceLimitsSpec, false);
+            Assert.fail("Expected exception");
+        } catch (IllegalStateException e) {
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains("The cpus resource-limits for task 'meta-data-task', 0.5, is less than the requested amount, 1"));
+        }
+    }
+
+    @Test
     public void validProfileMountVolume() throws Exception {
         validateServiceSpec("valid-profile-mount-volume.yml", DcosConstants.DEFAULT_GPU_POLICY);
     }
@@ -773,9 +814,7 @@ public class DefaultServiceSpecTest {
 
     @Test
     public void customZKConnection() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-customzk.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        DefaultServiceSpec serviceSpec = loadServiceSpec("valid-customzk.yml");
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
@@ -814,12 +853,18 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, listOfNull));
     }
 
+    private DefaultServiceSpec loadServiceSpec(String filename) throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(filename).getFile());
+        return DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
 
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        DefaultServiceSpec serviceSpec = loadServiceSpec(fileName);
+        validateServiceSpec(serviceSpec, supportGpu);
+    }
 
+    private void validateServiceSpec(DefaultServiceSpec serviceSpec, Boolean supportGpu) throws Exception {
         capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
         when(capabilities.supportsCNINetworking()).thenReturn(true);

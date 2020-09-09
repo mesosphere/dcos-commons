@@ -575,7 +575,7 @@ public class SchedulerBuilder {
       launchConstrainer = new TimedLaunchConstrainer(
           Duration.ofMinutes(failurePolicy.getMinReplaceDelayMins()));
       failureMonitor = new TimedFailureMonitor(
-          Duration.ofMinutes(failurePolicy.getPermanentFailureTimeoutMins()),
+          Duration.ofSeconds(failurePolicy.getPermanentFailureTimeoutSecs()),
           stateStore,
           configStore);
     } else {
