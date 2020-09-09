@@ -839,6 +839,19 @@ public class PodInfoBuilder {
             .build();
   }
 
+  private static Protos.Parameters createParameters(Map<String, String> configs) {
+    Collection<Protos.Parameter> parameters = new ArrayList<>();
+
+    for (Map.Entry<String, String> e : configs.entrySet()) {
+      parameters.add(createParameter(e.getKey(), e.getValue()));
+    }
+
+    return Protos.Parameters.newBuilder()
+            .addAllParameter(parameters)
+            .build();
+  }
+    
+
   private static Collection<Protos.Volume> getExecutorInfoExternalVolumes(
       Collection<ExternalVolumeSpec> externalVolumeSpecs, String serviceName, String podType, int podIndex)
   {
@@ -871,6 +884,7 @@ public class PodInfoBuilder {
                         Protos.Volume.Source.DockerVolume.newBuilder()
                             .setDriver(dockerVolume.getDriverName())
                             .setName(volumeProvider.getVolumeName())
+                            .setDriverOptions(createParameters(volumeProvider.getDriverOptions()))
                             .build())
             ).build();
         LOGGER.info("Add external volume: " + externalVolume.getSource().getDockerVolume().getName());
