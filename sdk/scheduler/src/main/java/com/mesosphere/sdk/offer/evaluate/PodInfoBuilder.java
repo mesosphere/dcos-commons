@@ -850,7 +850,6 @@ public class PodInfoBuilder {
             .addAllParameter(parameters)
             .build();
   }
-    
 
   private static Collection<Protos.Volume> getExecutorInfoExternalVolumes(
       Collection<ExternalVolumeSpec> externalVolumeSpecs, String serviceName, String podType, int podIndex)
