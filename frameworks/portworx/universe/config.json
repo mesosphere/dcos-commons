@@ -68,7 +68,7 @@
           "portworx_image": {
             "title": "Portworx Image name",
             "type": "string",
-            "default": "portworx/px-enterprise:2.1.5"
+            "default": "portworx/px-enterprise:2.5.6"
           },
           "portworx_port_range_start": {
             "title": "Portworx port range start",
@@ -79,7 +79,7 @@
           "portworx_options": {
             "title": "Portworx Options",
             "type": "string",
-            "default": "-a -x mesos"
+            "default": "-a -x mesos -e CSI_ENDPOINT=/var/lib/osd/driver/csi.sock"
           },
           "internal_kvdb": {
             "title": "Internal KVDB",
