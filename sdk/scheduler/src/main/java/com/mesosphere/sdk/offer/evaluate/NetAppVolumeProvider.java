@@ -33,10 +33,7 @@ public class NetAppVolumeProvider implements ExternalVolumeProvider {
     String volumeNameEscaped = SchedulerUtils.withEscapedSlashes(volumeNameUnescaped);
     this.volumeName = volumeNameEscaped + "_" + podIndex;
 
-    Map<String, String> options = new HashMap<>(driverOptions);
-    options.put("name", this.volumeName);
-
-    this.driverOptions = options;
+    this.driverOptions = driverOptions;
   }
 
   @Override

@@ -44,7 +44,6 @@ public class PortworxVolumeProvider implements ExternalVolumeProvider {
     }
 
     Map<String, String> options = new HashMap<>(driverOptions);
-    options.put("name", this.volumeName);
     // Favor creating volumes on the local node
     options.put("nodes", "LocalNode");
 
