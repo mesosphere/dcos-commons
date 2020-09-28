@@ -7,8 +7,8 @@ public class ReplacementFailurePolicyTest {
     @Test
     public void valid() {
         ReplacementFailurePolicy object = ReplacementFailurePolicy.newBuilder()
-                .minReplaceDelayMs(0)
-                .permanentFailureTimoutMs(0)
+                .minReplaceDelaySecs(0)
+                .permanentFailureTimoutSecs(0)
                 .build();
 
         Assert.assertNotNull(object);
@@ -17,8 +17,8 @@ public class ReplacementFailurePolicyTest {
     @Test(expected = IllegalArgumentException.class)
     public void invalid() {
         ReplacementFailurePolicy.newBuilder()
-                .minReplaceDelayMs(-1)
-                .permanentFailureTimoutMs(-1)
+                .minReplaceDelaySecs(-1)
+                .permanentFailureTimoutSecs(-1)
                 .build();
     }
 }
