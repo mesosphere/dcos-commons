@@ -1,7 +1,3 @@
-<p align="left">
-  <img src="https://mesosphere.com/wp-content/themes/mesosphere/library/images/assets/dcos-sdk-logo.png" width="250"/>
-</p>
-
 [__Quick Start__](README.md#quick-start) |
 [__Developer Guide__](https://mesosphere.github.io/dcos-commons/developer-guide/) |
 [__FAQ__](docs/pages/faq.md) |

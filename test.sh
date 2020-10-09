@@ -84,6 +84,7 @@ else
   pytest_m="sanity and not azure"
 fi
 gradle_cache="${DCOS_COMMONS_DIRECTORY}/.gradle_cache"
+maven_cache=
 ssh_path="${HOME}/.ssh/id_rsa"
 ssh_user="centos"
 aws_credentials_path="${HOME}/.aws/credentials"
@@ -150,6 +151,9 @@ function usage()
   echo
   echo "  --gradle-cache ${gradle_cache}"
   echo "    Sets the gradle build cache to the specified path. Setting this to \"\" disables the cache."
+  echo
+  echo "  --maven-cache ${maven_cache}"
+  echo "    Sets the maven artifacts cache to the specified path. Setting this to \"\" disables the cache."
   echo
   echo "  -a/--aws ${aws_credentials_path}"
   echo "    Path to an AWS credentials file. Overrides any AWS_* env credentials."
@@ -271,6 +275,11 @@ while [[ ${#} -gt 0 ]]; do
       gradle_cache="${2}"
       shift
       ;;
+    --maven-cache)
+      if [[ ! -d "${2}" ]]; then echo "Directory not found: ${arg} ${2}"; exit 1; fi
+      maven_cache="${2}"
+      shift
+      ;;
     -a|--aws)
       if [[ ! -f "${2}" ]]; then echo "File not found: ${arg} ${2}"; exit 1; fi
       aws_credentials_path="${2}"
@@ -301,6 +310,12 @@ done
 if [ -n "${gradle_cache}" ]; then
   echo "Setting Gradle cache to ${gradle_cache}"
   container_volumes="${container_volumes} -v ${gradle_cache}:/root/.gradle"
+fi
+
+if [ -n "${maven_cache}" ]; then
+  echo "Setting Maven cache to ${maven_cache}"
+  container_volumes="${container_volumes} -v ${maven_cache}:/root/.m2"
+  echo "Container volumes is now ${container_volumes}"
 fi
 
 if [ "${interactive}" == "true" ]; then
@@ -375,7 +390,7 @@ elif [ "${framework}" = "all" ]; then
   exit 1
 fi
 
-container_volumes="-v ${DCOS_COMMONS_DIRECTORY}:${WORK_DIR}"
+container_volumes="${container_volumes} -v ${DCOS_COMMONS_DIRECTORY}:${WORK_DIR}"
 
 if [ -n "${project}" ]; then
   # Mount $PROJECT_ROOT/frameworks into $WORK_DIR/frameworks.

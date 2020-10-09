@@ -1,0 +1,69 @@
+package com.mesosphere.sdk.offer.evaluate.placement;
+
+import com.mesosphere.sdk.offer.taskdata.AttributeStringUtils;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+
+import java.text.DecimalFormat;
+
+/**
+ * Implements the invert of the `ExactMatcher` (aka "Not Matching").
+ */
+public final class InvertedExactMatcher implements StringMatcher {
+
+  private static final DecimalFormat format = new DecimalFormat("0.###");
+
+  private String str;
+
+  @JsonCreator
+  private InvertedExactMatcher(@JsonProperty("string") String str) {
+    try {
+      this.str = format.format(Double.valueOf(str));
+    } catch (NumberFormatException ex) {
+      this.str = str;
+    }
+  }
+
+  public static StringMatcher create(String str) {
+    return new InvertedExactMatcher(str);
+  }
+
+  public static StringMatcher createAttribute(String name, String value) {
+    return create(AttributeStringUtils.join(name, value));
+  }
+
+  @Override
+  public boolean matches(String value) {
+    String parsedValue = value;
+    try {
+      Double in = Double.valueOf(value);
+      parsedValue = format.format(in);
+    } catch (NumberFormatException ex) {
+      // Continue with original value of `value`
+    }
+    return !str.equals(parsedValue);
+  }
+
+  @JsonProperty("string")
+  private String getString() {
+    return str;
+  }
+
+  @Override
+  public String toString() {
+    return String.format("InvertedExactMatcher{str='%s'}", str);
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    return EqualsBuilder.reflectionEquals(this, o);
+  }
+
+  @Override
+  public int hashCode() {
+    return HashCodeBuilder.reflectionHashCode(this);
+  }
+}
