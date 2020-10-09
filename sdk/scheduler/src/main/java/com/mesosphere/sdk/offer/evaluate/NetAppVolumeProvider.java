@@ -2,7 +2,6 @@ package com.mesosphere.sdk.offer.evaluate;
 
 import com.mesosphere.sdk.scheduler.SchedulerUtils;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
