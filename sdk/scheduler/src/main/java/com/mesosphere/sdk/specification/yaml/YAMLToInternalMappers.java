@@ -632,13 +632,13 @@ public final class YAMLToInternalMappers {
   private static ExternalVolumeSpec convertExternalVolume(RawExternalVolume rawExternalVolume) {
 
     if ("DOCKER".equals(rawExternalVolume.getType())) {
-        return PortworxVolumeSpec.newBuilder()
-            .containerPath(rawExternalVolume.getContainerPath())
-            .driverName(rawExternalVolume.getDriverName())
-            .driverOptions(rawExternalVolume.getDriverOptions())
-            .volumeName(rawExternalVolume.getVolumeName())
-            .mode(rawExternalVolume.getVolumeMode())
-            .build();
+      return PortworxVolumeSpec.newBuilder()
+          .containerPath(rawExternalVolume.getContainerPath())
+          .driverName(rawExternalVolume.getDriverName())
+          .driverOptions(rawExternalVolume.getDriverOptions())
+          .volumeName(rawExternalVolume.getVolumeName())
+          .mode(rawExternalVolume.getVolumeMode())
+          .build();
     }
     throw new IllegalArgumentException("Unsupported external volume mode " + rawExternalVolume.getType());
   }

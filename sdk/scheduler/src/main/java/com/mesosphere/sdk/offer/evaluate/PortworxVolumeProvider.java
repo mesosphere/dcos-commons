@@ -5,7 +5,6 @@ import com.mesosphere.sdk.scheduler.SchedulerUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * This class contains Portworx-specific logic for handling volume name and volume's options.
@@ -21,7 +20,6 @@ public class PortworxVolumeProvider implements ExternalVolumeProvider {
   public PortworxVolumeProvider(
       String serviceName,
       Optional<String> providedVolumeName,
-      String driverName,
       String podType,
       int podIndex,
       Map<String, String> driverOptions)
@@ -45,28 +43,21 @@ public class PortworxVolumeProvider implements ExternalVolumeProvider {
       this.volumeName = volumeNameEscaped + "-" + podIndex;
     }
 
-    if ("pxd".equals(driverName)) {
-      Map<String, String> options = new HashMap<>(driverOptions);
-      options.put("name", this.volumeName);
-      // Favor creating volumes on the local node
-      options.put("nodes", "LocalNode");
+    Map<String, String> options = new HashMap<>(driverOptions);
+    // Favor creating volumes on the local node
+    options.put("nodes", "LocalNode");
 
-      this.volumeName = options.keySet().stream()
-          .map(key -> key + "=" + options.get(key))
-          .collect(Collectors.joining(";"));
-
-      this.driverOptions = options;
-    }
+    this.driverOptions = options;
   }
 
   @Override
   public String getVolumeName() {
-    return volumeName;
+    return this.volumeName;
   }
 
   @Override
   public Map<String, String> getDriverOptions() {
-    return driverOptions;
+    return this.driverOptions;
   }
 
 }
