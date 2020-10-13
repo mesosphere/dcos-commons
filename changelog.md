@@ -1,3 +1,7 @@
+## Changes to v0.58.0-rc3
+- Removes option of passing arbitrary driver name for external volume plugin
+- Add support for Potworx (driver name `pxd`) as well as NetApp (driver name `netapp`) driver plugin
+
 ## Changes to v0.58.0-rc2
 - Add pod type to default externl volume name in addition to pod index
 - Add configurable Replacement Failure Policy support
