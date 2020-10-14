@@ -256,6 +256,9 @@
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}",
 
+    "CONTAINER_LOGGER_LOGROTATE_MAX_STDOUT_SIZE": "{{service.logrotate_options.stdout_max_size}}",
+    "CONTAINER_LOGGER_LOGROTATE_MAX_STDERR_SIZE": "{{service.logrotate_options.stderr_max_size}}",
+
     "READINESS_CHECK_INTERVAL": "{{service.readiness_check.interval}}",
     "READINESS_CHECK_DELAY": "{{service.readiness_check.delay}}",
     "READINESS_CHECK_TIMEOUT": "{{service.readiness_check.timeout}}",
