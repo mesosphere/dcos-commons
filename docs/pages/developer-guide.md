@@ -1734,7 +1734,7 @@ pods:
         memory: 256
         resource-limits:
           cpus: unlimited
-          mem: 512
+          memory: 512
         volume:
           path: "hello-container-path"
           type: ROOT
