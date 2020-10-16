@@ -1734,7 +1734,7 @@ pods:
         memory: 256
         resource-limits:
           cpus: unlimited
-          mem: 512
+          memory: 512
         volume:
           path: "hello-container-path"
           type: ROOT
@@ -1769,7 +1769,7 @@ pods:
         memory: 256
         resource-limits:
           cpus: unlimited
-          mem: 512
+          memory: 512
 ```
 
 **Important:** At any given point in time, only a single process may be consuming a given set of resources. **Resources may never be shared simultaneously by multiple tasks**.  Any attempt to launch a task consuming an already consumed resource-set will result in the killing of the task which is currently running and the launch of the new task.
