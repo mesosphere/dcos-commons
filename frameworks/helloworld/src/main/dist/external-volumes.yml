@@ -1,0 +1,82 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    placement: '{{{HELLO_PLACEMENT}}}'
+    external-volumes:
+      hello-volume:
+        type: DOCKER
+        volume-mode: RW
+        container-path: hello-container-path
+        driver-name: {{EXTERNAL_VOLUME_DRIVER_NAME}}
+        driver-options: {{EXTERNAL_VOLUME_DRIVER_OPTIONS}}
+        {{#HELLO_EXTERNAL_VOLUME_NAME}}
+        volume-name: {{HELLO_EXTERNAL_VOLUME_NAME}}
+        {{/HELLO_EXTERNAL_VOLUME_NAME}}
+    tasks:
+      server:
+        goal: RUNNING
+        cmd: env && echo hello >> hello-container-path/output && sleep $SLEEP_DURATION
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}
+        health-check:
+          cmd: stat hello-container-path/output
+          interval: 5
+          grace-period: 30
+          delay: 0
+          timeout: 10
+          max-consecutive-failures: 3
+        labels: {{HELLO_LABELS}}
+  world:
+      count: {{WORLD_COUNT}}
+      allow-decommission: true
+      placement: '{{{WORLD_PLACEMENT}}}'
+      external-volumes:
+        world-volume:
+          type: DOCKER
+          volume-mode: RW
+          container-path: world-container-path
+          driver-name: {{EXTERNAL_VOLUME_DRIVER_NAME}}
+          driver-options: {{EXTERNAL_VOLUME_DRIVER_OPTIONS}}
+          {{#WORLD_EXTERNAL_VOLUME_NAME}}
+            volume-name: {{WORLD_EXTERNAL_VOLUME_NAME}}
+          {{/WORLD_EXTERNAL_VOLUME_NAME}}
+      tasks:
+        server:
+          goal: RUNNING
+          cmd: |
+                 # for graceful shutdown
+                 #  trap SIGTERM and mock a cleanup timeframe
+                 terminated () {
+                   echo "$(date) received SIGTERM, zzz for 3 ..."
+                   sleep 3
+                   echo "$(date) ... all clean, peace out"
+                   exit 0
+                 }
+                 trap terminated SIGTERM
+                 echo "$(date) trapping SIGTERM, watch here for the signal..."
+
+                 echo "${TASK_NAME}" >>world-container-path/output &&
+                 # instead of running for a short duration (equal to SLEEP_DURATION), run infinitely
+                 # to allow for testing of SIGTERM..grace..SIGKILL
+                 while true; do
+                   sleep 0.1
+                 done
+          cpus: {{WORLD_CPUS}}
+          memory: {{WORLD_MEM}}
+          env:
+            SLEEP_DURATION: {{SLEEP_DURATION}}
+          readiness-check:
+            # wordcount (wc) will report an error if the file does not exist, which effectively is zero (0) bytes
+            # so send the error to /dev/null, BUT also zero-left-pad the variable BYTES to ensure that it is zero
+            # on empty for comparison sake.
+            cmd: BYTES="$(wc -c world-container-path/output 2>/dev/null| awk '{print $1;}')" && [ 0$BYTES -gt 0 ]
+            interval: {{WORLD_READINESS_CHECK_INTERVAL}}
+            delay: {{WORLD_READINESS_CHECK_DELAY}}
+            timeout: {{WORLD_READINESS_CHECK_TIMEOUT}}
+          kill-grace-period: {{WORLD_KILL_GRACE_PERIOD}}
