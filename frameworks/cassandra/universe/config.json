@@ -1079,7 +1079,7 @@
           "description": "Threshold in MB for heap allocations. When this threshold is exceeded, the UDF is stopped. Java UDFs fail and are safely stopped. Java UDFs always throw an exception. Scripted UDFs stop and throw an exception only if this property is set to true",
           "default": 500
         },
-        "user_function_timeout_policy":{
+        "user_function_timeout_policy": {
           "type": "string",
           "description": "Defines action when a scripted UDF exceeds user_defined_function_fail_micros threshold. Applies only when enable_user_defined_functions_threads is set to true. Accepted values: die, die_immediate, ignore.",
           "default": "die"
