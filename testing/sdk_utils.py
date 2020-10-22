@@ -14,6 +14,7 @@ import random
 import string
 import json
 import retrying
+import pprint
 from typing import Dict, Optional, Union, Any
 
 import sdk_cmd
@@ -300,3 +301,9 @@ def filter_role_from_config(unfiltered_config: Optional[Dict[str, Any]]) -> None
                 _gen_dict_delete(d, key)
 
     _gen_dict_delete(unfiltered_config, "role")
+
+
+def get_object_pretty_print(object) -> str:
+    # Return object as a pretty formatted string.
+    return pprint.pformat(object)
+
