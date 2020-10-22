@@ -1054,6 +1054,36 @@
           "description": "Java UDFs are always enabled, if enable_user_defined_functions is true. Enable this option to use UDFs with language javascript or any custom JSR-223 provider. This option has no effect if enable_user_defined_functions is false",
           "default": false
         },
+        "enable_user_defined_functions_threads": {
+          "type": "boolean",
+          "description": "Enables sandbox for asynchronous JavaScript UDF execution. Does not apply to Java UDFs. If enabled, only one instance of a function can run at one time. Asynchronous execution prevents UDFs from running too long or forever and destabilizing the cluster.",
+          "default": true
+        },
+        "user_defined_function_warn_micros": {
+          "type": "integer",
+          "description": "Threshold in microseconds (CPU time). When a UDF runs too long and this threshold is exceeded, a warning is logged and sent to the client.",
+          "default": 500
+        },
+        "user_defined_function_fail_micros": {
+          "type": "integer",
+          "description": "Threshold in microseconds (CPU time). When a fatal UDF run-time situation is detected and this threshold is exceeded, the UDF is stopped.",
+          "default": 10000
+        },
+        "user_defined_function_warn_heap_mb": {
+          "type": "integer",
+          "description": "Threshold in MB for heap allocations. When this threshold is exceeded, a warning is logged and sent to the client. Java UDFs always issue a warning. Scripted UDFs log a warning only if this property is set to true",
+          "default": 200
+        },
+        "user_defined_function_fail_heap_mb": {
+          "type": "integer",
+          "description": "Threshold in MB for heap allocations. When this threshold is exceeded, the UDF is stopped. Java UDFs fail and are safely stopped. Java UDFs always throw an exception. Scripted UDFs stop and throw an exception only if this property is set to true",
+          "default": 500
+        },
+        "user_function_timeout_policy":{
+          "type": "string",
+          "description": "Defines action when a scripted UDF exceeds user_defined_function_fail_micros threshold. Applies only when enable_user_defined_functions_threads is set to true. Accepted values: die, die_immediate, ignore.",
+          "default": "die"
+        },
         "cdc_enabled": {
           "type": "boolean",
           "description": "Enable / disable CDC functionality on a per-node basis. This modifies the logic used for write path allocation rejection",
