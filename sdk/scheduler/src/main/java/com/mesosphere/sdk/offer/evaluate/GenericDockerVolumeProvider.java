@@ -6,15 +6,15 @@ import java.util.Map;
 import java.util.Optional;
 
 /**
- * This class contains NetApp-specific logic for handling volume name and volume's options.
+ * This class contains Generic DockerVolume logic for handling volume name and volume's options.
  */
-public class NetAppVolumeProvider implements ExternalVolumeProvider {
+public class GenericDockerVolumeProvider implements ExternalVolumeProvider {
 
   String volumeName;
 
   Map<String, String> driverOptions;
 
-  public NetAppVolumeProvider(
+  public GenericDockerVolumeProvider(
       String serviceName,
       Optional<String> providedVolumeName,
       String podType,
