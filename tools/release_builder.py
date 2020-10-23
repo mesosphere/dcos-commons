@@ -283,8 +283,7 @@ Upgrades from:   {}
         )
 
     def _update_marathon_json(self, package_json):
-        """Updates the marathon.json definition to contain the desired name and version strings.
-        """
+        """Updates the marathon.json definition to contain the desired name and version strings."""
         # note: the file isn't valid JSON, so we edit the raw content instead
         marathon_encoded = package_json.get("marathon", {}).get("v2AppMustacheTemplate")
         orig_marathon_lines = base64.standard_b64decode(marathon_encoded).decode().split("\n")
@@ -425,7 +424,9 @@ Upgrades from:   {}
             else:
                 # download the artifact (http url referenced in package)
                 log.info("{}Downloading {} to {}".format(progress, src_url, local_path))
-                urllib.request.URLopener().retrieve(src_url, local_path)
+                with urllib.request.urlopen(src_url) as r:
+                    with open(local_path, "wb") as f:
+                        f.write(r.read())
 
             # re-upload the artifact (prod s3, via awscli)
             log.info("{}Uploading {} to new location".format(progress, local_path))
