@@ -572,8 +572,11 @@ public class SchedulerBuilder {
           Duration.ofSeconds(failurePolicy.getPermanentFailureTimeoutSecs()),
           stateStore,
           configStore);
+      logger.info("Failure Monitor: Adding ReplacementFailurePolicy and TimedFailureMonitor with duration: {}s",
+              failurePolicy.getPermanentFailureTimeoutSecs());
     } else {
       failureMonitor = new NeverFailureMonitor();
+      logger.info("FailureMonitor: Adding NeverFailureMonitor");
     }
     return new DefaultRecoveryPlanManager(
         stateStore,
