@@ -130,18 +130,18 @@
     "WORLD_READINESS_CHECK_DELAY": "{{world.readiness_check.delay}}",
     "WORLD_READINESS_CHECK_TIMEOUT": "{{world.readiness_check.timeout}}",
 
-    {{#hello.hello_external_volume_name}}
+    {{#hello.external_volume_name}}
     "HELLO_EXTERNAL_VOLUME_NAME: "{{hello.external_volume_name}}",
-    {{/hello.hello_external_volume_name}}
-    {{#world.world_external_volume_name}}
+    {{/hello.external_volume_name}}
+    {{#world.external_volume_name}}
     "WORLD_EXTERNAL_VOLUME_NAME: "{{world.external_volume_name}}",
-    {{/world.world_external_volume_name}}
-
-    {{#service.external_volumes.pod-replacement-failure-policies.enable-automatic-pod-replacement}}
-    "ENABLE_AUTOMATIC_POD_REPLACEMENT": "{{service.external_volumes.pod-replacement-failure-policies.enable-automatic-pod-replacement}}",
-    "PERMANENT_FAILURE_TIMEOUT_SECS": "{{service.external_volumes.pod-replacement-failure-policies.permanent-failure-timeout-secs}}",
-    "MIN_REPLACE_DELAY_SECS": "{{service.external_volumes.pod-replacement-failure-policies.min-replace-delay-secs}}",
-    {{/service.external_volumes.pod-replacement-failure-policies.enable-automatic-pod-replacement}}
+    {{/world.external_volume_name}}
+    
+    {{#service.external_volumes.pod-replacement-failure-policy.enable-automatic-pod-replacement}}
+    "ENABLE_AUTOMATIC_POD_REPLACEMENT": "{{service.external_volumes.pod-replacement-failure-policy.enable-automatic-pod-replacement}}",
+    "PERMANENT_FAILURE_TIMEOUT_SECS": "{{service.external_volumes.pod-replacement-failure-policy.permanent-failure-timeout-secs}}",
+    "MIN_REPLACE_DELAY_SECS": "{{service.external_volumes.pod-replacement-failure-policy.min-replace-delay-secs}}",
+    {{/service.external_volumes.pod-replacement-failure-policy.enable-automatic-pod-replacement}}
 
     "EXTERNAL_VOLUME_DRIVER_NAME": "{{service.external_volumes.volume_driver_name}}",
     "EXTERNAL_VOLUME_DRIVER_OPTIONS": "{{service.external_volumes.volume_driver_options}}",

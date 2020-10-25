@@ -70,6 +70,7 @@ public class TimedFailureMonitor extends DefaultFailureMonitor {
   @Override
   public boolean hasFailed(Protos.TaskInfo terminatedTask) {
     if (super.hasFailed(terminatedTask)) {
+      logger.debug("TimedFailureMonitor super.hasFailed {}", true);
       return true;
     }
 

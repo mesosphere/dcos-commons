@@ -18,6 +18,7 @@ import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
 import com.mesosphere.sdk.specification.DefaultTaskSpec;
 import com.mesosphere.sdk.specification.GoalState;
+import com.mesosphere.sdk.specification.ReplacementFailurePolicy;
 import com.mesosphere.sdk.specification.ServiceSpec;
 import com.mesosphere.sdk.specification.yaml.RawServiceSpec;
 import com.mesosphere.sdk.storage.Persister;
@@ -35,6 +36,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 
 /**
  * Main entry point for the Scheduler.
@@ -68,7 +70,7 @@ public final class Main {
     if (yamlFiles.size() == 1) {
       // One YAML file: Mono-Scheduler
       LOGGER.info("Starting mono-scheduler using: {}", yamlFiles.iterator().next());
-      runSingleYamlService(schedulerConfig, yamlFiles.iterator().next(), scenarios);
+      runSingleYamlService(schedulerConfig, yamlFiles.iterator().next(), scenarios, envStore);
     } else if (yamlFiles.isEmpty()) {
       // No YAML files (and not in JAVA scenario): Dynamic Multi-Scheduler
       // (user adds/removes services)
@@ -95,14 +97,18 @@ public final class Main {
    * Starts a scheduler which runs a single fixed service.
    */
   private static void runSingleYamlService(
-      SchedulerConfig schedulerConfig, File yamlFile, Collection<Scenario.Type> scenarios)
+      SchedulerConfig schedulerConfig, File yamlFile, Collection<Scenario.Type> scenarios, EnvStore envStore)
       throws Exception
   {
     RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlFile).build();
     Optional<String> serviceNamespace = schedulerConfig.getServiceNamespace();
-    ServiceSpec serviceSpec = DefaultServiceSpec
+
+    ServiceSpec generatedServiceSpec = DefaultServiceSpec
         .newGenerator(rawServiceSpec, schedulerConfig, yamlFile.getParentFile())
         .build();
+    ServiceSpec serviceSpec = DefaultServiceSpec.newBuilder(generatedServiceSpec)
+            .replacementFailurePolicy(getReplacementFailurePolicy(envStore))
+            .build();
     Persister persister =
         getPersister(schedulerConfig, FrameworkConfig.fromServiceSpec(serviceSpec, serviceNamespace));
     SchedulerBuilder builder = DefaultScheduler
@@ -111,6 +117,19 @@ public final class Main {
     SchedulerRunner
         .fromSchedulerBuilder(Scenario.customize(builder, Optional.empty(), scenarios))
         .run();
+  }
+
+  private static ReplacementFailurePolicy getReplacementFailurePolicy(EnvStore envStore) throws Exception {
+    if (envStore.getOptionalBoolean("ENABLE_AUTOMATIC_POD_REPLACEMENT", false)) {
+      return ReplacementFailurePolicy.newBuilder()
+              .permanentFailureTimoutSecs(
+                      Integer.valueOf(System.getenv("PERMANENT_FAILURE_TIMEOUT_SECS")))
+              .minReplaceDelaySecs(
+                      Integer.valueOf(System.getenv("MIN_REPLACE_DELAY_SECS")))
+              .build();
+    } else {
+      return null;
+    }
   }
 
   /**
