@@ -303,7 +303,7 @@ def filter_role_from_config(unfiltered_config: Optional[Dict[str, Any]]) -> None
     _gen_dict_delete(unfiltered_config, "role")
 
 
-def get_object_pretty_print(object) -> str:
+def pretty_print_object(object) -> str:
     # Return object as a pretty formatted string.
     return pprint.pformat(object)
 
