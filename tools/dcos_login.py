@@ -7,6 +7,8 @@ import time
 import urllib.parse
 import urllib.request
 
+import sdk_cmd
+
 log = logging.getLogger(__name__)
 
 __CLI_LOGIN_OPEN_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIsImtpZCI6Ik9UQkVOakZFTWtWQ09VRTRPRVpGTlRNMFJrWXlRa015Tnprd1JrSkVRemRCTWpBM1FqYzVOZyJ9.eyJlbWFpbCI6ImFsYmVydEBiZWtzdGlsLm5ldCIsImVtYWlsX3ZlcmlmaWVkIjp0cnVlLCJpc3MiOiJodHRwczovL2Rjb3MuYXV0aDAuY29tLyIsInN1YiI6Imdvb2dsZS1vYXV0aDJ8MTA5OTY0NDk5MDExMTA4OTA1MDUwIiwiYXVkIjoiM3lGNVRPU3pkbEk0NVExeHNweHplb0dCZTlmTnhtOW0iLCJleHAiOjIwOTA4ODQ5NzQsImlhdCI6MTQ2MDE2NDk3NH0.OxcoJJp06L1z2_41_p65FriEGkPzwFB_0pA9ULCvwvzJ8pJXw9hLbmsx-23aY2f-ydwJ7LSibL9i5NbQSR2riJWTcW4N7tLLCCMeFXKEK4hErN2hyxz71Fl765EjQSO5KD1A-HsOPr3ZZPoGTBjE0-EFtmXkSlHb1T2zd0Z8T5Z2-q96WkFoT6PiEdbrDA-e47LKtRmqsddnPZnp0xmMQdTr2MjpVgvqG7TlRvxDcYc-62rkwQXDNSWsW61FcKfQ-TRIZSf2GS9F9esDF4b5tRtrXcBNaorYa9ql0XAWH5W_ct4ylRNl3vwkYKWa4cmPvOqT5Wlj9Tf0af4lNO40PQ"  # noqa
@@ -138,7 +140,7 @@ def attach_cluster(cluster_id: str) -> None:
             os.unlink(attached_file_path)
 
 
-def configure_cli(dcosurl: str, token: str) -> None:
+def configure_cli(dcosurl: str, token: str, dcos_login_username: str, dcos_login_password: str) -> None:
     """Sets up a dcos cluster config for the specified cluster using the specified auth token."""
     cluster_id = json.loads(http_request("GET", dcosurl, "/metadata", token))["CLUSTER_ID"]
     state_summary = json.loads(http_request("GET", dcosurl, "/mesos/state-summary", token))
@@ -168,14 +170,22 @@ def configure_cli(dcosurl: str, token: str) -> None:
 
     # Write the cluster config file:
     cluster_dir_path = os.path.join(__CLUSTERS_PATH, cluster_id)
+    cluster_name = state_summary["cluster"]
     os.makedirs(cluster_dir_path, exist_ok=True)
     cluster_config_path = os.path.join(cluster_dir_path, "dcos.toml")
     with open(cluster_config_path, "w") as f:
-        f.write(__TOML_TEMPLATE.format(name=state_summary["cluster"], token=token, url=dcosurl))
+        f.write(__TOML_TEMPLATE.format(name=cluster_name, token=token, url=dcosurl))
     os.chmod(cluster_config_path, 0o600)
 
     # Write the 'attach' file:
     attach_cluster(cluster_id)
+
+    # Attach to cluster via CLI
+    sdk_cmd.run_cli("cluster attach {}".format(cluster_name))
+    sdk_cmd.run_cli("cluster setup {} --username {} --password {}".format(
+        dcosurl,
+        dcos_login_username,
+        dcos_login_password))
 
 
 def login_session() -> None:
@@ -211,7 +221,10 @@ def login_session() -> None:
             password=dcos_login_password,
             is_enterprise=dcos_enterprise,
         )
-    configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
+    configure_cli(dcosurl=cluster_url,
+                  token=dcos_acs_token,
+                  dcos_login_username=dcos_login_username,
+                  dcos_login_password=dcos_login_password)
 
 
 if __name__ == "__main__":
