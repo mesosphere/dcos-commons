@@ -204,7 +204,7 @@ dcos_ee_only = pytest.mark.skipif(is_open_dcos(), reason="Feature only supported
 
 
 def pretty_duration(seconds: Optional[Union[int, float]]) -> str:
-    """ Returns a user-friendly representation of the provided duration in seconds.
+    """Returns a user-friendly representation of the provided duration in seconds.
     For example: 62.8 => "1m2.8s", or 129837.8 => "2d12h4m57.8s"
     """
     if seconds is None:
@@ -306,4 +306,3 @@ def filter_role_from_config(unfiltered_config: Optional[Dict[str, Any]]) -> None
 def pretty_print_object(object) -> str:
     # Return object as a pretty formatted string.
     return pprint.pformat(object)
-

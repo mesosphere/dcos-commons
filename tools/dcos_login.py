@@ -140,7 +140,9 @@ def attach_cluster(cluster_id: str) -> None:
             os.unlink(attached_file_path)
 
 
-def configure_cli(dcosurl: str, token: str, dcos_login_username: str, dcos_login_password: str) -> None:
+def configure_cli(
+    dcosurl: str, token: str, dcos_login_username: str, dcos_login_password: str
+) -> None:
     """Sets up a dcos cluster config for the specified cluster using the specified auth token."""
     cluster_id = json.loads(http_request("GET", dcosurl, "/metadata", token))["CLUSTER_ID"]
     state_summary = json.loads(http_request("GET", dcosurl, "/mesos/state-summary", token))
@@ -182,10 +184,11 @@ def configure_cli(dcosurl: str, token: str, dcos_login_username: str, dcos_login
 
     # Attach to cluster via CLI
     sdk_cmd.run_cli("cluster attach {}".format(cluster_name))
-    sdk_cmd.run_cli("cluster setup {} --username {} --password {}".format(
-        dcosurl,
-        dcos_login_username,
-        dcos_login_password))
+    sdk_cmd.run_cli(
+        "cluster setup {} --username {} --password {}".format(
+            dcosurl, dcos_login_username, dcos_login_password
+        )
+    )
 
 
 def login_session() -> None:
@@ -221,10 +224,12 @@ def login_session() -> None:
             password=dcos_login_password,
             is_enterprise=dcos_enterprise,
         )
-    configure_cli(dcosurl=cluster_url,
-                  token=dcos_acs_token,
-                  dcos_login_username=dcos_login_username,
-                  dcos_login_password=dcos_login_password)
+    configure_cli(
+        dcosurl=cluster_url,
+        token=dcos_acs_token,
+        dcos_login_username=dcos_login_username,
+        dcos_login_password=dcos_login_password,
+    )
 
 
 if __name__ == "__main__":

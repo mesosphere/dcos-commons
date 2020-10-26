@@ -32,16 +32,18 @@ def test_default_deployment():
             "external_volumes": {
                 "pod-replacement-failure-policy": {
                     "enable-automatic-pod-replacement": True,
-                    "permanent-failure-timeout-secs": 30
-                }
-            }
-        }
+                    "permanent-failure-timeout-secs": 30,
+                },
+            },
+        },
     }
-    sdk_install.install(config.PACKAGE_NAME,
-                        config.SERVICE_NAME,
-                        3,
-                        additional_options=options,
-                        wait_for_deployment=True)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        3,
+        additional_options=options,
+        wait_for_deployment=True,
+    )
     # Wait for scheduler to restart.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
@@ -59,7 +61,7 @@ def test_auto_replace_on_drain():
     replace_agent_id = candidate_tasks[0].agent_id
     replace_tasks = [task for task in candidate_tasks if task.agent_id == replace_agent_id]
     log.info(
-        "Tasks on agent {} to be replaced after drain: {}".format(replace_agent_id, replace_tasks)
+        "Tasks on agent {} to be replaced after drain: {}".format(replace_agent_id, replace_tasks),
     )
     sdk_agents.drain_agent(replace_agent_id)
 
@@ -76,7 +78,7 @@ def test_auto_replace_on_drain():
         ][0]
         log.info(
             "Checking affected task has moved to a new agent:\n"
-            "old={}\nnew={}".format(replaced_task, new_task)
+            "old={}\nnew={}".format(replaced_task, new_task),
         )
         assert replaced_task.agent_id != new_task.agent_id
 
