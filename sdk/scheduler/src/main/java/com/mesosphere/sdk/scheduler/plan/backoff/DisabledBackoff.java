@@ -11,10 +11,12 @@ import java.util.Optional;
 public class DisabledBackoff extends Backoff {
 
   @Override
-  public void addDelay(String taskInstanceName) {}
+  public void addDelay(String taskInstanceName) {
+  }
 
   @Override
-  public void addDelay(Protos.TaskID taskID) {}
+  public void addDelay(Protos.TaskID taskID) {
+  }
 
   @Override
   public Optional<Duration> getDelay(String taskInstanceName) {

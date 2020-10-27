@@ -170,7 +170,7 @@ public class FrameworkRunner {
     if (getResourceRoles().size() > 1) {
       // We have more than one role, set to MULTI_ROLE by default and add all the necessary roles.
       fwkInfoBuilder.addCapabilitiesBuilder()
-        .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE);
+          .setType(Protos.FrameworkInfo.Capability.Type.MULTI_ROLE);
       fwkInfoBuilder.addAllRoles(getResourceRoles());
     } else {
       fwkInfoBuilder.setRole(frameworkConfig.getRole());

@@ -71,14 +71,14 @@ public class PortSpec extends DefaultResourceSpec {
   public static Builder newBuilder(PortSpec copy) {
     Builder builder = new Builder();
     builder.envKey(copy.getEnvKey())
-      .portName(copy.getPortName())
-      .visibility(copy.getVisibility())
-      .networkNames(copy.getNetworkNames())
-      .ranges(copy.getRanges())
-      .value(copy.getValue())
-      .role(copy.getRole())
-      .preReservedRole(copy.getPreReservedRole())
-      .principal(copy.getPrincipal());
+          .portName(copy.getPortName())
+          .visibility(copy.getVisibility())
+          .networkNames(copy.getNetworkNames())
+          .ranges(copy.getRanges())
+          .value(copy.getValue())
+          .role(copy.getRole())
+          .preReservedRole(copy.getPreReservedRole())
+          .principal(copy.getPrincipal());
     return builder;
   }
 

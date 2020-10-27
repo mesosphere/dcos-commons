@@ -28,7 +28,8 @@ public final class Main {
   private static final String AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64_ENV =
       "TASKCFG_ALL_AUTHENTICATION_CUSTOM_YAML_BLOCK_BASE64";
 
-  private Main() {}
+  private Main() {
+  }
 
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {

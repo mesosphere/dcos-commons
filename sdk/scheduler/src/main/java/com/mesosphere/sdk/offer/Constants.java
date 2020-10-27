@@ -14,7 +14,8 @@ import java.time.Duration;
     "checkstyle:DeclarationOrder"
 })
 public final class Constants {
-  private Constants() { }
+  private Constants() {
+  }
 
   /**
    * The name used for the deployment plan.

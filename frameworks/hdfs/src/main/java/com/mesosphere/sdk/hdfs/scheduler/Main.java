@@ -57,7 +57,8 @@ public final class Main {
 
   private static final int NAME_NODE_COUNT = 2;
 
-  private Main() {}
+  private Main() {
+  }
 
   public static void main(String[] args) throws Exception {
     if (args.length != 1) {
