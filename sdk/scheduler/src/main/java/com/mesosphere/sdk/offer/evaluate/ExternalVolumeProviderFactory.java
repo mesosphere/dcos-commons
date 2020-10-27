@@ -17,8 +17,8 @@ public final class ExternalVolumeProviderFactory {
       String driverName,
       String podType,
       int podIndex,
-      Map<String, String> driverOptions) {
-
+      Map<String, String> driverOptions)
+  {
     if ("pxd".equals(driverName)) {
       return new PortworxVolumeProvider(
           serviceName,
