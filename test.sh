@@ -97,7 +97,8 @@ disable_diag_collect="false"
 enable_external_volumes="false"
 docker_options="${DOCKER_OPTIONS:=}"
 docker_command="${DOCKER_COMMAND:=bash ${WORK_DIR}/tools/ci/test_runner.sh ${WORK_DIR}}"
-docker_image="${DOCKER_IMAGE:-mesosphere/dcos-commons:latest}"
+# TODO@kjoshi set this back to dcos-commons:latest before merging with master!
+docker_image="${DOCKER_IMAGE:-mesosphere/dcos-commons:0.58.0-rc4-test}"
 env_passthrough=
 env_file_input=
 external_volumes_enabed=false
