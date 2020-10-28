@@ -13,13 +13,13 @@ import sdk_install
 import sdk_plan
 import sdk_security
 from sdk_install import PackageVersion
-from typing import Dict, Iterator, List, Tuple
+from typing import Iterator
 
 log = logging.getLogger(__name__)
 
-SLEEP_INTERVAL = 60 * 1 # Sleep interval in seconds.
+SLEEP_INTERVAL = 60 * 1  # Sleep interval in seconds.
 EXTERNAL_VOLUMES_SERVICE_NAME = "portworx"
-PORTWORX_IMAGE_VERSION = 'portworx/px-enterprise:2.5.8'
+PORTWORX_IMAGE_VERSION = "portworx/px-enterprise:2.5.8"
 
 
 def external_volumes_session() -> Iterator[None]:
@@ -33,8 +33,8 @@ def external_volumes_session() -> Iterator[None]:
     num_private_agents = len(sdk_agents.get_private_agents())
 
     sdk_security.create_service_account(
-            service_account_name=EXTERNAL_VOLUMES_SERVICE_NAME,
-            service_account_secret=EXTERNAL_VOLUMES_SERVICE_NAME + "-secret",
+        service_account_name=EXTERNAL_VOLUMES_SERVICE_NAME,
+        service_account_secret=EXTERNAL_VOLUMES_SERVICE_NAME + "-secret",
     )
 
     service_options = {
@@ -46,15 +46,18 @@ def external_volumes_session() -> Iterator[None]:
         "node": {
             "portworx_image": PORTWORX_IMAGE_VERSION,
             "internal_kvdb": True,
-            "count": num_private_agents
-        }
+            "count": num_private_agents,
+        },
     }
 
     # Number of private agents when using internal_kvdb.
-    expected_running_tasks = num_private_agents;
+    expected_running_tasks = num_private_agents
 
-    log.info("Installing {} external volume provider on {} private agents.".format(
-        EXTERNAL_VOLUMES_SERVICE_NAME, num_private_agents))
+    log.info(
+        "Installing {} external volume provider on {} private agents.".format(
+            EXTERNAL_VOLUMES_SERVICE_NAME, num_private_agents
+        )
+    )
 
     try:
         sdk_install.install(
@@ -63,18 +66,17 @@ def external_volumes_session() -> Iterator[None]:
             additional_options=service_options,
             expected_running_tasks=expected_running_tasks,
             wait_for_deployment=True,
-            package_version=PackageVersion.LATEST_UNIVERSE)
+            package_version=PackageVersion.LATEST_UNIVERSE,
+        )
 
         # Ensure the deployment plan is complete
         sdk_plan.wait_for_completed_deployment(
-            service_name=EXTERNAL_VOLUMES_SERVICE_NAME,
-            timeout_seconds=SLEEP_INTERVAL
+            service_name=EXTERNAL_VOLUMES_SERVICE_NAME, timeout_seconds=SLEEP_INTERVAL
         )
 
         # Ensure the recovery plan is not running.
         sdk_plan.wait_for_completed_recovery(
-            service_name=EXTERNAL_VOLUMES_SERVICE_NAME,
-            timeout_seconds=SLEEP_INTERVAL
+            service_name=EXTERNAL_VOLUMES_SERVICE_NAME, timeout_seconds=SLEEP_INTERVAL
         )
 
         log.info(
@@ -86,15 +88,23 @@ def external_volumes_session() -> Iterator[None]:
         # Resume execution of tests.
         yield
     finally:
-        log.info("Teardown of external volume provider {} initiated.".format(EXTERNAL_VOLUMES_SERVICE_NAME))
+        log.info(
+            "Teardown of external volume provider {} initiated.".format(
+                EXTERNAL_VOLUMES_SERVICE_NAME
+            )
+        )
 
         sdk_install.uninstall(
-            package_name=EXTERNAL_VOLUMES_SERVICE_NAME,
-            service_name=EXTERNAL_VOLUMES_SERVICE_NAME)
+            package_name=EXTERNAL_VOLUMES_SERVICE_NAME, service_name=EXTERNAL_VOLUMES_SERVICE_NAME
+        )
 
         sdk_security.delete_service_account(
             service_account_name=EXTERNAL_VOLUMES_SERVICE_NAME,
             service_account_secret=EXTERNAL_VOLUMES_SERVICE_NAME + "-secret",
         )
 
-        log.info("Completd Teardown of external volume provider {}.".format(EXTERNAL_VOLUMES_SERVICE_NAME))
+        log.info(
+            "Completd Teardown of external volume provider {}.".format(
+                EXTERNAL_VOLUMES_SERVICE_NAME
+            )
+        )
