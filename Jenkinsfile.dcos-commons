@@ -26,6 +26,14 @@ pipeline {
     }
  
     stages {
+
+        stage('Env Variables Available') {
+            steps {
+               sh "printenv"
+            }
+            
+        }
+
         stage('docker login') {
             steps {
                 // Login to the Docker registry.
