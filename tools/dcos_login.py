@@ -233,7 +233,11 @@ def login_session() -> None:
     )
 
 
-def dcos_run_cli(cmd: str, print_output: bool = True, check: bool = False,) -> Tuple[int, str, str]:
+def dcos_run_cli(
+    cmd: str,
+    print_output: bool = True,
+    check: bool = False,
+) -> Tuple[int, str, str]:
     """Runs the command with `dcos` as the prefix to the shell command
     and returns a tuple containing exit code, stdout, and stderr.
 
@@ -246,7 +250,10 @@ def dcos_run_cli(cmd: str, print_output: bool = True, check: bool = False,) -> T
 
 
 def _run_cmd(
-    cmd: str, print_output: bool, check: bool, timeout_seconds: Optional[int] = None,
+    cmd: str,
+    print_output: bool,
+    check: bool,
+    timeout_seconds: Optional[int] = None,
 ) -> Tuple[int, str, str]:
     result = subprocess.run(
         [cmd],
