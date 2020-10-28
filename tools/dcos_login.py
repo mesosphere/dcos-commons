@@ -3,11 +3,12 @@ import json
 import logging
 import os
 import ssl
+import subprocess
 import time
 import urllib.parse
 import urllib.request
+from typing import Tuple, Optional
 
-import sdk_cmd
 
 log = logging.getLogger(__name__)
 
@@ -183,8 +184,8 @@ def configure_cli(
     attach_cluster(cluster_id)
 
     # Attach to cluster via CLI
-    sdk_cmd.run_cli("cluster attach {}".format(cluster_name))
-    sdk_cmd.run_cli(
+    dcos_run_cli("cluster attach {}".format(cluster_name))
+    dcos_run_cli(
         "cluster setup {} --username {} --password {}".format(
             dcosurl, dcos_login_username, dcos_login_password
         )
@@ -230,6 +231,52 @@ def login_session() -> None:
         dcos_login_username=dcos_login_username,
         dcos_login_password=dcos_login_password,
     )
+
+
+def dcos_run_cli(cmd: str, print_output: bool = True, check: bool = False,) -> Tuple[int, str, str]:
+    """Runs the command with `dcos` as the prefix to the shell command
+    and returns a tuple containing exit code, stdout, and stderr.
+
+    eg. `cmd`= "package install pkg-name" results in:
+    $ dcos package install pkg-name
+    """
+    dcos_cmd = "dcos {}".format(cmd)
+    log.info("(CLI) {}".format(dcos_cmd))
+    return _run_cmd(dcos_cmd, print_output, check)
+
+
+def _run_cmd(
+    cmd: str, print_output: bool, check: bool, timeout_seconds: Optional[int] = None,
+) -> Tuple[int, str, str]:
+    result = subprocess.run(
+        [cmd],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+        check=check,
+        timeout=timeout_seconds,
+    )
+
+    if result.returncode != 0:
+        log.info("Got exit code {} to command: {}".format(result.returncode, cmd))
+
+    if result.stdout:
+        stdout = result.stdout.decode("utf-8").strip()
+    else:
+        stdout = ""
+
+    if result.stderr:
+        stderr = result.stderr.decode("utf-8").strip()
+    else:
+        stderr = ""
+
+    if print_output:
+        if stdout:
+            log.info("STDOUT:\n{}".format(stdout))
+        if stderr:
+            log.info("STDERR:\n{}".format(stderr))
+
+    return result.returncode, stdout, stderr
 
 
 if __name__ == "__main__":
