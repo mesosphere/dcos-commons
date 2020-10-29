@@ -19,6 +19,12 @@ pipeline {
  
     environment {
         IMAGE = "dcos-commons"
+
+        //Use GitHub PR-# to create new image tag.
+        //This has values such as 'PR-2214'
+        //'$IMAGE:$TAG' is then dcos-commons:PR-2214
+        TAG = ${env.GIT_BRANCH}
+
         DOCKERFILE = "Dockerfile"
  
         // Get credentials for publishing to Docker hub.
@@ -26,13 +32,6 @@ pipeline {
     }
  
     stages {
-
-        stage('Env Variables Available') {
-            steps {
-               sh "printenv"
-            }
-            
-        }
 
         stage('docker login') {
             steps {
@@ -46,20 +45,15 @@ pipeline {
                 // Prevent indefinite hangs: DCOS-57576
                 timeout(activity: true, time: 1, unit: 'HOURS') {
                     // Build Docker image.
-                    sh("docker build --squash -f ${DOCKERFILE} -t mesosphere/${IMAGE}:latest .")
+                    sh("docker build --squash -f ${DOCKERFILE} -t mesosphere/${IMAGE}:${TAG} .")
                 }
             }
         }
  
         stage('publish') {
-            // Only run this step on the master branch.
-            when {
-                branch 'master'
-            }
-  
             steps {
                 script {
-                    sh("docker push mesosphere/${IMAGE}:latest")
+                    sh("docker push mesosphere/${IMAGE}:${TAG}")
                 }
             }
         }
