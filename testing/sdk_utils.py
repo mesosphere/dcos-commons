@@ -171,7 +171,7 @@ def get_metadata() -> requests.Response:
     stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
 def get_cluster_zones():
-    rc, stdout, _ = sdk_cmd.run_cli("node --json")
+    rc, stdout, _ = sdk_cmd.run_cli("node list --json")
 
     if rc != 0:
         return None
@@ -180,7 +180,8 @@ def get_cluster_zones():
     ips_to_zone = {}
 
     for agent in nodes:
-        ips_to_zone[agent["hostname"]] = agent["domain"]["fault_domain"]["zone"]["name"]
+        if "domain" in agent:
+            ips_to_zone[agent["hostname"]] = agent["domain"]["fault_domain"]["zone"]["name"]
 
     return ips_to_zone
 
