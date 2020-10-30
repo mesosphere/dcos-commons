@@ -1,3 +1,7 @@
+## Changes to v0.58.0-rc4
+- Converts NetApp driver to Generic Driver (no driver name needed ``).
+- Adds test harness support for external volumes.
+
 ## Changes to v0.58.0-rc3
 - Removes option of passing arbitrary driver name for external volume plugin
 - Add support for Potworx (driver name `pxd`) as well as NetApp (driver name `netapp`) driver plugin
