@@ -128,9 +128,42 @@ def reconnect_agent(agent_host: str) -> None:
 
 
 def decommission_agent(agent_id: str) -> None:
-    assert sdk_utils.dcos_version_at_least("1.11"),\
-        "node decommission is supported in DC/OS 1.11 and above only"
-    rc, _, _ = sdk_cmd.run_cli(
-        "node decommission {}".format(agent_id)
-    )
+    assert sdk_utils.dcos_version_at_least(
+        "1.11"
+    ), "node decommission is supported in DC/OS 1.11 and above only"
+    rc, _, _ = sdk_cmd.run_cli("node decommission {}".format(agent_id))
+    assert rc == 0
+
+
+def drain_agent(
+    agent_id: str, decommission: bool = False, wait: bool = False, max_grace_period: int = -1
+) -> None:
+    assert sdk_utils.dcos_version_at_least(
+        "1.13"
+    ), "node drain is supported in DC/OS 1.13 and above only"
+
+    # Base command.
+    drain_cmd = ["node", "drain", agent_id]
+
+    # Attach options.
+    if decommission:
+        drain_cmd.append("--decommission")
+    if wait:
+        drain_cmd.append("--wait")
+    if max_grace_period != -1:
+        drain_cmd.append("--max-grace-period={}".format(max_grace_period))
+
+    rc, _, _ = sdk_cmd.run_cli(" ".join(drain_cmd))
+    assert rc == 0
+
+
+def reactivate_agent(agent_id: str) -> None:
+    assert sdk_utils.dcos_version_at_least(
+        "1.13"
+    ), "node reactivate is supported in DC/OS 1.13 and above only"
+
+    # Base command.
+    reactivate_cmd = ["node", "reactivate", agent_id]
+
+    rc, _, _ = sdk_cmd.run_cli(" ".join(reactivate_cmd))
     assert rc == 0

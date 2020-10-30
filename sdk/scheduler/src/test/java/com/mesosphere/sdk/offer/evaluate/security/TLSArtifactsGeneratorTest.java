@@ -91,7 +91,7 @@ public class TLSArtifactsGeneratorTest {
         return new JcaX509CertificateConverter().getCertificate(certHolder);
     }
 
-    //Disabled due to D2IQ-72744 
+    //Disabled due to D2IQ-72744
     //@Test
     public void provisionWithChain() throws Exception {
         X509Certificate endEntityCert = createCertificate();
@@ -108,7 +108,7 @@ public class TLSArtifactsGeneratorTest {
         validateEncodedTrustStore(tlsArtifacts.get(TLSArtifact.TRUSTSTORE));
     }
 
-    //Disabled due to D2IQ-72744 
+    //Disabled due to D2IQ-72744
     //@Test
     public void provisionWithRootOnly() throws Exception {
         X509Certificate endEntityCert = createCertificate();
