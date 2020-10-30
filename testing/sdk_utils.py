@@ -14,6 +14,7 @@ import random
 import string
 import json
 import retrying
+import pprint
 from typing import Dict, Optional, Union, Any
 
 import sdk_cmd
@@ -170,7 +171,7 @@ def get_metadata() -> requests.Response:
     stop_max_attempt_number=3, wait_fixed=1000, retry_on_result=lambda result: not result
 )
 def get_cluster_zones():
-    rc, stdout, _ = sdk_cmd.run_cli("node --json")
+    rc, stdout, _ = sdk_cmd.run_cli("node list --json")
 
     if rc != 0:
         return None
@@ -179,7 +180,8 @@ def get_cluster_zones():
     ips_to_zone = {}
 
     for agent in nodes:
-        ips_to_zone[agent["hostname"]] = agent["domain"]["fault_domain"]["zone"]["name"]
+        if "domain" in agent:
+            ips_to_zone[agent["hostname"]] = agent["domain"]["fault_domain"]["zone"]["name"]
 
     return ips_to_zone
 
@@ -203,7 +205,7 @@ dcos_ee_only = pytest.mark.skipif(is_open_dcos(), reason="Feature only supported
 
 
 def pretty_duration(seconds: Optional[Union[int, float]]) -> str:
-    """ Returns a user-friendly representation of the provided duration in seconds.
+    """Returns a user-friendly representation of the provided duration in seconds.
     For example: 62.8 => "1m2.8s", or 129837.8 => "2d12h4m57.8s"
     """
     if seconds is None:
@@ -300,3 +302,8 @@ def filter_role_from_config(unfiltered_config: Optional[Dict[str, Any]]) -> None
                 _gen_dict_delete(d, key)
 
     _gen_dict_delete(unfiltered_config, "role")
+
+
+def pretty_print_object(object) -> str:
+    # Return object as a pretty formatted string.
+    return pprint.pformat(object)
