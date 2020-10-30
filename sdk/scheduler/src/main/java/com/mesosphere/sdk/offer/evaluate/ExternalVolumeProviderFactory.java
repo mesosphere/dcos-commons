@@ -11,14 +11,14 @@ public final class ExternalVolumeProviderFactory {
   private ExternalVolumeProviderFactory() {
   }
 
-  public static ExternalVolumeProvider getExternalVolumeProvider(String serviceName,
-                                                                 Optional<String> volumeName,
-                                                                 String driverName,
-                                                                 String podType,
-                                                                 int podIndex,
-                                                                 Map<String, String> driverOptions)
+  public static ExternalVolumeProvider getExternalVolumeProvider(
+      String serviceName,
+      Optional<String> volumeName,
+      String driverName,
+      String podType,
+      int podIndex,
+      Map<String, String> driverOptions)
   {
-
     if ("pxd".equals(driverName)) {
       return new PortworxVolumeProvider(
           serviceName,
@@ -26,15 +26,13 @@ public final class ExternalVolumeProviderFactory {
           podType,
           podIndex,
           driverOptions);
-    } else if ("netapp".equals(driverName)) {
-      return new NetAppVolumeProvider(
+    } else {
+      return new GenericDockerVolumeProvider(
           serviceName,
           volumeName,
           podType,
           podIndex,
           driverOptions);
-    } else {
-      throw new IllegalArgumentException("Unsupported external volume driver " + driverName);
     }
   }
 }
