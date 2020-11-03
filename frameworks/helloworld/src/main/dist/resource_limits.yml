@@ -1,0 +1,26 @@
+name: {{FRAMEWORK_NAME}}
+scheduler:
+  principal: {{FRAMEWORK_PRINCIPAL}}
+  user: {{FRAMEWORK_USER}}
+pods:
+  hello:
+    count: {{HELLO_COUNT}}
+    tasks:
+      unlimited:
+        goal: RUNNING
+        # We can't easily assert that resource limits are set properly since:
+        # 1) In DC/OS, even root tasks cannot read their cgroups info (seccomp profile enforced?)
+        # 2) In EE, we cannot easily query the Mesos master to see the task info
+        #
+        # Therefore, we just sleep and check that the task launches properly. That this launches properly can be
+        # verified manually.
+        cmd: |
+          sleep 3600
+
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
+        resource-limits:
+          cpus: "unlimited"
+          memory: "unlimited"
+        env:
+          SLEEP_DURATION: {{SLEEP_DURATION}}

@@ -569,7 +569,7 @@ public class SchedulerBuilder {
     if (serviceSpec.getReplacementFailurePolicy().isPresent()) {
       ReplacementFailurePolicy failurePolicy = serviceSpec.getReplacementFailurePolicy().get();
       failureMonitor = new TimedFailureMonitor(
-          Duration.ofMinutes(failurePolicy.getPermanentFailureTimeoutMins()),
+          Duration.ofSeconds(failurePolicy.getPermanentFailureTimeoutSecs()),
           stateStore,
           configStore);
     } else {
