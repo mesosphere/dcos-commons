@@ -55,6 +55,8 @@ public final class RawTask {
 
   private final Integer sharedMemorySize;
 
+  private final RawResourceLimits resourceLimits;
+
   private RawTask(
       @JsonProperty("goal") String goal,
       @JsonProperty("essential") Boolean essential,
@@ -74,7 +76,8 @@ public final class RawTask {
       @JsonProperty("kill-grace-period") Integer taskKillGracePeriodSeconds,
       @JsonProperty("transport-encryption") List<RawTransportEncryption> transportEncryption,
       @JsonProperty("ipc-mode") String sharedMemory,
-      @JsonProperty("shm-size") Integer sharedMemorySize) throws Exception
+      @JsonProperty("shm-size") Integer sharedMemorySize,
+      @JsonProperty("resource-limits") RawResourceLimits resourceLimits) throws Exception
   {
     this.goal = goal;
     this.essential = essential;
@@ -95,6 +98,7 @@ public final class RawTask {
     this.transportEncryption = transportEncryption;
     this.sharedMemory = sharedMemory;
     this.sharedMemorySize = sharedMemorySize;
+    this.resourceLimits = resourceLimits;
     validateShm();
   }
 
@@ -186,5 +190,9 @@ public final class RawTask {
 
   public Integer getSharedMemorySize() {
     return sharedMemorySize;
+  }
+
+  public RawResourceLimits getResourceLimits() {
+    return resourceLimits;
   }
 }

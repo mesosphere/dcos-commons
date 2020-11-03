@@ -1,12 +1,5 @@
 package com.mesosphere.sdk.specification;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.google.common.collect.Iterables;
 import com.mesosphere.sdk.config.SerializationUtils;
 import com.mesosphere.sdk.dcos.Capabilities;
 import com.mesosphere.sdk.dcos.DcosConstants;
@@ -23,8 +16,17 @@ import com.mesosphere.sdk.testutils.SchedulerConfigTestUtils;
 import com.mesosphere.sdk.testutils.TestConstants;
 import com.mesosphere.sdk.testutils.TestPodFactory;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.module.SimpleModule;
+import com.google.common.collect.Iterables;
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.apache.mesos.Protos;
@@ -38,11 +40,15 @@ import org.mockito.MockitoAnnotations;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
 
 
 public class DefaultServiceSpecTest {
@@ -107,6 +113,47 @@ public class DefaultServiceSpecTest {
     @Test
     public void validGpuResourceSet() throws Exception {
         validateServiceSpec("valid-gpu-resourceset.yml", true);
+    }
+
+    @Test
+    public void validResourceLimitsInResourceSet() throws Exception {
+        DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("valid-resource-limits-in-resource-set.yml");
+        validateServiceSpec(resourceLimitsSpec, false);
+        TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
+        ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
+        Assert.assertTrue("CPU limit should be infinity", resourceSet.getResourceLimits().getCpusDouble().get() == Double.POSITIVE_INFINITY);
+        Assert.assertEquals("Memory should be within a few points of eachother", resourceSet.getResourceLimits().getMemoryDouble().get(), 1024.0d, 0.01d);
+    }
+
+    @Test
+    public void validResourceLimitsMissing() throws Exception {
+        DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("valid-resource-limits-empty.yml");
+        validateServiceSpec(resourceLimitsSpec, false);
+        TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
+        ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
+        Assert.assertFalse("CPU limit should be empty", resourceSet.getResourceLimits().getCpusDouble().isPresent());
+        Assert.assertFalse("Memory limit should be empty", resourceSet.getResourceLimits().getMemoryDouble().isPresent());
+    }
+
+    @Test
+    public void validResourceLimitsInTask() throws Exception {
+        DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("valid-resource-limits-in-task.yml");
+        validateServiceSpec(resourceLimitsSpec, false);
+        TaskSpec taskSpec = resourceLimitsSpec.getPods().get(0).getTasks().get(0);
+        ResourceSet resourceSet = resourceLimitsSpec.getPods().get(0).getTasks().get(0).getResourceSet();
+        Assert.assertTrue("CPU limit should be infinity", resourceSet.getResourceLimits().getCpusDouble().get() == Double.POSITIVE_INFINITY);
+        Assert.assertEquals("Memory should be within a few points of eachother", resourceSet.getResourceLimits().getMemoryDouble().get(), 1024.0d, 0.01d);
+    }
+
+    @Test
+    public void invalidResourceLimitsCpus() throws Exception {
+        try {
+            DefaultServiceSpec resourceLimitsSpec = loadServiceSpec("invalid-resource-limits-in-resource-set.yml");
+            validateServiceSpec(resourceLimitsSpec, false);
+            Assert.fail("Expected exception");
+        } catch (IllegalStateException e) {
+            Assert.assertTrue(e.getMessage(), e.getMessage().contains("The cpus resource-limits for task 'meta-data-task', 0.5, is less than the requested amount, 1"));
+        }
     }
 
     @Test
@@ -459,6 +506,32 @@ public class DefaultServiceSpecTest {
         }
     }
 
+    @Test
+    public void validExternalVolumeMode() throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource("valid-external-volume.yml").getFile());
+        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        PodSpec spec = serviceSpec.getPods().get(0);
+
+        for (ExternalVolumeSpec volumeSpec : spec.getExternalVolumes()) {
+            Assert.assertEquals(ExternalVolumeSpec.Type.DOCKER, volumeSpec.getType());
+            Assert.assertEquals("external-volume-etc", volumeSpec.getContainerPath());
+
+            if (volumeSpec instanceof DockerVolumeSpec) {
+                DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volumeSpec;
+
+                Assert.assertEquals(Protos.Volume.Mode.RO, dockerVolume.getVolumeMode().get());
+                Assert.assertEquals(Optional.of("external-volume-name"), dockerVolume.getVolumeName());
+                Assert.assertEquals("pxd", dockerVolume.getDriverName());
+
+                Map<String, String> options = new HashMap<>();
+                options.put("shared", "true");
+                options.put("size", "10");
+                Assert.assertEquals(options, dockerVolume.getDriverOptions());
+            }
+        }
+    }
+
 
     @Test
     public void invalidVolumeAndVolumes() throws Exception {
@@ -741,9 +814,7 @@ public class DefaultServiceSpecTest {
 
     @Test
     public void customZKConnection() throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("valid-customzk.yml").getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        DefaultServiceSpec serviceSpec = loadServiceSpec("valid-customzk.yml");
         Assert.assertNotNull(serviceSpec);
         Assert.assertNotNull(serviceSpec.getZookeeperConnection());
         Assert.assertEquals("custom.master.mesos:2181", serviceSpec.getZookeeperConnection());
@@ -782,12 +853,18 @@ public class DefaultServiceSpecTest {
         Assert.assertEquals(DcosConstants.DEFAULT_SERVICE_USER, DefaultServiceSpec.getUser(null, listOfNull));
     }
 
+    private DefaultServiceSpec loadServiceSpec(String filename) throws Exception {
+        ClassLoader classLoader = getClass().getClassLoader();
+        File file = new File(classLoader.getResource(filename).getFile());
+        return DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+    }
 
     private void validateServiceSpec(String fileName, Boolean supportGpu) throws Exception {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource(fileName).getFile());
-        DefaultServiceSpec serviceSpec = DefaultServiceSpec.newGenerator(file, SCHEDULER_CONFIG).build();
+        DefaultServiceSpec serviceSpec = loadServiceSpec(fileName);
+        validateServiceSpec(serviceSpec, supportGpu);
+    }
 
+    private void validateServiceSpec(DefaultServiceSpec serviceSpec, Boolean supportGpu) throws Exception {
         capabilities = mock(Capabilities.class);
         when(capabilities.supportsGpuResource()).thenReturn(supportGpu);
         when(capabilities.supportsCNINetworking()).thenReturn(true);

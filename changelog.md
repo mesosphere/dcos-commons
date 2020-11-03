@@ -1,4 +1,39 @@
-## Changes to v0.5x.y
+## Changes to v0.58.0-rc4
+- Converts NetApp driver to Generic Driver (no driver name needed ``).
+- Adds test harness support for external volumes.
+
+## Changes to v0.58.0-rc3
+- Removes option of passing arbitrary driver name for external volume plugin
+- Add support for Potworx (driver name `pxd`) as well as NetApp (driver name `netapp`) driver plugin
+
+## Changes to v0.58.0-rc2
+- Add pod type to default externl volume name in addition to pod index
+- Add configurable Replacement Failure Policy support
+
+## Changes to v0.58.0-rc1
+
+- [D2IQ-62959](https://jira.d2iq.com/browse/D2IQ-62959) Add support for resource-limits in SDK
+- [D2IQ-70241](https://jira.d2iq.com/browse/D2IQ-70241), [D2IQ-70242](https://jira.d2iq.com/browse/D2IQ-70242) Add beta support for DVDI in SDK
+
+### Support external volumes via the [Docker Volume Isolator](http://mesos.apache.org/documentation/latest/isolators/docker-volume/)
+
+DVDI support allow external volumes to be mounted in data services built on the SDK. Only Portworx volume driver is supported.
+
+### Resource limits (AKA vertical bursting)
+
+The resource limits change brings several important changes to the SDK in how it launches tasks. In order to enable smooth upgrades, it is critical that every data service built on the SDK be adapted with the changes and potential problems in to account.
+
+#### Tasks no longer share resources with other tasks
+
+Previously, sidecar tasks (such as running Cassandra `nodetool repair`) were able to consume memory and cpu resources from the primary task. This is because Mesos previously launched all tasks in to a single cgroups. SDK v0.58.0 will instruct Mesos to launch all tasks in separate cgroups. This means that if a sidecar task actually needs more memory than that which it specifically requests, and no configuration is changed, the sidecar task **will get OOM killed**.
+
+To remedy this, all frameworks should update their service specs so that ultimately the resource-limits for both the primary data service task, and side-car tasks, can be defined. Further, the templates in the Universe should expose appropriate configuration parameters so that bursting for both can be defined.
+
+#### Tasks can be configured to optional consume more than they request.
+
+With resource-limits, a task can be configured to consume more CPU or Memory than that which is requested and reserved. This is fantastic news for data-services that would permanently set aside an entire CPU so that occassional backup or repair side-car tasks can be run. To repeat a point made before, SDK service templates should expose appropriate configuration parameters so that resource-limits can be set, at the very least, for sidecar tasks.
+
+Instead of Cassandra requiring 1 CPU for a sidecar tasks, it could instead set aside `0.1` CPU, and then set a resource limit of up to 2 CPUs. This will allow the task to run fast when their are leftover resources to run them, and leave CPUs available to service time-sensitive API requests.
 
 ## Changes to v0.57.3
 
@@ -10,9 +45,6 @@
 - [#3217](https://github.com/mesosphere/dcos-commons/pull/3217) Fix deprecated warnings of PMD gradle plugin. [TOOLING]
 - [#3216](https://github.com/mesosphere/dcos-commons/pull/3216) Fixed publish http server launch. [TOOLING]
 
-##### Notes
-
-- [#3215](https://github.com/mesosphere/dcos-commons/pull/3215) Is a major bug-fix since v0.57.0. Frameworks are recommended to upgrade to v0.57.3 and issue `pod replace` commands to exisiting deployments to mitigate the risks. Existing procedures for [migrating a existing service to the quotated role](https://github.com/mesosphere/dcos-commons/releases/tag/0.57.0#migrate-an-existing-deployed-service-to-use-quota-support) should be followed.
 
 ## Changes to v0.57.2
 - [#3198](https://github.com/mesosphere/dcos-commons/pull/3198) `ALLOW_REGION_AWARENESS` is set to true by default
