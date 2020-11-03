@@ -151,7 +151,7 @@ extends java.lang.Object</pre>
 </tr>
 <tr class="altColor">
 <td class="colFirst"><code>static java.lang.Integer</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN">DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN</a></span></code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SECS">DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SECS</a></span></code>
 <div class="block">Default time to wait between destructive task recoveries (avoid quickly making things worse).</div>
 </td>
 </tr>
@@ -176,11 +176,11 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code>java.lang.Integer</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getMinReplaceDelayMins--">getMinReplaceDelayMins</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getMinReplaceDelaySecs--">getMinReplaceDelaySecs</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code>java.lang.Integer</code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getPermanentFailureTimeoutMins--">getPermanentFailureTimeoutMins</a></span>()</code>&nbsp;</td>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html#getPermanentFailureTimeoutSecs--">getPermanentFailureTimeoutSecs</a></span>()</code>&nbsp;</td>
 </tr>
 <tr id="i3" class="rowColor">
 <td class="colFirst"><code>int</code></td>
@@ -216,13 +216,13 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Field Detail</h3>
-<a name="DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN">
+<a name="DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SECS">
 <!--   -->
 </a>
 <ul class="blockListLast">
 <li class="blockList">
-<h4>DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN</h4>
-<pre>public static final&nbsp;java.lang.Integer DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_MIN</pre>
+<h4>DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SECS</h4>
+<pre>public static final&nbsp;java.lang.Integer DEFAULT_DELAY_BETWEEN_DESTRUCTIVE_RECOVERIES_SECS</pre>
 <div class="block">Default time to wait between destructive task recoveries (avoid quickly making things worse).
  <p>
  Default: 10 minutes</div>
@@ -254,22 +254,22 @@ extends java.lang.Object</pre>
 <pre>public static&nbsp;<a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a>&nbsp;newBuilder(<a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a>&nbsp;copy)</pre>
 </li>
 </ul>
-<a name="getPermanentFailureTimeoutMins--">
+<a name="getPermanentFailureTimeoutSecs--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getPermanentFailureTimeoutMins</h4>
-<pre>public&nbsp;java.lang.Integer&nbsp;getPermanentFailureTimeoutMins()</pre>
+<h4>getPermanentFailureTimeoutSecs</h4>
+<pre>public&nbsp;java.lang.Integer&nbsp;getPermanentFailureTimeoutSecs()</pre>
 </li>
 </ul>
-<a name="getMinReplaceDelayMins--">
+<a name="getMinReplaceDelaySecs--">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>getMinReplaceDelayMins</h4>
-<pre>public&nbsp;java.lang.Integer&nbsp;getMinReplaceDelayMins()</pre>
+<h4>getMinReplaceDelaySecs</h4>
+<pre>public&nbsp;java.lang.Integer&nbsp;getMinReplaceDelaySecs()</pre>
 </li>
 </ul>
 <a name="equals-java.lang.Object-">

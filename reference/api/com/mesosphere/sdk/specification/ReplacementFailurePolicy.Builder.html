@@ -48,7 +48,7 @@ var activeTableTab = "activeTableTab";
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/specification/ResourceLimits.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" target="_top">Frames</a></li>
@@ -140,14 +140,14 @@ extends java.lang.Object</pre>
 </tr>
 <tr id="i1" class="rowColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html#minReplaceDelayMs-java.lang.Integer-">minReplaceDelayMs</a></span>(java.lang.Integer&nbsp;minReplaceDelayMin)</code>
-<div class="block">Sets the <code>minReplaceDelayMin</code> and returns a reference to this Builder so that the methods can be
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html#minReplaceDelaySecs-java.lang.Integer-">minReplaceDelaySecs</a></span>(java.lang.Integer&nbsp;minReplaceDelaySecs)</code>
+<div class="block">Sets the <code>minReplaceDelaySecs</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 </td>
 </tr>
 <tr id="i2" class="altColor">
 <td class="colFirst"><code><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a></code></td>
-<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html#permanentFailureTimoutMs-java.lang.Integer-">permanentFailureTimoutMs</a></span>(java.lang.Integer&nbsp;permanentFailureTimoutMin)</code>
+<td class="colLast"><code><span class="memberNameLink"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html#permanentFailureTimoutSecs-java.lang.Integer-">permanentFailureTimoutSecs</a></span>(java.lang.Integer&nbsp;permanentFailureTimoutSecs)</code>
 <div class="block">Sets the <code>permanentFailureTimoutMin</code> and returns a reference to this Builder so that the methods can
  be chained together.</div>
 </td>
@@ -174,35 +174,35 @@ extends java.lang.Object</pre>
 <!--   -->
 </a>
 <h3>Method Detail</h3>
-<a name="permanentFailureTimoutMs-java.lang.Integer-">
+<a name="permanentFailureTimoutSecs-java.lang.Integer-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>permanentFailureTimoutMs</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a>&nbsp;permanentFailureTimoutMs(java.lang.Integer&nbsp;permanentFailureTimoutMin)</pre>
+<h4>permanentFailureTimoutSecs</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a>&nbsp;permanentFailureTimoutSecs(java.lang.Integer&nbsp;permanentFailureTimoutSecs)</pre>
 <div class="block">Sets the <code>permanentFailureTimoutMin</code> and returns a reference to this Builder so that the methods can
  be chained together.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>permanentFailureTimoutMin</code> - the <code>permanentFailureTimoutMin</code> to set</dd>
+<dd><code>permanentFailureTimoutSecs</code> - the <code>permanentFailureTimoutMin</code> to set</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a reference to this Builder</dd>
 </dl>
 </li>
 </ul>
-<a name="minReplaceDelayMs-java.lang.Integer-">
+<a name="minReplaceDelaySecs-java.lang.Integer-">
 <!--   -->
 </a>
 <ul class="blockList">
 <li class="blockList">
-<h4>minReplaceDelayMs</h4>
-<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a>&nbsp;minReplaceDelayMs(java.lang.Integer&nbsp;minReplaceDelayMin)</pre>
-<div class="block">Sets the <code>minReplaceDelayMin</code> and returns a reference to this Builder so that the methods can be
+<h4>minReplaceDelaySecs</h4>
+<pre>public&nbsp;<a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a>&nbsp;minReplaceDelaySecs(java.lang.Integer&nbsp;minReplaceDelaySecs)</pre>
+<div class="block">Sets the <code>minReplaceDelaySecs</code> and returns a reference to this Builder so that the methods can be
  chained together.</div>
 <dl>
 <dt><span class="paramLabel">Parameters:</span></dt>
-<dd><code>minReplaceDelayMin</code> - the <code>minReplaceDelayMin</code> to set</dd>
+<dd><code>minReplaceDelaySecs</code> - the <code>minReplaceDelaySecs</code> to set</dd>
 <dt><span class="returnLabel">Returns:</span></dt>
 <dd>a reference to this Builder</dd>
 </dl>
@@ -251,7 +251,7 @@ extends java.lang.Object</pre>
 <div class="subNav">
 <ul class="navList">
 <li><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification"><span class="typeNameLink">Prev&nbsp;Class</span></a></li>
-<li><a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
+<li><a href="../../../../com/mesosphere/sdk/specification/ResourceLimits.html" title="interface in com.mesosphere.sdk.specification"><span class="typeNameLink">Next&nbsp;Class</span></a></li>
 </ul>
 <ul class="navList">
 <li><a href="../../../../index.html?com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" target="_top">Frames</a></li>

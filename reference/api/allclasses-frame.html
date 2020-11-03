@@ -99,6 +99,7 @@
 <li><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultReadinessCheckSpec</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultReadinessCheckSpec.Builder.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultReadinessCheckSpec.Builder</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/DefaultRecoveryPlanManager.html" title="class in com.mesosphere.sdk.scheduler.recovery" target="classFrame">DefaultRecoveryPlanManager</a></li>
+<li><a href="com/mesosphere/sdk/specification/DefaultResourceLimits.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultResourceLimits</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultResourceSet</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultResourceSet.Builder</a></li>
 <li><a href="com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification" target="classFrame">DefaultResourceSpec</a></li>
@@ -132,6 +133,7 @@
 <li><a href="com/mesosphere/sdk/scheduler/plan/backoff/DisabledBackoff.html" title="class in com.mesosphere.sdk.scheduler.plan.backoff" target="classFrame">DisabledBackoff</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/multi/DisciplineSelectionStore.html" title="class in com.mesosphere.sdk.scheduler.multi" target="classFrame">DisciplineSelectionStore</a></li>
 <li><a href="com/mesosphere/sdk/specification/DiscoverySpec.html" title="interface in com.mesosphere.sdk.specification" target="classFrame"><span class="interfaceName">DiscoverySpec</span></a></li>
+<li><a href="com/mesosphere/sdk/specification/DockerVolumeSpec.html" title="interface in com.mesosphere.sdk.specification" target="classFrame"><span class="interfaceName">DockerVolumeSpec</span></a></li>
 <li><a href="com/mesosphere/sdk/config/validate/DomainCapabilityValidator.html" title="class in com.mesosphere.sdk.config.validate" target="classFrame">DomainCapabilityValidator</a></li>
 <li><a href="com/mesosphere/sdk/framework/Driver.html" title="class in com.mesosphere.sdk.framework" target="classFrame">Driver</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/Element.html" title="interface in com.mesosphere.sdk.scheduler.plan" target="classFrame"><span class="interfaceName">Element</span></a></li>
@@ -154,12 +156,17 @@
 <li><a href="com/mesosphere/sdk/testing/Expect.html" title="interface in com.mesosphere.sdk.testing" target="classFrame"><span class="interfaceName">Expect</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/ExplicitReconciler.html" title="class in com.mesosphere.sdk.scheduler" target="classFrame">ExplicitReconciler</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/plan/backoff/ExponentialBackoff.html" title="class in com.mesosphere.sdk.scheduler.plan.backoff" target="classFrame">ExponentialBackoff</a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/ExternalVolumeProvider.html" title="interface in com.mesosphere.sdk.offer.evaluate" target="classFrame"><span class="interfaceName">ExternalVolumeProvider</span></a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/ExternalVolumeProviderFactory.html" title="class in com.mesosphere.sdk.offer.evaluate" target="classFrame">ExternalVolumeProviderFactory</a></li>
+<li><a href="com/mesosphere/sdk/specification/ExternalVolumeSpec.html" title="interface in com.mesosphere.sdk.specification" target="classFrame"><span class="interfaceName">ExternalVolumeSpec</span></a></li>
+<li><a href="com/mesosphere/sdk/specification/ExternalVolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification" target="classFrame">ExternalVolumeSpec.Type</a></li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/monitor/FailureMonitor.html" title="interface in com.mesosphere.sdk.scheduler.recovery.monitor" target="classFrame"><span class="interfaceName">FailureMonitor</span></a></li>
 <li><a href="com/mesosphere/sdk/scheduler/recovery/FailureUtils.html" title="class in com.mesosphere.sdk.scheduler.recovery" target="classFrame">FailureUtils</a></li>
 <li><a href="com/mesosphere/sdk/framework/FrameworkConfig.html" title="class in com.mesosphere.sdk.framework" target="classFrame">FrameworkConfig</a></li>
 <li><a href="com/mesosphere/sdk/framework/FrameworkRunner.html" title="class in com.mesosphere.sdk.framework" target="classFrame">FrameworkRunner</a></li>
 <li><a href="com/mesosphere/sdk/framework/FrameworkScheduler.html" title="class in com.mesosphere.sdk.framework" target="classFrame">FrameworkScheduler</a></li>
 <li><a href="com/mesosphere/sdk/state/FrameworkStore.html" title="class in com.mesosphere.sdk.state" target="classFrame">FrameworkStore</a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/GenericDockerVolumeProvider.html" title="class in com.mesosphere.sdk.offer.evaluate" target="classFrame">GenericDockerVolumeProvider</a></li>
 <li><a href="com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification" target="classFrame">GoalState</a></li>
 <li><a href="com/mesosphere/sdk/state/GoalStateOverride.html" title="enum in com.mesosphere.sdk.state" target="classFrame">GoalStateOverride</a></li>
 <li><a href="com/mesosphere/sdk/state/GoalStateOverride.Progress.html" title="enum in com.mesosphere.sdk.state" target="classFrame">GoalStateOverride.Progress</a></li>
@@ -301,6 +308,9 @@
 <li><a href="com/mesosphere/sdk/offer/evaluate/PortEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate" target="classFrame">PortEvaluationStage</a></li>
 <li><a href="com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification" target="classFrame">PortSpec</a></li>
 <li><a href="com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification" target="classFrame">PortSpec.Builder</a></li>
+<li><a href="com/mesosphere/sdk/offer/evaluate/PortworxVolumeProvider.html" title="class in com.mesosphere.sdk.offer.evaluate" target="classFrame">PortworxVolumeProvider</a></li>
+<li><a href="com/mesosphere/sdk/specification/PortworxVolumeSpec.html" title="class in com.mesosphere.sdk.specification" target="classFrame">PortworxVolumeSpec</a></li>
+<li><a href="com/mesosphere/sdk/specification/PortworxVolumeSpec.Builder.html" title="class in com.mesosphere.sdk.specification" target="classFrame">PortworxVolumeSpec.Builder</a></li>
 <li><a href="com/mesosphere/sdk/config/validate/PreReservationCannotChange.html" title="class in com.mesosphere.sdk.config.validate" target="classFrame">PreReservationCannotChange</a></li>
 <li><a href="com/mesosphere/sdk/http/types/PrettyJsonResource.html" title="class in com.mesosphere.sdk.http.types" target="classFrame">PrettyJsonResource</a></li>
 <li><a href="com/mesosphere/sdk/framework/ProcessExit.html" title="class in com.mesosphere.sdk.framework" target="classFrame">ProcessExit</a></li>
@@ -312,6 +322,7 @@
 <li><a href="com/mesosphere/sdk/offer/RangeUtils.html" title="class in com.mesosphere.sdk.offer" target="classFrame">RangeUtils</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawConfig.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawConfig</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawDiscovery.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawDiscovery</a></li>
+<li><a href="com/mesosphere/sdk/specification/yaml/RawExternalVolume.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawExternalVolume</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawHealthCheck.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawHealthCheck</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawHostVolume.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawHostVolume</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawNetwork.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawNetwork</a></li>
@@ -322,6 +333,7 @@
 <li><a href="com/mesosphere/sdk/specification/yaml/RawRange.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawRange</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawReadinessCheck.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawReadinessCheck</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawResource.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawResource</a></li>
+<li><a href="com/mesosphere/sdk/specification/yaml/RawResourceLimits.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawResourceLimits</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawResourceSet.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawResourceSet</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawRLimit.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawRLimit</a></li>
 <li><a href="com/mesosphere/sdk/specification/yaml/RawScheduler.html" title="class in com.mesosphere.sdk.specification.yaml" target="classFrame">RawScheduler</a></li>
@@ -350,6 +362,8 @@
 <li><a href="com/mesosphere/sdk/scheduler/uninstall/ResourceCleanupStep.html" title="class in com.mesosphere.sdk.scheduler.uninstall" target="classFrame">ResourceCleanupStep</a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate" target="classFrame">ResourceEvaluationStage</a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate" target="classFrame">ResourceLabels</a></li>
+<li><a href="com/mesosphere/sdk/specification/ResourceLimits.html" title="interface in com.mesosphere.sdk.specification" target="classFrame"><span class="interfaceName">ResourceLimits</span></a></li>
+<li><a href="com/mesosphere/sdk/config/validate/ResourceLimitsMustExceedRequestedResources.html" title="class in com.mesosphere.sdk.config.validate" target="classFrame">ResourceLimitsMustExceedRequestedResources</a></li>
 <li><a href="com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html" title="class in com.mesosphere.sdk.offer.evaluate" target="classFrame">ResourceMapperUtils</a></li>
 <li><a href="com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification" target="classFrame"><span class="interfaceName">ResourceSet</span></a></li>
 <li><a href="com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification" target="classFrame"><span class="interfaceName">ResourceSpec</span></a></li>

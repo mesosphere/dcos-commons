@@ -81,6 +81,10 @@
 </tr>
 <tbody>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExternalVolumeProvider.html" title="interface in com.mesosphere.sdk.offer.evaluate">ExternalVolumeProvider</a></td>
+<td class="colLast">&nbsp;</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/OfferEvaluationStage.html" title="interface in com.mesosphere.sdk.offer.evaluate">OfferEvaluationStage</a></td>
 <td class="colLast">
 <div class="block">Classes implementing this interface evaluate a pod against an offer and its resources for suitability to run.</div>
@@ -127,6 +131,18 @@
 <td class="colLast">
 <div class="block">Handles cross-referencing a preexisting <code>Protos.ExecutorInfo</code>'s current <code>Protos.Resource</code>s against a set
  of expected <a href="../../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification"><code>VolumeSpec</code></a>s for that Executor.</div>
+</td>
+</tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExternalVolumeProviderFactory.html" title="class in com.mesosphere.sdk.offer.evaluate">ExternalVolumeProviderFactory</a></td>
+<td class="colLast">
+<div class="block">This class abstracts over creation different types of <a href="../../../../../com/mesosphere/sdk/offer/evaluate/ExternalVolumeProvider.html" title="interface in com.mesosphere.sdk.offer.evaluate"><code>ExternalVolumeProvider</code></a>.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/GenericDockerVolumeProvider.html" title="class in com.mesosphere.sdk.offer.evaluate">GenericDockerVolumeProvider</a></td>
+<td class="colLast">
+<div class="block">This class contains Generic DockerVolume logic for handling volume name and volume's options.</div>
 </td>
 </tr>
 <tr class="rowColor">
@@ -187,6 +203,12 @@
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/PortworxVolumeProvider.html" title="class in com.mesosphere.sdk.offer.evaluate">PortworxVolumeProvider</a></td>
+<td class="colLast">
+<div class="block">This class contains Portworx-specific logic for handling volume name and volume's options.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceEvaluationStage</a></td>
 <td class="colLast">
 <div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,
@@ -194,50 +216,50 @@
  <a href="../../../../../com/mesosphere/sdk/offer/ReserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>ReserveOfferRecommendation</code></a> or <a href="../../../../../com/mesosphere/sdk/offer/UnreserveOfferRecommendation.html" title="class in com.mesosphere.sdk.offer"><code>UnreserveOfferRecommendation</code></a> where necessary.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceLabels.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceLabels</a></td>
 <td class="colLast">
 <div class="block">Pairs a <a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ResourceSpec</code></a> definition with an existing task's labels associated with that resource.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/ResourceMapperUtils.html" title="class in com.mesosphere.sdk.offer.evaluate">ResourceMapperUtils</a></td>
 <td class="colLast">&nbsp;</td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/TaskPortLookup.html" title="class in com.mesosphere.sdk.offer.evaluate">TaskPortLookup</a></td>
 <td class="colLast">
 <div class="block">Searches TaskInfos for evidence of prior port assignments.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/TaskResourceMapper.html" title="class in com.mesosphere.sdk.offer.evaluate">TaskResourceMapper</a></td>
 <td class="colLast">
 <div class="block">Handles cross-referencing a preexisting <code>Protos.TaskInfo</code>'s current <code>Protos.Resource</code>s against a set
  of expected <a href="../../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ResourceSpec</code></a>s for that task.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage</a></td>
 <td class="colLast">
 <div class="block">A <a href="../../../../../com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>TLSEvaluationStage</code></a> is responsible for provisioning X.509 certificates, converting them to
  PEM and KeyStore formats and injecting them to the container as a secret.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.Builder.html" title="class in com.mesosphere.sdk.offer.evaluate">TLSEvaluationStage.Builder</a></td>
 <td class="colLast">
 <div class="block">Class for building <a href="../../../../../com/mesosphere/sdk/offer/evaluate/TLSEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate"><code>TLSEvaluationStage</code></a> instances for individual tasks that need it.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/UnreserveEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">UnreserveEvaluationStage</a></td>
 <td class="colLast">
 <div class="block">This class unreserves resources no longer needed by a Pod and makes them available for consumption again in the
  <a href="../../../../../com/mesosphere/sdk/offer/MesosResourcePool.html" title="class in com.mesosphere.sdk.offer"><code>MesosResourcePool</code></a>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../../com/mesosphere/sdk/offer/evaluate/VolumeEvaluationStage.html" title="class in com.mesosphere.sdk.offer.evaluate">VolumeEvaluationStage</a></td>
 <td class="colLast">
 <div class="block">This class evaluates an offer against a given <a href="../../../../../com/mesosphere/sdk/scheduler/plan/PodInstanceRequirement.html" title="class in com.mesosphere.sdk.scheduler.plan"><code>PodInstanceRequirement</code></a>,

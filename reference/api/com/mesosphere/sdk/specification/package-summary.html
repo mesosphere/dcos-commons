@@ -99,6 +99,18 @@
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DockerVolumeSpec.html" title="interface in com.mesosphere.sdk.specification">DockerVolumeSpec</a></td>
+<td class="colLast">
+<div class="block">Specification object for external docker volumes.</div>
+</td>
+</tr>
+<tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/ExternalVolumeSpec.html" title="interface in com.mesosphere.sdk.specification">ExternalVolumeSpec</a></td>
+<td class="colLast">
+<div class="block">Specification object for external volumes.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/HealthCheckSpec.html" title="interface in com.mesosphere.sdk.specification">HealthCheckSpec</a></td>
 <td class="colLast">
 <div class="block">HealthCheck specification.</div>
@@ -135,49 +147,55 @@
 </td>
 </tr>
 <tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/ResourceLimits.html" title="interface in com.mesosphere.sdk.specification">ResourceLimits</a></td>
+<td class="colLast">
+<div class="block">Specification for a Task.</div>
+</td>
+</tr>
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification">ResourceSet</a></td>
 <td class="colLast">
 <div class="block">Represents a named group of resources.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/ResourceSpec.html" title="interface in com.mesosphere.sdk.specification">ResourceSpec</a></td>
 <td class="colLast">
 <div class="block">A ResourceSpec encapsulates a Mesos Resource that may be used by a Task and therefore specified in a
  TaskSpecification.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification">SecretSpec</a></td>
 <td class="colLast">
 <div class="block">A SecretSpec defines the features of a Secret.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification">ServiceSpec</a></td>
 <td class="colLast">
 <div class="block">Defines a Service's configuration.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification">TaskSpec</a></td>
 <td class="colLast">
 <div class="block">Specification for a Task.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification">TransportEncryptionSpec</a></td>
 <td class="colLast">
 <div class="block">Spec for defining a TLS encryption support.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/VipSpec.html" title="interface in com.mesosphere.sdk.specification">VipSpec</a></td>
 <td class="colLast">
 <div class="block">Specification object for software defined VIPs.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.html" title="interface in com.mesosphere.sdk.specification">VolumeSpec</a></td>
 <td class="colLast">
 <div class="block">A VolumeSpec defines the features of a Volume.</div>
@@ -291,174 +309,192 @@
 </td>
 </tr>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceLimits.html" title="class in com.mesosphere.sdk.specification">DefaultResourceLimits</a></td>
+<td class="colLast">
+<div class="block">Default implementation of <a href="../../../../com/mesosphere/sdk/specification/ResourceLimits.html" title="interface in com.mesosphere.sdk.specification"><code>ResourceLimits</code></a>.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet</a></td>
 <td class="colLast">
 <div class="block">Default implementation of <a href="../../../../com/mesosphere/sdk/specification/ResourceSet.html" title="interface in com.mesosphere.sdk.specification"><code>ResourceSet</code></a>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSet.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSet.Builder</a></td>
 <td class="colLast">
 <div class="block"><code>DefaultResourceSet</code> builder static inner class.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec</a></td>
 <td class="colLast">
 <div class="block">This class provides a default implementation of the ResourceSpec interface.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultResourceSpec.Builder</a></td>
 <td class="colLast">
 <div class="block"><a href="../../../../com/mesosphere/sdk/specification/DefaultResourceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultResourceSpec</code></a> builder static inner class.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultSecretSpec.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec</a></td>
 <td class="colLast">
 <div class="block">Default implementation of <a href="../../../../com/mesosphere/sdk/specification/SecretSpec.html" title="interface in com.mesosphere.sdk.specification"><code>SecretSpec</code></a>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultSecretSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultSecretSpec.Builder</a></td>
 <td class="colLast">
 <div class="block"><a href="../../../../com/mesosphere/sdk/specification/DefaultSecretSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultSecretSpec</code></a> builder static inner class.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec</a></td>
 <td class="colLast">
 <div class="block">Default implementation of <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Builder</a></td>
 <td class="colLast">
 <div class="block"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a> builder static inner class.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Comparator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Comparator</a></td>
 <td class="colLast">
 <div class="block">Comparer which checks for equality of <a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultServiceSpec</code></a>s.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.ConfigFactory</a></td>
 <td class="colLast">
 <div class="block">Factory which performs the inverse of <a href="../../../../com/mesosphere/sdk/config/Configuration.html#getBytes--"><code>Configuration.getBytes()</code></a>.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.ConfigFactory.GoalStateDeserializer.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.ConfigFactory.GoalStateDeserializer</a></td>
 <td class="colLast">
 <div class="block">Custom deserializer for goal states to accomodate transition from FINISHED to ONCE/FINISH.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultServiceSpec.Generator.html" title="class in com.mesosphere.sdk.specification">DefaultServiceSpec.Generator</a></td>
 <td class="colLast">
 <div class="block">Generates a <a href="../../../../com/mesosphere/sdk/specification/ServiceSpec.html" title="interface in com.mesosphere.sdk.specification"><code>ServiceSpec</code></a> from a given YAML definition in the form of a <a href="../../../../com/mesosphere/sdk/specification/yaml/RawServiceSpec.html" title="class in com.mesosphere.sdk.specification.yaml"><code>RawServiceSpec</code></a>.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec</a></td>
 <td class="colLast">
 <div class="block">Default implementation of a <a href="../../../../com/mesosphere/sdk/specification/TaskSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TaskSpec</code></a>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultTaskSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTaskSpec.Builder</a></td>
 <td class="colLast">
 <div class="block"><code>DefaultTaskSpec</code> builder static inner class.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec</a></td>
 <td class="colLast">
 <div class="block">Default implementation of <a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.html" title="interface in com.mesosphere.sdk.specification"><code>TransportEncryptionSpec</code></a>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultTransportEncryptionSpec.Builder</a></td>
 <td class="colLast">
 <div class="block">A <a href="../../../../com/mesosphere/sdk/specification/DefaultTransportEncryptionSpec.html" title="class in com.mesosphere.sdk.specification"><code>DefaultTransportEncryptionSpec</code></a> builder.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultVipSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec</a></td>
 <td class="colLast">
 <div class="block">Default implementation of <a href="../../../../com/mesosphere/sdk/specification/VipSpec.html" title="interface in com.mesosphere.sdk.specification"><code>VipSpec</code></a>.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultVipSpec.Builder.html" title="class in com.mesosphere.sdk.specification">DefaultVipSpec.Builder</a></td>
 <td class="colLast">
 <div class="block"><code>DefaultVipSpec</code> builder static inner class.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/DefaultVolumeSpec.html" title="class in com.mesosphere.sdk.specification">DefaultVolumeSpec</a></td>
 <td class="colLast">
 <div class="block">This class provides a default implementation of the VolumeSpec interface.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec</a></td>
 <td class="colLast">
 <div class="block">This class represents a port mapped to a DC/OS named VIP.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/NamedVIPSpec.Builder.html" title="class in com.mesosphere.sdk.specification">NamedVIPSpec.Builder</a></td>
 <td class="colLast">
 <div class="block"><a href="../../../../com/mesosphere/sdk/specification/NamedVIPSpec.html" title="class in com.mesosphere.sdk.specification"><code>NamedVIPSpec</code></a> builder static inner class.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/PlanGenerator.html" title="class in com.mesosphere.sdk.specification">PlanGenerator</a></td>
 <td class="colLast">
 <div class="block">Generates <a href="../../../../com/mesosphere/sdk/scheduler/plan/Plan.html" title="interface in com.mesosphere.sdk.scheduler.plan"><code>Plan</code></a>s as defined in a YAML plan specification.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification">PortSpec</a></td>
 <td class="colLast">
 <div class="block">This class represents a single port, with associated environment name.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortSpec.Builder</a></td>
 <td class="colLast">
 <div class="block"><a href="../../../../com/mesosphere/sdk/specification/PortSpec.html" title="class in com.mesosphere.sdk.specification"><code>PortSpec</code></a> builder static inner class.</div>
 </td>
 </tr>
+<tr class="rowColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/PortworxVolumeSpec.html" title="class in com.mesosphere.sdk.specification">PortworxVolumeSpec</a></td>
+<td class="colLast">
+<div class="block">Portworx implementation of <a href="../../../../com/mesosphere/sdk/specification/DockerVolumeSpec.html" title="interface in com.mesosphere.sdk.specification"><code>DockerVolumeSpec</code></a>.</div>
+</td>
+</tr>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/PortworxVolumeSpec.Builder.html" title="class in com.mesosphere.sdk.specification">PortworxVolumeSpec.Builder</a></td>
+<td class="colLast">
+<div class="block"><code>PortworxVolumeSpec</code> builder static inner class.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/RangeSpec.html" title="class in com.mesosphere.sdk.specification">RangeSpec</a></td>
 <td class="colLast">
 <div class="block">Representation of a port range, consisting of a begin and an end.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy</a></td>
 <td class="colLast">
 <div class="block">Destructive Replacement Failure Policy configuration.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/ReplacementFailurePolicy.Builder.html" title="class in com.mesosphere.sdk.specification">ReplacementFailurePolicy.Builder</a></td>
 <td class="colLast">
 <div class="block"><code>ReplacementFailurePolicy</code> builder static inner class.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/RLimitSpec.html" title="class in com.mesosphere.sdk.specification">RLimitSpec</a></td>
 <td class="colLast">
 <div class="block">Representation of an individual rlimit, consisting of a name and optional soft/hard limits.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/ValidationUtils.html" title="class in com.mesosphere.sdk.specification">ValidationUtils</a></td>
 <td class="colLast">
 <div class="block">Utilities for validating members in service specs.</div>
@@ -476,18 +512,24 @@
 </tr>
 <tbody>
 <tr class="altColor">
+<td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/ExternalVolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">ExternalVolumeSpec.Type</a></td>
+<td class="colLast">
+<div class="block">Types of external volumes.</div>
+</td>
+</tr>
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/GoalState.html" title="enum in com.mesosphere.sdk.specification">GoalState</a></td>
 <td class="colLast">
 <div class="block">The allowed goal states for a Task.</div>
 </td>
 </tr>
-<tr class="rowColor">
+<tr class="altColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/TransportEncryptionSpec.Type.html" title="enum in com.mesosphere.sdk.specification">TransportEncryptionSpec.Type</a></td>
 <td class="colLast">
 <div class="block">The allowed formats of TLS certificate format.</div>
 </td>
 </tr>
-<tr class="altColor">
+<tr class="rowColor">
 <td class="colFirst"><a href="../../../../com/mesosphere/sdk/specification/VolumeSpec.Type.html" title="enum in com.mesosphere.sdk.specification">VolumeSpec.Type</a></td>
 <td class="colLast">
 <div class="block">Types of Volumes.</div>

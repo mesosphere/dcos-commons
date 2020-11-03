@@ -146,7 +146,7 @@ IPC (POSIX/SysV IPC) namespace provides separation of named shared memory segmen
 
         <ul>
           <li>
-            <p><code class="highlighter-rouge">cpus</code>, <code class="highlighter-rouge">gpus</code>, <code class="highlighter-rouge">memory</code>, <code class="highlighter-rouge">ports</code>, <code class="highlighter-rouge">volume</code>/<code class="highlighter-rouge">volumes</code></p>
+            <p><code class="highlighter-rouge">cpus</code>, <code class="highlighter-rouge">gpus</code>, <code class="highlighter-rouge">memory</code>, <code class="highlighter-rouge">ports</code>, <code class="highlighter-rouge">volume</code>/<code class="highlighter-rouge">volumes</code>, <code class="highlighter-rouge">resource-limits</code></p>
 
             <p>These resource values are identical in meaning to their sister fields in a <a href="#tasks">task definition</a>. However, see above discussion about these resources only being used by one task at a time.</p>
           </li>
@@ -455,6 +455,29 @@ root: {{ROOT_DIR}}
             <p><code class="highlighter-rouge">memory</code></p>
 
             <p>The amount of RAM (in MB) to be reserved by this task. If the task exceeds this amount, it will be forcibly restarted.</p>
+          </li>
+          <li>
+            <p><code class="highlighter-rouge">resource-limits</code></p>
+
+            <p>Allows a pod to consume more CPU or Memory resources than requested.</p>
+
+            <div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>resource-limits:
+  cpus: unlimited
+  mem: 4096
+</code></pre></div>            </div>
+
+            <ul>
+              <li>
+                <p><code class="highlighter-rouge">cpus</code></p>
+
+                <p>(optional) The CPU limit to set, either a number greater than or equal to the requested CPUs, or <code class="highlighter-rouge">unlimited</code>. When set, the task will continue to receive the requested CPUs at the same priority, and any unused CPU cycles up to the limit.</p>
+              </li>
+              <li>
+                <p><code class="highlighter-rouge">mem</code></p>
+
+                <p>(optional) The memory limit to set, either a number greater than or equal to the requested memory, or <code class="highlighter-rouge">unlimited</code>. Tasks that consume more memory than requested and cause the host to run out of memory are at risk of being OOM killed.</p>
+              </li>
+            </ul>
           </li>
           <li>
             <p><code class="highlighter-rouge">ports</code></p>
