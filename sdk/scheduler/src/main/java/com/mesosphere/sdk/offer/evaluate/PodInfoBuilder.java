@@ -23,6 +23,8 @@ import com.mesosphere.sdk.specification.CommandSpec;
 import com.mesosphere.sdk.specification.ConfigFileSpec;
 import com.mesosphere.sdk.specification.DefaultReadinessCheckSpec;
 import com.mesosphere.sdk.specification.DiscoverySpec;
+import com.mesosphere.sdk.specification.DockerVolumeSpec;
+import com.mesosphere.sdk.specification.ExternalVolumeSpec;
 import com.mesosphere.sdk.specification.HealthCheckSpec;
 import com.mesosphere.sdk.specification.HostVolumeSpec;
 import com.mesosphere.sdk.specification.NetworkSpec;
@@ -31,6 +33,7 @@ import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.PortSpec;
 import com.mesosphere.sdk.specification.RLimitSpec;
 import com.mesosphere.sdk.specification.ReadinessCheckSpec;
+import com.mesosphere.sdk.specification.ResourceLimits;
 import com.mesosphere.sdk.specification.SecretSpec;
 import com.mesosphere.sdk.specification.TaskSpec;
 import com.mesosphere.sdk.specification.VolumeSpec;
@@ -53,7 +56,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
 
 /**
  * A {@link PodInfoBuilder} encompasses a mutable group of {@link org.apache.mesos.Protos.TaskInfo.Builder}s and,
@@ -124,7 +126,7 @@ public class PodInfoBuilder {
     }
 
     this.executorBuilder = getExecutorInfoBuilder(
-        podInstance, frameworkID, targetConfigId, templateUrlFactory, schedulerConfig);
+        podInstance, frameworkID, serviceName, targetConfigId, templateUrlFactory, schedulerConfig);
 
     this.podInstance = podInstance;
     this.portsByTask = new HashMap<>();
@@ -320,7 +322,17 @@ public class PodInfoBuilder {
       taskInfoBuilder.setDiscovery(getDiscoveryInfo(taskSpec.getDiscovery().get(), podInstance.getIndex()));
     }
 
-    taskInfoBuilder.setContainer(getContainerInfo(podInstance.getPod(), true, true));
+    taskInfoBuilder
+            .setContainer(getContainerInfo(podInstance.getPod(), podInstance.getIndex(), serviceName, true, true));
+    ResourceLimits resourceLimits = taskSpec.getResourceSet().getResourceLimits();
+    resourceLimits.getCpusDouble().ifPresent(cpus ->
+            taskInfoBuilder.putLimits(Constants.CPUS_RESOURCE_TYPE,
+                Protos.Value.Scalar.newBuilder().setValue(cpus).build())
+    );
+    resourceLimits.getMemoryDouble().ifPresent(mem ->
+            taskInfoBuilder.putLimits(Constants.MEMORY_RESOURCE_TYPE,
+                Protos.Value.Scalar.newBuilder().setValue(mem).build())
+    );
 
     if (taskSpec.getSharedMemory().isPresent()) {
       taskInfoBuilder.getContainerBuilder().getLinuxInfoBuilder().setIpcMode(taskSpec.getSharedMemory().get()).build();
@@ -341,6 +353,7 @@ public class PodInfoBuilder {
   private Protos.ExecutorInfo.Builder getExecutorInfoBuilder(
       PodInstance podInstance,
       Protos.FrameworkID frameworkID,
+      String serviceName,
       UUID targetConfigurationId,
       ArtifactQueries.TemplateUrlFactory templateUrlFactory,
       SchedulerConfig schedulerConfig) throws IllegalStateException
@@ -356,7 +369,7 @@ public class PodInfoBuilder {
 
     // Populate ContainerInfo with the appropriate information from PodSpec
     // This includes networks, rlimits, secret volumes...
-    executorInfoBuilder.setContainer(getContainerInfo(podSpec, true, false));
+    executorInfoBuilder.setContainer(getContainerInfo(podSpec, podInstance.getIndex(), serviceName, true, false));
 
     return executorInfoBuilder;
   }
@@ -572,15 +585,25 @@ public class PodInfoBuilder {
    * @return the ContainerInfo to be attached
    */
   private Protos.ContainerInfo getContainerInfo(
-      PodSpec podSpec, boolean addExtraParameters, boolean isTaskContainer)
+          PodSpec podSpec, int podIndex, String serviceName, boolean addExtraParameters, boolean isTaskContainer)
   {
     Collection<Protos.Volume> secretVolumes = getExecutorInfoSecretVolumes(podSpec.getSecrets());
     Collection<Protos.Volume> hostVolumes = getExecutorInfoHostVolumes(podSpec.getHostVolumes());
+
+    Collection<Protos.Volume> externalVolumes = getExecutorInfoExternalVolumes(
+            podSpec.getExternalVolumes(),
+            serviceName,
+            podSpec.getType(),
+            podIndex);
+
     Protos.ContainerInfo.Builder containerInfo = Protos.ContainerInfo.newBuilder()
         .setType(Protos.ContainerInfo.Type.MESOS);
 
+    Protos.LinuxInfo.Builder linuxInfoBuilder = containerInfo.getLinuxInfoBuilder();
+    linuxInfoBuilder.setShareCgroups(false);
+
     if (isTaskContainer) {
-      containerInfo.getLinuxInfoBuilder().setSharePidNamespace(podSpec.getSharePidNamespace());
+      linuxInfoBuilder.setSharePidNamespace(podSpec.getSharePidNamespace());
       // Isolate the tmp directory of tasks
       // switch to SANDBOX SELF after dc/os 1.13
 
@@ -617,6 +640,10 @@ public class PodInfoBuilder {
 
     for (Protos.Volume hostVolume : hostVolumes) {
       containerInfo.addVolumes(hostVolume);
+    }
+
+    for (Protos.Volume externalVolume : externalVolumes) {
+      containerInfo.addVolumes(externalVolume);
     }
 
     if (!podSpec.getImage().isPresent()
@@ -799,6 +826,68 @@ public class PodInfoBuilder {
             .setContainerPath(hostVolumeSpec.getContainerPath())
             .setMode(Protos.Volume.Mode.RW)
             .build());
+      }
+    }
+
+    return volumes;
+  }
+
+  private static Protos.Parameter createParameter(String key, String value) {
+    return Protos.Parameter.newBuilder()
+            .setKey(key)
+            .setValue(value)
+            .build();
+  }
+
+  private static Protos.Parameters createParameters(Map<String, String> configs) {
+    Collection<Protos.Parameter> parameters = new ArrayList<>();
+
+    for (Map.Entry<String, String> e : configs.entrySet()) {
+      parameters.add(createParameter(e.getKey(), e.getValue()));
+    }
+
+    return Protos.Parameters.newBuilder()
+            .addAllParameter(parameters)
+            .build();
+  }
+
+  private static Collection<Protos.Volume> getExecutorInfoExternalVolumes(
+      Collection<ExternalVolumeSpec> externalVolumeSpecs, String serviceName, String podType, int podIndex)
+  {
+    Collection<Protos.Volume> volumes = new ArrayList<>();
+
+    for (ExternalVolumeSpec volume : externalVolumeSpecs) {
+      if (volume.getType() == ExternalVolumeSpec.Type.DOCKER) {
+        DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volume;
+
+        ExternalVolumeProvider volumeProvider = ExternalVolumeProviderFactory.getExternalVolumeProvider(
+            serviceName,
+            dockerVolume.getVolumeName(),
+            dockerVolume.getDriverName(),
+            podType,
+            podIndex,
+            dockerVolume.getDriverOptions());
+
+        Protos.Volume.Builder volumeBuilder = Protos.Volume.newBuilder();
+
+        if (dockerVolume.getVolumeMode().isPresent()) {
+          volumeBuilder.setMode(dockerVolume.getVolumeMode().get());
+        }
+
+        Protos.Volume externalVolume = volumeBuilder
+            .setContainerPath(dockerVolume.getContainerPath())
+            .setSource(
+                Protos.Volume.Source.newBuilder()
+                    .setType(Protos.Volume.Source.Type.DOCKER_VOLUME)
+                    .setDockerVolume(
+                        Protos.Volume.Source.DockerVolume.newBuilder()
+                            .setDriver(dockerVolume.getDriverName())
+                            .setName(volumeProvider.getVolumeName())
+                            .setDriverOptions(createParameters(volumeProvider.getDriverOptions()))
+                            .build())
+            ).build();
+        LOGGER.info("Add external volume: " + externalVolume.getSource().getDockerVolume().getName());
+        volumes.add(externalVolume);
       }
     }
 

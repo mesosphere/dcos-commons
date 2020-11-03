@@ -444,6 +444,7 @@ public final class DefaultServiceSpec implements ServiceSpec {
         ZoneRule.class,
         DefaultSecretSpec.class,
         DefaultHostVolumeSpec.class,
+        PortworxVolumeSpec.class,
         DefaultPodSpec.class);
 
     private final ObjectMapper objectMapper;

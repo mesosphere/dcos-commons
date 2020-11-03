@@ -54,6 +54,8 @@ public final class DefaultPodSpec implements PodSpec {
 
   private final Collection<HostVolumeSpec> hostVolumes;
 
+  private final Collection<ExternalVolumeSpec> externalVolumes;
+
   private final Boolean seccompUnconfined;
 
   private final Optional<String> seccompProfileName;
@@ -79,6 +81,7 @@ public final class DefaultPodSpec implements PodSpec {
       @JsonProperty("secrets") Collection<SecretSpec> secrets,
       @JsonProperty("share-pid-namespace") Boolean sharePidNamespace,
       @JsonProperty("host-volumes") Collection<HostVolumeSpec> hostVolumes,
+      @JsonProperty("external-volumes") Collection<ExternalVolumeSpec> externalVolumes,
       @JsonProperty("seccomp-unconfined") Boolean seccompUnconfined,
       @JsonProperty("seccomp-profile-name") Optional<String> seccompProfileName,
       @JsonProperty("ipc-mode") Optional<Protos.LinuxInfo.IpcMode> sharedMemory,
@@ -99,6 +102,7 @@ public final class DefaultPodSpec implements PodSpec {
     this.secrets = secrets;
     this.sharePidNamespace = sharePidNamespace;
     this.hostVolumes = hostVolumes;
+    this.externalVolumes = externalVolumes;
     this.seccompUnconfined = seccompUnconfined;
     this.seccompProfileName = seccompProfileName;
     this.sharedMemory = sharedMemory;
@@ -122,6 +126,7 @@ public final class DefaultPodSpec implements PodSpec {
         builder.secrets,
         builder.sharePidNamespace,
         builder.hostVolumes,
+        builder.externalVolumes,
         builder.seccompUnconfined,
         builder.seccompProfileName,
         builder.sharedMemory,
@@ -172,6 +177,7 @@ public final class DefaultPodSpec implements PodSpec {
     builder.volumes = copy.getVolumes();
     builder.sharePidNamespace = copy.getSharePidNamespace();
     builder.hostVolumes = copy.getHostVolumes();
+    builder.externalVolumes = copy.getExternalVolumes();
     builder.seccompUnconfined = copy.getSeccompUnconfined();
     builder.seccompProfileName = copy.getSeccompProfileName();
     builder.sharedMemory = copy.getSharedMemory();
@@ -255,6 +261,11 @@ public final class DefaultPodSpec implements PodSpec {
   }
 
   @Override
+  public Collection<ExternalVolumeSpec> getExternalVolumes() {
+    return externalVolumes;
+  }
+
+  @Override
   public Boolean getSeccompUnconfined() {
     return seccompUnconfined;
   }
@@ -322,6 +333,8 @@ public final class DefaultPodSpec implements PodSpec {
     private Boolean sharePidNamespace = false;
 
     private Collection<HostVolumeSpec> hostVolumes = new ArrayList<>();
+
+    private Collection<ExternalVolumeSpec> externalVolumes = new ArrayList<>();
 
     private Boolean seccompUnconfined = false;
 
@@ -572,6 +585,24 @@ public final class DefaultPodSpec implements PodSpec {
 
       return this;
     }
+
+    /**
+     * Sets the {@code host volumes} and returns a reference to this Builder so that the methods can be
+     * chained together.
+     *
+     * @param externalVolumes the {@code hostVolumes} to set
+     * @return a reference to this Builder
+     */
+    public Builder externalVolumes(Collection<ExternalVolumeSpec> externalVolumes) {
+      if (externalVolumes == null) {
+        this.externalVolumes = new ArrayList<>();
+      } else {
+        this.externalVolumes = externalVolumes;
+      }
+
+      return this;
+    }
+
 
     /**
      * Sets the seccomp unconfined property and returns a reference to this Builder so that the methods can be

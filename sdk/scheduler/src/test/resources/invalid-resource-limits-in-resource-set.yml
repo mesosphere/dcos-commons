@@ -1,0 +1,16 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    resource-sets:
+      meta-data-task-resourceset:
+        cpus: 1.0
+        memory: 512
+        resource-limits:
+          cpus: 0.5
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        resource-set: meta-data-task-resourceset
+

@@ -19,10 +19,13 @@ public final class RawResourceSet {
 
   private final WriteOnceLinkedHashMap<String, RawVolume> volumes;
 
+  private final RawResourceLimits resourceLimits;
+
   private RawResourceSet(
       @JsonProperty("cpus") Double cpus,
       @JsonProperty("gpus") Double gpus,
       @JsonProperty("memory") Integer memory,
+      @JsonProperty("resource-limits") RawResourceLimits resourceLimits,
       @JsonProperty("ports") WriteOnceLinkedHashMap<String, RawPort> ports,
       @JsonProperty("volume") RawVolume volume,
       @JsonProperty("volumes") WriteOnceLinkedHashMap<String, RawVolume> volumes)
@@ -33,6 +36,7 @@ public final class RawResourceSet {
     this.ports = ports;
     this.volume = volume;
     this.volumes = volumes;
+    this.resourceLimits = resourceLimits;
   }
 
   public Double getCpus() {
@@ -57,5 +61,9 @@ public final class RawResourceSet {
 
   public WriteOnceLinkedHashMap<String, RawVolume> getVolumes() {
     return volumes;
+  }
+
+  public RawResourceLimits getResourceLimits() {
+    return resourceLimits;
   }
 }

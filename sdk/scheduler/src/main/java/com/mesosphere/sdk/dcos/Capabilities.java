@@ -130,6 +130,10 @@ public class Capabilities {
     return hasOrExceedsVersion(1, 14);
   }
 
+  public boolean supportsResourceLimits() {
+    // Shared Mem fields supported 2.1 and above (Mesos 1.10)
+    return hasOrExceedsVersion(2, 1);
+  }
 
   private boolean hasOrExceedsVersion(int major, int minor) {
     DcosVersion.Elements versionElements = dcosVersion.getElements();

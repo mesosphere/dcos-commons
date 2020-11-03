@@ -60,7 +60,7 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
 
     Resource sets allow defining a single set of resources to be reused across multiple tasks, where only one task may use the resource set at a time. This can be useful when defining maintenance operations. A single resource set can be created, and then assigned to multiple operations such as backup, restore, rebuild, etc... In this scenario, only one operation may be active at a time, as that task has ownership of the resource set.
 
-    * `cpus`, `gpus`, `memory`, `ports`, `volume`/`volumes`
+    * `cpus`, `gpus`, `memory`, `ports`, `volume`/`volumes`, `resource-limits`
 
       These resource values are identical in meaning to their sister fields in a [task definition](#tasks). However, see above discussion about these resources only being used by one task at a time.
 
@@ -346,6 +346,24 @@ This documentation effectively reflects the Java object tree under [RawServiceSp
     * `memory`
 
       The amount of RAM (in MB) to be reserved by this task. If the task exceeds this amount, it will be forcibly restarted.
+
+    * `resource-limits`
+
+      Allows a pod to consume more CPU or Memory resources than requested.
+
+      ```
+      resource-limits:
+        cpus: unlimited
+        mem: 4096
+      ```
+
+        * `cpus`
+
+          (optional) The CPU limit to set, either a number greater than or equal to the requested CPUs, or `unlimited`. When set, the task will continue to receive the requested CPUs at the same priority, and any unused CPU cycles up to the limit.
+
+        * `mem`
+
+          (optional) The memory limit to set, either a number greater than or equal to the requested memory, or `unlimited`. Tasks that consume more memory than requested and cause the host to run out of memory are at risk of being OOM killed.
 
     * `ports`
 
