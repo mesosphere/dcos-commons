@@ -251,7 +251,7 @@
                 "enable-automatic-pod-replacement": {
                     "description": "Determines whether pods should be replaced automatically on failure.",
                     "type": "boolean",
-                    "default": false
+                    "default": true
                 },
                 "permanent-failure-timeout-secs": {
                     "description": "Default time to wait before declaring a pod as permanently failed in seconds.",
