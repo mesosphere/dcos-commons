@@ -33,11 +33,7 @@ def test_default_deployment():
                 "permanent-failure-timeout-secs": 30,
             }
         },
-        "nodes": {
-            "external_volume": {
-                "enabled": True
-            }
-        }
+        "nodes": {"external_volume": {"enabled": True}},
     }
     sdk_install.install(
         config.PACKAGE_NAME,
