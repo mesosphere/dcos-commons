@@ -437,19 +437,19 @@
           "type": "object",
           "properties": {
             "enable-automatic-pod-replacement": {
-                "description": "Determines whether pods should be replaced automatically on failure.",
-                "type": "boolean",
-                "default": false
+              "description": "Determines whether pods should be replaced automatically on failure.",
+              "type": "boolean",
+              "default": false
             },
             "permanent-failure-timeout-secs": {
-                "description": "Default time to wait before declaring a pod as permanently failed in seconds.",
-                "type": "integer",
-                "default": 120
+              "description": "Default time to wait before declaring a pod as permanently failed in seconds.",
+              "type": "integer",
+              "default": 120
             },
             "min-replace-delay-secs": {
-                "description": "Default time to wait between successive pod-replace operations in seconds.",
-                "type": "integer",
-                "default": 240
+              "description": "Default time to wait between successive pod-replace operations in seconds.",
+              "type": "integer",
+              "default": 240
             }
           }
         }
