@@ -76,7 +76,7 @@ def configure_universe(tmpdir_factory):
 
 @pytest.fixture(scope="session", autouse=True)
 def configure_external_volumes():
-    if is_env_var_set("EXTERNAL_VOLUMES_ENABLED", default=""):
+    if is_env_var_set("ENABLE_EXTERNAL_VOLUMES", default=""):
         yield from sdk_external_volumes.external_volumes_session()
     else:
         yield
