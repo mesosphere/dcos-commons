@@ -67,6 +67,9 @@ public interface PodSpec {
   @JsonProperty("host-volumes")
   Collection<HostVolumeSpec> getHostVolumes();
 
+  @JsonProperty("external-volumes")
+  Collection<ExternalVolumeSpec> getExternalVolumes();
+
   @JsonProperty("seccomp-unconfined")
   Boolean getSeccompUnconfined();
 

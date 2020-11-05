@@ -3,9 +3,12 @@ import json
 import logging
 import os
 import ssl
+import subprocess
 import time
 import urllib.parse
 import urllib.request
+from typing import Tuple, Optional
+
 
 log = logging.getLogger(__name__)
 
@@ -138,7 +141,9 @@ def attach_cluster(cluster_id: str) -> None:
             os.unlink(attached_file_path)
 
 
-def configure_cli(dcosurl: str, token: str) -> None:
+def configure_cli(
+    dcosurl: str, token: str, dcos_login_username: str, dcos_login_password: str
+) -> None:
     """Sets up a dcos cluster config for the specified cluster using the specified auth token."""
     cluster_id = json.loads(http_request("GET", dcosurl, "/metadata", token))["CLUSTER_ID"]
     state_summary = json.loads(http_request("GET", dcosurl, "/mesos/state-summary", token))
@@ -168,14 +173,23 @@ def configure_cli(dcosurl: str, token: str) -> None:
 
     # Write the cluster config file:
     cluster_dir_path = os.path.join(__CLUSTERS_PATH, cluster_id)
+    cluster_name = state_summary["cluster"]
     os.makedirs(cluster_dir_path, exist_ok=True)
     cluster_config_path = os.path.join(cluster_dir_path, "dcos.toml")
     with open(cluster_config_path, "w") as f:
-        f.write(__TOML_TEMPLATE.format(name=state_summary["cluster"], token=token, url=dcosurl))
+        f.write(__TOML_TEMPLATE.format(name=cluster_name, token=token, url=dcosurl))
     os.chmod(cluster_config_path, 0o600)
 
     # Write the 'attach' file:
     attach_cluster(cluster_id)
+
+    # Attach to cluster via CLI
+    dcos_run_cli("cluster attach {}".format(cluster_name))
+    dcos_run_cli(
+        "cluster setup --insecure --no-check {} --username {} --password {}".format(
+            dcosurl, dcos_login_username, dcos_login_password
+        )
+    )
 
 
 def login_session() -> None:
@@ -211,7 +225,65 @@ def login_session() -> None:
             password=dcos_login_password,
             is_enterprise=dcos_enterprise,
         )
-    configure_cli(dcosurl=cluster_url, token=dcos_acs_token)
+    configure_cli(
+        dcosurl=cluster_url,
+        token=dcos_acs_token,
+        dcos_login_username=dcos_login_username,
+        dcos_login_password=dcos_login_password,
+    )
+
+
+def dcos_run_cli(
+    cmd: str,
+    print_output: bool = True,
+    check: bool = False,
+) -> Tuple[int, str, str]:
+    """Runs the command with `dcos` as the prefix to the shell command
+    and returns a tuple containing exit code, stdout, and stderr.
+
+    eg. `cmd`= "package install pkg-name" results in:
+    $ dcos package install pkg-name
+    """
+    dcos_cmd = "dcos {}".format(cmd)
+    log.info("(CLI) {}".format(dcos_cmd))
+    return _run_cmd(dcos_cmd, print_output, check)
+
+
+def _run_cmd(
+    cmd: str,
+    print_output: bool,
+    check: bool,
+    timeout_seconds: Optional[int] = None,
+) -> Tuple[int, str, str]:
+    result = subprocess.run(
+        [cmd],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        shell=True,
+        check=check,
+        timeout=timeout_seconds,
+    )
+
+    if result.returncode != 0:
+        log.info("Got exit code {} to command: {}".format(result.returncode, cmd))
+
+    if result.stdout:
+        stdout = result.stdout.decode("utf-8").strip()
+    else:
+        stdout = ""
+
+    if result.stderr:
+        stderr = result.stderr.decode("utf-8").strip()
+    else:
+        stderr = ""
+
+    if print_output:
+        if stdout:
+            log.info("STDOUT:\n{}".format(stdout))
+        if stderr:
+            log.info("STDERR:\n{}".format(stderr))
+
+    return result.returncode, stdout, stderr
 
 
 if __name__ == "__main__":

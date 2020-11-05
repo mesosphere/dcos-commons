@@ -41,6 +41,8 @@
     "FRAMEWORK_LOG_LEVEL": "{{service.log_level}}",
     "CASSANDRA_VERSION": "3.11.6",
     "S3CLI_VERSION": "s3cli-0.0.55-linux-amd64",
+    "PERMANENT_FAILURE_TIMEOUT_SECS": "{{service.permanent-failure-timeout-secs}}",
+    "MIN_REPLACE_DELAY_SECS": "{{service.min-replace-delay-secs}}",
 
     {{#service.service_account_secret}}
     "DCOS_SERVICE_ACCOUNT_CREDENTIAL": "secrets/service-account.json",
@@ -110,6 +112,10 @@
     {{#nodes.volume_profile}}
     "CASSANDRA_VOLUME_PROFILE": "{{nodes.volume_profile}}",
     {{/nodes.volume_profile}}
+    "CASSANDRA_EXTERNAL_VOLUME_ENABLED" : "{{nodes.external_volume.enabled}}",
+    "CASSANDRA_EXTERNAL_VOLUME_PORTWORX_OPTIONS" : "{{nodes.external_volume.portworx_volume_options}}",
+    "CASSANDRA_EXTERNAL_VOLUME_NAME" : "{{nodes.external_volume.volume_name}}",
+    "CASSANDRA_EXTERNAL_VOLUME_DRIVER_NAME" : "{{nodes.external_volume.driver_name}}",
     "TASKCFG_ALL_CASSANDRA_HEAP_SIZE_MB": "{{nodes.heap.size}}",
     "TASKCFG_ALL_CASSANDRA_HEAP_NEW_MB": "{{nodes.heap.new}}",
     "CASSANDRA_JAVA_URI": "{{resource.assets.uris.cassandra-jre-tar-gz}}",
@@ -255,6 +261,9 @@
     "JAVA_URI": "{{resource.assets.uris.jre-tar-gz}}",
     "LIBMESOS_URI": "{{resource.assets.uris.libmesos-bundle-tar-gz}}",
     "BACKUP_RESTORE_STRATEGY": "{{service.backup_restore_strategy}}",
+
+    "CONTAINER_LOGGER_LOGROTATE_MAX_STDOUT_SIZE": "{{service.logrotate_options.stdout_max_size}}",
+    "CONTAINER_LOGGER_LOGROTATE_MAX_STDERR_SIZE": "{{service.logrotate_options.stderr_max_size}}",
 
     "READINESS_CHECK_INTERVAL": "{{service.readiness_check.interval}}",
     "READINESS_CHECK_DELAY": "{{service.readiness_check.delay}}",

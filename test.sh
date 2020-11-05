@@ -94,6 +94,7 @@ dind="false"
 interactive="false"
 package_registry="false"
 disable_diag_collect="false"
+enable_external_volumes="true"
 docker_options="${DOCKER_OPTIONS:=}"
 docker_command="${DOCKER_COMMAND:=bash ${WORK_DIR}/tools/ci/test_runner.sh ${WORK_DIR}}"
 docker_image="${DOCKER_IMAGE:-mesosphere/dcos-commons:latest}"
@@ -160,10 +161,15 @@ function usage()
   echo
   echo "  --aws-profile ${AWS_PROFILE:=NAME}"
   echo "    The AWS profile to use. Only required when using an AWS credentials file with multiple profiles."
+  echo
   echo "  --dind ${dind}"
   echo "    launch docker daemon inside the container"
+  echo
   echo "  --disable-diag-collect ${disable_diag_collect}"
   echo "    Disable collection of diagnostic logs after a failed test."
+  echo
+  echo "  --enable_external_volumes ${enable_external_volumes}"
+  echo "    Use external volumes for testing."
   echo
   echo "---"
   echo
@@ -263,6 +269,12 @@ while [[ ${#} -gt 0 ]]; do
       ;;
     --disable-diag-collect)
       disable_diag_collect="true"
+      ;;
+    --enable-external-volumes)
+      enable_external_volumes="true"
+      ;;
+    --disable-external-volumes)
+      enable_external_volumes="false"
       ;;
     --dcos-files-path)
       if [[ ! -d "${2}" ]]; then echo "Directory not found: ${arg} ${2}"; exit 1; fi
@@ -505,6 +517,10 @@ container_volumes="${container_volumes} -v ${aws_credentials_file_mount_source}:
 ############################# Build ENV file ###################################
 ################################################################################
 
+if [ -n "${ENABLE_EXTERNAL_VOLUMES}" ]; then
+  enable_external_volumes="${ENABLE_EXTERNAL_VOLUMES}"
+fi
+
 if [ -n "${TEAMCITY_VERSION}" ]; then
   # The teamcity python module treats present-but-empty as enabled. We must
   # therefore completely omit this envvar to disable teamcity handling.
@@ -536,7 +552,8 @@ cat >> "${env_file}" <<-EOF
 	S3_BUCKET=${S3_BUCKET}
 	SECURITY=${security}
 	STUB_UNIVERSE_URL=${STUB_UNIVERSE_URL}
-    DISABLE_DIAG=${disable_diag_collect}
+  DISABLE_DIAG=${disable_diag_collect}
+  ENABLE_EXTERNAL_VOLUMES=${enable_external_volumes}
 EOF
 
 while read -r line; do

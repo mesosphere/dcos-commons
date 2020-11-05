@@ -1,0 +1,18 @@
+name: "hello-world"
+pods:
+  pod-type:
+    count: 1
+    external-volumes:
+      first-volume:
+        type: DOCKER
+        container-path: external-volume-etc
+        driver-name: pxd
+        driver-options: shared=true;size=10;
+        volume-name: external-volume-name
+        volume-mode: RO
+    tasks:
+      meta-data-task:
+        goal: RUNNING
+        cmd: "./task-cmd"
+        cpus: 0.1
+        memory: 512

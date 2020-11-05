@@ -12,6 +12,7 @@ import sys
 import time
 
 import sdk_diag
+import sdk_external_volumes
 import sdk_repository
 import sdk_package_registry
 import sdk_utils
@@ -71,6 +72,14 @@ def configure_universe(tmpdir_factory):
         yield from sdk_package_registry.package_registry_session(tmpdir_factory)
     else:
         yield from sdk_repository.universe_session()
+
+
+@pytest.fixture(scope="session", autouse=True)
+def configure_external_volumes():
+    if is_env_var_set("ENABLE_EXTERNAL_VOLUMES", default=""):
+        yield from sdk_external_volumes.external_volumes_session()
+    else:
+        yield
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)

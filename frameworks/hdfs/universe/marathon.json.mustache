@@ -131,6 +131,9 @@
     "DATA_NODE_RLIMIT_NOFILE_SOFT" : "{{data_node.rlimits.rlimit_nofile.soft}}",
     "DATA_NODE_RLIMIT_NOFILE_HARD" : "{{data_node.rlimits.rlimit_nofile.hard}}",
 
+    "CONTAINER_LOGGER_LOGROTATE_MAX_STDOUT_SIZE": "{{service.logrotate_options.stdout_max_size}}",
+    "CONTAINER_LOGGER_LOGROTATE_MAX_STDERR_SIZE": "{{service.logrotate_options.stderr_max_size}}",
+
     {{#service.security.kerberos.enabled}}
     "SECURITY_KERBEROS_KEYTAB_SECRET": "{{service.security.kerberos.keytab_secret}}",
     "SECURITY_KERBEROS_ENABLED": "{{service.security.kerberos.enabled}}",

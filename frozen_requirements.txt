@@ -15,7 +15,7 @@ git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cb
 git+https://github.com/dcos/dcos-cli.git@f1fd38c9e72e1d521cf8120fe4948a789fb40cbc  # validator-hint: name=dcos version=SNAPSHOT
 git+https://github.com/dcos/dcos-test-utils.git@3ebfc18ff9c5a1aa382311474a9192a68c98b0a7  # validator-hint: version=0.1
 git+https://github.com/dcos/dcos-launch.git@965a877ab641ab39733887188ed8f86d1a8c696c  # validator-hint: version=0.1.0
-adal==1.2.0
+adal==1.2.5
 altgraph==0.17
 appdirs==1.4.4
 asn1crypto==0.24.0
@@ -23,7 +23,7 @@ aspy.yaml==1.2.0
 astroid==2.4.2
 atomicwrites==1.2.1
 attrs==18.2.0
-awscli==1.18.120
+awscli==1.18.169
 azure-common==1.1.25
 azure-mgmt-network==2.0.0
 azure-mgmt-nspkg==3.0.2
@@ -33,8 +33,8 @@ azure-nspkg==3.0.2
 azure-storage==0.36.0
 bcrypt==3.1.7
 black==18.9b0
-boto3==1.14.43
-botocore==1.17.43
+boto3==1.16.9
+botocore==1.19.9
 cachetools==3.0.0
 Cerberus==1.3.2
 certifi==2018.11.29
@@ -91,8 +91,8 @@ pycairo==1.11.1
 pycodestyle==2.5.0
 pycparser==2.19
 pyflakes==2.1.1
-Pygments==2.6.1
-PyGObject==3.30.4
+Pygments==2.7.2
+PyGObject==3.38.0
 PyInstaller==3.3
 PyJWT==1.7.1
 pylint==2.3.1

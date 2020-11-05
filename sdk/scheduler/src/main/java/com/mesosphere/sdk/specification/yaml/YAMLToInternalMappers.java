@@ -18,6 +18,7 @@ import com.mesosphere.sdk.specification.DefaultHostVolumeSpec;
 import com.mesosphere.sdk.specification.DefaultNetworkSpec;
 import com.mesosphere.sdk.specification.DefaultPodSpec;
 import com.mesosphere.sdk.specification.DefaultReadinessCheckSpec;
+import com.mesosphere.sdk.specification.DefaultResourceLimits;
 import com.mesosphere.sdk.specification.DefaultResourceSet;
 import com.mesosphere.sdk.specification.DefaultSecretSpec;
 import com.mesosphere.sdk.specification.DefaultServiceSpec;
@@ -25,6 +26,7 @@ import com.mesosphere.sdk.specification.DefaultTaskSpec;
 import com.mesosphere.sdk.specification.DefaultTransportEncryptionSpec;
 import com.mesosphere.sdk.specification.DefaultVolumeSpec;
 import com.mesosphere.sdk.specification.DiscoverySpec;
+import com.mesosphere.sdk.specification.ExternalVolumeSpec;
 import com.mesosphere.sdk.specification.GoalState;
 import com.mesosphere.sdk.specification.HealthCheckSpec;
 import com.mesosphere.sdk.specification.HostVolumeSpec;
@@ -32,9 +34,11 @@ import com.mesosphere.sdk.specification.NamedVIPSpec;
 import com.mesosphere.sdk.specification.NetworkSpec;
 import com.mesosphere.sdk.specification.PodSpec;
 import com.mesosphere.sdk.specification.PortSpec;
+import com.mesosphere.sdk.specification.PortworxVolumeSpec;
 import com.mesosphere.sdk.specification.RLimitSpec;
 import com.mesosphere.sdk.specification.RangeSpec;
 import com.mesosphere.sdk.specification.ReadinessCheckSpec;
+import com.mesosphere.sdk.specification.ResourceLimits;
 import com.mesosphere.sdk.specification.ResourceSet;
 import com.mesosphere.sdk.specification.SecretSpec;
 import com.mesosphere.sdk.specification.ServiceSpec;
@@ -335,7 +339,8 @@ public final class YAMLToInternalMappers {
                 role,
                 rawPod.getPreReservedRole(),
                 principal,
-                networkNames);
+                networkNames,
+                rawResourceSet.getResourceLimits());
           })
           .collect(Collectors.toList()));
     }
@@ -356,6 +361,15 @@ public final class YAMLToInternalMappers {
           .collect(Collectors.toList()));
 
       builder.hostVolumes(hostVolumeSpecs);
+    }
+
+    if (!rawPod.getExternalVolumes().isEmpty()) {
+      Collection<ExternalVolumeSpec> externalVolumeSpecs = new ArrayList<>();
+      externalVolumeSpecs.addAll(rawPod.getExternalVolumes().values().stream()
+          .map(v -> convertExternalVolume(v))
+          .collect(Collectors.toList()));
+
+      builder.externalVolumes(externalVolumeSpecs);
     }
 
     if (rawPod.getVolume() != null || !rawPod.getVolumes().isEmpty()) {
@@ -507,10 +521,24 @@ public final class YAMLToInternalMappers {
           role,
           preReservedRole,
           principal,
-          networkNames));
+          networkNames,
+          rawTask.getResourceLimits()));
     }
 
     return builder.build();
+  }
+
+  private static final ResourceLimits convertResourceLimits(
+          RawResourceLimits rawResourceLimits
+  )
+  {
+    if (rawResourceLimits == null) {
+      return DefaultResourceLimits.empty();
+    } else {
+      return new DefaultResourceLimits(
+              rawResourceLimits.getCpus(),
+              rawResourceLimits.getMemory());
+    }
   }
 
   private static DefaultResourceSet convertResourceSet(
@@ -524,7 +552,8 @@ public final class YAMLToInternalMappers {
       String role,
       String preReservedRole,
       String principal,
-      Collection<String> networkNames)
+      Collection<String> networkNames,
+      RawResourceLimits rawResourceLimits)
   {
 
     DefaultResourceSet.Builder resourceSetBuilder =
@@ -568,6 +597,9 @@ public final class YAMLToInternalMappers {
       convertPorts(role, preReservedRole, principal, rawPorts, networkNames)
           .forEach(resourceSetBuilder::addResource);
     }
+    if (rawResourceLimits != null) {
+      resourceSetBuilder.resourceLimits(convertResourceLimits(rawResourceLimits));
+    }
 
     return resourceSetBuilder
         .id(id)
@@ -595,6 +627,20 @@ public final class YAMLToInternalMappers {
         .containerPath(rawHostVolume.getContainerPath())
         .mode(rawHostVolume.getMode())
         .build();
+  }
+
+  private static ExternalVolumeSpec convertExternalVolume(RawExternalVolume rawExternalVolume) {
+
+    if ("DOCKER".equals(rawExternalVolume.getType())) {
+      return PortworxVolumeSpec.newBuilder()
+          .containerPath(rawExternalVolume.getContainerPath())
+          .driverName(rawExternalVolume.getDriverName())
+          .driverOptions(rawExternalVolume.getDriverOptions())
+          .volumeName(rawExternalVolume.getVolumeName())
+          .mode(rawExternalVolume.getVolumeMode())
+          .build();
+    }
+    throw new IllegalArgumentException("Unsupported external volume mode " + rawExternalVolume.getType());
   }
 
   private static DefaultVolumeSpec convertVolume(
