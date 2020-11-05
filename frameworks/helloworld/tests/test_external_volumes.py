@@ -32,16 +32,18 @@ def test_default_deployment():
             "external_volumes": {
                 "pod-replacement-failure-policy": {
                     "enable-automatic-pod-replacement": True,
-                    "permanent-failure-timeout-secs": 30
+                    "permanent-failure-timeout-secs": 30,
                 }
-            }
+            },
         }
     }
-    sdk_install.install(config.PACKAGE_NAME,
-                        config.SERVICE_NAME,
-                        3,
-                        additional_options=options,
-                        wait_for_deployment=True)
+    sdk_install.install(
+        config.PACKAGE_NAME,
+        config.SERVICE_NAME,
+        3,
+        additional_options=options,
+        wait_for_deployment=True,
+    )
     # Wait for scheduler to restart.
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
