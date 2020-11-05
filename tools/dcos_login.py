@@ -186,7 +186,7 @@ def configure_cli(
     # Attach to cluster via CLI
     dcos_run_cli("cluster attach {}".format(cluster_name))
     dcos_run_cli(
-        "cluster setup --no-check {} --username {} --password {}".format(
+        "cluster setup --insecure --no-check {} --username {} --password {}".format(
             dcosurl, dcos_login_username, dcos_login_password
         )
     )

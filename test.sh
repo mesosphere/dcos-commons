@@ -94,13 +94,12 @@ dind="false"
 interactive="false"
 package_registry="false"
 disable_diag_collect="false"
-enable_external_volumes="false"
+enable_external_volumes="true"
 docker_options="${DOCKER_OPTIONS:=}"
 docker_command="${DOCKER_COMMAND:=bash ${WORK_DIR}/tools/ci/test_runner.sh ${WORK_DIR}}"
 docker_image="${DOCKER_IMAGE:-mesosphere/dcos-commons:latest}"
 env_passthrough=
 env_file_input=
-external_volumes_enabed=false
 
 ################################################################################
 ################################ CLI usage #####################################
@@ -273,6 +272,9 @@ while [[ ${#} -gt 0 ]]; do
       ;;
     --enable-external-volumes)
       enable_external_volumes="true"
+      ;;
+    --disable-external-volumes)
+      enable_external_volumes="false"
       ;;
     --dcos-files-path)
       if [[ ! -d "${2}" ]]; then echo "Directory not found: ${arg} ${2}"; exit 1; fi
