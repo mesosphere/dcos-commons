@@ -47,16 +47,6 @@
           "type": "string",
           "default": ""
         },
-        "permanent-failure-timeout-secs": {
-          "type": "integer",
-          "description": "Time in seconds to wait before declaring a task as permanently failed.",
-          "default": 120
-        },
-        "min-replace-delay-secs": {
-          "type": "integer",
-          "description": "Time to wait between destructive task recoveries.",
-          "default": 240
-        },
         "log_level": {
           "description": "The log level for the DC/OS service.",
           "type": "string",
@@ -441,6 +431,27 @@
               "minimum": 15
             }
           }
+        },
+        "pod-replacement-failure-policy": {
+          "description": "Options relating to automatic pod-replacement failure policies.",
+          "type": "object",
+          "properties": {
+            "enable-automatic-pod-replacement": {
+                "description": "Determines whether pods should be replaced automatically on failure.",
+                "type": "boolean",
+                "default": false
+            },
+            "permanent-failure-timeout-secs": {
+                "description": "Default time to wait before declaring a pod as permanently failed in seconds.",
+                "type": "integer",
+                "default": 120
+            },
+            "min-replace-delay-secs": {
+                "description": "Default time to wait between successive pod-replace operations in seconds.",
+                "type": "integer",
+                "default": 240
+            }
+          }
         }
       },
       "required": [
@@ -495,18 +506,18 @@
           }
         },
         "external_volume": {
+          "description": "Cassandra external volume configuration.",
           "type": "object",
-          "description": "The Cassandra external volume configuration.\nOnly Portworx external volumes are supported.",
           "properties": {
             "enabled": {
               "type": "boolean",
-              "description": "If true, external profile will be used.",
+              "description": "If true, external volumes will be used.",
               "default": false
             },
-            "portworx_volume_options": {
+            "driver_options": {
               "type": "string",
               "default": "size=10",
-              "description": "Volume options."
+              "description": "External Volume storage provider options."
             },
             "volume_name": {
               "type": "string",
@@ -515,7 +526,11 @@
             },
             "driver_name": {
               "type": "string",
-              "description": "Docker volume driver name.",
+              "description": "External Volume storage provider to use.",
+              "enum": [
+                "pxd",
+                "generic"
+              ],
               "default": "pxd"
             }
           }
