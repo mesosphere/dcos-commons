@@ -27,12 +27,6 @@ def test_default_deployment():
     # Test default installation with external volumes.
     # Ensure service comes up successfully.
     options = {
-        "service": {
-            "pod-replacement-failure-policy": {
-                "enable-automatic-pod-replacement": True,
-                "permanent-failure-timeout-secs": 30,
-            }
-        },
         "nodes": {"external_volume": {"enabled": True}},
     }
     sdk_install.install(
@@ -46,8 +40,8 @@ def test_default_deployment():
     sdk_plan.wait_for_completed_deployment(config.SERVICE_NAME)
 
 
-@pytest.mark.external_volumes
-@pytest.mark.sanity
+# @pytest.mark.external_volumes
+# @pytest.mark.sanity
 def test_auto_replace_on_drain():
     candidate_tasks = sdk_tasks.get_tasks_avoiding_scheduler(
         config.SERVICE_NAME, re.compile("^node-[0-9]+-server$")
