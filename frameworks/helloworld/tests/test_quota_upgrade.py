@@ -32,6 +32,7 @@ def configure_package(configure_security):
         sdk_marathon.delete_group(group_id=ENFORCED_ROLE)
 
 
+@pytest.mark.skip(reason="Not compatible with recent quota changes made to Marathon")
 @pytest.mark.quota_test
 @pytest.mark.quota_upgrade
 @pytest.mark.dcos_min_version("1.14")
