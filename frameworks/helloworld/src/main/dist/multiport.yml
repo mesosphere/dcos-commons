@@ -9,6 +9,8 @@ pods:
       - {{BOOTSTRAP_URI}}
     resource-sets:
       multi-port-resources:
+        cpus: {{HELLO_CPUS}}
+        memory: {{HELLO_MEM}}
         ports:
           port_one:
             port: {{HELLO_PORT_ONE}}
@@ -51,7 +53,5 @@ pods:
           sum=$(($exit_1+$exit_2))
           echo "exit codes : ${exit_1} ${exit_2} and sum : ${sum}"
           exit $sum
-        cpus: {{HELLO_CPUS}}
-        memory: {{HELLO_MEM}}
         env:
           HELLO_PORT_ONE: {{HELLO_PORT_ONE}}
