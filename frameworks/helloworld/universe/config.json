@@ -233,10 +233,6 @@
             "volume_driver_name": {
               "description": "External Volume storage provider to use.",
               "type": "string",
-              "enum": [
-                "pxd",
-                "generic"
-              ],
               "default": "pxd"
             },
             "volume_driver_options": {
