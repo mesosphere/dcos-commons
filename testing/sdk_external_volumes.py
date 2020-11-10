@@ -32,16 +32,18 @@ def external_volumes_session() -> Iterator[None]:
     # Install service on private agents.
     num_private_agents = len(sdk_agents.get_private_agents())
 
-    sdk_security.create_service_account(
-        service_account_name=EXTERNAL_VOLUMES_SERVICE_NAME,
+    sdk_security.setup_security(
+        service_name=EXTERNAL_VOLUMES_SERVICE_NAME,
+        linux_user="root",
+        service_account=EXTERNAL_VOLUMES_SERVICE_NAME,
         service_account_secret=EXTERNAL_VOLUMES_SERVICE_NAME + "-secret",
     )
 
     service_options = {
         "service": {
             "name": EXTERNAL_VOLUMES_SERVICE_NAME,
-            "service_account": EXTERNAL_VOLUMES_SERVICE_NAME,
-            "service_account_secret": EXTERNAL_VOLUMES_SERVICE_NAME + "-secret",
+            "principal": EXTERNAL_VOLUMES_SERVICE_NAME,
+            "secret_name": EXTERNAL_VOLUMES_SERVICE_NAME + "-secret",
         },
         "node": {
             "portworx_image": PORTWORX_IMAGE_VERSION,

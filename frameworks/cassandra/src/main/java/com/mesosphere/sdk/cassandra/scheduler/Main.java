@@ -2,6 +2,7 @@ package com.mesosphere.sdk.cassandra.scheduler;
 
 import com.mesosphere.sdk.cassandra.api.SeedsResource;
 import com.mesosphere.sdk.config.validate.TaskEnvCannotChange;
+import com.mesosphere.sdk.framework.EnvStore;
 import com.mesosphere.sdk.scheduler.DefaultScheduler;
 import com.mesosphere.sdk.scheduler.SchedulerBuilder;
 import com.mesosphere.sdk.scheduler.SchedulerConfig;
@@ -32,18 +33,19 @@ public final class Main {
   private Main() {}
 
   public static void main(String[] args) throws Exception {
+    final EnvStore envStore = EnvStore.fromEnv();
     if (args.length != 1) {
       throw new IllegalArgumentException(
           "Expected one file argument, got: " + Arrays.toString(args)
       );
     }
     SchedulerRunner
-        .fromSchedulerBuilder(createSchedulerBuilder(new File(args[0])))
+        .fromSchedulerBuilder(createSchedulerBuilder(new File(args[0]), envStore))
         .run();
   }
 
   @SuppressWarnings("checkstyle:MultipleStringLiterals")
-  private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile) throws Exception {
+  private static SchedulerBuilder createSchedulerBuilder(File yamlSpecFile, EnvStore envStore) throws Exception {
     SchedulerConfig schedulerConfig = SchedulerConfig.fromEnv();
     RawServiceSpec rawServiceSpec = RawServiceSpec.newBuilder(yamlSpecFile).build();
     List<String> localSeeds = CassandraSeedUtils
@@ -64,7 +66,7 @@ public final class Main {
     }
 
     DefaultServiceSpec serviceSpec = DefaultServiceSpec.newBuilder(serviceSpecGenerator.build())
-            .replacementFailurePolicy(getReplacementFailurePolicy())
+            .replacementFailurePolicy(getReplacementFailurePolicy(envStore))
             .build();
 
     return DefaultScheduler.newBuilder(serviceSpec, schedulerConfig)
@@ -82,13 +84,15 @@ public final class Main {
         .withSingleRegionConstraint();
   }
 
-  private static ReplacementFailurePolicy getReplacementFailurePolicy() throws Exception {
-    return ReplacementFailurePolicy.newBuilder()
-            .permanentFailureTimoutSecs(
-                    Integer.valueOf(System.getenv("PERMANENT_FAILURE_TIMEOUT_SECS")))
-            .minReplaceDelaySecs(
-                    Integer.valueOf(System.getenv("MIN_REPLACE_DELAY_SECS")))
-            .build();
+  private static ReplacementFailurePolicy getReplacementFailurePolicy(EnvStore envStore) throws Exception {
+    if (envStore.getOptionalBoolean("ENABLE_AUTOMATIC_POD_REPLACEMENT", false)) {
+      return ReplacementFailurePolicy.newBuilder()
+          .permanentFailureTimoutSecs(Integer.valueOf(System.getenv("PERMANENT_FAILURE_TIMEOUT_SECS")))
+          .minReplaceDelaySecs(Integer.valueOf(System.getenv("MIN_REPLACE_DELAY_SECS")))
+          .build();
+    } else {
+      return null;
+    }
   }
 
   private static Collection<Object> getResources(List<String> localSeeds) {

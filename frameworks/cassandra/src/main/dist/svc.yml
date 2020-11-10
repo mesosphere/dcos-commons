@@ -63,7 +63,7 @@ pods:
         type: DOCKER
         container-path: container-path
         driver-name: {{CASSANDRA_EXTERNAL_VOLUME_DRIVER_NAME}}
-        driver-options: '{{{CASSANDRA_EXTERNAL_VOLUME_PORTWORX_OPTIONS}}}'
+        driver-options: '{{{CASSANDRA_EXTERNAL_VOLUME_DRIVER_OPTIONS}}}'
         {{#CASSANDRA_EXTERNAL_VOLUME_NAME}}
         volume-name: {{CASSANDRA_EXTERNAL_VOLUME_NAME}}
         {{/CASSANDRA_EXTERNAL_VOLUME_NAME}}

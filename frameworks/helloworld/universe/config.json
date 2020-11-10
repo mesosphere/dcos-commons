@@ -103,6 +103,7 @@
             "discovery",
             "enable-disable",
             "executor_volume",
+            "external-volumes",
             "finish_state",
             "foobar_service_name",
             "gpu_resource",
@@ -222,6 +223,43 @@
               "description": "Amount of time to wait until starting the checks",
               "type": "integer",
               "default": 15
+            }
+          }
+        },
+        "external_volumes": {
+          "description": "External Volumes properties.",
+          "type": "object",
+          "properties": {
+            "volume_driver_name": {
+              "description": "External Volume storage provider to use.",
+              "type": "string",
+              "default": "pxd"
+            },
+            "volume_driver_options": {
+              "description": "External Volume storage provider options.",
+              "type": "string",
+              "default": ""
+            },
+            "pod-replacement-failure-policy": {
+              "description": "Options relating to automatic pod-replacement failure policies with external-volumes.",
+              "type": "object",
+              "properties": {
+                "enable-automatic-pod-replacement": {
+                  "description": "Determines whether pods should be replaced automatically on failure.",
+                  "type": "boolean",
+                  "default": true
+                },
+                "permanent-failure-timeout-secs": {
+                  "description": "Default time to wait before declaring a pod as permanently failed in seconds.",
+                  "type": "integer",
+                  "default": 120
+                },
+                "min-replace-delay-secs": {
+                  "description": "Default time to wait between successive pod-replace operations in seconds.",
+                  "type": "integer",
+                  "default": 240
+                }
+              }
             }
           }
         }
@@ -346,6 +384,11 @@
               }
             }
           }
+        },
+        "external_volume_name": {
+          "description": "Hello Pod External Volume Name",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [
@@ -455,6 +498,11 @@
               }
             }
           }
+        },
+        "external_volume_name": {
+          "description": "World Pod External Volume Name",
+          "type": "string",
+          "default": ""
         }
       },
       "required": [

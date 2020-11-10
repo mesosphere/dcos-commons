@@ -132,74 +132,97 @@ def test_rack_not_found():
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 def test_unique_zone_fails():
-    options = _escape_placement_for_1_9(
-        {
-            "service": {"yaml": "marathon_constraint"},
-            "hello": {"placement": '[["@zone", "UNIQUE"]]'},
-            "world": {"placement": '[["@zone", "UNIQUE"]]', "count": 3},
-        }
-    )
 
-    fail_placement(options)
+    num_zones = len(set(zone for zone in sdk_utils.get_cluster_zones().values()))
+    if num_zones > 1:
+        # Only run if we have at least one zone.
+        options = _escape_placement_for_1_9(
+            {
+                "service": {"yaml": "marathon_constraint"},
+                "hello": {"placement": '[["@zone", "UNIQUE"]]'},
+                "world": {"placement": '[["@zone", "UNIQUE"]]', "count": num_zones + 1},
+            }
+        )
+
+        fail_placement(options, num_zones + 1)
+    else:
+        pass
 
 
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 def test_max_per_zone_fails():
-    options = _escape_placement_for_1_9(
-        {
-            "service": {"yaml": "marathon_constraint"},
-            "hello": {"placement": '[["@zone", "MAX_PER", "1"]]'},
-            "world": {"placement": '[["@zone", "MAX_PER", "1"]]', "count": 3},
-        }
-    )
+    num_zones = len(set(zone for zone in sdk_utils.get_cluster_zones().values()))
+    if num_zones > 1:
+        options = _escape_placement_for_1_9(
+            {
+                "service": {"yaml": "marathon_constraint"},
+                "hello": {"placement": '[["@zone", "MAX_PER", "1"]]'},
+                "world": {"placement": '[["@zone", "MAX_PER", "1"]]', "count": num_zones + 1},
+            }
+        )
 
-    fail_placement(options)
+        fail_placement(options, num_zones + 1)
+    else:
+        pass
 
 
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 def test_max_per_zone_succeeds():
-    options = _escape_placement_for_1_9(
-        {
-            "service": {"yaml": "marathon_constraint"},
-            "hello": {"placement": '[["@zone", "MAX_PER", "1"]]'},
-            "world": {"placement": '[["@zone", "MAX_PER", "2"]]'},
-        }
-    )
+    num_zones = len(set(zone for zone in sdk_utils.get_cluster_zones().values()))
+    if num_zones > 1:
+        options = _escape_placement_for_1_9(
+            {
+                "service": {"yaml": "marathon_constraint"},
+                "hello": {"placement": '[["@zone", "MAX_PER", "1"]]'},
+                "world": {"placement": '[["@zone", "MAX_PER", "2"]]'},
+            }
+        )
 
-    succeed_placement(options)
+        succeed_placement(options)
+    else:
+        pass
 
 
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 def test_group_by_zone_succeeds():
-    options = _escape_placement_for_1_9(
-        {
-            "service": {"yaml": "marathon_constraint"},
-            "hello": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
-            "world": {"placement": '[["@zone", "GROUP_BY", "1"]]', "count": 3},
-        }
-    )
-    succeed_placement(options)
+    num_zones = len(set(zone for zone in sdk_utils.get_cluster_zones().values()))
+    if num_zones >= 3:
+        options = _escape_placement_for_1_9(
+            {
+                "service": {"yaml": "marathon_constraint"},
+                "hello": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
+                "world": {"placement": '[["@zone", "GROUP_BY", "1"]]', "count": 3},
+            }
+        )
+        succeed_placement(options)
+    else:
+        pass
 
 
+@pytest.mark.skip(reason="GROUP_BY Failing semantics need to be configured.")
 @pytest.mark.dcos_min_version("1.11")
 @pytest.mark.sanity
 @sdk_utils.dcos_ee_only
 def test_group_by_zone_fails():
-    options = _escape_placement_for_1_9(
-        {
-            "service": {"yaml": "marathon_constraint"},
-            "hello": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
-            "world": {"placement": '[["@zone", "GROUP_BY", "3"]]', "count": 3},
-        }
-    )
+    num_zones = len(set(zone for zone in sdk_utils.get_cluster_zones().values()))
+    if num_zones > 1:
+        options = _escape_placement_for_1_9(
+            {
+                "service": {"yaml": "marathon_constraint"},
+                "hello": {"placement": '[["@zone", "GROUP_BY", "1"]]'},
+                "world": {"placement": f'[["@zone", "GROUP_BY", {num_zones}]]', "count": num_zones},
+            }
+        )
 
-    fail_placement(options)
+        fail_placement(options, num_zones)
+    else:
+        pass
 
 
 @pytest.mark.sanity
@@ -337,7 +360,7 @@ def succeed_placement(options):
     sdk_install.uninstall(config.PACKAGE_NAME, config.SERVICE_NAME)
 
 
-def fail_placement(options):
+def fail_placement(options, world_count):
     """
     This assumes that the DC/OS cluster is reporting that all agents are in a single zone.
     """
@@ -351,7 +374,7 @@ def fail_placement(options):
         wait_for_deployment=False,
     )
     sdk_plan.wait_for_step_status(
-        config.SERVICE_NAME, "deploy", "world", "world-0:[server]", "COMPLETE"
+        config.SERVICE_NAME, "deploy", "world", f"world-{world_count-2}:[server]", "COMPLETE"
     )
 
     pl = sdk_plan.get_deployment_plan(config.SERVICE_NAME)
@@ -369,14 +392,17 @@ def fail_placement(options):
     phase2 = pl["phases"][1]
     assert phase2["status"] == "IN_PROGRESS"
     steps2 = phase2["steps"]
-    assert len(steps2) == 3
-    assert steps2[0]["status"] == "COMPLETE"
-    assert steps2[1]["status"] in ("COMPLETE", "PREPARED", "PENDING")
-    assert steps2[2]["status"] in ("PREPARED", "PENDING")
+    assert len(steps2) == world_count
+
+    # This excludes the index at [0..world_count-1)
+    for step in range(0, world_count - 1):
+        assert steps2[step]["status"] in ("COMPLETE")
+    assert steps2[world_count - 1]["status"] in ("PREPARED", "PENDING")
 
     try:
-        sdk_tasks.check_running(config.SERVICE_NAME, 4, timeout_seconds=30)
-        assert False, "Should have failed to deploy world-2"
+        # Ensure we get world_count + 1, where we have one additional hello task..
+        sdk_tasks.check_running(config.SERVICE_NAME, world_count + 1, timeout_seconds=30)
+        assert False, "Should have failed to deploy world-{world_count-1}"
     except AssertionError as arg:
         raise arg
     except Exception:
