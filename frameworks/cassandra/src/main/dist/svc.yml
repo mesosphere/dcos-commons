@@ -75,6 +75,7 @@ pods:
       - {{CASSANDRA_OPENSSL_URI}}
       - {{CASSANDRA_URI}}
       - {{BOOTSTRAP_URI}}
+      - {{CASSANDRA_EXPORTER_JAR}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{RLIMIT_NOFILE_SOFT}}
@@ -102,6 +103,10 @@ pods:
           rmi-port:
             port: {{SECURE_JMX_RMI_PORT}}
           {{/TASKCFG_ALL_SECURE_JMX_ENABLED}}
+          {{#PROMETHEUS_EXPORTER_ENABLED}}
+          exporter:
+            port: 9500
+          {{/PROMETHEUS_EXPORTER_ENABLED}}
       sidecar-resources:
         cpus: 1
         memory: 1024
@@ -109,6 +114,9 @@ pods:
       server:
         goal: RUNNING
         resource-set: server-resources
+        {{#PROMETHEUS_EXPORTER_ENABLED}}
+        labels: "DCOS_METRICS_FORMAT:prometheus,DCOS_METRICS_PORT_NAME:exporter,DCOS_METRICS_ENDPOINT:/metrics"
+        {{/PROMETHEUS_EXPORTER_ENABLED}}
         cmd: |
                 set -e
 
@@ -116,9 +124,14 @@ pods:
                 ./bootstrap
                 ARGS='-f'
 
-                if [ -n "$STATSD_UDP_HOST" ]; then
-                    ARGS="$ARGS -Dcassandra.metricsReporterConfigFile=metrics-reporter-config.yaml"
+                {{#PROMETHEUS_EXPORTER_ENABLED}}
+                echo 'JVM_OPTS="$JVM_OPTS -javaagent:$MESOS_SANDBOX/cassandra-exporter-agent-0.9.10.jar={{PROMETHEUS_EXPORTER_CONFIGURATION_OPTIONS}}"' >> apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-env.sh
+                {{/PROMETHEUS_EXPORTER_ENABLED}}
+                {{^PROMETHEUS_EXPORTER_ENABLED}}
+                if [ -n "$STATSD_UDP_HOST" ]; then	
+                    ARGS="$ARGS -Dcassandra.metricsReporterConfigFile=metrics-reporter-config.yaml"	
                 fi
+                {{/PROMETHEUS_EXPORTER_ENABLED}}
 
                 if [ "$CASSANDRA_USER" = "root" ]; then
                     ARGS="$ARGS -R"
@@ -155,9 +168,11 @@ pods:
           jvm:
             template: jvm_{{CASSANDRA_HEAP_GC}}.options
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/jvm.options
+          {{^PROMETHEUS_EXPORTER_ENABLED}}
           metrics:
-            template: metrics-reporter-config.yaml
+            template: metrics-reporter-config.yaml	
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/metrics-reporter-config.yaml
+          {{/PROMETHEUS_EXPORTER_ENABLED}}
           rack:
             template: cassandra-rackdc.properties
             dest: apache-cassandra-{{CASSANDRA_VERSION}}/conf/cassandra-rackdc.properties

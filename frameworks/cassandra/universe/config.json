@@ -1197,6 +1197,22 @@
           "type": "integer",
           "description": "Specifies how frequently the metrics plugin will push the values to the DC/OS StatsD endpoint. Consider increasing this value if you are having a large number of tables in your database.",
           "default": 1
+        },
+        "prometheus_exporter": {
+          "description": "Cassandra prometheus exporter configuration properties",
+          "type": "object",
+          "properties": {
+            "prometheus_exporter_enabled": {
+              "description": "By default, Prometheus exporter is enabled for Cassandra. Set to false to disable prometheus exporter and enable statsD",
+              "type": "boolean",
+              "default": true
+            },
+            "configuration_options": {
+              "description": "Command line arguments for exporter",
+              "type": "string",
+              "default": ""
+            }
+          }
         }
       },
       "additionalProperties": false,
