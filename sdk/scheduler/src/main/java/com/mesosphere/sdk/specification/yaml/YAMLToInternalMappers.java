@@ -86,7 +86,8 @@ import java.util.stream.IntStream;
 })
 public final class YAMLToInternalMappers {
 
-  private YAMLToInternalMappers() {}
+  private YAMLToInternalMappers() {
+  }
 
   private static final Logger LOGGER = LoggingUtils.getLogger(YAMLToInternalMappers.class);
 

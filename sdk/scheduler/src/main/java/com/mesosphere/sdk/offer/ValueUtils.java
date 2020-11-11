@@ -13,7 +13,8 @@ import java.util.List;
  * Utilities for manipulating Value protobufs.
  */
 public final class ValueUtils {
-  private ValueUtils() { }
+  private ValueUtils() {
+  }
 
   public static Value getValue(Resource resource) {
     Type type = resource.getType();

@@ -51,7 +51,8 @@ public final class Main {
 
   private static final String FRAMEWORK_GPUS_ENV_KEY = "FRAMEWORK_GPUS";
 
-  private Main() {}
+  private Main() {
+  }
 
   public static void main(String[] args) throws Exception {
     final EnvStore envStore = EnvStore.fromEnv();

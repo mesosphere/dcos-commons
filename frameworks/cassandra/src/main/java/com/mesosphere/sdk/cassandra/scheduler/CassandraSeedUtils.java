@@ -20,7 +20,8 @@ final class CassandraSeedUtils {
     SEEDS_COUNT = Integer.parseInt(seedsCount);
   }
 
-  private CassandraSeedUtils() {}
+  private CassandraSeedUtils() {
+  }
 
   /**
    * Returns the names the autoip based names of the Cassandra seed nodes based on the service name.
