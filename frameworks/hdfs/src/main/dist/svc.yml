@@ -10,6 +10,7 @@ pods:
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{KEYTAB_URI}}
+      - {{JMX_EXPORTER_JAR}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{JOURNAL_NODE_RLIMIT_NOFILE_SOFT}}
@@ -70,6 +71,7 @@ pods:
           export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-javaagent:./jmx_prometheus_javaagent-0.12.0.jar=19850:$MESOS_SANDBOX/hadoop-prometheus-config.yml $HADOOP_OPTS"
           ./bootstrap
           {{#SECURITY_KERBEROS_ENABLED}}
           # Fix keytab file due to bug in HDFS version 3.2.0. See HADOOP-16283 https://issues.apache.org/jira/browse/HADOOP-16283
@@ -92,6 +94,9 @@ pods:
           hadoop-metrics2:
             template: journal-hadoop-metrics2.properties
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          hadoop-prometheus-metrics:
+            template: hadoop-prometheus-config.yml
+            dest: hadoop-prometheus-config.yml
           {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           ssl-server:
             template: ssl-server.xml
@@ -127,6 +132,7 @@ pods:
               {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
               KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM
               {{/SECURITY_KERBEROS_ENABLED}}
+              export HADOOP_OPTS="-javaagent:./jmx_prometheus_javaagent-0.12.0.jar=19850:$MESOS_SANDBOX/hadoop-prometheus-config.yml $HADOOP_OPTS"
               # By doing a rollEdits, the name node flushes the edits to the journal nodes so that the standby
               # name node can read the latest edits. When a journal node restart, it will not resume processing
               # edits in its latest edits_inprogress and instead waits for the next segment to be opened. rollEdits
@@ -157,6 +163,7 @@ pods:
       - {{BOOTSTRAP_URI}}
       - {{ZONE_RESOLVER}}
       - {{KEYTAB_URI}}
+      - {{JMX_EXPORTER_JAR}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{NAME_NODE_RLIMIT_NOFILE_SOFT}}
@@ -211,7 +218,7 @@ pods:
           {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
-
+          export HADOOP_OPTS="-javaagent:./jmx_prometheus_javaagent-0.12.0.jar=19852:$MESOS_SANDBOX/hadoop-prometheus-config.yml $HADOOP_OPTS"
           if [[ $POD_INSTANCE_INDEX -eq 0 ]]; then
             export OTHER_NN_INDEX=1
           else
@@ -248,6 +255,7 @@ pods:
             {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
             KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM
             {{/SECURITY_KERBEROS_ENABLED}}
+            export HADOOP_OPTS="-javaagent:./jmx_prometheus_javaagent-0.12.0.jar=19852:$MESOS_SANDBOX/hadoop-prometheus-config.yml $HADOOP_OPTS"
             export service_state=$(./{{TASKCFG_ALL_HDFS_VERSION}}/bin/hdfs haadmin -getServiceState $TASK_NAME | grep -i 'standby')
             export LATEST_FSIMAGE_VERSION=-65
             export CURRENT_FSIMAGE_VERSION=$(grep "layoutVersion" name-data/current/VERSION | cut -d'=' -f2)
@@ -274,6 +282,9 @@ pods:
           hadoop-metrics2:
             template: name-hadoop-metrics2.properties
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          hadoop-prometheus-metrics:
+            template: hadoop-prometheus-config.yml
+            dest: hadoop-prometheus-config.yml
           {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           ssl-server:
             template: ssl-server.xml
@@ -463,6 +474,7 @@ pods:
       - {{HDFS_JAVA_URI}}
       - {{BOOTSTRAP_URI}}
       - {{KEYTAB_URI}}
+      - {{JMX_EXPORTER_JAR}}
     rlimits:
       RLIMIT_NOFILE:
         soft: {{DATA_NODE_RLIMIT_NOFILE_SOFT}}
@@ -491,6 +503,7 @@ pods:
           export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
           {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
           {{/SECURITY_KERBEROS_ENABLED}}
+          export HADOOP_OPTS="-javaagent:./jmx_prometheus_javaagent-0.12.0.jar=19851:$MESOS_SANDBOX/hadoop-prometheus-config.yml $HADOOP_OPTS"
           ./bootstrap
           {{#SECURITY_KERBEROS_ENABLED}}
           # Fix keytab file due to bug in HDFS version 3.2.0. See HADOOP-16283 https://issues.apache.org/jira/browse/HADOOP-16283
@@ -533,6 +546,9 @@ pods:
           hadoop-metrics2:
             template: data-hadoop-metrics2.properties
             dest: {{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/hadoop-metrics2.properties
+          hadoop-prometheus-metrics:
+            template: hadoop-prometheus-config.yml
+            dest: hadoop-prometheus-config.yml
           {{#SECURITY_TRANSPORT_ENCRYPTION_ENABLED}}
           ssl-server:
             template: ssl-server.xml
@@ -550,6 +566,7 @@ pods:
             {{#TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
             export HADOOP_OPTS="-Dsun.security.krb5.debug=true $HADOOP_OPTS"
             {{/TASKCFG_ALL_SECURITY_KERBEROS_DEBUG}}
+            export HADOOP_OPTS="-javaagent:./jmx_prometheus_javaagent-0.12.0.jar=19851:$MESOS_SANDBOX/hadoop-prometheus-config.yml $HADOOP_OPTS"
             KRB5_CONFIG=$MESOS_SANDBOX/{{TASKCFG_ALL_HDFS_VERSION}}/etc/hadoop/krb5.conf kinit -k -t $MESOS_SANDBOX/hdfs.keytab $SECURITY_KERBEROS_PRIMARY/$TASK_NAME.$FRAMEWORK_HOST@$SECURITY_KERBEROS_REALM
             {{/SECURITY_KERBEROS_ENABLED}}
             export TASK_IP=$(./bootstrap --get-task-ip)
