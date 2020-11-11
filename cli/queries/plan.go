@@ -171,6 +171,11 @@ func (q *Plan) Resume(planName, phase string) error {
 }
 
 func (q *Plan) Start(planName string, parameters []string) error {
+	// Reset plan state before issuing plan start
+	err := q.Stop(planName)
+	if err != nil {
+		return err
+	}
 	payload := []byte("{}")
 	if len(parameters) > 0 {
 		parameterPayload, err := getPlanParameterPayload(parameters)
