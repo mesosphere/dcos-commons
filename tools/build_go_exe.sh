@@ -63,6 +63,7 @@ case "$GO_VERSION" in
         ;;
 esac
 
+export GO111MODULE=off
 # create a fake gopath structure within the repo at ${REPO}/.gopath/
 export GOPATH=${REPO_ROOT_DIR}/.gopath
 
