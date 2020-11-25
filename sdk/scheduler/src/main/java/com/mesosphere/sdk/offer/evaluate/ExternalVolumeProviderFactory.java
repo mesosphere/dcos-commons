@@ -14,6 +14,7 @@ public final class ExternalVolumeProviderFactory {
   public static ExternalVolumeProvider getExternalVolumeProvider(
       String serviceName,
       Optional<String> volumeName,
+      Optional<String> containerPath,
       String driverName,
       String podType,
       int podIndex,
@@ -23,6 +24,7 @@ public final class ExternalVolumeProviderFactory {
       return new PortworxVolumeProvider(
           serviceName,
           volumeName,
+          containerPath,
           podType,
           podIndex,
           driverOptions);
@@ -30,6 +32,7 @@ public final class ExternalVolumeProviderFactory {
       return new GenericDockerVolumeProvider(
           serviceName,
           volumeName,
+          containerPath,
           podType,
           podIndex,
           driverOptions);
