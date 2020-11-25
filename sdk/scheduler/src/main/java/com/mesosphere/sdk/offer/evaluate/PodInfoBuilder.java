@@ -856,13 +856,27 @@ public class PodInfoBuilder {
   {
     Collection<Protos.Volume> volumes = new ArrayList<>();
 
+    // Determine if we have multiple container-paths within a pod.
+    boolean hasMultipleContainerPaths = externalVolumeSpecs.stream()
+            .filter(volume -> volume.getType() == ExternalVolumeSpec.Type.DOCKER)
+            .map(volume -> volume.getContainerPath())
+            .collect(Collectors.toSet())
+            .size() > 1;
+
     for (ExternalVolumeSpec volume : externalVolumeSpecs) {
       if (volume.getType() == ExternalVolumeSpec.Type.DOCKER) {
         DockerVolumeSpec dockerVolume = (DockerVolumeSpec) volume;
 
+        Optional<String> containerPath;
+        if (hasMultipleContainerPaths)
+          containerPath = Optional.of(dockerVolume.getContainerPath());
+        else
+          containerPath = Optional.empty();
+
         ExternalVolumeProvider volumeProvider = ExternalVolumeProviderFactory.getExternalVolumeProvider(
             serviceName,
             dockerVolume.getVolumeName(),
+            containerPath,
             dockerVolume.getDriverName(),
             podType,
             podIndex,

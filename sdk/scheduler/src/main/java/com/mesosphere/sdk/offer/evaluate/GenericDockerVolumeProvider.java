@@ -17,6 +17,7 @@ public class GenericDockerVolumeProvider implements ExternalVolumeProvider {
   public GenericDockerVolumeProvider(
       String serviceName,
       Optional<String> providedVolumeName,
+      Optional<String> containerPath,
       String podType,
       int podIndex,
       Map<String, String> driverOptions)
@@ -27,6 +28,9 @@ public class GenericDockerVolumeProvider implements ExternalVolumeProvider {
       volumeNameUnescaped = providedVolumeName.get();
     } else {
       volumeNameUnescaped = providedVolumeName.filter(name -> !name.isEmpty()).orElse(serviceName) + '_' + podType;
+      if (containerPath.isPresent()) {
+        volumeNameUnescaped = volumeNameUnescaped + '-' + containerPath.get();
+      }
     }
 
     String volumeNameEscaped = SchedulerUtils.withEscapedSlashes(volumeNameUnescaped);
