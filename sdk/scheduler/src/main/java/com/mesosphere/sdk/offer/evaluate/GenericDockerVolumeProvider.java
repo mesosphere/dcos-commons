@@ -29,7 +29,7 @@ public class GenericDockerVolumeProvider implements ExternalVolumeProvider {
     } else {
       volumeNameUnescaped = providedVolumeName.filter(name -> !name.isEmpty()).orElse(serviceName) + '_' + podType;
       if (containerPath.isPresent()) {
-        volumeNameUnescaped = volumeNameUnescaped + '-' + containerPath.get();
+        volumeNameUnescaped = volumeNameUnescaped + '_' + containerPath.get();
       }
     }
 
