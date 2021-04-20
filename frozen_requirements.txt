@@ -84,7 +84,7 @@ pkginfo==1.2.1
 pluggy==0.8.1
 pre-commit==1.16.1
 prettytable==0.7.2
-py==1.7.0
+py==1.10.0
 pyasn1==0.4.5
 pyasn1-modules==0.2.3
 pycairo==1.11.1
