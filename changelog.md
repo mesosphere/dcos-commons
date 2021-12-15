@@ -1,5 +1,9 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.57.0.post1
+
+- Bump Log4J to 2.16.0 to mitigate CVE-2021-44228
+
 ## Changes to v0.57.0
 
 - [DCOS-55542](https://jira.mesosphere.com/browse/DCOS-55542) SDK Shared Memory Support (#3132)
