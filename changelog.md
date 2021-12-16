@@ -1,5 +1,9 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.57.3.patch1
++
++- Bump Log4J to 2.16.0 to mitigate CVE-2021-44228
+
 ## Changes to v0.57.3
 
 - [#3215](https://github.com/mesosphere/dcos-commons/pull/3215) Quota - Framework Uninstall Fixes.
