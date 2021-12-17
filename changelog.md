@@ -3,6 +3,7 @@
 ## Changes to v0.56.0.patch1
 
 - Bump Log4J to 2.16.0 to mitigate CVE-2021-44228.
+- Use release version of mesos:1.8.0 instead of SNAPSHOT.
 
 ## Changes to v0.56.0
 
