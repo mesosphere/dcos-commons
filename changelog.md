@@ -1,3 +1,6 @@
+## Changes to v0.58.0.patch1
+- - Bump Log4J to 2.16.0 to mitigate CVE-2021-44228
+
 ## Changes to v0.58.0-rc4
 - Converts NetApp driver to Generic Driver (no driver name needed ``).
 - Adds test harness support for external volumes.
