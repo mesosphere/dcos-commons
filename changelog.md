@@ -1,5 +1,9 @@
 ## Changes to v0.5x.y
 
+## Changes to v0.56.0.patch1
+
+- Bump Log4J to 2.16.0 to mitigate CVE-2021-44228.
+
 ## Changes to v0.56.0
 
 - [DCOS-49197](https://jira.mesosphere.com/browse/DCOS-49197) Introduce new service status codes.
