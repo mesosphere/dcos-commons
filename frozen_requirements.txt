@@ -94,7 +94,7 @@ pyflakes==2.1.1
 Pygments==2.7.2
 PyGObject==3.38.0
 PyInstaller==3.3
-PyJWT==1.7.1
+PyJWT==2.4.0
 pylint==2.3.1
 PyNaCl==1.4.0
 pytest==4.1.0
