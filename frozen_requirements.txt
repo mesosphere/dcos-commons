@@ -37,7 +37,7 @@ boto3==1.16.9
 botocore==1.19.9
 cachetools==3.0.0
 Cerberus==1.3.2
-certifi==2018.11.29
+certifi==2023.7.22
 cffi==1.14.2
 cfgv==1.5.0
 chardet==3.0.4
