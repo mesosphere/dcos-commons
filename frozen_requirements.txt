@@ -32,7 +32,7 @@ azure-monitor==0.3.1
 azure-nspkg==3.0.2
 azure-storage==0.36.0
 bcrypt==3.1.7
-black==18.9b0
+black==24.3.0
 boto3==1.16.9
 botocore==1.19.9
 cachetools==3.0.0
